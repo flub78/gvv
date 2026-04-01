@@ -733,7 +733,6 @@ class Paiements_en_ligne_model extends CI_Model {
 
         switch ($type) {
             case 'provisionnement':
-            case 'credit_tresorier':
                 return $this->_ecriture_provisionnement(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
@@ -764,7 +763,7 @@ class Paiements_en_ligne_model extends CI_Model {
 
     // ── Écritures par type ────────────────────────────────────────────────────
 
-    /** provisionnement / credit_tresorier : débit 467, crédit 411 pilote */
+    /** provisionnement : débit 467, crédit 411 pilote */
     private function _ecriture_provisionnement($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
     {
         $cp = $this->_get_compte_passage($club_id);

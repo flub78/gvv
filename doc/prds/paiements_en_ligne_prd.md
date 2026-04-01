@@ -341,35 +341,6 @@ Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un
 - Le flux cotisation via trésorier ne propose pas d'écran QR dédié ; le paiement est direct sur le poste courant
 
 ---
-
-### UC7 : Règlement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
-
-**Contexte :**
-Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de règlement de compte (`compta/reglement_pilote`).
-
-**Flux :**
-1. Le trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard)
-2. Deux boutons sont présents en bas du formulaire :
-   - **"Valider"** (comportement habituel, paiement classique)
-   - **"Payer par carte (HelloAsso)"** (visible uniquement si HelloAsso activé et utilisateur dans `dev_users`)
-3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
-   - Le compte pilote (compte2, 411) et le montant sont lus depuis le formulaire
-   - Le login du pilote est résolu depuis l'ID du compte 411
-    - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
-    - Il peut **transférer le contrôle au porteur de la carte** via un petit QR code ouvrant la même page de paiement sur téléphone
-4. Après confirmation du paiement par HelloAsso (succès) :
-   - L'écriture de règlement est créée automatiquement
-   - Le compte pilote est débité du montant payé par carte
-5. En cas d'échec du paiement HelloAsso :
-   - Aucune écriture n'est créée
-   - Le trésorier est redirigé vers `reglement_pilote` avec un message d'erreur
-
-**Règles Métier :**
-- La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
-- En cas d'échec HelloAsso, aucun impact sur la comptabilité
-- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
-- Le QR code de transfert n'est affiché que si le paiement n'est pas initié par l'utilisateur payeur lui-même
-
 ---
 
 ## 5. Exigences Fonctionnelles

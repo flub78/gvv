@@ -233,23 +233,6 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertStringStartsWith('HelloAsso:', $ecriture['num_cheque']);
     }
 
-    public function testCreditTresorierSameAsProvisionnement()
-    {
-        // credit_tresorier utilise exactement la même logique comptable que provisionnement
-        $txid = $this->createPendingTransaction('credit_tresorier');
-        $payload = $this->buildOrderPayload($txid, 'credit_tresorier');
-
-        $result = $this->model->process_order_event($payload, self::$club_id);
-
-        $this->assertTrue($result['ok'], $result['error'] ?? '');
-        $this->assertEquals('completed', $result['status']);
-        $this->created_ecriture_ids[] = $result['ecriture_id'];
-
-        $ecriture = $this->db->where('id', $result['ecriture_id'])->get('ecritures')->row_array();
-        $this->assertEquals(self::$compte_passage_id, (int) $ecriture['compte1']);
-        $this->assertEquals(self::$compte_pilote_id,  (int) $ecriture['compte2']);
-    }
-
     public function testResolveClubIdFromOrderDataByTransactionId()
     {
         $txid = $this->createPendingTransaction('provisionnement');

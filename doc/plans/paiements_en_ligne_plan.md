@@ -52,7 +52,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ✅ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
 | 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
-| 13 | UC7 | Approvisionnement compte pilote par CB via trésorier | HAUTE | ✅ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ✅ |
@@ -255,11 +254,11 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
    - `type=cotisation` : écriture compte cotisation 417
    - `type=decouverte` : écriture recette bon de découverte
    - `type=cotisation_tresorier` : deux écritures atomiques — écriture cotisation (débit compte pilote, crédit cotisation) + approvisionnement compte pilote (débit compte de passage 467, crédit compte pilote 411) → solde net pilote inchangé
-   - `type=credit_tresorier` : crédit compte pilote 411, débit compte de passage 467 (identique à `provisionnement` mais initié par le trésorier)
 8. Mettre à jour la transaction : statut `completed`, `ecriture_id`, `date_paiement`, `metadata` complète
 9. Log `STATUS=SUCCESS montant=X`
 10. Envoyer email de confirmation
 11. Retourner HTTP 200
+- Aucun écran QR de transfert pour UC6 (réservé à UC4)
 
 **Validation :**
 - Test PHPUnit : webhook valide `type=provisionnement` → écriture créée, transaction `completed`
@@ -436,7 +435,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Les deux écritures (cotisation + approvisionnement) sont créées dans une seule transaction DB — tout ou rien
 - Vérification section active (`_require_active_section()`) avant création du checkout
 - Accès réservé aux rôles `tresorier`, `bureau`, `admin`
-- Aucun écran QR de transfert pour UC6 (réservé à UC4 et UC7)
+- Aucun écran QR de transfert pour UC6 (réservé à UC4)
 
 **Validation :** ✅
 - ✅ Test PHPUnit `PaiementsEnLigneCotisationTest` (2 tests) : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
@@ -451,45 +450,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_cotisation_*`
 - `application/tests/mysql/PaiementsEnLigneCotisationTest.php`
 - `playwright/tests/paiements-en-ligne-uc6-cotisation.spec.js`
-
----
-
-## Étape 13 : Règlement compte pilote par CB via trésorier (UC7)
-
-**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire `compta/reglement_pilote`, à côté du bouton "Valider" habituel.
-
-**Prérequis :** Étapes 4, 5, 6, 7 complétées.
-
-**Visibilité :** Le bouton HelloAsso n'est visible que pour les utilisateurs listés dans `dev_users` tant que la fonctionnalité n'est pas validée pour la mise en production générale.
-
-**Flux :**
-1. Trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard de règlement)
-2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
-3. Si "Payer par carte" :
-   - Le compte2 (411 pilote) et le montant sont lus depuis le formulaire
-   - Le login pilote est résolu depuis l'ID du compte 411
-   - Création d'une transaction `pending` avec `metadata.type=credit_tresorier`
-   - Checkout HelloAsso + écran intermédiaire avec lien direct et **petit QR de transfert de contrôle** → paiement → webhook → handler étape 7 → écriture de règlement
-4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur flashdata, retour sur reglement_pilote
-
-**Règles :**
-- La transaction est atomique : écriture créée uniquement si paiement HelloAsso confirmé
-- Accès réservé aux rôles `tresorier`, `bureau`, `admin`
-- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
-- Le petit QR de transfert n'est pas affiché si le paiement est initié par le payeur lui-même
-
-**Validation :** ✅
-- ✅ Test PHPUnit `PaiementsEnLigneCreditTest` (2 tests) : webhook `type=credit_tresorier` → écriture créée, solde pilote augmenté du montant
-- ✅ Test Playwright `paiements-en-ligne-uc7-credit.spec.js` (4 tests) : accès pilote refusé, trésorier accède au formulaire, bouton HelloAsso absent pour non-dev_user, QR avec txid invalide redirige
-
-**Fichiers :**
-- `application/controllers/compta.php` : `reglement_pilote()`, `_initiate_reglement_helloasso()`, `_initiate_credit_helloasso()`
-- `application/controllers/paiements_en_ligne.php` : `credit_qr()`, `credit_qr_image()`
-- `application/views/compta/bs_formView.php` : bouton CB conditionnel
-- `application/views/paiements_en_ligne/bs_credit_qr.php` : page QR code intermédiaire
-- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_credit_tresorier_*`, `gvv_credit_qr_*`
-- `application/tests/mysql/PaiementsEnLigneCreditTest.php`
-- `playwright/tests/paiements-en-ligne-uc7-credit.spec.js`
 
 ---
 
@@ -609,7 +569,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC1 paiement bar par carte (EF2 → confirmation)
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : EF1 provisionnement pilote (EF1 → EF2 → EF3)
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC6 cotisation via trésorier CB → deux écritures, solde pilote inchangé
-- [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC7 crédit compte pilote via trésorier CB → écriture créée
 - [ ] Vérification visibilité `dev_users` : boutons HelloAsso absents pour utilisateur ordinaire, présents pour `dev_users`
 - [ ] Test Playwright smoke : accès liste trésorier (EF4)
 - [ ] Test Playwright smoke : page config admin (EF5)

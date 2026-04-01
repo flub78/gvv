@@ -115,14 +115,6 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
                 $buttons_html = str_replace('<table>', '<table class="gvv-inline-buttons-table">', $buttons_html);
                 echo '<div class="gvv-inline-buttons-row">';
                 echo $buttons_html;
-                // Payer par CB (HelloAsso) — visible uniquement depuis reglement_pilote (UC7)
-                if (!empty($helloasso_enabled) && !empty($is_dev_authorized)) {
-                    $this->lang->load('paiements_en_ligne');
-                    echo '<button type="submit" name="button" value="helloasso" class="btn btn-warning mt-3">';
-                    echo '<i class="fas fa-credit-card"></i> ';
-                    echo $this->lang->line('gvv_credit_tresorier_button');
-                    echo '</button>';
-                }
                 echo '</div>';
             }
         }

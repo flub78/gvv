@@ -141,26 +141,6 @@ $lang['gvv_cotisation_qr_direct_button']       = "HelloAsso openen";
 $lang['gvv_cotisation_qr_back']                = "Terug naar contributieformulier";
 $lang['gvv_cotisation_qr_url_missing']         = "Betaal-URL niet beschikbaar. Neem contact op met de beheerder.";
 
-// Pilotenrekening opladen via penningmeester (UC7)
-$lang['gvv_credit_tresorier_title']             = "Pilotenrekening opladen per kaart";
-$lang['gvv_credit_tresorier_intro']             = "Selecteer de piloot en het bedrag, kies daarna de betaalwijze.";
-$lang['gvv_credit_tresorier_button']            = "Betalen per kaart (HelloAsso)";
-$lang['gvv_credit_tresorier_error_user']        = "Piloot niet gevonden. Controleer de selectie.";
-$lang['gvv_credit_tresorier_error_tx']          = "Fout bij aanmaken van de transactie. Probeer opnieuw.";
-$lang['gvv_credit_tresorier_error_checkout']    = "Kan HelloAsso-betaling niet starten. Probeer opnieuw of valideer handmatig.";
-$lang['gvv_credit_tresorier_success']           = "Oplading van € %s geregistreerd voor piloot %s.";
-$lang['gvv_credit_qr_title']                    = "Pilotenrekening opladen per kaart — HelloAsso";
-$lang['gvv_credit_qr_intro']                    = "Gebruik directe betaling op dit toestel, of draag de invoer over aan de kaarthouder met de kleine QR-code.";
-$lang['gvv_credit_qr_scan_title']               = "Overzetten naar telefoon";
-$lang['gvv_credit_qr_scan_intro']               = "Kleine QR-code: de kaarthouder opent dezelfde HelloAsso-betaalpagina op zijn telefoon.";
-$lang['gvv_credit_qr_scan_unnecessary']         = "De betaling is gestart door dezelfde gebruiker: QR-overdracht is niet nodig.";
-$lang['gvv_credit_qr_direct_title']             = "Betalen op dit scherm";
-$lang['gvv_credit_qr_direct_intro']             = "Opent de HelloAsso-betaalpagina op dit toestel.";
-$lang['gvv_credit_qr_direct_button']            = "HelloAsso openen";
-$lang['gvv_credit_qr_back']                     = "Terug naar opladingsformulier";
-$lang['gvv_credit_qr_url_missing']              = "Betaal-URL niet beschikbaar. Neem contact op met de beheerder.";
-$lang['gvv_credit_tresorier_menu']              = "Pilotenrekening opladen (kaart)";
-
 // Trésorier lijst (EF4)
 $lang['gvv_liste_title']                    = "Online betalingen";
 $lang['gvv_liste_filter_from']              = "Van";

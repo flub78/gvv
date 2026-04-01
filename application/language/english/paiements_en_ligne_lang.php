@@ -141,26 +141,6 @@ $lang['gvv_cotisation_qr_direct_button']       = "Open HelloAsso";
 $lang['gvv_cotisation_qr_back']                = "Back to membership form";
 $lang['gvv_cotisation_qr_url_missing']         = "Payment URL not available. Contact your administrator.";
 
-// Pilot account top-up by card — treasurer (UC7)
-$lang['gvv_credit_tresorier_title']             = "Top up a pilot account by card";
-$lang['gvv_credit_tresorier_intro']             = "Select the pilot and amount, then choose the payment method.";
-$lang['gvv_credit_tresorier_button']            = "Pay by card (HelloAsso)";
-$lang['gvv_credit_tresorier_error_user']        = "Pilot not found. Please check the selection.";
-$lang['gvv_credit_tresorier_error_tx']          = "Error creating the transaction. Please try again.";
-$lang['gvv_credit_tresorier_error_checkout']    = "Unable to initiate HelloAsso payment. Please retry or validate manually.";
-$lang['gvv_credit_tresorier_success']           = "Top-up of €%s recorded for pilot %s.";
-$lang['gvv_credit_qr_title']                    = "Top up pilot account by card — HelloAsso";
-$lang['gvv_credit_qr_intro']                    = "Use direct payment on this device, or transfer data entry to the card holder using the small QR code.";
-$lang['gvv_credit_qr_scan_title']               = "Transfer to phone";
-$lang['gvv_credit_qr_scan_intro']               = "Small QR code: the card holder opens the same HelloAsso payment page on their phone.";
-$lang['gvv_credit_qr_scan_unnecessary']         = "Payment is initiated by the same user: QR transfer is not necessary.";
-$lang['gvv_credit_qr_direct_title']             = "Pay on this screen";
-$lang['gvv_credit_qr_direct_intro']             = "Opens the HelloAsso payment page on this device.";
-$lang['gvv_credit_qr_direct_button']            = "Open HelloAsso";
-$lang['gvv_credit_qr_back']                     = "Back to top-up form";
-$lang['gvv_credit_qr_url_missing']              = "Payment URL not available. Contact your administrator.";
-$lang['gvv_credit_tresorier_menu']              = "Top up pilot account (card)";
-
 // Treasurer list (EF4)
 $lang['gvv_liste_title']                    = "Online Payments";
 $lang['gvv_liste_filter_from']              = "From";
