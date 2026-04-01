@@ -1661,6 +1661,8 @@ class Paiements_en_ligne extends MY_Controller {
             : date('Y-m-d');
         $date_validite = date('Y-m-d', strtotime($date_vente . ' +1 year'));
         $year = (int) date('Y', strtotime($date_vente));
+        // Advisory lock prevents duplicate IDs under concurrent webhook deliveries
+        $this->db->query("SELECT GET_LOCK('vols_decouverte_id', 10)");
         $next_id = ((int) $this->vols_decouverte_model->highest_id_by_year($year)) + 1;
         $now = date('Y-m-d H:i:s');
 
@@ -1696,6 +1698,7 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         $ok = $this->db->insert('vols_decouverte', $insert);
+        $this->db->query("SELECT RELEASE_LOCK('vols_decouverte_id')");
         if (!$ok) {
             $this->helloasso->log('ERROR', $txid, 'webhook',
                 'decouverte: échec insertion bon découverte - ' . $this->db->_error_message());

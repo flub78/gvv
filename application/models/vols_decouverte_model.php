@@ -146,8 +146,10 @@ class Vols_decouverte_model extends Common_Model {
         $year = date('Y', strtotime($data['date_vente']));
 
         // les VD sont numérotés de façon croissante chaque année
+        // Advisory lock prevents duplicate IDs under concurrent requests
+        $this->db->query("SELECT GET_LOCK('vols_decouverte_id', 10)");
         $highest_id = $this->highest_id_by_year($year);
-        $data['id'] = $highest_id   + 1;
+        $data['id'] = $highest_id + 1;
 
         // Explicitly set timestamps to ensure they're always initialized
         $now = date('Y-m-d H:i:s');
@@ -155,6 +157,7 @@ class Vols_decouverte_model extends Common_Model {
         $data['updated_at'] = $now;
 
         parent::create($data);
+        $this->db->query("SELECT RELEASE_LOCK('vols_decouverte_id')");
     }
 
     /**
