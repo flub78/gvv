@@ -1,13 +1,18 @@
 /**
  * Playwright tests — Webhook HelloAsso (EF2)
  *
- * Tests HTTP sur l'endpoint public /paiements_en_ligne/helloasso_webhook :
+ * Tests HTTP sur l'endpoint public /paiements_en_ligne/helloasso_webhook/{club_id} :
  *  1. POST sans signature → HTTP 401
  *  2. POST avec signature invalide → HTTP 401
- *  3. POST avec eventType != 'Order' → HTTP 200 (ignoré silencieusement)
- *  4. POST sans gvv_transaction_id → HTTP 200 (ignoré silencieusement)
+ *  3. POST avec eventType != 'Order' + signature invalide → HTTP 401
+ *  4. POST avec JSON invalide + signature invalide → HTTP 401
  *  5. GET → HTTP 405 (Method Not Allowed)
  *  6. Endpoint accessible sans session (pas de redirection login)
+ *  7. POST sans club_id dans l'URL → HTTP 400
+ *
+ * Le club_id est désormais passé dans l'URL (source fiable), et la vérification
+ * HMAC est effectuée avant tout traitement du payload.
+ * Sans secret webhook configuré ou avec une signature invalide → 401 systématique.
  *
  * Tous ces tests ne déclenchent pas de vrai paiement HelloAsso.
  * Ils vérifient uniquement le comportement HTTP de l'endpoint.
@@ -18,11 +23,10 @@
  */
 
 const { test, expect } = require('@playwright/test');
-const crypto = require('crypto');
 
-const WEBHOOK_URL = '/index.php/paiements_en_ligne/helloasso_webhook';
+// club_id=1 (Section Planeur — section de test standard)
+const WEBHOOK_URL = '/index.php/paiements_en_ligne/helloasso_webhook/1';
 
-// Payload Order minimal valide (sans transaction connue en base → 200 silencieux)
 const MINIMAL_ORDER_PAYLOAD = JSON.stringify({
     eventType: 'Order',
     data: {
@@ -37,25 +41,20 @@ const MINIMAL_ORDER_PAYLOAD = JSON.stringify({
 test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
 
     // ── 1. Signature manquante → 401 ─────────────────────────────────────────
+    // club_id est dans l'URL (fiable) ; HMAC vérifié avant tout traitement
 
     test('POST without X-Ha-Signature returns 401', async ({ request }) => {
         const response = await request.post(WEBHOOK_URL, {
             headers: { 'Content-Type': 'application/json' },
             data: MINIMAL_ORDER_PAYLOAD,
         });
-        // 200 si transaction inconnue (can't verify club), 401 if club found but sig missing
-        // With a nonexistent transaction, we expect 200 (can't determine club → silently ignore)
-        // To get 401, we need a known transaction with a configured webhook_secret.
-        // This test verifies endpoint is reachable without session and returns non-redirect.
-        expect([200, 401]).toContain(response.status());
+        expect(response.status()).toBe(401);
         expect(response.url()).not.toContain('/auth/login');
     });
 
-    // ── 2. Signature invalide avec transaction connue → 401 ──────────────────
-    // (Nécessite une transaction en base + webhook_secret configuré ;
-    //  si non disponible en env de test, le test vérifie seulement le comportement 200)
+    // ── 2. Signature invalide → 401 ──────────────────────────────────────────
 
-    test('POST with invalid signature returns 401 or 200 (no redirect to login)', async ({ request }) => {
+    test('POST with invalid X-Ha-Signature returns 401', async ({ request }) => {
         const payload = JSON.stringify({
             eventType: 'Order',
             data: {
@@ -75,15 +74,14 @@ test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
             data: payload,
         });
 
-        // Pas de redirection vers login (endpoint public)
+        expect(response.status()).toBe(401);
         expect(response.url()).not.toContain('/auth/login');
-        // Doit retourner 200 (transaction inconnue → silencieux) ou 401 (sig invalide)
-        expect([200, 401]).toContain(response.status());
     });
 
-    // ── 3. eventType != 'Order' → 200 silencieux ────────────────────────────
+    // ── 3. eventType != 'Order' + signature invalide → 401 ──────────────────
+    // La vérification HMAC précède le filtrage par eventType
 
-    test('POST with non-Order eventType returns 200', async ({ request }) => {
+    test('POST with non-Order eventType and invalid signature returns 401', async ({ request }) => {
         const payload = JSON.stringify({
             eventType: 'Payment',
             data: { id: 12345 },
@@ -94,12 +92,10 @@ test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
             data: payload,
         });
 
-        expect(response.status()).toBe(200);
-        const body = await response.text();
-        expect(body).toBe('OK');
+        expect(response.status()).toBe(401);
     });
 
-    test('POST with Form eventType returns 200', async ({ request }) => {
+    test('POST with Form eventType and invalid signature returns 401', async ({ request }) => {
         const payload = JSON.stringify({
             eventType: 'Form',
             data: {},
@@ -110,18 +106,19 @@ test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
             data: payload,
         });
 
-        expect(response.status()).toBe(200);
+        expect(response.status()).toBe(401);
     });
 
-    // ── 4. JSON invalide → 200 silencieux ────────────────────────────────────
+    // ── 4. JSON invalide + signature invalide → 401 ──────────────────────────
+    // La vérification HMAC précède le décodage JSON
 
-    test('POST with invalid JSON returns 200', async ({ request }) => {
+    test('POST with invalid JSON and invalid signature returns 401', async ({ request }) => {
         const response = await request.post(WEBHOOK_URL, {
             headers: { 'Content-Type': 'application/json' },
             data: 'not valid json {{{',
         });
 
-        expect(response.status()).toBe(200);
+        expect(response.status()).toBe(401);
     });
 
     // ── 5. GET → 405 ─────────────────────────────────────────────────────────
@@ -133,8 +130,7 @@ test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
 
     // ── 6. Accessible sans session (pas de redirection login) ────────────────
 
-    test('POST is accessible without session — no redirect to login', async ({ page }) => {
-        // S'assurer qu'il n'y a pas de session active
+    test('POST is accessible without session — returns 401 not login redirect', async ({ page }) => {
         await page.goto('/index.php/auth/logout');
         await page.waitForLoadState('domcontentloaded');
 
@@ -143,29 +139,23 @@ test.describe('EF2 — Webhook HelloAsso HTTP behavior', () => {
             data: JSON.stringify({ eventType: 'Payment', data: {} }),
         });
 
-        // Pas de redirection vers login
+        // Endpoint public : pas de redirection vers /auth/login
         expect(response.url()).not.toContain('/auth/login');
-        expect([200, 401, 405]).toContain(response.status());
+        // Signature invalide → 401, pas de session → ne doit pas être 302 vers login
+        expect([401, 405]).toContain(response.status());
     });
 
-    // ── 7. gvv_transaction_id absent → 200 silencieux ────────────────────────
+    // ── 7. Pas de club_id dans l'URL → 400 ───────────────────────────────────
 
-    test('POST Order without gvv_transaction_id in metadata returns 200', async ({ request }) => {
-        const payload = JSON.stringify({
-            eventType: 'Order',
-            data: {
-                metadata: { type: 'provisionnement' }, // pas de gvv_transaction_id
-                payments: [{ state: 'Authorized', amount: 1000 }],
-            },
-        });
-
-        const response = await request.post(WEBHOOK_URL, {
-            headers: { 'Content-Type': 'application/json' },
-            data: payload,
-        });
-
-        // Transaction introuvable → club_id=0 → silencieux
-        expect(response.status()).toBe(200);
+    test('POST without club_id in URL returns 400', async ({ request }) => {
+        const response = await request.post(
+            '/index.php/paiements_en_ligne/helloasso_webhook',
+            {
+                headers: { 'Content-Type': 'application/json' },
+                data: MINIMAL_ORDER_PAYLOAD,
+            }
+        );
+        expect(response.status()).toBe(400);
     });
 
 });
