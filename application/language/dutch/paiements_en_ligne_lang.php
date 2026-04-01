@@ -74,6 +74,7 @@ $lang['gvv_admin_config_webhook_url_help']  = "Kopieer deze URL naar uw HelloAss
 $lang['gvv_admin_config_test_btn']          = "Verbinding testen";
 $lang['gvv_admin_config_test_ok']           = "HelloAsso-verbinding succesvol tot stand gebracht.";
 $lang['gvv_admin_config_test_fail']         = "HelloAsso-verbinding mislukt. Controleer uw inloggegevens.";
+$lang['gvv_admin_config_error_crypto_key']  = "Configuratiefout: coderingssleutel niet gedefinieerd.";
 $lang['gvv_admin_config_test_pending']      = "Testen…";
 $lang['gvv_admin_config_test_error']        = "Netwerkfout tijdens de test.";
 $lang['gvv_admin_config_bar_title']         = "Bar Configuratie";

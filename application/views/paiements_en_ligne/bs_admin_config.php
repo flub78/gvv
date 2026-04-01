@@ -235,7 +235,13 @@ function testConnexion() {
     fetch('<?= site_url('paiements_en_ligne/test_connexion') ?>', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'club_id=<?= $club_id ?>&<?= $this->security->get_csrf_token_name() ?>=<?= $this->security->get_csrf_hash() ?>'
+        body: new URLSearchParams({
+            club_id:     '<?= $club_id ?>',
+            client_id:   document.querySelector('input[name="client_id"]').value,
+            client_secret: document.getElementById('client_secret').value,
+            environment: document.querySelector('select[name="environment"]').value,
+            '<?= $this->security->get_csrf_token_name() ?>': '<?= $this->security->get_csrf_hash() ?>'
+        }).toString()
     })
     .then(r => r.json())
     .then(data => {

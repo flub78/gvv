@@ -118,6 +118,48 @@ class Helloasso {
     }
 
     /**
+     * Obtient un token OAuth2 avec des crédentiels fournis directement (sans passer par la DB).
+     * Utilisé par le test de connexion avant la première sauvegarde.
+     *
+     * @param  string      $client_id
+     * @param  string      $client_secret
+     * @param  string      $environment  'sandbox' ou 'production'
+     * @return string|FALSE  Token d'accès, ou FALSE en cas d'échec
+     */
+    public function get_oauth_token_with_credentials($client_id, $client_secret, $environment = 'sandbox')
+    {
+        $token_url = isset(self::$_TOKEN_URLS[$environment])
+            ? self::$_TOKEN_URLS[$environment]
+            : self::$_TOKEN_URLS['sandbox'];
+
+        $this->log('INFO', 'none', 'oauth',
+            'Requesting token (form) env=' . $environment
+            . ' client_id=' . $client_id
+            . ' client_secret=***'
+        );
+
+        $response = $this->_http_post_form($token_url, array(
+            'grant_type'    => 'client_credentials',
+            'client_id'     => $client_id,
+            'client_secret' => $client_secret,
+        ));
+
+        if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
+            $data = json_decode($response['body'], TRUE);
+            if (isset($data['access_token'])) {
+                $this->log('INFO', 'none', 'oauth', 'STATUS=SUCCESS token obtained (form)');
+                return $data['access_token'];
+            }
+        }
+
+        $this->log('ERROR', 'none', 'oauth',
+            'STATUS=FAILED http_code=' . $response['http_code']
+            . ' body=' . $response['body']
+        );
+        return FALSE;
+    }
+
+    /**
      * Crée un checkout-intent HelloAsso et retourne l'URL de redirection.
      *
      * Paramètres $params :
