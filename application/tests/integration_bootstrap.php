@@ -71,6 +71,27 @@ class RealDatabase {
         $this->conn_id = $this->connection;
     }
     
+    public function trans_begin() {
+        // Manual transaction start (CI's trans_begin vs automatic trans_start)
+        $this->connection->autocommit(FALSE);
+        $this->connection->query('START TRANSACTION');
+        $this->transaction_started = true;
+        $this->_trans_depth = 1;
+        $this->_trans_status = TRUE;
+        return true;
+    }
+
+    public function trans_commit() {
+        // Manual transaction commit
+        if ($this->transaction_started) {
+            $this->connection->commit();
+            $this->connection->autocommit(TRUE);
+            $this->transaction_started = false;
+            $this->_trans_depth = 0;
+        }
+        return true;
+    }
+
     public function trans_start() {
         // Mimic CodeIgniter's nested transaction handling
         if ($this->_trans_depth > 0) {
@@ -552,6 +573,14 @@ class RealDatabase {
      * @param string $table_name
      * @return bool
      */
+    public function protect_identifiers($item) {
+        // Wrap identifier in backticks, handling db.table notation
+        $parts = explode('.', $item);
+        return implode('.', array_map(function($p) {
+            return '`' . str_replace('`', '``', trim($p, '`')) . '`';
+        }, $parts));
+    }
+
     public function table_exists($table_name) {
         $sql = "SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->escape_str($table_name) . "'";
         $result = $this->query($sql);
