@@ -1293,13 +1293,15 @@ class Paiements_en_ligne extends MY_Controller {
     /**
      * Webhook HelloAsso — POST serveur-à-serveur, sans session.
      *
+     * L'URL doit inclure le club_id : paiements_en_ligne/helloasso_webhook/{club_id}
+     * Ce club_id provient de l'URL (source fiable), pas du payload (contrôlé par l'appelant).
+     *
      * Algorithme :
      *  1. Vérifier que la méthode HTTP est POST
-     *  2. Lire le payload brut et le header X-Ha-Signature
-     *  3. Décoder JSON — ignorer silencieusement tout eventType != 'Order'
-     *  4. Extraire gvv_transaction_id pour déterminer le club_id (la signature
-     *     est propre à chaque section)
-     *  5. Vérifier HMAC-SHA256 — HTTP 401 si invalide
+     *  2. Valider club_id (paramètre URL)
+     *  3. Lire le payload brut et le header X-Ha-Signature
+     *  4. Vérifier HMAC-SHA256 — HTTP 401 si invalide
+     *  5. Décoder JSON — ignorer silencieusement tout eventType != 'Order'
      *  6. Déléguer au modèle : idempotence, payment state, écritures, mise à jour
      *  7. Logger le résultat, envoyer un email de confirmation si completed
      *  8. Retourner HTTP 200
@@ -1307,8 +1309,10 @@ class Paiements_en_ligne extends MY_Controller {
      * Retourne toujours HTTP 200 (sauf 401 sig invalide) pour éviter les retries HA
      * sur des erreurs de configuration permanentes.
      */
-    public function helloasso_webhook()
+    public function helloasso_webhook($club_id = 0)
     {
+        $club_id = (int) $club_id;
+
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
             $this->output->set_status_header(405);
             $this->output->set_content_type('text/plain');
@@ -1316,8 +1320,27 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        if (!$club_id) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'club_id manquant dans l\'URL — utiliser paiements_en_ligne/helloasso_webhook/{club_id}');
+            $this->output->set_status_header(400);
+            $this->output->set_content_type('text/plain');
+            $this->output->set_output('Bad Request');
+            return;
+        }
+
         $raw_body  = (string) file_get_contents('php://input');
         $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
+
+        // ── Vérifier la signature HMAC-SHA256 avant tout traitement du payload ──
+        if (!$this->helloasso->verify_webhook_signature($raw_body, $signature, $club_id)) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'STATUS=REJECTED signature HMAC invalide club=' . $club_id);
+            $this->output->set_status_header(401);
+            $this->output->set_content_type('text/plain');
+            $this->output->set_output('Unauthorized');
+            return;
+        }
 
         // ── Décoder JSON ────────────────────────────────────────────────────
         $event = json_decode($raw_body, true);
@@ -1335,33 +1358,11 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         $order_data = isset($event['data']) ? $event['data'] : array();
-
-        // ── Déterminer club_id pour la vérification de signature ────────────
         $gvv_txid   = $this->_extract_gvv_txid($order_data);
-        $transaction = $gvv_txid
-            ? $this->paiements_en_ligne_model->get_by_transaction_id($gvv_txid)
-            : null;
-        $club_id = ($transaction && isset($transaction['club'])) ? (int) $transaction['club'] : 0;
-
-        if (!$club_id) {
-            $this->helloasso->log('ERROR', $gvv_txid ?: 'none', 'webhook',
-                'club_id indéterminable — transaction introuvable pour txid=' . ($gvv_txid ?: 'none'));
-            $this->_webhook_respond_ok();
-            return;
-        }
-
-        // ── Vérifier la signature HMAC-SHA256 ───────────────────────────────
-        if (!$this->helloasso->verify_webhook_signature($raw_body, $signature, $club_id)) {
-            $this->helloasso->log('ERROR', $gvv_txid, 'webhook',
-                'STATUS=REJECTED signature HMAC invalide club=' . $club_id);
-            $this->output->set_status_header(401);
-            $this->output->set_content_type('text/plain');
-            $this->output->set_output('Unauthorized');
-            return;
-        }
 
         // ── Traiter l'événement ─────────────────────────────────────────────
         $result = $this->paiements_en_ligne_model->process_order_event($order_data, $club_id);
+        $transaction = isset($result['transaction']) ? $result['transaction'] : array();
 
         switch ($result['status']) {
 
@@ -1957,7 +1958,7 @@ class Paiements_en_ligne extends MY_Controller {
             'club_id'              => $club_id,
             'cfg'                  => $cfg,
             'section_row'          => $section_row,
-            'webhook_url'          => site_url('paiements_en_ligne/webhook'),
+            'webhook_url'          => site_url('paiements_en_ligne/helloasso_webhook/' . $club_id),
             'success'              => $this->session->flashdata('success'),
             'error'                => $this->session->flashdata('error'),
         );
