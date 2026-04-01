@@ -650,6 +650,33 @@ class Paiements_en_ligne_model extends CI_Model {
             ->count_all_results($this->table);
     }
 
+    /**
+     * Valide le montant d'une demande de provisionnement.
+     *
+     * Règles :
+     * - doit être un entier strictement positif
+     * - doit être un multiple de 100
+     * - ne doit pas dépasser $montant_max
+     *
+     * @param  int   $montant     Montant en euros (entier)
+     * @param  float $montant_max Plafond configuré pour la section
+     * @return string[]           Tableau d'erreurs (vide si valide)
+     */
+    public function validate_demande_montant($montant, $montant_max)
+    {
+        $errors = array();
+        $CI     = get_instance();
+
+        if ($montant <= 0 || $montant % 100 !== 0) {
+            $errors[] = $CI->lang->line('gvv_provision_error_montant_multiple');
+        } elseif ($montant > $montant_max) {
+            $errors[] = sprintf($CI->lang->line('gvv_provision_error_montant_max'),
+                number_format($montant_max, 0, ',', ' '));
+        }
+
+        return $errors;
+    }
+
     public function get_config($plateforme, $key, $club_id) {
         $row = $this->db
             ->select('param_value')

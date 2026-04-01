@@ -4,12 +4,11 @@
  * PHPUnit Tests — Paiements en ligne : provisionnement compte pilote (EF1)
  *
  * Teste :
- * - Validation montant hors limites min/max
+ * - validate_demande_montant() : multiples de 100, plafond, zéro
  * - Garde section "Toutes" (id=0)
  * - count_pending_today() : comptage correct, filtre statut, filtre date
  * - Limite 5 transactions pending/jour
  *
- * @covers Paiements_en_ligne::demande
  * @see application/controllers/paiements_en_ligne.php
  * @see application/models/paiements_en_ligne_model.php
  */
@@ -47,33 +46,37 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     }
 
     // -------------------------------------------------------------------------
-    // Validation montant
+    // Validation montant via le modèle
     // -------------------------------------------------------------------------
 
     public function testMontantNonMultipleDe100EstRefuse() {
-        // Seuls les multiples de 100 sont acceptés
-        $this->assertNotEquals(0, 150 % 100, '150 n\'est pas un multiple de 100');
-        $this->assertNotEquals(0, 50 % 100,  '50 n\'est pas un multiple de 100');
-        $this->assertNotEquals(0, 0 % 100 === 0 && 0 <= 0 ? 1 : 0, '0 doit être refusé');
+        $errors = $this->model->validate_demande_montant(150, 500);
+        $this->assertNotEmpty($errors, '150 n\'est pas un multiple de 100 : doit être refusé');
+
+        $errors = $this->model->validate_demande_montant(50, 500);
+        $this->assertNotEmpty($errors, '50 n\'est pas un multiple de 100 : doit être refusé');
     }
 
     public function testMontantMultipleDe100EstAccepte() {
         foreach (array(100, 200, 300, 400, 500) as $montant) {
-            $this->assertEquals(0, $montant % 100, "$montant est un multiple de 100");
-            $this->assertGreaterThan(0, $montant, "$montant est positif");
+            $errors = $this->model->validate_demande_montant($montant, 500);
+            $this->assertEmpty($errors, "$montant € est valide et ne doit générer aucune erreur");
         }
     }
 
     public function testMontantAuDessusMaximumEstRefuse() {
-        $montant_max = 500;
-        $this->assertGreaterThan($montant_max, 600,
-            'Un montant de 600 € doit être refusé (> maximum 500 €)');
+        $errors = $this->model->validate_demande_montant(600, 500);
+        $this->assertNotEmpty($errors, '600 € > plafond 500 € : doit être refusé');
     }
 
     public function testMontantZeroEstRefuse() {
-        $montant = 0;
-        $this->assertFalse($montant > 0 && $montant % 100 === 0,
-            'Un montant de 0 € doit être refusé');
+        $errors = $this->model->validate_demande_montant(0, 500);
+        $this->assertNotEmpty($errors, '0 € doit être refusé');
+    }
+
+    public function testMontantNegatifEstRefuse() {
+        $errors = $this->model->validate_demande_montant(-100, 500);
+        $this->assertNotEmpty($errors, 'Un montant négatif doit être refusé');
     }
 
     // -------------------------------------------------------------------------
@@ -133,7 +136,16 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     }
 
     public function testLimite5PendingParJourEstBloquante() {
-        $this->assertGreaterThanOrEqual(5, 5,
+        $user_id = 999555;
+        $club_id = 996;
+
+        for ($i = 0; $i < 5; $i++) {
+            $txid = 'test-prov-lim-' . time() . '-' . $i . '-' . substr(uniqid(), -4);
+            $this->_insert_tx($txid, $user_id, $club_id, 'pending', date('Y-m-d H:i:s'));
+        }
+
+        $nb_pending = $this->model->count_pending_today($user_id, $club_id);
+        $this->assertGreaterThanOrEqual(5, $nb_pending,
             '5 transactions pending dans la journée doit déclencher le blocage (count >= 5)');
     }
 
