@@ -27,6 +27,7 @@ $this->load->view('bs_menu', array('is_planchiste' => $is_planchiste, 'is_auto_p
 $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
+$this->lang->load('tableaux_de_bord');
 ?>
 
 <style>
@@ -90,7 +91,7 @@ $this->lang->load('welcome');
                 <?= $this->lang->line("welcome_title") ?>
             </h2>
             <?php if (!empty($user_name)): ?>
-                <p class="text-muted">Bonjour <?= htmlspecialchars($user_name) ?></p>
+                <p class="text-muted"><?= $this->lang->line('db_greeting') ?><?= htmlspecialchars($user_name) ?></p>
             <?php endif; ?>
         </div>
     </div>
@@ -126,7 +127,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingUser">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="true" aria-controls="collapseUser">
                 <i class="fas fa-user text-primary me-2"></i>
-                Mon espace personnel
+                <?= $this->lang->line('db_section_personal') ?>
             </button>
         </h2>
         <div id="collapseUser" class="accordion-collapse collapse show" aria-labelledby="headingUser" data-bs-parent="#dashboardAccordion">
@@ -136,9 +137,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-calendar-alt text-primary"></i>
-                        <div class="card-title">Calendrier</div>
-                        <div class="card-text text-muted">Présences planeur</div>
-                        <a href="<?= controller_url('calendar') ?>" class="btn btn-primary btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_calendar') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_calendar') ?></div>
+                        <a href="<?= controller_url('calendar') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -155,12 +156,20 @@ $this->lang->load('welcome');
                             $title = translation('dashboard_my_account') . ' - ' . $section_name;
                         }
                 ?>
+                <?php
+                    $solde = isset($account['solde']) ? (float)$account['solde'] : null;
+                    $solde_class = ($solde !== null && $solde < 0) ? 'text-danger fw-bold' : 'text-success fw-bold';
+                ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-file-invoice-dollar text-success"></i>
+                        <i class="fas fa-file-invoice-dollar <?= $solde !== null && $solde < 0 ? 'text-danger' : 'text-success' ?>"></i>
                         <div class="card-title"><?= $title ?></div>
+                        <?php if ($solde !== null): ?>
+                        <div class="card-text <?= $solde_class ?>"><?= euros($solde) ?></div>
+                        <?php else: ?>
                         <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
-                        <a href="<?= controller_url('compta/mon_compte/' . $account['club']) ?>" class="btn btn-success btn-sm">Accéder</a>
+                        <?php endif; ?>
+                        <a href="<?= controller_url('compta/mon_compte/' . $account['club']) ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
                 <?php
@@ -172,7 +181,7 @@ $this->lang->load('welcome');
                         <i class="fas fa-file-invoice-dollar text-success"></i>
                         <div class="card-title"><?= translation('dashboard_my_account') ?></div>
                         <div class="card-text text-muted"><?= translation('dashboard_consult') ?></div>
-                        <a href="<?= controller_url('compta/mon_compte') ?>" class="btn btn-success btn-sm">Accéder</a>
+                        <a href="<?= controller_url('compta/mon_compte') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -181,9 +190,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane-departure text-info"></i>
-                        <div class="card-title">Mes vols avion/ULM</div>
-                        <div class="card-text text-muted">Historique</div>
-                        <a href="<?= controller_url('vols_avion/vols_du_pilote/' . $username) ?>" class="btn btn-info btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_flights_plane') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_history') ?></div>
+                        <a href="<?= controller_url('vols_avion/vols_du_pilote/' . $username) ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -192,9 +201,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane text-success"></i>
-                        <div class="card-title">Mes vols planeur</div>
-                        <div class="card-text text-muted">Historique</div>
-                        <a href="<?= controller_url('vols_planeur/vols_du_pilote/' . $username) ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_flights_glider') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_history') ?></div>
+                        <a href="<?= controller_url('vols_planeur/vols_du_pilote/' . $username) ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -202,18 +211,18 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-user-circle text-warning"></i>
-                        <div class="card-title">Mes infos</div>
-                        <div class="card-text text-muted">Profil</div>
-                        <a href="<?= controller_url('membre/edit/' . $username) ?>" class="btn btn-warning btn-sm">Modifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_info') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_profile') ?></div>
+                        <a href="<?= controller_url('membre/edit/' . $username) ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_modifier') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-key text-danger"></i>
-                        <div class="card-title">Mot de passe</div>
-                        <div class="card-text text-muted">Changer</div>
-                        <a href="<?= controller_url('auth/change_password') ?>" class="btn btn-danger btn-sm">Modifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_password') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_change') ?></div>
+                        <a href="<?= controller_url('auth/change_password') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_modifier') ?></a>
                     </div>
                 </div>
 
@@ -221,9 +230,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-ticket-alt text-secondary"></i>
-                        <div class="card-title">Mes tickets</div>
-                        <div class="card-text text-muted">Utilisation</div>
-                        <a href="<?= controller_url('tickets/soldes_pilote/' . $username) ?>" class="btn btn-secondary btn-sm">Consulter</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_tickets') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_usage') ?></div>
+                        <a href="<?= controller_url('tickets/soldes_pilote/' . $username) ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_consulter') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -232,9 +241,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-graduation-cap text-primary"></i>
-                        <div class="card-title">Mes formations</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_trainings') ?></div>
                         <div class="card-text text-muted"><?= count($user_formations) ?> formation(s)</div>
-                        <a href="<?= controller_url('formation_progressions/mes_formations') ?>" class="btn btn-primary btn-sm">Consulter</a>
+                        <a href="<?= controller_url('formation_progressions/mes_formations') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_consulter') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -249,6 +258,64 @@ $this->lang->load('welcome');
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if (!empty($active_payment_section) || !empty($show_pay_cotisation_card)): ?>
+                <?php
+                    $active_section_name = (!empty($section['id']) && (int) $section['id'] > 0 && !empty($section['nom']))
+                        ? $section['nom']
+                        : '';
+                ?>
+                <!-- Sous-section Mes paiements -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2">
+                        <i class="fas fa-credit-card me-1"></i>
+                        <?= $this->lang->line('gvv_dashboard_payments_title') ?>
+                    </h6>
+                </div>
+
+                <?php if (!empty($show_pay_cotisation_card)): ?>
+                <!-- Payer ma cotisation -->
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-id-card text-primary"></i>
+                        <div class="card-title"><?= $this->lang->line('gvv_dashboard_pay_cotisation') ?></div>
+                        <div class="card-text text-muted">
+                            <?php if ($active_section_name !== ''): ?>
+                                <?= sprintf($this->lang->line('gvv_dashboard_pay_section_active'), htmlspecialchars($active_section_name)) ?>
+                            <?php else: ?>
+                                <?= $this->lang->line('gvv_dashboard_pay_section_required') ?>
+                            <?php endif; ?>
+                        </div>
+                        <a href="<?= controller_url('paiements_en_ligne/cotisation') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($active_payment_section)): ?>
+                    <?php if ($active_payment_section['has_bar']): ?>
+                    <!-- Payer mes notes de bar -->
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="sub-card text-center">
+                            <i class="fas fa-coffee text-warning"></i>
+                            <div class="card-title"><?= $this->lang->line('gvv_dashboard_pay_bar') ?></div>
+                            <div class="card-text text-muted"><?= htmlspecialchars($active_payment_section['section_name']) ?></div>
+                            <a href="<?= controller_url('paiements_en_ligne/bar_hub') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Approvisionner mon compte (CB) -->
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="sub-card text-center">
+                            <i class="fas fa-wallet text-success"></i>
+                            <div class="card-title"><?= sprintf($this->lang->line('gvv_dashboard_provision_account'), htmlspecialchars($active_payment_section['section_name'])) ?></div>
+                            <div class="card-text text-muted"><?= $this->lang->line('gvv_dashboard_provision_sub') ?></div>
+                            <a href="<?= controller_url('paiements_en_ligne/demande') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <?php endif; ?>
+
             </div>
         </div>
         </div>
@@ -265,7 +332,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingFlights">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFlights" aria-expanded="false" aria-controls="collapseFlights">
                 <i class="fas fa-clipboard-list text-success me-2"></i>
-                Gestion des vols
+                <?= $this->lang->line('db_section_flights') ?>
             </button>
         </h2>
         <div id="collapseFlights" class="accordion-collapse collapse" aria-labelledby="headingFlights" data-bs-parent="#dashboardAccordion">
@@ -275,7 +342,7 @@ $this->lang->load('welcome');
                 <?php if ($show_planeurs): ?>
                 <!-- Sous-section Planeur -->
                 <div class="col-12">
-                    <h6 class="text-muted mb-2"><i class="fas fa-plane"></i> Planeur</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-plane"></i> <?= $this->lang->line('db_sub_glider') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -349,24 +416,24 @@ $this->lang->load('welcome');
                 <!-- Sous-section Vols de découverte -->
                 <?php if ($this->config->item('gestion_vd') && has_vd_role()) : ?>
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-gift"></i> Vols de découverte</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-gift"></i> <?= $this->lang->line('db_sub_discovery') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-gift text-success"></i>
-                        <div class="card-title">Vols découverte</div>
-                        <div class="card-text text-muted">Baptêmes</div>
-                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_discovery_flights') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_baptisms') ?></div>
+                        <a href="<?= controller_url('vols_decouverte') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-clipboard-check text-success"></i>
-                        <div class="card-title">Briefing passager</div>
-                        <div class="card-text text-muted">Déclarations</div>
-                        <a href="<?= controller_url('briefing_passager/admin_list') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_passenger_briefing') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_declarations') ?></div>
+                        <a href="<?= controller_url('briefing_passager/admin_list') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -383,7 +450,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingTreasurer">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTreasurer" aria-expanded="false" aria-controls="collapseTreasurer">
                 <i class="fas fa-euro-sign text-warning me-2"></i>
-                Trésorerie
+                <?= $this->lang->line('db_section_treasury') ?>
             </button>
         </h2>
         <div id="collapseTreasurer" class="accordion-collapse collapse" aria-labelledby="headingTreasurer" data-bs-parent="#dashboardAccordion">
@@ -391,15 +458,15 @@ $this->lang->load('welcome');
             <div class="row g-2">
                 <!-- Compta Menu -->
                 <div class="col-12">
-                    <h6 class="text-muted mb-2"><i class="fas fa-calculator"></i> Comptabilité</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-calculator"></i> <?= $this->lang->line('db_sub_accounting') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-university text-primary"></i>
-                        <div class="card-title">Comptes bancaires</div>
-                        <div class="card-text text-muted">Soldes</div>
-                        <a href="<?= controller_url('comptes/balance/512?start_expanded=true') ?>" class="btn btn-primary btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_bank_accounts') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_balances') ?></div>
+                        <a href="<?= controller_url('comptes/balance/512?start_expanded=true') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
@@ -407,18 +474,18 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-book text-primary"></i>
-                        <div class="card-title">Journal</div>
-                        <div class="card-text text-muted">Comptable</div>
-                        <a href="<?= controller_url('compta/page') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_journal') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_accounting') ?></div>
+                        <a href="<?= controller_url('compta/page') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-balance-scale text-info"></i>
-                        <div class="card-title">Balance</div>
-                        <div class="card-text text-muted">Générale</div>
-                        <a href="<?= controller_url('comptes/balance') ?>" class="btn btn-info btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_balance') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_general') ?></div>
+                        <a href="<?= controller_url('comptes/balance') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -427,72 +494,72 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-user-check text-success"></i>
-                        <div class="card-title">Comptes pilotes</div>
-                        <div class="card-text text-muted">Balance</div>
-                        <a href="<?= controller_url('comptes/balance/411?start_expanded=true') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_pilot_accounts') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_balance') ?></div>
+                        <a href="<?= controller_url('comptes/balance/411?start_expanded=true') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-chart-pie text-warning"></i>
-                        <div class="card-title">Résultat</div>
-                        <div class="card-text text-muted">Synthèse</div>
-                        <a href="<?= controller_url('comptes/resultat') ?>" class="btn btn-warning btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_result') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_synthesis') ?></div>
+                        <a href="<?= controller_url('comptes/resultat') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-table text-info"></i>
-                        <div class="card-title">Résultat club</div>
-                        <div class="card-text text-muted">Analytique</div>
-                        <a href="<?= controller_url('comptes/resultat_par_sections') ?>" class="btn btn-info btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_club_result') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_analytical') ?></div>
+                        <a href="<?= controller_url('comptes/resultat_par_sections') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-calculator text-primary"></i>
-                        <div class="card-title">Bilan</div>
-                        <div class="card-text text-muted">Comptable</div>
-                        <a href="<?= controller_url('comptes/bilan') ?>" class="btn btn-primary btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_bilan') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_accounting') ?></div>
+                        <a href="<?= controller_url('comptes/bilan') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-shopping-bag text-success"></i>
-                        <div class="card-title">Achats</div>
-                        <div class="card-text text-muted">Par année</div>
-                        <a href="<?= controller_url('achats/list_per_year') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_purchases') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_year') ?></div>
+                        <a href="<?= controller_url('achats/list_per_year') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-money-bill-wave text-success"></i>
-                        <div class="card-title">Trésorerie</div>
-                        <div class="card-text text-muted">Flux</div>
-                        <a href="<?= controller_url('comptes/tresorerie') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_treasury_flow') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_flow') ?></div>
+                        <a href="<?= controller_url('comptes/tresorerie') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-paperclip text-info"></i>
-                        <div class="card-title">Pièces jointes</div>
-                        <div class="card-text text-muted">Documents</div>
-                        <a href="<?= controller_url('attachments') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_attachments') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_documents') ?></div>
+                        <a href="<?= controller_url('attachments') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-tachometer-alt text-primary"></i>
-                        <div class="card-title">Tableau de bord</div>
-                        <div class="card-text text-muted">Comptable</div>
-                        <a href="<?= controller_url('comptes/dashboard') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_accounting_dash') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_accounting') ?></div>
+                        <a href="<?= controller_url('comptes/dashboard') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
@@ -500,100 +567,102 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-download text-success"></i>
-                        <div class="card-title">Import opérations</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_import_operations') ?></div>
                         <div class="card-text text-muted">OpenFlyers</div>
-                        <a href="<?= controller_url('openflyers/select_operations') ?>" class="btn btn-success btn-sm">Importer</a>
+                        <a href="<?= controller_url('openflyers/select_operations') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_importer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-check-double text-success"></i>
-                        <div class="card-title">Import soldes</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_import_balances') ?></div>
                         <div class="card-text text-muted">OpenFlyers</div>
-                        <a href="<?= controller_url('openflyers/select_soldes') ?>" class="btn btn-success btn-sm">Importer</a>
+                        <a href="<?= controller_url('openflyers/select_soldes') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_importer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-link text-primary"></i>
-                        <div class="card-title">Associations comptes</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_account_assoc') ?></div>
                         <div class="card-text text-muted">OpenFlyers</div>
-                        <a href="<?= controller_url('associations_of/page') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <a href="<?= controller_url('associations_of/page') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-list-check text-warning"></i>
-                        <div class="card-title">Rapprochements</div>
-                        <div class="card-text text-muted">Bancaire</div>
-                        <a href="<?= controller_url('rapprochements/select_releve') ?>" class="btn btn-warning btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_reconciliations') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_bank') ?></div>
+                        <a href="<?= controller_url('rapprochements/select_releve') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
                 <?php endif; ?>
 
+                <?php if (has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin()): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center" style="opacity: 0.5;">
-                        <i class="fas fa-credit-card text-secondary"></i>
-                        <div class="card-title text-muted">Paiements en ligne</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                    <div class="sub-card text-center">
+                        <i class="fas fa-credit-card text-success"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_online_payments') ?></div>
+                        <div class="card-text text-muted">HelloAsso</div>
+                        <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_consulter') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <?php if (has_role('tresorier')) : ?>
 
                 <!-- Ecritures Menu -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-pen"></i> Écritures</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-pen"></i> <?= $this->lang->line('db_sub_entries') ?></h6>
                 </div>
 
                 <!-- Income entries -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-arrow-circle-down text-success"></i>
-                        <div class="card-title">Recettes</div>
-                        <div class="card-text text-muted">Revenus</div>
-                        <a href="<?= controller_url('compta/recettes') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_revenues') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_revenues') ?></div>
+                        <a href="<?= controller_url('compta/recettes') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-hand-holding-usd text-success"></i>
-                        <div class="card-title">Règlement pilote</div>
-                        <div class="card-text text-muted">Paiement</div>
-                        <a href="<?= controller_url('compta/reglement_pilote') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= translation("gvv_menu_entries_pilot_payment") ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_payment') ?></div>
+                        <a href="<?= controller_url('compta/reglement_pilote') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-file-invoice text-info"></i>
-                        <div class="card-title">Facturation pilote</div>
-                        <div class="card-text text-muted">Facturer</div>
-                        <a href="<?= controller_url('compta/factu_pilote') ?>" class="btn btn-info btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_pilot_billing') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_invoice') ?></div>
+                        <a href="<?= controller_url('compta/factu_pilote') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-coins text-warning"></i>
-                        <div class="card-title">Saisie cotisation</div>
-                        <div class="card-text text-muted">Cotisation membre</div>
-                        <a href="<?= controller_url('compta/saisie_cotisation') ?>" class="btn btn-warning btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_membership_entry') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_membership_fee') ?></div>
+                        <a href="<?= controller_url('compta/saisie_cotisation') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-receipt text-success"></i>
-                        <div class="card-title">Avoir fournisseur</div>
-                        <div class="card-text text-muted">Crédit</div>
-                        <a href="<?= controller_url('compta/avoir_fournisseur') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_supplier_credit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_credit') ?></div>
+                        <a href="<?= controller_url('compta/avoir_fournisseur') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -601,36 +670,36 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-arrow-circle-up text-danger"></i>
-                        <div class="card-title">Dépenses</div>
-                        <div class="card-text text-muted">Charges</div>
-                        <a href="<?= controller_url('compta/depenses') ?>" class="btn btn-danger btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_expenses') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_charges') ?></div>
+                        <a href="<?= controller_url('compta/depenses') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-money-check-alt text-danger"></i>
-                        <div class="card-title">Crédit pilote</div>
-                        <div class="card-text text-muted">Dépense payée</div>
-                        <a href="<?= controller_url('compta/credit_pilote') ?>" class="btn btn-danger btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_pilot_credit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_expense_paid') ?></div>
+                        <a href="<?= controller_url('compta/credit_pilote') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-undo-alt text-warning"></i>
-                        <div class="card-title">Débit pilote</div>
-                        <div class="card-text text-muted">Remboursement</div>
-                        <a href="<?= controller_url('compta/debit_pilote') ?>" class="btn btn-warning btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_pilot_debit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_reimbursement') ?></div>
+                        <a href="<?= controller_url('compta/debit_pilote') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-credit-card text-primary"></i>
-                        <div class="card-title">Utilisation avoir</div>
-                        <div class="card-text text-muted">Fournisseur</div>
-                        <a href="<?= controller_url('compta/utilisation_avoir_fournisseur') ?>" class="btn btn-primary btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_use_credit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_supplier') ?></div>
+                        <a href="<?= controller_url('compta/utilisation_avoir_fournisseur') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -638,27 +707,27 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-exchange-alt text-info"></i>
-                        <div class="card-title">Virement</div>
-                        <div class="card-text text-muted">Transfert</div>
-                        <a href="<?= controller_url('compta/virement') ?>" class="btn btn-info btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_transfer') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_transfer') ?></div>
+                        <a href="<?= controller_url('compta/virement') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-piggy-bank text-success"></i>
-                        <div class="card-title">Dépôt espèces</div>
-                        <div class="card-text text-muted">Versement</div>
-                        <a href="<?= controller_url('compta/depot_especes') ?>" class="btn btn-success btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_cash_deposit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_payment_in') ?></div>
+                        <a href="<?= controller_url('compta/depot_especes') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-money-bill-alt text-danger"></i>
-                        <div class="card-title">Retrait liquide</div>
-                        <div class="card-text text-muted">Retrait</div>
-                        <a href="<?= controller_url('compta/retrait_liquide') ?>" class="btn btn-danger btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_cash_withdrawal') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_withdrawal') ?></div>
+                        <a href="<?= controller_url('compta/retrait_liquide') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -666,9 +735,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-coins text-warning"></i>
-                        <div class="card-title">Remb. capital</div>
-                        <div class="card-text text-muted">Capital</div>
-                        <a href="<?= controller_url('compta/remb_capital') ?>" class="btn btn-warning btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_capital_repayment') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_capital') ?></div>
+                        <a href="<?= controller_url('compta/remb_capital') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -676,9 +745,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-tools text-secondary"></i>
-                        <div class="card-title">Amortissement</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_depreciation') ?></div>
                         <div class="card-text text-muted">68x / 281x</div>
-                        <a href="<?= controller_url('compta/amortissement') ?>" class="btn btn-secondary btn-sm">Saisir</a>
+                        <a href="<?= controller_url('compta/amortissement') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -686,18 +755,18 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-building text-info"></i>
-                        <div class="card-title">Encaissement section</div>
-                        <div class="card-text text-muted">Collection</div>
-                        <a href="<?= controller_url('compta/encaissement_pour_une_section') ?>" class="btn btn-info btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_section_collection') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_collection') ?></div>
+                        <a href="<?= controller_url('compta/encaissement_pour_une_section') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-exchange-alt text-secondary"></i>
-                        <div class="card-title">Reversement section</div>
-                        <div class="card-text text-muted">Transfert</div>
-                        <a href="<?= controller_url('compta/reversement_section') ?>" class="btn btn-secondary btn-sm">Saisir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_section_transfer') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_transfer') ?></div>
+                        <a href="<?= controller_url('compta/reversement_section') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 
@@ -705,9 +774,9 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-exclamation-triangle text-danger"></i>
-                        <div class="card-title">Ecriture générique</div>
-                        <div class="card-text text-muted">Sans contrôles</div>
-                        <a href="<?= controller_url('compta/create') ?>" class="btn btn-danger btn-sm">Créer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_generic_entry') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_no_controls') ?></div>
+                        <a href="<?= controller_url('compta/create') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_creer') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -715,33 +784,33 @@ $this->lang->load('welcome');
                 <?php if ($is_treasurer): ?>
                 <!-- Configuration comptable -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-cog"></i> Configuration comptable</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-cog"></i> <?= $this->lang->line('db_sub_accounting_config') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-tags text-success"></i>
-                        <div class="card-title">Tarifs</div>
-                        <div class="card-text text-muted">Produits</div>
-                        <a href="<?= controller_url('tarifs') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_rates') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_products') ?></div>
+                        <a href="<?= controller_url('tarifs') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-th-list text-info"></i>
-                        <div class="card-title">Plan comptable</div>
-                        <div class="card-text text-muted">Comptes</div>
-                        <a href="<?= controller_url('plan_comptable/page') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_chart_of_accounts') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_accounts') ?></div>
+                        <a href="<?= controller_url('plan_comptable/page') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-file-invoice text-secondary"></i>
-                        <div class="card-title text-muted">Configuration de la facturation</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_billing_config') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -758,7 +827,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingFormation">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormation" aria-expanded="false" aria-controls="collapseFormation">
                 <i class="fas fa-graduation-cap text-primary me-2"></i>
-                Formation
+                <?= $this->lang->line('db_section_training') ?>
             </button>
         </h2>
         <div id="collapseFormation" class="accordion-collapse collapse" aria-labelledby="headingFormation" data-bs-parent="#dashboardAccordion">
@@ -767,74 +836,74 @@ $this->lang->load('welcome');
 
                 <!-- Sous-section Instructeur -->
                 <div class="col-12">
-                    <h6 class="text-muted mb-2"><i class="fas fa-chalkboard-teacher"></i> Instructeur</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-chalkboard-teacher"></i> <?= $this->lang->line('db_sub_instructor') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-user-graduate text-success"></i>
-                        <div class="card-title">Formations</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('formation_inscriptions') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_trainings_mgmt') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('formation_inscriptions') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-clipboard-check text-danger"></i>
-                        <div class="card-title">Autorisations Solo</div>
-                        <div class="card-text text-muted">Gérer</div>
-                        <a href="<?= controller_url('formation_autorisations_solo') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_solo_auth') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('formation_autorisations_solo') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane text-warning"></i>
-                        <div class="card-title">Ré-entrainement</div>
-                        <div class="card-text text-muted">Séances</div>
-                        <a href="<?= controller_url('formation_seances') ?>/libres" class="btn btn-warning btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_retraining') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_sessions') ?></div>
+                        <a href="<?= controller_url('formation_seances') ?>/libres" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-chalkboard text-success"></i>
-                        <div class="card-title">Séances sol</div>
-                        <div class="card-text text-muted">Cours théoriques</div>
-                        <a href="<?= controller_url('formation_seances_theoriques') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_ground_sessions') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_theory') ?></div>
+                        <a href="<?= controller_url('formation_seances_theoriques') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <!-- Sous-section Responsable Pédagogique -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-user-tie"></i> Responsable Pédagogique</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-user-tie"></i> <?= $this->lang->line('db_sub_training_manager') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-book text-primary"></i>
-                        <div class="card-title">Programmes</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('programmes') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_programs') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('programmes') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-chart-bar text-info"></i>
-                        <div class="card-title">Rapports</div>
-                        <div class="card-text text-muted">Synthèse</div>
-                        <a href="<?= controller_url('formation_rapports') ?>" class="btn btn-info btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_reports') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_synthesis') ?></div>
+                        <a href="<?= controller_url('formation_rapports') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-certificate text-secondary"></i>
-                        <div class="card-title text-muted">Attestations de formation</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_training_certs') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
 
@@ -850,7 +919,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingMaintenance">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaintenance" aria-expanded="false" aria-controls="collapseMaintenance">
                 <i class="fas fa-wrench text-secondary me-2"></i>
-                Maintenance et suivi de navigabilité
+                <?= $this->lang->line('db_section_maintenance') ?>
             </button>
         </h2>
         <div id="collapseMaintenance" class="accordion-collapse collapse" aria-labelledby="headingMaintenance" data-bs-parent="#dashboardAccordion">
@@ -860,27 +929,36 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-clipboard-list text-secondary"></i>
-                        <div class="card-title text-muted">Programmes d'entretien</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_maintenance_prog') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-tools text-secondary"></i>
-                        <div class="card-title text-muted">Opérations de maintenance</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_maintenance_ops') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-shield-alt text-secondary"></i>
-                        <div class="card-title text-muted">Suivi de navigabilité</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_airworthiness') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center" style="opacity: 0.5;">
+                        <i class="fas fa-warehouse text-secondary"></i>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_fleet_mgmt') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
 
@@ -896,7 +974,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingAdminClub">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdminClub" aria-expanded="false" aria-controls="collapseAdminClub">
                 <i class="fas fa-cogs text-danger me-2"></i>
-                Administration du club
+                <?= $this->lang->line('db_section_admin_club') ?>
             </button>
         </h2>
         <div id="collapseAdminClub" class="accordion-collapse collapse" aria-labelledby="headingAdminClub" data-bs-parent="#dashboardAccordion">
@@ -905,118 +983,118 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-cog text-primary"></i>
-                        <div class="card-title">Configuration</div>
-                        <div class="card-text text-muted">Club</div>
-                        <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_club_config') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_club') ?></div>
+                        <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-cogs text-info"></i>
-                        <div class="card-title">Paramètres</div>
-                        <div class="card-text text-muted">Configuration</div>
-                        <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_parameters') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_configuration') ?></div>
+                        <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-road text-success"></i>
-                        <div class="card-title">Terrains</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('terrains/page') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_airfields') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('terrains/page') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane text-info"></i>
-                        <div class="card-title">Planeurs</div>
-                        <div class="card-text text-muted">Flotte</div>
-                        <a href="<?= controller_url('planeur/page') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_gliders') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_fleet') ?></div>
+                        <a href="<?= controller_url('planeur/page') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane-departure text-warning"></i>
-                        <div class="card-title">Avions</div>
-                        <div class="card-text text-muted">Flotte</div>
-                        <a href="<?= controller_url('avion/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_aircraft') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_fleet') ?></div>
+                        <a href="<?= controller_url('avion/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-certificate text-warning"></i>
-                        <div class="card-title">Formation</div>
-                        <div class="card-text text-muted">Certificats</div>
-                        <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_formation_certs') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_certificates') ?></div>
+                        <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
             </div>
 
             <!-- Gestion des membres subsection -->
-            <h5 class="mt-4 mb-3">Gestion des membres</h5>
+            <h5 class="mt-4 mb-3"><?= $this->lang->line('db_h5_member_management') ?></h5>
             <div class="row g-2">
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-users text-primary"></i>
-                        <div class="card-title">Membres</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('membre/page') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_members') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('membre/page') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-id-card text-success"></i>
-                        <div class="card-title">Cotisations</div>
-                        <div class="card-text text-muted">Par année</div>
-                        <a href="<?= controller_url('licences/per_year') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_memberships') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_year') ?></div>
+                        <a href="<?= controller_url('licences/per_year') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-envelope text-warning"></i>
-                        <div class="card-title">Liste de diffusion</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_mailing_list') ?></div>
                         <div class="card-text text-muted">Emails</div>
-                        <a href="<?= controller_url('email_lists') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                        <a href="<?= controller_url('email_lists') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-users text-success"></i>
-                        <div class="card-title">Adhérents</div>
-                        <div class="card-text text-muted">Par âge</div>
-                        <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm">Voir</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_members_report') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_year') ?></div>
+                        <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
             </div>
 
             <!-- Gestion documentaire subsection -->
             <?php if ($this->config->item('gestion_documentaire')) : ?>
-            <h5 class="mt-4 mb-3">Gestion documentaire</h5>
+            <h5 class="mt-4 mb-3"><?= $this->lang->line('db_h5_doc_management') ?></h5>
             <div class="row g-2">
                 <!-- Archived documents management -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-archive text-primary"></i>
-                        <div class="card-title">Archivage Réglementaire</div>
-                        <div class="card-text text-muted">Documents</div>
-                        <a href="<?= controller_url('archived_documents') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_archive') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_documents') ?></div>
+                        <a href="<?= controller_url('archived_documents') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center" style="opacity: 0.5;">
                         <i class="fas fa-stamp text-secondary"></i>
-                        <div class="card-title text-muted">Approbation de documents</div>
-                        <div class="card-text text-muted">À venir</div>
-                        <button class="btn btn-secondary btn-sm" disabled>Bientôt</button>
+                        <div class="card-title text-muted"><?= $this->lang->line('db_card_doc_approval') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
+                        <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
                     </div>
                 </div>
             </div>
@@ -1035,7 +1113,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingAdminSys">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdminSys" aria-expanded="false" aria-controls="collapseAdminSys">
                 <i class="fas fa-server text-danger me-2"></i>
-                Administration système
+                <?= $this->lang->line('db_section_admin_sys') ?>
             </button>
         </h2>
         <div id="collapseAdminSys" class="accordion-collapse collapse" aria-labelledby="headingAdminSys" data-bs-parent="#dashboardAccordion">
@@ -1044,15 +1122,15 @@ $this->lang->load('welcome');
 
                 <!-- Sous-section Base de données -->
                 <div class="col-12">
-                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> Base de données</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> <?= $this->lang->line('db_sub_database') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-save text-primary"></i>
-                        <div class="card-title">Sauvegarde</div>
-                        <div class="card-text text-muted">Données</div>
-                        <a href="<?= controller_url('admin/backup_form') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_backup') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_data') ?></div>
+                        <a href="<?= controller_url('admin/backup_form') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
@@ -1060,115 +1138,124 @@ $this->lang->load('welcome');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-undo text-warning"></i>
-                        <div class="card-title">Restauration</div>
-                        <div class="card-text text-muted">Restore</div>
-                        <a href="<?= controller_url('admin/restore') ?>" class="btn btn-warning btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_restore') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_card_restore') ?></div>
+                        <a href="<?= controller_url('admin/restore') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-exchange-alt text-info"></i>
-                        <div class="card-title">Migrations</div>
-                        <div class="card-text text-muted">Base de données</div>
-                        <a href="<?= controller_url('migration') ?>" class="btn btn-info btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_migrations') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_sub_database') ?></div>
+                        <a href="<?= controller_url('migration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <!-- Sous-section Configuration -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-sliders-h"></i> Configuration</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-sliders-h"></i> <?= $this->lang->line('db_sub_config_section') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-users text-primary"></i>
-                        <div class="card-title">Utilisateurs</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('backend/users') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_users') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('backend/users') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-user-tag text-info"></i>
-                        <div class="card-title">Rôles</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('backend/roles') ?>" class="btn btn-info btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_roles') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('backend/roles') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-lock text-danger"></i>
-                        <div class="card-title">Permissions</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_permissions') ?></div>
                         <div class="card-text text-muted">URI</div>
-                        <a href="<?= controller_url('backend/uri_permissions') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                        <a href="<?= controller_url('backend/uri_permissions') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-user-cog text-warning"></i>
-                        <div class="card-title">Rôles sections</div>
-                        <div class="card-text text-muted">Par utilisateur</div>
-                        <a href="<?= controller_url('user_roles_per_section') ?>" class="btn btn-warning btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_section_roles') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_user') ?></div>
+                        <a href="<?= controller_url('user_roles_per_section') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-shield-alt text-danger"></i>
-                        <div class="card-title">Autorisations</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm">Accéder</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_authorizations') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('authorization') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-credit-card text-primary"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_online_payments') ?></div>
+                        <div class="card-text text-muted">HelloAsso</div>
+                        <a href="<?= controller_url('paiements_en_ligne/admin_config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_configurer') ?></a>
                     </div>
                 </div>
 
                 <!-- Sous-section Organisation -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-sitemap"></i> Organisation</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-sitemap"></i> <?= $this->lang->line('db_sub_organisation') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-layer-group text-success"></i>
-                        <div class="card-title">Sections</div>
-                        <div class="card-text text-muted">Gestion</div>
-                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_sections') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('sections') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-list-alt text-primary"></i>
-                        <div class="card-title">Types de séances</div>
-                        <div class="card-text text-muted">Formation</div>
-                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_session_types') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_section_training') ?></div>
+                        <a href="<?= controller_url('formation_types_seances') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <!-- Gestion documentaire subsection -->
                 <?php if ($this->config->item('gestion_documentaire')) : ?>
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-folder-open"></i> Gestion documentaire</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-folder-open"></i> <?= $this->lang->line('db_sub_doc_management') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-book text-secondary"></i>
-                        <div class="card-title">Procédures</div>
-                        <div class="card-text text-muted">Documentation</div>
-                        <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_procedures') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_documentation') ?></div>
+                        <a href="<?= controller_url('procedures') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-file-alt text-danger"></i>
-                        <div class="card-title">Types de documents</div>
-                        <div class="card-text text-muted">Réglementaires</div>
-                        <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_doc_types') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_regulatory') ?></div>
+                        <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -1185,7 +1272,7 @@ $this->lang->load('welcome');
         <h2 class="accordion-header" id="headingDevTest">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDevTest" aria-expanded="false" aria-controls="collapseDevTest">
                 <i class="fas fa-flask text-warning me-2"></i>
-                Développement & Tests
+                <?= $this->lang->line('db_section_dev') ?>
             </button>
         </h2>
         <div id="collapseDevTest" class="accordion-collapse collapse" aria-labelledby="headingDevTest" data-bs-parent="#dashboardAccordion">
@@ -1193,15 +1280,15 @@ $this->lang->load('welcome');
             <div class="row g-2">
                 <!-- Tests Section -->
                 <div class="col-12">
-                    <h6 class="text-muted mb-2"><i class="fas fa-vial"></i> Tests</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-vial"></i> <?= $this->lang->line('db_sub_tests') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-warning">
                         <i class="fas fa-info-circle text-primary"></i>
                         <div class="card-title">phpinfo()</div>
-                        <div class="card-text text-muted">Config PHP</div>
-                        <a href="<?= controller_url('admin/info') ?>" class="btn btn-primary btn-sm">Accéder</a>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_php_config') ?></div>
+                        <a href="<?= controller_url('admin/info') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
@@ -1209,95 +1296,104 @@ $this->lang->load('welcome');
                     <div class="sub-card text-center border-warning">
                         <i class="fas fa-user-secret text-warning"></i>
                         <div class="card-title">Login As</div>
-                        <div class="card-text text-muted">Changer d'utilisateur</div>
-                        <a href="<?= controller_url('login_as') ?>" class="btn btn-warning btn-sm">Accéder</a>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_change_user') ?></div>
+                        <a href="<?= controller_url('login_as') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-purple" style="border-left: 3px solid #6f42c1;">
                         <i class="fas fa-user-cog" style="color:#6f42c1;"></i>
-                        <div class="card-title">Nouveau système auth</div>
-                        <div class="card-text text-muted">Migration par utilisateur</div>
-                        <a href="<?= controller_url('authorization/new_auth_users') ?>" class="btn btn-sm" style="background-color:#6f42c1;color:#fff;">Gérer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_new_auth') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_migration_user') ?></div>
+                        <a href="<?= controller_url('authorization/new_auth_users') ?>" class="btn btn-sm" style="background-color:#6f42c1;color:#fff;"><?= $this->lang->line('db_btn_gerer') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-info">
+                        <i class="fas fa-credit-card text-info"></i>
+                        <div class="card-title">HelloAsso test</div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_sandbox') ?></div>
+                        <a href="<?= controller_url('payments/test_helloasso') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
                     </div>
                 </div>
 
                 <!-- Outils de Développement -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> Outils de développement</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> <?= $this->lang->line('db_sub_dev_tools') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-success">
                         <i class="fas fa-file-archive text-success"></i>
-                        <div class="card-title">Générer base de test</div>
-                        <div class="card-text text-muted">Chiffrée pour CI/CD</div>
+                        <div class="card-title"><?= $this->lang->line('db_card_gen_test_db') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_encrypted_ci') ?></div>
                         <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm"
-                           onclick="return confirm('Êtes-vous sûr d\'être sur un environnement de développement ?');">Générer</a>
+                           onclick="return confirm('<?= addslashes($this->lang->line('db_confirm_dev_env')) ?>');"><?= $this->lang->line('db_btn_generer') ?></a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-primary">
                         <i class="fas fa-file-code text-primary"></i>
-                        <div class="card-title">Schéma initial DB</div>
-                        <div class="card-text text-muted">Pour installation</div>
-                        <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm">Générer</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_gen_schema') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_for_install') ?></div>
+                        <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_generer') ?></a>
                     </div>
                 </div>
 
                 <!-- Cohérence de la Base de Données -->
                 <div class="col-12 mt-3">
-                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> Cohérence de la base de données</h6>
+                    <h6 class="text-muted mb-2"><i class="fas fa-database"></i> <?= $this->lang->line('db_sub_db_consistency') ?></h6>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-pen text-primary"></i>
-                        <div class="card-title">Écritures</div>
-                        <div class="card-text text-muted">Vérifier</div>
-                        <a href="<?= controller_url('dbchecks') ?>" class="btn btn-primary btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_entries_check') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_check') ?></div>
+                        <a href="<?= controller_url('dbchecks') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane text-success"></i>
-                        <div class="card-title">Vols planeur</div>
-                        <div class="card-text text-muted">Cohérence</div>
-                        <a href="<?= controller_url('dbchecks/volsp') ?>" class="btn btn-success btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_glider_flights_chk') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_consistency') ?></div>
+                        <a href="<?= controller_url('dbchecks/volsp') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-plane-departure text-info"></i>
-                        <div class="card-title">Vols avion</div>
-                        <div class="card-text text-muted">Cohérence</div>
-                        <a href="<?= controller_url('dbchecks/volsa') ?>" class="btn btn-info btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_aircraft_flights_chk') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_consistency') ?></div>
+                        <a href="<?= controller_url('dbchecks/volsa') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-shopping-cart text-warning"></i>
-                        <div class="card-title">Achats</div>
-                        <div class="card-text text-muted">Cohérence</div>
-                        <a href="<?= controller_url('dbchecks/achats') ?>" class="btn btn-warning btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_purchases_check') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_consistency') ?></div>
+                        <a href="<?= controller_url('dbchecks/achats') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-layer-group text-secondary"></i>
-                        <div class="card-title">Sections</div>
-                        <div class="card-text text-muted">Cohérence</div>
-                        <a href="<?= controller_url('dbchecks/sections') ?>" class="btn btn-secondary btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_sections_check') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_consistency') ?></div>
+                        <a href="<?= controller_url('dbchecks/sections') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-link text-warning"></i>
-                        <div class="card-title">Rapprochements</div>
-                        <div class="card-text text-muted">Associations orphelines</div>
-                        <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm">Vérifier</a>
+                        <div class="card-title"><?= $this->lang->line('db_card_reconcil_check') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_orphan_links') ?></div>
+                        <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
                     </div>
                 </div>
             </div>

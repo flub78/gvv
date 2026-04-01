@@ -31,12 +31,12 @@ class Payments extends CI_Controller {
     /**
      * Check if current user is authorized to access payment features (dev admin)
      * 
-     * @return boolean TRUE if user is in dev_menu_users, FALSE otherwise
+     * @return boolean TRUE if user is in dev_users, FALSE otherwise
      */
     private function _is_dev_authorized() {
         // Try to get username from session (supports both legacy DX_Auth and modern auth)
         $username = $this->session->userdata('username') ?: $this->session->userdata('DX_username');
-        $dev_users_config = $this->config->item('dev_menu_users');
+        $dev_users_config = $this->config->item('dev_users');
         
         if (empty($dev_users_config) || empty($username)) {
             return FALSE;
@@ -60,7 +60,7 @@ class Payments extends CI_Controller {
      * GET: Display payment form
      * POST: Process payment submission and call HelloAsso API
      * 
-     * Restricted to dev_menu_users (development admins only)
+     * Restricted to dev_users (development admins only)
      */
     public function test_helloasso() {
         // Payment test page is restricted to authenticated dev users.

@@ -224,14 +224,17 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await checkNoPhpErrors(page);
   });
 
-  test('pilote_vd ne peut pas créer un vol de découverte', async ({ page }) => {
+  test('pilote_vd peut accéder à vols_decouverte/create pour payer par CB', async ({ page }) => {
     await loginAs(page, 'agecanonix', 'password');
 
     const response = await page.goto(VD_CREATE_URL);
     await page.waitForLoadState('networkidle');
 
-    // Doit recevoir une erreur 404
-    expect(response.status()).toBe(404);
+    // pilote_vd peut accéder au formulaire de création (pour payer par CB)
+    expect(response.status()).toBe(200);
+    // Le bouton "Créer" n'est pas visible pour pilote_vd
+    const createButton = page.locator('input[type="submit"][name="button"]');
+    await expect(createButton).toHaveCount(0);
   });
 
   test('pilote_vd peut accéder au briefing passager', async ({ page }) => {

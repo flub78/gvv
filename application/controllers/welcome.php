@@ -58,6 +58,7 @@ class Welcome extends Gvv_Controller {
 
         $this->lang->load('welcome');
         $this->lang->load('config');
+        $this->lang->load('paiements_en_ligne');
 
         $this->load->library('migration');
         $this->config->load('migration');
@@ -86,7 +87,44 @@ class Welcome extends Gvv_Controller {
         // Comptes multi-sections pour le pilote courant
         $this->load->model('comptes_model');
         $this->load->model('sections_model');
-        $data['user_accounts'] = $this->comptes_model->get_pilote_comptes($data['username']);
+        $this->load->model('ecritures_model');
+        $raw_accounts = $this->comptes_model->get_pilote_comptes($data['username']);
+
+        // Optimisation potentielle : calculer les soldes en batch si le modèle le permet,
+        // sinon, revenir au comportement existant (une requête par compte).
+        $account_ids = array();
+        foreach ($raw_accounts as $account) {
+            if (isset($account['id'])) {
+                $account_ids[] = $account['id'];
+            }
+        }
+
+        $balances_by_id = array();
+        if (!empty($account_ids) && method_exists($this->ecritures_model, 'solde_comptes')) {
+            // La méthode solde_comptes($ids) doit retourner un tableau [id_compte => solde]
+            $balances_by_id = $this->ecritures_model->solde_comptes($account_ids);
+        } else {
+            // Fallback : comportement existant, une requête par compte
+            foreach ($account_ids as $account_id) {
+                $balances_by_id[$account_id] = $this->ecritures_model->solde_compte($account_id);
+            }
+        }
+
+        foreach ($raw_accounts as &$account) {
+            $account_id = isset($account['id']) ? $account['id'] : null;
+            if ($account_id !== null && array_key_exists($account_id, $balances_by_id)) {
+                $account['solde'] = $balances_by_id[$account_id];
+            } else {
+                // Par sécurité, si le solde est introuvable, conserver l'ancien comportement
+                if ($account_id !== null) {
+                    $account['solde'] = $this->ecritures_model->solde_compte($account_id);
+                } else {
+                    $account['solde'] = null;
+                }
+            }
+        }
+        unset($account);
+        $data['user_accounts'] = $raw_accounts;
 
         // Pass new auth status to view
         $data['use_new_auth'] = $this->use_new_auth;
@@ -133,8 +171,53 @@ class Welcome extends Gvv_Controller {
         }
 
         // Check if user is authorized for development/test features
-        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
-        $data['is_dev_authorized'] = in_array($data['username'], $dev_menu_users);
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+        $data['is_dev_authorized'] = in_array($data['username'], $dev_users);
+
+        // Resolve active section first (needed for payment card filtering)
+        $active_section_id = (int) $this->session->userdata('section');
+        if ($active_section_id <= 0) {
+            $active_section_id = !empty($data['section']['id']) ? (int) $data['section']['id'] : 0;
+        }
+
+        // Sections avec paiements en ligne activés pour ce pilote
+        $data['payment_sections'] = array();
+        $data['active_payment_section'] = null;
+        if (!empty($data['user_accounts'])) {
+            $this->load->model('paiements_en_ligne_model');
+            foreach ($data['user_accounts'] as $account) {
+                $section_id = (int) $account['club'];
+                $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
+                if ($enabled === '1') {
+                    $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
+                    $entry = array(
+                        'section_id'   => $section_id,
+                        'section_name' => $account['section_name'],
+                        'has_bar'      => !empty($section_row['has_bar']),
+                        'helloasso_enabled' => true,
+                    );
+                    $data['payment_sections'][] = $entry;
+                    if ($section_id === $active_section_id) {
+                        $data['active_payment_section'] = $entry;
+                    }
+                }
+            }
+        }
+
+        // Carte "Payer ma cotisation" : visible si la section active a HelloAsso
+        // ET possède au moins un produit de cotisation valide.
+        $data['show_pay_cotisation_card'] = false;
+        if (!empty($data['active_payment_section']) && $active_section_id > 0) {
+            $today = date('Y-m-d');
+            $cotisation_count = (int) $this->db
+                ->from('tarifs')
+                ->where('club', $active_section_id)
+                ->where('is_cotisation', 1)
+                ->where('date <=', $today)
+                ->where('(date_fin IS NULL OR date_fin >= ' . $this->db->escape($today) . ')', null, false)
+                ->count_all_results();
+            $data['show_pay_cotisation_card'] = ($cotisation_count > 0);
+        }
 
         // Configuration options
         $data['show_calendar'] = ($this->config->item('url_gcalendar') != '');

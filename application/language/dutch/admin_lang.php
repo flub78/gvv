@@ -32,6 +32,9 @@ $lang['gvv_admin_menu_custom_permissions'] = "Aangepaste rechten";
 
 $lang['gvv_admin_menu_ut'] = "Initialisatietesten";
 $lang['gvv_admin_menu_coverage'] = "Testdekking";
+$lang['gvv_admin_menu_online_payments'] = "Online betalingen (HelloAsso)";
+$lang['gvv_admin_menu_online_payments_desc'] = "Configuratie per sectie";
+$lang['gvv_admin_menu_open'] = "Openen";
 
 $lang['gvv_admin_db_warning'] = "Opgelet, terug naar standaardinstellingen zetten wist alle gegevens!";
 $lang['gvv_admin_db_select'] = "Selecteer de backup die u wil inladen.";

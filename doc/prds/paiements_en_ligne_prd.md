@@ -11,7 +11,7 @@
 
 ## 1. Résumé Exécutif
 
-Ce PRD décrit les exigences pour permettre aux membres des clubs de vol à voile d'approvisionner leurs comptes pilotes en ligne via carte bancaire. Le système intégrera des plateformes de paiement en ligne (priorité : HelloAsso) et générera automatiquement les écritures comptables correspondantes dans GVV, exactement comme si le trésorier les avait saisies manuellement.
+Ce PRD décrit les exigences pour permettre aux membres des clubs de vol à voile d'approvisionner leurs comptes pilotes en ligne ou d'effectuer des paiements via carte bancaire. Le système intégrera des plateformes de paiement en ligne (priorité : HelloAsso) et générera automatiquement les écritures comptables correspondantes dans GVV, exactement comme si le trésorier les avait saisies manuellement.
 
 Cette fonctionnalité améliorera l'expérience utilisateur, réduira la charge de travail du trésorier, et modernisera la gestion financière des clubs en permettant des paiements instantanés 24/7.
 
@@ -76,6 +76,7 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 **Pilote/Membre :**
 - Provisionner son compte à tout moment via carte bancaire
+- Ou effectuer des paiements pour des services (bar, cotisation, etc.)
 - Voir immédiatement le crédit apparaître sur son compte
 - Recevoir une confirmation de paiement
 - Consulter l'historique de ses provisionnements en ligne
@@ -83,13 +84,20 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 **Trésorier :**
 - Consulter tous les provisionnements en ligne effectués par les membres
 - Vérifier que les écritures comptables sont correctement générées
-- Suivre les commissions prélevées par la plateforme de paiement
 - Rapprocher automatiquement les virements de la plateforme de paiement
+
+**Personne Extérieure (non membre) :**
+- Payer une consommation au bar du club via QR Code, sans créer de compte GVV
+- Payer un bon de vol de découverte en ligne via un lien ou QR Code
+- Recevoir une confirmation de paiement par email
+- Télécharger un justificatif ou bon en PDF
+- Recevoir les bons de vol de découverte par email après paiement
 
 **Administrateur Système :**
 - Configurer les paramètres d'intégration avec la plateforme de paiement
 - Surveiller le bon fonctionnement des webhooks et notifications
 - Gérer les comptes de la plateforme de paiement (HelloAsso, etc.)
+- Générer et gérer les QR Codes et liens de paiement public
 
 ---
 
@@ -152,6 +160,218 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 ---
 
+## 4.3 Cas d'Usage Additionnels et Scénarios Métier
+
+La plateforme de paiement en ligne doit supporter les scénarios métier suivants, au-delà du provisionnement simple de compte :
+
+### UC1 : Paiement de Consommations de Bar par un Pilote Authentifié par Carte (Priorité : HAUTE)
+
+> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
+
+**Contexte :**
+Un pilote connecté souhaite régler ses consommations au bar du club par carte bancaire. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
+
+**Flux :**
+1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar par carte"
+2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
+3. Il est redirigé vers HelloAsso pour payer
+4. Après paiement réussi :
+   - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
+   - Le pilote reçoit une confirmation par email
+   - Son historique de compte affiche le paiement
+
+**Avantages :**
+- Paiement immédiat sans intervention du trésorier
+- Traçabilité complète en comptabilité
+- Réduit la saisie manuelle du trésorier
+
+---
+
+### UC2 : Paiement de Consommations de Bar par une Personne Externe (Priorité : MOYENNE)
+
+**Contexte :**
+Une personne extérieure au club (visiteur, ami d'un pilote) souhaite régler ses consommations au bar sans avoir de compte GVV. Ce mécanisme sera également utilisé par les membres qui ne veulent pas se connecter à GVV. Si c'est une personne totalement extérieure elle sera accompagnée et guidée par un membre.
+Elle saisit elle-même le montant et la description et effectue le paiement.
+
+**Flux :**
+1. Un **QR Code** est affiché au bar, généré par le trésorier
+2. La personne scanne le QR Code avec son téléphone
+3. Elle accède à une **page de paiement publique** (sans connexion requise) avec un formulaire :
+   - **Nom** (obligatoire)
+   - **Prénom** (obligatoire)
+   - **Email** (obligatoire, pour confirmation)
+   - **Description** des consommations (ex. "2 cafés, 1 bière – 28/03/2026")
+   - **Montant** (libre, minimum 2€)
+4. Elle paie par carte
+5. Après succès :
+   - Confirmation par e-mail à l'adresse fournie
+   - La recette de bar est enregistrée en comptabilité
+
+**Avantages :**
+- Monétisation des services du bar auprès des externes
+- Flux de collecte autonome sans intervention humaine
+- Pas de fuite de trésorerie
+
+**Note :** Le QR Code doit être généré et géré par un trésorier
+
+---
+
+### UC3 : Renouvellement de Cotisation en Ligne par un Pilote Authentifié (Priorité : MÉDIUM)
+
+**Contexte :**
+Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier.
+
+**Flux :**
+1. Le pilote accède à "Mon Compte" → "Gérer ma Cotisation"
+2. Le système affiche les **produits de cotisation** disponibles configurés par le club :
+   - Exemple : "Cotisation Pilote 2026 - 350€"
+   - Exemple : "Cotisation Junior 2026 - 200€"
+3. Il sélectionne le produit voulu
+4. Il paie par carte
+5. Après paiement :
+   - Écriture comptable automatique (vente de cotisation, compte 411)
+   - Marquage du pilote comme "cotisant à jour pour 2026"
+   - Attestation PDF générée et envoyée par email
+   - Notification au trésorier pour information
+   - Le compte du pilote affiche "Cotisation à jour jusqu'au 31/12/2026"
+
+**Avantages :**
+- Renouvellement autonome, 24/7
+- Pas de fuite de cotisation
+- Automatisation des attestations
+
+**Configuration requise :**
+- Les trésoriers marquent des tarifs existants comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
+- Un tarif de cotisation est défini par : libellé, montant, date de validité (date/date_fin) et compte comptable associé.
+- Le même tarif peut rester actif plusieurs années sans modification si le montant ne change pas ; un clone daté suffit en cas de changement de tarif.
+
+---
+
+### UC4 : Paiement de Bon de Découverte par CB depuis la création (Priorité : MÉDIUM)
+
+**Contexte :**
+Un gestionnaire ou pilote de vol de découverte souhaite créer un bon et le faire payer directement par carte, sans déranger le trésorier. Le trésorier peut également créer le bon de façon classique (sans paiement CB) ou initier le paiement CB.
+
+**Flux :**
+1. L'utilisateur accède à `vols_decouverte/create` et remplit le formulaire (bénéficiaire, produit, etc.)
+2. Deux boutons sont disponibles selon le rôle :
+   - **"Créer"** (visible trésorier uniquement) : crée le bon immédiatement, sans paiement CB
+   - **"Payer par CB (HelloAsso)"** (visible trésorier, gestionnaire vd, pilote vd) : initie le paiement CB
+3. Si "Payer par CB" est sélectionné :
+   - Un checkout HelloAsso est créé avec les données du formulaire
+    - L'utilisateur est redirigé vers une page de paiement avec lien direct et un **petit QR code de transfert** pour que le porteur de la carte poursuive la saisie sur son téléphone
+    - Si le paiement est initié par le même utilisateur sur le même poste, le QR code de transfert n'est pas affiché
+4. Après paiement réussi (webhook) :
+   - Le bon de découverte est créé automatiquement
+   - La recette comptable est enregistrée
+   - Email de confirmation envoyé au bénéficiaire si email fourni
+   - Notification email envoyée à la boîte mail du club
+
+**Règles de visibilité des boutons :**
+- Bouton "Créer" : visible pour les trésoriers (et bureau, admin) uniquement
+- Bouton "Payer par CB" : visible pour les trésoriers, gestionnaires vd et pilotes vd, uniquement si HelloAsso est activé pour la section et que l'utilisateur est dans `dev_users`
+- Le bouton "Créer et continuer" est supprimé de cette page
+
+**Avantages :**
+- Intégration dans le flux de création existant, pas de page séparée
+- Autonomie du gestionnaire et du pilote vd pour les paiements CB
+- Documentation automatique des bons vendus
+
+---
+
+### UC5 : Règlement de Consommations de Bar par Débit de Solde du Pilote (Priorité : HAUTE)
+
+> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
+
+**Contexte :**
+Un pilote connecté dispose d'un solde positif sur son compte pilote et souhaite régler ses consommations de bar en débitant directement son solde, sans paiement par carte. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
+
+**Flux :**
+1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar"
+2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
+3. **Vérification du solde :**
+   - Si `solde_disponible >= montant` : paiement autorisé
+   - Si `solde_disponible < montant` : message d'erreur, transaction refusée
+     > "Solde insuffisant : vous avez 25€ disponible. Veuillez provisionner votre compte."
+4. Après confirmation :
+   - Écriture comptable créée automatiquement :
+     - Compte pilote (411) débité du montant
+     - Compte bar crédité du montant
+   - Le pilote reçoit une confirmation dans l'interface
+   - Son solde est immédiatement mis à jour
+
+**Avantages :**
+- Autonomie du pilote : règlement instantané sans intervention du trésorier
+- Pas de frais de transaction (pas de plateforme de paiement impliquée)
+- Traçabilité comptable complète
+
+**Règles Métier :**
+- Le pilote ne peut régler que sur son propre compte
+- La transaction est atomique : soit complètement acceptée, soit complètement refusée
+- Le solde est vérifié au moment de la soumission et bloque tout paiement en cas d'insuffisance
+- Aucun paiement à crédit n'est possible (solde minimum = 0€)
+
+---
+
+### UC6 : Paiement par Carte lors de la Saisie d'une Cotisation par le Trésorier (Priorité : HAUTE)
+
+**Contexte :**
+Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un chèque ou un espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de saisie de la cotisation.
+
+**Flux :**
+1. Le trésorier accède à l'interface de création de cotisation (formulaire habituel)
+2. Deux boutons sont présents en bas du formulaire :
+   - **"Valider"** (comportement habituel, paiement classique)
+   - **"Payer par carte (HelloAsso)"**
+3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
+    - Il paie sur son propre écran (lien direct HelloAsso)
+4. Après confirmation du paiement par HelloAsso (succès) :
+   - Une écriture de cotisation est créée (identique à la validation classique)
+   - Un approvisionnement de compte pilote est créé pour le même montant (crédit du compte pilote)
+   - Ces deux écritures sont créées de manière **atomique** (tout ou rien)
+   - Le solde du compte pilote reste inchangé en net : il est débité de la cotisation et crédité d'un approvisionnement équivalent
+5. En cas d'échec du paiement HelloAsso :
+   - Aucune écriture n'est créée
+   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
+
+**Règles Métier :**
+- La transaction comptable est atomique : les deux écritures (cotisation + approvisionnement) sont créées ensemble ou pas du tout
+- En cas d'échec HelloAsso, aucun impact sur la comptabilité
+- Le solde net du pilote est inchangé après l'opération : la cotisation débite le compte et l'approvisionnement le crédite du même montant
+- Le flux cotisation via trésorier ne propose pas d'écran QR dédié ; le paiement est direct sur le poste courant
+
+---
+
+### UC7 : Règlement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
+
+**Contexte :**
+Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de règlement de compte (`compta/reglement_pilote`).
+
+**Flux :**
+1. Le trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard)
+2. Deux boutons sont présents en bas du formulaire :
+   - **"Valider"** (comportement habituel, paiement classique)
+   - **"Payer par carte (HelloAsso)"** (visible uniquement si HelloAsso activé et utilisateur dans `dev_users`)
+3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
+   - Le compte pilote (compte2, 411) et le montant sont lus depuis le formulaire
+   - Le login du pilote est résolu depuis l'ID du compte 411
+    - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
+    - Il peut **transférer le contrôle au porteur de la carte** via un petit QR code ouvrant la même page de paiement sur téléphone
+4. Après confirmation du paiement par HelloAsso (succès) :
+   - L'écriture de règlement est créée automatiquement
+   - Le compte pilote est débité du montant payé par carte
+5. En cas d'échec du paiement HelloAsso :
+   - Aucune écriture n'est créée
+   - Le trésorier est redirigé vers `reglement_pilote` avec un message d'erreur
+
+**Règles Métier :**
+- La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
+- En cas d'échec HelloAsso, aucun impact sur la comptabilité
+- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
+- Le QR code de transfert n'est affiché que si le paiement n'est pas initié par l'utilisateur payeur lui-même
+
+---
+
 ## 5. Exigences Fonctionnelles
 
 ### 5.1 EF1 : Provisionnement en Ligne par le Pilote (Priorité : HAUTE)
@@ -180,9 +400,10 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 **Règles Métier :**
 - Un pilote ne peut provisionner que son propre compte
-- Le montant minimum est de 10€ pour limiter les frais de transaction
+- Le montant minimum est de 50€ pour limiter le nombre d'écritures
 - Le montant maximum est de 500€ par transaction pour sécurité
 - La plateforme de paiement prélève une commission (ex: HelloAsso 0% pour associations)
+- **Section obligatoire** : Toute opération impliquant un paiement par carte bancaire nécessite qu'une section active (autre que "Toutes") soit sélectionnée dans la session de l'utilisateur. Si la section active est "Toutes", l'opération est refusée avec un message explicite invitant l'utilisateur à sélectionner une section avant de procéder au paiement. Cette contrainte est indispensable car les crédentiels HelloAsso sont isolés par section.
 
 ---
 
@@ -255,7 +476,7 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 ### 5.4 EF4 : Liste des Provisionnements par le Trésorier (Priorité : HAUTE)
 
-**Description :** Fournir au trésorier une vue centralisée de tous les provisionnements en ligne effectués par les membres.
+**Description :** Fournir au trésorier une vue centralisée de tous les paiements en ligne effectués par les membres ou des personnes extérieures, avec les détails de chaque transaction pour vérification et rapprochement comptable.
 
 **User Story :**
 > En tant que trésorier, je veux lister tous les provisionnements en ligne avec les détails des transactions, afin de vérifier la cohérence comptable et suivre l'activité de paiement en ligne.
@@ -301,32 +522,58 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 **Critères d'Acceptation :**
 - CA5.1 : Page d'administration : `admin/paiements_en_ligne/config`
-- CA5.2 : Configuration par plateforme :
+- CA5.2 : Configuration par plateforme, **individualisée par section** :
   - **HelloAsso** (priorité 1) :
-    - Clé API Client ID
-    - Clé API Client Secret
-    - Mode sandbox/production
-    - ID de l'organisation HelloAsso
-    - URL de webhook
+    - Clé API Client ID (propre à chaque section HelloAsso)
+    - Clé API Client Secret (propre à chaque section HelloAsso)
+    - Slug de l'organisation HelloAsso (propre à chaque section)
+    - Mode sandbox/production (peut différer par section)
+    - URL de webhook (générée automatiquement avec l'identifiant de section)
   - **Autres plateformes** (optionnel futur) :
     - Stripe, Lydia, PayPal
 - CA5.3 : Configuration du compte comptable :
   - Compte de passage par défaut (ex: 467)
-  - Compte de commission (ex: 627 - Frais bancaires)
   - Libellé personnalisé pour les écritures
 - CA5.4 : Paramètres généraux :
   - Montant minimum de provisionnement
   - Montant maximum par transaction
   - Activation/désactivation du module par section
-- CA5.5 : Test de connexion disponible :
+- CA5.5 : Test de connexion disponible par section :
   - Bouton "Tester la connexion HelloAsso"
   - Affichage du résultat du test (succès/erreur avec détails)
 - CA5.6 : Génération automatique de l'URL de webhook pour copie dans l'interface HelloAsso
 
 **Règles Métier :**
 - Seuls les administrateurs (`admin`) peuvent modifier la configuration
-- Les clés API doivent être stockées de manière sécurisée (chiffrées en base de données)
-- Un log d'audit enregistre tous les changements de configuration
+- **Chaque section dispose de ses propres crédentiels HelloAsso** (Client ID, Client Secret, slug) : une section ne peut pas initier de paiement avec les crédentiels d'une autre section
+- Les crédentiels actifs sont sélectionnés automatiquement en fonction de la section courante de l'utilisateur au moment du paiement
+- Les clés API doivent être stockées de manière sécurisée (chiffrées en base de données), séparément par section
+- Un log d'audit enregistre tous les changements de configuration, avec indication de la section concernée
+
+---
+
+### 5.6 EF6 : Navigation Dashboard — Section "Mes paiements" (Priorité : HAUTE)
+
+**Description :** Centraliser l'accès aux paiements pilote depuis le tableau de bord, dans la section "Mon espace personnel".
+
+**User Story :**
+> En tant que pilote, je veux voir directement depuis mon tableau de bord les actions de paiement disponibles pour mes sections, afin d'accéder en un clic aux fonctionnalités de paiement pertinentes.
+
+**Critères d'Acceptation :**
+- CA6.1 : Une sous-section "Mes paiements" apparaît dans "Mon espace personnel" du tableau de bord **uniquement si au moins une section du pilote a les paiements en ligne activés** (`paiements_en_ligne_config.enabled = '1'`)
+- CA6.2 : Cartes affichées conditionnellement :
+  - **"Payer ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
+  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige vers hub bar)
+  - **"Approvisionner mon compte [nom section] (CB)"** : une carte par section avec paiements activés (redirige vers `paiements_en_ligne/demande`)
+- CA6.3 : La carte "Payer mes notes de bar" redirige vers une page hub avec deux choix :
+  - "Débiter mon compte" → `paiements_en_ligne/bar_debit_solde`
+  - "Paiement en ligne (CB)" → `paiements_en_ligne/bar_carte` (affiché uniquement si HelloAsso activé pour la section)
+- CA6.4 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
+
+**Règles Métier :**
+- La visibilité est calculée à chaque chargement du dashboard (pas de cache)
+- Une carte par section pour l'approvisionnement (le nom de la section apparaît dans le titre)
+- La carte bar est partagée entre débit solde et CB via une page hub intermédiaire
 
 ---
 
@@ -648,17 +895,78 @@ public function helloasso_webhook() {
 - Fonctionne avec PHP 7.4
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
-- Compatible avec le système de sections/clubs existant
+- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. Les fonctionnalités de paiement bar (UC1, UC5) sont conditionnées à ce flag.
+- Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
+- **Section active obligatoire pour tout paiement CB** : si la session de l'utilisateur est en mode "Toutes les sections", toute opération impliquant un paiement par carte bancaire (provisionnement, bar, cotisation, bon de découverte) est refusée. L'utilisateur doit sélectionner une section spécifique. Cette règle s'applique également aux pages publiques (UC2, UC4) : le lien ou QR Code doit encoder explicitement l'identifiant de section — un lien sans section valide est rejeté.
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)
 - Interface responsive (mobile, tablette, desktop)
 
-### 7.5 Maintenabilité
+### 7.5 Traçabilité des Échanges HelloAsso dans les Logs
+
+Toutes les interactions avec HelloAsso (requêtes sortantes, réponses, webhooks entrants, erreurs) doivent être enregistrées dans un fichier de log dédié **par jour**, dont le nom inclut la date au format `YYYY-MM-DD`, selon les règles suivantes :
+
+**Nommage du fichier de log :**
+```
+application/logs/helloasso_payments_YYYY-MM-DD.log
+```
+Exemples :
+```
+application/logs/helloasso_payments_2026-03-28.log
+application/logs/helloasso_payments_2026-03-29.log
+```
+Un nouveau fichier est créé automatiquement à chaque jour calendaire. Cela permet de consulter ou d'archiver une journée spécifique sans manipuler l'ensemble de l'historique.
+
+**Mot-clé de filtrage universel :**
+Chaque ligne de log commence par le mot-clé fixe `[HELLOASSO]`, permettant d'extraire instantanément toutes les interactions HelloAsso :
+```
+grep HELLOASSO application/logs/helloasso_payments.log
+```
+
+**Identifiant de transaction :**
+Chaque échange lié à une transaction porte un identifiant de corrélation unique `txid=<id>`, permettant de regrouper tous les messages d'une même transaction (demande initiale, token OAuth, appel API checkout, callback retour, webhook de confirmation) :
+```
+grep "txid=abc123" application/logs/helloasso_payments.log
+```
+
+**Statut final de la transaction :**
+Le résultat final de chaque transaction est consigné sur une ligne dédiée avec la balise `STATUS=<valeur>` parmi : `SUCCESS`, `FAILED`, `CANCELLED`, `PENDING` :
+```
+grep STATUS= application/logs/helloasso_payments.log
+```
+
+**Format de ligne :**
+```
+[YYYY-MM-DD HH:MM:SS] [HELLOASSO] [<NIVEAU>] txid=<id> <TYPE> - <détail>
+[YYYY-MM-DD HH:MM:SS] [HELLOASSO] [INFO]  txid=<id> STATUS=<STATUS> montant=<EUR>
+```
+
+**Exemples :**
+```
+[2026-03-28 10:12:01] [HELLOASSO] [DEBUG] txid=ha-789xyz OAUTH_REQUEST - client_id=fc392b... client_secret=***
+[2026-03-28 10:12:02] [HELLOASSO] [DEBUG] txid=ha-789xyz OAUTH_RESPONSE - http_code=200 expires_in=1800
+[2026-03-28 10:12:02] [HELLOASSO] [DEBUG] txid=ha-789xyz CHECKOUT_REQUEST - montant=5000 slug=aeroclub-...
+[2026-03-28 10:12:03] [HELLOASSO] [DEBUG] txid=ha-789xyz CHECKOUT_RESPONSE - http_code=200 redirectUrl=https://...
+[2026-03-28 10:12:45] [HELLOASSO] [INFO]  txid=ha-789xyz CALLBACK - status=success checkoutIntentId=196259
+[2026-03-28 10:12:46] [HELLOASSO] [INFO]  txid=ha-789xyz STATUS=SUCCESS montant=50.00
+```
+
+**Règles complémentaires :**
+- Les secrets (client_secret, tokens) ne sont jamais enregistrés ; remplacer par `***`
+- Les données personnelles (email, nom) sont journalisées uniquement en mode DEBUG et masquées en INFO/ERROR
+- Le niveau de log est configurable (DEBUG en développement, INFO en production)
+- Un fichier de log est créé par jour ; les anciens fichiers sont conservés au minimum 90 jours pour permettre l'audit
+- La suppression automatique des fichiers de plus de 90 jours est recommandée (nettoyage applicatif ou cron)
+
+---
+
+### 7.6 Maintenabilité
 
 - Code bien documenté avec PHPDoc
 - Tests unitaires pour la logique métier critique
 - Tests d'intégration pour le flow de paiement complet
 - Configuration centralisée et facile à modifier
 - Logs détaillés pour debugging
+- **Tests Playwright conditionnels** : les tests nécessitant un appel HelloAsso réel (création de checkout, redirection, webhook) utilisent `test.skip` si les crédentiels sandbox ne sont pas définis dans `application/config/helloasso.php`. Un endpoint dédié `paiements_en_ligne/sandbox_available` permet aux specs de détecter la disponibilité des crédentiels avant d'exécuter ces tests.
 
 ### 7.6 Conformité
 
@@ -670,6 +978,17 @@ public function helloasso_webhook() {
   - Respect du plan comptable associatif français
   - Traçabilité complète pour audit
   - Numérotation séquentielle des écritures
+
+### 7.7 Contraintes de Déploiement
+
+**Environnement de test sur production :**
+
+Le serveur de production est le seul serveur visible depuis Internet, ce qui est une condition nécessaire au bon fonctionnement des webhooks HelloAsso. Il n'existe pas d'environnement de préproduction accessible publiquement. En conséquence :
+
+- Les tests de la fonctionnalité de paiement en ligne (y compris les tests sandbox HelloAsso) se déroulent directement sur le serveur de production.
+- Pendant la phase de test, tous les boutons, liens et écrans liés au paiement en ligne sont **invisibles pour les utilisateurs ordinaires** et uniquement visibles pour les utilisateurs listés dans la configuration `dev_users`.
+- Cette restriction s'applique à l'ensemble des points d'entrée : boutons de paiement dans les formulaires de cotisation et de crédit de compte, menus de navigation, pages de confirmation, et toute interface HelloAsso.
+- Dès que la fonctionnalité est validée et prête pour la mise en production générale, la restriction `dev_users` est levée et les boutons deviennent visibles pour tous les utilisateurs autorisés.
 
 ---
 
@@ -982,7 +1301,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 ## 15. Questions Ouvertes
 
 1. **Q :** Faut-il permettre aux membres de provisionner le compte d'un autre membre (ex: parent pour enfant) ?
-   **R :** À décider - Suggestion : Phase 2, nécessite validation d'autorisation
+   **R :** Noon, si un membre veut provisionner pour un autre, il faudra que ce soit fait depuis le compte du destinataire.
 
 2. **Q :** Faut-il envoyer un email de confirmation systématique après chaque provisionnement ?
    **R :** Oui recommandé - Option configurable par utilisateur
@@ -997,7 +1316,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
    **R :** Processus manuel géré par le trésorier (hors scope automatisation)
 
 6. **Q :** Faut-il créer une écriture comptable distincte pour les commissions ?
-   **R :** Optionnel Phase 2 - Si HelloAsso prélève des frais, créer une 2ème écriture
+   **R :** Non les commissions HelloAsso sont débité au payeur mais ne transitent pas par GVV, donc pas d'écriture comptable nécessaire côté GVV
 
 7. **Q :** Doit-on garder un historique des tentatives de paiement échouées ?
    **R :** Oui - Utile pour debugging et statistiques
@@ -1006,6 +1325,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ## 16. Documents Associés
 
+- **Spike HelloAsso** : `doc/plan/HelloAssoSpike.md` - Étude préalable et prototypage du flux HelloAsso (référence pour implémentation)
 - **Plan d'Implémentation** : `doc/plans/paiements_en_ligne_plan.md` (à créer)
 - **Documentation API HelloAsso** : https://dev.helloasso.com/
 - **Documentation Système Comptable GVV** : `doc/comptabilite.md`
@@ -1014,7 +1334,47 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ---
 
-## 17. Approbation et Validation
+## 17. Directive d'Implémentation : Réutilisation du Spike HelloAsso
+
+Le spike HelloAsso (`doc/plan/HelloAssoSpike.md`) contient un prototype fonctionnel du flux de paiement HelloAsso, incluant :
+- Contrôleur `application/controllers/payments.php` avec logique HelloAsso
+- Configuration `application/config/helloasso.php` avec gestion des secrets via environnement
+- Vues de test et de callback
+- Logging structuré avec traçabilité des transactions
+- Gestion des erreurs et des cas limites
+
+**Directive pour le développeur :**
+
+L'implémentation du présent PRD DOIT s'appuyer sur le code du spike comme base de départ :
+1. **Ne pas repartir de zéro** : Réutiliser le contrôleur, config et vues du spike
+2. **Étendre progressivement** : Ajouter les fonctionnalités UC2-UC5 et EF2-EF5 au-dessus de la structure existante
+3. **Respecter les patterns établis** : Conserver la structure de logging, la gestion des secrets, et les patterns de requêtes HTTP
+4. **Tests d'acceptation** : Les tests unitaires et d'intégration du spike doivent être preservés et étendus
+5. **Configuration multi-section** : Modifier la configuration pour isoler les crédentiels HelloAsso par section (voir EF5)
+
+Ce réutilisage démultipliera l'efficacité du développement et garantira la continuité de la qualité de code.
+
+**Statut de Validation du Spike :**
+
+✅ La méthode `payments/test_helloasso` a été testée avec succès sur l'environnement sandbox HelloAsso :
+- OAuth2 client credentials flow fonctionnel
+- Création de checkout HelloAsso validée
+- Redirection vers formulaire de paiement HelloAsso confirmée
+- Callback et webhook reçus et traités correctement
+- Écritures comptables générées automatiquement
+- Logs structurés avec traçabilité complète (txid, STATUS, [HELLOASSO])
+
+**Conservation du Spike :**
+
+⚙️ Le spike `payments/test_helloasso` DOIT être conservé en production comme **outil permanent de vérification de la connectivité HelloAsso**. Il sert de :
+- Test de santé de la connexion API HelloAsso
+- Outil de dépannage pour les administrateurs
+- Validation manuelle des configurations HelloAsso
+- Démonstration du flux complet pour former les utilisateurs
+
+Accès : Menu Administration → Paiements en Ligne → Test HelloAsso (réservé aux admins et staff technique)
+
+
 
 | Rôle | Nom | Signature | Date |
 |------|------|-----------|------|

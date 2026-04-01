@@ -32,6 +32,9 @@ $lang['gvv_admin_menu_custom_permissions'] = "Custom Permissions";
 
 $lang['gvv_admin_menu_ut'] = "Unit tests";
 $lang['gvv_admin_menu_coverage'] = "Coverage";
+$lang['gvv_admin_menu_online_payments'] = "Online payments (HelloAsso)";
+$lang['gvv_admin_menu_online_payments_desc'] = "Per-section configuration";
+$lang['gvv_admin_menu_open'] = "Open";
 
 $lang['gvv_admin_db_warning'] = "By default, database restore overwrite all pre-existing data.";
 $lang['gvv_admin_db_select'] = "Select the backup file that you want to restore.";

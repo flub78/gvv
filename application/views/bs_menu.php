@@ -133,6 +133,9 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                   <ul class="submenu dropdown-menu">
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>
+                    <?php if ($this->dx_auth->is_admin()): ?>
+                    <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
@@ -162,6 +165,8 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("compta/create") ?>"><i class="fas fa-pencil-alt text-info"></i> <?= translation("welcome_global_entries_title") ?></a></li>
 
+                    <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/liste") ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_liste_menu") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/genere_bar_qrcode") ?>"><i class="fas fa-qrcode text-primary"></i> <?= translation("gvv_bar_qrcode_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-chart-line text-success"></i> <?= translation("welcome_global_financial_report") ?></a></li>
                     <?php if ($this->config->item('gestion_tickets')) : ?>
                       <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
@@ -408,10 +413,10 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
         ?>
 
         <?php
-          $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+          $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
           $current_username = $this->session->userdata('DX_username');
         ?>
-        <?php if (in_array($current_username, $dev_menu_users)) : ?>
+        <?php if (in_array($current_username, $dev_users)) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
@@ -501,7 +506,6 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="<?= controller_url("membre/ma_fiche") ?>"><i class="fas fa-id-card text-primary"></i> <?= translation("gvv_menu_ma_fiche") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
               <?php if ($this->config->item('gestion_tickets')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>

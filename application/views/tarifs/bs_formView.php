@@ -51,7 +51,8 @@ $fields = array(
 	'description' => $description,
 	'prix' => $prix,
 	'compte' => $compte,
-	'public' => $public
+	'public' => $public,
+	'is_cotisation' => $is_cotisation
 );
 
 if ($this->config->item('gestion_tickets')) {

@@ -82,14 +82,230 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * Override: creation requires gestion_vd (parent does not check on create).
+     * Override: creation requires gestion_vd, pilote_vd, tresorier or admin.
+     * Injects HelloAsso visibility flags into view data.
      */
     function create() {
-        if (!$this->dx_auth->is_admin() && !parent::user_has_role('gestion_vd')) {
+        if (!$this->dx_auth->is_admin()
+            && !parent::user_has_role('gestion_vd')
+            && !parent::user_has_role('pilote_vd')
+            && !has_role('tresorier')
+            && !has_role('bureau')) {
             show_404();
             return;
         }
-        return parent::create();
+
+        // Populate $this->data without rendering (no_view_loading = true)
+        parent::create(true);
+
+        // HelloAsso visibility
+        $dev_users_cfg = $this->config->item('dev_users') ?: '';
+        $dev_users = array_map('trim', explode(',', $dev_users_cfg));
+        $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin();
+        $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
+        $this->data['helloasso_enabled'] = false;
+        $section_id = (int) $this->session->userdata('section');
+        if ($section_id > 0 && $this->data['is_dev_authorized']) {
+            $this->load->model('paiements_en_ligne_model');
+            $this->data['helloasso_enabled'] =
+                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
+        }
+
+        // Repeuple le formulaire après un échec d'initiation CB.
+        $form_data = $this->session->flashdata('decouverte_form_data');
+        if (is_array($form_data)) {
+            foreach (array('product', 'beneficiaire', 'de_la_part', 'beneficiaire_email', 'occasion', 'date_vente', 'date_validite') as $field) {
+                if (array_key_exists($field, $form_data)) {
+                    $this->data[$field] = $form_data[$field];
+                }
+            }
+        }
+
+        return load_last_view($this->form_view, $this->data, $this->unit_test);
+    }
+
+    /**
+     * Override: intercept "payer_cb" button before delegating to parent.
+     */
+    public function formValidation($action, $return_on_success = false) {
+        $button = $this->input->post('button');
+
+        if ($button === 'payer_cb' && (int) $action === CREATION) {
+            $this->_initiate_decouverte_helloasso();
+            return;
+        }
+
+        return parent::formValidation($action, $return_on_success);
+    }
+
+    /**
+     * Initiate a HelloAsso checkout from vols_decouverte/create form.
+     * Creates the transaction and redirects to the QR/link page.
+     */
+    private function _initiate_decouverte_helloasso() {
+        if (!$this->dx_auth->is_admin()
+            && !parent::user_has_role('gestion_vd')
+            && !parent::user_has_role('pilote_vd')
+            && !has_role('tresorier')
+            && !has_role('bureau')) {
+            show_404();
+            return;
+        }
+
+        $this->load->model('paiements_en_ligne_model');
+        $this->load->library('Helloasso');
+        $this->lang->load('paiements_en_ligne');
+        $form_input = $this->_get_decouverte_form_input();
+
+        $section_id = (int) $this->session->userdata('section');
+        if (!$section_id) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_bar_carte_error_section'), $form_input);
+            return;
+        }
+
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
+        if ($enabled !== '1') {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_bar_carte_error_disabled'), $form_input);
+            return;
+        }
+
+        $product_ref        = trim((string) $this->input->post('product'));
+        $beneficiaire       = trim((string) $this->input->post('beneficiaire'));
+        $de_la_part         = trim((string) $this->input->post('de_la_part'));
+        $beneficiaire_email = trim((string) $this->input->post('beneficiaire_email'));
+
+        if (empty($product_ref)) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_product'), $form_input);
+            return;
+        }
+        if (empty($beneficiaire)) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_beneficiaire'), $form_input);
+            return;
+        }
+        if (!empty($beneficiaire_email) && !filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_email'), $form_input);
+            return;
+        }
+
+        $produit = $this->db
+            ->select('reference, description, prix, compte')
+            ->from('tarifs')
+            ->where('club', $section_id)
+            ->where('reference', $product_ref)
+            ->where('type_ticket', 1)
+            ->get()
+            ->row_array();
+
+        if (!$produit) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_product'), $form_input);
+            return;
+        }
+
+        $montant = (float) $produit['prix'];
+        if ($montant <= 0) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_amount'), $form_input);
+            return;
+        }
+
+        $current_user_email = '';
+        $current_member = $this->db->select('memail')->from('membres')
+            ->where('mlogin', $this->dx_auth->get_username())->get()->row_array();
+        if ($current_member && !empty($current_member['memail'])) {
+            $current_user_email = strtolower(trim((string) $current_member['memail']));
+        }
+        $beneficiaire_email_norm = strtolower(trim((string) $beneficiaire_email));
+        $initiated_by_user = ($current_user_email !== ''
+            && $beneficiaire_email_norm !== ''
+            && $current_user_email === $beneficiaire_email_norm);
+
+        $txid        = 'dec-' . $section_id . '-0-' . time() . '-' . substr(uniqid(), -6);
+        $description = trim('Bon découverte - ' . $produit['description']);
+
+        $metadata = array(
+            'type'                  => 'decouverte',
+            'product_reference'     => (string) $produit['reference'],
+            'product_description'   => (string) $produit['description'],
+            'beneficiaire'          => $beneficiaire,
+            'de_la_part'            => $de_la_part,
+            'beneficiaire_email'    => $beneficiaire_email,
+            'initiated_by_user'     => $initiated_by_user,
+            'compte_destination_id' => (int) $produit['compte'],
+            'description'           => $description,
+            'gvv_transaction_id'    => $txid,
+        );
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => 0,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $section_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode($metadata),
+            'created_by'     => $this->dx_auth->get_username(),
+        ));
+
+        if (!$tx_id) {
+            $error = $this->lang->line('gvv_decouverte_error_tx')
+                . ' Détails: txid=' . $txid
+                . ', section=' . (int) $section_id
+                . ', montant=' . number_format((float) $montant, 2, '.', '');
+            $this->_redirect_decouverte_create_with_error($error, $form_input);
+            return;
+        }
+
+        $checkout = $this->helloasso->create_checkout($section_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => '',
+            'payer_last_name'  => '',
+            'payer_email'      => $beneficiaire_email,
+            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $section_id),
+            'back_url'         => site_url('vols_decouverte/create'),
+            'error_url'        => site_url('vols_decouverte/create'),
+            'metadata'         => $metadata,
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $checkout_error = isset($checkout['error_message']) ? (string) $checkout['error_message'] : 'unknown';
+            $checkout_code = isset($checkout['error_code']) ? (int) $checkout['error_code'] : 0;
+            $error = $this->lang->line('gvv_decouverte_error_checkout')
+                . ' Détails: txid=' . $txid
+                . ', code=' . $checkout_code
+                . ', helloasso=' . $checkout_error;
+            $this->_redirect_decouverte_create_with_error($error, $form_input);
+            return;
+        }
+
+        $metadata['checkout_url'] = $checkout['redirect_url'];
+        $this->db->where('transaction_id', $txid)
+            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
+
+        redirect('paiements_en_ligne/decouverte_qr/' . $txid);
+    }
+
+    /**
+     * Récupère les champs du formulaire de création bon découverte à conserver en cas d'échec CB.
+     */
+    private function _get_decouverte_form_input() {
+        return array(
+            'product'            => trim((string) $this->input->post('product')),
+            'beneficiaire'       => trim((string) $this->input->post('beneficiaire')),
+            'de_la_part'         => trim((string) $this->input->post('de_la_part')),
+            'beneficiaire_email' => trim((string) $this->input->post('beneficiaire_email')),
+            'occasion'           => trim((string) $this->input->post('occasion')),
+            'date_vente'         => trim((string) $this->input->post('date_vente')),
+            'date_validite'      => trim((string) $this->input->post('date_validite')),
+        );
+    }
+
+    /**
+     * Affiche une erreur détaillée et recharge le formulaire avec les données saisies.
+     */
+    private function _redirect_decouverte_create_with_error($error_message, array $form_input) {
+        $this->session->set_flashdata('error', $error_message);
+        $this->session->set_flashdata('decouverte_form_data', $form_input);
+        redirect('vols_decouverte/create');
     }
 
     /**

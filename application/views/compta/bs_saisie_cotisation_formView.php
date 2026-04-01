@@ -164,10 +164,15 @@ echo validation_errors();
 
 <!-- Boutons de validation -->
 <div class="row mt-3">
-    <div class="col-12">
-        <button type="submit" id="btnValidate" class="btn btn-primary">
+    <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+        <button type="submit" name="button" value="valider" id="btnValidate" class="btn btn-primary">
             <i class="bi bi-check-circle"></i> <?= $this->lang->line("gvv_button_validate") ?>
         </button>
+        <?php if (!empty($is_dev_authorized) && !empty($helloasso_enabled)): ?>
+        <button type="submit" name="button" value="helloasso" class="btn btn-warning" id="btnHelloasso">
+            <i class="fas fa-credit-card"></i> <?= $this->lang->line('gvv_cotisation_helloasso_button') ?>
+        </button>
+        <?php endif; ?>
         <button type="button" class="btn btn-secondary" onclick="history.back()">
             <i class="bi bi-x-circle"></i> Annuler
         </button>

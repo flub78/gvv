@@ -56,7 +56,9 @@ $this->lang->load('sections');
 					'gestion_planeurs' => $gestion_planeurs,
 					'gestion_avions' => $gestion_avions,
 					'libelle_menu_avions' => $libelle_menu_avions,
-					'show_presences' => $show_presences
+					'show_presences' => $show_presences,
+					'has_bar' => $has_bar,
+					'bar_account_id' => $bar_account_id
 				))); ?>
 
 				<?= validation_button($action); ?>

@@ -88,7 +88,7 @@ class Briefing_passager extends Gvv_Controller {
 
         $existing = $this->archived_documents_model->get_briefing_by_vld($vld_id);
 
-        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $current_user   = $this->session->userdata('DX_username');
 
         // Pre-fill aerodrome default when not yet set on the VLD
@@ -106,7 +106,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['vld']             = $vld;
         $this->data['vld_id']          = $vld_id;
         $this->data['briefing']        = $existing;
-        $this->data['is_dev_user']     = in_array($current_user, $dev_menu_users);
+        $this->data['is_dev_user']     = in_array($current_user, $dev_users);
         $this->data['message']         = '';
         $this->_load_upload_selectors();
 
@@ -173,12 +173,12 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
                 . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
                 . '</div>';
-            $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+            $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
             $this->data['title']           = $this->lang->line('briefing_passager_upload');
             $this->data['vld']             = $vld;
             $this->data['vld_id']          = $vld_id;
             $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-            $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_menu_users);
+            $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
             $this->_load_upload_selectors();
             load_last_view('briefing_passager/uploadView', $this->data);
             return;
@@ -359,14 +359,14 @@ class Briefing_passager extends Gvv_Controller {
             $vld = $this->vols_decouverte_model->get_by_id('id', $doc['vld_id']);
         }
 
-        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $current_user   = $this->session->userdata('DX_username');
 
         $this->data['title']        = $this->lang->line('briefing_passager_title');
         $this->data['doc']          = $doc;
         $this->data['vld']          = $vld;
         $this->data['message']      = '';
-        $this->data['is_dev_user']  = in_array($current_user, $dev_menu_users);
+        $this->data['is_dev_user']  = in_array($current_user, $dev_users);
 
         load_last_view('briefing_passager/viewView', $this->data);
     }
@@ -376,7 +376,7 @@ class Briefing_passager extends Gvv_Controller {
     // -----------------------------------------------------------------------
 
     /**
-     * Delete a briefing archived document. Restricted to dev_menu_users.
+     * Delete a briefing archived document. Restricted to dev_users.
      * @param int $id Archived document ID
      */
     function delete($id = 0) {
@@ -390,9 +390,9 @@ class Briefing_passager extends Gvv_Controller {
             return;
         }
 
-        $dev_menu_users = array_map('trim', explode(',', $this->config->item('dev_menu_users') ?: ''));
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $current_user   = $this->session->userdata('DX_username');
-        if (!in_array($current_user, $dev_menu_users)) {
+        if (!in_array($current_user, $dev_users)) {
             show_error('Accès refusé', 403);
             return;
         }
