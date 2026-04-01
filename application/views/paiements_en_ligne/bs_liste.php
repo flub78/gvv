@@ -100,6 +100,13 @@
 <?php if (empty($transactions)): ?>
 <div class="alert alert-info"><?= $this->lang->line('gvv_liste_empty') ?></div>
 <?php else: ?>
+<?php
+// Map id => nom pour les sections
+$sections_map = array();
+foreach ($sections as $s) {
+    $sections_map[(int)$s['id']] = $s['nom'];
+}
+?>
 <div class="table-responsive">
 <table class="table table-sm table-hover table-bordered">
     <thead class="table-dark">
@@ -144,7 +151,7 @@
             <td class="text-end text-nowrap"><?= euros((float)$tx['commission']) ?></td>
             <td><?= htmlspecialchars($tx['plateforme']) ?></td>
             <td class="font-monospace small"><?= htmlspecialchars($tx['transaction_id']) ?></td>
-            <td><?= (int)$tx['club'] ?></td>
+            <td><?= htmlspecialchars(isset($sections_map[(int)$tx['club']]) ? $sections_map[(int)$tx['club']] : (int)$tx['club']) ?></td>
             <td><span class="badge <?= $cls ?>"><?= $lbl ?></span></td>
             <td>
             <?php if (!empty($tx['ecriture_id'])): ?>
