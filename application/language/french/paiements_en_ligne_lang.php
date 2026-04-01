@@ -227,6 +227,9 @@ $lang['gvv_public_bar_error_checkout']    = "Impossible d'initier le paiement He
 $lang['gvv_public_bar_confirm_title']     = "Paiement enregistré";
 $lang['gvv_public_bar_confirm_intro']     = "Votre règlement a bien été pris en compte. Merci !";
 $lang['gvv_public_bar_confirm_section']   = "Section :";
+$lang['gvv_public_bar_confirm_detail']    = "Votre paiement de %s a bien été pris en compte pour %s.";
+$lang['gvv_public_bar_confirm_description'] = "Descriptif :";
+$lang['gvv_public_bar_confirm_unknown']   = "Client";
 
 // Génération affiche QR code bar — trésorier
 $lang['gvv_bar_qrcode_menu']                  = "Générer affiche QR code bar";

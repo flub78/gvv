@@ -222,6 +222,7 @@ class Helloasso {
             'containsDonation' => FALSE,
             'payer'            => array(
                 'firstName' => isset($params['payer_first_name']) ? $params['payer_first_name'] : '',
+                'lastName'  => isset($params['payer_last_name'])  ? $params['payer_last_name']  : '',
                 'email'     => isset($params['payer_email'])      ? $params['payer_email']      : '',
             ),
             'metadata'         => isset($params['metadata']) ? $params['metadata'] : array(),

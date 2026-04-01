@@ -88,9 +88,9 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3 d-flex align-items-center">
+    <div class="col-6 col-md-3 d-flex">
         <a href="<?= controller_url('paiements_en_ligne/liste_csv') ?>?<?= http_build_query(array_filter($filters)) ?>"
-           class="btn btn-outline-success w-100">
+           class="btn btn-outline-success w-100 h-100 d-flex align-items-center justify-content-center">
             <i class="fas fa-file-csv"></i> <?= $this->lang->line('gvv_liste_export_csv') ?>
         </a>
     </div>
@@ -155,7 +155,7 @@ foreach ($sections as $s) {
             <td><span class="badge <?= $cls ?>"><?= $lbl ?></span></td>
             <td>
             <?php if (!empty($tx['ecriture_id'])): ?>
-                <a href="<?= controller_url('ecritures/view/' . (int)$tx['ecriture_id']) ?>"
+                <a href="<?= controller_url('compta/edit/' . (int)$tx['ecriture_id']) ?>"
                    class="btn btn-outline-secondary btn-sm py-0">
                     <i class="fas fa-book-open"></i>
                 </a>

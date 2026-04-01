@@ -203,6 +203,9 @@ $lang['gvv_public_bar_error_checkout']    = "Unable to initiate HelloAsso paymen
 $lang['gvv_public_bar_confirm_title']     = "Payment recorded";
 $lang['gvv_public_bar_confirm_intro']     = "Your payment has been successfully recorded. Thank you!";
 $lang['gvv_public_bar_confirm_section']   = "Section:";
+$lang['gvv_public_bar_confirm_detail']    = "Your payment of %s has been recorded for %s.";
+$lang['gvv_public_bar_confirm_description'] = "Description:";
+$lang['gvv_public_bar_confirm_unknown']   = "Customer";
 
 // Bar QR code poster generation — treasurer
 $lang['gvv_bar_qrcode_menu']                  = "Generate bar QR code poster";

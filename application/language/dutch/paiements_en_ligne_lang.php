@@ -203,6 +203,9 @@ $lang['gvv_public_bar_error_checkout']    = "Kan HelloAsso-betaling niet starten
 $lang['gvv_public_bar_confirm_title']     = "Betaling geregistreerd";
 $lang['gvv_public_bar_confirm_intro']     = "Uw betaling is succesvol geregistreerd. Dank u!";
 $lang['gvv_public_bar_confirm_section']   = "Sectie:";
+$lang['gvv_public_bar_confirm_detail']    = "Uw betaling van %s is geregistreerd voor %s.";
+$lang['gvv_public_bar_confirm_description'] = "Omschrijving:";
+$lang['gvv_public_bar_confirm_unknown']   = "Klant";
 
 // Bar QR-code affiche generatie — penningmeester
 $lang['gvv_bar_qrcode_menu']                  = "Bar QR-code affiche genereren";
