@@ -523,8 +523,11 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $montant_min = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_min', $club_id) ?: 1);
+        $montant_max = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_max', $club_id) ?: 500);
+
         if ($this->input->post('button') === 'valider') {
-            $this->_process_bar_carte($section, $club_id, $compte_pilote);
+            $this->_process_bar_carte($section, $club_id, $compte_pilote, $montant_min, $montant_max);
             return;
         }
 
@@ -532,6 +535,8 @@ class Paiements_en_ligne extends MY_Controller {
             'section'     => $section,
             'montant'     => '',
             'description' => '',
+            'montant_min' => $montant_min,
+            'montant_max' => $montant_max,
             'error'       => $this->session->flashdata('error'),
         );
         $this->load->view('bs_header', $data);
@@ -544,13 +549,22 @@ class Paiements_en_ligne extends MY_Controller {
     /**
      * Traite la soumission du formulaire bar_carte : validation, création transaction, redirection HelloAsso.
      */
-    private function _process_bar_carte($section, $club_id, $compte_pilote) {
+    private function _process_bar_carte($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
         $montant     = (int) $this->input->post('montant');
         $description = trim($this->input->post('description'));
 
         $errors = array();
-        if ($montant < 1) {
-            $errors[] = $this->lang->line('gvv_bar_error_montant_min');
+        if ($montant < $montant_min) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_bar_error_montant_min'),
+                number_format((float) $montant_min, 2, ',', ' ')
+            );
+        }
+        if ($montant > $montant_max) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_bar_error_montant_max'),
+                number_format((float) $montant_max, 2, ',', ' ')
+            );
         }
         if (empty($description)) {
             $errors[] = $this->lang->line('gvv_bar_error_description');
@@ -561,6 +575,8 @@ class Paiements_en_ligne extends MY_Controller {
                 'section'     => $section,
                 'montant'     => $montant,
                 'description' => $description,
+                'montant_min' => $montant_min,
+                'montant_max' => $montant_max,
                 'error'       => implode('<br>', $errors),
             );
             $this->load->view('bs_header', $data);
@@ -829,10 +845,15 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $montant_min = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_min', $club_id) ?: 2.00);
+        $montant_max = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_max', $club_id) ?: 500.00);
+
         $data['section'] = $section;
+        $data['montant_min'] = $montant_min;
+        $data['montant_max'] = $montant_max;
 
         if ($this->input->post('button') === 'valider') {
-            $this->_process_public_bar($data, $club_id, $section);
+            $this->_process_public_bar($data, $club_id, $section, $montant_min, $montant_max);
             return;
         }
 
@@ -845,7 +866,7 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->view('bs_footer');
     }
 
-    private function _process_public_bar(array $data, $club_id, array $section) {
+    private function _process_public_bar(array $data, $club_id, array $section, $montant_min, $montant_max) {
         $nom         = trim($this->input->post('nom'));
         $prenom      = trim($this->input->post('prenom'));
         $email       = trim($this->input->post('email'));
@@ -865,8 +886,17 @@ class Paiements_en_ligne extends MY_Controller {
         if (empty($description)) {
             $errors[] = $this->lang->line('gvv_bar_error_description');
         }
-        if ($montant < 2.00) {
-            $errors[] = $this->lang->line('gvv_public_bar_error_montant_min');
+        if ($montant < $montant_min) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_public_bar_error_montant_min'),
+                number_format((float) $montant_min, 2, ',', ' ')
+            );
+        }
+        if ($montant > $montant_max) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_public_bar_error_montant_max'),
+                number_format((float) $montant_max, 2, ',', ' ')
+            );
         }
 
         if (!empty($errors)) {
