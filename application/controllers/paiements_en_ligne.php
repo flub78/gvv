@@ -331,7 +331,7 @@ class Paiements_en_ligne extends MY_Controller {
         ));
 
         if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed', array());
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_checkout'));
             redirect('paiements_en_ligne/demande');
             return;
