@@ -310,7 +310,7 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         $member = $this->db
-            ->select('mprenom, memail')
+            ->select('mprenom, mnom, memail')
             ->from('membres')
             ->where('mlogin', $mlogin)
             ->get()->row_array();
@@ -319,6 +319,7 @@ class Paiements_en_ligne extends MY_Controller {
             'amount'           => $montant,
             'item_name'        => $description,
             'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
             'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
             'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
             'back_url'         => site_url('paiements_en_ligne/annulation'),
@@ -596,7 +597,7 @@ class Paiements_en_ligne extends MY_Controller {
 
         // Pré-remplissage HelloAsso avec les infos du membre
         $member = $this->db
-            ->select('m.mprenom, m.memail')
+            ->select('m.mprenom, m.mnom, m.memail')
             ->from('membres m')
             ->where('m.mlogin', $mlogin)
             ->get()->row_array();
@@ -605,6 +606,7 @@ class Paiements_en_ligne extends MY_Controller {
             'amount'           => $montant,
             'item_name'        => $description,
             'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
             'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
             'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
             'back_url'         => site_url('paiements_en_ligne/annulation'),
@@ -914,7 +916,7 @@ class Paiements_en_ligne extends MY_Controller {
             'payer_first_name' => $prenom,
             'payer_last_name'  => $nom,
             'payer_email'      => $email,
-            'return_url'       => site_url('paiements_en_ligne/public_bar_confirmation?club=' . $club_id),
+            'return_url'       => site_url('paiements_en_ligne/public_bar_confirmation?club=' . $club_id . '&tx=' . rawurlencode($txid)),
             'back_url'         => site_url('paiements_en_ligne/public_bar?club=' . $club_id),
             'error_url'        => site_url('paiements_en_ligne/public_bar?club=' . $club_id),
             'metadata'         => array(
@@ -954,8 +956,26 @@ class Paiements_en_ligne extends MY_Controller {
      */
     public function public_bar_confirmation() {
         $club_id = (int) $this->input->get('club');
+        $txid = trim((string) $this->input->get('tx'));
         $section = $club_id ? $this->sections_model->get_by_id('id', $club_id) : null;
-        $data = array('section' => $section);
+
+        $transaction = null;
+        $tx_meta = array();
+        if ($txid !== '') {
+            $transaction = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+            if ($transaction && !empty($transaction['metadata'])) {
+                $decoded = json_decode($transaction['metadata'], true);
+                if (is_array($decoded)) {
+                    $tx_meta = $decoded;
+                }
+            }
+        }
+
+        $data = array(
+            'section'     => $section,
+            'transaction' => $transaction,
+            'tx_meta'     => $tx_meta,
+        );
         $this->load->view('bs_header', $data);
         $this->load->view('paiements_en_ligne/bs_public_bar_confirmation', $data);
         $this->load->view('bs_footer');
