@@ -337,6 +337,14 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
+        }
+
         redirect($checkout['redirect_url']);
     }
 
@@ -615,6 +623,14 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
+        }
+
         redirect($checkout['redirect_url']);
     }
 
@@ -754,6 +770,14 @@ class Paiements_en_ligne extends MY_Controller {
             $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_checkout'));
             redirect('paiements_en_ligne/cotisation');
             return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
         }
 
         redirect($checkout['redirect_url']);
@@ -912,6 +936,14 @@ class Paiements_en_ligne extends MY_Controller {
             $data['error']       = $this->lang->line('gvv_public_bar_error_checkout');
             $this->_render_public_bar($data);
             return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
         }
 
         redirect($checkout['redirect_url']);
