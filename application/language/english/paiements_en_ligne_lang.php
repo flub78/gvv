@@ -27,6 +27,7 @@ $lang['gvv_bar_carte_intro']             = "Pay your bar purchases directly by c
 $lang['gvv_bar_carte_button_link']       = "Pay my bar tab by card";
 $lang['gvv_bar_carte_button_valider']    = "Pay by card";
 $lang['gvv_bar_carte_helloasso_notice']  = "You will be redirected to HelloAsso to complete the card payment.";
+$lang['gvv_bar_carte_error_section']     = "No active section found in your session. Please log in again.";
 $lang['gvv_bar_carte_error_disabled']    = "Online payments are not enabled for this section. Contact the administrator.";
 $lang['gvv_bar_carte_error_checkout']    = "Unable to initiate HelloAsso payment. Please try again or contact the administrator.";
 

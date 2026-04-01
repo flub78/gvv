@@ -27,6 +27,7 @@ $lang['gvv_bar_carte_intro']             = "Payez vos consommations de bar direc
 $lang['gvv_bar_carte_button_link']       = "Régler mes consommations par carte";
 $lang['gvv_bar_carte_button_valider']    = "Payer par carte";
 $lang['gvv_bar_carte_helloasso_notice']  = "Vous allez être redirigé vers HelloAsso pour effectuer le paiement par carte bancaire.";
+$lang['gvv_bar_carte_error_section']     = "Aucune section active trouvée dans votre session. Veuillez vous reconnecter.";
 $lang['gvv_bar_carte_error_disabled']    = "Les paiements en ligne ne sont pas activés pour cette section. Contactez l'administrateur.";
 $lang['gvv_bar_carte_error_checkout']    = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer ou contacter l'administrateur.";
 

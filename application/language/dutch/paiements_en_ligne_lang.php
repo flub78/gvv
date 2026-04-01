@@ -27,6 +27,7 @@ $lang['gvv_bar_carte_intro']             = "Betaal uw bar consumptie direct met 
 $lang['gvv_bar_carte_button_link']       = "Bar rekening betalen met kaart";
 $lang['gvv_bar_carte_button_valider']    = "Betalen met kaart";
 $lang['gvv_bar_carte_helloasso_notice']  = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
+$lang['gvv_bar_carte_error_section']     = "Geen actieve sectie gevonden in uw sessie. Meld u opnieuw aan.";
 $lang['gvv_bar_carte_error_disabled']    = "Online betalingen zijn niet ingeschakeld voor deze sectie. Neem contact op met de beheerder.";
 $lang['gvv_bar_carte_error_checkout']    = "Kan HelloAsso betaling niet starten. Probeer het opnieuw of neem contact op met de beheerder.";
 
