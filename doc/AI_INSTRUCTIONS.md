@@ -191,7 +191,7 @@ Following `doc/development/workflow.md`:
 
 1. **Environment**: ALWAYS `source setenv.sh` before running PHP commands
 2. **PHP 7.4 Only**: Use `/usr/bin/php7.4` explicitly when needed
-3. **Metadata-Driven**: Define field metadata in `Gvvmetadata.php` for proper rendering
+3. **Metadata-Driven**: Define field metadata in `Gvvmetadata.php` for proper rendering. **Exception**: `application/controllers/paiements_en_ligne.php` is an integration controller for HelloAsso online payments. It handles webhooks, checkout redirects, and payment state machines — not standard CRUD forms. It intentionally uses no gvvmetadata, no `input_field`/`array_field` helpers, and no `$this->gvvmetadata->table()` calls. Do not add gvvmetadata to this controller.
 4. **Code Reuse**: Check existing code before creating new implementations
 5. **Bootstrap UI**: Use Bootstrap 5 classes for all UI components
 6. **Testing**: Write PHPUnit tests, aim for >70% coverage

@@ -64,6 +64,16 @@ class PaiementsEnLigneProvisionTest extends TestCase {
         }
     }
 
+    public function testMontantEnDessousMinimumEstRefuse() {
+        $errors = $this->model->validate_demande_montant(100, 500, 200);
+        $this->assertNotEmpty($errors, '100 € < minimum 200 € : doit être refusé');
+    }
+
+    public function testMontantEgalMinimumEstAccepte() {
+        $errors = $this->model->validate_demande_montant(200, 500, 200);
+        $this->assertEmpty($errors, '200 € = minimum 200 € : doit être accepté');
+    }
+
     public function testMontantAuDessusMaximumEstRefuse() {
         $errors = $this->model->validate_demande_montant(600, 500);
         $this->assertNotEmpty($errors, '600 € > plafond 500 € : doit être refusé');

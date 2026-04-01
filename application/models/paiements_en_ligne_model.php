@@ -662,13 +662,16 @@ class Paiements_en_ligne_model extends CI_Model {
      * @param  float $montant_max Plafond configuré pour la section
      * @return string[]           Tableau d'erreurs (vide si valide)
      */
-    public function validate_demande_montant($montant, $montant_max)
+    public function validate_demande_montant($montant, $montant_max, $montant_min = 0)
     {
         $errors = array();
         $CI     = get_instance();
 
         if ($montant <= 0 || $montant % 100 !== 0) {
             $errors[] = $CI->lang->line('gvv_provision_error_montant_multiple');
+        } elseif ($montant_min > 0 && $montant < $montant_min) {
+            $errors[] = sprintf($CI->lang->line('gvv_provision_error_montant_min'),
+                number_format($montant_min, 0, ',', ' '));
         } elseif ($montant > $montant_max) {
             $errors[] = sprintf($CI->lang->line('gvv_provision_error_montant_max'),
                 number_format($montant_max, 0, ',', ' '));
