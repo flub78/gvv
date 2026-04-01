@@ -14,7 +14,7 @@
 <p class="text-muted"><?= $this->lang->line('gvv_cotisation_qr_intro') ?></p>
 
 <?php
-$pilote      = isset($meta['pilote_login'])     ? htmlspecialchars($meta['pilote_login'])     : '—';
+$pilote      = isset($pilote_name) && !empty($pilote_name) ? htmlspecialchars($pilote_name) : '—';
 $annee       = isset($meta['annee_cotisation']) ? (int) $meta['annee_cotisation']             : '—';
 $montant_fmt = euros((float) $transaction['montant']);
 ?>

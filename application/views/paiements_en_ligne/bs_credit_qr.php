@@ -14,7 +14,7 @@
 <p class="text-muted"><?= $this->lang->line('gvv_credit_qr_intro') ?></p>
 
 <?php
-$pilote      = isset($meta['pilote_login']) ? htmlspecialchars($meta['pilote_login']) : '—';
+$pilote      = isset($pilote_name) && !empty($pilote_name) ? htmlspecialchars($pilote_name) : '—';
 $montant_fmt = euros((float) $transaction['montant']);
 $show_transfer_qr = !empty($checkout_url) && empty($meta['initiated_by_user']);
 ?>

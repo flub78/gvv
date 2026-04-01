@@ -1129,10 +1129,27 @@ class Paiements_en_ligne extends MY_Controller {
 
         $meta         = json_decode($tx['metadata'], true) ?: array();
         $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+        $pilote_login = isset($meta['pilote_login']) ? $meta['pilote_login'] : '';
+        $pilote_name  = '';
+
+        // Chercher le nom et prénom du pilote si login available
+        if (!empty($pilote_login)) {
+            $pilote = $this->db
+                ->select('mprenom, mnom')
+                ->from('membres')
+                ->where('mlogin', $pilote_login)
+                ->get()
+                ->row_array();
+            
+            if ($pilote) {
+                $pilote_name = trim($pilote['mprenom'] . ' ' . $pilote['mnom']);
+            }
+        }
 
         $data = array(
             'transaction'    => $tx,
             'meta'           => $meta,
+            'pilote_name'    => $pilote_name ?: $pilote_login,
             'checkout_url'   => $checkout_url,
             'transaction_id' => $transaction_id,
         );
@@ -1196,10 +1213,27 @@ class Paiements_en_ligne extends MY_Controller {
 
         $meta         = json_decode($tx['metadata'], true) ?: array();
         $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+        $pilote_login = isset($meta['pilote_login']) ? $meta['pilote_login'] : '';
+        $pilote_name  = '';
+
+        // Chercher le nom et prénom du pilote si login available
+        if (!empty($pilote_login)) {
+            $pilote = $this->db
+                ->select('mprenom, mnom')
+                ->from('membres')
+                ->where('mlogin', $pilote_login)
+                ->get()
+                ->row_array();
+            
+            if ($pilote) {
+                $pilote_name = trim($pilote['mprenom'] . ' ' . $pilote['mnom']);
+            }
+        }
 
         $data = array(
             'transaction'    => $tx,
             'meta'           => $meta,
+            'pilote_name'    => $pilote_name ?: $pilote_login,
             'checkout_url'   => $checkout_url,
             'transaction_id' => $transaction_id,
         );
@@ -1408,6 +1442,25 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $raw_body  = (string) file_get_contents('php://input');
+        $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
+
+        if (!$club_id) {
+            $event = json_decode($raw_body, true);
+            $order_data = (is_array($event) && !empty($event['data']) && is_array($event['data']))
+                ? $event['data']
+                : array();
+            $resolved_club_id = !empty($order_data)
+                ? (int) $this->paiements_en_ligne_model->resolve_club_id_from_order_data($order_data)
+                : 0;
+
+            if ($resolved_club_id > 0) {
+                $club_id = $resolved_club_id;
+                $this->helloasso->log('INFO', 'none', 'webhook',
+                    'club_id résolu depuis le payload : club=' . $club_id);
+            }
+        }
+
         if (!$club_id) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'club_id manquant dans l\'URL — utiliser paiements_en_ligne/helloasso_webhook/{club_id}');
@@ -1416,9 +1469,6 @@ class Paiements_en_ligne extends MY_Controller {
             $this->output->set_output('Bad Request');
             return;
         }
-
-        $raw_body  = (string) file_get_contents('php://input');
-        $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
         $request_ip = $this->helloasso->get_request_ip();
 
         // ── Auth webhook : signature HMAC (partenaires) OU IP allowlist (non-partenaires) ──

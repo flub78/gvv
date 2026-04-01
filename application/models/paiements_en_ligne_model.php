@@ -103,6 +103,71 @@ class Paiements_en_ligne_model extends CI_Model {
     }
 
     /**
+     * Récupère une transaction pending par checkout intent id, tous clubs confondus.
+     * Utilisé pour résoudre un webhook reçu sur une ancienne URL sans club_id.
+     *
+     * @param  string|int $checkout_intent_id
+     * @return array|false
+     */
+    public function find_pending_by_checkout_intent_id($checkout_intent_id)
+    {
+        $rows = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('statut', 'pending')
+            ->order_by('date_demande', 'DESC')
+            ->limit(500)
+            ->get($this->table)
+            ->result_array();
+
+        $needle = (string) $checkout_intent_id;
+        foreach ($rows as $row) {
+            if (empty($row['metadata'])) {
+                continue;
+            }
+            $meta = json_decode($row['metadata'], true);
+            if (!is_array($meta)) {
+                continue;
+            }
+            if (!empty($meta['helloasso_checkout_intent_id'])
+                && (string) $meta['helloasso_checkout_intent_id'] === $needle) {
+                return $row;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Tente de résoudre le club d'un webhook à partir du payload HelloAsso.
+     *
+     * @param  array $order_data
+     * @return int  club_id ou 0 si introuvable
+     */
+    public function resolve_club_id_from_order_data(array $order_data)
+    {
+        $raw_meta = $this->_extract_order_metadata($order_data);
+        if (is_array($raw_meta)) {
+            $gvv_txid = $this->_extract_gvv_txid_from_meta($raw_meta);
+            if ($gvv_txid) {
+                $transaction = $this->get_by_transaction_id($gvv_txid);
+                if ($transaction && !empty($transaction['club'])) {
+                    return (int) $transaction['club'];
+                }
+            }
+        }
+
+        $checkout_intent_id = $this->_extract_checkout_intent_id($order_data);
+        if ($checkout_intent_id !== null && $checkout_intent_id !== '') {
+            $transaction = $this->find_pending_by_checkout_intent_id($checkout_intent_id);
+            if ($transaction && !empty($transaction['club'])) {
+                return (int) $transaction['club'];
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Associe les infos de checkout HelloAsso à une transaction GVV.
      *
      * Stockage dans metadata JSON :

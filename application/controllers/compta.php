@@ -1348,13 +1348,14 @@ class Compta extends Gvv_Controller {
         }
 
         // Récupérer email du pilote pour pré-remplir HelloAsso
-        $membre = $this->db->select('mprenom, memail')->from('membres')
+        $membre = $this->db->select('mprenom, mnom, memail')->from('membres')
             ->where('mlogin', $pilote)->get()->row_array();
 
         $checkout = $this->helloasso->create_checkout($section_id, array(
             'amount'           => $montant,
             'item_name'        => $description,
             'payer_first_name' => isset($membre['mprenom']) ? $membre['mprenom'] : '',
+            'payer_last_name'  => isset($membre['mnom'])    ? $membre['mnom']    : '',
             'payer_email'      => isset($membre['memail'])  ? $membre['memail']  : '',
             'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
             'back_url'         => site_url('paiements_en_ligne/annulation'),
@@ -1503,13 +1504,14 @@ class Compta extends Gvv_Controller {
             return;
         }
 
-        $member = $this->db->select('mprenom, memail')->from('membres')
+        $member = $this->db->select('mprenom, mnom, memail')->from('membres')
             ->where('mlogin', $pilote)->get()->row_array();
 
         $checkout = $this->helloasso->create_checkout($club_id, array(
             'amount'           => $montant,
             'item_name'        => $description,
             'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
+            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
             'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
             'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
             'back_url'         => site_url('paiements_en_ligne/annulation'),

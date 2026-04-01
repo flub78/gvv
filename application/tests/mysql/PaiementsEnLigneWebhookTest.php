@@ -250,6 +250,38 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertEquals(self::$compte_pilote_id,  (int) $ecriture['compte2']);
     }
 
+    public function testResolveClubIdFromOrderDataByTransactionId()
+    {
+        $txid = $this->createPendingTransaction('provisionnement');
+        $payload = $this->buildOrderPayload($txid, 'provisionnement');
+
+        $club_id = $this->model->resolve_club_id_from_order_data($payload);
+
+        $this->assertEquals(self::$club_id, $club_id);
+    }
+
+    public function testResolveClubIdFromOrderDataByCheckoutIntentId()
+    {
+        $txid = $this->createPendingTransaction('provisionnement');
+        $checkout_intent_id = 'ha-checkout-' . uniqid();
+        $this->assertTrue($this->model->attach_checkout_info($txid, $checkout_intent_id, 'https://example.test/checkout'));
+
+        $payload = array(
+            'id' => 'evt-' . uniqid(),
+            'order' => 'order-' . uniqid(),
+            'checkoutIntentId' => $checkout_intent_id,
+            'payments' => array(array('state' => 'Authorized', 'amount' => 1000)),
+            'items' => array(array(
+                'payments' => array(array('state' => 'Authorized', 'amount' => 1000)),
+                'meta' => array('createdAt' => date('c')),
+            )),
+        );
+
+        $club_id = $this->model->resolve_club_id_from_order_data($payload);
+
+        $this->assertEquals(self::$club_id, $club_id);
+    }
+
     // ── Tests bar ─────────────────────────────────────────────────────────────
 
     public function testBarDebitePiloteCreditBar()
