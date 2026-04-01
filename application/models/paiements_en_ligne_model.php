@@ -222,12 +222,12 @@ class Paiements_en_ligne_model extends CI_Model {
     public function process_order_event(array $order_data, $club_id)
     {
         // ── 1. Décoder les metadata ──────────────────────────────────────────
-        $raw_meta = isset($order_data['metadata']) ? $order_data['metadata'] : null;
-        if (is_string($raw_meta)) {
-            $raw_meta = json_decode($raw_meta, true);
-        }
+        $raw_meta = $this->_extract_order_metadata($order_data);
         if (!is_array($raw_meta)) {
-            return $this->_webhook_error('Metadata manquant ou invalide dans le payload HelloAsso');
+            $keys = implode(',', array_keys($order_data));
+            return $this->_webhook_error(
+                'Metadata manquant ou invalide dans le payload HelloAsso; keys=' . $keys
+            );
         }
 
         $gvv_txid = isset($raw_meta['gvv_transaction_id'])
@@ -320,6 +320,69 @@ class Paiements_en_ligne_model extends CI_Model {
             return $order_data['items'][0]['payments'][0]['state'];
         }
         return 'Unknown';
+    }
+
+    /**
+     * Extrait les metadata depuis différents emplacements possibles du payload Order.
+     *
+     * Certaines variantes HelloAsso sérialisent metadata en string JSON, d'autres
+     * l'exposent comme objet sur data.metadata ou data.items[].metadata.
+     *
+     * @param  array $order_data
+     * @return array|null
+     */
+    private function _extract_order_metadata(array $order_data)
+    {
+        $candidates = array();
+
+        if (array_key_exists('metadata', $order_data)) {
+            $candidates[] = $order_data['metadata'];
+        }
+        if (array_key_exists('metaData', $order_data)) {
+            $candidates[] = $order_data['metaData'];
+        }
+
+        if (!empty($order_data['items']) && is_array($order_data['items'])) {
+            foreach ($order_data['items'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                if (array_key_exists('metadata', $item)) {
+                    $candidates[] = $item['metadata'];
+                }
+                if (array_key_exists('metaData', $item)) {
+                    $candidates[] = $item['metaData'];
+                }
+            }
+        }
+
+        if (!empty($order_data['payments']) && is_array($order_data['payments'])) {
+            foreach ($order_data['payments'] as $payment) {
+                if (!is_array($payment)) {
+                    continue;
+                }
+                if (array_key_exists('metadata', $payment)) {
+                    $candidates[] = $payment['metadata'];
+                }
+                if (array_key_exists('metaData', $payment)) {
+                    $candidates[] = $payment['metaData'];
+                }
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            if (is_array($candidate)) {
+                return $candidate;
+            }
+            if (is_string($candidate) && trim($candidate) !== '') {
+                $decoded = json_decode($candidate, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

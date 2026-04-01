@@ -1458,16 +1458,54 @@ class Paiements_en_ligne extends MY_Controller {
     /** Extrait gvv_transaction_id depuis order_data.metadata. */
     private function _extract_gvv_txid(array $order_data)
     {
-        $raw_meta = isset($order_data['metadata']) ? $order_data['metadata'] : null;
-        if (is_string($raw_meta)) {
-            $raw_meta = json_decode($raw_meta, true);
-        }
+        $raw_meta = $this->_extract_order_metadata($order_data);
         if (!is_array($raw_meta)) {
             return null;
         }
         return isset($raw_meta['gvv_transaction_id'])
             ? (string) $raw_meta['gvv_transaction_id']
             : null;
+    }
+
+    /** Extrait metadata depuis les variantes de payload HelloAsso (metadata/metaData/items). */
+    private function _extract_order_metadata(array $order_data)
+    {
+        $candidates = array();
+
+        if (array_key_exists('metadata', $order_data)) {
+            $candidates[] = $order_data['metadata'];
+        }
+        if (array_key_exists('metaData', $order_data)) {
+            $candidates[] = $order_data['metaData'];
+        }
+
+        if (!empty($order_data['items']) && is_array($order_data['items'])) {
+            foreach ($order_data['items'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                if (array_key_exists('metadata', $item)) {
+                    $candidates[] = $item['metadata'];
+                }
+                if (array_key_exists('metaData', $item)) {
+                    $candidates[] = $item['metaData'];
+                }
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            if (is_array($candidate)) {
+                return $candidate;
+            }
+            if (is_string($candidate) && trim($candidate) !== '') {
+                $decoded = json_decode($candidate, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
