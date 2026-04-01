@@ -1478,6 +1478,9 @@ class Paiements_en_ligne extends MY_Controller {
         if (array_key_exists('metaData', $order_data)) {
             $candidates[] = $order_data['metaData'];
         }
+        if (array_key_exists('meta', $order_data)) {
+            $candidates[] = $order_data['meta'];
+        }
 
         if (!empty($order_data['items']) && is_array($order_data['items'])) {
             foreach ($order_data['items'] as $item) {
@@ -1489,6 +1492,9 @@ class Paiements_en_ligne extends MY_Controller {
                 }
                 if (array_key_exists('metaData', $item)) {
                     $candidates[] = $item['metaData'];
+                }
+                if (array_key_exists('meta', $item)) {
+                    $candidates[] = $item['meta'];
                 }
             }
         }
