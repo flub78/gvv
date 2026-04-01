@@ -230,11 +230,13 @@ class Paiements_en_ligne_model extends CI_Model {
             );
         }
 
-        $gvv_txid = isset($raw_meta['gvv_transaction_id'])
-            ? (string) $raw_meta['gvv_transaction_id']
-            : null;
+        $gvv_txid = $this->_extract_gvv_txid_from_meta($raw_meta);
         if (!$gvv_txid) {
-            return $this->_webhook_error('gvv_transaction_id absent des metadata');
+            $meta_preview = json_encode($raw_meta);
+            if (strlen($meta_preview) > 500) {
+                $meta_preview = substr($meta_preview, 0, 500) . '...';
+            }
+            return $this->_webhook_error('gvv_transaction_id absent des metadata; meta=' . $meta_preview);
         }
 
         // ── 2. Charger la transaction GVV ────────────────────────────────────
@@ -381,13 +383,89 @@ class Paiements_en_ligne_model extends CI_Model {
 
         foreach ($candidates as $candidate) {
             if (is_array($candidate)) {
-                return $candidate;
+                return $this->_normalize_metadata_array($candidate);
             }
             if (is_string($candidate) && trim($candidate) !== '') {
                 $decoded = json_decode($candidate, true);
                 if (is_array($decoded)) {
-                    return $decoded;
+                    return $this->_normalize_metadata_array($decoded);
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalise les metadata pour supporter les formats key/value list.
+     *
+     * Exemples supportés :
+     * - {'gvv_transaction_id': '...'}
+     * - [{'key':'gvv_transaction_id','value':'...'}]
+     *
+     * @param  array $meta
+     * @return array
+     */
+    private function _normalize_metadata_array(array $meta)
+    {
+        $is_assoc = array_keys($meta) !== range(0, count($meta) - 1);
+        if ($is_assoc) {
+            return $meta;
+        }
+
+        $normalized = array();
+        foreach ($meta as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $k = null;
+            if (isset($entry['key'])) {
+                $k = $entry['key'];
+            } elseif (isset($entry['name'])) {
+                $k = $entry['name'];
+            }
+            if ($k === null || $k === '') {
+                continue;
+            }
+
+            if (array_key_exists('value', $entry)) {
+                $normalized[$k] = $entry['value'];
+            } elseif (array_key_exists('val', $entry)) {
+                $normalized[$k] = $entry['val'];
+            }
+        }
+
+        return !empty($normalized) ? $normalized : $meta;
+    }
+
+    /**
+     * Extrait gvv_transaction_id en tolérant variantes de clé/casse.
+     *
+     * @param  array $meta
+     * @return string|null
+     */
+    private function _extract_gvv_txid_from_meta(array $meta)
+    {
+        $candidates = array(
+            'gvv_transaction_id',
+            'gvvTransactionId',
+            'transaction_id',
+            'reference',
+        );
+
+        foreach ($candidates as $key) {
+            if (!empty($meta[$key])) {
+                return (string) $meta[$key];
+            }
+        }
+
+        foreach ($meta as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            if (strtolower($key) === 'gvv_transaction_id' && !empty($value)) {
+                return (string) $value;
             }
         }
 

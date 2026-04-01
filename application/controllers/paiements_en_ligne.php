@@ -1462,9 +1462,7 @@ class Paiements_en_ligne extends MY_Controller {
         if (!is_array($raw_meta)) {
             return null;
         }
-        return isset($raw_meta['gvv_transaction_id'])
-            ? (string) $raw_meta['gvv_transaction_id']
-            : null;
+        return $this->_extract_gvv_txid_from_meta($raw_meta);
     }
 
     /** Extrait metadata depuis les variantes de payload HelloAsso (metadata/metaData/items). */
@@ -1501,13 +1499,75 @@ class Paiements_en_ligne extends MY_Controller {
 
         foreach ($candidates as $candidate) {
             if (is_array($candidate)) {
-                return $candidate;
+                return $this->_normalize_metadata_array($candidate);
             }
             if (is_string($candidate) && trim($candidate) !== '') {
                 $decoded = json_decode($candidate, true);
                 if (is_array($decoded)) {
-                    return $decoded;
+                    return $this->_normalize_metadata_array($decoded);
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /** Normalise metadata pour supporter les listes key/value. */
+    private function _normalize_metadata_array(array $meta)
+    {
+        $is_assoc = array_keys($meta) !== range(0, count($meta) - 1);
+        if ($is_assoc) {
+            return $meta;
+        }
+
+        $normalized = array();
+        foreach ($meta as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $k = null;
+            if (isset($entry['key'])) {
+                $k = $entry['key'];
+            } elseif (isset($entry['name'])) {
+                $k = $entry['name'];
+            }
+            if ($k === null || $k === '') {
+                continue;
+            }
+
+            if (array_key_exists('value', $entry)) {
+                $normalized[$k] = $entry['value'];
+            } elseif (array_key_exists('val', $entry)) {
+                $normalized[$k] = $entry['val'];
+            }
+        }
+
+        return !empty($normalized) ? $normalized : $meta;
+    }
+
+    /** Extrait gvv_transaction_id en tolérant variantes de clé/casse. */
+    private function _extract_gvv_txid_from_meta(array $meta)
+    {
+        $candidates = array(
+            'gvv_transaction_id',
+            'gvvTransactionId',
+            'transaction_id',
+            'reference',
+        );
+
+        foreach ($candidates as $key) {
+            if (!empty($meta[$key])) {
+                return (string) $meta[$key];
+            }
+        }
+
+        foreach ($meta as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            if (strtolower($key) === 'gvv_transaction_id' && !empty($value)) {
+                return (string) $value;
             }
         }
 
