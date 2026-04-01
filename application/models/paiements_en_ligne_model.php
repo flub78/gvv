@@ -103,6 +103,46 @@ class Paiements_en_ligne_model extends CI_Model {
     }
 
     /**
+     * Associe les infos de checkout HelloAsso à une transaction GVV.
+     *
+     * Stockage dans metadata JSON :
+     * - helloasso_checkout_intent_id
+     * - checkout_url
+     *
+     * @param  string      $transaction_id
+     * @param  string|int  $checkout_intent_id
+     * @param  string|null $checkout_url
+     * @return bool
+     */
+    public function attach_checkout_info($transaction_id, $checkout_intent_id, $checkout_url = null)
+    {
+        $tx = $this->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            return false;
+        }
+
+        $meta = array();
+        if (!empty($tx['metadata'])) {
+            $decoded = json_decode($tx['metadata'], true);
+            if (is_array($decoded)) {
+                $meta = $decoded;
+            }
+        }
+
+        $meta['helloasso_checkout_intent_id'] = (string) $checkout_intent_id;
+        if ($checkout_url !== null && $checkout_url !== '') {
+            $meta['checkout_url'] = (string) $checkout_url;
+        }
+
+        $this->db->where('transaction_id', $transaction_id)->update($this->table, array(
+            'metadata'   => json_encode($meta),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ));
+
+        return $this->db->affected_rows() > 0;
+    }
+
+    /**
      * Récupère une transaction par son ID interne GVV.
      *
      * @param  int $id
@@ -231,22 +271,43 @@ class Paiements_en_ligne_model extends CI_Model {
         }
 
         $gvv_txid = $this->_extract_gvv_txid_from_meta($raw_meta);
+        $transaction = null;
+
+        if (!$gvv_txid) {
+            $checkout_intent_id = $this->_extract_checkout_intent_id($order_data);
+            if ($checkout_intent_id !== null && $checkout_intent_id !== '') {
+                $transaction = $this->_find_transaction_by_checkout_intent_id((int) $club_id, $checkout_intent_id);
+                if ($transaction) {
+                    $gvv_txid = (string) $transaction['transaction_id'];
+                    $raw_meta['gvv_transaction_id'] = $gvv_txid;
+                }
+            }
+        }
+
         if (!$gvv_txid) {
             $meta_preview = json_encode($raw_meta);
             if (strlen($meta_preview) > 500) {
                 $meta_preview = substr($meta_preview, 0, 500) . '...';
             }
-            return $this->_webhook_error('gvv_transaction_id absent des metadata; meta=' . $meta_preview);
+            $checkout_intent_id = $this->_extract_checkout_intent_id($order_data);
+            return $this->_webhook_error(
+                'gvv_transaction_id absent des metadata; checkoutIntentId=' . $checkout_intent_id
+                . '; meta=' . $meta_preview
+            );
         }
 
-        // ── 2. Charger la transaction GVV ────────────────────────────────────
-        $transaction = $this->get_by_transaction_id($gvv_txid);
+        // ── 2. Traitement transactionnel avec verrou de ligne (anti-course) ─
+        $this->db->trans_begin();
+
+        $transaction = $this->_lock_transaction_by_transaction_id($gvv_txid);
         if (!$transaction) {
+            $this->db->trans_rollback();
             return $this->_webhook_error('Transaction introuvable : ' . $gvv_txid);
         }
 
         // ── 3. Idempotence ───────────────────────────────────────────────────
         if ($transaction['statut'] === 'completed') {
+            $this->db->trans_commit();
             return array(
                 'ok'          => true,
                 'status'      => 'already_completed',
@@ -259,6 +320,11 @@ class Paiements_en_ligne_model extends CI_Model {
         $payment_state = $this->_extract_payment_state($order_data);
         if ($payment_state !== 'Authorized') {
             $this->update_transaction_status($gvv_txid, 'failed');
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                return $this->_webhook_error('Erreur DB lors du passage en failed : ' . $gvv_txid);
+            }
+            $this->db->trans_commit();
             return array(
                 'ok'          => true,
                 'status'      => 'failed',
@@ -274,6 +340,11 @@ class Paiements_en_ligne_model extends CI_Model {
         if (!$result['ok']) {
             // Erreur de configuration ou DB : marquer failed, remonter 200 à HA
             $this->update_transaction_status($gvv_txid, 'failed');
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                return $this->_webhook_error('Erreur DB après échec écriture : ' . $gvv_txid);
+            }
+            $this->db->trans_commit();
             return array(
                 'ok'          => true,
                 'status'      => 'failed',
@@ -285,17 +356,41 @@ class Paiements_en_ligne_model extends CI_Model {
         // ── 6. Marquer completed ─────────────────────────────────────────────
         $ecriture_id = $result['ecriture_id'];
         $now = date('Y-m-d H:i:s');
-        $this->db->where('transaction_id', $gvv_txid)->update($this->table, array(
-            'statut'        => 'completed',
-            'ecriture_id'   => $ecriture_id,
-            'date_paiement' => $now,
-            'metadata'      => json_encode(array_merge($raw_meta, array(
-                'processed_at' => $now,
-                'ecriture_id'  => $ecriture_id,
-            ))),
-            'updated_at'    => $now,
-            'updated_by'    => 'helloasso_webhook',
-        ));
+        $this->db->where('transaction_id', $gvv_txid)
+            ->where('statut', 'pending')
+            ->update($this->table, array(
+                'statut'        => 'completed',
+                'ecriture_id'   => $ecriture_id,
+                'date_paiement' => $now,
+                'metadata'      => json_encode(array_merge($raw_meta, array(
+                    'processed_at' => $now,
+                    'ecriture_id'  => $ecriture_id,
+                ))),
+                'updated_at'    => $now,
+                'updated_by'    => 'helloasso_webhook',
+            ));
+
+        if ($this->db->affected_rows() === 0) {
+            $latest = $this->get_by_transaction_id($gvv_txid);
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                return $this->_webhook_error('Erreur DB après verrou concurrent : ' . $gvv_txid);
+            }
+            $this->db->trans_commit();
+            return array(
+                'ok'          => true,
+                'status'      => 'already_completed',
+                'ecriture_id' => isset($latest['ecriture_id']) ? $latest['ecriture_id'] : null,
+                'transaction' => $latest ?: $transaction,
+            );
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return $this->_webhook_error('Erreur DB finalisation webhook : ' . $gvv_txid);
+        }
+
+        $this->db->trans_commit();
 
         return array(
             'ok'          => true,
@@ -470,6 +565,77 @@ class Paiements_en_ligne_model extends CI_Model {
         }
 
         return null;
+    }
+
+    /**
+     * Extrait checkoutIntentId depuis les variantes possibles du payload Order.
+     *
+     * @param  array $order_data
+     * @return string|null
+     */
+    private function _extract_checkout_intent_id(array $order_data)
+    {
+        if (!empty($order_data['checkoutIntentId'])) {
+            return (string) $order_data['checkoutIntentId'];
+        }
+        if (!empty($order_data['checkoutIntentID'])) {
+            return (string) $order_data['checkoutIntentID'];
+        }
+        if (!empty($order_data['checkout_intent_id'])) {
+            return (string) $order_data['checkout_intent_id'];
+        }
+        return null;
+    }
+
+    /**
+     * Recherche une transaction pending d'un club par checkout intent id.
+     *
+     * @param  int         $club_id
+     * @param  string|int  $checkout_intent_id
+     * @return array|false
+     */
+    private function _find_transaction_by_checkout_intent_id($club_id, $checkout_intent_id)
+    {
+        $rows = $this->db
+            ->where('club', (int) $club_id)
+            ->where('plateforme', 'helloasso')
+            ->where('statut', 'pending')
+            ->order_by('date_demande', 'DESC')
+            ->limit(200)
+            ->get($this->table)
+            ->result_array();
+
+        $needle = (string) $checkout_intent_id;
+        foreach ($rows as $row) {
+            if (empty($row['metadata'])) {
+                continue;
+            }
+            $meta = json_decode($row['metadata'], true);
+            if (!is_array($meta)) {
+                continue;
+            }
+            if (!empty($meta['helloasso_checkout_intent_id'])
+                && (string) $meta['helloasso_checkout_intent_id'] === $needle) {
+                return $row;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verrouille une transaction par transaction_id pour traitement webhook atomique.
+     *
+     * @param  string $transaction_id
+     * @return array|false
+     */
+    private function _lock_transaction_by_transaction_id($transaction_id)
+    {
+        $sql = 'SELECT * FROM ' . $this->db->protect_identifiers($this->table)
+            . ' WHERE transaction_id = ? LIMIT 1 FOR UPDATE';
+        $query = $this->db->query($sql, array($transaction_id));
+        $row = $query->row_array();
+        return $row ?: false;
     }
 
     /**
