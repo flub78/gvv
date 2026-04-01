@@ -305,6 +305,14 @@ class Paiements_en_ligne_model extends CI_Model {
             return $this->_webhook_error('Transaction introuvable : ' . $gvv_txid);
         }
 
+        // Les webhooks Checkout peuvent ne fournir que `meta` technique (timestamps).
+        // On restaure donc les métadonnées métier stockées à la création de la transaction.
+        $stored_meta = json_decode(isset($transaction['metadata']) ? $transaction['metadata'] : '', true);
+        if (is_array($stored_meta)) {
+            $raw_meta = array_merge($stored_meta, $raw_meta);
+        }
+        $raw_meta['gvv_transaction_id'] = $gvv_txid;
+
         // ── 3. Idempotence ───────────────────────────────────────────────────
         if ($transaction['statut'] === 'completed') {
             $this->db->trans_commit();
