@@ -58,6 +58,7 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 - **[Reports & Statistics](fr/08_rapports.md)** - Analysis and exports
 
 ### Integration Guides
+- **[Online Payments / HelloAsso](fr/12_paiements_en_ligne.md)** - Card payments, account provisioning, QR Code bar
 - **[OpenFlyers Integration](openflyers_user.md)** - External billing system sync
 
 ---
@@ -77,7 +78,8 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 ### For Club Management
 1. **[📊 Accounting](fr/07_comptabilite.md)** - Financial control
 2. **[📈 Reports](fr/08_rapports.md)** - Analyze performance
-3. **[🔗 Integration](openflyers_user.md)** - External systems
+3. **[💳 Online Payments](fr/12_paiements_en_ligne.md)** - HelloAsso, CB, QR Code
+4. **[🔗 Integration](openflyers_user.md)** - External systems
 
 ---
 
