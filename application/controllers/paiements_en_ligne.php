@@ -49,6 +49,7 @@ class Paiements_en_ligne extends MY_Controller {
             'helloasso_webhook',
             'public_bar',
             'public_bar_confirmation',
+            'public_decouverte',
             'public_decouverte_confirmation',
             'decouverte_qr_image',
         );
@@ -98,8 +99,8 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+        $meta       = json_decode($tx['metadata'], true) ?: array();
+        $public_url = site_url('paiements_en_ligne/public_decouverte/' . $transaction_id);
 
         $nom_club    = $this->config->item('nom_club') ?: 'GVV';
         $sender_name = $this->configuration_model->get_param('vd.email.sender_name') ?: $nom_club;
@@ -109,7 +110,7 @@ class Paiements_en_ligne extends MY_Controller {
         $data = array(
             'transaction'        => $tx,
             'meta'               => $meta,
-            'checkout_url'       => $checkout_url,
+            'public_url'         => $public_url,
             'transaction_id'     => $transaction_id,
             'sender_name'        => $sender_name,
             'beneficiaire_email' => $beneficiaire_email,
@@ -135,18 +136,87 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
-
-        if (empty($checkout_url)) {
-            $this->output->set_status_header(404);
-            return;
-        }
+        $public_url = site_url('paiements_en_ligne/public_decouverte/' . $transaction_id);
 
         include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
         header('Content-Type: image/png');
-        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
+        QRcode::png($public_url, false, QR_ECLEVEL_M, 5, 2);
         exit;
+    }
+
+    /**
+     * Page publique de paiement d'un bon découverte.
+     *
+     * Accessible sans connexion. Affiche les détails du bon et un bouton "Payer par CB".
+     * Sur POST, crée le checkout HelloAsso à la demande et redirige.
+     *
+     * Accès : public
+     */
+    public function public_decouverte($txid = '') {
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+        if (!$tx) {
+            show_404();
+            return;
+        }
+
+        $meta    = json_decode($tx['metadata'], true) ?: array();
+        $club_id = (int) $tx['club'];
+        $section = $club_id ? $this->sections_model->get_by_id('id', $club_id) : null;
+
+        $data = array(
+            'tx'      => $tx,
+            'meta'    => $meta,
+            'txid'    => $txid,
+            'section' => $section,
+            'error'   => '',
+        );
+
+        if ($this->input->post('button') === 'payer') {
+            $this->_process_public_decouverte($txid, $tx, $meta, $club_id, $section, $data);
+            return;
+        }
+
+        $this->_render_public_decouverte($data);
+    }
+
+    private function _render_public_decouverte(array $data) {
+        $this->load->view('bs_header', $data);
+        $this->load->view('paiements_en_ligne/bs_public_decouverte', $data);
+        $this->load->view('bs_footer');
+    }
+
+    private function _process_public_decouverte($txid, array $tx, array $meta, $club_id, $section, array $data) {
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if ($enabled !== '1') {
+            $data['error'] = $this->lang->line('gvv_bar_carte_error_disabled');
+            $this->_render_public_decouverte($data);
+            return;
+        }
+
+        $montant            = (float) $tx['montant'];
+        $description        = isset($meta['description'])        ? (string) $meta['description']        : 'Bon découverte';
+        $beneficiaire       = isset($meta['beneficiaire'])       ? (string) $meta['beneficiaire']       : '';
+        $beneficiaire_email = isset($meta['beneficiaire_email']) ? (string) $meta['beneficiaire_email'] : '';
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => $beneficiaire,
+            'payer_last_name'  => '',
+            'payer_email'      => $beneficiaire_email,
+            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $club_id . '&txid=' . urlencode($txid)),
+            'back_url'         => site_url('paiements_en_ligne/public_decouverte/' . $txid),
+            'error_url'        => site_url('paiements_en_ligne/public_decouverte/' . $txid),
+            'metadata'         => $meta,
+        ));
+
+        if (!$checkout['success']) {
+            $data['error'] = $this->lang->line('gvv_decouverte_error_checkout');
+            $this->_render_public_decouverte($data);
+            return;
+        }
+
+        redirect($checkout['redirect_url']);
     }
 
     /**
