@@ -12,6 +12,10 @@ use PHPUnit\Framework\TestCase;
 class PaiementsEnLigneMigrationTest extends TestCase
 {
     private $db;
+    private $backup_pel        = [];
+    private $backup_pel_config = [];
+    private $pel_existed        = false;
+    private $pel_config_existed = false;
 
     protected function setUp(): void
     {
@@ -23,16 +27,41 @@ class PaiementsEnLigneMigrationTest extends TestCase
         }
         require_once APPPATH . 'migrations/097_paiements_en_ligne.php';
 
-        // Ensure clean state before each test
+        // Sauvegarde des données existantes avant de détruire les tables
+        $this->pel_existed = $this->tableExists('paiements_en_ligne');
+        $this->pel_config_existed = $this->tableExists('paiements_en_ligne_config');
+
+        $this->backup_pel = $this->pel_existed
+            ? $this->db->get('paiements_en_ligne')->result_array()
+            : [];
+
+        $this->backup_pel_config = $this->pel_config_existed
+            ? $this->db->get('paiements_en_ligne_config')->result_array()
+            : [];
+
+        // État vierge pour chaque test
         $this->db->query("DROP TABLE IF EXISTS `paiements_en_ligne`");
         $this->db->query("DROP TABLE IF EXISTS `paiements_en_ligne_config`");
     }
 
     protected function tearDown(): void
     {
-        // Always restore clean state
+        // Nettoyage de l'état laissé par le test
         $this->db->query("DROP TABLE IF EXISTS `paiements_en_ligne`");
         $this->db->query("DROP TABLE IF EXISTS `paiements_en_ligne_config`");
+
+        // Restauration des tables et données si elles existaient avant le test
+        if ($this->pel_existed || $this->pel_config_existed) {
+            $migration = new Migration_Paiements_En_Ligne();
+            $migration->up();
+
+            foreach ($this->backup_pel_config as $row) {
+                $this->db->insert('paiements_en_ligne_config', $row);
+            }
+            foreach ($this->backup_pel as $row) {
+                $this->db->insert('paiements_en_ligne', $row);
+            }
+        }
     }
 
     private function tableExists($table)

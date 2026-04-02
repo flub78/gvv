@@ -299,7 +299,7 @@ $this->lang->load('tableaux_de_bord');
                             <i class="fas fa-coffee text-warning"></i>
                             <div class="card-title"><?= $this->lang->line('gvv_dashboard_pay_bar') ?></div>
                             <div class="card-text text-muted"><?= htmlspecialchars($active_payment_section['section_name']) ?></div>
-                            <a href="<?= controller_url('paiements_en_ligne/bar_hub') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
+                            <a href="<?= controller_url('paiements_en_ligne/bar_debit_solde') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
                         </div>
                     </div>
                     <?php endif; ?>

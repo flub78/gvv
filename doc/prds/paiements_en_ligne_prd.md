@@ -164,29 +164,6 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 La plateforme de paiement en ligne doit supporter les scénarios métier suivants, au-delà du provisionnement simple de compte :
 
-### UC1 : Paiement de Consommations de Bar par un Pilote Authentifié par Carte (Priorité : HAUTE)
-
-> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
-
-**Contexte :**
-Un pilote connecté souhaite régler ses consommations au bar du club par carte bancaire. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
-
-**Flux :**
-1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar par carte"
-2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
-3. Il est redirigé vers HelloAsso pour payer
-4. Après paiement réussi :
-   - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
-   - Le pilote reçoit une confirmation par email
-   - Son historique de compte affiche le paiement
-
-**Avantages :**
-- Paiement immédiat sans intervention du trésorier
-- Traçabilité complète en comptabilité
-- Réduit la saisie manuelle du trésorier
-
----
-
 ### UC2 : Paiement de Consommations de Bar par une Personne Externe (Priorité : MOYENNE)
 
 **Contexte :**
@@ -219,26 +196,25 @@ Elle saisit elle-même le montant et la description et effectue le paiement.
 ### UC3 : Renouvellement de Cotisation en Ligne par un Pilote Authentifié (Priorité : MÉDIUM)
 
 **Contexte :**
-Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier.
+Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier. Le règlement se fait par débit de son compte pilote (411).
 
 **Flux :**
-1. Le pilote accède à "Mon Compte" → "Gérer ma Cotisation"
-2. Le système affiche les **produits de cotisation** disponibles configurés par le club :
-   - Exemple : "Cotisation Pilote 2026 - 350€"
-   - Exemple : "Cotisation Junior 2026 - 200€"
-3. Il sélectionne le produit voulu
-4. Il paie par carte
-5. Après paiement :
-   - Écriture comptable automatique (vente de cotisation, compte 411)
-   - Marquage du pilote comme "cotisant à jour pour 2026"
-   - Attestation PDF générée et envoyée par email
-   - Notification au trésorier pour information
-   - Le compte du pilote affiche "Cotisation à jour jusqu'au 31/12/2026"
+1. Le pilote accède à "Mon Compte" → "Payer ma cotisation"
+2. Le système affiche les **produits de cotisation** disponibles configurés par le club et son **solde disponible**
+3. Il sélectionne le produit voulu et confirme
+4. Le système vérifie :
+   - Solde du compte pilote ≥ montant de la cotisation (sinon refus avec message explicite)
+   - Absence de cotisation existante pour l'année concernée (sinon refus)
+5. En cas de succès :
+   - Écriture comptable : débit compte pilote (411), crédit compte recette cotisation (417)
+   - Cotisation enregistrée dans la table `licences`
+   - Message de confirmation affiché
 
-**Avantages :**
-- Renouvellement autonome, 24/7
-- Pas de fuite de cotisation
-- Automatisation des attestations
+**Règles Métier :**
+- Le pilote ne peut régler que si son solde couvre le montant de la cotisation
+- Si une cotisation pour l'année existe déjà, l'opération est refusée
+- L'écriture produit le même résultat qu'une saisie manuelle du trésorier (débit 411, crédit 417)
+- Aucune intégration HelloAsso requise
 
 **Configuration requise :**
 - Les trésoriers marquent des tarifs existants comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
@@ -312,63 +288,6 @@ Un pilote connecté dispose d'un solde positif sur son compte pilote et souhaite
 - Aucun paiement à crédit n'est possible (solde minimum = 0€)
 
 ---
-
-### UC6 : Paiement par Carte lors de la Saisie d'une Cotisation par le Trésorier (Priorité : HAUTE)
-
-**Contexte :**
-Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un chèque ou un espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de saisie de la cotisation.
-
-**Flux :**
-1. Le trésorier accède à l'interface de création de cotisation (formulaire habituel)
-2. Deux boutons sont présents en bas du formulaire :
-   - **"Valider"** (comportement habituel, paiement classique)
-   - **"Payer par carte (HelloAsso)"**
-3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
-    - Il paie sur son propre écran (lien direct HelloAsso)
-4. Après confirmation du paiement par HelloAsso (succès) :
-   - Une écriture de cotisation est créée (identique à la validation classique)
-   - Un approvisionnement de compte pilote est créé pour le même montant (crédit du compte pilote)
-   - Ces deux écritures sont créées de manière **atomique** (tout ou rien)
-   - Le solde du compte pilote reste inchangé en net : il est débité de la cotisation et crédité d'un approvisionnement équivalent
-5. En cas d'échec du paiement HelloAsso :
-   - Aucune écriture n'est créée
-   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
-
-**Règles Métier :**
-- La transaction comptable est atomique : les deux écritures (cotisation + approvisionnement) sont créées ensemble ou pas du tout
-- En cas d'échec HelloAsso, aucun impact sur la comptabilité
-- Le solde net du pilote est inchangé après l'opération : la cotisation débite le compte et l'approvisionnement le crédite du même montant
-- Le flux cotisation via trésorier ne propose pas d'écran QR dédié ; le paiement est direct sur le poste courant
-
----
-
-### UC7 : Règlement de Compte Pilote par Carte via le Trésorier (Priorité : HAUTE)
-
-**Contexte :**
-Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque ou espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de règlement de compte (`compta/reglement_pilote`).
-
-**Flux :**
-1. Le trésorier accède au formulaire `compta/reglement_pilote` (formulaire standard)
-2. Deux boutons sont présents en bas du formulaire :
-   - **"Valider"** (comportement habituel, paiement classique)
-   - **"Payer par carte (HelloAsso)"** (visible uniquement si HelloAsso activé et utilisateur dans `dev_users`)
-3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
-   - Le compte pilote (compte2, 411) et le montant sont lus depuis le formulaire
-   - Le login du pilote est résolu depuis l'ID du compte 411
-    - Il peut **utiliser son propre écran** pour déclencher le paiement HelloAsso, ou
-    - Il peut **transférer le contrôle au porteur de la carte** via un petit QR code ouvrant la même page de paiement sur téléphone
-4. Après confirmation du paiement par HelloAsso (succès) :
-   - L'écriture de règlement est créée automatiquement
-   - Le compte pilote est débité du montant payé par carte
-5. En cas d'échec du paiement HelloAsso :
-   - Aucune écriture n'est créée
-   - Le trésorier est redirigé vers `reglement_pilote` avec un message d'erreur
-
-**Règles Métier :**
-- La transaction comptable est atomique : l'écriture n'est créée que si le paiement HelloAsso est confirmé
-- En cas d'échec HelloAsso, aucun impact sur la comptabilité
-- La page séparée `provisionnement_tresorier` a été supprimée ; l'entrée CB est intégrée dans `reglement_pilote`
-- Le QR code de transfert n'est affiché que si le paiement n'est pas initié par l'utilisateur payeur lui-même
 
 ---
 
@@ -563,17 +482,13 @@ Le trésorier règle le compte d'un pilote. Plutôt qu'un paiement par chèque o
 - CA6.1 : Une sous-section "Mes paiements" apparaît dans "Mon espace personnel" du tableau de bord **uniquement si au moins une section du pilote a les paiements en ligne activés** (`paiements_en_ligne_config.enabled = '1'`)
 - CA6.2 : Cartes affichées conditionnellement :
   - **"Payer ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
-  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige vers hub bar)
+  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige directement vers `paiements_en_ligne/bar_debit_solde`)
   - **"Approvisionner mon compte [nom section] (CB)"** : une carte par section avec paiements activés (redirige vers `paiements_en_ligne/demande`)
-- CA6.3 : La carte "Payer mes notes de bar" redirige vers une page hub avec deux choix :
-  - "Débiter mon compte" → `paiements_en_ligne/bar_debit_solde`
-  - "Paiement en ligne (CB)" → `paiements_en_ligne/bar_carte` (affiché uniquement si HelloAsso activé pour la section)
-- CA6.4 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
+- CA6.3 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
 
 **Règles Métier :**
 - La visibilité est calculée à chaque chargement du dashboard (pas de cache)
 - Une carte par section pour l'approvisionnement (le nom de la section apparaît dans le titre)
-- La carte bar est partagée entre débit solde et CB via une page hub intermédiaire
 
 ---
 
@@ -895,7 +810,7 @@ public function helloasso_webhook() {
 - Fonctionne avec PHP 7.4
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
-- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. Les fonctionnalités de paiement bar (UC1, UC5) sont conditionnées à ce flag.
+- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. La fonctionnalité de paiement bar (UC5) est conditionnée à ce flag.
 - Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
 - **Section active obligatoire pour tout paiement CB** : si la session de l'utilisateur est en mode "Toutes les sections", toute opération impliquant un paiement par carte bancaire (provisionnement, bar, cotisation, bon de découverte) est refusée. L'utilisateur doit sélectionner une section spécifique. Cette règle s'applique également aux pages publiques (UC2, UC4) : le lien ou QR Code doit encoder explicitement l'identifiant de section — un lien sans section valide est rejeté.
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)

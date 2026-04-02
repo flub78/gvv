@@ -103,6 +103,71 @@ class Paiements_en_ligne_model extends CI_Model {
     }
 
     /**
+     * Récupère une transaction pending par checkout intent id, tous clubs confondus.
+     * Utilisé pour résoudre un webhook reçu sur une ancienne URL sans club_id.
+     *
+     * @param  string|int $checkout_intent_id
+     * @return array|false
+     */
+    public function find_pending_by_checkout_intent_id($checkout_intent_id)
+    {
+        $rows = $this->db
+            ->where('plateforme', 'helloasso')
+            ->where('statut', 'pending')
+            ->order_by('date_demande', 'DESC')
+            ->limit(500)
+            ->get($this->table)
+            ->result_array();
+
+        $needle = (string) $checkout_intent_id;
+        foreach ($rows as $row) {
+            if (empty($row['metadata'])) {
+                continue;
+            }
+            $meta = json_decode($row['metadata'], true);
+            if (!is_array($meta)) {
+                continue;
+            }
+            if (!empty($meta['helloasso_checkout_intent_id'])
+                && (string) $meta['helloasso_checkout_intent_id'] === $needle) {
+                return $row;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Tente de résoudre le club d'un webhook à partir du payload HelloAsso.
+     *
+     * @param  array $order_data
+     * @return int  club_id ou 0 si introuvable
+     */
+    public function resolve_club_id_from_order_data(array $order_data)
+    {
+        $raw_meta = $this->_extract_order_metadata($order_data);
+        if (is_array($raw_meta)) {
+            $gvv_txid = $this->_extract_gvv_txid_from_meta($raw_meta);
+            if ($gvv_txid) {
+                $transaction = $this->get_by_transaction_id($gvv_txid);
+                if ($transaction && !empty($transaction['club'])) {
+                    return (int) $transaction['club'];
+                }
+            }
+        }
+
+        $checkout_intent_id = $this->_extract_checkout_intent_id($order_data);
+        if ($checkout_intent_id !== null && $checkout_intent_id !== '') {
+            $transaction = $this->find_pending_by_checkout_intent_id($checkout_intent_id);
+            if ($transaction && !empty($transaction['club'])) {
+                return (int) $transaction['club'];
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Associe les infos de checkout HelloAsso à une transaction GVV.
      *
      * Stockage dans metadata JSON :
@@ -668,7 +733,6 @@ class Paiements_en_ligne_model extends CI_Model {
 
         switch ($type) {
             case 'provisionnement':
-            case 'credit_tresorier':
                 return $this->_ecriture_provisionnement(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
@@ -680,16 +744,8 @@ class Paiements_en_ligne_model extends CI_Model {
                 return $this->_ecriture_bar_externe(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
-            case 'cotisation':
-                return $this->_ecriture_cotisation(
-                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
-
             case 'decouverte':
                 return $this->_ecriture_decouverte(
-                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
-
-            case 'cotisation_tresorier':
-                return $this->_ecriture_cotisation_tresorier(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
             default:
@@ -699,7 +755,7 @@ class Paiements_en_ligne_model extends CI_Model {
 
     // ── Écritures par type ────────────────────────────────────────────────────
 
-    /** provisionnement / credit_tresorier : débit 467, crédit 411 pilote */
+    /** provisionnement : débit 467, crédit 411 pilote */
     private function _ecriture_provisionnement($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
     {
         $cp = $this->_get_compte_passage($club_id);
@@ -766,33 +822,6 @@ class Paiements_en_ligne_model extends CI_Model {
         return array('ok' => true, 'ecriture_id' => $id);
     }
 
-    /** cotisation : débit 467, crédit 417 (depuis metadata ou premier 417 de la section) */
-    private function _ecriture_cotisation($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
-    {
-        $cp = $this->_get_compte_passage($club_id);
-        if (!$cp) {
-            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
-        }
-
-        $CI = get_instance();
-        if (!empty($meta['compte_cotisation_id'])) {
-            $ccot = $CI->comptes_model->get_by_id('id', (int) $meta['compte_cotisation_id']);
-        } else {
-            $ccot = $CI->comptes_model->get_by_section_and_codec((int) $club_id, '417');
-        }
-        if (!$ccot) {
-            return array('ok' => false, 'error' => 'Compte cotisation (417) introuvable pour club=' . $club_id);
-        }
-
-        $id = $CI->ecritures_model->create_ecriture(
-            $this->_ecriture_data($cp['id'], $ccot['id'], $montant, $desc, $cheque, $date, $club_id)
-        );
-        if ($id === false) {
-            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture cotisation');
-        }
-        return array('ok' => true, 'ecriture_id' => $id);
-    }
-
     /** decouverte : débit 467, crédit compte destination (obligatoire dans metadata) */
     private function _ecriture_decouverte($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
     {
@@ -817,57 +846,6 @@ class Paiements_en_ligne_model extends CI_Model {
             return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture decouverte');
         }
         return array('ok' => true, 'ecriture_id' => $id);
-    }
-
-    /**
-     * cotisation_tresorier : deux écritures atomiques.
-     *   Écriture 1 : débit 411 pilote → crédit 417 cotisation  (enregistre la cotisation)
-     *   Écriture 2 : débit 467 passage → crédit 411 pilote     (rembourse le solde pilote)
-     * Effet net sur le solde pilote : 0 (les deux écritures s'annulent).
-     */
-    private function _ecriture_cotisation_tresorier($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
-    {
-        $CI = get_instance();
-
-        $cpilote = $this->_get_compte_pilote($tx, $club_id);
-        if (!$cpilote) {
-            return array('ok' => false, 'error' => 'Compte pilote (411) introuvable pour user_id=' . $tx['user_id']);
-        }
-
-        $cp = $this->_get_compte_passage($club_id);
-        if (!$cp) {
-            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
-        }
-
-        if (!empty($meta['compte_cotisation_id'])) {
-            $ccot = $CI->comptes_model->get_by_id('id', (int) $meta['compte_cotisation_id']);
-        } else {
-            $ccot = $CI->comptes_model->get_by_section_and_codec((int) $club_id, '417');
-        }
-        if (!$ccot) {
-            return array('ok' => false, 'error' => 'Compte cotisation (417) introuvable pour club=' . $club_id);
-        }
-
-        // Transaction DB englobante — CI2 gère la profondeur d'imbrication
-        $this->db->trans_start();
-
-        // Écriture 1 : débit pilote 411, crédit cotisation 417
-        $id1 = $CI->ecritures_model->create_ecriture(
-            $this->_ecriture_data($cpilote['id'], $ccot['id'], $montant, $desc, $cheque, $date, $club_id)
-        );
-
-        // Écriture 2 : débit passage 467, crédit pilote 411
-        $id2 = $CI->ecritures_model->create_ecriture(
-            $this->_ecriture_data($cp['id'], $cpilote['id'], $montant,
-                $desc . ' (remboursement compte pilote)', $cheque, $date, $club_id)
-        );
-
-        $committed = $this->db->trans_complete();
-
-        if (!$committed || $id1 === false || $id2 === false) {
-            return array('ok' => false, 'error' => 'Erreur DB : double écriture cotisation_tresorier non atomique');
-        }
-        return array('ok' => true, 'ecriture_id' => $id1, 'ecriture_id2' => $id2);
     }
 
     // ── Helpers lookup comptes ────────────────────────────────────────────────

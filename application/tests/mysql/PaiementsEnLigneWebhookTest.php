@@ -233,21 +233,36 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertStringStartsWith('HelloAsso:', $ecriture['num_cheque']);
     }
 
-    public function testCreditTresorierSameAsProvisionnement()
+    public function testResolveClubIdFromOrderDataByTransactionId()
     {
-        // credit_tresorier utilise exactement la même logique comptable que provisionnement
-        $txid = $this->createPendingTransaction('credit_tresorier');
-        $payload = $this->buildOrderPayload($txid, 'credit_tresorier');
+        $txid = $this->createPendingTransaction('provisionnement');
+        $payload = $this->buildOrderPayload($txid, 'provisionnement');
 
-        $result = $this->model->process_order_event($payload, self::$club_id);
+        $club_id = $this->model->resolve_club_id_from_order_data($payload);
 
-        $this->assertTrue($result['ok'], $result['error'] ?? '');
-        $this->assertEquals('completed', $result['status']);
-        $this->created_ecriture_ids[] = $result['ecriture_id'];
+        $this->assertEquals(self::$club_id, $club_id);
+    }
 
-        $ecriture = $this->db->where('id', $result['ecriture_id'])->get('ecritures')->row_array();
-        $this->assertEquals(self::$compte_passage_id, (int) $ecriture['compte1']);
-        $this->assertEquals(self::$compte_pilote_id,  (int) $ecriture['compte2']);
+    public function testResolveClubIdFromOrderDataByCheckoutIntentId()
+    {
+        $txid = $this->createPendingTransaction('provisionnement');
+        $checkout_intent_id = 'ha-checkout-' . uniqid();
+        $this->assertTrue($this->model->attach_checkout_info($txid, $checkout_intent_id, 'https://example.test/checkout'));
+
+        $payload = array(
+            'id' => 'evt-' . uniqid(),
+            'order' => 'order-' . uniqid(),
+            'checkoutIntentId' => $checkout_intent_id,
+            'payments' => array(array('state' => 'Authorized', 'amount' => 1000)),
+            'items' => array(array(
+                'payments' => array(array('state' => 'Authorized', 'amount' => 1000)),
+                'meta' => array('createdAt' => date('c')),
+            )),
+        );
+
+        $club_id = $this->model->resolve_club_id_from_order_data($payload);
+
+        $this->assertEquals(self::$club_id, $club_id);
     }
 
     // ── Tests bar ─────────────────────────────────────────────────────────────

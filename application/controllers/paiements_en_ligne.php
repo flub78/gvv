@@ -167,35 +167,6 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
-     * Hub de paiement bar — choix entre débit de solde (UC5) et paiement CB (UC1).
-     *
-     * Accès : pilote authentifié, section active avec has_bar = true
-     */
-    function bar_hub() {
-        $section = $this->_require_active_section();
-        if (!$section) return;
-
-        if (empty($section['has_bar'])) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_bar'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        $helloasso_enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', (int) $section['id']) === '1';
-
-        $data = array(
-            'section'            => $section,
-            'helloasso_enabled'  => $helloasso_enabled,
-        );
-
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu', $data);
-        $this->load->view('bs_banner', $data);
-        $this->load->view('paiements_en_ligne/bs_bar_hub', $data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
      * Provisionnement du compte pilote 411 par carte bancaire via HelloAsso (EF1).
      *
      * GET  : formulaire montant (entre montant_min et montant_max configurés)
@@ -480,200 +451,41 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
-    // UC1 — Paiement bar par carte (pilote authentifié)
+    // UC3 — Renouvellement de cotisation en ligne par le pilote (débit de solde)
     // =========================================================================
 
     /**
-     * Paiement des consommations de bar par carte bancaire via HelloAsso (UC1).
+     * Renouvellement de cotisation par débit du compte pilote.
      *
-     * GET  : affiche le formulaire (montant + descriptif)
-     * POST : valide, crée une transaction pending, redirige vers HelloAsso
+     * GET  : liste des produits cotisation actifs, solde du pilote
+     * POST : validation produit, vérification solde et doublon, écriture comptable, licence
      *
-     * Accès : pilote authentifié, section active avec has_bar = true, HelloAsso activé
-     */
-    public function bar_carte() {
-        $section = $this->_require_active_section();
-        if (!$section) return;
-
-        if (empty($section['has_bar'])) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_bar'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        if (empty($section['bar_account_id'])) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_account'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        $club_id = (int) $section['id'];
-        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
-        if (!$enabled) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        $mlogin = $this->dx_auth->get_username();
-        $compte_pilote = $this->comptes_model->compte_pilote($mlogin, $section);
-        if (!$compte_pilote) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_pilot_account'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        if ($this->input->post('button') === 'valider') {
-            $this->_process_bar_carte($section, $club_id, $compte_pilote);
-            return;
-        }
-
-        $data = array(
-            'section'     => $section,
-            'montant'     => '',
-            'description' => '',
-            'error'       => $this->session->flashdata('error'),
-        );
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu', $data);
-        $this->load->view('bs_banner', $data);
-        $this->load->view('paiements_en_ligne/bs_bar_carte_form', $data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
-     * Traite la soumission du formulaire bar_carte : validation, création transaction, redirection HelloAsso.
-     */
-    private function _process_bar_carte($section, $club_id, $compte_pilote) {
-        $montant     = (int) $this->input->post('montant');
-        $description = trim($this->input->post('description'));
-
-        $errors = array();
-        if ($montant < 1) {
-            $errors[] = $this->lang->line('gvv_bar_error_montant_min');
-        }
-        if (empty($description)) {
-            $errors[] = $this->lang->line('gvv_bar_error_description');
-        }
-
-        if (!empty($errors)) {
-            $data = array(
-                'section'     => $section,
-                'montant'     => $montant,
-                'description' => $description,
-                'error'       => implode('<br>', $errors),
-            );
-            $this->load->view('bs_header', $data);
-            $this->load->view('bs_menu', $data);
-            $this->load->view('bs_banner', $data);
-            $this->load->view('paiements_en_ligne/bs_bar_carte_form', $data);
-            $this->load->view('bs_footer');
-            return;
-        }
-
-        $user_id = (int) $this->dx_auth->get_user_id();
-        $mlogin  = $this->dx_auth->get_username();
-        $txid    = 'bar-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
-
-        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
-            'user_id'        => $user_id,
-            'montant'        => $montant,
-            'plateforme'     => 'helloasso',
-            'club'           => $club_id,
-            'transaction_id' => $txid,
-            'metadata'       => json_encode(array(
-                'type'               => 'bar',
-                'description'        => $description,
-                'gvv_transaction_id' => $txid,
-            )),
-            'created_by' => $mlogin,
-        ));
-
-        if (!$tx_id) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
-            redirect('paiements_en_ligne/bar_carte');
-            return;
-        }
-
-        // Pré-remplissage HelloAsso avec les infos du membre
-        $member = $this->db
-            ->select('m.mprenom, m.mnom, m.memail')
-            ->from('membres m')
-            ->where('m.mlogin', $mlogin)
-            ->get()->row_array();
-
-        $checkout = $this->helloasso->create_checkout($club_id, array(
-            'amount'           => $montant,
-            'item_name'        => $description,
-            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
-            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
-            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
-            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
-            'back_url'         => site_url('paiements_en_ligne/annulation'),
-            'error_url'        => site_url('paiements_en_ligne/erreur'),
-            'metadata'         => array(
-                'type'               => 'bar',
-                'description'        => $description,
-                'gvv_transaction_id' => $txid,
-            ),
-        ));
-
-        if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_checkout'));
-            redirect('paiements_en_ligne/bar_carte');
-            return;
-        }
-
-        if (!empty($checkout['session_id'])) {
-            $this->paiements_en_ligne_model->attach_checkout_info(
-                $txid,
-                $checkout['session_id'],
-                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
-            );
-        }
-
-        redirect($checkout['redirect_url']);
-    }
-
-    // =========================================================================
-    // UC3 — Renouvellement de cotisation en ligne par le pilote
-    // =========================================================================
-
-    /**
-     * Page de paiement cotisation en ligne pour le pilote.
-     *
-     * GET  : liste des produits actifs pour la section
-     * POST : validation, création transaction, redirection HelloAsso
-     *
-     * Accès : pilote authentifié, section active, HelloAsso activé
+     * Accès : pilote authentifié, section active
      */
     public function cotisation() {
         $section = $this->_require_active_section();
         if (!$section) return;
 
         $club_id = (int) $section['id'];
+        $mlogin  = $this->dx_auth->get_username();
 
-        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
-        if ($enabled !== '1') {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
-            redirect('compta/mon_compte');
-            return;
-        }
-
-        $mlogin = $this->dx_auth->get_username();
+        $this->load->model('comptes_model');
+        $this->load->model('ecritures_model');
+        $this->load->model('licences_model');
 
         if ($this->input->post('button') === 'payer') {
             $this->_process_cotisation($section, $club_id, $mlogin);
             return;
         }
 
-        $produits = $this->tarifs_model->get_cotisation_products_for_section($club_id);
+        $produits      = $this->tarifs_model->get_cotisation_products_for_section($club_id);
+        $compte_pilote = $this->comptes_model->compte_pilote($mlogin, $section);
+        $solde         = $compte_pilote ? (float) $this->ecritures_model->solde_compte($compte_pilote['id']) : 0.0;
 
         $data = array(
             'section'  => $section,
             'produits' => $produits,
-            'mlogin'   => $mlogin,
+            'solde'    => $solde,
             'error'    => $this->session->flashdata('error'),
         );
         $this->load->view('bs_header', $data);
@@ -684,8 +496,8 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
-     * Traite la soumission du formulaire cotisation :
-     * validation produit, vérification doublon, création transaction, checkout HelloAsso.
+     * Traite la soumission du formulaire cotisation (débit de solde).
+     * Vérifie produit, doublon, solde ; crée l'écriture et la licence.
      */
     private function _process_cotisation($section, $club_id, $mlogin) {
         $produit_id = (int) $this->input->post('produit_id');
@@ -703,86 +515,83 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        // Vérifier doublon cotisation pour cette année
-        $this->load->model('licences_model');
-        if ($this->licences_model->check_cotisation_exists($mlogin, (int) $produit['annee'])) {
+        $annee  = (int) $produit['annee'];
+        $montant = (float) $produit['montant'];
+
+        // Doublon cotisation
+        if ($this->licences_model->check_cotisation_exists($mlogin, $annee)) {
             $this->session->set_flashdata('error', sprintf(
                 $this->lang->line('gvv_cotisation_error_already_paid'),
-                (int) $produit['annee']
+                $annee
             ));
             redirect('paiements_en_ligne/cotisation');
             return;
         }
 
-        $user_id     = (int) $this->dx_auth->get_user_id();
-        $txid        = 'cot-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
-        $description = $produit['libelle'] . ' ' . $produit['annee'];
+        // Compte pilote (411)
+        $compte_pilote = $this->comptes_model->compte_pilote($mlogin, $section);
+        if (!$compte_pilote) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_pilot_account'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
 
-        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
-            'user_id'        => $user_id,
-            'montant'        => (float) $produit['montant'],
-            'plateforme'     => 'helloasso',
+        // Vérification du solde
+        $solde = (float) $this->ecritures_model->solde_compte($compte_pilote['id']);
+        if ($solde < $montant) {
+            $this->session->set_flashdata('error', sprintf(
+                $this->lang->line('gvv_bar_error_solde_insuffisant'),
+                number_format($solde, 2, ',', ' ')
+            ));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        // Compte recette cotisation
+        $compte_cotisation_id = (int) $produit['compte_cotisation_id'];
+        $ccot = $this->comptes_model->get_by_id('id', $compte_cotisation_id);
+        if (!$ccot) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_no_account'));
+            redirect('paiements_en_ligne/cotisation');
+            return;
+        }
+
+        $description = $produit['libelle'] . ' ' . $annee;
+
+        // Écriture comptable : débit 411 pilote → crédit compte cotisation
+        $ecriture_id = $this->ecritures_model->create_ecriture(array(
+            'annee_exercise' => date('Y'),
+            'date_creation'  => date('Y-m-d'),
+            'date_op'        => date('Y-m-d'),
+            'compte1'        => (int) $compte_pilote['id'],
+            'compte2'        => $compte_cotisation_id,
+            'montant'        => $montant,
+            'description'    => $description,
+            'type'           => 0,
+            'num_cheque'     => '',
+            'saisie_par'     => $mlogin,
+            'gel'            => 0,
             'club'           => $club_id,
-            'transaction_id' => $txid,
-            'metadata'       => json_encode(array(
-                'type'                 => 'cotisation',
-                'pilote_login'         => $mlogin,
-                'annee_cotisation'     => (int) $produit['annee'],
-                'compte_cotisation_id' => (int) $produit['compte_cotisation_id'],
-                'produit_libelle'      => $produit['libelle'],
-                'description'          => $description,
-                'gvv_transaction_id'   => $txid,
-            )),
-            'created_by' => $mlogin,
+            'categorie'      => 0,
         ));
 
-        if (!$tx_id) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_tx'));
+        if (!$ecriture_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
             redirect('paiements_en_ligne/cotisation');
             return;
         }
 
-        $member = $this->db
-            ->select('m.mprenom, m.memail, m.mnom')
-            ->from('membres m')
-            ->where('m.mlogin', $mlogin)
-            ->get()->row_array();
+        // Création de la licence
+        $this->licences_model->create_cotisation(
+            $mlogin, 0, $annee, date('Y-m-d'),
+            'Cotisation enregistrée en ligne (débit compte)'
+        );
 
-        $checkout = $this->helloasso->create_checkout($club_id, array(
-            'amount'           => (float) $produit['montant'],
-            'item_name'        => $description,
-            'payer_first_name' => isset($member['mprenom']) ? $member['mprenom'] : '',
-            'payer_last_name'  => isset($member['mnom'])    ? $member['mnom']    : '',
-            'payer_email'      => isset($member['memail'])  ? $member['memail']  : '',
-            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
-            'back_url'         => site_url('paiements_en_ligne/cotisation'),
-            'error_url'        => site_url('paiements_en_ligne/erreur'),
-            'metadata'         => array(
-                'type'                 => 'cotisation',
-                'pilote_login'         => $mlogin,
-                'annee_cotisation'     => (int) $produit['annee'],
-                'compte_cotisation_id' => (int) $produit['compte_cotisation_id'],
-                'description'          => $description,
-                'gvv_transaction_id'   => $txid,
-            ),
+        $this->session->set_flashdata('success', sprintf(
+            $this->lang->line('gvv_cotisation_success'),
+            $annee
         ));
-
-        if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->session->set_flashdata('error', $this->lang->line('gvv_cotisation_error_checkout'));
-            redirect('paiements_en_ligne/cotisation');
-            return;
-        }
-
-        if (!empty($checkout['session_id'])) {
-            $this->paiements_en_ligne_model->attach_checkout_info(
-                $txid,
-                $checkout['session_id'],
-                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
-            );
-        }
-
-        redirect($checkout['redirect_url']);
+        redirect('compta/mon_compte');
     }
 
     // =========================================================================
@@ -829,10 +638,15 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $montant_min = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_min', $club_id) ?: 2.00);
+        $montant_max = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_max', $club_id) ?: 500.00);
+
         $data['section'] = $section;
+        $data['montant_min'] = $montant_min;
+        $data['montant_max'] = $montant_max;
 
         if ($this->input->post('button') === 'valider') {
-            $this->_process_public_bar($data, $club_id, $section);
+            $this->_process_public_bar($data, $club_id, $section, $montant_min, $montant_max);
             return;
         }
 
@@ -845,7 +659,7 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->view('bs_footer');
     }
 
-    private function _process_public_bar(array $data, $club_id, array $section) {
+    private function _process_public_bar(array $data, $club_id, array $section, $montant_min, $montant_max) {
         $nom         = trim($this->input->post('nom'));
         $prenom      = trim($this->input->post('prenom'));
         $email       = trim($this->input->post('email'));
@@ -865,8 +679,17 @@ class Paiements_en_ligne extends MY_Controller {
         if (empty($description)) {
             $errors[] = $this->lang->line('gvv_bar_error_description');
         }
-        if ($montant < 2.00) {
-            $errors[] = $this->lang->line('gvv_public_bar_error_montant_min');
+        if ($montant < $montant_min) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_public_bar_error_montant_min'),
+                number_format((float) $montant_min, 2, ',', ' ')
+            );
+        }
+        if ($montant > $montant_max) {
+            $errors[] = sprintf(
+                $this->lang->line('gvv_public_bar_error_montant_max'),
+                number_format((float) $montant_max, 2, ',', ' ')
+            );
         }
 
         if (!empty($errors)) {
@@ -1079,135 +902,6 @@ class Paiements_en_ligne extends MY_Controller {
     // =========================================================================
 
     /**
-     * Page intermédiaire QR code + lien direct après création d'un checkout
-     * cotisation trésorier (UC6).
-     *
-     * Accès : tresorier, bureau, admin
-     */
-    public function cotisation_qr($transaction_id = '') {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
-        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
-        if (!$tx) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
-            redirect('compta/saisie_cotisation');
-            return;
-        }
-
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
-
-        $data = array(
-            'transaction'    => $tx,
-            'meta'           => $meta,
-            'checkout_url'   => $checkout_url,
-            'transaction_id' => $transaction_id,
-        );
-
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu', $data);
-        $this->load->view('bs_banner', $data);
-        $this->load->view('paiements_en_ligne/bs_cotisation_qr', $data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
-     * Génère l'image QR code PNG pour l'URL checkout d'une transaction.
-     * Endpoint public (pas de session requise : le QR est affiché sur l'écran du trésorier).
-     *
-     * @param string $transaction_id
-     */
-    public function cotisation_qr_image($transaction_id = '') {
-        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
-        if (!$tx) {
-            $this->output->set_status_header(404);
-            return;
-        }
-
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
-
-        if (empty($checkout_url)) {
-            $this->output->set_status_header(404);
-            return;
-        }
-
-        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
-        header('Content-Type: image/png');
-        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
-        exit;
-    }
-
-    // =========================================================================
-    // UC7 — Approvisionnement compte pilote par CB via trésorier
-    // =========================================================================
-
-    /**
-     * Page intermédiaire QR code + lien direct après création d'un checkout
-     * approvisionnement compte pilote par le trésorier (UC7).
-     *
-     * Accès : tresorier, bureau, admin
-     */
-    public function credit_qr($transaction_id = '') {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
-        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
-        if (!$tx) {
-            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
-            redirect('compta/reglement_pilote');
-            return;
-        }
-
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
-
-        $data = array(
-            'transaction'    => $tx,
-            'meta'           => $meta,
-            'checkout_url'   => $checkout_url,
-            'transaction_id' => $transaction_id,
-        );
-
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu', $data);
-        $this->load->view('bs_banner', $data);
-        $this->load->view('paiements_en_ligne/bs_credit_qr', $data);
-        $this->load->view('bs_footer');
-    }
-
-    /**
-     * Génère l'image QR code PNG pour l'URL checkout d'une transaction credit_tresorier.
-     * Endpoint public (pas de session requise).
-     *
-     * @param string $transaction_id
-     */
-    public function credit_qr_image($transaction_id = '') {
-        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
-        if (!$tx) {
-            $this->output->set_status_header(404);
-            return;
-        }
-
-        $meta         = json_decode($tx['metadata'], true) ?: array();
-        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
-
-        if (empty($checkout_url)) {
-            $this->output->set_status_header(404);
-            return;
-        }
-
-        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
-        header('Content-Type: image/png');
-        QRcode::png($checkout_url, false, QR_ECLEVEL_M, 5, 2);
-        exit;
-    }
-
     // =========================================================================
     // EF4 — Liste des paiements pour le trésorier
     // =========================================================================
@@ -1378,6 +1072,25 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $raw_body  = (string) file_get_contents('php://input');
+        $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
+
+        if (!$club_id) {
+            $event = json_decode($raw_body, true);
+            $order_data = (is_array($event) && !empty($event['data']) && is_array($event['data']))
+                ? $event['data']
+                : array();
+            $resolved_club_id = !empty($order_data)
+                ? (int) $this->paiements_en_ligne_model->resolve_club_id_from_order_data($order_data)
+                : 0;
+
+            if ($resolved_club_id > 0) {
+                $club_id = $resolved_club_id;
+                $this->helloasso->log('INFO', 'none', 'webhook',
+                    'club_id résolu depuis le payload : club=' . $club_id);
+            }
+        }
+
         if (!$club_id) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'club_id manquant dans l\'URL — utiliser paiements_en_ligne/helloasso_webhook/{club_id}');
@@ -1386,9 +1099,6 @@ class Paiements_en_ligne extends MY_Controller {
             $this->output->set_output('Bad Request');
             return;
         }
-
-        $raw_body  = (string) file_get_contents('php://input');
-        $signature = (string) ($this->input->server('HTTP_X_HA_SIGNATURE') ?: '');
         $request_ip = $this->helloasso->get_request_ip();
 
         // ── Auth webhook : signature HMAC (partenaires) OU IP allowlist (non-partenaires) ──
@@ -1454,24 +1164,6 @@ class Paiements_en_ligne extends MY_Controller {
                 // Email de confirmation pour les payeurs externes (bar_externe)
                 if (isset($result['type']) && $result['type'] === 'bar_externe') {
                     $this->_send_external_bar_email(
-                        isset($result['metadata']) ? $result['metadata'] : array(),
-                        isset($result['transaction']) ? $result['transaction'] : $transaction
-                    );
-                }
-                // Licence et notification trésorier pour cotisation pilote en ligne (UC3)
-                if (isset($result['type']) && $result['type'] === 'cotisation') {
-                    $this->_create_licence_from_cotisation_meta(
-                        isset($result['metadata']) ? $result['metadata'] : array(),
-                        isset($result['transaction']) ? $result['transaction'] : $transaction
-                    );
-                    $this->_notify_tresorier_cotisation(
-                        isset($result['transaction']) ? $result['transaction'] : $transaction,
-                        isset($result['metadata']) ? $result['metadata'] : array()
-                    );
-                }
-                // Création de la licence pour les cotisations trésorier
-                if (isset($result['type']) && $result['type'] === 'cotisation_tresorier') {
-                    $this->_create_licence_from_cotisation_meta(
                         isset($result['metadata']) ? $result['metadata'] : array(),
                         isset($result['transaction']) ? $result['transaction'] : $transaction
                     );
@@ -1626,51 +1318,6 @@ class Paiements_en_ligne extends MY_Controller {
         return null;
     }
 
-    /**
-     * Crée la licence de cotisation suite à un paiement cotisation_tresorier confirmé.
-     * Echec silencieux loggé — le webhook a déjà répondu 200 et les écritures sont créées.
-     *
-     * @param array $meta        Metadata de la transaction (pilote_login, annee_cotisation)
-     * @param array $transaction Transaction GVV
-     */
-    private function _create_licence_from_cotisation_meta(array $meta, array $transaction)
-    {
-        $pilote_login     = isset($meta['pilote_login'])     ? (string) $meta['pilote_login']     : '';
-        $annee_cotisation = isset($meta['annee_cotisation']) ? (int)    $meta['annee_cotisation'] : 0;
-
-        if (empty($pilote_login) || $annee_cotisation < 2000) {
-            $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
-                'cotisation_tresorier : pilote_login ou annee_cotisation manquant dans metadata');
-            return;
-        }
-
-        try {
-            $this->load->model('licences_model');
-            $date = isset($transaction['date_paiement'])
-                ? substr($transaction['date_paiement'], 0, 10)
-                : date('Y-m-d');
-
-            $licence_id = $this->licences_model->create_cotisation(
-                $pilote_login,
-                0,
-                $annee_cotisation,
-                $date,
-                'Cotisation enregistrée via paiement HelloAsso'
-            );
-
-            if ($licence_id) {
-                $this->helloasso->log('INFO', $transaction['transaction_id'], 'webhook',
-                    'Licence cotisation créée id=' . $licence_id . ' pilote=' . $pilote_login);
-            } else {
-                $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
-                    'Échec création licence cotisation pilote=' . $pilote_login);
-            }
-        } catch (Exception $e) {
-            $this->helloasso->log('ERROR', $transaction['transaction_id'], 'webhook',
-                'Exception création licence : ' . $e->getMessage());
-        }
-    }
-
     /** Réponse HTTP 200 standard pour le webhook. */
     private function _webhook_respond_ok()
     {
@@ -1771,47 +1418,6 @@ class Paiements_en_ligne extends MY_Controller {
         } catch (Exception $e) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'Erreur email bar_externe : ' . $e->getMessage());
-        }
-    }
-
-    // =========================================================================
-    /**
-     * Notifie le trésorier par email qu'une cotisation en ligne a été enregistrée (UC3).
-     */
-    private function _notify_tresorier_cotisation(array $transaction, array $meta)
-    {
-        $email_club = $this->config->item('email_club');
-        if (empty($email_club)) {
-            return;
-        }
-
-        try {
-            $nom_club = $this->config->item('nom_club') ?: 'GVV';
-            $pilote   = isset($meta['pilote_login'])     ? $meta['pilote_login']     : '?';
-            $annee    = isset($meta['annee_cotisation'])  ? $meta['annee_cotisation'] : '?';
-            $montant  = number_format((float) $transaction['montant'], 2, ',', ' ');
-
-            $subject = sprintf('[%s] Cotisation %s — %s', $nom_club, $annee, $pilote);
-            $message = sprintf(
-                "Bonjour,\n\nLa cotisation %s de %s (%s\xe2\x82\xac) a \xc3\xa9t\xc3\xa9 r\xc3\xa9gl\xc3\xa9e en ligne via HelloAsso.\n\nCordialement,\n%s",
-                $annee, $pilote, $montant, $nom_club
-            );
-
-            $this->load->library('email');
-            $this->email->initialize(array(
-                'wordwrap' => true,
-                'mailtype' => 'text',
-                'charset'  => 'utf-8',
-            ));
-            $this->email->from('noreply@gvv.net', $nom_club);
-            $this->email->to($email_club);
-            $this->email->subject($subject);
-            $this->email->message($message);
-            @$this->email->send();
-
-        } catch (Exception $e) {
-            $this->helloasso->log('ERROR', 'none', 'webhook',
-                'Erreur notification trésorier cotisation : ' . $e->getMessage());
         }
     }
 

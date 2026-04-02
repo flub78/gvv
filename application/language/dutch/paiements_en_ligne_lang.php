@@ -16,7 +16,8 @@ $lang['gvv_bar_error_section']           = "Selecteer een sectie voordat u een b
 $lang['gvv_bar_error_no_bar']            = "Deze sectie heeft geen bar.";
 $lang['gvv_bar_error_no_account']        = "De bar-opbrengstrekening is niet geconfigureerd voor deze sectie. Neem contact op met de beheerder.";
 $lang['gvv_bar_error_no_pilot_account']  = "Uw pilootrekening is niet gevonden in deze sectie.";
-$lang['gvv_bar_error_montant_min']       = "Het bedrag moet een geheel getal in euro's zijn, minimum € 1.";
+$lang['gvv_bar_error_montant_min']       = "Het bedrag moet een geheel getal in euro's zijn, minimum %s.";
+$lang['gvv_bar_error_montant_max']       = "Het bedrag mag niet meer dan %s euro bedragen.";
 $lang['gvv_bar_error_description']       = "Een omschrijving van uw consumptie is verplicht.";
 $lang['gvv_bar_error_solde']             = "Onvoldoende saldo: u heeft € %.2f beschikbaar.";
 $lang['gvv_bar_error_creation']          = "Er is een fout opgetreden bij het registreren. Probeer het opnieuw.";
@@ -125,40 +126,6 @@ $lang['gvv_bar_hub_carte_title']            = "Online betaling (kaart)";
 $lang['gvv_bar_hub_carte_sub']              = "Betalen met bankkaart via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Terug";
 
-// Contributie per kaart — penningmeester (UC6)
-$lang['gvv_cotisation_helloasso_button']        = "Betalen per kaart (HelloAsso)";
-$lang['gvv_cotisation_helloasso_error_user']    = "Piloot niet gevonden. Controleer de selectie.";
-$lang['gvv_cotisation_helloasso_error_tx']      = "Fout bij aanmaken van de transactie. Probeer opnieuw.";
-$lang['gvv_cotisation_helloasso_error_checkout']= "Kan HelloAsso-betaling niet starten. Probeer opnieuw of valideer handmatig.";
-$lang['gvv_cotisation_qr_title']               = "Contributie betalen per kaart — HelloAsso";
-$lang['gvv_cotisation_qr_intro']               = "Open de HelloAsso-link op dit toestel om met kaart te betalen.";
-$lang['gvv_cotisation_qr_scan_title']          = "Scannen met smartphone";
-$lang['gvv_cotisation_qr_scan_intro']          = "De piloot scant deze QR-code met zijn telefoon om direct te betalen.";
-$lang['gvv_cotisation_qr_direct_title']        = "Betalen op dit scherm";
-$lang['gvv_cotisation_qr_direct_intro']        = "Opent de HelloAsso-betaalpagina op dit toestel.";
-$lang['gvv_cotisation_qr_direct_button']       = "HelloAsso openen";
-$lang['gvv_cotisation_qr_back']                = "Terug naar contributieformulier";
-$lang['gvv_cotisation_qr_url_missing']         = "Betaal-URL niet beschikbaar. Neem contact op met de beheerder.";
-
-// Pilotenrekening opladen via penningmeester (UC7)
-$lang['gvv_credit_tresorier_title']             = "Pilotenrekening opladen per kaart";
-$lang['gvv_credit_tresorier_intro']             = "Selecteer de piloot en het bedrag, kies daarna de betaalwijze.";
-$lang['gvv_credit_tresorier_button']            = "Betalen per kaart (HelloAsso)";
-$lang['gvv_credit_tresorier_error_user']        = "Piloot niet gevonden. Controleer de selectie.";
-$lang['gvv_credit_tresorier_error_tx']          = "Fout bij aanmaken van de transactie. Probeer opnieuw.";
-$lang['gvv_credit_tresorier_error_checkout']    = "Kan HelloAsso-betaling niet starten. Probeer opnieuw of valideer handmatig.";
-$lang['gvv_credit_tresorier_success']           = "Oplading van € %s geregistreerd voor piloot %s.";
-$lang['gvv_credit_qr_title']                    = "Pilotenrekening opladen per kaart — HelloAsso";
-$lang['gvv_credit_qr_intro']                    = "Gebruik directe betaling op dit toestel, of draag de invoer over aan de kaarthouder met de kleine QR-code.";
-$lang['gvv_credit_qr_scan_title']               = "Overzetten naar telefoon";
-$lang['gvv_credit_qr_scan_intro']               = "Kleine QR-code: de kaarthouder opent dezelfde HelloAsso-betaalpagina op zijn telefoon.";
-$lang['gvv_credit_qr_scan_unnecessary']         = "De betaling is gestart door dezelfde gebruiker: QR-overdracht is niet nodig.";
-$lang['gvv_credit_qr_direct_title']             = "Betalen op dit scherm";
-$lang['gvv_credit_qr_direct_intro']             = "Opent de HelloAsso-betaalpagina op dit toestel.";
-$lang['gvv_credit_qr_direct_button']            = "HelloAsso openen";
-$lang['gvv_credit_qr_back']                     = "Terug naar opladingsformulier";
-$lang['gvv_credit_qr_url_missing']              = "Betaal-URL niet beschikbaar. Neem contact op met de beheerder.";
-$lang['gvv_credit_tresorier_menu']              = "Pilotenrekening opladen (kaart)";
 
 // Trésorier lijst (EF4)
 $lang['gvv_liste_title']                    = "Online betalingen";
@@ -198,7 +165,8 @@ $lang['gvv_public_bar_error_disabled']    = "Online betalingen zijn niet ingesch
 $lang['gvv_public_bar_error_nom']         = "Achternaam is verplicht.";
 $lang['gvv_public_bar_error_prenom']      = "Voornaam is verplicht.";
 $lang['gvv_public_bar_error_email']       = "Het e-mailadres is ongeldig.";
-$lang['gvv_public_bar_error_montant_min'] = "Het minimumbedrag is € 2,00.";
+$lang['gvv_public_bar_error_montant_min'] = "Het minimumbedrag is %s.";
+$lang['gvv_public_bar_error_montant_max'] = "Het bedrag mag niet meer dan %s bedragen.";
 $lang['gvv_public_bar_error_checkout']    = "Kan HelloAsso-betaling niet starten. Probeer het opnieuw.";
 $lang['gvv_public_bar_confirm_title']     = "Betaling geregistreerd";
 $lang['gvv_public_bar_confirm_intro']     = "Uw betaling is succesvol geregistreerd. Dank u!";
@@ -221,17 +189,16 @@ $lang['gvv_bar_qrcode_default_title']         = "Betaling barconsumpties";
 $lang['gvv_bar_qrcode_default_text_top']      = "Scan deze QR-code om uw barconsumpties met kaart te betalen.";
 $lang['gvv_bar_qrcode_default_text_bottom']   = "Toon uw betalingsbevestiging aan de bar.";
 
-// Lidmaatschap online — piloot (UC3)
-$lang['gvv_cotisation_form_title']          = "Mijn lidmaatschap online betalen";
-$lang['gvv_cotisation_form_intro']          = "Selecteer uw lidmaatschap en betaal via kaart via HelloAsso.";
+// Lidmaatschap online — piloot (UC3, rekeningdebet)
+$lang['gvv_cotisation_form_title']          = "Mijn lidmaatschap betalen";
+$lang['gvv_cotisation_form_intro']          = "Selecteer uw lidmaatschap. Het bedrag wordt van uw pilootrekening afgeschreven.";
 $lang['gvv_cotisation_form_no_produits']    = "Geen lidmaatschap beschikbaar voor deze sectie. Neem contact op met uw penningmeester.";
 $lang['gvv_cotisation_form_choose']         = "Kies uw lidmaatschap";
-$lang['gvv_cotisation_form_button']         = "Betalen met kaart (HelloAsso)";
-$lang['gvv_cotisation_helloasso_notice']    = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
+$lang['gvv_cotisation_form_button']         = "Lidmaatschap regelen";
+$lang['gvv_cotisation_solde_label']         = "Beschikbaar saldo op uw rekening";
 $lang['gvv_cotisation_error_produit']       = "Ongeldig of niet beschikbaar lidmaatschapsproduct.";
 $lang['gvv_cotisation_error_already_paid']  = "U heeft uw lidmaatschap voor %d al betaald.";
-$lang['gvv_cotisation_error_tx']            = "Fout bij aanmaken transactie. Probeer het opnieuw.";
-$lang['gvv_cotisation_error_checkout']      = "Kan HelloAsso betaling niet starten. Probeer het opnieuw.";
+$lang['gvv_cotisation_success']             = "Lidmaatschap %d succesvol geregistreerd. Uw rekening is gedebiteerd.";
 
 // Discoveriebon via publieke link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discoveriebon (kaartbetaling)";

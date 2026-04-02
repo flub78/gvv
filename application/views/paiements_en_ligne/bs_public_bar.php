@@ -63,10 +63,24 @@
         <div class="input-group" style="max-width: 180px;">
             <input type="number" name="montant" class="form-control"
                    value="<?= htmlspecialchars($montant) ?>"
-                   min="2" step="0.01" required>
+                   min="<?= isset($montant_min) ? $montant_min : 2 ?>"
+                   max="<?= isset($montant_max) ? $montant_max : 500 ?>"
+                   step="0.01" required>
             <span class="input-group-text">€</span>
         </div>
-        <div class="form-text text-muted"><?= $this->lang->line('gvv_public_bar_montant_help') ?></div>
+        <div class="form-text text-muted">
+            <?php
+            if (isset($montant_min) && isset($montant_max)) {
+                echo sprintf(
+                    $this->lang->line('gvv_provision_montant_help'),
+                    number_format((float) $montant_min, 2, ',', ' '),
+                    number_format((float) $montant_max, 2, ',', ' ')
+                );
+            } else {
+                echo $this->lang->line('gvv_public_bar_montant_help');
+            }
+            ?>
+        </div>
     </div>
 
     <div class="alert alert-info small mb-3">

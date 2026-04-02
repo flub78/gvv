@@ -1,7 +1,7 @@
 <!-- VIEW: application/views/paiements_en_ligne/bs_cotisation_form.php -->
 <?php
 /**
- * Formulaire de paiement cotisation en ligne (UC3) — pilote connecté.
+ * Formulaire de règlement de cotisation (UC3) — pilote connecté, débit de solde.
  */
 ?>
 
@@ -13,8 +13,18 @@
 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
+<?php if ($this->session->flashdata('success')): ?>
+<div class="alert alert-success"><?= htmlspecialchars($this->session->flashdata('success')) ?></div>
+<?php endif; ?>
+
 <h3><?= $this->lang->line('gvv_cotisation_form_title') ?></h3>
 <p class="text-muted"><?= $this->lang->line('gvv_cotisation_form_intro') ?></p>
+
+<div class="alert alert-info mb-3" style="max-width:600px;">
+    <i class="fas fa-wallet me-1"></i>
+    <?= $this->lang->line('gvv_cotisation_solde_label') ?> :
+    <strong><?= euros((float) $solde) ?></strong>
+</div>
 
 <?php if (empty($produits)): ?>
 
@@ -52,13 +62,8 @@
         <?php endforeach; ?>
     </div>
 
-    <div class="alert alert-info small mb-3">
-        <i class="fas fa-info-circle"></i>
-        <?= $this->lang->line('gvv_cotisation_helloasso_notice') ?>
-    </div>
-
-    <button type="submit" name="button" value="payer" class="btn btn-warning btn-lg">
-        <i class="fas fa-credit-card"></i> <?= $this->lang->line('gvv_cotisation_form_button') ?>
+    <button type="submit" name="button" value="payer" class="btn btn-primary btn-lg">
+        <i class="fas fa-check-circle"></i> <?= $this->lang->line('gvv_cotisation_form_button') ?>
     </button>
     <a href="<?= site_url('compta/mon_compte') ?>" class="btn btn-outline-secondary ms-2">
         <?= $this->lang->line('gvv_button_cancel') ?>

@@ -226,45 +226,4 @@ class PaiementsEnLigneBarTest extends TestCase {
         $this->assertTrue($has_bar, "Une section avec has_bar=1 et bar_account_id doit afficher l'option bar");
     }
 
-    // -------------------------------------------------------------------------
-    // Tests guards UC1 — bar_carte (paiement par carte)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Garde section "Toutes" (id=0) : bar_carte doit être refusé.
-     *
-     * Le contrôleur appelle _require_active_section() qui vérifie : $section['id'] == 0.
-     * Ce test vérifie que la condition de détection de la section "Toutes" est correcte.
-     */
-    public function testBarCarteRejectedForSectionToutes() {
-        // Section "Toutes" : id=0 — la garde retourne false
-        $section_toutes = array('id' => 0, 'nom' => 'Toutes', 'has_bar' => 1, 'bar_account_id' => 42);
-        $guard_passes = isset($section_toutes['id']) && $section_toutes['id'] != 0;
-        $this->assertFalse($guard_passes,
-            'La garde doit refuser la section "Toutes" (id=0) pour bar_carte');
-
-        // Aucune transaction ne doit exister avec club=0 (vérification DB)
-        $count = $this->db
-            ->where('club', 0)
-            ->count_all_results('paiements_en_ligne');
-        $this->assertEquals(0, $count,
-            'Aucune transaction avec club=0 ne doit exister en base');
-    }
-
-    /**
-     * Garde has_bar=false : bar_carte doit être refusé si la section n'a pas de bar.
-     *
-     * Le contrôleur vérifie : empty($section['has_bar']).
-     */
-    public function testBarCarteRejectedForSectionWithoutBar() {
-        // Section sans bar — la garde retourne false
-        $section_sans_bar = array('id' => 4, 'nom' => 'Test', 'has_bar' => 0, 'bar_account_id' => null);
-        $this->assertTrue(empty($section_sans_bar['has_bar']),
-            'empty($section[\'has_bar\']) doit être true pour une section sans bar');
-
-        // Section avec has_bar=1 mais bar_account_id null — également refusée
-        $section_sans_compte = array('id' => 4, 'nom' => 'Test', 'has_bar' => 1, 'bar_account_id' => null);
-        $this->assertTrue(empty($section_sans_compte['bar_account_id']),
-            'empty($section[\'bar_account_id\']) doit être true si bar_account_id non configuré');
-    }
 }

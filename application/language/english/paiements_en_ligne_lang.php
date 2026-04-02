@@ -16,7 +16,8 @@ $lang['gvv_bar_error_section']           = "Please select a section before makin
 $lang['gvv_bar_error_no_bar']            = "This section does not have a bar.";
 $lang['gvv_bar_error_no_account']        = "The bar revenue account is not configured for this section. Contact the administrator.";
 $lang['gvv_bar_error_no_pilot_account']  = "Your pilot account could not be found in this section.";
-$lang['gvv_bar_error_montant_min']       = "The amount must be a whole number of euros, minimum €1.";
+$lang['gvv_bar_error_montant_min']       = "The amount must be a whole number of euros, minimum %s.";
+$lang['gvv_bar_error_montant_max']       = "The amount must not exceed %s euros.";
 $lang['gvv_bar_error_description']       = "A description of your purchases is required.";
 $lang['gvv_bar_error_solde']             = "Insufficient balance: you have €%.2f available.";
 $lang['gvv_bar_error_creation']          = "An error occurred while recording the payment. Please try again.";
@@ -125,40 +126,6 @@ $lang['gvv_bar_hub_carte_title']            = "Online payment (card)";
 $lang['gvv_bar_hub_carte_sub']              = "Pay by credit card via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Back";
 
-// Membership fee by card — treasurer (UC6)
-$lang['gvv_cotisation_helloasso_button']        = "Pay by card (HelloAsso)";
-$lang['gvv_cotisation_helloasso_error_user']    = "Pilot not found. Please check the selection.";
-$lang['gvv_cotisation_helloasso_error_tx']      = "Error creating the transaction. Please try again.";
-$lang['gvv_cotisation_helloasso_error_checkout']= "Unable to initiate HelloAsso payment. Please retry or validate manually.";
-$lang['gvv_cotisation_qr_title']               = "Membership fee payment by card — HelloAsso";
-$lang['gvv_cotisation_qr_intro']               = "Open the HelloAsso link on this device to proceed with card payment.";
-$lang['gvv_cotisation_qr_scan_title']          = "Scan with smartphone";
-$lang['gvv_cotisation_qr_scan_intro']          = "The pilot scans this QR code with their phone to pay directly.";
-$lang['gvv_cotisation_qr_direct_title']        = "Pay on this screen";
-$lang['gvv_cotisation_qr_direct_intro']        = "Opens the HelloAsso payment page on this device.";
-$lang['gvv_cotisation_qr_direct_button']       = "Open HelloAsso";
-$lang['gvv_cotisation_qr_back']                = "Back to membership form";
-$lang['gvv_cotisation_qr_url_missing']         = "Payment URL not available. Contact your administrator.";
-
-// Pilot account top-up by card — treasurer (UC7)
-$lang['gvv_credit_tresorier_title']             = "Top up a pilot account by card";
-$lang['gvv_credit_tresorier_intro']             = "Select the pilot and amount, then choose the payment method.";
-$lang['gvv_credit_tresorier_button']            = "Pay by card (HelloAsso)";
-$lang['gvv_credit_tresorier_error_user']        = "Pilot not found. Please check the selection.";
-$lang['gvv_credit_tresorier_error_tx']          = "Error creating the transaction. Please try again.";
-$lang['gvv_credit_tresorier_error_checkout']    = "Unable to initiate HelloAsso payment. Please retry or validate manually.";
-$lang['gvv_credit_tresorier_success']           = "Top-up of €%s recorded for pilot %s.";
-$lang['gvv_credit_qr_title']                    = "Top up pilot account by card — HelloAsso";
-$lang['gvv_credit_qr_intro']                    = "Use direct payment on this device, or transfer data entry to the card holder using the small QR code.";
-$lang['gvv_credit_qr_scan_title']               = "Transfer to phone";
-$lang['gvv_credit_qr_scan_intro']               = "Small QR code: the card holder opens the same HelloAsso payment page on their phone.";
-$lang['gvv_credit_qr_scan_unnecessary']         = "Payment is initiated by the same user: QR transfer is not necessary.";
-$lang['gvv_credit_qr_direct_title']             = "Pay on this screen";
-$lang['gvv_credit_qr_direct_intro']             = "Opens the HelloAsso payment page on this device.";
-$lang['gvv_credit_qr_direct_button']            = "Open HelloAsso";
-$lang['gvv_credit_qr_back']                     = "Back to top-up form";
-$lang['gvv_credit_qr_url_missing']              = "Payment URL not available. Contact your administrator.";
-$lang['gvv_credit_tresorier_menu']              = "Top up pilot account (card)";
 
 // Treasurer list (EF4)
 $lang['gvv_liste_title']                    = "Online Payments";
@@ -198,7 +165,8 @@ $lang['gvv_public_bar_error_disabled']    = "Online payments are not enabled for
 $lang['gvv_public_bar_error_nom']         = "Last name is required.";
 $lang['gvv_public_bar_error_prenom']      = "First name is required.";
 $lang['gvv_public_bar_error_email']       = "The email address is not valid.";
-$lang['gvv_public_bar_error_montant_min'] = "The minimum amount is €2.00.";
+$lang['gvv_public_bar_error_montant_min'] = "The minimum amount is %s.";
+$lang['gvv_public_bar_error_montant_max'] = "The amount must not exceed %s.";
 $lang['gvv_public_bar_error_checkout']    = "Unable to initiate HelloAsso payment. Please try again.";
 $lang['gvv_public_bar_confirm_title']     = "Payment recorded";
 $lang['gvv_public_bar_confirm_intro']     = "Your payment has been successfully recorded. Thank you!";
@@ -221,17 +189,16 @@ $lang['gvv_bar_qrcode_default_title']         = "Bar purchases payment";
 $lang['gvv_bar_qrcode_default_text_top']      = "Scan this QR code to pay your bar purchases by card.";
 $lang['gvv_bar_qrcode_default_text_bottom']   = "Please show your payment confirmation at the bar.";
 
-// Cotisation online — pilot (UC3)
-$lang['gvv_cotisation_form_title']          = "Pay my membership fee online";
-$lang['gvv_cotisation_form_intro']          = "Select your membership and pay by card via HelloAsso.";
+// Cotisation online — pilot (UC3, account debit)
+$lang['gvv_cotisation_form_title']          = "Pay my membership fee";
+$lang['gvv_cotisation_form_intro']          = "Select your membership. The amount will be debited from your pilot account.";
 $lang['gvv_cotisation_form_no_produits']    = "No membership available for this section. Contact your treasurer.";
 $lang['gvv_cotisation_form_choose']         = "Choose your membership";
-$lang['gvv_cotisation_form_button']         = "Pay by card (HelloAsso)";
-$lang['gvv_cotisation_helloasso_notice']    = "You will be redirected to HelloAsso to complete the card payment.";
+$lang['gvv_cotisation_form_button']         = "Pay membership fee";
+$lang['gvv_cotisation_solde_label']         = "Available balance on your account";
 $lang['gvv_cotisation_error_produit']       = "Invalid or unavailable membership product.";
 $lang['gvv_cotisation_error_already_paid']  = "You have already paid your membership for %d.";
-$lang['gvv_cotisation_error_tx']            = "Error creating transaction. Please try again.";
-$lang['gvv_cotisation_error_checkout']      = "Unable to initiate HelloAsso payment. Please try again.";
+$lang['gvv_cotisation_success']             = "Membership %d successfully registered. Your account has been debited.";
 
 // Discovery voucher via public link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discovery voucher (card payment)";

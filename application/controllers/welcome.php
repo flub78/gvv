@@ -204,10 +204,10 @@ class Welcome extends Gvv_Controller {
             }
         }
 
-        // Carte "Payer ma cotisation" : visible si la section active a HelloAsso
-        // ET possède au moins un produit de cotisation valide.
+        // Carte "Payer ma cotisation" : visible si la section active possède
+        // au moins un produit de cotisation valide (indépendant de HelloAsso).
         $data['show_pay_cotisation_card'] = false;
-        if (!empty($data['active_payment_section']) && $active_section_id > 0) {
+        if ($active_section_id > 0) {
             $today = date('Y-m-d');
             $cotisation_count = (int) $this->db
                 ->from('tarifs')
