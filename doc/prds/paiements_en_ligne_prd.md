@@ -164,29 +164,6 @@ Le système GVV gère actuellement les comptes pilotes (compte 411 du plan compt
 
 La plateforme de paiement en ligne doit supporter les scénarios métier suivants, au-delà du provisionnement simple de compte :
 
-### UC1 : Paiement de Consommations de Bar par un Pilote Authentifié par Carte (Priorité : HAUTE)
-
-> **Prérequis :** La section active du pilote doit avoir le bar activé (`has_bar = true`). L'option est invisible et l'URL inaccessible pour les sections sans bar.
-
-**Contexte :**
-Un pilote connecté souhaite régler ses consommations au bar du club par carte bancaire. Le mécanisme est basé sur la confiance : le pilote saisit lui-même le montant et la description de ses consommations, sans qu'une tierce personne n'établisse de note préalable.
-
-**Flux :**
-1. Le pilote accède à "Mon Compte" → "Régler mes consommations de bar par carte"
-2. Formulaire : montant libre (minimum 0,50€) et description libre obligatoire (ex. "2 cafés, 1 sandwich – 28/03/2026")
-3. Il est redirigé vers HelloAsso pour payer
-4. Après paiement réussi :
-   - L'écriture comptable est créée automatiquement (compte 411 pilote débité, compte bar crédité)
-   - Le pilote reçoit une confirmation par email
-   - Son historique de compte affiche le paiement
-
-**Avantages :**
-- Paiement immédiat sans intervention du trésorier
-- Traçabilité complète en comptabilité
-- Réduit la saisie manuelle du trésorier
-
----
-
 ### UC2 : Paiement de Consommations de Bar par une Personne Externe (Priorité : MOYENNE)
 
 **Contexte :**
@@ -534,17 +511,13 @@ Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un
 - CA6.1 : Une sous-section "Mes paiements" apparaît dans "Mon espace personnel" du tableau de bord **uniquement si au moins une section du pilote a les paiements en ligne activés** (`paiements_en_ligne_config.enabled = '1'`)
 - CA6.2 : Cartes affichées conditionnellement :
   - **"Payer ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
-  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige vers hub bar)
+  - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige directement vers `paiements_en_ligne/bar_debit_solde`)
   - **"Approvisionner mon compte [nom section] (CB)"** : une carte par section avec paiements activés (redirige vers `paiements_en_ligne/demande`)
-- CA6.3 : La carte "Payer mes notes de bar" redirige vers une page hub avec deux choix :
-  - "Débiter mon compte" → `paiements_en_ligne/bar_debit_solde`
-  - "Paiement en ligne (CB)" → `paiements_en_ligne/bar_carte` (affiché uniquement si HelloAsso activé pour la section)
-- CA6.4 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
+- CA6.3 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés
 
 **Règles Métier :**
 - La visibilité est calculée à chaque chargement du dashboard (pas de cache)
 - Une carte par section pour l'approvisionnement (le nom de la section apparaît dans le titre)
-- La carte bar est partagée entre débit solde et CB via une page hub intermédiaire
 
 ---
 
@@ -866,7 +839,7 @@ public function helloasso_webhook() {
 - Fonctionne avec PHP 7.4
 - Compatible avec CodeIgniter 2.x
 - Pas de modification du schéma de table `ecritures` existant
-- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. Les fonctionnalités de paiement bar (UC1, UC5) sont conditionnées à ce flag.
+- Ajout d'une colonne `has_bar TINYINT(1) NOT NULL DEFAULT 0` à la table `sections` : toutes les sections ont le bar désactivé par défaut ; l'admin l'active explicitement pour les sections concernées. La fonctionnalité de paiement bar (UC5) est conditionnée à ce flag.
 - Compatible avec le système de sections/clubs existant : chaque section utilise ses propres crédentiels HelloAsso (Client ID, Client Secret, slug), sélectionnés automatiquement selon la section active
 - **Section active obligatoire pour tout paiement CB** : si la session de l'utilisateur est en mode "Toutes les sections", toute opération impliquant un paiement par carte bancaire (provisionnement, bar, cotisation, bon de découverte) est refusée. L'utilisateur doit sélectionner une section spécifique. Cette règle s'applique également aux pages publiques (UC2, UC4) : le lien ou QR Code doit encoder explicitement l'identifiant de section — un lien sans section valide est rejeté.
 - Support des navigateurs modernes (Chrome, Firefox, Safari, Edge)
