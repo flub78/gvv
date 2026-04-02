@@ -59,6 +59,7 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         $this->load->helper('validation');
+        $this->load->helper('crypto');
         $this->load->model('comptes_model');
         $this->load->model('sections_model');
         $this->load->model('ecritures_model');
@@ -66,6 +67,7 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->model('cotisation_produits_model');
         $this->load->model('tarifs_model');
         $this->load->model('vols_decouverte_model');
+        $this->load->model('configuration_model');
         $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
         $this->lang->load('compta');
@@ -99,11 +101,19 @@ class Paiements_en_ligne extends MY_Controller {
         $meta         = json_decode($tx['metadata'], true) ?: array();
         $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
 
+        $nom_club    = $this->config->item('nom_club') ?: 'GVV';
+        $sender_name = $this->configuration_model->get_param('vd.email.sender_name') ?: $nom_club;
+        $beneficiaire_email = isset($meta['beneficiaire_email']) ? $meta['beneficiaire_email'] : '';
+        $beneficiaire       = isset($meta['beneficiaire'])       ? $meta['beneficiaire']       : '';
+
         $data = array(
-            'transaction'    => $tx,
-            'meta'           => $meta,
-            'checkout_url'   => $checkout_url,
-            'transaction_id' => $transaction_id,
+            'transaction'        => $tx,
+            'meta'               => $meta,
+            'checkout_url'       => $checkout_url,
+            'transaction_id'     => $transaction_id,
+            'sender_name'        => $sender_name,
+            'beneficiaire_email' => $beneficiaire_email,
+            'beneficiaire'       => $beneficiaire,
         );
 
         $this->load->view('bs_header', $data);
@@ -140,13 +150,93 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
+     * Envoie le lien de paiement HelloAsso par email (modal sur la page QR).
+     *
+     * POST : to, subject, body
+     * Accès : tresorier, bureau, gestion_vd, pilote_vd, admin
+     */
+    public function send_payment_link_email($transaction_id = '') {
+        if (!has_role('tresorier') && !has_role('bureau')
+            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('gestion_vd')
+            && !$this->user_has_role('pilote_vd')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $to      = trim($this->input->post('to')      ?: '');
+        $subject = trim($this->input->post('subject') ?: '');
+        $body    = trim($this->input->post('body')    ?: '');
+
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_qr_email_invalid_to'));
+            redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
+            return;
+        }
+
+        try {
+            $nom_club     = $this->config->item('nom_club') ?: 'GVV';
+            $sender_email = $this->configuration_model->get_param('vd.email.sender_email') ?: 'noreply@gvv.net';
+            $sender_name  = $this->configuration_model->get_param('vd.email.sender_name')  ?: $nom_club;
+
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'html',
+                'charset'  => 'utf-8',
+            ));
+            $this->email->from($sender_email, $sender_name);
+            $this->email->to($to);
+            $this->email->subject($subject);
+            $this->email->message(nl2br($body));
+
+            if (@$this->email->send()) {
+                $this->session->set_flashdata('success', $this->lang->line('gvv_decouverte_qr_email_success'));
+            } else {
+                $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_qr_email_error'));
+            }
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'send_payment_link_email',
+                'Erreur envoi lien paiement : ' . $e->getMessage());
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_qr_email_error'));
+        }
+
+        redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
+    }
+
+    /**
      * Confirmation publique après retour HelloAsso pour un bon découverte.
      */
     public function public_decouverte_confirmation() {
         $club_id = (int) $this->input->get('club');
         $section = $club_id ? $this->sections_model->get_by_id('id', $club_id) : null;
-        $data = array('section' => $section);
+
+        $txid = $this->input->get('txid');
+        $beneficiaire = '';
+        $montant      = '';
+        $email        = '';
+        if ($txid) {
+            $tx = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+            if ($tx) {
+                $meta         = json_decode($tx['metadata'], true) ?: array();
+                $beneficiaire = isset($meta['beneficiaire']) ? $meta['beneficiaire'] : '';
+                $montant      = isset($tx['montant'])        ? euros((float) $tx['montant']) : '';
+                $email        = isset($meta['beneficiaire_email']) ? $meta['beneficiaire_email'] : '';
+            }
+        }
+
+        $logged_in = $this->dx_auth->is_logged_in();
+        $data = array(
+            'section'      => $section,
+            'beneficiaire' => $beneficiaire,
+            'montant'      => $montant,
+            'email'        => $email,
+        );
         $this->load->view('bs_header', $data);
+        if ($logged_in) {
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+        }
         $this->load->view('paiements_en_ligne/bs_public_decouverte_confirmation', $data);
         $this->load->view('bs_footer');
     }
@@ -483,10 +573,11 @@ class Paiements_en_ligne extends MY_Controller {
         $solde         = $compte_pilote ? (float) $this->ecritures_model->solde_compte($compte_pilote['id']) : 0.0;
 
         $data = array(
-            'section'  => $section,
-            'produits' => $produits,
-            'solde'    => $solde,
-            'error'    => $this->session->flashdata('error'),
+            'section'       => $section,
+            'produits'      => $produits,
+            'solde'         => $solde,
+            'annee_courante' => ((int) date('m') === 12) ? (int) date('Y') + 1 : (int) date('Y'),
+            'error'         => $this->session->flashdata('error'),
         );
         $this->load->view('bs_header', $data);
         $this->load->view('bs_menu', $data);
@@ -515,7 +606,7 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        $annee  = (int) $produit['annee'];
+        $annee   = ((int) date('m') === 12) ? (int) date('Y') + 1 : (int) date('Y');
         $montant = (float) $produit['montant'];
 
         // Doublon cotisation
@@ -1170,13 +1261,14 @@ class Paiements_en_ligne extends MY_Controller {
                 }
                 // Création du bon découverte + emails pour le flux UC4
                 if (isset($result['type']) && $result['type'] === 'decouverte') {
-                    $this->_create_decouverte_voucher(
+                    $voucher_id = $this->_create_decouverte_voucher(
                         isset($result['metadata']) ? $result['metadata'] : array(),
                         isset($result['transaction']) ? $result['transaction'] : $transaction
                     );
                     $this->_send_external_decouverte_email(
                         isset($result['metadata']) ? $result['metadata'] : array(),
-                        isset($result['transaction']) ? $result['transaction'] : $transaction
+                        isset($result['transaction']) ? $result['transaction'] : $transaction,
+                        (int) $voucher_id
                     );
                     $this->_notify_tresorier_decouverte(
                         isset($result['transaction']) ? $result['transaction'] : $transaction,
@@ -1429,20 +1521,20 @@ class Paiements_en_ligne extends MY_Controller {
     {
         $txid = isset($transaction['transaction_id']) ? (string) $transaction['transaction_id'] : '';
         if ($txid === '') {
-            return;
+            return 0;
         }
 
         $paiement_ref = 'HelloAsso:' . $txid;
         $existing = $this->db->where('paiement', $paiement_ref)->get('vols_decouverte')->row_array();
         if (!empty($existing)) {
-            return;
+            return isset($existing['id']) ? (int) $existing['id'] : 0;
         }
 
         $club_id = isset($transaction['club']) ? (int) $transaction['club'] : 0;
         $product = isset($meta['product_reference']) ? trim((string) $meta['product_reference']) : '';
         if ($club_id <= 0 || $product === '') {
             $this->helloasso->log('ERROR', $txid, 'webhook', 'decouverte: metadata incomplète pour créer le bon');
-            return;
+            return 0;
         }
 
         $date_vente = isset($transaction['date_paiement'])
@@ -1491,17 +1583,19 @@ class Paiements_en_ligne extends MY_Controller {
         if (!$ok) {
             $this->helloasso->log('ERROR', $txid, 'webhook',
                 'decouverte: échec insertion bon découverte - ' . $this->db->_error_message());
-            return;
+            return 0;
         }
 
         $this->helloasso->log('INFO', $txid, 'webhook',
             'Bon découverte créé id=' . $next_id . ' product=' . $product);
+        return $next_id;
     }
 
     /**
      * Envoie un email de confirmation au bénéficiaire d'un bon découverte.
+     * Si $voucher_id > 0, génère et joint le bon en PDF.
      */
-    private function _send_external_decouverte_email(array $meta, array $transaction)
+    private function _send_external_decouverte_email(array $meta, array $transaction, $voucher_id = 0)
     {
         $email = isset($meta['beneficiaire_email']) ? trim((string) $meta['beneficiaire_email']) : '';
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -1509,18 +1603,20 @@ class Paiements_en_ligne extends MY_Controller {
         }
 
         try {
-            $nom_club   = $this->config->item('nom_club') ?: 'GVV';
-            $montant    = number_format((float) $transaction['montant'], 2, ',', ' ');
-            $benef      = isset($meta['beneficiaire']) ? trim((string) $meta['beneficiaire']) : $email;
-            $product    = isset($meta['product_description']) ? (string) $meta['product_description'] : '';
+            $nom_club     = $this->config->item('nom_club') ?: 'GVV';
+            $sender_email = $this->configuration_model->get_param('vd.email.sender_email') ?: 'noreply@gvv.net';
+            $sender_name  = $this->configuration_model->get_param('vd.email.sender_name')  ?: $nom_club;
+            $montant      = number_format((float) $transaction['montant'], 2, ',', ' ');
+            $benef        = isset($meta['beneficiaire']) ? trim((string) $meta['beneficiaire']) : $email;
+            $product      = isset($meta['product_description']) ? (string) $meta['product_description'] : '';
 
             $subject = $this->lang->line('gvv_decouverte_email_subject') ?: 'Bon découverte confirmé';
             $message = sprintf(
-                "%s,\n\nVotre bon découverte (%s) a été réglé avec succès (%s€).\n\nCordialement,\n%s",
+                "Bonjour %s,\n\nVotre bon découverte (%s) a été réglé avec succès (%s€).\n\nVeuillez trouver ci-joint votre bon en PDF.\n\nCordialement,\n%s",
                 $benef,
                 $product ?: 'vol découverte',
                 $montant,
-                $nom_club
+                $sender_name
             );
 
             $this->load->library('email');
@@ -1529,14 +1625,186 @@ class Paiements_en_ligne extends MY_Controller {
                 'mailtype' => 'text',
                 'charset'  => 'utf-8',
             ));
-            $this->email->from('noreply@gvv.net', $nom_club);
+            $this->email->from($sender_email, $sender_name);
             $this->email->to($email);
             $this->email->subject($subject);
             $this->email->message($message);
+
+            // Joindre le PDF du bon découverte si disponible
+            $temp_file = null;
+            if ($voucher_id > 0) {
+                $pdf_content = $this->_generate_vd_pdf($voucher_id);
+                if ($pdf_content) {
+                    $temp_file = sys_get_temp_dir() . '/vd_' . $voucher_id . '.pdf';
+                    file_put_contents($temp_file, $pdf_content);
+                    $this->email->attach($temp_file, 'attachment',
+                        'vol_decouverte_' . $voucher_id . '.pdf', 'application/pdf');
+                }
+            }
+
             @$this->email->send();
+
+            if ($temp_file && file_exists($temp_file)) {
+                unlink($temp_file);
+            }
         } catch (Exception $e) {
             $this->helloasso->log('ERROR', 'none', 'webhook',
                 'Erreur email bon découverte : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Génère le PDF d'un bon découverte à partir de son ID.
+     * Retourne le contenu PDF (string) ou null en cas d'échec.
+     */
+    private function _generate_vd_pdf($voucher_id)
+    {
+        try {
+            $vd = $this->db->where('id', $voucher_id)->get('vols_decouverte')->row_array();
+            if (!$vd) return null;
+
+            require_once(APPPATH . 'third_party/phpqrcode/qrlib.php');
+            require_once(APPPATH . 'third_party/tcpdf/tcpdf.php');
+
+            $obfuscated_id = transformInteger($voucher_id);
+            $tempDir       = sys_get_temp_dir();
+
+            // QR code
+            $qr_url  = site_url('vols_decouverte/action/' . $obfuscated_id);
+            $qr_name = $tempDir . '/qrcode_vd_' . $voucher_id . '.png';
+            QRcode::png($qr_url, $qr_name, QR_ECLEVEL_L, 10, 1);
+
+            $pdf = new TCPDF('L', 'mm', 'A5', true, 'UTF-8', false);
+            $pdf->SetCreator(PDF_CREATOR);
+            $pdf->SetAuthor($this->configuration_model->get_param('vd.email.sender_name'));
+            $pdf->SetTitle('Vol de découverte ' . $voucher_id);
+            $pdf->SetSubject('Bon cadeau');
+            $pdf->SetKeywords('vol, découverte');
+            $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+            $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+            $pdf->SetHeaderMargin(0);
+            $pdf->SetFooterMargin(0);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+            $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+            // Page 1 — image de fond
+            $pdf->AddPage();
+            $bMargin         = $pdf->getBreakMargin();
+            $auto_page_break = $pdf->getAutoPageBreak();
+            $pdf->SetAutoPageBreak(false, 0);
+            $background_image = $this->configuration_model->get_file('vd.background_image');
+            $img_file = (!empty($background_image) && file_exists($background_image))
+                ? $background_image
+                : image_dir() . 'Bon-Bapteme.png';
+            $pdf->Image($img_file, 0, 0, 210, 150, '', '', '', false, 300, '', false, false, 0);
+            $pdf->SetAutoPageBreak($auto_page_break, $bMargin);
+            $pdf->setPageMark();
+            if (file_exists($qr_name)) {
+                $pdf->Image($qr_name, 175, 5, 30, 30, 'PNG', '', 'T', false, 300, '', false, false, 0, 'CM');
+            }
+
+            // Page 2 — détails
+            $pdf->AddPage();
+            $pdf->SetXY(5, 5);
+            $pdf->SetMargins(5, 5, 5);
+            $pdf->setAutoPageBreak(false);
+            $pdf->SetFont('helvetica', '', 10);
+
+            $offer_a    = isset($vd['beneficiaire'])  ? $vd['beneficiaire']  : '';
+            $de_la_part = isset($vd['de_la_part'])    ? $vd['de_la_part']    : '';
+            $occasion   = isset($vd['occasion'])      ? $vd['occasion']      : '';
+            $validity   = !empty($vd['date_validite'])
+                ? date_db2ht($vd['date_validite'])
+                : date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+
+            $header_html = <<<EOD
+<table cellspacing="0" cellpadding="3" border="1">
+    <tr><td width="67%">Ce bon pour le survol de la région défini ci-après</td><td width="33%">N° <strong>{$voucher_id}</strong></td></tr>
+    <tr><td width="67%">Offert à <strong>{$offer_a}</strong></td><td width="33%"></td></tr>
+    <tr><td width="67%">à l'occasion de {$occasion}</td><td width="33%">de la part de {$de_la_part}</td></tr>
+    <tr><td width="67%">Ce bon est valable 1 an jusqu'au <strong>{$validity}</strong></td><td width="33%"></td></tr>
+</table>
+EOD;
+            $pdf->writeHTML($header_html, true, false, false, false, '');
+
+            $checked   = '<img src="' . image_dir() . 'checked.png" width="10" height="10" alt="v">';
+            $unchecked = '<img src="' . image_dir() . 'unchecked.png" width="10" height="10" alt=" ">';
+            $product   = isset($vd['product']) ? $vd['product'] : '';
+
+            $abbeville     = ($product === 'abbeville')     ? $checked : $unchecked;
+            $baie          = ($product === 'baie')          ? $checked : $unchecked;
+            $falaise       = ($product === 'falaises')      ? $checked : $unchecked;
+            $autre         = ($product === 'autre')         ? $checked : $unchecked;
+            $noyelles      = ($product === 'noyelles')      ? $checked : $unchecked;
+            $planeur       = ($product === 'planeur')       ? $checked : $unchecked;
+            $abbeville_ulm = ($product === 'abbeville_ulm') ? $checked : $unchecked;
+            $baie_ulm      = ($product === 'baie_ulm')      ? $checked : $unchecked;
+            $falaise_ulm   = ($product === 'falaises_ulm')  ? $checked : $unchecked;
+            $autre_ulm     = ($product === 'autre_ulm')     ? $checked : $unchecked;
+
+            $options_html = <<<EOD
+<table cellspacing="0" cellpadding="5" border="1">
+    <tr>
+        <td width="33%" align="center"><strong>Pour l'avion</strong></td>
+        <td width="34%" align="center"><strong>Pour le planeur</strong></td>
+        <td width="33%" align="center"><strong>Pour l'ULM</strong></td>
+    </tr>
+    <tr>
+        <td width="33%" style="height: 120px; vertical-align: top;">
+            <br />{$abbeville} Tour d'Abbeville (15 mn environ) pour 2 personnes
+            <br /><br />{$baie} Baie de Somme (30 mn environ) pour 2 personnes
+            <br /><br />{$falaise} Falaises ou Marquenterre (40 mn) pour 2 personnes
+            <br /><br />{$noyelles} Noyelles - Portes de la baie (20 mn) pour 2 personnes
+        </td>
+        <td width="34%" style="vertical-align: top;">
+            <br /><br />{$planeur} Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
+        </td>
+        <td width="33%" style="height: 120px; vertical-align: top;">
+            <br />{$abbeville_ulm} Tour d'Abbeville (15 mn environ) pour 1 personne
+            <br /><br />{$baie_ulm} Baie de Somme (30 mn environ) pour 1 personne
+            <br /><br />{$falaise_ulm} Falaises ou Marquenterre (40 mn) pour 1 personne
+            <br /><br />{$autre_ulm} Autre (à détailler) :
+        </td>
+    </tr>
+</table>
+EOD;
+            $pdf->writeHTML($options_html, true, false, false, false, '');
+
+            $contact_avion   = $this->configuration_model->get_param('vd.avion.contact_name');
+            $contact_planeur = $this->configuration_model->get_param('vd.planeur.contact_name');
+            $contact_ulm     = $this->configuration_model->get_param('vd.ulm.contact_name');
+            $tel_avion       = $this->configuration_model->get_param('vd.avion.contact_tel');
+            $tel_planeur     = $this->configuration_model->get_param('vd.planeur.contact_tel');
+            $tel_ulm         = $this->configuration_model->get_param('vd.ulm.contact_tel');
+
+            $contact_html = <<<EOD
+<table cellspacing="0" cellpadding="5" border="1" style="width: 100%;">
+    <tr>
+        <td>
+            Pour prendre rendez-vous et organiser votre vol, vous devez contacter<br>
+            <br />- pour l'avion <strong>{$contact_avion} ({$tel_avion})</strong>
+            <br />- pour le planeur <strong>{$contact_planeur} ({$tel_planeur})</strong>
+            <br />- pour l'ULM <strong>{$contact_ulm} ({$tel_ulm})</strong>
+        </td>
+    </tr>
+    <tr>
+        <td width="33%" height="1.5cm">Vol effectué le :</td>
+        <td width="33%">sur (nom de l'appareil) :</td>
+        <td width="34%">par (nom du pilote) :</td>
+    </tr>
+</table>
+EOD;
+            $pdf->writeHTML($contact_html, true, false, false, false, '');
+
+            return $pdf->Output('vol_decouverte_' . $voucher_id . '.pdf', 'S');
+
+        } catch (Exception $e) {
+            $this->helloasso->log('ERROR', 'none', 'webhook',
+                'Erreur génération PDF bon découverte id=' . $voucher_id . ' : ' . $e->getMessage());
+            return null;
         }
     }
 
@@ -1822,6 +2090,13 @@ class Paiements_en_ligne extends MY_Controller {
         $new_secret = trim($this->input->post('client_secret') ?: '');
         if ($new_secret !== '') {
             $keys['client_secret'] = $new_secret;
+        }
+
+        // Validation : compte de passage obligatoire
+        if ((int) $keys['compte_passage'] === 0) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_admin_config_error_no_compte_passage'));
+            redirect('paiements_en_ligne/admin_config?section=' . $club_id);
+            return;
         }
 
         foreach ($keys as $key => $value) {

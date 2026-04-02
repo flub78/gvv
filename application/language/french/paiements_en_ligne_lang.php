@@ -91,6 +91,7 @@ $lang['gvv_admin_config_enabled']           = "Activer les paiements en ligne po
 $lang['gvv_admin_config_enabled_help']      = "Si désactivé, les boutons de paiement en ligne sont masqués pour tous les utilisateurs.";
 $lang['gvv_admin_config_saved']             = "Configuration enregistrée.";
 $lang['gvv_admin_config_error_no_section']  = "Veuillez sélectionner une section.";
+$lang['gvv_admin_config_error_no_compte_passage'] = "Le compte de passage est obligatoire.";
 
 // Provisionnement compte pilote (EF1)
 $lang['gvv_provision_title']                = "Approvisionner mon compte pilote";
@@ -168,8 +169,22 @@ $lang['gvv_decouverte_qr_direct_intro']             = "Ouvre la page de paiement
 $lang['gvv_decouverte_qr_direct_button']            = "Ouvrir HelloAsso";
 $lang['gvv_decouverte_qr_url_missing']              = "URL de paiement indisponible. Contactez l'administrateur.";
 $lang['gvv_decouverte_qr_back']                     = "Retour au formulaire bon découverte";
-$lang['gvv_decouverte_public_confirm_title']        = "Paiement enregistré";
-$lang['gvv_decouverte_public_confirm_intro']        = "Votre paiement du bon découverte a été enregistré avec succès.";
+$lang['gvv_decouverte_qr_email_button']             = "Envoyer par email";
+$lang['gvv_decouverte_qr_email_modal_title']        = "Transfert du lien de paiement par mail";
+$lang['gvv_decouverte_qr_email_to']                 = "Destinataire";
+$lang['gvv_decouverte_qr_email_subject']            = "Sujet";
+$lang['gvv_decouverte_qr_email_body']               = "Message";
+$lang['gvv_decouverte_qr_email_send']               = "Envoyer l'email";
+$lang['gvv_decouverte_qr_email_success']            = "Email envoyé avec succès.";
+$lang['gvv_decouverte_qr_email_error']              = "Erreur lors de l'envoi de l'email.";
+$lang['gvv_decouverte_qr_email_invalid_to']         = "Adresse email destinataire invalide.";
+$lang['gvv_decouverte_qr_email_default_subject']    = "Lien pour le paiement de votre vol de découverte par CB";
+$lang['gvv_decouverte_qr_email_default_body']       = "Bonjour %s,\n\nVeuillez trouver ci-dessous le lien pour régler votre vol de découverte par carte bancaire via HelloAsso :\n\n%s\n\nCordialement,\n%s";
+$lang['gvv_decouverte_public_confirm_title']         = "Paiement enregistré";
+$lang['gvv_decouverte_public_confirm_intro']         = "Votre paiement du bon découverte a été enregistré avec succès.";
+$lang['gvv_decouverte_public_confirm_beneficiaire']  = "Destinataire";
+$lang['gvv_decouverte_public_confirm_montant']       = "Montant";
+$lang['gvv_decouverte_public_confirm_email']         = "Adresse email";
 $lang['gvv_decouverte_email_subject']               = "Bon découverte confirmé";
 // Bar externe via QR Code — personne sans compte GVV (UC2)
 $lang['gvv_public_bar_title']              = "Régler mes consommations de bar";
