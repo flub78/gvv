@@ -95,6 +95,14 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Sélection automatique des comptes
 - Justificatifs et traçabilité
 
+#### [12. Paiements en Ligne](12_paiements_en_ligne.md)
+**Intégration HelloAsso pour les paiements par carte**
+- Configuration de l'intégration HelloAsso
+- Approvisionnement du compte pilote par CB
+- Paiement des consommations de bar par débit de compte
+- Listing des transactions pour les trésoriers
+- Génération d'affiche QR Code pour les extérieurs
+
 #### [8. Rapports et Statistiques](08_rapports.md)
 **Analyses et pilotage**
 - Rapports d'activité et performance
@@ -160,10 +168,11 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 
 1. **[📊 Comptabilité](07_comptabilite.md)** - Contrôle financier
 2. **[💳 Cotisations](10_gestion_cotisations.md)** - Gestion des adhésions
-3. **[📈 Rapports](08_rapports.md)** - Analyser les performances
-4. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
-5. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
-6. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+3. **[💳 Paiements en ligne](12_paiements_en_ligne.md)** - HelloAsso, CB, QR Code
+4. **[📈 Rapports](08_rapports.md)** - Analyser les performances
+5. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
+6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
+7. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 
