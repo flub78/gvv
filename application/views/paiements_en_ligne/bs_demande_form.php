@@ -29,16 +29,15 @@
     <label for="montant" class="form-label">
         <?= $this->lang->line('gvv_bar_montant') ?> <span class="text-danger">*</span>
     </label>
-    <select id="montant" name="montant" class="form-select" required>
-        <option value=""><?= $this->lang->line('gvv_provision_select_montant') ?></option>
-        <?php
-        $step = 100;
-        for ($m = $step; $m <= (int) $montant_max; $m += $step):
-        ?>
-        <option value="<?= $m ?>" <?= ((int)$montant === $m) ? 'selected' : '' ?>><?= $m ?> €</option>
-        <?php endfor; ?>
-    </select>
-    <div class="form-text"><?= $this->lang->line('gvv_provision_montant_help_multi') ?></div>
+    <div class="input-group" style="max-width: 200px;">
+        <input type="number" id="montant" name="montant" class="form-control"
+               min="<?= $montant_min ?>" max="<?= $montant_max ?>" step="1"
+               value="<?= htmlspecialchars($montant) ?>" required>
+        <span class="input-group-text">€</span>
+    </div>
+    <div class="form-text">
+        <?= sprintf($this->lang->line('gvv_provision_montant_help'), $montant_min, $montant_max) ?>
+    </div>
 </div>
 
 <div class="alert alert-info" style="max-width: 500px;">
