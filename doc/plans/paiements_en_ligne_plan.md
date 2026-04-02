@@ -50,7 +50,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 9 | EF1 | Provisionnement en ligne par le pilote | HAUTE | ✅ |
 | 10 | EF3 | Vérification du paiement / Mon Compte | HAUTE | ✅ |
 | 11 | EF4 | Liste des provisionnements pour le trésorier | HAUTE | ✅ |
-| 12 | UC6 | Paiement CB cotisation via trésorier | HAUTE | ✅ |
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ✅ |
@@ -250,14 +249,11 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
    - `type=provisionnement` : crédit compte pilote 411, débit compte de passage 467
    - `type=bar` : débit compte pilote 411, crédit compte bar
    - `type=bar_externe` : crédit compte bar (sans compte pilote)
-   - `type=cotisation` : écriture compte cotisation 417
    - `type=decouverte` : écriture recette bon de découverte
-   - `type=cotisation_tresorier` : deux écritures atomiques — écriture cotisation (débit compte pilote, crédit cotisation) + approvisionnement compte pilote (débit compte de passage 467, crédit compte pilote 411) → solde net pilote inchangé
 8. Mettre à jour la transaction : statut `completed`, `ecriture_id`, `date_paiement`, `metadata` complète
 9. Log `STATUS=SUCCESS montant=X`
 10. Envoyer email de confirmation
 11. Retourner HTTP 200
-- Aucun écran QR de transfert pour UC6 (réservé à UC4)
 
 **Validation :**
 - Test PHPUnit : webhook valide `type=provisionnement` → écriture créée, transaction `completed`
@@ -377,45 +373,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 12 : Paiement CB cotisation via trésorier (UC6)
-
-**Objectif :** Ajouter un bouton "Payer par carte (HelloAsso)" dans le formulaire de création de cotisation, à côté du bouton "Valider" habituel. En cas de succès, deux écritures atomiques sont créées : la cotisation et un approvisionnement de même montant, laissant le solde net du pilote inchangé.
-
-**Prérequis :** Étapes 4, 5, 6, 7 complétées.
-
-**Visibilité :** Le bouton HelloAsso n'est visible que pour les utilisateurs listés dans `dev_users` tant que la fonctionnalité n'est pas validée pour la mise en production générale.
-
-**Flux :**
-1. Trésorier accède au formulaire de création de cotisation (formulaire existant, inchangé)
-2. Deux boutons en bas du formulaire : "Valider" (comportement habituel) et "Payer par carte (HelloAsso)"
-3. Si "Payer par carte" :
-   - Création d'une transaction `pending` avec `metadata.type=cotisation_tresorier` et les données de la cotisation
-   - Le paiement est lancé en mode direct sur le poste courant (sans écran QR dédié)
-   - Checkout HelloAsso → paiement → webhook → handler étape 7 → deux écritures atomiques
-4. En cas d'échec HelloAsso : aucune écriture créée, message d'erreur, possibilité de basculer en validation classique
-
-**Règles :**
-- Les deux écritures (cotisation + approvisionnement) sont créées dans une seule transaction DB — tout ou rien
-- Vérification section active (`_require_active_section()`) avant création du checkout
-- Accès réservé aux rôles `tresorier`, `bureau`, `admin`
-- Aucun écran QR de transfert pour UC6 (réservé à UC4)
-
-**Validation :** ✅
-- ✅ Test PHPUnit `PaiementsEnLigneCotisationTest` (2 tests) : webhook `type=cotisation_tresorier` → deux écritures créées, solde pilote inchangé
-- ✅ Test Playwright `paiements-en-ligne-uc6-cotisation.spec.js` (4 tests) : accès pilote refusé, trésorier accède au formulaire, bouton HelloAsso absent pour non-dev_user, QR avec txid invalide redirige
-
-**Fichiers :**
-- `application/controllers/compta.php` : `formValidation_saisie_cotisation()` + `_initiate_cotisation_helloasso()`
-- `application/controllers/paiements_en_ligne.php` : `cotisation_qr()`, `cotisation_qr_image()`, `_create_licence_from_cotisation_meta()` (écran direct sans QR)
-- `application/models/paiements_en_ligne_model.php` : `_ecriture_cotisation_tresorier()`, `process_order_event()` retourne `type` et `metadata`
-- `application/views/compta/bs_saisie_cotisation_formView.php` : bouton HelloAsso conditionnel
-- `application/views/paiements_en_ligne/bs_cotisation_qr.php` : page intermédiaire paiement direct (sans QR)
-- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` : clés `gvv_cotisation_*`
-- `application/tests/mysql/PaiementsEnLigneCotisationTest.php`
-- `playwright/tests/paiements-en-ligne-uc6-cotisation.spec.js`
-
----
-
 ## Étape 14 : Règlement consommations bar — personne externe via QR Code (UC2)
 
 **Objectif :** Permettre à une personne extérieure de régler ses consommations de bar via un QR Code affiché au bar, sans compte GVV. La personne saisit elle-même le montant et la description (modèle de confiance, identique aux pilotes).
@@ -447,42 +404,38 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 
 ---
 
-## Étape 15 : Renouvellement de cotisation (UC3)
+## Étape 15 : Renouvellement de cotisation (UC3, débit de solde)
 
-**Objectif :** Permettre au pilote connecté de renouveler sa cotisation en ligne.
+**Objectif :** Permettre au pilote connecté de renouveler sa cotisation par débit de son compte pilote, sans CB ni HelloAsso.
 
 **Prérequis :** Le trésorier marque un ou plusieurs tarifs comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
 
 **Flux :**
-1. Pilote accède à "Mon Compte" → "Gérer ma Cotisation"
-2. Affichage des tarifs marqués `is_cotisation=1` et valides à la date du jour
-3. Sélection + paiement via HelloAsso avec `metadata.type=cotisation`
-4. Webhook → handler étape 7 → écriture compte 417, marquage pilote "cotisant à jour", attestation PDF par email, notification trésorier
-
-**Configuration requise :** Flag `is_cotisation` sur les tarifs. Un même tarif peut couvrir plusieurs années sans modification ; un clone daté suffit en cas de changement de montant.
+1. Pilote accède à "Mon Compte" → "Payer ma cotisation"
+2. Affichage des tarifs marqués `is_cotisation=1` et valides à la date du jour, avec le solde disponible
+3. Sélection + confirmation
+4. Vérification : solde ≥ montant (sinon refus), pas de doublon pour l'année (sinon refus)
+5. Écriture : débit 411 pilote → crédit 417 recette cotisation + création licence
 
 **✅ Complète**
-- ✅ PHPUnit (4 tests) : flag is_cotisation sur tarif, webhook `type=cotisation` → écriture créée, licence créée, idempotence — `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
+- ✅ PHPUnit (4 tests) : flag is_cotisation, débit succès (écriture + licence), solde insuffisant (garde), doublon (garde) — `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
 - ✅ PHPUnit (2 tests) : migration 099 up/down — `application/tests/mysql/TarifsIsCotisationMigrationTest.php`
-- ✅ Playwright (4 tests, 1 `[SKIP SI SANDBOX]`) : sans session → login, pilote → page accessible, trésorier → admin_cotisations accessible, pilote → admin_cotisations refusé — `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js`
+- ✅ Playwright (3 tests) : sans session → login, pilote → page accessible, solde affiché — `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js`
 
 **Fichiers créés/modifiés :**
-- `application/migrations/098_cotisation_produits.php` (nouveau — table admin conservée)
-- `application/migrations/099_tarifs_is_cotisation.php` (nouveau — flag is_cotisation sur tarifs)
-- `application/models/cotisation_produits_model.php` (nouveau — admin_cotisations conservé)
+- `application/migrations/098_cotisation_produits.php`
+- `application/migrations/099_tarifs_is_cotisation.php`
 - `application/models/tarifs_model.php` (méthodes `get_cotisation_products_for_section`, `get_cotisation_product_by_id`)
 - `application/libraries/Gvvmetadata.php` (metadata boolean is_cotisation)
-- `application/controllers/paiements_en_ligne.php` (méthodes `cotisation`, `_process_cotisation` → tarifs_model ; `admin_cotisations`, `_save_cotisation_produit`, `toggle_cotisation_produit`, `_create_licence_from_cotisation_meta`, `_notify_tresorier_cotisation`)
+- `application/controllers/paiements_en_ligne.php` (méthodes `cotisation`, `_process_cotisation`)
+- `application/controllers/welcome.php` (visibilité carte cotisation découplée de HelloAsso)
 - `application/views/tarifs/bs_formView.php` (champ is_cotisation)
 - `application/views/tarifs/bs_tableView.php` (colonne is_cotisation)
-- `application/views/paiements_en_ligne/bs_cotisation_form.php` (nouveau — libellé sans année)
-- `application/views/paiements_en_ligne/bs_admin_cotisations.php` (nouveau)
+- `application/views/paiements_en_ligne/bs_cotisation_form.php` (affichage solde, bouton débit)
 - `application/views/bs_menu.php` (lien admin_cotisations)
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (clés UC3)
-- `application/config/migration.php` (version 99)
-- `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php` (nouveau)
-- `application/tests/mysql/TarifsIsCotisationMigrationTest.php` (nouveau)
-- `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js` (nouveau)
+- `application/tests/mysql/PaiementsEnLigneCotisationPiloteTest.php`
+- `playwright/tests/paiements-en-ligne-uc3-cotisation-pilote.spec.js`
 
 ---
 
@@ -530,12 +483,11 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - [ ] Test de migration : `up()` + `down()` sans erreur sur la BDD de test
 - [ ] Test Playwright smoke : UC5 débit de solde bar (sans sandbox)
 - [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : EF1 provisionnement pilote (EF1 → EF2 → EF3)
-- [ ] `[SKIP SI SANDBOX]` Test Playwright smoke : UC6 cotisation via trésorier CB → deux écritures, solde pilote inchangé
 - [ ] Vérification visibilité `dev_users` : boutons HelloAsso absents pour utilisateur ordinaire, présents pour `dev_users`
 - [ ] Test Playwright smoke : accès liste trésorier (EF4)
 - [ ] Test Playwright smoke : page config admin (EF5)
 - [ ] Vérification sécurité : signature webhook invalide rejetée, CSRF actif, accès rôles respectés
-- [ ] Vérification section obligatoire : tentative de paiement CB avec section "Toutes" → refus sur tous les UC CB (EF1, UC2, UC3, UC4)
+- [ ] Vérification section obligatoire : tentative de paiement CB avec section "Toutes" → refus sur tous les UC CB (EF1, UC2, UC4)
 - [ ] Vérification logs : fichier `helloasso_payments_YYYY-MM-DD.log` créé, secrets masqués, `txid` présent
 - [ ] Vérification idempotence : webhook envoyé deux fois → une seule écriture comptable
 

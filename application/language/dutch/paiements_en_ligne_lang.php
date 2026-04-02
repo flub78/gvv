@@ -126,20 +126,6 @@ $lang['gvv_bar_hub_carte_title']            = "Online betaling (kaart)";
 $lang['gvv_bar_hub_carte_sub']              = "Betalen met bankkaart via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Terug";
 
-// Contributie per kaart — penningmeester (UC6)
-$lang['gvv_cotisation_helloasso_button']        = "Betalen per kaart (HelloAsso)";
-$lang['gvv_cotisation_helloasso_error_user']    = "Piloot niet gevonden. Controleer de selectie.";
-$lang['gvv_cotisation_helloasso_error_tx']      = "Fout bij aanmaken van de transactie. Probeer opnieuw.";
-$lang['gvv_cotisation_helloasso_error_checkout']= "Kan HelloAsso-betaling niet starten. Probeer opnieuw of valideer handmatig.";
-$lang['gvv_cotisation_qr_title']               = "Contributie betalen per kaart — HelloAsso";
-$lang['gvv_cotisation_qr_intro']               = "Open de HelloAsso-link op dit toestel om met kaart te betalen.";
-$lang['gvv_cotisation_qr_scan_title']          = "Scannen met smartphone";
-$lang['gvv_cotisation_qr_scan_intro']          = "De piloot scant deze QR-code met zijn telefoon om direct te betalen.";
-$lang['gvv_cotisation_qr_direct_title']        = "Betalen op dit scherm";
-$lang['gvv_cotisation_qr_direct_intro']        = "Opent de HelloAsso-betaalpagina op dit toestel.";
-$lang['gvv_cotisation_qr_direct_button']       = "HelloAsso openen";
-$lang['gvv_cotisation_qr_back']                = "Terug naar contributieformulier";
-$lang['gvv_cotisation_qr_url_missing']         = "Betaal-URL niet beschikbaar. Neem contact op met de beheerder.";
 
 // Trésorier lijst (EF4)
 $lang['gvv_liste_title']                    = "Online betalingen";
@@ -203,17 +189,16 @@ $lang['gvv_bar_qrcode_default_title']         = "Betaling barconsumpties";
 $lang['gvv_bar_qrcode_default_text_top']      = "Scan deze QR-code om uw barconsumpties met kaart te betalen.";
 $lang['gvv_bar_qrcode_default_text_bottom']   = "Toon uw betalingsbevestiging aan de bar.";
 
-// Lidmaatschap online — piloot (UC3)
-$lang['gvv_cotisation_form_title']          = "Mijn lidmaatschap online betalen";
-$lang['gvv_cotisation_form_intro']          = "Selecteer uw lidmaatschap en betaal via kaart via HelloAsso.";
+// Lidmaatschap online — piloot (UC3, rekeningdebet)
+$lang['gvv_cotisation_form_title']          = "Mijn lidmaatschap betalen";
+$lang['gvv_cotisation_form_intro']          = "Selecteer uw lidmaatschap. Het bedrag wordt van uw pilootrekening afgeschreven.";
 $lang['gvv_cotisation_form_no_produits']    = "Geen lidmaatschap beschikbaar voor deze sectie. Neem contact op met uw penningmeester.";
 $lang['gvv_cotisation_form_choose']         = "Kies uw lidmaatschap";
-$lang['gvv_cotisation_form_button']         = "Betalen met kaart (HelloAsso)";
-$lang['gvv_cotisation_helloasso_notice']    = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
+$lang['gvv_cotisation_form_button']         = "Lidmaatschap regelen";
+$lang['gvv_cotisation_solde_label']         = "Beschikbaar saldo op uw rekening";
 $lang['gvv_cotisation_error_produit']       = "Ongeldig of niet beschikbaar lidmaatschapsproduct.";
 $lang['gvv_cotisation_error_already_paid']  = "U heeft uw lidmaatschap voor %d al betaald.";
-$lang['gvv_cotisation_error_tx']            = "Fout bij aanmaken transactie. Probeer het opnieuw.";
-$lang['gvv_cotisation_error_checkout']      = "Kan HelloAsso betaling niet starten. Probeer het opnieuw.";
+$lang['gvv_cotisation_success']             = "Lidmaatschap %d succesvol geregistreerd. Uw rekening is gedebiteerd.";
 
 // Discoveriebon via publieke link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discoveriebon (kaartbetaling)";

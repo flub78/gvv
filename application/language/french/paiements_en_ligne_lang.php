@@ -126,32 +126,16 @@ $lang['gvv_bar_hub_carte_title']            = "Paiement en ligne (CB)";
 $lang['gvv_bar_hub_carte_sub']              = "Payer par carte bancaire via HelloAsso";
 $lang['gvv_bar_hub_back']                   = "Retour";
 
-// Cotisation trésorier par carte (UC6)
-$lang['gvv_cotisation_helloasso_button']        = "Payer par carte (HelloAsso)";
-$lang['gvv_cotisation_helloasso_error_user']    = "Pilote introuvable. Veuillez vérifier la sélection.";
-$lang['gvv_cotisation_helloasso_error_tx']      = "Erreur lors de la création de la transaction. Veuillez réessayer.";
-$lang['gvv_cotisation_helloasso_error_checkout']= "Impossible d'initier le paiement HelloAsso. Veuillez réessayer ou valider manuellement.";
-$lang['gvv_cotisation_qr_title']               = "Paiement cotisation par carte — HelloAsso";
-$lang['gvv_cotisation_qr_intro']               = "Ouvrez le lien HelloAsso sur ce poste pour procéder au paiement par carte.";
-$lang['gvv_cotisation_qr_scan_title']          = "Scanner avec le téléphone";
-$lang['gvv_cotisation_qr_scan_intro']          = "Le pilote scanne ce QR code avec son smartphone pour payer directement.";
-$lang['gvv_cotisation_qr_direct_title']        = "Payer sur cet écran";
-$lang['gvv_cotisation_qr_direct_intro']        = "Ouvre la page de paiement HelloAsso sur ce poste.";
-$lang['gvv_cotisation_qr_direct_button']       = "Ouvrir HelloAsso";
-$lang['gvv_cotisation_qr_back']                = "Retour au formulaire cotisation";
-$lang['gvv_cotisation_qr_url_missing']         = "URL de paiement non disponible. Contactez l'administrateur.";
-
-// Cotisation en ligne — pilote (UC3)
-$lang['gvv_cotisation_form_title']          = "Payer ma cotisation en ligne";
-$lang['gvv_cotisation_form_intro']          = "Sélectionnez votre cotisation et payez par carte bancaire via HelloAsso.";
+// Cotisation en ligne — pilote (UC3, débit de solde)
+$lang['gvv_cotisation_form_title']          = "Payer ma cotisation";
+$lang['gvv_cotisation_form_intro']          = "Sélectionnez votre cotisation. Le montant sera débité de votre compte pilote.";
 $lang['gvv_cotisation_form_no_produits']    = "Aucune cotisation disponible pour cette section. Contactez votre trésorier.";
 $lang['gvv_cotisation_form_choose']         = "Choisissez votre cotisation";
-$lang['gvv_cotisation_form_button']         = "Payer par carte (HelloAsso)";
-$lang['gvv_cotisation_helloasso_notice']    = "Vous allez être redirigé vers HelloAsso pour effectuer le paiement par carte bancaire.";
+$lang['gvv_cotisation_form_button']         = "Régler ma cotisation";
+$lang['gvv_cotisation_solde_label']         = "Solde disponible sur votre compte";
 $lang['gvv_cotisation_error_produit']       = "Produit de cotisation invalide ou non disponible.";
 $lang['gvv_cotisation_error_already_paid']  = "Vous avez déjà réglé votre cotisation pour l'année %d.";
-$lang['gvv_cotisation_error_tx']            = "Erreur lors de la création de la transaction. Veuillez réessayer.";
-$lang['gvv_cotisation_error_checkout']      = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer.";
+$lang['gvv_cotisation_success']             = "Cotisation %d enregistrée avec succès. Votre compte a été débité.";
 
 // Bon decouverte via lien / QR public (UC4)
 $lang['gvv_decouverte_menu']                        = "Bon découverte (paiement carte)";

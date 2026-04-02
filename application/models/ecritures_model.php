@@ -643,6 +643,14 @@ class Ecritures_model extends Common_Model {
      * @param unknown_type $id
      */
     public function delete_ecriture($id) {
+        // Check if ecriture is referenced by a HelloAsso online payment
+        $ref = $this->db->where('ecriture_id', $id)->count_all_results('paiements_en_ligne');
+        if ($ref > 0) {
+            $this->session->set_flashdata('popup',
+                "Suppression impossible : cette écriture est liée à un paiement en ligne HelloAsso.");
+            return false;
+        }
+
         $this->db->trans_start();
         $previous = $this->ecritures_model->get_by_id('id', $id);
         $compte1 = $previous['compte1'];

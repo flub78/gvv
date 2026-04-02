@@ -196,26 +196,25 @@ Elle saisit elle-même le montant et la description et effectue le paiement.
 ### UC3 : Renouvellement de Cotisation en Ligne par un Pilote Authentifié (Priorité : MÉDIUM)
 
 **Contexte :**
-Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier.
+Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier. Le règlement se fait par débit de son compte pilote (411).
 
 **Flux :**
-1. Le pilote accède à "Mon Compte" → "Gérer ma Cotisation"
-2. Le système affiche les **produits de cotisation** disponibles configurés par le club :
-   - Exemple : "Cotisation Pilote 2026 - 350€"
-   - Exemple : "Cotisation Junior 2026 - 200€"
-3. Il sélectionne le produit voulu
-4. Il paie par carte
-5. Après paiement :
-   - Écriture comptable automatique (vente de cotisation, compte 411)
-   - Marquage du pilote comme "cotisant à jour pour 2026"
-   - Attestation PDF générée et envoyée par email
-   - Notification au trésorier pour information
-   - Le compte du pilote affiche "Cotisation à jour jusqu'au 31/12/2026"
+1. Le pilote accède à "Mon Compte" → "Payer ma cotisation"
+2. Le système affiche les **produits de cotisation** disponibles configurés par le club et son **solde disponible**
+3. Il sélectionne le produit voulu et confirme
+4. Le système vérifie :
+   - Solde du compte pilote ≥ montant de la cotisation (sinon refus avec message explicite)
+   - Absence de cotisation existante pour l'année concernée (sinon refus)
+5. En cas de succès :
+   - Écriture comptable : débit compte pilote (411), crédit compte recette cotisation (417)
+   - Cotisation enregistrée dans la table `licences`
+   - Message de confirmation affiché
 
-**Avantages :**
-- Renouvellement autonome, 24/7
-- Pas de fuite de cotisation
-- Automatisation des attestations
+**Règles Métier :**
+- Le pilote ne peut régler que si son solde couvre le montant de la cotisation
+- Si une cotisation pour l'année existe déjà, l'opération est refusée
+- L'écriture produit le même résultat qu'une saisie manuelle du trésorier (débit 411, crédit 417)
+- Aucune intégration HelloAsso requise
 
 **Configuration requise :**
 - Les trésoriers marquent des tarifs existants comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
@@ -290,34 +289,6 @@ Un pilote connecté dispose d'un solde positif sur son compte pilote et souhaite
 
 ---
 
-### UC6 : Paiement par Carte lors de la Saisie d'une Cotisation par le Trésorier (Priorité : HAUTE)
-
-**Contexte :**
-Le trésorier enregistre une cotisation pour un pilote. Plutôt que de saisir un chèque ou un espèces, il peut proposer un paiement par carte bancaire via HelloAsso directement depuis l'interface de saisie de la cotisation.
-
-**Flux :**
-1. Le trésorier accède à l'interface de création de cotisation (formulaire habituel)
-2. Deux boutons sont présents en bas du formulaire :
-   - **"Valider"** (comportement habituel, paiement classique)
-   - **"Payer par carte (HelloAsso)"**
-3. Si le trésorier clique sur "Payer par carte (HelloAsso)" :
-    - Il paie sur son propre écran (lien direct HelloAsso)
-4. Après confirmation du paiement par HelloAsso (succès) :
-   - Une écriture de cotisation est créée (identique à la validation classique)
-   - Un approvisionnement de compte pilote est créé pour le même montant (crédit du compte pilote)
-   - Ces deux écritures sont créées de manière **atomique** (tout ou rien)
-   - Le solde du compte pilote reste inchangé en net : il est débité de la cotisation et crédité d'un approvisionnement équivalent
-5. En cas d'échec du paiement HelloAsso :
-   - Aucune écriture n'est créée
-   - Le trésorier est informé de l'échec et peut réessayer ou basculer en paiement classique
-
-**Règles Métier :**
-- La transaction comptable est atomique : les deux écritures (cotisation + approvisionnement) sont créées ensemble ou pas du tout
-- En cas d'échec HelloAsso, aucun impact sur la comptabilité
-- Le solde net du pilote est inchangé après l'opération : la cotisation débite le compte et l'approvisionnement le crédite du même montant
-- Le flux cotisation via trésorier ne propose pas d'écran QR dédié ; le paiement est direct sur le poste courant
-
----
 ---
 
 ## 5. Exigences Fonctionnelles

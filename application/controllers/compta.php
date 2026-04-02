@@ -237,7 +237,7 @@ class Compta extends Gvv_Controller {
 
         $this->load->model('ecritures_model');
         $this->ecritures_model->delete_ecriture($id);
-
+        // Note: delete_ecriture sets flashdata popup on failure; pop_return_url redirects in all cases
         $this->pop_return_url();
     }
 
@@ -1031,19 +1031,6 @@ class Compta extends Gvv_Controller {
             }
         }
 
-        // Visibilité bouton HelloAsso — dev_users + HelloAsso activé pour la section
-        $dev_users_cfg = $this->config->item('dev_users') ?: '';
-        $dev_users     = array_map('trim', explode(',', $dev_users_cfg));
-        $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
-
-        $this->data['helloasso_enabled'] = false;
-        $section_id = (int) $this->session->userdata('section');
-        if ($section_id > 0 && $this->data['is_dev_authorized']) {
-            $this->load->model('paiements_en_ligne_model');
-            $this->data['helloasso_enabled'] =
-                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
-        }
-
         // Charger la vue
         load_last_view('compta/bs_saisie_cotisation_formView', $this->data);
     }
@@ -1105,14 +1092,6 @@ class Compta extends Gvv_Controller {
         if ($this->licences_model->check_cotisation_exists($pilote, $annee_cotisation)) {
             $this->data['error_message'] = $this->lang->line('gvv_compta_error_double_cotisation');
             $this->saisie_cotisation();
-            return;
-        }
-
-        // ── Chemin HelloAsso (paiement CB via trésorier) ────────────────────
-        if ($this->input->post('button') === 'helloasso') {
-            $this->_initiate_cotisation_helloasso(
-                $pilote, $annee_cotisation, $compte_recette, (float)$montant, $description
-            );
             return;
         }
 
@@ -1258,88 +1237,6 @@ class Compta extends Gvv_Controller {
             log_message('error', 'Erreur process_saisie_cotisation: ' . $e->getMessage());
             return false;
         }
-    }
-
-    /**
-     * Crée une transaction HelloAsso pour une cotisation trésorier (UC6).
-     * Redirige vers la page QR code / lien de paiement.
-     *
-     * @param string $pilote           mlogin du pilote
-     * @param int    $annee_cotisation
-     * @param int    $compte_recette   ID du compte cotisation (417/700)
-     * @param float  $montant
-     * @param string $description
-     */
-    private function _initiate_cotisation_helloasso($pilote, $annee_cotisation, $compte_recette, $montant, $description) {
-        $this->load->model('paiements_en_ligne_model');
-        $this->load->library('Helloasso');
-        $this->lang->load('paiements_en_ligne');
-
-        $section_id = (int) $this->session->userdata('section');
-
-        // Résoudre user_id depuis mlogin
-        $user_row = $this->db->select('id')->from('users')->where('username', $pilote)->get()->row_array();
-        $user_id  = $user_row ? (int)$user_row['id'] : 0;
-
-        if (!$user_id) {
-            $this->data['error_message'] = $this->lang->line('gvv_cotisation_helloasso_error_user');
-            $this->saisie_cotisation();
-            return;
-        }
-
-        $mlogin_tresorier = $this->dx_auth->get_username();
-        $txid = 'cot-' . $section_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
-
-        $metadata = array(
-            'type'                 => 'cotisation_tresorier',
-            'pilote_login'         => $pilote,
-            'annee_cotisation'     => (int) $annee_cotisation,
-            'compte_cotisation_id' => (int) $compte_recette,
-            'description'          => $description,
-            'initiated_by_user'    => ((string) $this->dx_auth->get_username() === (string) $pilote),
-            'gvv_transaction_id'   => $txid,
-        );
-
-        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
-            'user_id'        => $user_id,
-            'montant'        => $montant,
-            'plateforme'     => 'helloasso',
-            'club'           => $section_id,
-            'transaction_id' => $txid,
-            'metadata'       => json_encode($metadata),
-            'created_by'     => $mlogin_tresorier,
-        ));
-
-        if (!$tx_id) {
-            $this->data['error_message'] = $this->lang->line('gvv_cotisation_helloasso_error_tx');
-            $this->saisie_cotisation();
-            return;
-        }
-
-        // Récupérer email du pilote pour pré-remplir HelloAsso
-        $membre = $this->db->select('mprenom, mnom, memail')->from('membres')
-            ->where('mlogin', $pilote)->get()->row_array();
-
-        $checkout = $this->helloasso->create_checkout($section_id, array(
-            'amount'           => $montant,
-            'item_name'        => $description,
-            'payer_first_name' => isset($membre['mprenom']) ? $membre['mprenom'] : '',
-            'payer_last_name'  => isset($membre['mnom'])    ? $membre['mnom']    : '',
-            'payer_email'      => isset($membre['memail'])  ? $membre['memail']  : '',
-            'return_url'       => site_url('paiements_en_ligne/confirmation/' . $txid),
-            'back_url'         => site_url('paiements_en_ligne/annulation'),
-            'error_url'        => site_url('paiements_en_ligne/erreur'),
-            'metadata'         => $metadata,
-        ));
-
-        if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $this->data['error_message'] = $this->lang->line('gvv_cotisation_helloasso_error_checkout');
-            $this->saisie_cotisation();
-            return;
-        }
-
-        redirect($checkout['redirect_url']);
     }
 
     /**
