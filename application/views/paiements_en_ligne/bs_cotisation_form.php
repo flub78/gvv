@@ -17,7 +17,7 @@
 <div class="alert alert-success"><?= htmlspecialchars($this->session->flashdata('success')) ?></div>
 <?php endif; ?>
 
-<h3><?= $this->lang->line('gvv_cotisation_form_title') ?></h3>
+<h3><?= $this->lang->line('gvv_cotisation_form_title') ?> <span class="badge bg-primary"><?= $annee_courante ?></span></h3>
 <p class="text-muted"><?= $this->lang->line('gvv_cotisation_form_intro') ?></p>
 
 <div class="alert alert-info mb-3" style="max-width:600px;">

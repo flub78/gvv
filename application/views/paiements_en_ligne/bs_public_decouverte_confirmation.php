@@ -10,11 +10,38 @@
 <h3><?= $this->lang->line('gvv_decouverte_public_confirm_title') ?></h3>
 <p class="text-muted"><?= $this->lang->line('gvv_decouverte_public_confirm_intro') ?></p>
 
-<?php if (!empty($section)): ?>
-    <p>
-        <strong><?= $this->lang->line('gvv_public_bar_confirm_section') ?></strong>
-        <?= htmlspecialchars($section['nom']) ?>
-    </p>
-<?php endif; ?>
+<div class="card mb-4" style="max-width: 500px;">
+    <div class="card-body">
+
+        <?php if (!empty($section)): ?>
+        <div class="mb-2">
+            <span class="text-muted small"><?= $this->lang->line('gvv_public_bar_confirm_section') ?></span><br>
+            <strong><?= htmlspecialchars($section['nom']) ?></strong>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($beneficiaire)): ?>
+        <div class="mb-2">
+            <span class="text-muted small"><?= $this->lang->line('gvv_decouverte_public_confirm_beneficiaire') ?></span><br>
+            <strong><?= htmlspecialchars($beneficiaire) ?></strong>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($montant)): ?>
+        <div class="mb-2">
+            <span class="text-muted small"><?= $this->lang->line('gvv_decouverte_public_confirm_montant') ?></span><br>
+            <strong><?= htmlspecialchars($montant) ?></strong>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($email)): ?>
+        <div class="mb-2">
+            <span class="text-muted small"><?= $this->lang->line('gvv_decouverte_public_confirm_email') ?></span><br>
+            <strong><?= htmlspecialchars($email) ?></strong>
+        </div>
+        <?php endif; ?>
+
+    </div>
+</div>
 
 </div>

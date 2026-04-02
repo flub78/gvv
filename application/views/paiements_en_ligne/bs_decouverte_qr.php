@@ -17,7 +17,7 @@ $product     = isset($meta['product_description']) ? htmlspecialchars($meta['pro
 $beneficiaire = isset($meta['beneficiaire']) ? htmlspecialchars($meta['beneficiaire']) : '-';
 $offreur     = isset($meta['de_la_part']) ? htmlspecialchars($meta['de_la_part']) : '-';
 $montant_fmt = euros((float) $transaction['montant']);
-$show_transfer_qr = !empty($checkout_url) && empty($meta['initiated_by_user']);
+$show_transfer_qr = !empty($checkout_url);
 ?>
 
 <div class="card mb-4" style="max-width: 700px;">
@@ -77,6 +77,62 @@ $show_transfer_qr = !empty($checkout_url) && empty($meta['initiated_by_user']);
         <?php endif; ?>
     </div>
 
+</div>
+
+<?php
+$default_subject = $this->lang->line('gvv_decouverte_qr_email_default_subject');
+$default_body    = sprintf(
+    $this->lang->line('gvv_decouverte_qr_email_default_body'),
+    $beneficiaire,
+    $checkout_url,
+    $sender_name
+);
+?>
+
+<div class="mb-3">
+    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal">
+        <i class="fas fa-envelope"></i> <?= $this->lang->line('gvv_decouverte_qr_email_button') ?>
+    </button>
+</div>
+
+<!-- Modal envoi email lien paiement -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailModalLabel">
+                    <i class="fas fa-envelope"></i> <?= $this->lang->line('gvv_decouverte_qr_email_modal_title') ?>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="<?= site_url('paiements_en_ligne/send_payment_link_email/' . htmlspecialchars($transaction_id)) ?>">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><?= $this->lang->line('gvv_decouverte_qr_email_to') ?></label>
+                        <input type="email" name="to" class="form-control"
+                               value="<?= htmlspecialchars($beneficiaire_email) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><?= $this->lang->line('gvv_decouverte_qr_email_subject') ?></label>
+                        <input type="text" name="subject" class="form-control"
+                               value="<?= htmlspecialchars($default_subject) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><?= $this->lang->line('gvv_decouverte_qr_email_body') ?></label>
+                        <textarea name="body" class="form-control" rows="10"><?= htmlspecialchars($default_body) ?></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <?= $this->lang->line('gvv_button_cancel') ?>
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> <?= $this->lang->line('gvv_decouverte_qr_email_send') ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <a href="<?= site_url('vols_decouverte/create') ?>" class="btn btn-outline-secondary">

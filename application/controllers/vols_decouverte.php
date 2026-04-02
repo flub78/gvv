@@ -99,13 +99,10 @@ class Vols_decouverte extends Gvv_Controller {
         parent::create(true);
 
         // HelloAsso visibility
-        $dev_users_cfg = $this->config->item('dev_users') ?: '';
-        $dev_users = array_map('trim', explode(',', $dev_users_cfg));
         $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin();
-        $this->data['is_dev_authorized'] = in_array($this->dx_auth->get_username(), $dev_users);
         $this->data['helloasso_enabled'] = false;
         $section_id = (int) $this->session->userdata('section');
-        if ($section_id > 0 && $this->data['is_dev_authorized']) {
+        if ($section_id > 0) {
             $this->load->model('paiements_en_ligne_model');
             $this->data['helloasso_enabled'] =
                 $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
@@ -259,7 +256,7 @@ class Vols_decouverte extends Gvv_Controller {
             'payer_first_name' => '',
             'payer_last_name'  => '',
             'payer_email'      => $beneficiaire_email,
-            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $section_id),
+            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $section_id . '&txid=' . urlencode($txid)),
             'back_url'         => site_url('vols_decouverte/create'),
             'error_url'        => site_url('vols_decouverte/create'),
             'metadata'         => $metadata,
