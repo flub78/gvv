@@ -98,6 +98,7 @@ $lang['gvv_provision_intro']                = "Recharge your pilot account by ca
 $lang['gvv_provision_montant_help']         = "Amount between €%s and €%s.";
 $lang['gvv_provision_montant_help_multi']   = "Choose an amount in multiples of €100.";
 $lang['gvv_provision_select_montant']       = "— Choose an amount —";
+$lang['gvv_provision_error_montant_invalid']  = "The amount must be a positive number.";
 $lang['gvv_provision_error_montant_multiple'] = "The amount must be a multiple of €100.";
 $lang['gvv_provision_button_valider']       = "Top up by card";
 $lang['gvv_provision_checkout_description'] = "Pilot account top-up — %s";

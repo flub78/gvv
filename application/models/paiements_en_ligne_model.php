@@ -969,14 +969,14 @@ class Paiements_en_ligne_model extends CI_Model {
         $errors = array();
         $CI     = get_instance();
 
-        if ($montant <= 0 || $montant % 100 !== 0) {
-            $errors[] = $CI->lang->line('gvv_provision_error_montant_multiple');
+        if (!is_numeric($montant) || $montant <= 0) {
+            $errors[] = $CI->lang->line('gvv_provision_error_montant_invalid');
         } elseif ($montant_min > 0 && $montant < $montant_min) {
             $errors[] = sprintf($CI->lang->line('gvv_provision_error_montant_min'),
-                number_format($montant_min, 0, ',', ' '));
+                number_format($montant_min, 2, ',', ' '));
         } elseif ($montant > $montant_max) {
             $errors[] = sprintf($CI->lang->line('gvv_provision_error_montant_max'),
-                number_format($montant_max, 0, ',', ' '));
+                number_format($montant_max, 2, ',', ' '));
         }
 
         return $errors;

@@ -98,6 +98,7 @@ $lang['gvv_provision_intro']                = "Laad uw pilootrekening op met ban
 $lang['gvv_provision_montant_help']         = "Bedrag tussen €\u{00A0}%s en €\u{00A0}%s.";
 $lang['gvv_provision_montant_help_multi']   = "Kies een bedrag in veelvouden van € 100.";
 $lang['gvv_provision_select_montant']       = "— Kies een bedrag —";
+$lang['gvv_provision_error_montant_invalid']  = "Het bedrag moet een positief getal zijn.";
 $lang['gvv_provision_error_montant_multiple'] = "Het bedrag moet een veelvoud van € 100 zijn.";
 $lang['gvv_provision_button_valider']       = "Opladen met kaart";
 $lang['gvv_provision_checkout_description'] = "Pilotenrekening opladen — %s";

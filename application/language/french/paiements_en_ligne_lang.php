@@ -98,6 +98,7 @@ $lang['gvv_provision_intro']                = "Rechargez votre compte pilote par
 $lang['gvv_provision_montant_help']         = "Montant entre %s\u{00A0}€ et %s\u{00A0}€.";
 $lang['gvv_provision_montant_help_multi']   = "Choisissez un montant multiple de 100 €.";
 $lang['gvv_provision_select_montant']       = "— Choisissez un montant —";
+$lang['gvv_provision_error_montant_invalid']  = "Le montant doit être un nombre positif.";
 $lang['gvv_provision_error_montant_multiple'] = "Le montant doit être un multiple de 100 €.";
 $lang['gvv_provision_button_valider']       = "Approvisionner par carte";
 $lang['gvv_provision_checkout_description'] = "Provisionnement compte pilote — %s";

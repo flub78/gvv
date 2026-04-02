@@ -226,7 +226,7 @@ class Paiements_en_ligne extends MY_Controller {
      * création transaction, appel HelloAsso, redirection.
      */
     private function _process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
-        $montant = (int) $this->input->post('montant');
+        $montant = (float) $this->input->post('montant');
 
         $errors = $this->paiements_en_ligne_model->validate_demande_montant($montant, $montant_max, $montant_min);
 

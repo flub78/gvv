@@ -49,18 +49,10 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     // Validation montant via le modèle
     // -------------------------------------------------------------------------
 
-    public function testMontantNonMultipleDe100EstRefuse() {
-        $errors = $this->model->validate_demande_montant(150, 500);
-        $this->assertNotEmpty($errors, '150 n\'est pas un multiple de 100 : doit être refusé');
-
-        $errors = $this->model->validate_demande_montant(50, 500);
-        $this->assertNotEmpty($errors, '50 n\'est pas un multiple de 100 : doit être refusé');
-    }
-
-    public function testMontantMultipleDe100EstAccepte() {
-        foreach (array(100, 200, 300, 400, 500) as $montant) {
-            $errors = $this->model->validate_demande_montant($montant, 500);
-            $this->assertEmpty($errors, "$montant € est valide et ne doit générer aucune erreur");
+    public function testMontantLibreValideEstAccepte() {
+        foreach (array(10, 15, 50, 75, 150, 200, 499) as $montant) {
+            $errors = $this->model->validate_demande_montant($montant, 500, 10);
+            $this->assertEmpty($errors, "$montant € est dans la plage valide et ne doit générer aucune erreur");
         }
     }
 
