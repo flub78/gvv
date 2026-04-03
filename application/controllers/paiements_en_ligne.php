@@ -125,6 +125,68 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     /**
+     * Initie le paiement HelloAsso depuis le contexte GVV authentifié (UC4).
+     * Crée le checkout et redirige vers HelloAsso. Retour sur decouverte_qr.
+     */
+    public function decouverte_pay($transaction_id = '') {
+        if (!has_role('tresorier') && !has_role('bureau')
+            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('gestion_vd')
+            && !$this->user_has_role('pilote_vd')) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        if (!$tx) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
+            redirect('vols_decouverte/create');
+            return;
+        }
+
+        if ($tx['statut'] === 'completed') {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_already_paid'));
+            redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
+            return;
+        }
+
+        $meta               = json_decode($tx['metadata'], true) ?: array();
+        $club_id            = $tx['club'];
+        $montant            = (float) $tx['montant'];
+        $description        = isset($meta['description'])        ? (string) $meta['description']        : 'Bon découverte';
+        $beneficiaire       = isset($meta['beneficiaire'])       ? (string) $meta['beneficiaire']       : '';
+        $beneficiaire_email = isset($meta['beneficiaire_email']) ? (string) $meta['beneficiaire_email'] : '';
+
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => $beneficiaire,
+            'payer_last_name'  => '',
+            'payer_email'      => $beneficiaire_email,
+            'return_url'       => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
+            'back_url'         => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
+            'error_url'        => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
+            'metadata'         => array_merge($meta, array('gvv_transaction_id' => $transaction_id)),
+        ));
+
+        if (!$checkout['success']) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_decouverte_error_checkout'));
+            redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
+            return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $transaction_id,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
+        }
+
+        redirect($checkout['redirect_url']);
+    }
+
+    /**
      * Image QR PNG pour un checkout bon découverte.
      *
      * @param string $transaction_id

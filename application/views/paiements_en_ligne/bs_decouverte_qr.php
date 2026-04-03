@@ -49,7 +49,7 @@ $montant_fmt = euros((float) $transaction['montant']);
             <div class="card-body d-flex flex-column justify-content-center">
                 <h5 class="card-title"><?= $this->lang->line('gvv_decouverte_qr_direct_title') ?></h5>
                 <p class="text-muted small"><?= $this->lang->line('gvv_decouverte_qr_direct_intro') ?></p>
-                <a href="<?= htmlspecialchars($public_url) ?>" class="btn btn-warning btn-lg mt-2" target="_blank">
+                <a href="<?= controller_url('paiements_en_ligne/decouverte_pay/' . htmlspecialchars($transaction_id)) ?>" class="btn btn-warning btn-lg mt-2">
                     <i class="fas fa-credit-card"></i> <?= $this->lang->line('gvv_decouverte_qr_direct_button') ?>
                 </a>
             </div>
