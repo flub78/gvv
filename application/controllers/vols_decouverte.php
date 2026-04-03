@@ -250,34 +250,8 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
-        $checkout = $this->helloasso->create_checkout($section_id, array(
-            'amount'           => $montant,
-            'item_name'        => $description,
-            'payer_first_name' => '',
-            'payer_last_name'  => '',
-            'payer_email'      => $beneficiaire_email,
-            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $section_id . '&txid=' . urlencode($txid)),
-            'back_url'         => site_url('vols_decouverte/create'),
-            'error_url'        => site_url('vols_decouverte/create'),
-            'metadata'         => $metadata,
-        ));
-
-        if (!$checkout['success']) {
-            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
-            $checkout_error = isset($checkout['error_message']) ? (string) $checkout['error_message'] : 'unknown';
-            $checkout_code = isset($checkout['error_code']) ? (int) $checkout['error_code'] : 0;
-            $error = $this->lang->line('gvv_decouverte_error_checkout')
-                . ' Détails: txid=' . $txid
-                . ', code=' . $checkout_code
-                . ', helloasso=' . $checkout_error;
-            $this->_redirect_decouverte_create_with_error($error, $form_input);
-            return;
-        }
-
-        $metadata['checkout_url'] = $checkout['redirect_url'];
-        $this->db->where('transaction_id', $txid)
-            ->update('paiements_en_ligne', array('metadata' => json_encode($metadata)));
-
+        // Le checkout HelloAsso est créé à la demande quand le client clique "Payer"
+        // sur la page publique paiements_en_ligne/public_decouverte/{txid}
         redirect('paiements_en_ligne/decouverte_qr/' . $txid);
     }
 
