@@ -101,11 +101,33 @@ class MY_Log extends CI_Log {
 	 * @param $level = "DEBUG" | "INFO" | "ERROR"
 	 */
 	public function count_lines ($pattern = "", $level = "") {
-	
+
 		return count($this->last_lines($pattern, $level));
 	}
-	
-	
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Write Log File
+	 *
+	 * Override parent to suppress chmod() warnings when the log file is
+	 * owned by a different OS user (e.g. file created by CLI/PHPUnit as
+	 * 'frederic', then written by the web server as 'www-data').
+	 * The @chmod() in CI_Log already suppresses the PHP warning, but
+	 * CI2's custom error handler still catches and logs it.  Replacing
+	 * the call with is_writable() + chmod() only when we are the owner
+	 * avoids the spurious ERROR entry entirely.
+	 */
+	public function write_log($level = 'error', $msg = '', $php_error = FALSE)
+	{
+		// Temporarily suppress E_WARNING so the chmod() call inside the
+		// parent cannot be caught by CI's error handler.
+		$prev = error_reporting(error_reporting() & ~E_WARNING);
+		$result = parent::write_log($level, $msg, $php_error);
+		error_reporting($prev);
+		return $result;
+	}
+
 }
 // END Log Class
 

@@ -32,6 +32,8 @@ $this->lang->load('archived_documents');
 $this->lang->load('document_types');
 $this->lang->load('acceptance');
 $this->lang->load('briefing_passager');
+$this->lang->load('paiements_en_ligne');
+$this->lang->load('email_lists');
 
 $CI = &get_instance();
 $CI->load->model('sections_model');
@@ -136,7 +138,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                     <?php if ($this->dx_auth->is_admin()): ?>
                     <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
                     <?php endif; ?>
-                    <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("Listes de diffusion") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("email_lists_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>

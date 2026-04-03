@@ -20,6 +20,9 @@ class GVVMetadata extends Metadata {
 
                 $CI = &get_instance();
                 $CI->lang->load('gvv');
+                $CI->lang->load('comptes');
+                $CI->lang->load('sections');
+                $CI->lang->load('acceptance');
 
                 /**
                  * Vue achats

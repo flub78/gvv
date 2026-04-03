@@ -5,6 +5,7 @@
 
 // General
 $lang['email_lists_title'] = 'Listes de diffusion email';
+$lang['email_lists_menu']  = 'Listes de diffusion';
 $lang['email_lists_name'] = 'Nom de la liste';
 $lang['email_lists_description'] = 'Description';
 $lang['email_lists_active_member'] = 'Filtrer membres';

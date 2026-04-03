@@ -5,6 +5,7 @@
 
 // General
 $lang['email_lists_title'] = 'Email Distribution Lists';
+$lang['email_lists_menu']  = 'Distribution Lists';
 $lang['email_lists_name'] = 'List Name';
 $lang['email_lists_description'] = 'Description';
 $lang['email_lists_active_member'] = 'Filter Members';
