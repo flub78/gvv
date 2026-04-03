@@ -249,3 +249,5 @@ $lang['gvv_liste_col_commission']           = "Commission";
 $lang['gvv_liste_col_reference']            = "Référence";
 $lang['gvv_liste_col_section']              = "Section";
 $lang['gvv_liste_menu']                     = "Paiements en ligne";
+$lang['gvv_decouverte_payment_pending']     = "Paiement enregistré — le bon sera confirmé dans quelques secondes.";
+$lang['gvv_decouverte_already_paid']        = "Ce bon a déjà été payé.";

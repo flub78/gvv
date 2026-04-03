@@ -149,6 +149,8 @@ $lang['gvv_liste_col_commission']           = "Commission";
 $lang['gvv_liste_col_reference']            = "Reference";
 $lang['gvv_liste_col_section']              = "Section";
 $lang['gvv_liste_menu']                     = "Online payments";
+$lang['gvv_decouverte_payment_pending']     = "Payment recorded — the voucher will be confirmed in a few seconds.";
+$lang['gvv_decouverte_already_paid']        = "This voucher has already been paid.";
 
 // Bar externe via QR Code — external person without GVV account (UC2)
 $lang['gvv_public_bar_title']              = "Pay my bar tab";

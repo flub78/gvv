@@ -92,6 +92,12 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        if ($this->input->get('paid')) {
+            $this->session->set_flashdata('success', $this->lang->line('gvv_decouverte_payment_pending'));
+            redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
+            return;
+        }
+
         $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
         if (!$tx) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
@@ -163,7 +169,7 @@ class Paiements_en_ligne extends MY_Controller {
             'payer_first_name' => $beneficiaire,
             'payer_last_name'  => '',
             'payer_email'      => $beneficiaire_email,
-            'return_url'       => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
+            'return_url'       => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id . '?paid=1'),
             'back_url'         => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
             'error_url'        => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
             'metadata'         => array_merge($meta, array('gvv_transaction_id' => $transaction_id)),

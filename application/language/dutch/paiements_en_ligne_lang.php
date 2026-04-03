@@ -149,6 +149,8 @@ $lang['gvv_liste_col_commission']           = "Commissie";
 $lang['gvv_liste_col_reference']            = "Referentie";
 $lang['gvv_liste_col_section']              = "Sectie";
 $lang['gvv_liste_menu']                     = "Online betalingen";
+$lang['gvv_decouverte_payment_pending']     = "Betaling geregistreerd — de bon wordt binnen enkele seconden bevestigd.";
+$lang['gvv_decouverte_already_paid']        = "Deze bon is al betaald.";
 
 // Bar externe via QR Code — externe persoon zonder GVV account (UC2)
 $lang['gvv_public_bar_title']              = "Mijn bar rekening betalen";
