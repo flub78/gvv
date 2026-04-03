@@ -783,6 +783,40 @@ class Admin extends CI_Controller {
     }
 
     /**
+     * Affiche le contenu d'un fichier de log dans le visualiseur.
+     *
+     * @param string $filename Nom du fichier (ex: log-2026-04-03.php)
+     */
+    public function view_log($filename = '') {
+        if (empty($filename)) {
+            show_error('Nom de fichier manquant', 400);
+            return;
+        }
+
+        if (strpos($filename, '..') !== false || strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
+            show_error('Nom de fichier invalide', 403);
+            return;
+        }
+
+        $filepath = APPPATH . 'logs/' . $filename;
+
+        if (!file_exists($filepath)) {
+            show_error('Fichier introuvable', 404);
+            return;
+        }
+
+        $filesize = filesize($filepath);
+        $max_size = 5 * 1024 * 1024; // 5 Mo
+
+        $data['filename'] = $filename;
+        $data['filesize'] = $filesize;
+        $data['too_large'] = $filesize > $max_size;
+        $data['content']  = $data['too_large'] ? '' : file_get_contents($filepath);
+
+        load_last_view('admin/view_log', $data);
+    }
+
+    /**
      * Télécharge un fichier de log.
      * Valide le nom pour prévenir toute traversée de répertoire.
      *

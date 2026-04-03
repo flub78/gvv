@@ -42,6 +42,11 @@ $this->lang->load('admin');
                         <td data-sort="<?= $file['modified'] ?>"><?= date('d/m/Y H:i:s', $file['modified']) ?></td>
                         <td data-sort="<?= $file['size'] ?>"><?= number_format($file['size'] / 1024, 1) ?> Ko</td>
                         <td class="text-center">
+                            <a href="<?= controller_url('admin/view_log/' . urlencode($file['name'])) ?>"
+                               class="btn btn-sm btn-outline-secondary me-1"
+                               title="Visualiser">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             <a href="<?= controller_url('admin/download_log/' . urlencode($file['name'])) ?>"
                                class="btn btn-sm btn-outline-primary"
                                title="<?= $this->lang->line('gvv_logs_download') ?>">

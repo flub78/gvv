@@ -1,13 +1,43 @@
-# Plan d'implémentation : Accès aux fichiers journaux
+# Plan d'implémentation : Accès et visualisation des fichiers journaux
 
-**Fonctionnalité :** Consultation et téléchargement des fichiers de log depuis le dashboard admin  
-**Statut :** À implémenter
+**Fonctionnalité :** Consultation, visualisation et téléchargement des fichiers de log depuis le dashboard admin  
+**Statut :** Phase 1 terminée, Phase 2 à implémenter
 
 ---
 
-## Périmètre
+## Phase 1 — Liste des fichiers (terminée)
 
-Ajouter dans le dashboard **Administration système** (`admin/`) une nouvelle carte "Accès aux fichiers journaux". Elle ouvre une page listant les fichiers de `application/logs/` dans un datatable Bootstrap avec pagination et recherche. Chaque ligne propose une icône de téléchargement.
+Carte "Fichiers journaux" dans le dashboard Administration système. Datatable listant tous les fichiers de `application/logs/` avec téléchargement.
+
+| Fichier | Statut |
+|---------|--------|
+| `application/controllers/admin.php` — méthodes `logs()`, `download_log()` | ✅ |
+| `application/views/admin/bs_logs.php` — datatable fichiers | ✅ |
+| `application/views/bs_dashboard.php` — carte Administration système | ✅ |
+| Traductions FR/EN/NL (`admin_lang`, `tableaux_de_bord_lang`) | ✅ |
+
+---
+
+## Phase 2 — Visualiseur de log
+
+### Périmètre
+
+Ajouter une icône œil (`fa-eye`) dans la liste des fichiers. Un clic ouvre une page de visualisation du fichier avec parsing des entrées, filtrage, recherche et navigation.
+
+---
+
+## Formats de log reconnus
+
+Deux formats coexistent dans `application/logs/` :
+
+| Format | Exemple |
+|--------|---------|
+| CodeIgniter | `DEBUG - 2026-04-03 00:03:18 --> message` |
+| HelloAsso | `[2026-04-02 19:05:00] [HELLOASSO] message` |
+
+Une **entrée de log** commence à la ligne correspondant à l'un de ces patterns et s'étend jusqu'à la ligne précédant la prochaine entrée (support multiligne).
+
+Niveaux reconnus : `DEBUG`, `INFO`, `ERROR`, `HELLOASSO` (traité comme INFO).
 
 ---
 
@@ -15,82 +45,97 @@ Ajouter dans le dashboard **Administration système** (`admin/`) une nouvelle ca
 
 | Fichier | Modification |
 |---------|-------------|
-| `application/controllers/admin.php` | Ajouter méthodes `logs()` et `download_log($filename)` |
-| `application/views/admin/bs_admin.php` | Ajouter la carte dans la section "Administration système" |
-| `application/views/admin/bs_logs.php` | Nouvelle vue : datatable des fichiers de log |
-| `application/language/french/admin_lang.php` | Nouvelles clés de traduction |
-| `application/language/english/admin_lang.php` | Idem |
-| `application/language/dutch/admin_lang.php` | Idem |
+| `application/controllers/admin.php` | Ajouter méthode `view_log($filename)` |
+| `application/views/admin/bs_logs.php` | Ajouter colonne icône œil |
+| `application/views/admin/bs_view_log.php` | Nouvelle vue visualiseur |
+
+Pas de nouvelles clés de langue — l'interface du visualiseur est en français fixe (composant technique admin uniquement).
 
 ---
 
 ## Étapes d'implémentation
 
-### Étape 1 — Contrôleur : méthode `logs()`
+### Étape 1 — Contrôleur : méthode `view_log($filename)`
 
-Dans `admin.php`, ajouter une méthode publique `logs()` :
+Dans `admin.php` :
 
-- Vérifie que l'utilisateur est admin (pattern existant : `$this->dx_auth->is_admin()`)
-- Lit le répertoire `application/logs/` avec `glob()`
-- Pour chaque fichier `.php` trouvé, collecte : nom, taille, date de modification
-- Trie par date décroissante (le plus récent en premier)
-- Charge la vue `admin/bs_logs` avec la liste
+- Même validation sécurité que `download_log()` : admin requis, pas de path traversal
+- Lit le contenu du fichier avec `file_get_contents()`
+- Passe le contenu brut et le nom du fichier à la vue `admin/view_log`
+- Limite : si le fichier dépasse 5 Mo, affiche un message d'avertissement et propose uniquement le téléchargement
 
-### Étape 2 — Contrôleur : méthode `download_log($filename)`
+### Étape 2 — Vue : `bs_view_log.php`
 
-- Vérifie que l'utilisateur est admin
-- Valide que `$filename` ne contient pas de `..` ni `/` (protection path traversal)
-- Vérifie que le fichier existe dans `application/logs/`
-- Utilise la méthode privée existante `stream_file_download()` pour envoyer le fichier
+Architecture entièrement côté client (JavaScript). Le PHP fournit le contenu brut dans une variable JS, tout le reste est traité en JS.
 
-### Étape 3 — Vue : `bs_logs.php`
-
-Datatable Bootstrap avec les colonnes :
-
-| Colonne | Contenu |
-|---------|---------|
-| Fichier | Nom du fichier (sans extension `.php`) |
-| Date | Date de modification formatée |
-| Taille | Taille en Ko |
-| Actions | Bouton icône téléchargement (`fas fa-download`) |
-
-- DataTables activé avec pagination (25 lignes par défaut) et boîte de recherche
-- Tri initial par date décroissante
-
-### Étape 4 — Dashboard : nouvelle carte
-
-Dans `bs_admin.php`, section "Administration système" (`.section-card.admin`), ajouter une carte à côté de celle des paiements en ligne :
+#### Barre d'outils (en haut, position fixe)
 
 ```
-icône : fas fa-file-alt  couleur : text-secondary
-titre : clé lang gvv_admin_menu_logs
-description : clé lang gvv_admin_menu_logs_desc
-bouton : clé lang gvv_admin_menu_open → admin/logs
+[← Retour]  [nom du fichier]
+[DEBUG ☑] [INFO ☑] [ERROR ☑]   |   [hh:mm] → [hh:mm]   |   [⊞ Tout développer] [⊟ Tout réduire]   |   [🔍 recherche___] [◀ Préc] [▶ Suiv] [N/M]
 ```
 
-### Étape 5 — Traductions
+- **Filtres de niveau** : cases à cocher (pas radio) — indépendantes par niveau
+- **Filtre horaire** : deux champs `time` (heure début / heure fin), format `HH:MM`
+- **Tout développer / Tout réduire** : deux boutons qui développent ou réduisent toutes les entrées visibles en un clic
+- **Recherche** : champ texte libre + boutons Précédent/Suivant + compteur `N sur M`
 
-Nouvelles clés dans les trois fichiers de langue :
+#### Zone de log
 
-| Clé | Français | Anglais | Néerlandais |
-|-----|----------|---------|-------------|
-| `gvv_admin_menu_logs` | Fichiers journaux | Log files | Logbestanden |
-| `gvv_admin_menu_logs_desc` | Consulter et télécharger les logs | View and download logs | Logbestanden bekijken |
-| `gvv_logs_title` | Fichiers journaux | Log files | Logbestanden |
-| `gvv_logs_col_file` | Fichier | File | Bestand |
-| `gvv_logs_col_date` | Date | Date | Datum |
-| `gvv_logs_col_size` | Taille | Size | Grootte |
-| `gvv_logs_col_actions` | Actions | Actions | Acties |
-| `gvv_logs_download` | Télécharger | Download | Downloaden |
+- Fenêtre scrollable (hauteur : `calc(100vh - hauteur toolbar)`)
+- Chaque entrée de log = un bloc `<div class="log-entry">` cliquable
+- **État réduit** : première ligne uniquement + indicateur `[+N lignes]` si multiligne
+- **État développé** : toutes les lignes, avec `white-space: pre-wrap`
+- Couleur de fond selon le niveau :
+  - `ERROR` → rouge clair (`#fff0f0`, texte `#c00`)
+  - `INFO` / `HELLOASSO` → bleu clair (`#f0f4ff`, texte `#00c`)
+  - `DEBUG` → vert clair (`#f0fff0`, texte `#060`)
+
+#### Parsing JS
+
+```
+Regex CI     : /^(DEBUG|INFO|ERROR) - (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) --> (.*)/
+Regex HELLOASSO : /^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] \[HELLOASSO\] (.*)/
+```
+
+Algorithme :
+1. Découper le fichier ligne par ligne
+2. Détecter les lignes qui commencent une nouvelle entrée (match regex)
+3. Regrouper les lignes suivantes dans l'entrée courante jusqu'à la prochaine
+4. Construire un tableau d'objets `{level, timestamp, firstLine, lines[]}`
+
+#### Filtrage (temps réel, sans rechargement)
+
+- Par niveau : masquer/afficher les `div.log-entry` dont `data-level` ne correspond pas aux cases cochées
+- Par heure : masquer les entrées dont `data-time` est hors de `[début, fin]`
+- Les deux filtres sont combinés (ET logique)
+
+#### Recherche et navigation
+
+- À chaque frappe : parcourir les entrées **visibles**, chercher la chaîne (insensible à la casse)
+- Surligher toutes les occurrences via `<mark>` dans le texte affiché
+- Maintenir un tableau des occurrences (entrée + position dans le texte)
+- Boutons Précédent/Suivant font défiler (`scrollIntoView`) vers l'occurrence courante
+- Compteur `N sur M` mis à jour en temps réel
+- Si l'entrée cible est réduite, la développer automatiquement avant de scroller
+
+### Étape 3 — Colonne œil dans `bs_logs.php`
+
+Ajouter une icône `fa-eye` dans la colonne Actions, à côté du bouton téléchargement :
+
+```html
+<a href="admin/view_log/{filename}" class="btn btn-sm btn-outline-secondary" title="Visualiser">
+    <i class="fas fa-eye"></i>
+</a>
+```
 
 ---
 
 ## Sécurité
 
-- Accès strictement limité aux admins (`is_admin()`)
-- Validation du nom de fichier dans `download_log()` : refus de tout `..`, `/`, `\`
-- Seuls les fichiers présents dans `application/logs/` peuvent être téléchargés (pas de traversal)
-- Pas d'affichage du contenu en ligne (téléchargement uniquement)
+- Même validation que `download_log()` : admin, pas de path traversal
+- Le contenu est affiché via `htmlspecialchars()` côté PHP avant injection dans JS
+- Limite de taille (5 Mo) pour éviter de saturer le navigateur
 
 ---
 
@@ -98,18 +143,18 @@ Nouvelles clés dans les trois fichiers de langue :
 
 ### PHPUnit
 
-Ajouter dans la suite d'intégration (`application/tests/integration/`) :
-
-- `test_logs_requires_admin()` : accès refusé pour un utilisateur non-admin
-- `test_logs_returns_file_list()` : la méthode retourne bien une liste de fichiers
-- `test_download_log_rejects_path_traversal()` : `download_log('../config/database')` → erreur 403/400
-- `test_download_log_rejects_unknown_file()` : fichier inexistant → erreur 404
+- `test_view_log_requires_admin()` : accès refusé pour non-admin
+- `test_view_log_rejects_path_traversal()` : `view_log('../config/database')` → 403
+- `test_view_log_returns_content()` : la méthode retourne le contenu du fichier
+- `test_view_log_rejects_large_file()` : fichier > 5 Mo → message d'avertissement
 
 ### Playwright (smoke test)
 
-- Connexion admin → dashboard admin → clic sur la carte "Fichiers journaux"
-- Vérification que le datatable s'affiche avec au moins un fichier
-- Clic sur le bouton télécharger → vérification que le téléchargement se déclenche (response header `Content-Disposition`)
+- Connexion admin → liste des logs → clic icône œil sur un fichier existant
+- Vérifier que la page visualiseur s'affiche avec au moins une entrée de log
+- Saisir un terme dans la recherche → vérifier que le compteur affiche "1 sur N"
+- Décocher "DEBUG" → vérifier que les entrées DEBUG disparaissent
+- Clic sur une entrée multiligne → vérifier qu'elle se développe
 
 ---
 
@@ -119,8 +164,11 @@ Ajouter dans la suite d'intégration (`application/tests/integration/`) :
 |---|-------|--------|
 | 1 | Méthode `logs()` dans admin.php | ✅ |
 | 2 | Méthode `download_log()` dans admin.php | ✅ |
-| 3 | Vue `bs_logs.php` | ✅ |
-| 4 | Carte dans `bs_admin.php` | ✅ |
+| 3 | Vue `bs_logs.php` — datatable fichiers | ✅ |
+| 4 | Carte dans dashboard Administration système | ✅ |
 | 5 | Traductions (FR/EN/NL) | ✅ |
-| 6 | Tests PHPUnit | ⬜ |
-| 7 | Smoke test Playwright | ⬜ |
+| 6 | Méthode `view_log()` dans admin.php | ✅ |
+| 7 | Vue `bs_view_log.php` — visualiseur | ✅ |
+| 8 | Colonne œil dans `bs_logs.php` | ✅ |
+| 9 | Tests PHPUnit | ⬜ |
+| 10 | Smoke test Playwright | ⬜ |
