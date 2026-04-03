@@ -92,12 +92,6 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        if ($this->input->get('paid')) {
-            $this->session->set_flashdata('success', $this->lang->line('gvv_decouverte_payment_pending'));
-            redirect('paiements_en_ligne/decouverte_qr/' . $transaction_id);
-            return;
-        }
-
         $tx = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
         if (!$tx) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
@@ -169,7 +163,7 @@ class Paiements_en_ligne extends MY_Controller {
             'payer_first_name' => $beneficiaire,
             'payer_last_name'  => '',
             'payer_email'      => $beneficiaire_email,
-            'return_url'       => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id . '?paid=1'),
+            'return_url'       => site_url('paiements_en_ligne/decouverte_pay_confirmation/' . $transaction_id),
             'back_url'         => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
             'error_url'        => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
             'metadata'         => array_merge($meta, array('gvv_transaction_id' => $transaction_id)),
@@ -2022,6 +2016,29 @@ EOD;
         $this->load->view('bs_menu', $data);
         $this->load->view('bs_banner', $data);
         $this->load->view('paiements_en_ligne/bs_index', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Page de confirmation après paiement HelloAsso réussi — flux découverte GVV authentifié.
+     * Appelée depuis l'URL de retour de decouverte_pay().
+     *
+     * @param string $transaction_id  ID de la transaction GVV
+     */
+    public function decouverte_pay_confirmation($transaction_id = '') {
+        $transaction = false;
+        if ($transaction_id !== '') {
+            $transaction = $this->paiements_en_ligne_model->get_by_transaction_id($transaction_id);
+        }
+
+        $data = array(
+            'transaction' => $transaction,
+            'back_url'    => site_url('paiements_en_ligne/decouverte_qr/' . $transaction_id),
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_confirmation', $data);
         $this->load->view('bs_footer');
     }
 

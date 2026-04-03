@@ -22,7 +22,7 @@
             <?= number_format((float)$transaction['montant'], 2, ',', ' ') ?> €
           </p>
         <?php endif; ?>
-        <a href="<?= site_url('compta/mon_compte') ?>" class="btn btn-success mt-2">
+        <a href="<?= isset($back_url) ? $back_url : site_url('compta/mon_compte') ?>" class="btn btn-success mt-2">
           <i class="fas fa-home me-1"></i><?= $this->lang->line('gvv_pel_confirm_back') ?>
         </a>
       </div>
