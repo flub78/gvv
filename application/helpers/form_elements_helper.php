@@ -662,6 +662,7 @@ if (! function_exists('button_bar4')) {
             $type = isset($button['type']) ? $button['type'] : '';
             $id = isset($button['id']) ? $button['id'] : '';
             $name = isset($button['name']) ? $button['name'] : '';
+            $target = isset($button['target']) ? $button['target'] : '';
 
             if (! $CI->dx_auth->is_admin()) {
                 if ($role != '' && ! $CI->dx_auth->is_role($role, true, true)) {
@@ -678,6 +679,9 @@ if (! function_exists('button_bar4')) {
                     'class' => 'jbutton btn'
                 ));
             } else {
+                if ($target !== '') {
+                    $attrs = array('class' => 'jbutton btn', 'target' => $target);
+                }
                 $res .= anchor($url, $label, $attrs);
             }
             $res .= "\n";

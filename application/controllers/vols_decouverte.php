@@ -937,7 +937,7 @@ EOD;
      * Export de la liste des vols de découverte en CSV ou PDF
      */
     public function export($mode = 'csv') {
-        if (!$this->user_has_role('gestion_vd')) {
+        if (!$this->user_has_role('gestion_vd') && !$this->dx_auth->is_admin()) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -947,12 +947,29 @@ EOD;
 
         // Fields to export (exclude action columns)
         $fields = array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol', 'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation');
+        $this->lang->load('vols_decouverte');
+
+        $section_data = $this->sections_model->section();
+        $section_name = $section_data ? $section_data['nom'] : '';
+        $year = $this->session->userdata('year') ?: date('Y');
+
         $title = $this->lang->line('gvv_vols_decouverte_title');
+        if ($section_name) {
+            $title .= ' - ' . $section_name;
+        }
+        $title .= ' - ' . $year;
+
+        // Build a meaningful filename: vd_<section>_<year>.<ext>
+        $section_slug = $section_name
+            ? strtolower(preg_replace('/[^a-z0-9]+/i', '_', $section_name))
+            : 'club';
+        $base_filename = 'vd_' . $section_slug . '_' . $year;
 
         if ($mode === 'csv') {
             return $this->gvvmetadata->csv_table('vue_vols_decouverte', $rows, array(
-                'title' => $title,
-                'fields' => $fields,
+                'title'    => $title,
+                'fields'   => $fields,
+                'filename' => $base_filename . '.csv',
             ));
         }
 
@@ -966,6 +983,6 @@ EOD;
             'fields' => $fields,
             'width' => $width,
         ));
-        $pdf->Output();
+        $pdf->Output($base_filename . '.pdf', 'I');
     }
 }
