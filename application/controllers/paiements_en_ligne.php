@@ -1697,7 +1697,6 @@ class Paiements_en_ligne extends MY_Controller {
             'beneficiaire_email'=> isset($meta['beneficiaire_email']) ? (string) $meta['beneficiaire_email'] : '',
             'paiement'          => $paiement_ref,
             'participation'     => 'payé en ligne',
-            'prix'              => isset($transaction['montant']) ? (float) $transaction['montant'] : 0,
             'saisie_par'        => 'helloasso',
         );
 

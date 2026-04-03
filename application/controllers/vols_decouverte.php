@@ -946,7 +946,7 @@ EOD;
         $rows = $this->gvv_model->select_page(10000, 0);
 
         // Fields to export (exclude action columns)
-        $fields = array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol', 'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation', 'prix');
+        $fields = array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol', 'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation');
         $title = $this->lang->line('gvv_vols_decouverte_title');
 
         if ($mode === 'csv') {

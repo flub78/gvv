@@ -136,7 +136,7 @@ if ($has_modification_rights) {
 $attrs = array(
     'controller' => $controller,
     'actions' => $table_actions,
-    'fields' => array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol',  'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation', 'prix'),
+    'fields' => array('id', 'validite', 'product', 'beneficiaire', 'urgence', 'date_vol',  'pilote', 'airplane_immat', 'cancelled', 'paiement', 'participation'),
     'mode' => ($has_modification_rights || $is_pilot_only) ? "rw" : "ro",
     'class' => "datatable table table-striped"
 );
