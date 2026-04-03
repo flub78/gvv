@@ -39,11 +39,16 @@ $attributes = array(
 );
 
 echo heading("welcome_admin_title", 4);
-$list = array(
-    anchor(controller_url('admin/backup'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton")),
-    has_role('super_tresorier') ? anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton")) : ''
-);
-echo ul($list, $attributes);
+$list = array();
+if (has_role('backup_db')) {
+    $list[] = anchor(controller_url('admin/backup_form'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton"));
+}
+if (has_role('super_tresorier')) {
+    $list[] = anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton"));
+}
+if (!empty($list)) {
+    echo ul($list, $attributes);
+}
 
 echo heading("welcome_special_entries_title", 4);
 $list = array(

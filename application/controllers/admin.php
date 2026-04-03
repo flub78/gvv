@@ -40,7 +40,7 @@ class Admin extends CI_Controller {
         $this->dx_auth->check_login();
 
         // Authorization: require admin role, except backup methods also allow backup_db role
-        if (!$this->dx_auth->is_admin()) {
+        if (!$this->_is_admin()) {
             $backup_methods = ['backup_form', 'backup', 'backup_media'];
             $method = $this->router->fetch_method();
             if (!in_array($method, $backup_methods) || !$this->_has_backup_db_role()) {
@@ -51,6 +51,19 @@ class Admin extends CI_Controller {
 
         $this->load->library('Database');
         $this->load->helper('file');
+    }
+
+    /**
+     * Check if the current user is an admin.
+     * For new-auth users, checks the club-admin role; for legacy users, uses dx_auth->is_admin().
+     */
+    private function _is_admin() {
+        if ($this->session->userdata('use_new_auth')) {
+            $this->load->library('Gvv_Authorization');
+            $user_id = $this->dx_auth->get_user_id();
+            return $this->gvv_authorization->has_role($user_id, 'club-admin', NULL);
+        }
+        return $this->dx_auth->is_admin();
     }
 
     /**

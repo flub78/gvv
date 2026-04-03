@@ -153,6 +153,7 @@ class Welcome extends Gvv_Controller {
             $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
             $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
             $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
+            $data['is_admin'] = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL);
             // Formation visibility: CA anywhere grants cross-section read access to formations.
             // In a specific section, instructeur and rp also qualify.
             $data['can_view_formation'] = $this->gvv_authorization->has_any_role(
