@@ -207,13 +207,21 @@ class Paiements_en_ligne extends MY_Controller {
             'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $club_id . '&txid=' . urlencode($txid)),
             'back_url'         => site_url('paiements_en_ligne/public_decouverte/' . $txid),
             'error_url'        => site_url('paiements_en_ligne/public_decouverte/' . $txid),
-            'metadata'         => $meta,
+            'metadata'         => array_merge($meta, array('gvv_transaction_id' => $txid)),
         ));
 
         if (!$checkout['success']) {
             $data['error'] = $this->lang->line('gvv_decouverte_error_checkout');
             $this->_render_public_decouverte($data);
             return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
         }
 
         redirect($checkout['redirect_url']);

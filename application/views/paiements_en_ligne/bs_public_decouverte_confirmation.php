@@ -30,7 +30,7 @@
         <?php if (!empty($montant)): ?>
         <div class="mb-2">
             <span class="text-muted small"><?= $this->lang->line('gvv_decouverte_public_confirm_montant') ?></span><br>
-            <strong><?= htmlspecialchars($montant) ?></strong>
+            <strong><?= $montant ?></strong>
         </div>
         <?php endif; ?>
 

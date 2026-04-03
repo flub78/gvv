@@ -23,7 +23,7 @@ L'opération est complexe pour ne pas oublier d'impacts.
 
 La clôture d'un exercice dans GVV (`comptes.php::cloture()`) effectue deux opérations :
 
-### 1. Écritures de clôture dans `comptes_mouvements`
+### 1. Écritures de clôture dans `ecritures`
 
 Trois séries d'écritures sont générées avec :
 - `num_cheque = 'Clôture exercice YYYY'`
@@ -40,7 +40,7 @@ Un enregistrement est inséré dans la table `clotures` avec la date de clôture
 
 ## Stratégie de décloture
 
-La décloture consiste à **supprimer les écritures de clôture** et **supprimer le record dans `clotures`**. Une fois cela fait, les exercices redeviennent modifiables dans GVV.
+La décloture consiste à **supprimer les écritures de clôture** et **supprimer l'enregistrement dans `clotures`**. Une fois cela fait, les exercices redeviennent modifiables dans GVV.
 
 La procédure doit se faire **dans l'ordre inverse** : décloture 2025 en premier, puis décloture 2024.
 
@@ -54,50 +54,52 @@ La procédure doit se faire **dans l'ordre inverse** : décloture 2025 en premie
 
 Avant toute manipulation, effectuer une sauvegarde complète de la base de données :
 
-```bash
-mysqldump -u <user> -p <database> > backup_avant_correction_$(date +%Y%m%d).sql
-```
+### Étape 0 - Suppression des dates de gel
+
+phpmyadmin → table `clotures` → supprimer les dates de gel pour 2024 et 2025
+
+« DELETE FROM clotures WHERE `clotures`.`id` = 5 » 
 
 ### Étape 1 — Décloture de l'exercice 2025
 
 ```sql
 -- Identifier les écritures de clôture 2025 (vérification)
-SELECT * FROM comptes_mouvements
+SELECT * FROM ecritures
 WHERE num_cheque = 'Clôture exercice 2025'
   AND club = 1
   AND date_op = '2025-12-31';
 
--- Identifier le record de clôture (vérification)
+-- Identifier l'enregistrement de clôture (vérification)
 SELECT * FROM clotures WHERE section = 1 AND date = '2025-12-31';
 
 -- Supprimer les écritures de clôture 2025
-DELETE FROM comptes_mouvements
+DELETE FROM ecritures
 WHERE num_cheque = 'Clôture exercice 2025'
   AND club = 1
   AND date_op = '2025-12-31';
 
--- Supprimer le record de clôture 2025
+-- Supprimer l'enregistrement de clôture 2025
 DELETE FROM clotures WHERE section = 1 AND date = '2025-12-31';
 ```
 
-> Remplacer `club = 1` et `section = 1` par l'identifiant réel de la section planeur.
+> Remplacer `club = 1` et `section = 1` par l'identifiant réel de la section planeur. 1 est l'identifiant réel.
 
 ### Étape 2 — Décloture de l'exercice 2024
 
 ```sql
 -- Identifier les écritures de clôture 2024 (vérification)
-SELECT * FROM comptes_mouvements
+SELECT * FROM ecritures
 WHERE num_cheque = 'Clôture exercice 2024'
   AND club = 1
   AND date_op = '2024-12-31';
 
 -- Supprimer les écritures de clôture 2024
-DELETE FROM comptes_mouvements
+DELETE FROM ecritures
 WHERE num_cheque = 'Clôture exercice 2024'
   AND club = 1
   AND date_op = '2024-12-31';
 
--- Supprimer le record de clôture 2024
+-- Supprimer l'enregistrement de clôture 2024
 DELETE FROM clotures WHERE section = 1 AND date = '2024-12-31';
 ```
 
