@@ -78,10 +78,10 @@ class DataTable extends Widget {
         $pagination = $this->attr['pagination'];
         $create = $this->attr['create'];
         $count = $this->attr['count'];
-        $first = $this->attr['first'] + 1;
+        $first = (int)$this->attr['first'] + 1;
         $last = $first +count($values) - 2;
         $class = array_key_exists('class', $this->attr) ? "class=\"" . $this->attr['class'] . "\"" : '';
-        $id = $this->attr['id'] ? " id=\"" . $this->attr['id'] . "\"" : '';
+        $id = array_key_exists('id', $this->attr) && $this->attr['id'] ? " id=\"" . $this->attr['id'] . "\"" : '';
 
         // build the image
         $res = ""; // <center>\n";

@@ -1458,6 +1458,13 @@ class Comptes extends Gvv_Controller {
      */
     function cloture($action = MODIFICATION) {
 
+        // Accès réservé aux super_tresorier et admins
+        if ($this->use_new_auth) {
+            $this->require_roles(['super_tresorier']);
+        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super_tresorier', true, true)) {
+            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
+        }
+
         // remplissage des dates
         $balance_date = $this->session->userdata('balance_date');
         if (!$balance_date) {

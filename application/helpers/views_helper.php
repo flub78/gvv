@@ -122,23 +122,23 @@ if (!function_exists('has_role')) {
     function has_role($role) {
         $CI = &get_instance();
 
-        if ($CI->dx_auth->is_admin()) {
-            return true;
-        }
-
-        // Use new authorization for users enrolled in the new auth system
+        // For new-auth users, use only the new auth system.
+        // Do NOT apply the dx_auth is_admin() bypass: a user may have role_id=admin
+        // in the legacy users table while having different (non-admin) roles in the
+        // new authorization system.
         if (method_exists($CI, 'user_has_role')) {
             return $CI->user_has_role($role);
         }
 
-        // Fallback for new-auth users on controllers without user_has_role
-        // (e.g. controllers extending CI_Controller directly).
-        // Uses section_id = NULL: returns all roles for the user regardless of section,
-        // which is consistent with the legacy dx_auth behaviour and safe for menu visibility.
         if ($CI->session->userdata('use_new_auth')) {
             $CI->load->library('Gvv_Authorization');
             $user_id = $CI->dx_auth->get_user_id();
             return $CI->gvv_authorization->has_role($user_id, $role, NULL);
+        }
+
+        // Legacy auth: admins bypass all role checks.
+        if ($CI->dx_auth->is_admin()) {
+            return true;
         }
 
         return $CI->dx_auth->is_role($role, true, true);

@@ -41,7 +41,7 @@ $attributes = array(
 echo heading("welcome_admin_title", 4);
 $list = array(
     anchor(controller_url('admin/backup'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton")),
-    anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton"))
+    has_role('super_tresorier') ? anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton")) : ''
 );
 echo ul($list, $attributes);
 
