@@ -15,7 +15,7 @@ $this->lang->load('admin');
                 <i class="fas fa-file-alt text-secondary"></i>
                 <?= $this->lang->line('gvv_logs_title') ?>
             </h2>
-            <a href="<?= controller_url('admin') ?>" class="btn btn-sm btn-outline-secondary">
+            <a href="<?= controller_url('welcome') ?>" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Retour
             </a>
         </div>
@@ -26,7 +26,7 @@ $this->lang->load('admin');
     <?php else : ?>
     <div class="card">
         <div class="card-body p-0">
-            <table id="logs-table" class="table table-striped table-hover mb-0">
+            <table class="datatable table table-striped table-hover mb-0">
                 <thead class="table-light">
                     <tr>
                         <th><?= $this->lang->line('gvv_logs_col_file') ?></th>
@@ -39,8 +39,8 @@ $this->lang->load('admin');
                     <?php foreach ($log_files as $file) : ?>
                     <tr>
                         <td><?= htmlspecialchars(str_replace('.php', '', $file['name'])) ?></td>
-                        <td data-order="<?= $file['modified'] ?>"><?= date('d/m/Y H:i:s', $file['modified']) ?></td>
-                        <td data-order="<?= $file['size'] ?>"><?= number_format($file['size'] / 1024, 1) ?> Ko</td>
+                        <td data-sort="<?= $file['modified'] ?>"><?= date('d/m/Y H:i:s', $file['modified']) ?></td>
+                        <td data-sort="<?= $file['size'] ?>"><?= number_format($file['size'] / 1024, 1) ?> Ko</td>
                         <td class="text-center">
                             <a href="<?= controller_url('admin/download_log/' . urlencode($file['name'])) ?>"
                                class="btn btn-sm btn-outline-primary"
@@ -54,23 +54,6 @@ $this->lang->load('admin');
             </table>
         </div>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof $.fn.DataTable !== 'undefined') {
-            $('#logs-table').DataTable({
-                pageLength: 25,
-                order: [[1, 'desc']],
-                columnDefs: [
-                    { orderable: false, targets: 3 }
-                ],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
-                }
-            });
-        }
-    });
-    </script>
     <?php endif; ?>
 
 </div>
