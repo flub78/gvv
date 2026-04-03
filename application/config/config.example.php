@@ -178,8 +178,8 @@ $config['directory_trigger']	= 'd'; // experimental not currently in use
 |
 |	0 = Disables logging, Error logging TURNED OFF
 |	1 = Error Messages (including PHP errors)
-|	2 = Debug Messages
-|	3 = Informational Messages
+|	2 = Informational Messages
+|	3 = Debug Messages
 |	4 = All Messages
 |
 | For a live site you'll usually only enable Errors (1) to be logged otherwise

@@ -31,6 +31,24 @@
  */
 class MY_Log extends CI_Log {
 
+	/**
+	 * Constructor
+	 *
+	 * Keep CI2 scalar threshold behavior while redefining level order to:
+	 * ERROR (1), INFO (2), DEBUG (3), ALL (4)
+	 */
+	public function __construct()
+	{
+		parent::__construct();
+
+		$this->_levels = array(
+			'ERROR' => 1,
+			'INFO' => 2,
+			'DEBUG' => 3,
+			'ALL' => 4,
+		);
+	}
+
 
 	// --------------------------------------------------------------------
 

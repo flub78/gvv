@@ -38,7 +38,7 @@ $this->lang->load('admin');
                 <tbody>
                     <?php foreach ($log_files as $file) : ?>
                     <tr>
-                        <td><?= htmlspecialchars(str_replace('.php', '', $file['name'])) ?></td>
+                        <td><?= htmlspecialchars($file['name']) ?></td>
                         <td data-sort="<?= $file['modified'] ?>"><?= date('d/m/Y H:i:s', $file['modified']) ?></td>
                         <td data-sort="<?= $file['size'] ?>"><?= number_format($file['size'] / 1024, 1) ?> Ko</td>
                         <td class="text-center">

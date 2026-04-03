@@ -759,12 +759,14 @@ class Admin extends CI_Controller {
      */
     public function logs() {
         $log_dir = APPPATH . 'logs/';
-        $files = glob($log_dir . 'log-*.php');
         $log_files = [];
 
-        if ($files) {
-            foreach ($files as $filepath) {
-                $filename = basename($filepath);
+        if (is_dir($log_dir)) {
+            foreach (scandir($log_dir) as $filename) {
+                $filepath = $log_dir . $filename;
+                if ($filename === '.' || $filename === '..' || !is_file($filepath)) {
+                    continue;
+                }
                 $log_files[] = [
                     'name'     => $filename,
                     'size'     => filesize($filepath),
