@@ -755,6 +755,60 @@ class Admin extends CI_Controller {
     }
 
     /**
+     * Liste les fichiers de log disponibles dans application/logs/
+     */
+    public function logs() {
+        $log_dir = APPPATH . 'logs/';
+        $files = glob($log_dir . 'log-*.php');
+        $log_files = [];
+
+        if ($files) {
+            foreach ($files as $filepath) {
+                $filename = basename($filepath);
+                $log_files[] = [
+                    'name'     => $filename,
+                    'size'     => filesize($filepath),
+                    'modified' => filemtime($filepath),
+                ];
+            }
+            usort($log_files, function($a, $b) {
+                return $b['modified'] - $a['modified'];
+            });
+        }
+
+        $data['log_files'] = $log_files;
+        load_last_view('admin/logs', $data);
+    }
+
+    /**
+     * Télécharge un fichier de log.
+     * Valide le nom pour prévenir toute traversée de répertoire.
+     *
+     * @param string $filename Nom du fichier (ex: log-2026-04-03.php)
+     */
+    public function download_log($filename = '') {
+        if (empty($filename)) {
+            show_error('Nom de fichier manquant', 400);
+            return;
+        }
+
+        // Sécurité : interdit tout traversal de répertoire
+        if (strpos($filename, '..') !== false || strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
+            show_error('Nom de fichier invalide', 403);
+            return;
+        }
+
+        $filepath = APPPATH . 'logs/' . $filename;
+
+        if (!file_exists($filepath)) {
+            show_error('Fichier introuvable', 404);
+            return;
+        }
+
+        $this->stream_file_download($filepath, $filename);
+    }
+
+    /**
      * Just display phpinfo
      */
     public function info() {

@@ -1259,6 +1259,21 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <!-- Sous-section Fichiers journaux -->
+                <div class="col-12 mt-3">
+                    <h6 class="text-muted mb-2"><i class="fas fa-file-alt"></i> <?= $this->lang->line('db_sub_logs') ?></h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-file-alt text-secondary"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_logs') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_logs') ?></div>
+                        <a href="<?= controller_url('admin/logs') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
                 <?php endif; // $is_admin — end of admin-only subsections ?>
                     </div>
                 </div>

@@ -109,6 +109,16 @@ $this->lang->load('admin');
                         </a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-secondary">
+                        <i class="fas fa-file-alt text-secondary"></i>
+                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_logs") ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line("gvv_admin_menu_logs_desc") ?></div>
+                        <a href="<?= controller_url('admin/logs') ?>" class="btn btn-secondary btn-sm">
+                            <?= $this->lang->line("gvv_admin_menu_open") ?>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

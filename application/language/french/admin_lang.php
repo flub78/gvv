@@ -36,6 +36,16 @@ $lang['gvv_admin_menu_online_payments'] = "Paiements en ligne (HelloAsso)";
 $lang['gvv_admin_menu_online_payments_desc'] = "Configuration par section";
 $lang['gvv_admin_menu_open'] = "Ouvrir";
 
+$lang['gvv_admin_menu_logs'] = "Fichiers journaux";
+$lang['gvv_admin_menu_logs_desc'] = "Consulter et télécharger les logs";
+$lang['gvv_logs_title'] = "Fichiers journaux";
+$lang['gvv_logs_col_file'] = "Fichier";
+$lang['gvv_logs_col_date'] = "Date";
+$lang['gvv_logs_col_size'] = "Taille";
+$lang['gvv_logs_col_actions'] = "Actions";
+$lang['gvv_logs_download'] = "Télécharger";
+$lang['gvv_logs_no_files'] = "Aucun fichier journal disponible.";
+
 $lang['gvv_admin_db_warning'] = "Attention, par défaut la restauration de la base écrase toutes les données.";
 $lang['gvv_admin_db_select'] = "Choisissez la sauvegarde que vous voulez recharger.";
 $lang['gvv_admin_db_overwrite'] = "Ecraser la base actuelle";

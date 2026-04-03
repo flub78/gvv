@@ -36,6 +36,16 @@ $lang['gvv_admin_menu_online_payments'] = "Online payments (HelloAsso)";
 $lang['gvv_admin_menu_online_payments_desc'] = "Per-section configuration";
 $lang['gvv_admin_menu_open'] = "Open";
 
+$lang['gvv_admin_menu_logs'] = "Log files";
+$lang['gvv_admin_menu_logs_desc'] = "View and download logs";
+$lang['gvv_logs_title'] = "Log files";
+$lang['gvv_logs_col_file'] = "File";
+$lang['gvv_logs_col_date'] = "Date";
+$lang['gvv_logs_col_size'] = "Size";
+$lang['gvv_logs_col_actions'] = "Actions";
+$lang['gvv_logs_download'] = "Download";
+$lang['gvv_logs_no_files'] = "No log files available.";
+
 $lang['gvv_admin_db_warning'] = "By default, database restore overwrite all pre-existing data.";
 $lang['gvv_admin_db_select'] = "Select the backup file that you want to restore.";
 $lang['gvv_admin_db_overwrite'] = "Overwrite current database";

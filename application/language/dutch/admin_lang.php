@@ -36,6 +36,16 @@ $lang['gvv_admin_menu_online_payments'] = "Online betalingen (HelloAsso)";
 $lang['gvv_admin_menu_online_payments_desc'] = "Configuratie per sectie";
 $lang['gvv_admin_menu_open'] = "Openen";
 
+$lang['gvv_admin_menu_logs'] = "Logbestanden";
+$lang['gvv_admin_menu_logs_desc'] = "Logbestanden bekijken en downloaden";
+$lang['gvv_logs_title'] = "Logbestanden";
+$lang['gvv_logs_col_file'] = "Bestand";
+$lang['gvv_logs_col_date'] = "Datum";
+$lang['gvv_logs_col_size'] = "Grootte";
+$lang['gvv_logs_col_actions'] = "Acties";
+$lang['gvv_logs_download'] = "Downloaden";
+$lang['gvv_logs_no_files'] = "Geen logbestanden beschikbaar.";
+
 $lang['gvv_admin_db_warning'] = "Opgelet, terug naar standaardinstellingen zetten wist alle gegevens!";
 $lang['gvv_admin_db_select'] = "Selecteer de backup die u wil inladen.";
 $lang['gvv_admin_db_overwrite'] = "Overschrijf de huidige database";
