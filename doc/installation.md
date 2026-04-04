@@ -86,6 +86,11 @@ Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
 
 ### Configuration
 
+> [!WARNING]
+> GVV est fourni avec un ensemble de fichiers de configuration dans `application/config` avec des noms du type `*.example.php` (par exemple `database.example.php`).
+> Ces fichiers contiennent des valeurs spécifiques au déploiement (base de données, URL, paramètres locaux, etc.) et ne peuvent donc pas être fournis prêts à l'emploi par GVV.
+> Vous devez créer une version sans `.example` pour chaque fichier nécessaire (par exemple `database.php`), puis l'adapter à votre machine et à votre environnement de déploiement.
+
 Dans le fichier config.php, mettre à jour:
 
 * base_url
