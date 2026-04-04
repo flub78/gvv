@@ -124,6 +124,38 @@ class Document {
         $this->pdf->table($w, 5, $align, $tab, $border);  // Pass custom border array
     }
 
+    function pagesResultatsAvecDepreciation($year) {
+        $title = $this->title("gvv_comptes_title_resultat_avec_depreciation", $year);
+
+        $this->pdf->set_title($title);
+        $this->pdf->AddPage();
+        $this->pdf->title($title, 2);
+
+        $resultat = $this->CI->ecritures_model->select_resultat_avec_depreciation();
+        $tab = $this->CI->ecritures_model->resultat_avec_depreciation_table($resultat, false, '', ',', 'pdf');
+
+        $w = array(
+            7,   // Code charges
+            37,  // Label charges
+            10,  // Section charges
+            20,  // Année N charges
+            20,  // Année N-1 charges
+            2,   // Séparateur
+            7,   // Code produits
+            37,  // Label produits
+            10,  // Section produits
+            20,  // Année N produits
+            20   // Année N-1 produits
+        );
+        $align = array('R', 'L', 'L', 'R', 'R', 'C', 'R', 'L', 'L', 'R', 'R');
+        $border = array(
+            'LRTB', 'LRTB', 'LRTB', 'LRTB', 'LRTB',
+            'LR',
+            'LRTB', 'LRTB', 'LRTB', 'LRTB', 'LRTB'
+        );
+        $this->pdf->table($w, 5, $align, $tab, $border);
+    }
+
     /**
      * Génération de la page résultats par catégorie
      * @param unknown_type $year

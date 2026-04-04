@@ -491,6 +491,22 @@ class Comptes extends Gvv_Controller {
         load_last_view('comptes/resultatView', $this->data);
     }
 
+    function resultat_avec_depreciation() {
+        $this->data['controller'] = "comptes";
+        $this->data['year_selector'] = $this->ecritures_model->getYearSelector("date_op");
+
+        $this->data['year'] = $this->session->userdata('year');
+        $this->data['resultat_table'] = $this->ecritures_model->resultat_avec_depreciation_table(
+            $this->ecritures_model->select_resultat_avec_depreciation(), true, nbs(6), '.'
+        );
+
+        $this->data['section'] = $this->gvv_model->section();
+
+        $this->push_return_url("resultat_avec_depreciation");
+
+        load_last_view('comptes/resultatAvecDepreciationView', $this->data);
+    }
+
     /**
      * Affiche un résultat synthétique de l'exercice
      * 
@@ -680,6 +696,43 @@ class Comptes extends Gvv_Controller {
         } else {
             $this->pdf_resultat();
         }
+    }
+
+    function export_resultat_avec_depreciation($mode = "csv") {
+        if ($mode == "csv") {
+            $this->csv_resultat_avec_depreciation();
+        } else {
+            $this->pdf_resultat_avec_depreciation();
+        }
+    }
+
+    function pdf_resultat_avec_depreciation() {
+        $year = $this->session->userdata('year');
+
+        $this->load->library('Document', array('year' => $year));
+        $this->document->pagesResultatsAvecDepreciation($year);
+        $this->document->generate();
+    }
+
+    function csv_resultat_avec_depreciation() {
+        $title   = $this->lang->line("gvv_comptes_title_resultat_avec_depreciation");
+        $resultat = $this->ecritures_model->select_resultat_avec_depreciation();
+
+        $resultat_table = $this->ecritures_model->resultat_avec_depreciation_table($resultat, false, '', ',', 'csv');
+
+        $csv_data = array();
+        $csv_data[] = array(
+            $this->lang->line("comptes_label_date"),
+            $resultat['balance_date'],
+            '', '', '', '', '', '', ''
+        );
+        $csv_data[] = array('', '', '', '', '', '', '', '', '');
+
+        foreach ($resultat_table as $row) {
+            $csv_data[] = $row;
+        }
+
+        csv_file($title, $csv_data);
     }
 
     /**

@@ -81,6 +81,7 @@ $lang['gvv_menu_accounting_pilot_balance'] = "Soldes pilote";
 $lang['gvv_menu_accounting_banking_accounts'] = "Comptes bancaires";
 $lang['gvv_menu_accounting_results'] = "Résultats section courante";
 $lang['gvv_menu_accounting_results_by_sections'] = "Résultats club";
+$lang['gvv_menu_accounting_results_avec_depreciation'] = "Résultats avant/après dépréciations";
 $lang['gvv_menu_accounting_bilan'] = "Bilan";
 $lang['gvv_menu_accounting_sales'] = "Ventes";
 $lang['gvv_menu_accounting_cash'] = "Trésorerie";
