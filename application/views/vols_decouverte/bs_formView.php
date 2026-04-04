@@ -213,7 +213,7 @@ if ($action == CREATION) {
             'class' => 'btn btn-primary mt-3'
         )) . '</td>';
     }
-    if (!empty($helloasso_enabled)) {
+    if (!empty($vd_par_cb_enabled)) {
 		$cb_label = $CI->lang->line('gvv_decouverte_payer_cb_button');
 		if (!$cb_label) {
 			$cb_label = 'Payer par CB (HelloAsso)';

@@ -53,6 +53,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ✅ |
+| 18 | — | Granularisation flags CB (Option B) | HAUTE | ☐ |
 | 17 | — | Tests de recette et validation finale | — | ☐ |
 
 ---
@@ -471,6 +472,139 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - `application/tests/mysql/PaiementsEnLigneWebhookTest.php` : inchangé
 - `playwright/tests/paiements-en-ligne-uc4-decouverte.spec.js` : mis à jour
 - Suppression : `application/views/paiements_en_ligne/bs_decouverte_manager_form.php`
+
+---
+
+## Étape 18 : Granularisation des flags de paiement CB (Option B)
+
+**Objectif :** Remplacer le flag global `enabled` (qui bloque ou autorise tous les flux CB d'une section) par des flags fonctionnels indépendants par usage, stockés dans la table `sections` — cohérent avec le pattern `has_bar` existant.
+
+**Sémantique après migration :**
+
+| Flag | Emplacement | Signification |
+|------|-------------|---------------|
+| `enabled` | `paiements_en_ligne_config` | HelloAsso configuré et crédentiels valides (prérequis technique, inchangé) |
+| `has_bar` | `sections` | La section dispose d'un bar (existant, inchangé) |
+| `has_vd_par_cb` | `sections` | Les VD peuvent être payés par CB pour cette section |
+| `has_approvisio_par_cb` | `sections` | Le provisionnement de compte peut être fait par CB pour cette section |
+
+---
+
+### Sous-étape 18.1 — Migration base de données (migration 100) ✅
+
+**Fichiers :**
+- `application/migrations/100_flags_cb_par_usage.php`
+- `application/config/migration.php` (version 100)
+
+**Contenu `up()` :**
+- `ALTER TABLE sections ADD COLUMN has_vd_par_cb TINYINT(1) NOT NULL DEFAULT 0`
+- `ALTER TABLE sections ADD COLUMN has_approvisio_par_cb TINYINT(1) NOT NULL DEFAULT 0`
+- Data migration : initialiser `has_vd_par_cb = 1` et `has_approvisio_par_cb = 1` pour toutes les sections qui ont actuellement `enabled = '1'` dans `paiements_en_ligne_config` (pas de régression pour les sections existantes)
+
+**Contenu `down()` :**
+- `ALTER TABLE sections DROP COLUMN has_vd_par_cb`
+- `ALTER TABLE sections DROP COLUMN has_approvisio_par_cb`
+
+**Validation :**
+- Test PHPUnit migration `up()` : colonnes présentes, valeurs initialisées correctement
+- Test PHPUnit migration `down()` : colonnes supprimées, idempotence
+
+---
+
+### Sous-étape 18.2 — Page admin config (EF5) ✅
+
+**Objectif :** Ajouter les deux nouveaux flags à la page d'administration par section.
+
+**Modifications `_save_admin_config` :**
+- Lire `has_vd_par_cb` et `has_approvisio_par_cb` depuis POST
+- Sauvegarder dans `sections` (identique à `has_bar` / `bar_account_id`)
+
+**Modifications `_load_config` :**
+- Lire `has_vd_par_cb` et `has_approvisio_par_cb` depuis `sections` pour pré-remplir la vue
+
+**Vue `bs_admin_config.php` :**
+- Case à cocher "Autoriser le paiement des vols de découverte par CB" → `has_vd_par_cb`
+- Case à cocher "Autoriser le provisionnement de compte par CB" → `has_approvisio_par_cb`
+- Regrouper les 3 cases CB (bar, vd, approvisio) dans un même encart "Fonctionnalités CB activées"
+
+**Language files :**
+- Clé `gvv_admin_config_has_vd_par_cb` (fr/en/nl)
+- Clé `gvv_admin_config_has_approvisio_par_cb` (fr/en/nl)
+
+**Validation :**
+- Playwright : formulaire sauvegarde et recharge correctement les deux flags
+- Playwright : les flags sont indépendants (cocher vd sans cocher approvisio, et inversement)
+
+---
+
+### Sous-étape 18.3 — Contrôleur `paiements_en_ligne` ✅
+
+**3 points de changement :**
+
+**1. `_process_public_decouverte` (ligne 251)**
+- Remplacer le check `enabled` par `$section['has_vd_par_cb']`
+- La section est déjà chargée en amont — pas de requête supplémentaire
+- Message d'erreur dédié : `gvv_decouverte_error_cb_disabled`
+
+**2. `demande` (ligne 416) — provisionnement pilote**
+- Remplacer le check `enabled` par `$section['has_approvisio_par_cb']`
+- Message d'erreur dédié : `gvv_provision_error_cb_disabled`
+
+**3. `_process_public_bar` (ligne 865) — bar externe**
+- Aucun changement fonctionnel : `has_bar` gate déjà le flux
+- Le check `enabled` restant (ligne 865) devient un contrôle technique pur : "HelloAsso est-il configuré ?" — renommer le message d'erreur pour refléter cette sémantique (`gvv_helloasso_not_configured`)
+
+**Validation :**
+- PHPUnit : section avec `has_vd_par_cb = 0` → `_process_public_decouverte` refuse
+- PHPUnit : section avec `has_approvisio_par_cb = 0` → `demande` refuse
+- PHPUnit : section avec `has_vd_par_cb = 1` et `has_approvisio_par_cb = 0` → VD autorisé, approvisio refusé (isolation des flags)
+
+---
+
+### Sous-étape 18.4 — Contrôleur `vols_decouverte` ✅
+
+**Points de changement (lignes 103–164) :**
+- `$this->data['helloasso_enabled']` → remplacer par `$this->data['vd_par_cb_enabled']`
+- Le calcul (ligne 107–108) : `get_config('helloasso', 'enabled')` → lire `$section['has_vd_par_cb']` depuis `sections_model`
+- Ligne 163–164 : même remplacement pour le guard dans `_initiate_decouverte_helloasso`
+
+**Vue `vols_decouverte/bs_formView.php` :**
+- Renommer `$helloasso_enabled` → `$vd_par_cb_enabled` (variable de vue)
+
+**Validation :**
+- Playwright : bouton "Payer par CB" absent si `has_vd_par_cb = 0`, présent si `has_vd_par_cb = 1`
+
+---
+
+### Sous-étape 18.5 — Dashboard `welcome` (visibilité "Mes paiements") ✅
+
+**Point de changement (lignes 191–198) :**
+- La sous-section "Mes paiements" est actuellement visible si `enabled = '1'`
+- Après : visible si `has_bar OR has_vd_par_cb OR has_approvisio_par_cb` sur au moins une section du pilote
+- Carte "Provisionner mon compte" : visible si `has_approvisio_par_cb`
+- Carte "Payer mes notes de bar" : visible si `has_bar` (inchangé)
+- Carte "Payer ma cotisation" : visible si `enabled` (les crédentiels sont là — cette carte ne dépend pas des flags fonctionnels)
+
+**Validation :**
+- Playwright : dashboard pilote d'une section `has_vd_par_cb = 1, has_approvisio_par_cb = 0` → carte VD absente du dashboard (VD se passe depuis vols_decouverte/create), carte provisionnement absente
+- Playwright : pilote avec `has_approvisio_par_cb = 1` → carte provisionnement présente
+
+---
+
+### Bilan des fichiers modifiés
+
+- `application/migrations/100_flags_cb_par_usage.php` (nouveau)
+- `application/config/migration.php` (version 100)
+- `application/controllers/paiements_en_ligne.php` (méthodes `_process_public_decouverte`, `demande`, `_save_admin_config`, `_load_config`)
+- `application/controllers/vols_decouverte.php` (calcul `vd_par_cb_enabled`)
+- `application/controllers/welcome.php` (logique composite dashboard)
+- `application/views/paiements_en_ligne/bs_admin_config.php` (2 nouvelles cases CB)
+- `application/views/vols_decouverte/bs_formView.php` (renommage variable)
+- `application/views/bs_dashboard.php` (conditions visibilité cartes)
+- `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (4 nouvelles clés)
+- `application/tests/mysql/FlagsCbParUsageMigrationTest.php` (nouveau)
+- `application/tests/mysql/FlagsCbParUsageControllerTest.php` (nouveau)
+- `playwright/tests/paiements-en-ligne-flags-cb.spec.js` (nouveau)
 
 ---
 

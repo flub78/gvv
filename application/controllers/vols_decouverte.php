@@ -98,14 +98,17 @@ class Vols_decouverte extends Gvv_Controller {
         // Populate $this->data without rendering (no_view_loading = true)
         parent::create(true);
 
-        // HelloAsso visibility
+        // Visibilité bouton "Payer par CB"
         $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin();
-        $this->data['helloasso_enabled'] = false;
+        $this->data['vd_par_cb_enabled'] = false;
         $section_id = (int) $this->session->userdata('section');
         if ($section_id > 0) {
-            $this->load->model('paiements_en_ligne_model');
-            $this->data['helloasso_enabled'] =
-                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
+            $section_row = $this->sections_model->get_by_id('id', $section_id);
+            if (!empty($section_row['has_vd_par_cb'])) {
+                $this->load->model('paiements_en_ligne_model');
+                $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
+                $this->data['vd_par_cb_enabled'] = ($enabled === '1');
+            }
         }
 
         // Repeuple le formulaire après un échec d'initiation CB.
@@ -160,6 +163,11 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
+        $section_row = $this->sections_model->get_by_id('id', $section_id);
+        if (empty($section_row['has_vd_par_cb'])) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_cb_disabled'), $form_input);
+            return;
+        }
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
         if ($enabled !== '1') {
             $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_bar_carte_error_disabled'), $form_input);

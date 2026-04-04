@@ -1884,8 +1884,9 @@ class Compta extends Gvv_Controller {
         $this->data['helloasso_enabled'] = false;
         if ($selected_section && $is_dev_authorized) {
             $this->load->model('paiements_en_ligne_model');
-            $this->data['helloasso_enabled'] =
-                $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $selected_section['id']) === '1';
+            $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $selected_section['id']) === '1';
+            $has_approvisio = !empty($selected_section['has_approvisio_par_cb']);
+            $this->data['helloasso_enabled'] = $enabled && $has_approvisio;
         }
 
         $this->lang->load('paiements_en_ligne');

@@ -30,6 +30,8 @@ $lang['gvv_bar_carte_button_valider']    = "Pay by card";
 $lang['gvv_bar_carte_helloasso_notice']  = "You will be redirected to HelloAsso to complete the card payment.";
 $lang['gvv_bar_carte_error_section']     = "No active section found in your session. Please log in again.";
 $lang['gvv_bar_carte_error_disabled']    = "Online payments are not enabled for this section. Contact the administrator.";
+$lang['gvv_decouverte_error_cb_disabled']  = "Discovery flight payment by card is not enabled for this section. Contact the administrator.";
+$lang['gvv_provision_error_cb_disabled']   = "Account top-up by card is not enabled for this section. Contact the administrator.";
 $lang['gvv_bar_carte_error_checkout']    = "Unable to initiate HelloAsso payment. Please try again or contact the administrator.";
 
 // Index / pilot transactions (EF6)
@@ -87,8 +89,11 @@ $lang['gvv_admin_config_compte_passage']    = "Transit account (HelloAsso debit)
 $lang['gvv_admin_config_compte_passage_help'] = "Account debited for HelloAsso payments, pending platform transfer (e.g. 467).";
 $lang['gvv_admin_config_montant_min']       = "Minimum amount (€)";
 $lang['gvv_admin_config_montant_max']       = "Maximum amount (€)";
-$lang['gvv_admin_config_enabled']           = "Enable online payments for this section";
-$lang['gvv_admin_config_enabled_help']      = "When disabled, online payment buttons are hidden for all users.";
+$lang['gvv_admin_config_enabled']           = "HelloAsso credentials configured and active";
+$lang['gvv_admin_config_enabled_help']      = "Technical prerequisite for all CB flows. Disable to suspend all CB payments (invalid credentials or suspended contract). Each feature also requires its own flag above.";
+$lang['gvv_admin_config_cb_features_title']      = "CB features enabled";
+$lang['gvv_admin_config_has_vd_par_cb']          = "Allow discovery flight payment by credit card";
+$lang['gvv_admin_config_has_approvisio_par_cb']  = "Allow account top-up by credit card";
 $lang['gvv_admin_config_saved']             = "Configuration saved.";
 $lang['gvv_admin_config_error_no_section']  = "Please select a section.";
 $lang['gvv_admin_config_error_no_compte_passage'] = "The transit account is required.";

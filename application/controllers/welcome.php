@@ -181,21 +181,24 @@ class Welcome extends Gvv_Controller {
             $active_section_id = !empty($data['section']['id']) ? (int) $data['section']['id'] : 0;
         }
 
-        // Sections avec paiements en ligne activés pour ce pilote
+        // Sections avec fonctionnalités CB activées pour ce pilote
+        // Visible si la section a has_bar=1 OU (has_approvisio_par_cb=1 ET enabled=1)
         $data['payment_sections'] = array();
         $data['active_payment_section'] = null;
         if (!empty($data['user_accounts'])) {
             $this->load->model('paiements_en_ligne_model');
             foreach ($data['user_accounts'] as $account) {
                 $section_id = (int) $account['club'];
-                $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
-                if ($enabled === '1') {
-                    $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
+                $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
+                $has_bar            = !empty($section_row['has_bar']);
+                $enabled            = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
+                $has_approvisio_par_cb = !empty($section_row['has_approvisio_par_cb']) && $enabled;
+                if ($has_bar || $has_approvisio_par_cb) {
                     $entry = array(
-                        'section_id'   => $section_id,
-                        'section_name' => $account['section_name'],
-                        'has_bar'      => !empty($section_row['has_bar']),
-                        'helloasso_enabled' => true,
+                        'section_id'           => $section_id,
+                        'section_name'         => $account['section_name'],
+                        'has_bar'              => $has_bar,
+                        'has_approvisio_par_cb' => $has_approvisio_par_cb,
                     );
                     $data['payment_sections'][] = $entry;
                     if ($section_id === $active_section_id) {

@@ -30,6 +30,8 @@ $lang['gvv_bar_carte_button_valider']    = "Betalen met kaart";
 $lang['gvv_bar_carte_helloasso_notice']  = "U wordt doorgestuurd naar HelloAsso om de kaartbetaling te voltooien.";
 $lang['gvv_bar_carte_error_section']     = "Geen actieve sectie gevonden in uw sessie. Meld u opnieuw aan.";
 $lang['gvv_bar_carte_error_disabled']    = "Online betalingen zijn niet ingeschakeld voor deze sectie. Neem contact op met de beheerder.";
+$lang['gvv_decouverte_error_cb_disabled']  = "CB-betaling van ontdekkingsvluchten is niet ingeschakeld voor deze sectie. Neem contact op met de beheerder.";
+$lang['gvv_provision_error_cb_disabled']   = "Rekeningopwaardering via CB is niet ingeschakeld voor deze sectie. Neem contact op met de beheerder.";
 $lang['gvv_bar_carte_error_checkout']    = "Kan HelloAsso betaling niet starten. Probeer het opnieuw of neem contact op met de beheerder.";
 
 // Index / piloot transacties (EF6)
@@ -87,8 +89,11 @@ $lang['gvv_admin_config_compte_passage']    = "Doorlooprekening (HelloAsso debet
 $lang['gvv_admin_config_compte_passage_help'] = "Rekening gedebiteerd bij HelloAsso-betalingen, in afwachting van platformoverboeking (bijv. 467).";
 $lang['gvv_admin_config_montant_min']       = "Minimumbedrag (€)";
 $lang['gvv_admin_config_montant_max']       = "Maximumbedrag (€)";
-$lang['gvv_admin_config_enabled']           = "Online betalingen inschakelen voor deze sectie";
-$lang['gvv_admin_config_enabled_help']      = "Indien uitgeschakeld, zijn online betalingsknoppen verborgen voor alle gebruikers.";
+$lang['gvv_admin_config_enabled']           = "HelloAsso-inloggegevens geconfigureerd en actief";
+$lang['gvv_admin_config_enabled_help']      = "Technische vereiste voor alle CB-stromen. Schakel uit om alle CB-betalingen op te schorten (ongeldige inloggegevens of opgezegd contract). Elke functie vereist ook zijn eigen vlag hierboven.";
+$lang['gvv_admin_config_cb_features_title']      = "Ingeschakelde CB-functies";
+$lang['gvv_admin_config_has_vd_par_cb']          = "Ontdekkingsvluchten betalen via CB toestaan";
+$lang['gvv_admin_config_has_approvisio_par_cb']  = "Rekeningopwaardering via CB toestaan";
 $lang['gvv_admin_config_saved']             = "Configuratie opgeslagen.";
 $lang['gvv_admin_config_error_no_section']  = "Selecteer een sectie.";
 $lang['gvv_admin_config_error_no_compte_passage'] = "De doorlooprekening is verplicht.";
