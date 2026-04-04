@@ -1877,18 +1877,6 @@ class Compta extends Gvv_Controller {
         // Bar payment link visibility (UC5)
         $this->data['has_bar'] = $selected_section && !empty($selected_section['has_bar']) && !empty($selected_section['bar_account_id']);
 
-        // HelloAsso provisioning link visibility (EF3)
-        $dev_users_cfg = $this->config->item('dev_users') ?: '';
-        $dev_users     = array_map('trim', explode(',', $dev_users_cfg));
-        $is_dev_authorized = in_array($this->dx_auth->get_username(), $dev_users);
-        $this->data['helloasso_enabled'] = false;
-        if ($selected_section && $is_dev_authorized) {
-            $this->load->model('paiements_en_ligne_model');
-            $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $selected_section['id']) === '1';
-            $has_approvisio = !empty($selected_section['has_approvisio_par_cb']);
-            $this->data['helloasso_enabled'] = $enabled && $has_approvisio;
-        }
-
         $this->lang->load('paiements_en_ligne');
         load_last_view('compta/journalCompteView', $this->data);
     }

@@ -53,7 +53,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 | 14 | UC2 | Règlement consommations bar — personne externe via QR Code | MOYENNE | ✅ |
 | 15 | UC3 | Renouvellement de cotisation en ligne | MÉDIUM | ✅ |
 | 16 | UC4 | Paiement bon de découverte — lien/QR Code public | MÉDIUM | ✅ |
-| 18 | — | Granularisation flags CB (Option B) | HAUTE | ☐ |
+| 18 | — | Granularisation flags CB (Option B) | HAUTE | ✅ |
 | 17 | — | Tests de recette et validation finale | — | ☐ |
 
 ---
@@ -603,8 +603,6 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - `application/views/bs_dashboard.php` (conditions visibilité cartes)
 - `application/language/{french,english,dutch}/paiements_en_ligne_lang.php` (4 nouvelles clés)
 - `application/tests/mysql/FlagsCbParUsageMigrationTest.php` (nouveau)
-- `application/tests/mysql/FlagsCbParUsageControllerTest.php` (nouveau)
-- `playwright/tests/paiements-en-ligne-flags-cb.spec.js` (nouveau)
 
 ---
 
