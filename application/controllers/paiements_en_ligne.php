@@ -248,6 +248,11 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     private function _process_public_decouverte($txid, array $tx, array $meta, $club_id, $section, array $data) {
+        if (empty($section['has_vd_par_cb'])) {
+            $data['error'] = $this->lang->line('gvv_decouverte_error_cb_disabled');
+            $this->_render_public_decouverte($data);
+            return;
+        }
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
         if ($enabled !== '1') {
             $data['error'] = $this->lang->line('gvv_bar_carte_error_disabled');
@@ -413,6 +418,11 @@ class Paiements_en_ligne extends MY_Controller {
 
         $club_id = (int) $section['id'];
 
+        if (empty($section['has_approvisio_par_cb'])) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_provision_error_cb_disabled'));
+            redirect('compta/mon_compte');
+            return;
+        }
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
         if ($enabled !== '1') {
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_carte_error_disabled'));
@@ -862,6 +872,7 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        // Prérequis technique : les crédentiels HelloAsso doivent être configurés pour cette section
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
         if (!$enabled) {
             $data['error'] = $this->lang->line('gvv_public_bar_error_disabled');
@@ -2271,13 +2282,17 @@ EOD;
             }
         }
 
-        // Paramètres bar dans la table sections
-        $has_bar        = $this->input->post('has_bar') ? 1 : 0;
-        $bar_account_id = (int) ($this->input->post('bar_account_id') ?: 0) ?: null;
+        // Flags fonctionnels dans la table sections
+        $has_bar              = $this->input->post('has_bar') ? 1 : 0;
+        $bar_account_id       = (int) ($this->input->post('bar_account_id') ?: 0) ?: null;
+        $has_vd_par_cb        = $this->input->post('has_vd_par_cb') ? 1 : 0;
+        $has_approvisio_par_cb = $this->input->post('has_approvisio_par_cb') ? 1 : 0;
 
         $this->db->where('id', $club_id)->update('sections', array(
-            'has_bar'        => $has_bar,
-            'bar_account_id' => $bar_account_id,
+            'has_bar'               => $has_bar,
+            'bar_account_id'        => $bar_account_id,
+            'has_vd_par_cb'         => $has_vd_par_cb,
+            'has_approvisio_par_cb' => $has_approvisio_par_cb,
         ));
 
         // Log d'audit
@@ -2286,6 +2301,8 @@ EOD;
             . ' enabled=' . $keys['enabled']
             . ' environment=' . $keys['environment']
             . ' has_bar=' . $has_bar
+            . ' has_vd_par_cb=' . $has_vd_par_cb
+            . ' has_approvisio_par_cb=' . $has_approvisio_par_cb
         );
 
         $this->session->set_flashdata('success', $this->lang->line('gvv_admin_config_saved'));

@@ -30,6 +30,8 @@ $lang['gvv_bar_carte_button_valider']    = "Payer par carte";
 $lang['gvv_bar_carte_helloasso_notice']  = "Vous allez être redirigé vers HelloAsso pour effectuer le paiement par carte bancaire.";
 $lang['gvv_bar_carte_error_section']     = "Aucune section active trouvée dans votre session. Veuillez vous reconnecter.";
 $lang['gvv_bar_carte_error_disabled']    = "Les paiements en ligne ne sont pas activés pour cette section. Contactez l'administrateur.";
+$lang['gvv_decouverte_error_cb_disabled']  = "Le paiement des vols de découverte par CB n'est pas activé pour cette section. Contactez l'administrateur.";
+$lang['gvv_provision_error_cb_disabled']   = "Le provisionnement de compte par CB n'est pas activé pour cette section. Contactez l'administrateur.";
 $lang['gvv_bar_carte_error_checkout']    = "Impossible d'initier le paiement HelloAsso. Veuillez réessayer ou contacter l'administrateur.";
 
 // Index / transactions pilote (EF6)
@@ -87,8 +89,11 @@ $lang['gvv_admin_config_compte_passage']    = "Compte de passage (débit HelloAs
 $lang['gvv_admin_config_compte_passage_help'] = "Compte débité lors d'un paiement HelloAsso, en attente du virement de la plateforme (ex: 467).";
 $lang['gvv_admin_config_montant_min']       = "Montant minimum (€)";
 $lang['gvv_admin_config_montant_max']       = "Montant maximum (€)";
-$lang['gvv_admin_config_enabled']           = "Activer les paiements en ligne pour cette section";
-$lang['gvv_admin_config_enabled_help']      = "Si désactivé, les boutons de paiement en ligne sont masqués pour tous les utilisateurs.";
+$lang['gvv_admin_config_enabled']           = "Crédentiels HelloAsso configurés et actifs";
+$lang['gvv_admin_config_enabled_help']      = "Prérequis technique pour tous les flux CB. Désactiver pour suspendre tous les paiements CB (crédentiels invalides ou contrat suspendu). Chaque fonctionnalité nécessite aussi son propre flag activé ci-dessus.";
+$lang['gvv_admin_config_cb_features_title']      = "Fonctionnalités CB activées";
+$lang['gvv_admin_config_has_vd_par_cb']          = "Autoriser le paiement des vols de découverte par CB";
+$lang['gvv_admin_config_has_approvisio_par_cb']  = "Autoriser le provisionnement de compte par CB";
 $lang['gvv_admin_config_saved']             = "Configuration enregistrée.";
 $lang['gvv_admin_config_error_no_section']  = "Veuillez sélectionner une section.";
 $lang['gvv_admin_config_error_no_compte_passage'] = "Le compte de passage est obligatoire.";

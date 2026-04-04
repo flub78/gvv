@@ -20,7 +20,7 @@ git checkout -b fix/horametre_select
 
 ### Revue de code par agent IA (Claude)
 
-    /code-review
+    /code-review: PR#75 --comment
         corrige
         commit/push
 

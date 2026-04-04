@@ -147,6 +147,26 @@
   </div>
 </div>
 
+<!-- Fonctionnalités CB -->
+<div class="card mb-3">
+  <div class="card-header"><i class="fas fa-credit-card me-2 text-success"></i><?= $this->lang->line('gvv_admin_config_cb_features_title') ?></div>
+  <div class="card-body">
+
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox" name="has_vd_par_cb" id="has_vd_par_cb" value="1"
+             <?= (!empty($section_row['has_vd_par_cb'])) ? 'checked' : '' ?> />
+      <label class="form-check-label" for="has_vd_par_cb"><?= $this->lang->line('gvv_admin_config_has_vd_par_cb') ?></label>
+    </div>
+
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" name="has_approvisio_par_cb" id="has_approvisio_par_cb" value="1"
+             <?= (!empty($section_row['has_approvisio_par_cb'])) ? 'checked' : '' ?> />
+      <label class="form-check-label" for="has_approvisio_par_cb"><?= $this->lang->line('gvv_admin_config_has_approvisio_par_cb') ?></label>
+    </div>
+
+  </div>
+</div>
+
 <!-- Paramètres de transaction -->
 <div class="card mb-3">
   <div class="card-header"><i class="fas fa-sliders-h me-2 text-primary"></i><?= $this->lang->line('gvv_admin_config_transaction_title') ?></div>

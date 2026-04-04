@@ -304,6 +304,7 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                     <?php endif; ?>
 
+                    <?php if ($active_payment_section['has_approvisio_par_cb']): ?>
                     <!-- Approvisionner mon compte (CB) -->
                     <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                         <div class="sub-card text-center">
@@ -313,6 +314,7 @@ $this->lang->load('tableaux_de_bord');
                             <a href="<?= controller_url('paiements_en_ligne/demande') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_payer') ?></a>
                         </div>
                     </div>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <?php endif; ?>
 
