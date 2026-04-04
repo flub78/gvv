@@ -38,7 +38,7 @@ async function getLastResultRow(page) {
     await expect(table).toBeVisible({ timeout: 10000 });
 
     const rows = table.locator('tbody tr');
-    const profitRows = rows.filter({ hasText: /Profits|Pertes/ });
+    const profitRows = rows.filter({ hasText: /Profits|Pertes|Bénéfice|Déficit/ });
     const count = await profitRows.count();
     expect(count, 'Au moins une ligne Profits/Pertes attendue').toBeGreaterThan(0);
 

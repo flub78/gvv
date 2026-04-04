@@ -1322,32 +1322,23 @@ array (size=2)
      *   'montants_dep'  : montants N et N-1 pour 68x et 78x
      */
     function select_resultat_avec_depreciation($year = "") {
-        $result = $this->select_resultat($year);
-
         if ($year == "") {
             $year = $this->session->userdata('year');
         }
+        $result = $this->select_resultat($year);
         $years = array($year - 1, $year);
 
         $this->load->model('comptes_model');
 
         // Comptes hors dépréciations (6xx hors 68x, 7xx hors 78x)
+        // Les plages 69x et 79x n'existent pas dans le plan comptable français
+        // standard et sont donc exclues par construction des filtres ci-dessous.
         $result['comptes_depenses_hd'] = $this->comptes_model->list_of_account(
             'codec >= "6" and codec < "68"', 'codec'
         );
-        // Ajout comptes 69x+ (entre 68x et 7xx) s'il y en a
-        $comptes_69 = $this->comptes_model->list_of_account(
-            'codec >= "69" and codec < "7"', 'codec'
-        );
-        $result['comptes_depenses_hd'] = array_merge($result['comptes_depenses_hd'], $comptes_69);
-
         $result['comptes_recettes_hd'] = $this->comptes_model->list_of_account(
             'codec >= "7" and codec < "78"', 'codec'
         );
-        $comptes_79 = $this->comptes_model->list_of_account(
-            'codec >= "79" and codec < "8"', 'codec'
-        );
-        $result['comptes_recettes_hd'] = array_merge($result['comptes_recettes_hd'], $comptes_79);
 
         // Comptes de dépréciations uniquement
         $result['comptes_68'] = $this->comptes_model->list_of_account(
@@ -1357,7 +1348,8 @@ array (size=2)
             'codec >= "78" and codec < "79"', 'codec'
         );
 
-        // Montants hors dépréciations et montants dépréciations, pour N et N-1
+        // Montants dépréciations (68x/78x), puis montants hors dépréciations
+        // dérivés par soustraction — évite des requêtes SQL supplémentaires.
         $balance_date = $this->session->userdata('balance_date');
         $result['montants_hd']  = array();
         $result['montants_dep'] = array();
@@ -1367,39 +1359,28 @@ array (size=2)
                 ? date_ht2db($balance_date)
                 : "$y-12-31";
 
-            // -- Hors dépréciations --
-            // Charges hors 68x : 6xx hors [68..69[
-            $dep_total_hd = $this->_select_depenses_codec_range($y, $date_op, '"6"', '"68"');
-            $dep_total_hd += $this->_select_depenses_codec_range($y, $date_op, '"69"', '"7"');
-            $dep_detail_hd_a = $this->_select_depenses_codec_range($y, $date_op, '"6"', '"68"', 'compte1');
-            $dep_detail_hd_b = $this->_select_depenses_codec_range($y, $date_op, '"69"', '"7"', 'compte1');
-            $dep_detail_hd = array_merge($dep_detail_hd_a, $dep_detail_hd_b);
+            // -- Dépréciations seules (68x et 78x) : 4 requêtes --
+            $dep68_total  = $this->_select_codec_range($y, $date_op, '"68"', '"69"', '', 'depenses');
+            $dep68_detail = $this->_select_codec_range($y, $date_op, '"68"', '"69"', 'compte1', 'depenses');
+            $rec78_total  = $this->_select_codec_range($y, $date_op, '"78"', '"79"', '', 'recettes');
+            $rec78_detail = $this->_select_codec_range($y, $date_op, '"78"', '"79"', 'compte2', 'recettes');
 
-            // Recettes hors 78x : 7xx hors [78..79[
-            $rec_total_hd = $this->_select_recettes_codec_range($y, $date_op, '"7"', '"78"');
-            $rec_total_hd += $this->_select_recettes_codec_range($y, $date_op, '"79"', '"8"');
-            $rec_detail_hd_a = $this->_select_recettes_codec_range($y, $date_op, '"7"', '"78"', 'compte2');
-            $rec_detail_hd_b = $this->_select_recettes_codec_range($y, $date_op, '"79"', '"8"', 'compte2');
-            $rec_detail_hd = array_merge($rec_detail_hd_a, $rec_detail_hd_b);
-
-            $result['montants_hd'][$y] = array(
-                'total_depenses' => $dep_total_hd,
-                'total_recettes' => $rec_total_hd,
-                'depenses'       => $this->montants($dep_detail_hd),
-                'recettes'       => $this->montants($rec_detail_hd),
-            );
-
-            // -- Dépréciations seules (68x et 78x) --
-            $dep68_total  = $this->_select_depenses_codec_range($y, $date_op, '"68"', '"69"');
-            $dep68_detail = $this->_select_depenses_codec_range($y, $date_op, '"68"', '"69"', 'compte1');
-            $rec78_total  = $this->_select_recettes_codec_range($y, $date_op, '"78"', '"79"');
-            $rec78_detail = $this->_select_recettes_codec_range($y, $date_op, '"78"', '"79"', 'compte2');
+            $montants_68 = $this->montants($dep68_detail);
+            $montants_78 = $this->montants($rec78_detail);
 
             $result['montants_dep'][$y] = array(
-                'total_68'  => $dep68_total,
-                'total_78'  => $rec78_total,
-                'comptes_68' => $this->montants($dep68_detail),
-                'comptes_78' => $this->montants($rec78_detail),
+                'total_68'   => $dep68_total,
+                'total_78'   => $rec78_total,
+                'comptes_68' => $montants_68,
+                'comptes_78' => $montants_78,
+            );
+
+            // -- Hors dépréciations : dérivé des données déjà présentes --
+            $result['montants_hd'][$y] = array(
+                'total_depenses' => $result['montants'][$y]['total_depenses'] - $dep68_total,
+                'total_recettes' => $result['montants'][$y]['total_recettes'] - $rec78_total,
+                'depenses'       => array_diff_key($result['montants'][$y]['depenses'], $montants_68),
+                'recettes'       => array_diff_key($result['montants'][$y]['recettes'], $montants_78),
             );
         }
 
@@ -1407,10 +1388,20 @@ array (size=2)
     }
 
     /**
-     * Somme des dépenses pour une plage de codec donnée (codec >= $min and codec < $max).
-     * Retourne le total (float) si $group_by == "", ou un tableau de lignes si $group_by est fourni.
+     * Somme des charges ou produits pour une plage de codec donnée.
+     *
+     * @param int    $year       Année comptable
+     * @param string $date_op    Date limite (format DB) ou '' pour toute l'année
+     * @param string $codec_min  Borne inférieure incluse (ex: '"68"')
+     * @param string $codec_max  Borne supérieure exclue  (ex: '"69"')
+     * @param string $group_by   Alias SQL pour le GROUP BY ('compte1'|'compte2'|'')
+     * @param string $side       'depenses' (compte1 = principal) ou 'recettes' (compte2 = principal)
+     * @return float|array  Total si $group_by == '', tableau de lignes sinon
      */
-    private function _select_depenses_codec_range($year, $date_op, $codec_min, $codec_max, $group_by = "") {
+    private function _select_codec_range($year, $date_op, $codec_min, $codec_max, $group_by, $side) {
+        $main  = ($side == 'depenses') ? 'compte1' : 'compte2';
+        $annul = ($side == 'depenses') ? 'compte2' : 'compte1';
+
         if ($date_op) {
             $when = "date_op <= \"$date_op\" and YEAR(date_op) = \"$year\"";
         } else {
@@ -1418,12 +1409,12 @@ array (size=2)
         }
 
         $this->db
-            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, ecritures.club")
+            ->select("$main.codec as code, $main as compte, $main.nom as nom, sum(montant) as montant, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
-            ->where("compte1.codec >= $codec_min and compte1.codec < $codec_max")
-            ->where('compte2.codec != "120" and compte2.codec != "129"');
+            ->where("$main.codec >= $codec_min and $main.codec < $codec_max")
+            ->where("$annul.codec != \"120\" and $annul.codec != \"129\"");
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
@@ -1434,78 +1425,15 @@ array (size=2)
             $index[$row['compte']] = $idx;
         }
 
-        // Annulations (crédits sur comptes de charges)
-        $gb2 = ($group_by == 'compte1') ? 'compte2' : $group_by;
+        // Annulations (écritures en sens inverse sur les comptes de la même plage)
+        $gb2 = ($group_by == $main) ? $annul : $group_by;
         $this->db
-            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, ecritures.club")
+            ->select("$annul.codec as code, $annul as compte, $annul.nom as nom, sum(montant) as montant, ecritures.club")
             ->from("ecritures, comptes as compte1, comptes as compte2")
             ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
             ->where($when)
-            ->where("compte2.codec >= $codec_min and compte2.codec < $codec_max")
-            ->where('compte1.codec != "120" and compte1.codec != "129"');
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
-        }
-        $annulations = $this->get_to_array($this->db->group_by($gb2)->order_by('code')->get());
-
-        foreach ($annulations as $row) {
-            $compte = $row['compte'];
-            $montant = $row['montant'];
-            if (array_key_exists($compte, $index)) {
-                $rows[$index[$compte]]['montant'] -= $montant;
-            } else {
-                if ($group_by == "") {
-                    if (!empty($rows)) $rows[0]['montant'] -= $montant;
-                } else {
-                    $row['montant'] = -$montant;
-                    $rows[] = $row;
-                }
-            }
-        }
-
-        if ($group_by == "") {
-            return empty($rows) ? 0 : (float) $rows[0]['montant'];
-        }
-        return $rows;
-    }
-
-    /**
-     * Somme des recettes pour une plage de codec donnée (codec >= $min and codec < $max).
-     * Retourne le total (float) si $group_by == "", ou un tableau de lignes si $group_by est fourni.
-     */
-    private function _select_recettes_codec_range($year, $date_op, $codec_min, $codec_max, $group_by = "") {
-        if ($date_op) {
-            $when = "date_op <= \"$date_op\" and YEAR(date_op) = \"$year\"";
-        } else {
-            $when = "YEAR(date_op) = \"$year\"";
-        }
-
-        $this->db
-            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, ecritures.club")
-            ->from("ecritures, comptes as compte1, comptes as compte2")
-            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
-            ->where($when)
-            ->where("compte2.codec >= $codec_min and compte2.codec < $codec_max")
-            ->where('compte1.codec != "120" and compte1.codec != "129"');
-        if ($this->sections_model->section()) {
-            $this->db->where('ecritures.club', $this->sections_model->section_id());
-        }
-        $rows = $this->get_to_array($this->db->group_by($group_by)->order_by('code')->get());
-
-        $index = array();
-        foreach ($rows as $idx => $row) {
-            $index[$row['compte']] = $idx;
-        }
-
-        // Annulations (débits sur comptes de recettes)
-        $gb2 = ($group_by == 'compte2') ? 'compte1' : $group_by;
-        $this->db
-            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, ecritures.club")
-            ->from("ecritures, comptes as compte1, comptes as compte2")
-            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
-            ->where($when)
-            ->where("compte1.codec >= $codec_min and compte1.codec < $codec_max")
-            ->where('compte2.codec != "120" and compte2.codec != "129"');
+            ->where("$annul.codec >= $codec_min and $annul.codec < $codec_max")
+            ->where("$main.codec != \"120\" and $main.codec != \"129\"");
         if ($this->sections_model->section()) {
             $this->db->where('ecritures.club', $this->sections_model->section_id());
         }
@@ -1815,7 +1743,8 @@ array (size=2)
 
         // ── Résultat avant dépréciations ─────────────────────────────────────
         $titre_avant = $this->lang->line("comptes_label_resultat_avant_dep");
-        $tbl[] = array($tab, $titre_avant, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
+        $titre_avant_fmt = ($target == 'html') ? "<strong>$titre_avant</strong>" : $titre_avant;
+        $tbl[] = array($tab, $titre_avant_fmt, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
 
         $res_hd      = $tp_hd      - $tc_hd;
         $res_hd_prec = $tp_hd_prec - $tc_hd_prec;
@@ -1836,13 +1765,13 @@ array (size=2)
         }
         $tbl[] = array(
             $tab,
-            $this->lang->line("comptes_label_total_benefices"),
+            $this->lang->line("comptes_label_avant_dep_benefices"),
             $tab,
             $benef_avant,
             $benef_avant_prec,
             $tab,
             $tab,
-            $this->lang->line("comptes_label_total_pertes"),
+            $this->lang->line("comptes_label_avant_dep_pertes"),
             $tab,
             $perte_avant,
             $perte_avant_prec,
@@ -1925,7 +1854,8 @@ array (size=2)
         $tbl[] = $empty_row;
 
         $titre_apres = $this->lang->line("comptes_label_resultat_apres_dep");
-        $tbl[] = array($tab, $titre_apres, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
+        $titre_apres_fmt = ($target == 'html') ? "<strong>$titre_apres</strong>" : $titre_apres;
+        $tbl[] = array($tab, $titre_apres_fmt, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
 
         $tc      = $resultat['montants'][$year]['total_depenses'];
         $tc_prec = $resultat['montants'][$previous_year]['total_depenses'];
@@ -1948,13 +1878,13 @@ array (size=2)
         }
         $tbl[] = array(
             $tab,
-            $this->lang->line("comptes_label_total_benefices"),
+            $this->lang->line("comptes_label_apres_dep_benefices"),
             $tab,
             $benef_apres,
             $benef_apres_prec,
             $tab,
             $tab,
-            $this->lang->line("comptes_label_total_pertes"),
+            $this->lang->line("comptes_label_apres_dep_pertes"),
             $tab,
             $perte_apres,
             $perte_apres_prec,

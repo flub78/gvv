@@ -53,8 +53,12 @@ $lang['comptes_label_resultat_avant_dep']  = "Resultaat voor afschrijvingen";
 $lang['comptes_label_resultat_apres_dep']  = "Resultaat na afschrijvingen";
 $lang['comptes_label_total_charges_hd']    = "Totaal lasten excl. afschrijvingen";
 $lang['comptes_label_total_produits_hd']   = "Totaal opbrengsten excl. afschrijvingen";
-$lang['comptes_label_total_dep_charges']   = "Totaal afschrijvingslasten";
-$lang['comptes_label_total_dep_produits']  = "Totaal terugnames afschrijvingen";
+$lang['comptes_label_total_dep_charges']       = "Totaal afschrijvingslasten";
+$lang['comptes_label_total_dep_produits']      = "Totaal terugnames afschrijvingen";
+$lang['comptes_label_avant_dep_benefices']     = "Winst voor afschrijvingen";
+$lang['comptes_label_avant_dep_pertes']        = "Verlies voor afschrijvingen";
+$lang['comptes_label_apres_dep_benefices']     = "Winst na afschrijvingen";
+$lang['comptes_label_apres_dep_pertes']        = "Verlies na afschrijvingen";
 
 $lang['comptes_warning'] = "Het is niet mogelijk rekeningen te verwijderen waarop reeds verwerkingen zijn gebeurd.";
 $lang['comptes_confirm_delete_account'] = "Weet u zeker dat u de rekening wilt verwijderen";

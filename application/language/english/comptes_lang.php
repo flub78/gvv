@@ -53,8 +53,12 @@ $lang['comptes_label_resultat_avant_dep']  = "Result before depreciation";
 $lang['comptes_label_resultat_apres_dep']  = "Result after depreciation";
 $lang['comptes_label_total_charges_hd']    = "Total expenses excl. depreciation";
 $lang['comptes_label_total_produits_hd']   = "Total income excl. depreciation";
-$lang['comptes_label_total_dep_charges']   = "Total depreciation charges";
-$lang['comptes_label_total_dep_produits']  = "Total depreciation income";
+$lang['comptes_label_total_dep_charges']       = "Total depreciation charges";
+$lang['comptes_label_total_dep_produits']      = "Total depreciation income";
+$lang['comptes_label_avant_dep_benefices']     = "Profit before depreciation";
+$lang['comptes_label_avant_dep_pertes']        = "Loss before depreciation";
+$lang['comptes_label_apres_dep_benefices']     = "Profit after depreciation";
+$lang['comptes_label_apres_dep_pertes']        = "Loss after depreciation";
 
 $lang['comptes_warning'] = "Accounts containing entries cannot be deleted";
 $lang['comptes_confirm_delete_account'] = "Are you sure you want to delete the account";

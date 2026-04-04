@@ -54,8 +54,12 @@ $lang['comptes_label_resultat_avant_dep']  = "Résultat avant dépréciations";
 $lang['comptes_label_resultat_apres_dep']  = "Résultat après dépréciations";
 $lang['comptes_label_total_charges_hd']    = "Total charges hors dépréciations";
 $lang['comptes_label_total_produits_hd']   = "Total produits hors dépréciations";
-$lang['comptes_label_total_dep_charges']   = "Total dotations aux dépréciations";
-$lang['comptes_label_total_dep_produits']  = "Total reprises sur dépréciations";
+$lang['comptes_label_total_dep_charges']       = "Total dotations aux dépréciations";
+$lang['comptes_label_total_dep_produits']      = "Total reprises sur dépréciations";
+$lang['comptes_label_avant_dep_benefices']     = "Bénéfice avant dépréciations";
+$lang['comptes_label_avant_dep_pertes']        = "Déficit avant dépréciations";
+$lang['comptes_label_apres_dep_benefices']     = "Bénéfice après dépréciations";
+$lang['comptes_label_apres_dep_pertes']        = "Déficit après dépréciations";
 
 $lang['comptes_warning'] = "Il n'est pas possible de supprimer des comptes sur lesquels des écritures ont été passées";
 $lang['comptes_confirm_delete_account'] = "Êtes-vous sûr de vouloir supprimer le compte";
