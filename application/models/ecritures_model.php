@@ -1312,6 +1312,227 @@ array (size=2)
     }
 
     /**
+     * Retourne les données pour l'affichage du résultat avant et après dépréciations.
+     *
+     * Même structure que select_resultat() avec en plus :
+     *   'comptes_depenses_hd' / 'comptes_recettes_hd' : comptes hors 68x/78x
+     *   'montants_hd'   : montants N et N-1 hors 68x/78x
+     *   'comptes_68'    : comptes de dotation aux dépréciations (68x)
+     *   'comptes_78'    : comptes de reprises sur dépréciations (78x)
+     *   'montants_dep'  : montants N et N-1 pour 68x et 78x
+     */
+    function select_resultat_avec_depreciation($year = "") {
+        $result = $this->select_resultat($year);
+
+        if ($year == "") {
+            $year = $this->session->userdata('year');
+        }
+        $years = array($year - 1, $year);
+
+        $this->load->model('comptes_model');
+
+        // Comptes hors dépréciations (6xx hors 68x, 7xx hors 78x)
+        $result['comptes_depenses_hd'] = $this->comptes_model->list_of_account(
+            'codec >= "6" and codec < "68"', 'codec'
+        );
+        // Ajout comptes 69x+ (entre 68x et 7xx) s'il y en a
+        $comptes_69 = $this->comptes_model->list_of_account(
+            'codec >= "69" and codec < "7"', 'codec'
+        );
+        $result['comptes_depenses_hd'] = array_merge($result['comptes_depenses_hd'], $comptes_69);
+
+        $result['comptes_recettes_hd'] = $this->comptes_model->list_of_account(
+            'codec >= "7" and codec < "78"', 'codec'
+        );
+        $comptes_79 = $this->comptes_model->list_of_account(
+            'codec >= "79" and codec < "8"', 'codec'
+        );
+        $result['comptes_recettes_hd'] = array_merge($result['comptes_recettes_hd'], $comptes_79);
+
+        // Comptes de dépréciations uniquement
+        $result['comptes_68'] = $this->comptes_model->list_of_account(
+            'codec >= "68" and codec < "69"', 'codec'
+        );
+        $result['comptes_78'] = $this->comptes_model->list_of_account(
+            'codec >= "78" and codec < "79"', 'codec'
+        );
+
+        // Montants hors dépréciations et montants dépréciations, pour N et N-1
+        $balance_date = $this->session->userdata('balance_date');
+        $result['montants_hd']  = array();
+        $result['montants_dep'] = array();
+
+        foreach ($years as $y) {
+            $date_op = ($y == $year)
+                ? date_ht2db($balance_date)
+                : "$y-12-31";
+
+            // -- Hors dépréciations --
+            // Charges hors 68x : 6xx hors [68..69[
+            $dep_total_hd = $this->_select_depenses_codec_range($y, $date_op, '"6"', '"68"');
+            $dep_total_hd += $this->_select_depenses_codec_range($y, $date_op, '"69"', '"7"');
+            $dep_detail_hd_a = $this->_select_depenses_codec_range($y, $date_op, '"6"', '"68"', 'compte1');
+            $dep_detail_hd_b = $this->_select_depenses_codec_range($y, $date_op, '"69"', '"7"', 'compte1');
+            $dep_detail_hd = array_merge($dep_detail_hd_a, $dep_detail_hd_b);
+
+            // Recettes hors 78x : 7xx hors [78..79[
+            $rec_total_hd = $this->_select_recettes_codec_range($y, $date_op, '"7"', '"78"');
+            $rec_total_hd += $this->_select_recettes_codec_range($y, $date_op, '"79"', '"8"');
+            $rec_detail_hd_a = $this->_select_recettes_codec_range($y, $date_op, '"7"', '"78"', 'compte2');
+            $rec_detail_hd_b = $this->_select_recettes_codec_range($y, $date_op, '"79"', '"8"', 'compte2');
+            $rec_detail_hd = array_merge($rec_detail_hd_a, $rec_detail_hd_b);
+
+            $result['montants_hd'][$y] = array(
+                'total_depenses' => $dep_total_hd,
+                'total_recettes' => $rec_total_hd,
+                'depenses'       => $this->montants($dep_detail_hd),
+                'recettes'       => $this->montants($rec_detail_hd),
+            );
+
+            // -- Dépréciations seules (68x et 78x) --
+            $dep68_total  = $this->_select_depenses_codec_range($y, $date_op, '"68"', '"69"');
+            $dep68_detail = $this->_select_depenses_codec_range($y, $date_op, '"68"', '"69"', 'compte1');
+            $rec78_total  = $this->_select_recettes_codec_range($y, $date_op, '"78"', '"79"');
+            $rec78_detail = $this->_select_recettes_codec_range($y, $date_op, '"78"', '"79"', 'compte2');
+
+            $result['montants_dep'][$y] = array(
+                'total_68'  => $dep68_total,
+                'total_78'  => $rec78_total,
+                'comptes_68' => $this->montants($dep68_detail),
+                'comptes_78' => $this->montants($rec78_detail),
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     * Somme des dépenses pour une plage de codec donnée (codec >= $min and codec < $max).
+     * Retourne le total (float) si $group_by == "", ou un tableau de lignes si $group_by est fourni.
+     */
+    private function _select_depenses_codec_range($year, $date_op, $codec_min, $codec_max, $group_by = "") {
+        if ($date_op) {
+            $when = "date_op <= \"$date_op\" and YEAR(date_op) = \"$year\"";
+        } else {
+            $when = "YEAR(date_op) = \"$year\"";
+        }
+
+        $this->db
+            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, ecritures.club")
+            ->from("ecritures, comptes as compte1, comptes as compte2")
+            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
+            ->where($when)
+            ->where("compte1.codec >= $codec_min and compte1.codec < $codec_max")
+            ->where('compte2.codec != "120" and compte2.codec != "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $rows = $this->get_to_array($this->db->group_by($group_by)->order_by('code')->get());
+
+        $index = array();
+        foreach ($rows as $idx => $row) {
+            $index[$row['compte']] = $idx;
+        }
+
+        // Annulations (crédits sur comptes de charges)
+        $gb2 = ($group_by == 'compte1') ? 'compte2' : $group_by;
+        $this->db
+            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, ecritures.club")
+            ->from("ecritures, comptes as compte1, comptes as compte2")
+            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
+            ->where($when)
+            ->where("compte2.codec >= $codec_min and compte2.codec < $codec_max")
+            ->where('compte1.codec != "120" and compte1.codec != "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $annulations = $this->get_to_array($this->db->group_by($gb2)->order_by('code')->get());
+
+        foreach ($annulations as $row) {
+            $compte = $row['compte'];
+            $montant = $row['montant'];
+            if (array_key_exists($compte, $index)) {
+                $rows[$index[$compte]]['montant'] -= $montant;
+            } else {
+                if ($group_by == "") {
+                    if (!empty($rows)) $rows[0]['montant'] -= $montant;
+                } else {
+                    $row['montant'] = -$montant;
+                    $rows[] = $row;
+                }
+            }
+        }
+
+        if ($group_by == "") {
+            return empty($rows) ? 0 : (float) $rows[0]['montant'];
+        }
+        return $rows;
+    }
+
+    /**
+     * Somme des recettes pour une plage de codec donnée (codec >= $min and codec < $max).
+     * Retourne le total (float) si $group_by == "", ou un tableau de lignes si $group_by est fourni.
+     */
+    private function _select_recettes_codec_range($year, $date_op, $codec_min, $codec_max, $group_by = "") {
+        if ($date_op) {
+            $when = "date_op <= \"$date_op\" and YEAR(date_op) = \"$year\"";
+        } else {
+            $when = "YEAR(date_op) = \"$year\"";
+        }
+
+        $this->db
+            ->select("compte2.codec as code, compte2 as compte, compte2.nom as nom, sum(montant) as montant, ecritures.club")
+            ->from("ecritures, comptes as compte1, comptes as compte2")
+            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
+            ->where($when)
+            ->where("compte2.codec >= $codec_min and compte2.codec < $codec_max")
+            ->where('compte1.codec != "120" and compte1.codec != "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $rows = $this->get_to_array($this->db->group_by($group_by)->order_by('code')->get());
+
+        $index = array();
+        foreach ($rows as $idx => $row) {
+            $index[$row['compte']] = $idx;
+        }
+
+        // Annulations (débits sur comptes de recettes)
+        $gb2 = ($group_by == 'compte2') ? 'compte1' : $group_by;
+        $this->db
+            ->select("compte1.codec as code, compte1 as compte, compte1.nom as nom, sum(montant) as montant, ecritures.club")
+            ->from("ecritures, comptes as compte1, comptes as compte2")
+            ->where("ecritures.compte1 = compte1.id and ecritures.compte2 = compte2.id")
+            ->where($when)
+            ->where("compte1.codec >= $codec_min and compte1.codec < $codec_max")
+            ->where('compte2.codec != "120" and compte2.codec != "129"');
+        if ($this->sections_model->section()) {
+            $this->db->where('ecritures.club', $this->sections_model->section_id());
+        }
+        $annulations = $this->get_to_array($this->db->group_by($gb2)->order_by('code')->get());
+
+        foreach ($annulations as $row) {
+            $compte = $row['compte'];
+            $montant = $row['montant'];
+            if (array_key_exists($compte, $index)) {
+                $rows[$index[$compte]]['montant'] -= $montant;
+            } else {
+                if ($group_by == "") {
+                    if (!empty($rows)) $rows[0]['montant'] -= $montant;
+                } else {
+                    $row['montant'] = -$montant;
+                    $rows[] = $row;
+                }
+            }
+        }
+
+        if ($group_by == "") {
+            return empty($rows) ? 0 : (float) $rows[0]['montant'];
+        }
+        return $rows;
+    }
+
+    /**
      * Formate les information de resultat dans un tableau
      */
     function resultat_table($resultat, $links, $tab, $decimal_sep = '', $target = 'html') {
@@ -1470,6 +1691,274 @@ array (size=2)
         //     $total,
         //     $total_prec
         // );
+
+        return $tbl;
+    }
+
+    /**
+     * Formate le tableau résultat avant et après dépréciations.
+     *
+     * Structure produite (11 colonnes, même que resultat_table) :
+     *   Lignes comptes hors 68x/78x
+     *   Ligne vide
+     *   Total charges hors dép. | Total produits hors dép.
+     *   Titre "Résultat avant dépréciations"
+     *   Perte/Bénéfice avant dépréciations
+     *   Ligne vide
+     *   Lignes comptes 68x | 78x
+     *   Total dotations | Total reprises
+     *   Ligne vide
+     *   Titre "Résultat après dépréciations"
+     *   Perte/Bénéfice final (identique à comptes/resultat)
+     */
+    function resultat_avec_depreciation_table($resultat, $links, $tab, $decimal_sep = '', $target = 'html') {
+        $CI = &get_instance();
+        $CI->lang->load('comptes');
+        $CI->lang->load('sections');
+
+        $year          = $resultat['years'][1];
+        $previous_year = $resultat['years'][0];
+
+        $empty_row = array_fill(0, 11, $tab);
+
+        // ── En-tête ──────────────────────────────────────────────────────────
+        $tbl = array();
+        $tbl[] = array(
+            $this->lang->line("gvv_vue_comptes_short_field_codec"),
+            $this->lang->line("comptes_label_expenses"),
+            $this->lang->line("gvv_sections_element"),
+            $year,
+            $previous_year,
+            $tab,
+            $this->lang->line("gvv_vue_comptes_short_field_codec"),
+            $this->lang->line("comptes_label_earnings"),
+            $this->lang->line("gvv_sections_element"),
+            $year,
+            $previous_year,
+        );
+
+        // ── Lignes comptes hors dépréciations ────────────────────────────────
+        // Même pattern de tableau creux que resultat_table() : clé [6] absente,
+        // clés [7..11] pour le côté produits. array_values() dans le DataTable
+        // reindexe à [0..10] = 11 colonnes alignées avec l'en-tête.
+        $charges_hd = $resultat['comptes_depenses_hd'];
+        $produits_hd = $resultat['comptes_recettes_hd'];
+        for ($i = 0; $i < max(count($charges_hd), count($produits_hd)); $i++) {
+            if (isset($charges_hd[$i]['nom'])) {
+                $code    = $charges_hd[$i]['codec'];
+                $nom     = $charges_hd[$i]['nom'];
+                $compte  = $charges_hd[$i]['id'];
+                $section = isset($charges_hd[$i]['section_name']) ? $charges_hd[$i]['section_name'] : '';
+                $tbl_0 = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
+                $tbl_1 = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl_2 = $section;
+                $tbl_3 = euro(
+                    isset($resultat['montants_hd'][$year]['depenses'][$compte]) ? $resultat['montants_hd'][$year]['depenses'][$compte] : '',
+                    $decimal_sep, $target
+                );
+                $tbl_4 = euro(
+                    isset($resultat['montants_hd'][$previous_year]['depenses'][$compte]) ? $resultat['montants_hd'][$previous_year]['depenses'][$compte] : '',
+                    $decimal_sep, $target
+                );
+            } else {
+                $tbl_0 = ''; $tbl_1 = ''; $tbl_2 = ''; $tbl_3 = ''; $tbl_4 = '';
+            }
+
+            if (isset($produits_hd[$i]['nom'])) {
+                $code    = $produits_hd[$i]['codec'];
+                $nom     = $produits_hd[$i]['nom'];
+                $compte  = $produits_hd[$i]['id'];
+                $section = isset($produits_hd[$i]['section_name']) ? $produits_hd[$i]['section_name'] : '';
+                $tbl_7  = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
+                $tbl_8  = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl_9  = $section;
+                $tbl_10 = euro(
+                    isset($resultat['montants_hd'][$year]['recettes'][$compte]) ? $resultat['montants_hd'][$year]['recettes'][$compte] : '',
+                    $decimal_sep, $target
+                );
+                $tbl_11 = euro(
+                    isset($resultat['montants_hd'][$previous_year]['recettes'][$compte]) ? $resultat['montants_hd'][$previous_year]['recettes'][$compte] : '',
+                    $decimal_sep, $target
+                );
+            } else {
+                $tbl_7 = ''; $tbl_8 = ''; $tbl_9 = ''; $tbl_10 = ''; $tbl_11 = '';
+            }
+
+            // Tableau creux : clé [6] absente → 11 éléments après array_values()
+            $tbl[] = array(
+                0 => $tbl_0, 1 => $tbl_1, 2 => $tbl_2, 3 => $tbl_3, 4 => $tbl_4,
+                5 => $tab,
+                7 => $tbl_7, 8 => $tbl_8, 9 => $tbl_9, 10 => $tbl_10, 11 => $tbl_11,
+            );
+        }
+
+        // ── Totaux hors dépréciations ────────────────────────────────────────
+        $tbl[] = $empty_row;
+
+        $tc_hd      = $resultat['montants_hd'][$year]['total_depenses'];
+        $tc_hd_prec = $resultat['montants_hd'][$previous_year]['total_depenses'];
+        $tp_hd      = $resultat['montants_hd'][$year]['total_recettes'];
+        $tp_hd_prec = $resultat['montants_hd'][$previous_year]['total_recettes'];
+        $tbl[] = array(
+            $tab,
+            $this->lang->line("comptes_label_total_charges_hd"),
+            $tab,
+            euro($tc_hd,      $decimal_sep, $target),
+            euro($tc_hd_prec, $decimal_sep, $target),
+            $tab,
+            $tab,
+            $this->lang->line("comptes_label_total_produits_hd"),
+            $tab,
+            euro($tp_hd,      $decimal_sep, $target),
+            euro($tp_hd_prec, $decimal_sep, $target),
+        );
+
+        // ── Résultat avant dépréciations ─────────────────────────────────────
+        $titre_avant = $this->lang->line("comptes_label_resultat_avant_dep");
+        $tbl[] = array($tab, $titre_avant, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
+
+        $res_hd      = $tp_hd      - $tc_hd;
+        $res_hd_prec = $tp_hd_prec - $tc_hd_prec;
+
+        if ($res_hd >= 0) {
+            $benef_avant = euro($res_hd, $decimal_sep, $target);
+            $perte_avant = '';
+        } else {
+            $benef_avant = '';
+            $perte_avant = euro(-$res_hd, $decimal_sep, $target);
+        }
+        if ($res_hd_prec >= 0) {
+            $benef_avant_prec = euro($res_hd_prec, $decimal_sep, $target);
+            $perte_avant_prec = '';
+        } else {
+            $benef_avant_prec = '';
+            $perte_avant_prec = euro(-$res_hd_prec, $decimal_sep, $target);
+        }
+        $tbl[] = array(
+            $tab,
+            $this->lang->line("comptes_label_total_benefices"),
+            $tab,
+            $benef_avant,
+            $benef_avant_prec,
+            $tab,
+            $tab,
+            $this->lang->line("comptes_label_total_pertes"),
+            $tab,
+            $perte_avant,
+            $perte_avant_prec,
+        );
+
+        // ── Lignes comptes 68x / 78x ─────────────────────────────────────────
+        $tbl[] = $empty_row;
+
+        $comptes_68 = $resultat['comptes_68'];
+        $comptes_78 = $resultat['comptes_78'];
+        for ($i = 0; $i < max(count($comptes_68), count($comptes_78)); $i++) {
+            if (isset($comptes_68[$i]['nom'])) {
+                $code    = $comptes_68[$i]['codec'];
+                $nom     = $comptes_68[$i]['nom'];
+                $compte  = $comptes_68[$i]['id'];
+                $section = isset($comptes_68[$i]['section_name']) ? $comptes_68[$i]['section_name'] : '';
+                $tbl_0 = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
+                $tbl_1 = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl_2 = $section;
+                $tbl_3 = euro(
+                    isset($resultat['montants_dep'][$year]['comptes_68'][$compte]) ? $resultat['montants_dep'][$year]['comptes_68'][$compte] : '',
+                    $decimal_sep, $target
+                );
+                $tbl_4 = euro(
+                    isset($resultat['montants_dep'][$previous_year]['comptes_68'][$compte]) ? $resultat['montants_dep'][$previous_year]['comptes_68'][$compte] : '',
+                    $decimal_sep, $target
+                );
+            } else {
+                $tbl_0 = ''; $tbl_1 = ''; $tbl_2 = ''; $tbl_3 = ''; $tbl_4 = '';
+            }
+
+            if (isset($comptes_78[$i]['nom'])) {
+                $code    = $comptes_78[$i]['codec'];
+                $nom     = $comptes_78[$i]['nom'];
+                $compte  = $comptes_78[$i]['id'];
+                $section = isset($comptes_78[$i]['section_name']) ? $comptes_78[$i]['section_name'] : '';
+                $tbl_7  = ($links) ? anchor(controller_url("comptes/balance/$code"), $code) : $code;
+                $tbl_8  = ($links) ? anchor(controller_url("compta/journal_compte/$compte"), $nom) : $nom;
+                $tbl_9  = $section;
+                $tbl_10 = euro(
+                    isset($resultat['montants_dep'][$year]['comptes_78'][$compte]) ? $resultat['montants_dep'][$year]['comptes_78'][$compte] : '',
+                    $decimal_sep, $target
+                );
+                $tbl_11 = euro(
+                    isset($resultat['montants_dep'][$previous_year]['comptes_78'][$compte]) ? $resultat['montants_dep'][$previous_year]['comptes_78'][$compte] : '',
+                    $decimal_sep, $target
+                );
+            } else {
+                $tbl_7 = ''; $tbl_8 = ''; $tbl_9 = ''; $tbl_10 = ''; $tbl_11 = '';
+            }
+
+            // Tableau creux : clé [6] absente → 11 éléments après array_values()
+            $tbl[] = array(
+                0 => $tbl_0, 1 => $tbl_1, 2 => $tbl_2, 3 => $tbl_3, 4 => $tbl_4,
+                5 => $tab,
+                7 => $tbl_7, 8 => $tbl_8, 9 => $tbl_9, 10 => $tbl_10, 11 => $tbl_11,
+            );
+        }
+
+        // ── Totaux dépréciations ─────────────────────────────────────────────
+        $tot68      = $resultat['montants_dep'][$year]['total_68'];
+        $tot68_prec = $resultat['montants_dep'][$previous_year]['total_68'];
+        $tot78      = $resultat['montants_dep'][$year]['total_78'];
+        $tot78_prec = $resultat['montants_dep'][$previous_year]['total_78'];
+        $tbl[] = array(
+            $tab,
+            $this->lang->line("comptes_label_total_dep_charges"),
+            $tab,
+            euro($tot68,      $decimal_sep, $target),
+            euro($tot68_prec, $decimal_sep, $target),
+            $tab,
+            $tab,
+            $this->lang->line("comptes_label_total_dep_produits"),
+            $tab,
+            euro($tot78,      $decimal_sep, $target),
+            euro($tot78_prec, $decimal_sep, $target),
+        );
+
+        // ── Résultat après dépréciations (= résultat complet) ────────────────
+        $tbl[] = $empty_row;
+
+        $titre_apres = $this->lang->line("comptes_label_resultat_apres_dep");
+        $tbl[] = array($tab, $titre_apres, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab, $tab);
+
+        $tc      = $resultat['montants'][$year]['total_depenses'];
+        $tc_prec = $resultat['montants'][$previous_year]['total_depenses'];
+        $tp      = $resultat['montants'][$year]['total_recettes'];
+        $tp_prec = $resultat['montants'][$previous_year]['total_recettes'];
+
+        if ($tp > $tc) {
+            $benef_apres = euro($tp - $tc, $decimal_sep, $target);
+            $perte_apres = '';
+        } else {
+            $benef_apres = '';
+            $perte_apres = euro($tc - $tp, $decimal_sep, $target);
+        }
+        if ($tp_prec > $tc_prec) {
+            $benef_apres_prec = euro($tp_prec - $tc_prec, $decimal_sep, $target);
+            $perte_apres_prec = '';
+        } else {
+            $benef_apres_prec = '';
+            $perte_apres_prec = euro($tc_prec - $tp_prec, $decimal_sep, $target);
+        }
+        $tbl[] = array(
+            $tab,
+            $this->lang->line("comptes_label_total_benefices"),
+            $tab,
+            $benef_apres,
+            $benef_apres_prec,
+            $tab,
+            $tab,
+            $this->lang->line("comptes_label_total_pertes"),
+            $tab,
+            $perte_apres,
+            $perte_apres_prec,
+        );
 
         return $tbl;
     }

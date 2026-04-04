@@ -11,6 +11,7 @@ $lang['gvv_comptes_title_detailed_balance'] = "Detailed balance of accounts";
 
 $lang['gvv_comptes_title_bilan'] = "Balance sheet";
 $lang['gvv_comptes_title_resultat'] = "End of year results";
+$lang['gvv_comptes_title_resultat_avec_depreciation'] = "Result before and after depreciation";
 $lang['gvv_comptes_title_cloture'] = "Closing of the period";
 $lang['gvv_comptes_title_cash'] = "Cash";
 $lang['gvv_comptes_title_journaux'] = "Acounts listing";
@@ -48,6 +49,12 @@ $lang['comptes_label_total_incomes'] = "Total incomes";
 $lang['comptes_label_total_expenses'] = "Total expenses";
 $lang['comptes_label_total_pertes'] = "Losses";
 $lang['comptes_label_total_benefices'] = "Profits";
+$lang['comptes_label_resultat_avant_dep']  = "Result before depreciation";
+$lang['comptes_label_resultat_apres_dep']  = "Result after depreciation";
+$lang['comptes_label_total_charges_hd']    = "Total expenses excl. depreciation";
+$lang['comptes_label_total_produits_hd']   = "Total income excl. depreciation";
+$lang['comptes_label_total_dep_charges']   = "Total depreciation charges";
+$lang['comptes_label_total_dep_produits']  = "Total depreciation income";
 
 $lang['comptes_warning'] = "Accounts containing entries cannot be deleted";
 $lang['comptes_confirm_delete_account'] = "Are you sure you want to delete the account";

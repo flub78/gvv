@@ -307,6 +307,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/512?start_expanded=true") ?>"><i class="fas fa-university text-primary"></i> <?= translation("gvv_menu_accounting_banking_accounts") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/411?start_expanded=true") ?>"><i class="fas fa-user-check text-success"></i> <?= translation("gvv_menu_accounting_pilot_balance") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat") ?>"><i class="fas fa-chart-pie text-warning"></i> <?= translation("gvv_menu_accounting_results") ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat_avec_depreciation") ?>"><i class="fas fa-chart-bar text-warning"></i> <?= translation("gvv_menu_accounting_results_avec_depreciation") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/resultat_par_sections") ?>"><i class="fas fa-table text-info"></i> <?= translation("gvv_menu_accounting_results_by_sections") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/bilan") ?>"><i class="fas fa-calculator text-primary"></i> <?= translation("gvv_menu_accounting_bilan") ?></a></li>
               <?php endif; ?>

@@ -11,6 +11,7 @@ $lang['gvv_comptes_title_detailed_balance'] = "Gedetailleerde balans van rekenin
 
 $lang['gvv_comptes_title_bilan'] = "Balans";
 $lang['gvv_comptes_title_resultat'] = "Jaarresultaat";
+$lang['gvv_comptes_title_resultat_avec_depreciation'] = "Resultaat voor en na afschrijvingen";
 $lang['gvv_comptes_title_cloture'] = "Sluiting boekingen voor boekjaar";
 $lang['gvv_comptes_title_cash'] = "Cash";
 $lang['gvv_comptes_title_journaux'] = "Journaal der rekeningen";
@@ -48,6 +49,12 @@ $lang['comptes_label_total_incomes'] = "Totaal inkomsten";
 $lang['comptes_label_total_expenses'] = "Totaal uitgaves";
 $lang['comptes_label_total_pertes'] = "Totaal verliezen";
 $lang['comptes_label_total_benefices'] = "Totaal winsten";
+$lang['comptes_label_resultat_avant_dep']  = "Resultaat voor afschrijvingen";
+$lang['comptes_label_resultat_apres_dep']  = "Resultaat na afschrijvingen";
+$lang['comptes_label_total_charges_hd']    = "Totaal lasten excl. afschrijvingen";
+$lang['comptes_label_total_produits_hd']   = "Totaal opbrengsten excl. afschrijvingen";
+$lang['comptes_label_total_dep_charges']   = "Totaal afschrijvingslasten";
+$lang['comptes_label_total_dep_produits']  = "Totaal terugnames afschrijvingen";
 
 $lang['comptes_warning'] = "Het is niet mogelijk rekeningen te verwijderen waarop reeds verwerkingen zijn gebeurd.";
 $lang['comptes_confirm_delete_account'] = "Weet u zeker dat u de rekening wilt verwijderen";
