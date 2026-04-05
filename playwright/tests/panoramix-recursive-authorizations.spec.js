@@ -167,11 +167,13 @@ async function extractInternalLinks(page) {
  * Check if the current page shows an access denial.
  */
 function isAccessDenied(url, content) {
-    return url.includes('/auth/deny')
-        || url.includes('/auth/login')
-        || content.includes('Accès non autorisé')
-        || content.includes('Accès refusé')
-        || content.includes('Accès réservé aux administrateurs');
+    if (url.includes('/auth/deny') || url.includes('/auth/login')) return true;
+    // Content-based detection: match only when the phrase appears outside of <option> or <select>
+    // (audit_log uses "Accès refusé" as a filter option value — not a denial response)
+    const stripped = content.replace(/<option[^>]*>[\s\S]*?<\/option>/gi, '');
+    return stripped.includes('Accès non autorisé')
+        || stripped.includes('Accès refusé')
+        || stripped.includes('Accès réservé aux administrateurs');
 }
 
 /**

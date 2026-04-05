@@ -87,16 +87,18 @@ test.describe('EF1 — Provisionnement compte pilote', () => {
             return;
         }
 
-        // Bypass HTML5 min/required pour tester la validation serveur
+        // Bypass HTML5 min/required/step pour tester la validation serveur
         await page.evaluate(() => {
             const input = document.querySelector('input[name="montant"]');
             if (input) {
                 input.removeAttribute('min');
                 input.removeAttribute('required');
+                input.removeAttribute('step');
             }
         });
 
-        await page.fill('input[name="montant"]', '0.01');
+        // Valeur entière valide selon step=1, mais sous le minimum configuré (5€)
+        await page.fill('input[name="montant"]', '1');
         await page.click('button[name="button"][value="valider"]');
         await page.waitForLoadState('domcontentloaded');
 

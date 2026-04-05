@@ -77,10 +77,15 @@ class Authorization extends CI_Controller {
         log_message('error', 'ROLES_DEBUG: Has role: ' . ($has_role ? 'yes' : 'no'));
         log_message('error', 'ROLES_DEBUG: is_role check: ' . ($this->dx_auth->is_role(array('admin', 'club-admin')) ? 'yes' : 'no'));
 
-        if (!$has_role && $this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $user_id = $this->dx_auth->get_user_id();
-            $has_role = $this->gvv_authorization->has_role($user_id, 'club-admin', NULL);
+        if (!$has_role && $this->dx_auth->is_logged_in()) {
+            $username = $this->dx_auth->get_username();
+            $q = $this->db->where('username', $username)->get('use_new_authorization');
+            if ($q && $q->num_rows() > 0) {
+                $this->load->model('authorization_model');
+                $this->load->library('Gvv_Authorization');
+                $user_id = $this->dx_auth->get_user_id();
+                $has_role = $this->gvv_authorization->has_role($user_id, 'club-admin', NULL);
+            }
         }
 
         if (!$has_role) {
