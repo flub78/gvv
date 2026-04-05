@@ -362,6 +362,12 @@ class Gvv_Authorization
             return FALSE;
         }
 
+        // club-admin bypasses all role checks (superadmin equivalent)
+        if ($this->has_role($user_id, 'club-admin', NULL)) {
+            log_message('debug', "GVV_Auth: User {$user_id} is club-admin, bypassing role check");
+            return TRUE;
+        }
+
         // Check if user has any of the required roles
         foreach ($roles as $role_name) {
             if ($this->has_role($user_id, $role_name, $section_id)) {

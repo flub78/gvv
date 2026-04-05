@@ -28,7 +28,7 @@ class Configuration extends Gvv_Controller {
     // Tout le travail est fait par le parent
     protected $controller = 'configuration';
     protected $model = 'configuration_model';
-    protected $modification_level = 'bureau';
+    protected $modification_level = 'club-admin';
     protected $rules = array();
 
     /**
@@ -39,7 +39,7 @@ class Configuration extends Gvv_Controller {
 
         // Authorization: Code-based (v2.0) - only for migrated users
         if ($this->use_new_auth) {
-            $this->require_roles(['bureau']);
+            $this->require_roles(['club-admin']);
         }
     }
 

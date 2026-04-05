@@ -1090,6 +1090,9 @@ $config['use_new_authorization'] = FALSE;
 - ✅ Global flag = FALSE, per-user migration active pour les Gaulois
 - ✅ Dashboard "Mon espace personnel" : rôle legacy (`$gvv_role`) masqué pour les nouveaux utilisateurs, carte "Mes autorisations" ajoutée
 - ✅ Page `membre/mes_autorisations` : liste les rôles de l'utilisateur par section (tableau)
+- ✅ **M2.5** : Bug `is_bureau` corrigé dans `welcome.php` (utilisait encore `dx_auth->is_role`)
+- ✅ **M2.5** : Menu et dashboard — Journal et Balance visibles au rôle `tresorier` (`bs_menu.php`, `bs_dashboard.php`)
+- ✅ **M2.5** : `configuration.php` migré de `['bureau']` à `['club-admin']`
 
 **Reste à faire — Priorité haute (avant Phase M3)**:
 1. **Activer les 3 controllers désactivés** : investiguer pourquoi `licences`, `email_lists`, `programmes` ont `use_new_auth = FALSE` et les corriger

@@ -133,7 +133,13 @@ if (!function_exists('has_role')) {
         if ($CI->session->userdata('use_new_auth')) {
             $CI->load->library('Gvv_Authorization');
             $user_id = $CI->dx_auth->get_user_id();
-            return $CI->gvv_authorization->has_role($user_id, $role, NULL);
+            $raw_section_id = $CI->session->userdata('section');
+            $section_id = NULL;
+            if ($raw_section_id) {
+                $q = $CI->db->where('id', (int)$raw_section_id)->get('sections');
+                $section_id = ($q && $q->num_rows() > 0) ? (int)$raw_section_id : NULL;
+            }
+            return $CI->gvv_authorization->has_role($user_id, $role, $section_id);
         }
 
         // Legacy auth: admins bypass all role checks.

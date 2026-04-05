@@ -296,12 +296,12 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
         </li>
         <?php endif; ?>
 
-        <?php if (has_role('ca')) : ?>
+        <?php if (has_role('ca') || has_role('tresorier') || has_role('club-admin')) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_accounting") ?></a>
             <ul class="dropdown-menu">
 
-              <?php if (has_role('bureau')) : ?>
+              <?php if (has_role('club-admin') || has_role('tresorier')) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("compta/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("gvv_menu_accounting_journal") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/512?start_expanded=true") ?>"><i class="fas fa-university text-primary"></i> <?= translation("gvv_menu_accounting_banking_accounts") ?></a></li>
@@ -315,7 +315,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
               <li><a class="dropdown-item" href="<?= controller_url("comptes/dashboard") ?>"><i class="fas fa-tachometer-alt text-primary"></i> <?= translation("gvv_menu_accounting_dashboard") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("comptes/tresorerie") ?>"><i class="fas fa-money-bill-wave text-success"></i> <?= translation("gvv_menu_accounting_cash") ?></a></li>
 
-              <?php if (has_role('bureau')) : ?>
+              <?php if (has_role('club-admin') || has_role('tresorier')) : ?>
                 <li>
                   <hr class="dropdown-divider">
                 </li>

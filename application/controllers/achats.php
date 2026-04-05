@@ -46,7 +46,7 @@ class Achats extends Gvv_Controller {
 
         // Authorization: Code-based (v2.0) - only for migrated users
         if ($this->use_new_auth) {
-            $this->require_roles(['ca']);
+            $this->require_roles(['ca', 'tresorier', 'club-admin']);
         }
 
         $this->load->model('membres_model');
