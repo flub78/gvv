@@ -27,7 +27,7 @@ test.describe.configure({ mode: 'serial' });
 const ADMIN_USER     = 'testadmin';
 const PILOT_USER     = 'asterix';
 const PASSWORD       = 'password';
-const SECTION_ID     = 1;   // Planeur
+const SECTION_ID     = 4;   // Général (has compte 467 required for save)
 const ADMIN_CONFIG_URL = '/index.php/paiements_en_ligne/admin_config';
 
 // DB access
@@ -180,6 +180,19 @@ test.describe('EF5 — Admin config HelloAsso', () => {
         // Fill test values
         await page.fill('input[name="client_id"]', TEST_CLIENT_ID);
         await page.fill('input[name="account_slug"]', TEST_SLUG);
+
+        // compte_passage is mandatory — select first non-empty option (codec 467 account)
+        const compteSelect = page.locator('select[name="compte_passage"]');
+        if (await compteSelect.count() > 0) {
+            const options = await compteSelect.locator('option').all();
+            for (const opt of options) {
+                const val = await opt.getAttribute('value');
+                if (val && val !== '0' && val !== '') {
+                    await compteSelect.selectOption(val);
+                    break;
+                }
+            }
+        }
 
         // Submit
         await page.click('button[value="save"]');

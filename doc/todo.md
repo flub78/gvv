@@ -7,7 +7,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [] Problème d'accès pour certains trésoriers
+
 
 ## Priorités
 

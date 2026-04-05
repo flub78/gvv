@@ -2155,17 +2155,15 @@ EOD;
             return;
         }
 
-        // Sélecteur de comptes 7xx pour le bar
-        $bar_account_selector = $this->comptes_model->selector_with_null(
-            array('codec >=' => '700', 'codec <' => '800'),
-            TRUE
-        );
+        // Sélecteur de comptes 7xx pour le bar — filtre par la section cible, pas la session
+        $bar_where = array('codec >=' => '700', 'codec <' => '800');
+        if ($club_id) $bar_where['club'] = $club_id;
+        $bar_account_selector = $this->comptes_model->selector_with_null($bar_where, FALSE);
 
-        // Sélecteur de comptes 467 pour le compte de passage
-        $compte_passage_selector = $this->comptes_model->selector_with_null(
-            array('codec' => '467'),
-            TRUE
-        );
+        // Sélecteur de comptes 467 pour le compte de passage — filtre par la section cible, pas la session
+        $compte_where = array('codec' => '467');
+        if ($club_id) $compte_where['club'] = $club_id;
+        $compte_passage_selector = $this->comptes_model->selector_with_null($compte_where, FALSE);
 
         // Chargement de la config courante
         $cfg = $this->_load_config($club_id);

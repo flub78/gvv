@@ -50,6 +50,7 @@ const SKIP_PATTERNS = [
     /\/install/,
     /\/testunit/,
     /\/api\//,
+    /\/resultat_par_sections/, // Heavy cross-section query — tested in resultat-par-sections.spec.js
     /\/user_guide\//,         // CodeIgniter documentation
     /\/libraries\//,          // CI library docs
     /javascript:/,
@@ -343,3 +344,4 @@ test.describe('Asterix Recursive Authorization Crawl', () => {
         ).toBe(0);
     });
 });
+

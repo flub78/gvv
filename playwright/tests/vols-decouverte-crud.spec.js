@@ -7,11 +7,11 @@ const VD_CREATE_URL = '/index.php/vols_decouverte/create';
 
 async function loginAs(page, username, password) {
   await page.goto(LOGIN_URL);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.fill('input[name="username"]', username);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"], input[type="submit"]');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 }
 
 async function checkNoPhpErrors(page) {
@@ -48,7 +48,7 @@ test.describe('Vols decouverte CRUD (gestionnaire)', () => {
 
     // CREATE
     await page.goto(VD_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     await expect(page.locator('form[name="saisie"]')).toBeVisible();
@@ -62,12 +62,12 @@ test.describe('Vols decouverte CRUD (gestionnaire)', () => {
     await page.fill('input[name="urgence"]', '0600000000');
 
     await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // READ/LIST: find created row and get ID from edit link
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     const createdRow = page.locator('table tr', { hasText: beneficiaire }).first();
@@ -85,18 +85,18 @@ test.describe('Vols decouverte CRUD (gestionnaire)', () => {
 
     // UPDATE
     await page.goto(`/index.php/vols_decouverte/edit/${vdId}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     await expect(page.locator('input[name="beneficiaire"]')).toBeVisible();
     await page.fill('input[name="beneficiaire"]', updatedBeneficiaire);
 
     await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const updatedRow = page.locator('table tr', { hasText: updatedBeneficiaire }).first();
     await expect(updatedRow).toBeVisible();
@@ -109,11 +109,11 @@ test.describe('Vols decouverte CRUD (gestionnaire)', () => {
     expect(deleteHref).toBeTruthy();
 
     await page.goto(deleteHref);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('table tr', { hasText: updatedBeneficiaire })).toHaveCount(0);
   });
@@ -133,17 +133,17 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     const beneficiaire = `PW PILOT ${timestamp}`;
 
     await page.goto(VD_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await selectFirstNonEmptyOption(page, 'select[name="product"]');
     await page.fill('input[name="beneficiaire"]', beneficiaire);
     await page.fill('input[name="de_la_part"]', 'Test pilote');
     await page.fill('input[name="beneficiaire_email"]', `pw-pilot-${timestamp}@example.test`);
     await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Get the obfuscated action URL from the list
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const createdRow = page.locator('table tr', { hasText: beneficiaire }).first();
     const actionLink = createdRow.locator('a[href*="/vols_decouverte/action/"]').first();
@@ -162,7 +162,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'agecanonix', 'password');
 
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // La liste est visible
@@ -183,7 +183,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'agecanonix', 'password');
 
     await page.goto(vdActionUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // Les boutons pré-vol et post-vol sont visibles
@@ -195,7 +195,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'agecanonix', 'password');
 
     await page.goto(vdPreFlightUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // Seul le champ urgence est éditable
@@ -203,7 +203,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await page.fill('input[name="urgence"]', '0611223344');
 
     await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
   });
 
@@ -211,7 +211,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'agecanonix', 'password');
 
     await page.goto(vdDoneUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // Les champs date_vol, pilote, airplane_immat sont visibles
@@ -220,7 +220,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await page.fill('input[name="date_vol"]', '2026-03-25');
 
     await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
   });
 
@@ -228,7 +228,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'agecanonix', 'password');
 
     const response = await page.goto(VD_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // pilote_vd peut accéder au formulaire de création (pour payer par CB)
     expect(response.status()).toBe(200);
@@ -244,7 +244,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     const obfuscatedId = vdActionUrl.split('/action/')[1];
     // Navigate to briefing index (linked from list)
     await page.goto('/index.php/briefing_passager');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 
     // The briefing page should be accessible (not 404)

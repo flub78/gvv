@@ -51,6 +51,7 @@ const SKIP_PATTERNS = [
     /\/install/,
     /\/testunit/,
     /\/api\//,
+    /\/resultat_par_sections/, // Heavy cross-section query — tested in resultat-par-sections.spec.js
     /^\/compta\/journal_compte(\/|$)/, // Legacy-denied endpoint for panoramix
     /\/user_guide\//,         // CodeIgniter documentation
     /\/libraries\//,          // CI library docs
@@ -347,3 +348,4 @@ test.describe('Panoramix Recursive Authorization Crawl', () => {
         ).toBe(0);
     });
 });
+
