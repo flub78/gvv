@@ -7,6 +7,7 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
+* [] Problème d'accès pour certains trésoriers
 
 ## Priorités
 
@@ -25,6 +26,11 @@ Cela implique de:
 
 ## Reste à faire
 
+* []Supprimer la date du jour par défaut dans les écritures
+* [] Supprimer la date du jour par défaut dans les écritures
+* [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
+
+* [] Facture automatique de hangar
 * [] Briefing passager, simplifier le workflow avec le QRCode ???
      
 * [] gestion des droits multi sections (wip)
