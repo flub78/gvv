@@ -29,6 +29,9 @@ include(APPPATH . '/third_party/phpqrcode/qrlib.php');
 include(APPPATH . '/third_party/tcpdf/tcpdf.php');
 
 
+/**
+ * @property CI_Loader $load
+ */
 class Vols_decouverte extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
@@ -36,6 +39,9 @@ class Vols_decouverte extends Gvv_Controller {
     protected $model = 'vols_decouverte_model';
     protected $modification_level = 'gestion_vd';
     protected $rules = array('club' => "callback_section_selected");
+
+    // Méthodes accessibles sans authentification
+    protected $public_methods = array('public_vd');
 
 
     /**
@@ -422,6 +428,17 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['year_selector'] = $this->gvv_model->get_available_years();
         $this->data['controller'] = $this->controller;
         $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
+
+        // Visibilité bouton "Partager la page publique"
+        $section_id = (int) $this->session->userdata('section');
+        $this->data['current_section_id'] = $section_id;
+        $this->data['vd_par_cb_enabled'] = false;
+        if ($section_id > 0) {
+            $section_row = $this->sections_model->get_by_id('id', $section_id);
+            if (!empty($section_row['has_vd_par_cb'])) {
+                $this->data['vd_par_cb_enabled'] = true;
+            }
+        }
 
         // Handle filter error messages
         $filter_error = $this->session->userdata('vd_filter_error');
@@ -992,5 +1009,405 @@ EOD;
             'width' => $width,
         ));
         $pdf->Output($base_filename . '.pdf', 'I');
+    }
+
+    // =========================================================================
+    // Page publique de réservation de vol de découverte
+    // =========================================================================
+
+    /**
+     * Envoie par email le lien de la page publique VD (POST).
+     *
+     * Accès : gestion_vd, tresorier, bureau, admin
+     */
+    public function send_public_link() {
+        $this->lang->load('vols_decouverte');
+
+        if (!$this->dx_auth->is_admin()
+            && !parent::user_has_role('gestion_vd')
+            && !has_role('tresorier')
+            && !has_role('bureau')) {
+            show_404();
+            return;
+        }
+
+        $section_id = (int) $this->input->post('section_id');
+        $to         = trim((string) $this->input->post('to') ?: '');
+
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_email'));
+            redirect('vols_decouverte/page');
+            return;
+        }
+
+        $lien    = site_url('vols_decouverte/public_vd?section=' . $section_id);
+        $subject = $this->lang->line('gvv_vd_share_link_subject');
+        $body    = $lien;
+
+        $this->load->model('configuration_model');
+        $nom_club     = $this->config->item('nom_club') ?: 'GVV';
+        $sender_email = $this->configuration_model->get_param('vd.email.sender_email') ?: 'noreply@gvv.net';
+        $sender_name  = $this->configuration_model->get_param('vd.email.sender_name')  ?: $nom_club;
+
+        try {
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'html',
+                'charset'  => 'utf-8',
+            ));
+            $greeting = $this->lang->line('gvv_vd_share_link_greeting');
+            $intro    = $this->lang->line('gvv_vd_share_link_intro');
+            $cta      = $this->lang->line('gvv_vd_share_link_cta');
+            $closing  = $this->lang->line('gvv_vd_share_link_closing');
+            $lien_safe = htmlspecialchars($lien, ENT_QUOTES, 'UTF-8');
+            $message  = '<p>' . $greeting . '</p>'
+                      . '<p>' . $intro . '</p>'
+                      . '<p><a href="' . $lien_safe . '">' . $cta . '</a></p>'
+                      . '<p>' . $closing . '<br>' . htmlspecialchars($sender_name, ENT_QUOTES, 'UTF-8') . '</p>';
+
+            $this->email->from($sender_email, $sender_name);
+            $this->email->to($to);
+            $this->email->subject($subject);
+            $this->email->message($message);
+
+            if (@$this->email->send()) {
+                $this->session->set_flashdata('success', $this->lang->line('gvv_vd_share_link_sent'));
+            } else {
+                $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_checkout'));
+            }
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_checkout'));
+        }
+
+        redirect('vols_decouverte/page');
+    }
+
+    /**
+     * Génère un QR Code PNG pointant vers la page publique VD de la section.
+     *
+     * Accès : gestion_vd, tresorier, bureau, club-admin, admin
+     *
+     * @param int $section_id  Identifiant de la section
+     */
+    public function qrcode($section_id = 0) {
+        if (!$this->dx_auth->is_admin()
+            && !parent::user_has_role('gestion_vd')
+            && !has_role('tresorier')
+            && !has_role('bureau')) {
+            show_404();
+            return;
+        }
+
+        $section_id = (int) $section_id;
+        if (!$section_id) {
+            $this->output->set_status_header(400);
+            $this->output->set_output('Bad request: section_id required');
+            return;
+        }
+
+        $section = $this->sections_model->get_by_id('id', $section_id);
+        if (!$section || empty($section['has_vd_par_cb'])) {
+            $this->output->set_status_header(404);
+            $this->output->set_output('Not found: section not found or VD card payment not enabled');
+            return;
+        }
+
+        $url = site_url('vols_decouverte/public_vd?section=' . $section_id);
+
+        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+        header('Content-Type: image/png');
+        QRcode::png($url, false, QR_ECLEVEL_M, 5, 2);
+        exit;
+    }
+
+    /**
+     * Page publique d'achat d'un bon de vol de découverte.
+     *
+     * GET  : affiche le sélecteur de section, le formulaire et le statut de quota.
+     * POST : valide le formulaire, crée la transaction pending et redirige vers HelloAsso.
+     *
+     * Accès : public (pas de session requise)
+     *
+     * @param int $section_id  Section forcée (via segment d'URL, optionnel)
+     */
+    public function public_vd($section_id = 0) {
+        $this->load->helper('vd_quota');
+        $this->load->helper('rate_limit');
+        $this->load->model('paiements_en_ligne_model');
+        $this->lang->load('vols_decouverte');
+        $this->lang->load('paiements_en_ligne');
+
+        $section_id = (int) ($section_id ?: $this->input->get('section'));
+
+        // Liste de toutes les sections avec VD par CB activé et statut quota
+        $sections_disponibles = get_sections_vd_disponibles();
+
+        // Validation de la section si fournie
+        $section_row = null;
+        $section_error = '';
+        if ($section_id > 0) {
+            foreach ($sections_disponibles as $s) {
+                if ((int) $s['id'] === $section_id) {
+                    $section_row = $s;
+                    break;
+                }
+            }
+            if (!$section_row) {
+                $section_error = $this->lang->line('gvv_vd_public_section_disabled');
+            }
+        }
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $this->_post_public_vd($section_id, $section_row, $sections_disponibles);
+            return;
+        }
+
+        $this->_render_public_vd($section_id, $section_row, $sections_disponibles, $section_error);
+    }
+
+    /**
+     * Traite la soumission POST du formulaire public VD.
+     */
+    private function _post_public_vd($section_id, $section_row, array $sections_disponibles) {
+        // Rate limiting
+        if (!check_rate_limit('vd_public_form', 10, 3600)) {
+            $this->_render_public_vd(
+                $section_id, $section_row, $sections_disponibles, '',
+                array('rate_limit' => $this->lang->line('gvv_vd_public_rate_limit'))
+            );
+            return;
+        }
+
+        // Vérification quota
+        if ($section_id > 0) {
+            $quota_status = get_vd_quota_status($section_id);
+            if ($quota_status['atteint']) {
+                $this->_render_public_vd(
+                    $section_id, $section_row, $sections_disponibles, '',
+                    array(), $quota_status
+                );
+                return;
+            }
+        }
+
+        // Validation des champs
+        $beneficiaire   = trim((string) $this->input->post('beneficiaire'));
+        $de_la_part     = trim((string) $this->input->post('de_la_part'));
+        $occasion       = trim((string) $this->input->post('occasion'));
+        $acheteur_email = trim((string) $this->input->post('acheteur_email'));
+        $acheteur_tel   = trim((string) $this->input->post('acheteur_tel'));
+        $urgence        = trim((string) $this->input->post('urgence'));
+        $poids          = (int) $this->input->post('poids_passagers');
+        $nb_personnes   = max(1, (int) $this->input->post('nb_personnes'));
+        $product_ref    = trim((string) $this->input->post('product_ref'));
+        $post_section   = (int) $this->input->post('section_id');
+
+        if ($post_section && !$section_id) {
+            $section_id = $post_section;
+        }
+
+        $form_data = compact(
+            'beneficiaire', 'de_la_part', 'occasion',
+            'acheteur_email', 'acheteur_tel', 'urgence',
+            'poids', 'nb_personnes', 'product_ref'
+        );
+
+        $errors = array();
+
+        if (empty($beneficiaire)) {
+            $errors['beneficiaire'] = $this->lang->line('gvv_vd_public_error_beneficiaire');
+        }
+        if (!filter_var($acheteur_email, FILTER_VALIDATE_EMAIL)) {
+            $errors['acheteur_email'] = $this->lang->line('gvv_vd_public_error_email');
+        }
+        if (empty($acheteur_tel)) {
+            $errors['acheteur_tel'] = $this->lang->line('gvv_vd_public_error_tel');
+        }
+        if (empty($urgence)) {
+            $errors['urgence'] = $this->lang->line('gvv_vd_public_error_urgence');
+        }
+
+        // Chargement du produit
+        $produit = null;
+        if (!empty($product_ref) && $section_id > 0) {
+            $today = date('Y-m-d');
+            $produit = $this->db
+                ->query(
+                    "SELECT reference, description, prix, compte, nb_personnes_max
+                     FROM tarifs
+                     WHERE club = ? AND reference = ? AND type_ticket = 1 AND public = 1
+                       AND date <= ? AND (date_fin IS NULL OR date_fin >= ?)
+                     ORDER BY date DESC LIMIT 1",
+                    array($section_id, $product_ref, $today, $today)
+                )
+                ->row_array();
+        }
+
+        if (!$produit) {
+            $errors['product'] = $this->lang->line('gvv_vd_public_error_product');
+        } else {
+            $nb_max = (int) $produit['nb_personnes_max'];
+            if ($nb_max > 1 && $nb_personnes > $nb_max) {
+                $errors['nb_personnes'] = sprintf(
+                    $this->lang->line('gvv_vd_public_error_nb_personnes'),
+                    $nb_max
+                );
+            }
+        }
+
+        if (!empty($errors)) {
+            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            return;
+        }
+
+        // Vérification HelloAsso activé pour la section
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
+        if ($enabled !== '1') {
+            $errors['general'] = $this->lang->line('gvv_vd_public_section_disabled');
+            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            return;
+        }
+
+        // Création de la transaction
+        $this->load->library('Helloasso');
+
+        $montant     = (float) $produit['prix'];
+        $txid        = 'vdpub-' . $section_id . '-' . time() . '-' . substr(uniqid(), -6);
+        $description = trim('Bon découverte - ' . $produit['description']);
+
+        $meta = array(
+            'type'                  => 'decouverte',
+            'product_reference'     => (string) $produit['reference'],
+            'product_description'   => (string) $produit['description'],
+            'compte_destination_id' => (int) $produit['compte'],
+            'beneficiaire'          => $beneficiaire,
+            'de_la_part'            => $de_la_part,
+            'occasion'              => $occasion,
+            'beneficiaire_email'    => $acheteur_email,
+            'beneficiaire_tel'      => $acheteur_tel,
+            'urgence'               => $urgence,
+            'poids_passagers'       => $poids,
+            'nb_personnes'          => max(1, (int) ($produit['nb_personnes_max'] > 1 ? $nb_personnes : 1)),
+            'origine'               => 'public',
+            'description'           => $description,
+            'gvv_transaction_id'    => $txid,
+        );
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => 0,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $section_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode($meta),
+            'created_by'     => 'public',
+        ));
+
+        if (!$tx_id) {
+            $errors['general'] = $this->lang->line('gvv_vd_public_error_db');
+            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            return;
+        }
+
+        // Création du checkout HelloAsso
+        $checkout = $this->helloasso->create_checkout($section_id, array(
+            'amount'           => $montant,
+            'item_name'        => $description,
+            'payer_first_name' => $beneficiaire,
+            'payer_last_name'  => '',
+            'payer_email'      => $acheteur_email,
+            'return_url'       => site_url('paiements_en_ligne/public_decouverte_confirmation?club=' . $section_id . '&txid=' . urlencode($txid)),
+            'back_url'         => site_url('vols_decouverte/public_vd?section=' . $section_id),
+            'error_url'        => site_url('vols_decouverte/public_vd?section=' . $section_id),
+            'metadata'         => $meta,
+        ));
+
+        if (!$checkout['success']) {
+            $detail = !empty($checkout['error_message']) ? $checkout['error_message'] : '';
+            $errors['general'] = $this->lang->line('gvv_vd_public_error_checkout')
+                . ($detail ? ' — ' . $detail : '');
+            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
+        }
+
+        redirect($checkout['redirect_url']);
+    }
+
+    /**
+     * Rend la vue publique VD avec les données construites.
+     *
+     * @param int         $section_id         Section sélectionnée (0 = aucune)
+     * @param array|null  $section_row         Données de la section sélectionnée
+     * @param array       $sections_disponibles Toutes les sections VD CB
+     * @param string      $section_error        Erreur de section
+     * @param array       $errors               Erreurs de validation POST
+     * @param array|null  $quota_status         Statut quota (si atteint, POST)
+     * @param array       $form_data            Données saisies à réafficher
+     */
+    private function _render_public_vd(
+        $section_id,
+        $section_row,
+        array $sections_disponibles,
+        $section_error = '',
+        array $errors = array(),
+        $quota_status = null,
+        array $form_data = array()
+    ) {
+        $products    = array();
+        $quota_status_get = null;
+        $accueil_text = '';
+
+        if ($section_id > 0 && $section_row && empty($section_error)) {
+            $quota_status_get = $quota_status ?: get_vd_quota_status($section_id);
+
+            if (!$quota_status_get['atteint']) {
+                $today = date('Y-m-d');
+                $products = $this->db->query(
+                    "SELECT reference, description, prix, nb_personnes_max
+                     FROM tarifs
+                     WHERE club = ? AND type_ticket = 1 AND public = 1
+                       AND date <= ? AND (date_fin IS NULL OR date_fin >= ?)
+                     ORDER BY prix ASC",
+                    array($section_id, $today, $today)
+                )->result_array();
+            }
+
+            // Texte d'accueil depuis la config de la section
+            $raw = $this->paiements_en_ligne_model->get_config('helloasso', 'vd_accueil_text', $section_id);
+            $accueil_text = $raw ?: $this->lang->line('gvv_vd_public_default_accueil');
+        }
+
+        // Sections alternatives sans quota atteint (hors section courante)
+        $sections_alternatives = array();
+        foreach ($sections_disponibles as $s) {
+            if ((int) $s['id'] !== $section_id && !$s['quota_status']['atteint']) {
+                $sections_alternatives[] = $s;
+            }
+        }
+
+        $data = array(
+            'section_id'           => $section_id,
+            'section_row'          => $section_row,
+            'sections_disponibles' => $sections_disponibles,
+            'sections_alternatives'=> $sections_alternatives,
+            'section_error'        => $section_error,
+            'quota_status'         => $quota_status_get,
+            'products'             => $products,
+            'accueil_text'         => $accueil_text,
+            'errors'               => $errors,
+            'form_data'            => $form_data,
+            'title'                => $this->lang->line('gvv_vd_public_title'),
+        );
+
+        $this->load->view('vols_decouverte/bs_public_vd', $data);
     }
 }

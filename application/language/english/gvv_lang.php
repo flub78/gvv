@@ -679,3 +679,5 @@ $lang['gvv_drop_file_here'] = 'Drag and drop a file here';
 $lang['gvv_or'] = 'or';
 $lang['gvv_choose_file'] = 'Choose a file';
 $lang['gvv_no_file_selected'] = 'No file selected';
+
+$lang['gvv_nb_personnes_max'] = 'Max passengers';

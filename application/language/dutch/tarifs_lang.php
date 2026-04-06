@@ -34,3 +34,6 @@ $lang['gvv_tarifs_warning'] = "Opgelet de referenties worden gebruikt in de boek
 $lang['gvv_tarifs_label_todate'] = "Tarieven bijgewerkt";
 $lang['gvv_tarifs_label_public'] = "Openbaar";
 $lang['gvv_tarifs_filter_public_select'] = array(0 => 'Alle', 1 => 'openbaar', 2 => 'privaat');
+
+$lang['gvv_tarifs_field_nb_personnes_max'] = "Max passagiers";
+$lang['gvv_vue_tarifs_short_field_nb_personnes_max'] = "Max pass.";

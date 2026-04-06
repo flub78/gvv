@@ -16,7 +16,7 @@ const { test, expect } = require('@playwright/test');
 
 const PUBLIC_BAR_URL      = '/index.php/paiements_en_ligne/public_bar';
 const PUBLIC_BAR_URL_C4   = '/index.php/paiements_en_ligne/public_bar/4';
-const SANDBOX_CHECK_URL   = '/index.php/paiements_en_ligne/sandbox_available';
+const SANDBOX_CHECK_URL   = '/index.php/paiements_en_ligne/sandbox_available?club=4';
 
 test.describe('UC2 — Bar externe via QR Code', () => {
 

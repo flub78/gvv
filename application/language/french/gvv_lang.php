@@ -691,3 +691,4 @@ $lang['gvv_drop_file_here'] = 'Glisser-déposer un fichier ici';
 $lang['gvv_or'] = 'ou';
 $lang['gvv_choose_file'] = 'Choisir un fichier';
 $lang['gvv_no_file_selected'] = 'Aucun fichier sélectionné';
+$lang['gvv_nb_personnes_max'] = 'Nb max passagers';

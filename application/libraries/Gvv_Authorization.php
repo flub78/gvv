@@ -362,15 +362,19 @@ class Gvv_Authorization
             return FALSE;
         }
 
-        // club-admin bypasses all role checks (superadmin equivalent)
-        if ($this->has_role($user_id, 'club-admin', NULL)) {
+        // Fetch roles once (includes global roles via include_global=TRUE)
+        $user_roles = $this->get_user_roles($user_id, $section_id);
+        $role_names = array_column($user_roles, 'role_name');
+
+        // club-admin bypasses all role checks (superadmin equivalent, global role)
+        if (in_array('club-admin', $role_names)) {
             log_message('debug', "GVV_Auth: User {$user_id} is club-admin, bypassing role check");
             return TRUE;
         }
 
         // Check if user has any of the required roles
         foreach ($roles as $role_name) {
-            if ($this->has_role($user_id, $role_name, $section_id)) {
+            if (in_array($role_name, $role_names)) {
                 log_message('debug', "GVV_Auth: User {$user_id} has required role '{$role_name}'");
                 return TRUE;
             }

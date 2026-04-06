@@ -679,3 +679,5 @@ $lang['gvv_drop_file_here'] = 'Sleep een bestand hierheen';
 $lang['gvv_or'] = 'of';
 $lang['gvv_choose_file'] = 'Bestand kiezen';
 $lang['gvv_no_file_selected'] = 'Geen bestand geselecteerd';
+
+$lang['gvv_nb_personnes_max'] = 'Max passagiers';

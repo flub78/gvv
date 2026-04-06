@@ -395,6 +395,13 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_tarifs']['public']['Subtype'] = 'boolean';
                 $this->field['tarifs']['is_cotisation']['Subtype'] = 'boolean';
                 $this->field['vue_tarifs']['is_cotisation']['Subtype'] = 'boolean';
+                $this->field['tarifs']['nb_personnes_max']['Type'] = 'int';
+                $this->field['tarifs']['nb_personnes_max']['Name'] = 'Nb max passagers';
+                $this->field['tarifs']['nb_personnes_max']['Min'] = 1;
+                $this->field['tarifs']['nb_personnes_max']['Default'] = 1;
+                $this->field['vue_tarifs']['nb_personnes_max']['Type'] = 'int';
+                $this->field['vue_tarifs']['nb_personnes_max']['Name'] = 'Nb max passagers';
+                $this->field['vue_tarifs']['nb_personnes_max']['Min'] = 1;
 
                 /**
                  * Table terrains

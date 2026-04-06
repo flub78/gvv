@@ -52,7 +52,8 @@ $fields = array(
 	'prix' => $prix,
 	'compte' => $compte,
 	'public' => $public,
-	'is_cotisation' => $is_cotisation
+	'is_cotisation' => $is_cotisation,
+	'nb_personnes_max' => isset($nb_personnes_max) ? $nb_personnes_max : 1,
 );
 
 if ($this->config->item('gestion_tickets')) {

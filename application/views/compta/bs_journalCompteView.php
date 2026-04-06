@@ -44,6 +44,14 @@ if ($section) {
 
 <h3><?= $title ?></h3>
 
+<?php if (!empty($has_bar)): ?>
+<div class="mb-3">
+  <a href="<?= site_url('paiements_en_ligne/bar_debit_solde') ?>" class="btn btn-warning btn-sm">
+    <i class="fas fa-beer me-1"></i><?= $this->lang->line('gvv_bar_button_link') ?>
+  </a>
+</div>
+<?php endif; ?>
+
 <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
 <div class='mb-3'>

@@ -34,3 +34,6 @@ $lang['gvv_tarifs_warning'] = "Attention les références sont utilisées par le
 $lang['gvv_tarifs_label_todate'] = "Tarifs à la date du";
 $lang['gvv_tarifs_label_public'] = "Public";
 $lang['gvv_tarifs_filter_public_select'] = array(0 => 'Tous', 1 => 'public', 2 => 'privé');
+
+$lang['gvv_tarifs_field_nb_personnes_max'] = "Nb max passagers";
+$lang['gvv_vue_tarifs_short_field_nb_personnes_max'] = "Max pass.";

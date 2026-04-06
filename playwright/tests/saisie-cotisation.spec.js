@@ -159,7 +159,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
             await page.click('button#btnValidate');
 
             // Wait for page reload
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('domcontentloaded');
 
             // Check if submission was successful or if we got a validation error
             const successAlert = page.locator('.alert-success, .alert.alert-success');
@@ -186,7 +186,7 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
                     console.log(`Member ${i} already has a subscription, trying next...`);
                     // Reload page to reset form
                     await page.reload();
-                    await page.waitForLoadState('networkidle');
+                    await page.waitForLoadState('domcontentloaded');
                 } else {
                     // Different error, fail the test
                     throw new Error(`Unexpected error: ${errorText}`);
