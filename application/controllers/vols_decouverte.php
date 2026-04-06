@@ -1031,8 +1031,9 @@ EOD;
             return;
         }
 
-        $section_id = (int) $this->input->post('section_id');
-        $to         = trim((string) $this->input->post('to') ?: '');
+        $section_id     = (int) $this->input->post('section_id');
+        $to             = trim((string) $this->input->post('to') ?: '');
+        $custom_message = trim((string) $this->input->post('custom_message') ?: '');
 
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_email'));
@@ -1060,9 +1061,14 @@ EOD;
             $intro    = $this->lang->line('gvv_vd_share_link_intro');
             $cta      = $this->lang->line('gvv_vd_share_link_cta');
             $closing  = $this->lang->line('gvv_vd_share_link_closing');
-            $lien_safe = htmlspecialchars($lien, ENT_QUOTES, 'UTF-8');
+            $lien_safe      = htmlspecialchars($lien, ENT_QUOTES, 'UTF-8');
+            $custom_block   = '';
+            if ($custom_message !== '') {
+                $custom_block = '<p>' . nl2br(htmlspecialchars($custom_message, ENT_QUOTES, 'UTF-8')) . '</p>';
+            }
             $message  = '<p>' . $greeting . '</p>'
                       . '<p>' . $intro . '</p>'
+                      . $custom_block
                       . '<p><a href="' . $lien_safe . '">' . $cta . '</a></p>'
                       . '<p>' . $closing . '<br>' . htmlspecialchars($sender_name, ENT_QUOTES, 'UTF-8') . '</p>';
 

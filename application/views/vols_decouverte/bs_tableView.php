@@ -223,8 +223,15 @@ echo '</div>';
           </label>
           <input type="email" name="to" id="share-email" class="form-control" required>
         </div>
+        <div class="mb-3">
+          <label class="form-label" for="share-custom-msg">
+            <?= $this->lang->line('gvv_vd_share_link_custom_msg_label') ?>
+          </label>
+          <textarea name="custom_message" id="share-custom-msg" class="form-control" rows="3"
+                    placeholder="<?= htmlspecialchars($this->lang->line('gvv_vd_share_link_custom_msg_placeholder'), ENT_QUOTES, 'UTF-8') ?>"></textarea>
+        </div>
         <button type="submit" class="btn btn-primary btn-sm">
-          <i class="fas fa-paper-plane me-1"></i><?= $this->lang->line('gvv_vd_public_acheteur_email') ?>
+          <i class="fas fa-paper-plane me-1"></i><?= $this->lang->line('gvv_vd_share_link_send_btn') ?>
         </button>
         <?= form_close() ?>
 
