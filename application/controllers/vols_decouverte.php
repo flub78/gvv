@@ -1187,12 +1187,12 @@ EOD;
         }
 
         // Validation des champs
-        $beneficiaire   = htmlspecialchars(trim((string) $this->input->post('beneficiaire')),   ENT_QUOTES, 'UTF-8');
-        $de_la_part     = htmlspecialchars(trim((string) $this->input->post('de_la_part')),     ENT_QUOTES, 'UTF-8');
-        $occasion       = htmlspecialchars(trim((string) $this->input->post('occasion')),       ENT_QUOTES, 'UTF-8');
+        $beneficiaire   = trim((string) $this->input->post('beneficiaire'));
+        $de_la_part     = trim((string) $this->input->post('de_la_part'));
+        $occasion       = trim((string) $this->input->post('occasion'));
         $acheteur_email = trim((string) $this->input->post('acheteur_email'));
-        $acheteur_tel   = htmlspecialchars(trim((string) $this->input->post('acheteur_tel')),   ENT_QUOTES, 'UTF-8');
-        $urgence        = htmlspecialchars(trim((string) $this->input->post('urgence')),        ENT_QUOTES, 'UTF-8');
+        $acheteur_tel   = trim((string) $this->input->post('acheteur_tel'));
+        $urgence        = trim((string) $this->input->post('urgence'));
         $poids          = (int) $this->input->post('poids_passagers');
         $nb_personnes   = max(1, (int) $this->input->post('nb_personnes'));
         $product_ref    = trim((string) $this->input->post('product_ref'));
