@@ -372,18 +372,25 @@ class Paiements_en_ligne extends MY_Controller {
             }
         }
 
-        $logged_in = $this->dx_auth->is_logged_in();
+        $club_email = (string) ($this->config->item('email_club') ?: '');
+        if ($club_email === '') {
+            $club_email = (string) ($this->configuration_model->get_param('vd.email.sender_email') ?: '');
+        }
+
+        $sender_signature = (string) ($this->configuration_model->get_param('vd.email.sender_signature') ?: '');
+        if ($sender_signature === '') {
+            $sender_signature = (string) ($this->configuration_model->get_param('vd.email.sender_name') ?: ($this->config->item('nom_club') ?: 'GVV'));
+        }
+
         $data = array(
             'section'      => $section,
             'beneficiaire' => $beneficiaire,
             'montant'      => $montant,
             'email'        => $email,
+            'club_email'   => $club_email,
+            'signature'    => $sender_signature,
         );
         $this->load->view('bs_header', $data);
-        if ($logged_in) {
-            $this->load->view('bs_menu', $data);
-            $this->load->view('bs_banner', $data);
-        }
         $this->load->view('paiements_en_ligne/bs_public_decouverte_confirmation', $data);
         $this->load->view('bs_footer');
     }

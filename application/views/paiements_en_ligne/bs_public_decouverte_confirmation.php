@@ -10,6 +10,22 @@
 <h3><?= $this->lang->line('gvv_decouverte_public_confirm_title') ?></h3>
 <p class="text-muted"><?= $this->lang->line('gvv_decouverte_public_confirm_intro') ?></p>
 
+<div class="alert alert-success" style="max-width: 700px;">
+    <p class="mb-2">
+        Votre bon vol de découverte vous a été envoyé par email.
+        Si vous ne l'avez pas reçu, contactez-nous à
+        <?php if (!empty($club_email)): ?>
+            <a href="mailto:<?= htmlspecialchars($club_email) ?>"><?= htmlspecialchars($club_email) ?></a>.
+        <?php else: ?>
+            l'adresse email du club.
+        <?php endif; ?>
+    </p>
+    <p class="mb-2">Au plaisir de vous rencontrer bientôt.</p>
+    <?php if (!empty($signature)): ?>
+        <p class="mb-0 text-muted"><?= nl2br(htmlspecialchars($signature, ENT_QUOTES, 'UTF-8')) ?></p>
+    <?php endif; ?>
+</div>
+
 <div class="card mb-4" style="max-width: 500px;">
     <div class="card-body">
 
