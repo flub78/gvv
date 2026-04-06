@@ -24,6 +24,16 @@ $fd = is_array($form_data) ? $form_data : array();
 $fv = function($key, $default = '') use ($fd) {
     return htmlspecialchars(isset($fd[$key]) ? $fd[$key] : $default, ENT_QUOTES, 'UTF-8');
 };
+
+$has_validation_errors = false;
+if (!empty($errors) && is_array($errors)) {
+  foreach (array('beneficiaire', 'acheteur_email', 'acheteur_tel', 'urgence', 'product', 'nb_personnes') as $field_error) {
+    if (!empty($errors[$field_error])) {
+      $has_validation_errors = true;
+      break;
+    }
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -144,6 +154,12 @@ $fv = function($key, $default = '') use ($fd) {
       <?php if (empty($products)): ?>
         <div class="alert alert-info"><?= $this->lang->line('gvv_vd_public_no_product') ?></div>
       <?php else: ?>
+
+      <?php if ($has_validation_errors): ?>
+        <div class="alert alert-danger" role="alert">
+          Une erreur s'est produite. Veuillez vérifier les champs du formulaire.
+        </div>
+      <?php endif; ?>
 
       <form method="post" action="<?= site_url('vols_decouverte/public_vd') ?>" novalidate>
         <input type="hidden" name="section_id" value="<?= (int) $section_id ?>">
