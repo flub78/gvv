@@ -29,6 +29,9 @@ include(APPPATH . '/third_party/phpqrcode/qrlib.php');
 include(APPPATH . '/third_party/tcpdf/tcpdf.php');
 
 
+/**
+ * @property CI_Loader $load
+ */
 class Vols_decouverte extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
@@ -1099,12 +1102,14 @@ EOD;
         $section_id = (int) $section_id;
         if (!$section_id) {
             $this->output->set_status_header(400);
+            $this->output->set_output('Bad request: section_id required');
             return;
         }
 
         $section = $this->sections_model->get_by_id('id', $section_id);
         if (!$section || empty($section['has_vd_par_cb'])) {
             $this->output->set_status_header(404);
+            $this->output->set_output('Not found: section not found or VD card payment not enabled');
             return;
         }
 
