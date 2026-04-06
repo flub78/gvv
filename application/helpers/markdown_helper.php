@@ -32,6 +32,7 @@ if (!function_exists('markdown')) {
         if ($parser === null) {
             require_once APPPATH . 'libraries/Parsedown.php';
             $parser = new Parsedown();
+            $parser->setSafeMode(true);
         }
         return $parser->text($text);
     }
