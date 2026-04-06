@@ -211,6 +211,32 @@
   </div>
 </div>
 
+<!-- Page publique VD -->
+<div class="card mb-3">
+  <div class="card-header"><i class="fas fa-globe me-2 text-info"></i><?= $this->lang->line('gvv_vd_public_title') ?></div>
+  <div class="card-body">
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold"><?= $this->lang->line('gvv_vd_accueil_text_label') ?></label>
+      <textarea name="vd_accueil_text" class="form-control font-monospace" rows="4"
+                placeholder="<?= htmlspecialchars($this->lang->line('gvv_vd_public_default_accueil')) ?>"
+      ><?= htmlspecialchars($cfg['vd_accueil_text']) ?></textarea>
+    </div>
+
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold"><?= $this->lang->line('gvv_vd_quota_mensuel_label') ?></label>
+        <input type="number" name="vd_quota_mensuel" class="form-control" style="max-width:140px;"
+               value="<?= (int) $cfg['vd_quota_mensuel'] ?>" min="0" step="1" />
+      </div>
+      <div class="col-md-8 text-muted small">
+        <?= (int) $vd_vendu_30j ?> <?= $this->lang->line('gvv_vd_quota_atteint_msg') ?>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- Boutons -->
 <div class="d-flex gap-2 mb-4">
   <button type="submit" name="button" value="save" class="btn btn-success">

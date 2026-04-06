@@ -35,3 +35,6 @@ $lang['gvv_tarifs_warning'] = "Warning, references are used by the billing modul
 $lang['gvv_tarifs_label_todate'] = "Price list to date";
 $lang['gvv_tarifs_label_public'] = "Public";
 $lang['gvv_tarifs_filter_public_select'] = array(0 => 'All', 1 => 'public', 2 => 'private');
+
+$lang['gvv_tarifs_field_nb_personnes_max'] = "Max passengers";
+$lang['gvv_vue_tarifs_short_field_nb_personnes_max'] = "Max pass.";

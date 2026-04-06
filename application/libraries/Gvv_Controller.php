@@ -67,12 +67,18 @@ class Gvv_Controller extends MY_Controller {
         gvv_debug("URL: " . $current_url);
 
         if (getenv('TEST') != '1') {
-            // For new-auth users, skip legacy URI permission check inside check_login()
-            if ($this->use_new_auth) {
-                $this->dx_auth->skip_uri_check = TRUE;
+            $current_method = $this->router->fetch_method();
+            $is_public = isset($this->public_methods)
+                && in_array($current_method, $this->public_methods, true);
+
+            if (!$is_public) {
+                // For new-auth users, skip legacy URI permission check inside check_login()
+                if ($this->use_new_auth) {
+                    $this->dx_auth->skip_uri_check = TRUE;
+                }
+                // Checks to be done only when not controlled by PHPUnit
+                $this->dx_auth->check_login();
             }
-            // Checks to be done only when not controlled by PHPUnit
-            $this->dx_auth->check_login();
         }
 
         $this->restore_missing_section();

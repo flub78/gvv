@@ -72,6 +72,7 @@ class Paiements_en_ligne extends MY_Controller {
         $this->load->library('Helloasso');
         $this->lang->load('paiements_en_ligne');
         $this->lang->load('compta');
+        $this->lang->load('vols_decouverte');
     }
 
     // =========================================================================
@@ -1706,6 +1707,16 @@ class Paiements_en_ligne extends MY_Controller {
             'saisie_par'        => 'helloasso',
         );
 
+        if ($this->db->field_exists('beneficiaire_tel', 'vols_decouverte')) {
+            $insert['beneficiaire_tel'] = isset($meta['beneficiaire_tel']) ? (string) $meta['beneficiaire_tel'] : '';
+        }
+        if ($this->db->field_exists('urgence', 'vols_decouverte')) {
+            $insert['urgence'] = isset($meta['urgence']) ? (string) $meta['urgence'] : '';
+        }
+        if ($this->db->field_exists('nb_personnes', 'vols_decouverte')) {
+            $insert['nb_personnes'] = isset($meta['nb_personnes']) ? (int) $meta['nb_personnes'] : 1;
+        }
+
         if ($this->db->field_exists('date_validite', 'vols_decouverte')) {
             $insert['date_validite'] = $date_validite;
         }
@@ -2175,16 +2186,29 @@ EOD;
             $section_row = $query->row_array();
         }
 
+        // Comptage des bons VD vendus dans les 30 derniers jours pour la section
+        $vd_vendu_30j = 0;
+        if ($club_id) {
+            $row = $this->db->query(
+                'SELECT COUNT(*) AS cnt FROM vols_decouverte
+                 WHERE club = ? AND cancelled = 0
+                   AND date_vente >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)',
+                array($club_id)
+            )->row();
+            $vd_vendu_30j = $row ? (int) $row->cnt : 0;
+        }
+
         $data = array(
-            'sections_selector'    => $this->sections_model->selector(),
+            'sections_selector'         => $this->sections_model->selector(),
             'bar_account_selector'      => $bar_account_selector,
             'compte_passage_selector'   => $compte_passage_selector,
-            'club_id'              => $club_id,
-            'cfg'                  => $cfg,
-            'section_row'          => $section_row,
-            'webhook_url'          => site_url('paiements_en_ligne/helloasso_webhook/' . $club_id),
-            'success'              => $this->session->flashdata('success'),
-            'error'                => $this->session->flashdata('error'),
+            'club_id'                   => $club_id,
+            'cfg'                       => $cfg,
+            'section_row'               => $section_row,
+            'webhook_url'               => site_url('paiements_en_ligne/helloasso_webhook/' . $club_id),
+            'vd_vendu_30j'              => $vd_vendu_30j,
+            'success'                   => $this->session->flashdata('success'),
+            'error'                     => $this->session->flashdata('error'),
         );
 
         $this->load->view('bs_header', $data);
@@ -2247,14 +2271,16 @@ EOD;
 
         // Paramètres HelloAsso dans paiements_en_ligne_config
         $keys = array(
-            'client_id'      => trim($this->input->post('client_id') ?: ''),
-            'account_slug'   => trim($this->input->post('account_slug') ?: ''),
-            'environment'    => $this->input->post('environment') === 'production' ? 'production' : 'sandbox',
-            'webhook_secret' => trim($this->input->post('webhook_secret') ?: ''),
-            'compte_passage' => (string)(int)($this->input->post('compte_passage') ?: 0),
-            'montant_min'    => (float) ($this->input->post('montant_min') ?: 10),
-            'montant_max'    => (float) ($this->input->post('montant_max') ?: 500),
-            'enabled'        => $this->input->post('enabled') ? '1' : '0',
+            'client_id'        => trim($this->input->post('client_id') ?: ''),
+            'account_slug'     => trim($this->input->post('account_slug') ?: ''),
+            'environment'      => $this->input->post('environment') === 'production' ? 'production' : 'sandbox',
+            'webhook_secret'   => trim($this->input->post('webhook_secret') ?: ''),
+            'compte_passage'   => (string)(int)($this->input->post('compte_passage') ?: 0),
+            'montant_min'      => (float) ($this->input->post('montant_min') ?: 10),
+            'montant_max'      => (float) ($this->input->post('montant_max') ?: 500),
+            'enabled'          => $this->input->post('enabled') ? '1' : '0',
+            'vd_accueil_text'  => (string) ($this->input->post('vd_accueil_text') ?: ''),
+            'vd_quota_mensuel' => (string) max(0, (int) ($this->input->post('vd_quota_mensuel') ?: 0)),
         );
 
         // client_secret : ne remplacer que si une nouvelle valeur est saisie
@@ -2320,15 +2346,17 @@ EOD;
      */
     private function _load_config($club_id) {
         $defaults = array(
-            'client_id'      => '',
-            'client_secret'  => '',
-            'account_slug'   => '',
-            'environment'    => 'sandbox',
-            'webhook_secret' => '',
-            'compte_passage' => '0',
-            'montant_min'    => '10',
-            'montant_max'    => '500',
-            'enabled'        => '0',
+            'client_id'        => '',
+            'client_secret'    => '',
+            'account_slug'     => '',
+            'environment'      => 'sandbox',
+            'webhook_secret'   => '',
+            'compte_passage'   => '0',
+            'montant_min'      => '10',
+            'montant_max'      => '500',
+            'enabled'          => '0',
+            'vd_accueil_text'  => '',
+            'vd_quota_mensuel' => '0',
         );
 
         if (!$club_id) return $defaults;

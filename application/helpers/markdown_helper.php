@@ -23,16 +23,17 @@ if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 if (!function_exists('markdown')) {
     /**
      * Convert markdown text to HTML
-     * 
+     *
      * @param string $text The markdown text to convert
      * @return string The converted HTML
      */
     function markdown($text) {
-        $CI =& get_instance();
-        if (!isset($CI->my_parsedown)) {
-            $CI->load->library('MY_Parsedown', null, 'my_parsedown');
+        static $parser = null;
+        if ($parser === null) {
+            require_once APPPATH . 'libraries/Parsedown.php';
+            $parser = new Parsedown();
         }
-        return $CI->my_parsedown->text($text);
+        return $parser->text($text);
     }
 }
 
