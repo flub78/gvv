@@ -33,15 +33,8 @@ if (!function_exists('check_rate_limit')) {
     function check_rate_limit($endpoint, $max = 10, $window_seconds = 3600) {
         $CI =& get_instance();
 
-        // Résolution de l'IP réelle (support proxy limité à la première IP)
+        // Ne jamais faire confiance à X-Forwarded-For côté client : source spoofable.
         $ip = $_SERVER['REMOTE_ADDR'];
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $forwarded = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            $first = trim($forwarded[0]);
-            if (filter_var($first, FILTER_VALIDATE_IP)) {
-                $ip = $first;
-            }
-        }
 
         // Purge aléatoire des entrées expirées (1% de probabilité)
         if (mt_rand(1, 100) === 1) {
