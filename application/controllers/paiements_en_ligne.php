@@ -52,6 +52,7 @@ class Paiements_en_ligne extends MY_Controller {
             'public_decouverte',
             'public_decouverte_confirmation',
             'decouverte_qr_image',
+            'sandbox_available',
         );
         if (!in_array($this->router->fetch_method(), $public_methods)) {
             if (!$this->dx_auth->is_logged_in()) {
@@ -2111,14 +2112,18 @@ EOD;
      * Pas de vue — réponse JSON minimale.
      */
     public function sandbox_available() {
-        $section = $this->sections_model->section();
-        $club_id = isset($section['id']) ? (int) $section['id'] : 0;
+        $club_id = (int) ($this->input->get('club') ?: 0);
+        if (!$club_id) {
+            $section = $this->sections_model->section();
+            $club_id = isset($section['id']) ? (int) $section['id'] : 0;
+        }
 
         $available = false;
         if ($club_id > 0) {
             $client_id     = $this->paiements_en_ligne_model->get_config('helloasso', 'client_id', $club_id);
             $client_secret = $this->paiements_en_ligne_model->get_config('helloasso', 'client_secret', $club_id);
-            $available = !empty($client_id) && !empty($client_secret);
+            $enabled       = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+            $available = !empty($client_id) && !empty($client_secret) && !empty($enabled);
         }
 
         $this->output->set_content_type('application/json');
