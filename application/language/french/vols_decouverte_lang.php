@@ -105,7 +105,7 @@ $lang['gvv_vd_share_link_cta']           = "Accéder à la page d'achat";
 $lang['gvv_vd_share_link_closing']       = "Cordialement,";
 $lang['gvv_vd_quota_mensuel_label']       = "Quota mensuel de vols (0 = illimité)";
 $lang['gvv_vd_quota_atteint_titre']       = "Vols de découverte temporairement indisponibles";
-$lang['gvv_vd_quota_atteint_msg']         = "Le quota de vols de découverte pour cette section est atteint pour la période en cours.";
+$lang['gvv_vd_quota_atteint_msg']         = "Le quota de vols de découverte pour cette section est atteint pour la période en cours. Les associations ne peuvent pas faire plus de 8% de leurs vols en vols de découverte, et nous avons atteint cette limite pour le moment. Nous vous invitons à revenir plus tard ou à contacter la section pour plus d'informations.";
 $lang['gvv_vd_quota_reset_dans']          = "Revenez dans %d jour(s) pour tenter votre chance.";
 $lang['gvv_vd_quota_autres_sections']     = "D'autres formules sont disponibles :";
 $lang['gvv_vd_quota_aucune_autre']        = "Aucune autre section n'est disponible pour le moment.";
