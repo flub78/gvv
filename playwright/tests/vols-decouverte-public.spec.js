@@ -237,7 +237,7 @@ test('Quota atteint screen shown when quota reached', async ({ page, request: ap
 
     // Either the form OR the quota screen is visible — both are valid states
     const formVisible  = await page.locator('input[name="beneficiaire"]').isVisible();
-    const quotaVisible = await page.locator('.alert-warning').isVisible();
+    const quotaVisible = await page.locator('#quota-alert').isVisible();
 
     // One of the two must be shown (or neither if section has no products)
     expect(formVisible || quotaVisible || true).toBeTruthy();

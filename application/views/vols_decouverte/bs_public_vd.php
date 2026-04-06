@@ -112,7 +112,7 @@ $fv = function($key, $default = '') use ($fd) {
 
     <?php if (!empty($quota_status) && $quota_status['atteint']): ?>
       <!-- Écran quota atteint -->
-      <div class="alert alert-warning">
+      <div id="quota-alert" class="alert alert-warning">
         <h5 class="alert-heading">
           <i class="fas fa-clock me-1"></i><?= $this->lang->line('gvv_vd_quota_atteint_titre') ?>
         </h5>
