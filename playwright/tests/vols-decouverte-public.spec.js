@@ -97,6 +97,38 @@ test.describe('Public VD page — GET', () => {
 
 test.describe('Public VD page — POST validation', () => {
 
+    test('POST without urgence shows error and keeps full form rendered', async ({ page }) => {
+        await page.goto(PUBLIC_VD_URL + '?section=' + TEST_SECTION);
+        await page.waitForLoadState('networkidle');
+
+        const form = page.locator('form[action*="public_vd"]');
+        if (await form.count() === 0) {
+            test.skip();
+            return;
+        }
+
+        // Fill all required fields except urgence to trigger the targeted validation path.
+        await page.fill('input[name="beneficiaire"]', 'Jean O\'Brien');
+        await page.fill('input[name="acheteur_email"]', 'jean.obrien@example.com');
+        await page.fill('input[name="acheteur_tel"]', '0612345678');
+
+        await page.click('button[type="submit"]');
+        await page.waitForLoadState('networkidle');
+
+        await checkNoPhpErrors(page);
+
+        // Page must still be fully rendered (no partial/blank reload).
+        await expect(page.locator('h1')).toContainText('Réserver un vol de découverte');
+        await expect(page.locator('form[action*="public_vd"]')).toBeVisible();
+
+        // The specific validation message for missing emergency contact must be visible.
+        await expect(page.getByText('Le contact d\'urgence est obligatoire')).toBeVisible();
+
+        // Previously entered values should remain available after validation failure.
+        await expect(page.locator('input[name="beneficiaire"]')).toHaveValue('Jean O\'Brien');
+        await expect(page.locator('input[name="urgence"]')).toHaveValue('');
+    });
+
     test('POST with empty required fields shows validation errors', async ({ page }) => {
         await page.goto(PUBLIC_VD_URL + '?section=' + TEST_SECTION);
         await page.waitForLoadState('networkidle');

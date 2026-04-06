@@ -1203,8 +1203,18 @@ EOD;
         $product_ref    = trim((string) $this->input->post('product_ref'));
         $post_section   = (int) $this->input->post('section_id');
 
-        if ($post_section && !$section_id) {
+        if ($post_section) {
             $section_id = $post_section;
+        }
+
+        // POST may target /public_vd without ?section=...; reload section context from posted section_id.
+        if ($section_id > 0 && !$section_row) {
+            foreach ($sections_disponibles as $s) {
+                if ((int) $s['id'] === $section_id) {
+                    $section_row = $s;
+                    break;
+                }
+            }
         }
 
         $form_data = compact(
