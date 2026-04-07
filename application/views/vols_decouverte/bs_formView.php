@@ -52,6 +52,7 @@ echo form_open(controller_url($controller) . "/formValidation/" . $action, array
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 echo form_hidden('saisie_par', $saisie_par, '');
 echo form_hidden('id', $id);
+echo form_hidden('source_url', current_url());
 
 // echo validation_errors();
 

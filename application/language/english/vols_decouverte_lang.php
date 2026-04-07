@@ -115,3 +115,4 @@ $lang['gvv_vd_quota_aucune_autre']        = "No other section is currently avail
 $lang['gvv_vd_quota_complet_badge']       = "Full";
 $lang['gvv_vd_quota_complet_reset']       = "Available in %d d";
 $lang['gvv_vd_quota_erreur_post']         = "This section is no longer accepting new bookings at this time.";
+$lang['gvv_vd_date_vol_future']           = "Enter the date the flight was performed. This is not a planning date";

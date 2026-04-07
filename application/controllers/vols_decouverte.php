@@ -38,7 +38,10 @@ class Vols_decouverte extends Gvv_Controller {
     protected $controller = 'vols_decouverte';
     protected $model = 'vols_decouverte_model';
     protected $modification_level = 'gestion_vd';
-    protected $rules = array('club' => "callback_section_selected");
+    protected $rules = array(
+        'club'     => "callback_section_selected",
+        'date_vol' => "callback_date_vol_not_future",
+    );
 
     // Méthodes accessibles sans authentification
     protected $public_methods = array('public_vd');
@@ -132,6 +135,8 @@ class Vols_decouverte extends Gvv_Controller {
 
     /**
      * Override: intercept "payer_cb" button before delegating to parent.
+     * For done/pre_flight pages, redirect back to source URL on validation error
+     * so the user sees the error on the correct page.
      */
     public function formValidation($action, $return_on_success = false) {
         $button = $this->input->post('button');
@@ -139,6 +144,20 @@ class Vols_decouverte extends Gvv_Controller {
         if ($button === 'payer_cb' && (int) $action === CREATION) {
             $this->_initiate_decouverte_helloasso();
             return;
+        }
+
+        $source_url = $this->input->post('source_url') ?: '';
+        $from_done_or_preflight = !empty($source_url)
+            && (strpos($source_url, '/done/') !== false || strpos($source_url, '/pre_flight/') !== false);
+
+        if ($from_done_or_preflight) {
+            $date_vol = $this->input->post('date_vol');
+            if (!empty($date_vol) && !$this->date_vol_not_future($date_vol)) {
+                $this->lang->load('vols_decouverte');
+                $this->session->set_flashdata('error', $this->lang->line('gvv_vd_date_vol_future'));
+                redirect($source_url);
+                return;
+            }
         }
 
         return parent::formValidation($action, $return_on_success);
@@ -356,6 +375,25 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
+     * Validation callback: date_vol must not be in the future.
+     * Returns true if empty (field is optional on create/edit).
+     * Value is in d/m/Y format as submitted by the datepicker.
+     */
+    public function date_vol_not_future($value) {
+        if (empty($value)) {
+            return true;
+        }
+        $this->load->helper('validation');
+        $db_date = date_ht2db($value);
+        if ($db_date > date('Y-m-d')) {
+            $this->lang->load('vols_decouverte');
+            $this->form_validation->set_message('date_vol_not_future', $this->lang->line('gvv_vd_date_vol_future'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Validate filter type selection
      */
     private function _validate_filter_type($filter_type) {
@@ -439,6 +477,9 @@ class Vols_decouverte extends Gvv_Controller {
                 $this->data['vd_par_cb_enabled'] = true;
             }
         }
+
+        // Statistiques par section (toutes sections)
+        $this->data['vd_stats_per_section'] = $this->gvv_model->stats_per_section($current_year);
 
         // Handle filter error messages
         $filter_error = $this->session->userdata('vd_filter_error');

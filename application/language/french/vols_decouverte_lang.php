@@ -115,3 +115,4 @@ $lang['gvv_vd_quota_aucune_autre']        = "Aucune autre section n'est disponib
 $lang['gvv_vd_quota_complet_badge']       = "Complet";
 $lang['gvv_vd_quota_complet_reset']       = "Disponible dans %d j";
 $lang['gvv_vd_quota_erreur_post']         = "Cette section n'accepte plus de nouvelles réservations pour le moment.";
+$lang['gvv_vd_date_vol_future']           = "Entrez la date où le vol a été effectué. Ce n'est pas une date de planification";

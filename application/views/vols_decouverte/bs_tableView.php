@@ -45,6 +45,48 @@ if (isset($filter_error)) {
     echo '<div class="alert alert-danger">' . $filter_error . '</div>';
 }
 
+// Statistiques par section
+if (!empty($vd_stats_per_section)) {
+    $total_sold = array_sum(array_column($vd_stats_per_section, 'sold_this_year'));
+    $total_done = array_sum(array_column($vd_stats_per_section, 'done_this_year'));
+    $total_todo = array_sum(array_column($vd_stats_per_section, 'todo_valid'));
+    $multi      = count($vd_stats_per_section) > 1;
+    $year       = isset($year) ? $year : date('Y');
+
+    echo '<div class="card mb-3 border-primary">';
+    echo '<div class="card-header bg-primary text-white py-2">Vols de découverte vendus à effectuer</div>';
+    echo '<div class="card-body py-2">';
+    echo '<table class="table table-sm table-borderless mb-0">';
+    echo '<thead><tr>'
+        . '<th></th>'
+        . '<th class="text-center">Vendus en ' . (int)$year . '</th>'
+        . '<th class="text-center">Effectués en ' . (int)$year . '</th>'
+        . '<th class="text-center">À effectuer (valides)</th>'
+        . '</tr></thead><tbody>';
+    foreach ($vd_stats_per_section as $row) {
+        if ((int)$row['sold_this_year'] === 0 && (int)$row['done_this_year'] === 0 && (int)$row['todo_valid'] === 0) {
+            continue;
+        }
+        echo '<tr>'
+            . '<td class="fw-semibold">' . htmlspecialchars($row['nom']) . '</td>'
+            . '<td class="text-center"><span class="badge bg-primary">' . (int)$row['sold_this_year'] . '</span></td>'
+            . '<td class="text-center"><span class="badge bg-success">'  . (int)$row['done_this_year'] . '</span></td>'
+            . '<td class="text-center"><span class="badge bg-warning text-dark">' . (int)$row['todo_valid'] . '</span></td>'
+            . '</tr>';
+    }
+    if ($multi) {
+        echo '<tr class="border-top fw-semibold">'
+            . '<td>Total</td>'
+            . '<td class="text-center"><span class="badge bg-primary">'          . $total_sold . '</span></td>'
+            . '<td class="text-center"><span class="badge bg-success">'           . $total_done . '</span></td>'
+            . '<td class="text-center"><span class="badge bg-warning text-dark">' . $total_todo . '</span></td>'
+            . '</tr>';
+    }
+    echo '</tbody></table>';
+    echo '</div>';
+    echo '</div>';
+}
+
 // Year selector
 echo '<div class="mb-3">';
 if (isset($year_selector) && isset($year) && isset($controller)) {
@@ -52,6 +94,27 @@ if (isset($year_selector) && isset($year) && isset($controller)) {
 }
 echo '</div>';
 
+?>
+
+<?php
+// Create button above the filter
+if ($has_modification_rights) {
+    $btn_bar = '<div class="d-flex gap-2 mb-3">';
+    $btn_bar .= '<a href="' . site_url('vols_decouverte/create') . '" class="btn btn-sm btn-success">'
+        . '<i class="fas fa-plus" aria-hidden="true"></i> '
+        . $this->lang->line('gvv_button_create')
+        . '</a>';
+
+    if (!empty($vd_par_cb_enabled)) {
+        $btn_bar .= ' <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#shareModal">'
+            . '<i class="fas fa-share-alt me-1"></i>'
+            . $this->lang->line('gvv_vd_share_link_btn')
+            . '</button>';
+    }
+
+    $btn_bar .= '</div>';
+    echo $btn_bar;
+}
 ?>
 
 <!-- Filter accordion -->
@@ -140,25 +203,6 @@ $attrs = array(
     'mode' => ($has_modification_rights || $is_pilot_only) ? "rw" : "ro",
     'class' => "datatable table table-striped"
 );
-
-// Create button above the table
-if ($has_modification_rights) {
-    $btn_bar = '<div class="d-flex gap-2 mb-3">';
-    $btn_bar .= '<a href="' . site_url('vols_decouverte/create') . '" class="btn btn-sm btn-success">'
-        . '<i class="fas fa-plus" aria-hidden="true"></i> '
-        . $this->lang->line('gvv_button_create')
-        . '</a>';
-
-    if (!empty($vd_par_cb_enabled)) {
-        $btn_bar .= ' <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#shareModal">'
-            . '<i class="fas fa-share-alt me-1"></i>'
-            . $this->lang->line('gvv_vd_share_link_btn')
-            . '</button>';
-    }
-
-    $btn_bar .= '</div>';
-    echo $btn_bar;
-}
 
 echo $this->gvvmetadata->table("vue_vols_decouverte", $attrs, "");
 

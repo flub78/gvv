@@ -306,4 +306,5 @@ class VolsDecouverteDateValiditeTest extends TestCase
         $expected_validite = date('Y-m-d', strtotime($old_date . ' +1 year'));
         $this->assertEquals($expected_validite, $test_record['validite'], 'Old records should calculate validite correctly');
     }
+
 }

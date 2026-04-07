@@ -217,7 +217,11 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     // Les champs date_vol, pilote, airplane_immat sont visibles
     await expect(page.locator('input[name="date_vol"], input[name="date_vol"]')).toBeVisible();
 
-    await page.fill('input[name="date_vol"]', '2026-03-25');
+    // date_vol must be in the past (validation rejects future dates)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateVolStr = yesterday.toISOString().split('T')[0];
+    await page.fill('input[name="date_vol"]', dateVolStr);
 
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('domcontentloaded');
@@ -249,5 +253,25 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
 
     // The briefing page should be accessible (not 404)
     await expect(page.locator('body')).not.toContainText('404');
+  });
+
+  test('pilote_vd: date_vol dans le futur est rejetée avec message d\'erreur', async ({ page }) => {
+    await loginAs(page, 'agecanonix', 'password');
+
+    await page.goto(vdDoneUrl);
+    await page.waitForLoadState('domcontentloaded');
+    await checkNoPhpErrors(page);
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const futureDateStr = tomorrow.toISOString().split('T')[0];
+    await page.fill('input[name="date_vol"]', futureDateStr);
+
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('domcontentloaded');
+    await checkNoPhpErrors(page);
+
+    // Validation error should appear
+    await expect(page.locator('body')).toContainText("Ce n'est pas une date de planification");
   });
 });

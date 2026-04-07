@@ -136,6 +136,39 @@ class Vols_decouverte_model extends Common_Model {
     }
 
     /**
+     * Retourne les statistiques de vols de découverte par section :
+     *   - sold_this_year  : vendus dans l'année courante
+     *   - done_this_year  : effectués dans l'année courante (date_vol dans l'année)
+     *   - todo_valid      : vendus cette année ou l'année précédente, pas encore effectués,
+     *                       non annulés, dont la validité n'a pas expiré
+     *
+     * @return array  [ ['nom' => 'Planeur', 'sold_this_year' => 5, 'done_this_year' => 3, 'todo_valid' => 2], ... ]
+     */
+    public function stats_per_section($year = null) {
+        $today        = date('Y-m-d');
+        $current_year = ($year && is_numeric($year)) ? (int)$year : (int)date('Y');
+        $one_year_ago = date('Y-m-d', strtotime('-1 year'));
+        $sql = "
+            SELECT
+                s.nom,
+                SUM(CASE WHEN YEAR(v.date_vente) = $current_year THEN 1 ELSE 0 END) AS sold_this_year,
+                SUM(CASE WHEN YEAR(v.date_vol) = $current_year THEN 1 ELSE 0 END)   AS done_this_year,
+                SUM(CASE WHEN v.date_vol IS NULL AND v.cancelled = 0
+                    AND (
+                        (v.date_validite IS NOT NULL AND v.date_validite >= '$today')
+                        OR (v.date_validite IS NULL AND v.date_vente >= '$one_year_ago')
+                    ) THEN 1 ELSE 0 END) AS todo_valid
+            FROM vols_decouverte v
+            JOIN sections s ON v.club = s.id
+            GROUP BY s.id, s.nom
+            HAVING sold_this_year > 0 OR done_this_year > 0 OR todo_valid > 0
+            ORDER BY s.nom ASC
+        ";
+        $result = $this->db->query($sql);
+        return $result->result_array();
+    }
+
+    /**
      * Ajoute un élément
      *
      * @param $data hash
