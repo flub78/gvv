@@ -199,5 +199,8 @@ $lang['db_desc_documentation']  = "Documentation";
 $lang['db_desc_regulatory']     = "Réglementaires";
 $lang['db_desc_collection']     = "Collection";
 
+$lang['db_card_decloture']  = "Décloture";
+$lang['db_desc_decloture']  = "Supprimer la dernière clôture";
+
 // ─── Confirmation ─────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Êtes-vous sûr d'être sur un environnement de développement ?";

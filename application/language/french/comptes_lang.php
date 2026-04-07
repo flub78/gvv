@@ -158,3 +158,21 @@ $lang['gvv_comptes_title_resultat_par_sections'] = "Résultat d'exploitation par
 $lang['gvv_comptes_title_resultat_par_sections_detail'] = "Détail du résultat par sections - %s";
 $lang['comptes_label_charges'] = "Charges";
 $lang['comptes_label_produits'] = "Produits";
+
+// Décloture
+$lang['comptes_decloture_title']          = "Décloture de l'exercice";
+$lang['comptes_decloture_warning_title']  = "Opération irréversible — réservée aux administrateurs";
+$lang['comptes_decloture_warning_text']   = "Cette opération supprime les écritures de clôture listées ci-dessus et retire l'enregistrement de clôture. La date de gel sera reculée d'un an. Assurez-vous d'avoir effectué une sauvegarde avant de continuer.";
+$lang['comptes_decloture_section']        = "Section";
+$lang['comptes_decloture_freeze_date']    = "Date de gel actuelle";
+$lang['comptes_decloture_description']    = "Description";
+$lang['comptes_decloture_entries_count']  = "Écritures concernées";
+$lang['comptes_decloture_entries_title']  = "Écritures de clôture de l'exercice";
+$lang['comptes_decloture_col_date']       = "Date";
+$lang['comptes_decloture_col_compte1']    = "Compte D";
+$lang['comptes_decloture_col_compte2']    = "Compte C";
+$lang['comptes_decloture_col_montant']    = "Montant";
+$lang['comptes_decloture_col_description']= "Description";
+$lang['comptes_decloture_btn_confirm']    = "Confirmer la décloture";
+$lang['comptes_decloture_btn_cancel']     = "Annuler";
+$lang['comptes_decloture_no_cloture']     = "Aucune clôture trouvée pour la section courante.";

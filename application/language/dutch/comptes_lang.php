@@ -158,3 +158,21 @@ $lang['gvv_comptes_title_resultat_par_sections'] = "Bedrijfsresultaat per sectie
 $lang['gvv_comptes_title_resultat_par_sections_detail'] = "Resultaatdetails per secties - %s";
 $lang['comptes_label_charges'] = "Kosten";
 $lang['comptes_label_produits'] = "Inkomsten";
+
+// Openbreken boekjaar
+$lang['comptes_decloture_title']          = "Boekjaar openbreken";
+$lang['comptes_decloture_warning_title']  = "Onomkeerbare bewerking — alleen voor beheerders";
+$lang['comptes_decloture_warning_text']   = "Deze bewerking verwijdert de hieronder vermelde afsluitboekingen en verwijdert de bevriezingsregistratie. De bevriezingsdatum wordt met één jaar teruggeschoven. Zorg voor een back-up voordat u verdergaat.";
+$lang['comptes_decloture_section']        = "Sectie";
+$lang['comptes_decloture_freeze_date']    = "Huidige bevriezingsdatum";
+$lang['comptes_decloture_description']    = "Beschrijving";
+$lang['comptes_decloture_entries_count']  = "Betrokken boekingen";
+$lang['comptes_decloture_entries_title']  = "Afsluitboekingen voor boekjaar";
+$lang['comptes_decloture_col_date']       = "Datum";
+$lang['comptes_decloture_col_compte1']    = "Debet rekening";
+$lang['comptes_decloture_col_compte2']    = "Credit rekening";
+$lang['comptes_decloture_col_montant']    = "Bedrag";
+$lang['comptes_decloture_col_description']= "Beschrijving";
+$lang['comptes_decloture_btn_confirm']    = "Openbreken bevestigen";
+$lang['comptes_decloture_btn_cancel']     = "Annuleren";
+$lang['comptes_decloture_no_cloture']     = "Geen afsluitregistratie gevonden voor de huidige sectie.";

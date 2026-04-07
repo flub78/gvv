@@ -158,3 +158,21 @@ $lang['gvv_comptes_title_resultat_par_sections'] = "Operating result by sections
 $lang['gvv_comptes_title_resultat_par_sections_detail'] = "Result details by sections - %s";
 $lang['comptes_label_charges'] = "Expenses";
 $lang['comptes_label_produits'] = "Income";
+
+// Un-close fiscal year
+$lang['comptes_decloture_title']          = "Un-close fiscal year";
+$lang['comptes_decloture_warning_title']  = "Irreversible operation — administrators only";
+$lang['comptes_decloture_warning_text']   = "This operation deletes the closing entries listed above and removes the freeze record. The freeze date will be moved back one year. Make sure you have a backup before proceeding.";
+$lang['comptes_decloture_section']        = "Section";
+$lang['comptes_decloture_freeze_date']    = "Current freeze date";
+$lang['comptes_decloture_description']    = "Description";
+$lang['comptes_decloture_entries_count']  = "Entries affected";
+$lang['comptes_decloture_entries_title']  = "Closing entries for fiscal year";
+$lang['comptes_decloture_col_date']       = "Date";
+$lang['comptes_decloture_col_compte1']    = "Debit account";
+$lang['comptes_decloture_col_compte2']    = "Credit account";
+$lang['comptes_decloture_col_montant']    = "Amount";
+$lang['comptes_decloture_col_description']= "Description";
+$lang['comptes_decloture_btn_confirm']    = "Confirm un-close";
+$lang['comptes_decloture_btn_cancel']     = "Cancel";
+$lang['comptes_decloture_no_cloture']     = "No closing record found for the current section.";

@@ -1614,6 +1614,87 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Décloture de l'exercice courant — réservée aux dev_users + admins.
+     *
+     * Affiche la date de gel courante et les écritures de clôture associées,
+     * puis sur confirmation supprime ces écritures et retire l'enregistrement
+     * de clôture, ce qui recule effectivement la date de gel d'un an.
+     */
+    function decloture() {
+        // Accès réservé aux admins qui sont dans dev_users
+        if (!$this->dx_auth->is_admin()) {
+            show_error('Accès réservé aux administrateurs.', 403);
+        }
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+        if (!in_array($this->dx_auth->get_username(), $dev_users)) {
+            show_error('Accès réservé aux utilisateurs de développement.', 403);
+        }
+
+        $section = $this->gvv_model->section();
+        if (!$section) {
+            $this->data['error'] = "La décloture doit être faite section par section.";
+            $this->data['freeze_date'] = '';
+            $this->data['year'] = '';
+            $this->data['ecritures'] = [];
+            $this->data['controller'] = 'comptes';
+            return load_last_view('comptes/decloture', $this->data, $this->unit_test);
+        }
+
+        // Récupérer l'enregistrement de clôture le plus récent pour cette section
+        $this->db->where('section', $section['id'])
+                 ->order_by('date', 'DESC')
+                 ->order_by('id', 'DESC')
+                 ->limit(1);
+        $cloture_row = $this->db->get('clotures')->row_array();
+
+        if (!$cloture_row) {
+            $this->data['error'] = "Aucune clôture trouvée pour la section courante.";
+            $this->data['freeze_date'] = '';
+            $this->data['year'] = '';
+            $this->data['ecritures'] = [];
+            $this->data['section'] = $section;
+            $this->data['controller'] = 'comptes';
+            return load_last_view('comptes/decloture', $this->data, $this->unit_test);
+        }
+
+        $freeze_date = $cloture_row['date'];
+        $year = substr($freeze_date, 0, 4);
+        $num_cheque = "Clôture exercice $year";
+
+        // Écritures associées à cette clôture
+        $ecritures = $this->db->where('club', $section['id'])
+                              ->where('num_cheque', $num_cheque)
+                              ->get('ecritures')
+                              ->result_array();
+
+        if ($this->input->post('confirm_decloture')) {
+            // Supprimer les écritures de clôture
+            $this->db->where('club', $section['id'])
+                     ->where('num_cheque', $num_cheque)
+                     ->delete('ecritures');
+
+            // Supprimer l'enregistrement de clôture
+            $this->db->where('id', $cloture_row['id'])
+                     ->delete('clotures');
+
+            $this->session->set_flashdata('success',
+                "Décloture $year effectuée : " . count($ecritures) .
+                " écriture(s) supprimée(s). La date de gel est maintenant reculée d'un an."
+            );
+            redirect($this->controller . "/decloture");
+        }
+
+        $this->data['error'] = '';
+        $this->data['freeze_date'] = date_db2ht($freeze_date);
+        $this->data['year'] = $year;
+        $this->data['ecritures'] = $ecritures;
+        $this->data['cloture_description'] = $cloture_row['description'] ?? '';
+        $this->data['section'] = $section;
+        $this->data['controller'] = 'comptes';
+        return load_last_view('comptes/decloture', $this->data, $this->unit_test);
+    }
+
+    /**
      * Génère un tableau PDF personnalisé pour la balance hiérarchique
      * avec couleur de fond différente pour les entêtes de codec
      *

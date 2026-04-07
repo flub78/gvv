@@ -199,5 +199,8 @@ $lang['db_desc_documentation']  = "Documentation";
 $lang['db_desc_regulatory']     = "Regulatory";
 $lang['db_desc_collection']     = "Collection";
 
+$lang['db_card_decloture']  = "Un-close";
+$lang['db_desc_decloture']  = "Remove last fiscal year closing";
+
 // ─── Confirmation ─────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Are you sure you are on a development environment?";

@@ -199,5 +199,8 @@ $lang['db_desc_documentation']  = "Documentatie";
 $lang['db_desc_regulatory']     = "Reglementair";
 $lang['db_desc_collection']     = "Inning";
 
+$lang['db_card_decloture']  = "Openbreken";
+$lang['db_desc_decloture']  = "Laatste boekjaarafsluiting verwijderen";
+
 // ─── Bevestiging ──────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Weet u zeker dat u zich in een ontwikkelomgeving bevindt?";
