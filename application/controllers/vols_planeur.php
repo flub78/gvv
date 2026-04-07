@@ -1223,7 +1223,7 @@ class Vols_planeur extends Gvv_Controller {
 
         $data = array ();
         $data ['controller'] = $this->controller;
-        $data ['jsonurl'] = site_url() . '/' . $this->controller . '/ajax_cumuls';
+        $data ['jsonurl'] = site_url($this->controller . '/ajax_cumuls');
         $data ['year'] = date("Y");
         $data ['first_year'] = $this->gvv_model->first_year();
         $data ['title_key'] = "gvv_vols_planeur_title_cumul";
@@ -1242,7 +1242,7 @@ class Vols_planeur extends Gvv_Controller {
         $data = array ();
         $data ['machines'] = $this->gvv_model->histo(true);
         $data ['controller'] = $this->controller;
-        $data ['jsonurl'] = site_url() . '/' . $this->controller . '/ajax_histo';
+        $data ['jsonurl'] = site_url($this->controller . '/ajax_histo');
         $data ['title_key'] = 'gvv_vols_planeur_title_histo';
         $data ['year'] = date('Y');
         $data ['first_year'] = $this->gvv_model->first_year(true);
@@ -1263,7 +1263,7 @@ class Vols_planeur extends Gvv_Controller {
         $data = array ();
         $data ['machines'] = $this->gvv_model->age(true);
         $data ['controller'] = $this->controller;
-        $data ['jsonurl'] = site_url() . '/' . $this->controller . '/ajax_age';
+        $data ['jsonurl'] = site_url($this->controller . '/ajax_age');
         $data ['title_key'] = 'gvv_vols_planeur_title_age';
 
         $data ['year'] = date('Y');

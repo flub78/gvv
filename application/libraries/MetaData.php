@@ -1855,7 +1855,7 @@ abstract class Metadata {
                 $mime_type = mime_content_type($filename);
                 if (str_starts_with($mime_type, 'image')) {
                     // For images in configuration forms, show resized version with click to full size
-                    $url = site_url() . '/' . ltrim($filename, './');
+                    $url = site_url(ltrim($filename, './'));
                     $img = '<div class="configuration-image-preview">';
                     $img .= '<a href="' . $url . '" target="_blank" title="Cliquer pour voir en taille réelle">';
                     $img .= '<img src="' . $url . '" alt="Configuration image" ';
@@ -1868,13 +1868,13 @@ abstract class Metadata {
                     $img .= '</div>' . br();
                 } else {
                     // For non-image files, show icon/link
-                    $url = site_url() . '/' . ltrim($filename, './');
+                    $url = site_url(ltrim($filename, './'));
                     $img = attachment('', $filename, $url) . br();
                 }
             } elseif ($table == 'attachments' && $field == 'file' && $filename && file_exists($filename)) {
                 // Special handling for attachment file display
                 $mime_type = mime_content_type($filename);
-                $url = site_url() . '/' . ltrim($filename, './');
+                $url = site_url(ltrim($filename, './'));
                 
                 if (str_starts_with($mime_type, 'image')) {
                     // For images, show preview with click to full size

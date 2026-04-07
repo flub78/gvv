@@ -89,7 +89,7 @@ class Button extends Widget {
             $txt = $label;
             $attrs .= ' class="button btn btn-primary"';
         }
-        $res .= anchor(site_url() . "/$controller/$action/$param", $txt, $attrs);
+        $res .= anchor(site_url("$controller/$action/$param"), $txt, $attrs);
 
         return $res;
     }
