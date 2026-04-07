@@ -18,6 +18,7 @@ $lang['gvv_compta_title_avoir_use'] = "Dépense avec utilisation d'un avoir four
 $lang['gvv_compta_title_depot'] = "Dépôt d'espèces";
 $lang['gvv_compta_title_retrait'] = "Retrait de liquide";
 $lang['gvv_compta_title_remb_capital'] = "Remboursement de capital d'emprunt";
+$lang['gvv_compta_title_mise_disposition_emprunt'] = "Mise a disposition d'emprunt";
 $lang['gvv_compta_title_amortissement'] = "Dotation aux amortissements";
 $lang['gvv_compta_title_encaissement_section'] = "Encaissement pour une section";
 $lang['gvv_compta_title_reversement_section'] = "Reversement section";

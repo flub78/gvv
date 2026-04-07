@@ -18,6 +18,7 @@ $lang['gvv_compta_title_avoir_use'] = "Uitgave betaald met leverancierskrediet";
 $lang['gvv_compta_title_depot'] = "Contante storting";
 $lang['gvv_compta_title_retrait'] = "Vloeistofonttrekking";
 $lang['gvv_compta_title_remb_capital'] = "Terugbetaling leningkapitaal";
+$lang['gvv_compta_title_mise_disposition_emprunt'] = "Terbeschikkingstelling lening";
 $lang['gvv_compta_title_amortissement'] = "Afschrijvingsboeking";
 $lang['gvv_compta_title_encaissement_section'] = "Inning voor een sectie";
 $lang['gvv_compta_title_reversement_section'] = "Sectie omkering";

@@ -102,6 +102,7 @@ $lang['gvv_menu_entries_wire_transfer'] = "Virement bancaire";
 $lang['gvv_menu_entries_wire_deposit'] = "Dépôt d’espèces";
 $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital";
+$lang['gvv_menu_entries_wire_loan_disbursement'] = "Mise a disposition d'emprunt";
 $lang['gvv_menu_entries_depreciation'] = "Dotation aux amortissements";
 $lang['gvv_menu_entries_section_collection'] = "Encaissement pour une section";
 $lang['gvv_menu_entries_section_reversal'] = "Reversement section";

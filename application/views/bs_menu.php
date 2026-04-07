@@ -384,6 +384,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
               </li>
 
               <li><a class="dropdown-item" href="<?= controller_url("compta/remb_capital") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_wire_remb_capital") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/mise_a_disposition_emprunt") ?>"><i class="fas fa-university text-success"></i> <?= translation("gvv_menu_entries_wire_loan_disbursement") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/amortissement") ?>"><i class="fas fa-tools text-secondary"></i> <?= translation("gvv_menu_entries_depreciation") ?></a></li>
 
               <?php if ($section_count > 1) : ?>

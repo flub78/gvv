@@ -947,6 +947,15 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Mise a disposition d'un emprunt (banque contre compte 164)
+     */
+    function mise_a_disposition_emprunt() {
+        $this->ecriture("gvv_compta_title_mise_disposition_emprunt",
+        ["codec" => "512"],
+        ["codec" => "164"]);
+    }
+
+    /**
      * Encaissement pour une section
      */
     function encaissement_pour_une_section() {

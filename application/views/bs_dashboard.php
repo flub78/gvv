@@ -743,6 +743,15 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-university text-success"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_loan_disbursement') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_loan_disbursement') ?></div>
+                        <a href="<?= controller_url('compta/mise_a_disposition_emprunt') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
+                    </div>
+                </div>
+
                 <!-- Depreciation -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
