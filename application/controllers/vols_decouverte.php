@@ -488,8 +488,20 @@ class Vols_decouverte extends Gvv_Controller {
             $this->session->unset_userdata('vd_filter_error');
         }
 
-        // Call parent page method with original parameters
-        return parent::page($premier, $message, $selection);
+        // Replicate parent::page() data setup (without rendering) then render once
+        $this->push_return_url("GVV controller page");
+        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier, $selection);
+        $this->data['kid'] = $this->kid;
+        $this->data['count'] = $this->gvv_model->count();
+        $this->data['premier'] = $premier;
+        $this->data['message'] = $message;
+        // tresorier and bureau can also create, so they need the Create button visible
+        $this->data['has_modification_rights'] = $this->dx_auth->is_admin()
+            || $this->user_has_role('gestion_vd')
+            || has_role('tresorier')
+            || has_role('bureau');
+
+        return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
 
     /**
