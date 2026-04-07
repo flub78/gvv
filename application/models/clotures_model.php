@@ -100,7 +100,7 @@ class Clotures_model extends Common_Model {
         if ($freeze_date)
             return ($freeze_date >= $date);
         else
-            return true;
+            return false;
     }
 
     /**

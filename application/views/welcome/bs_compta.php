@@ -43,7 +43,7 @@ $list = array();
 if (has_role('backup_db')) {
     $list[] = anchor(controller_url('admin/backup_form'), $this->lang->line("welcome_database_backup_title"), array("class" => "jbutton"));
 }
-if (has_role('super_tresorier')) {
+if (has_role('super-tresorier')) {
     $list[] = anchor(controller_url('comptes/cloture'), $this->lang->line("welcome_database_endofyear_title"), array("class" => "jbutton"));
 }
 if (!empty($list)) {

@@ -122,17 +122,46 @@ if (!function_exists('has_role')) {
     function has_role($role) {
         $CI = &get_instance();
 
-        // For new-auth users, use only the new auth system.
-        // Do NOT apply the dx_auth is_admin() bypass: a user may have role_id=admin
-        // in the legacy users table while having different (non-admin) roles in the
-        // new authorization system.
+        // During migration, users.role_id=admin must keep full access even
+        // under the new authorization system.
+        if ($CI->dx_auth->is_logged_in()) {
+            if ($CI->dx_auth->is_admin()) {
+                return true;
+            }
+
+            $user_id = $CI->dx_auth->get_user_id();
+            if ($user_id) {
+                $admin_q = $CI->db
+                    ->select('role_id')
+                    ->from('users')
+                    ->where('id', (int) $user_id)
+                    ->limit(1)
+                    ->get();
+                if ($admin_q && $admin_q->num_rows() > 0 && (int)$admin_q->row()->role_id === 2) {
+                    return true;
+                }
+            }
+        }
+
+        // For new-auth users, use the new auth system after applying the
+        // legacy users.role_id=admin compatibility bypass above.
         if (method_exists($CI, 'user_has_role')) {
+            // Keep club-admin as a global super-role for menu visibility checks.
+            if ($role !== 'club-admin' && $CI->user_has_role('club-admin')) {
+                return true;
+            }
             return $CI->user_has_role($role);
         }
 
         if ($CI->session->userdata('use_new_auth')) {
             $CI->load->library('Gvv_Authorization');
             $user_id = $CI->dx_auth->get_user_id();
+
+            // Keep club-admin as a global super-role for menu visibility checks.
+            if ($role !== 'club-admin' && $CI->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
+                return true;
+            }
+
             $raw_section_id = $CI->session->userdata('section');
             $section_id = NULL;
             if ($raw_section_id) {

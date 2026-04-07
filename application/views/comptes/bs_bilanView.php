@@ -56,7 +56,7 @@ $bar = array(
 	array('label' => "Excel", 'url' =>"comptes/export_bilan/csv", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => "comptes/export_bilan/pdf", 'role' => 'ca'),
 );
-if (has_role('super_tresorier')) {
+if (has_role('super-tresorier')) {
 	$bar[] = array('label' => $this->lang->line('comptes_button_cloture'), 'url' => "comptes/cloture");
 }
 echo button_bar4($bar);

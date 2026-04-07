@@ -1513,8 +1513,8 @@ class Comptes extends Gvv_Controller {
 
         // Accès réservé aux super_tresorier et admins
         if ($this->use_new_auth) {
-            $this->require_roles(['super_tresorier']);
-        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super_tresorier', true, true)) {
+            $this->require_roles(['super-tresorier']);
+        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
             show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
         }
 

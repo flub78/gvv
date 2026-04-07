@@ -59,6 +59,12 @@ class Gvv_Authorization
             return $this->cache[$cache_key];
         }
 
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            $this->cache[$cache_key] = TRUE;
+            return TRUE;
+        }
+
         // Get user's roles for this section
         $roles = $this->get_user_roles($user_id, $section_id);
 
@@ -94,6 +100,11 @@ class Gvv_Authorization
      */
     public function can_access_data($user_id, $table_name, $row_data, $section_id, $access_type = 'view')
     {
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            return TRUE;
+        }
+
         // Get user's roles for this section
         $roles = $this->get_user_roles($user_id, $section_id);
 
@@ -146,6 +157,11 @@ class Gvv_Authorization
      */
     public function has_role($user_id, $role_name, $section_id = NULL)
     {
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            return TRUE;
+        }
+
         $roles = $this->get_user_roles($user_id, $section_id);
 
         foreach ($roles as $role) {
@@ -167,6 +183,11 @@ class Gvv_Authorization
      */
     public function has_any_role($user_id, $role_names, $section_id = NULL)
     {
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            return TRUE;
+        }
+
         foreach ($role_names as $role_name) {
             if ($this->has_role($user_id, $role_name, $section_id)) {
                 return TRUE;
@@ -362,6 +383,12 @@ class Gvv_Authorization
             return FALSE;
         }
 
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            log_message('debug', "GVV_Auth: User {$user_id} is legacy admin, bypassing role check");
+            return TRUE;
+        }
+
         // Fetch roles once (includes global roles via include_global=TRUE)
         $user_roles = $this->get_user_roles($user_id, $section_id);
         $role_names = array_column($user_roles, 'role_name');
@@ -428,6 +455,12 @@ class Gvv_Authorization
             return FALSE;
         }
 
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            log_message('debug', "GVV_Auth: User {$user_id} is legacy admin, bypassing role check");
+            return TRUE;
+        }
+
         // Check if user has any of the allowed roles
         foreach ($roles as $role_name) {
             if ($this->has_role($user_id, $role_name, $section_id)) {
@@ -476,6 +509,11 @@ class Gvv_Authorization
             return FALSE;
         }
 
+        // Legacy users.role_id=admin bypasses all authorization checks.
+        if ($this->_is_legacy_admin_user($user_id)) {
+            return TRUE;
+        }
+
         // Use the existing can_access_data method
         return $this->can_access_data($user_id, $table_name, $row_data, $section_id, $access_type);
     }
@@ -483,6 +521,46 @@ class Gvv_Authorization
     // ========================================================================
     // PRIVATE HELPER METHODS
     // ========================================================================
+
+    /**
+     * Check if a user is legacy admin in users table (role_id = 2).
+     *
+     * This bypass is required during the migration period: a user marked
+     * admin in users must keep full access even when the new auth system is
+     * enabled.
+     *
+     * @param int|null $user_id User ID (defaults to current user)
+     * @return bool TRUE if user is legacy admin
+     */
+    private function _is_legacy_admin_user($user_id = NULL)
+    {
+        if ($user_id === NULL && isset($this->CI->dx_auth) && method_exists($this->CI->dx_auth, 'get_user_id')) {
+            $user_id = $this->CI->dx_auth->get_user_id();
+        }
+
+        if (!$user_id) {
+            return FALSE;
+        }
+
+        // Fast path for legacy sessions where DX role is already admin.
+        if (isset($this->CI->dx_auth)
+            && method_exists($this->CI->dx_auth, 'is_admin')
+            && $this->CI->dx_auth->is_admin()) {
+            return TRUE;
+        }
+
+        $query = $this->CI->db
+            ->select('role_id')
+            ->from('users')
+            ->where('id', (int) $user_id)
+            ->get();
+
+        if (!$query || $query->num_rows() === 0) {
+            return FALSE;
+        }
+
+        return ((int) $query->row()->role_id === 2);
+    }
 
     /**
      * Check if a role has permission for controller/action

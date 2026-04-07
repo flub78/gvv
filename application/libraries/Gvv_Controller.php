@@ -1091,6 +1091,11 @@ class Gvv_Controller extends MY_Controller {
      */
     public function user_has_role($role)
     {
+        // Admins bypass all role checks regardless of auth system
+        if ($this->dx_auth->is_admin()) {
+            return true;
+        }
+
         if ($this->use_new_auth) {
             // Resolve section: explicit controller section_id first, then session section from model
             $section_id = NULL;

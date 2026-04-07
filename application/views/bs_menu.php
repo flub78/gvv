@@ -158,7 +158,7 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
                 <li><a class="dropdown-item" href="#"><i class="fas fa-calculator text-success"></i> <?= translation("gvv_menu_admin_accounting") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
 
-                    <?php if (has_role('super_tresorier')) : ?>
+                    <?php if (has_role('super-tresorier')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("comptes/cloture") ?>"><i class="fas fa-calendar-check text-danger"></i> <?= translation("welcome_database_endofyear_title") ?></a></li>
                     <?php endif; ?>
 
