@@ -146,7 +146,6 @@ class GVVMetadata extends Metadata {
                         'num_cheque'
                 );
 
-                $this->field['ecritures']['date_op']['Default'] = 'today';
                 $this->field['ecritures']['annee_exercise']['Default'] = 'current_year';
 
                 $this->field['ecritures']['compte1']['Subtype'] = 'selector';

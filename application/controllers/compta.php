@@ -991,7 +991,7 @@ class Compta extends Gvv_Controller {
         $this->data['title'] = $this->lang->line('gvv_compta_title_saisie_cotisation');
 
         // Initialiser les valeurs par défaut
-        $this->data['date_op'] = $this->input->post('date_op') ?: date('d/m/Y');
+        $this->data['date_op'] = $this->input->post('date_op') ?: '';
         $this->data['annee_cotisation'] = $this->input->post('annee_cotisation') ?: date('Y');
         $this->data['pilote'] = $this->input->post('pilote') ?: '';
         $this->data['compte_banque'] = $this->input->post('compte_banque') ?: '';

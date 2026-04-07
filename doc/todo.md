@@ -26,8 +26,7 @@ Cela implique de:
 
 ## Reste à faire
 
-* []Supprimer la date du jour par défaut dans les écritures
-* [] Supprimer la date du jour par défaut dans les écritures
+* [x]Supprimer la date du jour par défaut dans les écritures
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
 
 * [] Facture automatique de hangar
