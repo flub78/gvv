@@ -45,22 +45,6 @@ $config['use_new_authorization'] = false;
 */
 $config['authorization_debug'] = FALSE;
 
-/*
-|--------------------------------------------------------------------------
-| Progressive Migration
-|--------------------------------------------------------------------------
-|
-| Enable per-user progressive migration to new authorization system
-|
-| When TRUE, users can be migrated individually based on
-| authorization_migration_status table.
-|
-| When FALSE, all users use the same system (based on use_new_authorization)
-|
-| DEFAULT: FALSE (global setting only)
-|
-*/
-$config['authorization_progressive_migration'] = FALSE;
 
 /* End of file gvv_config.php */
 /* Location: ./application/config/gvv_config.php */

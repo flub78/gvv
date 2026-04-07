@@ -295,6 +295,23 @@ My Html Helper Integration
  [x] Flat array with delete parameter
  [x] Flat array duplicates
 
+Paiements En Ligne Public Vd
+ [x] Migration101 ColumnExists
+ [x] Migration101 DefaultIsOne
+ [x] Migration101 Up Down Cycle
+ [x] Migration102 TableExists
+ [x] Migration102 Columns
+ [x] Migration102 Up Down Cycle
+ [x] RateLimit FirstCallReturnsTrue
+ [x] RateLimit UnderLimitReturnsTrue
+ [x] RateLimit AtMaxReturnsFalse
+ [x] RateLimit ExpiredWindowResetsCounter
+ [x] Quota ZeroMeansUnlimited
+ [x] Quota UnderLimitNotReached
+ [x] Quota ExactlyAtLimit
+ [x] Quota JoursResetCalculation
+ [x] Quota OldBonsOutsideWindowNotCounted
+
 Procedures Integration
  [x] Create procedure
  [x] Create procedure invalid name

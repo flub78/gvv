@@ -237,14 +237,14 @@ test.describe('UC5 — Bar payment by balance debit', () => {
         await page.fill('input[name="montant"]', '1.50');
         await page.fill('input[name="description"]', 'Test smoke UC5 : 1 café');
 
+        // Dismiss any JS dialog (popup flashdata) that may appear on this page or the next
+        page.on('dialog', dialog => dialog.dismiss());
+
         // Submit and wait for redirect to mon_compte
-        // Dismiss JS alert popup (success message shown via checkalert/popup flashdata)
-        page.once('dialog', dialog => dialog.dismiss());
         await Promise.all([
-            page.waitForURL('**/mon_compte**', { timeout: 10000 }),
+            page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }),
             page.click('button[name="button"][value="valider"]'),
         ]);
-        await page.waitForLoadState('domcontentloaded');
 
         // Verify we're on mon_compte with the account statement visible
         expect(page.url()).toContain('mon_compte');

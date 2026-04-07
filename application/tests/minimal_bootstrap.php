@@ -211,8 +211,7 @@ class MinimalMockConfig {
         if ($file === 'gvv_config') {
             $this->config['gvv_config'] = array(
                 'use_new_authorization' => TRUE,
-                'authorization_debug' => FALSE,
-                'authorization_progressive_migration' => FALSE
+                'authorization_debug' => FALSE
             );
         }
         return TRUE;

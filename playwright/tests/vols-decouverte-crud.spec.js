@@ -166,7 +166,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await checkNoPhpErrors(page);
 
     // La liste est visible
-    await expect(page.locator('table')).toBeVisible();
+    await expect(page.locator('table.datatable')).toBeVisible();
 
     // Pas de bouton créer
     await expect(page.locator('a[href*="/vols_decouverte/create"]')).toHaveCount(0);
