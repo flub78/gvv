@@ -176,3 +176,6 @@ $lang['comptes_decloture_col_description']= "Description";
 $lang['comptes_decloture_btn_confirm']    = "Confirm un-close";
 $lang['comptes_decloture_btn_cancel']     = "Cancel";
 $lang['comptes_decloture_no_cloture']     = "No closing record found for the current section.";
+$lang['comptes_decloture_entries_none']   = "No closing entry found.";
+$lang['comptes_decloture_warning_text_freeze_only'] = "No closing entry was found for this fiscal year. Un-closing will only remove the freeze date (closing record). Confirm to continue.";
+$lang['comptes_decloture_success_freeze_only'] = "Un-close completed: no entries to delete, only the freeze date was removed";

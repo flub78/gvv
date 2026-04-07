@@ -176,3 +176,6 @@ $lang['comptes_decloture_col_description']= "Description";
 $lang['comptes_decloture_btn_confirm']    = "Confirmer la décloture";
 $lang['comptes_decloture_btn_cancel']     = "Annuler";
 $lang['comptes_decloture_no_cloture']     = "Aucune clôture trouvée pour la section courante.";
+$lang['comptes_decloture_entries_none']   = "Aucune écriture de clôture trouvée.";
+$lang['comptes_decloture_warning_text_freeze_only'] = "Aucune écriture de clôture n'a été trouvée pour cet exercice. La décloture supprimera uniquement la date de gel (enregistrement de clôture). Confirmez pour poursuivre.";
+$lang['comptes_decloture_success_freeze_only'] = "Décloture effectuée : aucune écriture à supprimer, seule la date de gel a été supprimée";

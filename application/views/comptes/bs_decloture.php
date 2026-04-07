@@ -26,11 +26,7 @@ if ($error) {
     return;
 }
 
-if (empty($ecritures)) {
-    echo '<div class="alert alert-info">' . $this->lang->line("comptes_decloture_no_cloture") . '</div>';
-    echo '</div>';
-    return;
-}
+$freeze_only = !empty($freeze_only);
 ?>
 
 <div class="card border-danger mb-4">
@@ -52,10 +48,18 @@ if (empty($ecritures)) {
             <?php endif; ?>
 
             <dt class="col-sm-3"><?= $this->lang->line("comptes_decloture_entries_count") ?></dt>
-            <dd class="col-sm-9"><?= count($ecritures) ?> écriture(s) à supprimer</dd>
+            <dd class="col-sm-9">
+                <?php if ($freeze_only): ?>
+                    <?= $this->lang->line("comptes_decloture_entries_none") ?>
+                <?php else: ?>
+                    <?= count($ecritures) ?> écriture(s) à supprimer
+                <?php endif; ?>
+            </dd>
         </dl>
 
+        <?php if (!$freeze_only): ?>
         <h5><?= $this->lang->line("comptes_decloture_entries_title") ?> <?= htmlspecialchars($year) ?></h5>
+        <?php endif; ?>
 
         <?php if (!empty($ecritures)): ?>
         <div class="table-responsive mb-4">
@@ -86,7 +90,9 @@ if (empty($ecritures)) {
 
         <div class="alert alert-danger">
             <i class="fas fa-exclamation-circle me-2"></i>
-            <?= $this->lang->line("comptes_decloture_warning_text") ?>
+            <?= $freeze_only
+                ? $this->lang->line("comptes_decloture_warning_text_freeze_only")
+                : $this->lang->line("comptes_decloture_warning_text") ?>
         </div>
 
         <?php echo form_open(controller_url($controller) . "/decloture"); ?>

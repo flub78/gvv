@@ -176,3 +176,6 @@ $lang['comptes_decloture_col_description']= "Beschrijving";
 $lang['comptes_decloture_btn_confirm']    = "Openbreken bevestigen";
 $lang['comptes_decloture_btn_cancel']     = "Annuleren";
 $lang['comptes_decloture_no_cloture']     = "Geen afsluitregistratie gevonden voor de huidige sectie.";
+$lang['comptes_decloture_entries_none']   = "Geen afsluitboeking gevonden.";
+$lang['comptes_decloture_warning_text_freeze_only'] = "Er zijn geen afsluitboekingen gevonden voor dit boekjaar. Openbreken verwijdert alleen de bevriezingsdatum (afsluitregistratie). Bevestig om door te gaan.";
+$lang['comptes_decloture_success_freeze_only'] = "Openbreken voltooid: geen boekingen te verwijderen, alleen de bevriezingsdatum is verwijderd";

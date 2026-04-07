@@ -1666,6 +1666,7 @@ class Comptes extends Gvv_Controller {
                               ->where('num_cheque', $num_cheque)
                               ->get('ecritures')
                               ->result_array();
+        $freeze_only = empty($ecritures);
 
         if ($this->input->post('confirm_decloture')) {
             // Supprimer les écritures de clôture
@@ -1677,10 +1678,16 @@ class Comptes extends Gvv_Controller {
             $this->db->where('id', $cloture_row['id'])
                      ->delete('clotures');
 
-            $this->session->set_flashdata('success',
-                "Décloture $year effectuée : " . count($ecritures) .
-                " écriture(s) supprimée(s). La date de gel est maintenant reculée d'un an."
-            );
+            if ($freeze_only) {
+                $this->session->set_flashdata('success',
+                    $this->lang->line('comptes_decloture_success_freeze_only') . " ($year)."
+                );
+            } else {
+                $this->session->set_flashdata('success',
+                    "Décloture $year effectuée : " . count($ecritures) .
+                    " écriture(s) supprimée(s). La date de gel est maintenant reculée d'un an."
+                );
+            }
             redirect($this->controller . "/decloture");
         }
 
@@ -1688,6 +1695,7 @@ class Comptes extends Gvv_Controller {
         $this->data['freeze_date'] = date_db2ht($freeze_date);
         $this->data['year'] = $year;
         $this->data['ecritures'] = $ecritures;
+        $this->data['freeze_only'] = $freeze_only;
         $this->data['cloture_description'] = $cloture_row['description'] ?? '';
         $this->data['section'] = $section;
         $this->data['controller'] = 'comptes';
