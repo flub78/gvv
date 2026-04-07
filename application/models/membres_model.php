@@ -466,25 +466,24 @@ class Membres_model extends Common_Model {
     }
 
     /**
-     * Get list of section IDs where the member is registered
-     * A member is registered in a section if they have an account (comptes)
-     * with codec='411' and pilote=membre.mlogin
+     * Get list of section IDs where the member is registered.
+     * Uses user_roles_per_section: a user belongs to a section if they have
+     * at least one role assigned there.
      *
-     * @param string $mlogin Member login identifier
-     * @return array Array of section_id values
+     * @param string $mlogin Member login (username)
+     * @return array Array of section_id values (integers)
      */
     public function registered_in_sections($mlogin)
     {
-        $this->db->select('club as section_id');
-        $this->db->from('comptes');
-        $this->db->where('codec', '411');
-        $this->db->where('pilote', $mlogin);
-        $this->db->where('actif', 1);
+        $this->db->select('urps.section_id');
+        $this->db->from('user_roles_per_section urps');
+        $this->db->join('users u', 'u.id = urps.user_id');
+        $this->db->where('u.username', $mlogin);
+        $this->db->where('urps.types_roles_id', 1);
 
         $query = $this->db->get();
 
         if ($query->num_rows() > 0) {
-            // Convert to integers to ensure consistent type for comparison
             return array_map('intval', array_column($query->result_array(), 'section_id'));
         }
 
