@@ -62,20 +62,21 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * Check if user has full VD management rights (admin, gestion_vd, tresorier, bureau or CA).
-     * Used to show/hide edit, delete, create buttons and allow modification routes.
+     * Droits complets sur les VD : admin, gestion_vd, tresorier, bureau.
+     * Donne accès à la création, modification et suppression.
+     * Le rôle CA n'est pas inclus : il donne accès en lecture seule uniquement.
      */
     private function has_full_vd_rights() {
         return $this->dx_auth->is_admin()
             || parent::user_has_role('gestion_vd')
             || parent::user_has_role('tresorier')
-            || parent::user_has_role('bureau')
-            || parent::user_has_role('ca');
+            || parent::user_has_role('bureau');
     }
 
     /**
-     * Check if user has either pilote_vd or full VD management rights (or is admin).
-     * Used for actions that are accessible to both pilots and managers.
+     * Droits pilote VD : pilote_vd ou droits complets.
+     * Donne accès aux routes action/pre_flight/done/briefing et aux boutons correspondants.
+     * Le rôle CA n'est pas inclus : il donne accès en lecture seule uniquement.
      */
     private function has_vd_pilot_rights() {
         return $this->has_full_vd_rights()
@@ -83,16 +84,17 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * Override: pilote_vd can modify records only for pre_flight and done actions.
-     * tresorier, bureau, CA and gestion_vd have full modification rights.
-     * Returns 403 Forbidden (not 404) on access denied.
+     * Droits de modification :
+     *   - tresorier, bureau, gestion_vd, admin : droits complets (edit/delete/create)
+     *   - pilote_vd : uniquement pre_flight et done (date, pilote, machine, urgence)
+     *   - ca : lecture seule — accès refusé (403)
      */
     protected function ensure_modification_rights($action = MODIFICATION) {
         if ($action == VISUALISATION) return TRUE;
         if (!isset($this->modification_level) || $this->modification_level === '') return TRUE;
         if ($this->has_full_vd_rights()) return TRUE;
 
-        // pilote_vd may only access pre_flight and done
+        // pilote_vd : accès limité à pre_flight et done uniquement
         $method = $this->uri->segment(2);
         if (parent::user_has_role('pilote_vd') && in_array($method, ['pre_flight', 'done'])) {
             return TRUE;
