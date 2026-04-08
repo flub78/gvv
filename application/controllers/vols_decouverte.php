@@ -62,23 +62,35 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
-     * Check if user has either pilote_vd or gestion_vd rights (or is admin).
+     * Check if user has full VD management rights (admin, gestion_vd, tresorier, bureau or CA).
+     * Used to show/hide edit, delete, create buttons and allow modification routes.
+     */
+    private function has_full_vd_rights() {
+        return $this->dx_auth->is_admin()
+            || parent::user_has_role('gestion_vd')
+            || parent::user_has_role('tresorier')
+            || parent::user_has_role('bureau')
+            || parent::user_has_role('ca');
+    }
+
+    /**
+     * Check if user has either pilote_vd or full VD management rights (or is admin).
      * Used for actions that are accessible to both pilots and managers.
      */
     private function has_vd_pilot_rights() {
-        return $this->dx_auth->is_admin()
-            || parent::user_has_role('gestion_vd')
+        return $this->has_full_vd_rights()
             || parent::user_has_role('pilote_vd');
     }
 
     /**
      * Override: pilote_vd can modify records only for pre_flight and done actions.
-     * Only gestion_vd (and admin) can edit, create, or delete.
+     * tresorier, bureau, CA and gestion_vd have full modification rights.
+     * Returns 403 Forbidden (not 404) on access denied.
      */
     protected function ensure_modification_rights($action = MODIFICATION) {
         if ($action == VISUALISATION) return TRUE;
         if (!isset($this->modification_level) || $this->modification_level === '') return TRUE;
-        if ($this->dx_auth->is_admin() || parent::user_has_role('gestion_vd')) return TRUE;
+        if ($this->has_full_vd_rights()) return TRUE;
 
         // pilote_vd may only access pre_flight and done
         $method = $this->uri->segment(2);
@@ -86,21 +98,17 @@ class Vols_decouverte extends Gvv_Controller {
             return TRUE;
         }
 
-        show_404();
+        show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
         return FALSE;
     }
 
     /**
-     * Override: creation requires gestion_vd, pilote_vd, tresorier or admin.
+     * Override: creation requires gestion_vd, pilote_vd, tresorier, bureau, CA or admin.
      * Injects HelloAsso visibility flags into view data.
      */
     function create() {
-        if (!$this->dx_auth->is_admin()
-            && !parent::user_has_role('gestion_vd')
-            && !parent::user_has_role('pilote_vd')
-            && !has_role('tresorier')
-            && !has_role('bureau')) {
-            show_404();
+        if (!parent::user_has_role('pilote_vd') && !$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
 
@@ -168,12 +176,8 @@ class Vols_decouverte extends Gvv_Controller {
      * Creates the transaction and redirects to the QR/link page.
      */
     private function _initiate_decouverte_helloasso() {
-        if (!$this->dx_auth->is_admin()
-            && !parent::user_has_role('gestion_vd')
-            && !parent::user_has_role('pilote_vd')
-            && !has_role('tresorier')
-            && !has_role('bureau')) {
-            show_404();
+        if (!parent::user_has_role('pilote_vd') && !$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
 
@@ -495,11 +499,8 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
-        // tresorier and bureau can also create, so they need the Create button visible
-        $this->data['has_modification_rights'] = $this->dx_auth->is_admin()
-            || $this->user_has_role('gestion_vd')
-            || has_role('tresorier')
-            || has_role('bureau');
+        // tresorier, bureau, CA and gestion_vd get full management buttons (create/edit/delete/action/briefing)
+        $this->data['has_modification_rights'] = $this->has_full_vd_rights();
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
@@ -599,7 +600,7 @@ class Vols_decouverte extends Gvv_Controller {
             $this->data['expired'] = strtotime($this->data['date_vente']) < strtotime('-1 year -1 day', time());
         }
 
-        $this->data['has_modification_rights'] = !isset($this->modification_level) || $this->dx_auth->is_admin() || parent::user_has_role($this->modification_level);
+        $this->data['has_modification_rights'] = $this->has_full_vd_rights();
         $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
@@ -1076,11 +1077,8 @@ EOD;
     public function send_public_link() {
         $this->lang->load('vols_decouverte');
 
-        if (!$this->dx_auth->is_admin()
-            && !parent::user_has_role('gestion_vd')
-            && !has_role('tresorier')
-            && !has_role('bureau')) {
-            show_404();
+        if (!$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
 
@@ -1150,11 +1148,8 @@ EOD;
      * @param int $section_id  Identifiant de la section
      */
     public function qrcode($section_id = 0) {
-        if (!$this->dx_auth->is_admin()
-            && !parent::user_has_role('gestion_vd')
-            && !has_role('tresorier')
-            && !has_role('bureau')) {
-            show_404();
+        if (!$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
 
