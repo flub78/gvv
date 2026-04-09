@@ -44,13 +44,6 @@ if ($section) {
 
 <h3><?= $title ?></h3>
 
-<?php if (!empty($has_bar)): ?>
-<div class="mb-3">
-  <a href="<?= site_url('paiements_en_ligne/bar_debit_solde') ?>" class="btn btn-warning btn-sm">
-    <i class="fas fa-beer me-1"></i><?= $this->lang->line('gvv_bar_button_link') ?>
-  </a>
-</div>
-<?php endif; ?>
 
 <input type="hidden" name="controller_url" value="<?= controller_url($controller) ?>" />
 
@@ -202,15 +195,28 @@ if ($section) {
                             <?= $this->lang->line("gvv_compta_label_description") . ": " ?>
                             <input type="text" name="desc" value="<?= $desc ?>" size="80" readonly="readonly" />
                         </div>
-                        <div class="me-3 mb-2 d-md-flex flex-row">
-                            <div class="me-3 mb-2"><?= $this->lang->line("gvv_compta_label_balance_before") . "  $date_deb  " ?></div>
-                            <div class="me-3 mb-2">
-                                <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
-                                <input type="text" name="previous_debit" value="<?= $solde_deb ?>" readonly="readonly" />
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex flex-row align-items-center">
+                                <div style="width:220px"><?= $this->lang->line("gvv_compta_label_balance_before") . "  $date_deb" ?></div>
+                                <div class="me-3">
+                                    <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
+                                    <input type="text" name="previous_debit" value="<?= $solde_deb ?>" readonly="readonly" />
+                                </div>
+                                <div>
+                                    <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
+                                    <input type="text" name="previous_credit" value="<?= $solde_cred ?>" readonly="readonly" />
+                                </div>
                             </div>
-                            <div class="me-3 mb-2">
-                                <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
-                                <input type="text" name="previous_credit" value="<?= $solde_cred ?>" readonly="readonly" />
+                            <div class="d-flex flex-row align-items-center">
+                                <div style="width:220px"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin" ?></div>
+                                <div class="me-3">
+                                    <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
+                                    <input type="text" name="current_debit" value="<?= $solde_fin < 0 ? euro(abs($solde_fin)) : '' ?>" readonly="readonly" />
+                                </div>
+                                <div>
+                                    <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
+                                    <input type="text" name="current_credit" value="<?= $solde_fin >= 0 ? euro($solde_fin) : '' ?>" readonly="readonly" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -220,7 +226,6 @@ if ($section) {
     <?php endif; ?>
 
 </div>
-
 
 <?php
 
@@ -320,24 +325,12 @@ echo '<style>
 </style>';
 ?>
 
-<div class="mt-4 me-3 mb-2 d-md-flex flex-row">
-    <div class="me-3 mb-2"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin  " ?></div>
-    <div class="me-3 mb-2">
-        <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
-        <input type="text" name="current_debit" value="<?= $solde_fin < 0 ? euro(abs($solde_fin)) : '' ?>" readonly="readonly" />
-    </div>
-    <div class="me-3 mb-2">
-        <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
-        <input type="text" name="current_credit" value="<?= $solde_fin >= 0 ? euro($solde_fin) : '' ?>" readonly="readonly" />
-    </div>
-</div>
-
 <?php
 // Achats
 if ($codec == 411 && $navigation_allowed && $section) {
 ?>
 
-    <div class="accordion accordion-flush collapsed" id="achat_panel">
+    <div class="accordion accordion-flush collapsed mt-4" id="achat_panel">
 
         <div class="accordion-item">
             <h3 class="accordion-header" id="panel-achats">

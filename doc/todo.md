@@ -28,6 +28,8 @@ Cela implique de:
 
 * [x]Supprimer la date du jour par défaut dans les écritures
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
+* [] Timeout, il faudrait mieux déconnecter. 
+* [] Accepter les paiements en centimes. ou pas ?
 
 * [] Facture automatique de hangar
 * [] Briefing passager, simplifier le workflow avec le QRCode ???
@@ -43,6 +45,8 @@ Cela implique de:
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
+* [] Forcer la saisie d'un numéro de vol de découverte pour les vols de découverte.
+* [] Les briefings passagers doivent mettre à jour la date des vols de découverte.Vérifier.
 * [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
 * [] Ajout d'un calendrier des échéances
 
