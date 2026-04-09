@@ -781,7 +781,8 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
-                <!-- Generic entry creation - moved to end -->
+                <!-- Generic entry creation - super-tresorier and admin only -->
+                <?php if (has_role('super-tresorier') || $this->dx_auth->is_admin()): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-exclamation-triangle text-danger"></i>
@@ -790,6 +791,7 @@ $this->lang->load('tableaux_de_bord');
                         <a href="<?= controller_url('compta/create') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_creer') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if ($is_treasurer): ?>

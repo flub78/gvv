@@ -30,6 +30,7 @@ Cela implique de:
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
 * [] Timeout, il faudrait mieux déconnecter. 
 * [] Accepter les paiements en centimes. ou pas ?
+* [] On perd l'occasion sur les vols de découverte
 
 * [] Facture automatique de hangar
 * [] Briefing passager, simplifier le workflow avec le QRCode ???
