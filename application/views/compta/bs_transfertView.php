@@ -64,16 +64,43 @@ $this->load->view('bs_banner');
 <!-- Formulaire d'export (soumis par JS) -->
 <form id="export-form" method="post" action="<?= controller_url('compta/export_ecritures') ?>">
     <div id="export-inputs"></div>
-    <button type="submit" id="btn-export" class="btn btn-primary mt-3" style="display:none">
-        <i class="fas fa-file-export me-1"></i><?= $this->lang->line('gvv_transfert_export') ?>
-    </button>
+    <div class="mt-3" id="export-actions" style="display:none">
+        <button type="button" id="btn-preview-json" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-code me-1"></i><?= $this->lang->line('gvv_transfert_preview_json') ?>
+        </button>
+        <button type="submit" id="btn-export" class="btn btn-primary">
+            <i class="fas fa-file-export me-1"></i><?= $this->lang->line('gvv_transfert_export') ?>
+        </button>
+    </div>
 </form>
+
+<div class="modal fade" id="jsonPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= $this->lang->line('gvv_transfert_preview_modal_title') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="small text-muted mb-2" id="json-copy-feedback"></div>
+                <textarea id="json-preview-content" class="form-control" rows="18" style="font-family: monospace; overflow: auto; white-space: pre;" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" id="btn-copy-json">
+                    <i class="fas fa-copy me-1"></i><?= $this->lang->line('gvv_transfert_copy_json') ?>
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('gvv_str_close') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </div>
 
 <script>
 (function () {
     var ajaxUrl = '<?= site_url('compta/ajax_ecritures_for_transfer') ?>/';
+    var previewUrl = '<?= site_url('compta/preview_export_ecritures') ?>';
     var selected = []; // [{id, label}]
 
     // ---- Year selector : recharge le big_select via AJAX ----
@@ -105,12 +132,12 @@ $this->load->view('bs_banner');
         var table  = document.getElementById('selection-table');
         var body   = document.getElementById('selection-body');
         var inputs = document.getElementById('export-inputs');
-        var btn    = document.getElementById('btn-export');
+        var actions = document.getElementById('export-actions');
 
         if (selected.length === 0) {
             empty.style.display = '';
             table.style.display = 'none';
-            btn.style.display   = 'none';
+            actions.style.display = 'none';
             inputs.innerHTML    = '';
             body.innerHTML      = '';
             return;
@@ -118,7 +145,7 @@ $this->load->view('bs_banner');
 
         empty.style.display = 'none';
         table.style.display = '';
-        btn.style.display   = '';
+        actions.style.display = '';
 
         body.innerHTML   = '';
         inputs.innerHTML = '';
@@ -191,6 +218,74 @@ $this->load->view('bs_banner');
         $sel.val(null).trigger('change');
 
         render();
+    });
+
+    function buildRequestBody() {
+        var params = new URLSearchParams();
+        selected.forEach(function (entry) {
+            params.append('ids[]', entry.id);
+        });
+        return params.toString();
+    }
+
+    document.getElementById('btn-preview-json').addEventListener('click', function () {
+        if (selected.length === 0) {
+            return;
+        }
+        var previewField = document.getElementById('json-preview-content');
+        var feedback = document.getElementById('json-copy-feedback');
+        feedback.textContent = '';
+        previewField.value = '';
+
+        fetch(previewUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            },
+            body: buildRequestBody()
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.text();
+        }).then(function (jsonText) {
+            previewField.value = jsonText;
+            var modal = new bootstrap.Modal(document.getElementById('jsonPreviewModal'));
+            modal.show();
+        }).catch(function () {
+            previewField.value = '{"error":"preview_failed"}';
+            var modal = new bootstrap.Modal(document.getElementById('jsonPreviewModal'));
+            modal.show();
+        });
+    });
+
+    document.getElementById('btn-copy-json').addEventListener('click', function () {
+        var previewField = document.getElementById('json-preview-content');
+        var feedback = document.getElementById('json-copy-feedback');
+        var text = previewField.value || '';
+        if (!text) {
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                feedback.textContent = '<?= $this->lang->line('gvv_transfert_copy_ok') ?>';
+            }).catch(function () {
+                feedback.textContent = '<?= $this->lang->line('gvv_transfert_copy_ko') ?>';
+            });
+        } else {
+            previewField.focus();
+            previewField.select();
+            try {
+                var ok = document.execCommand('copy');
+                feedback.textContent = ok
+                    ? '<?= $this->lang->line('gvv_transfert_copy_ok') ?>'
+                    : '<?= $this->lang->line('gvv_transfert_copy_ko') ?>';
+            } catch (e) {
+                feedback.textContent = '<?= $this->lang->line('gvv_transfert_copy_ko') ?>';
+            }
+            window.getSelection().removeAllRanges();
+        }
     });
 
     render();

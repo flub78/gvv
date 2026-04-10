@@ -59,7 +59,7 @@ class Compta extends Gvv_Controller {
         // mon_compte, journal_compte, export, pdf, new_year, datatable_journal_compte and filterValidation are accessible to regular users (own data only)
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
-            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
+            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
                 $this->require_roles(['tresorier']);
             }
         }
@@ -3453,6 +3453,19 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Construit le payload JSON d'export à partir d'une liste d'IDs.
+     */
+    private function _build_export_payload(array $ids) {
+        $entries = $this->gvv_model->get_by_ids_for_export($ids);
+        return [
+            'version'     => '2.0',
+            'exported_at' => date('Y-m-d\\TH:i:s'),
+            'source_host' => $this->config->item('base_url') ?: $_SERVER['HTTP_HOST'],
+            'entries'     => $entries,
+        ];
+    }
+
+    /**
      * Génère le fichier JSON d'export à partir d'une liste d'IDs postés.
      */
     public function export_ecritures() {
@@ -3464,20 +3477,35 @@ class Compta extends Gvv_Controller {
             return;
         }
 
-        $entries = $this->gvv_model->get_by_ids_for_export($ids);
-
-        $export = [
-            'version'     => '2.0',
-            'exported_at' => date('Y-m-d\TH:i:s'),
-            'source_host' => $this->config->item('base_url') ?: $_SERVER['HTTP_HOST'],
-            'entries'     => $entries,
-        ];
+        $export = $this->_build_export_payload($ids);
 
         $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $filename = 'ecritures_' . date('Ymd_His') . '.json';
 
         $this->load->helper('download');
         force_download($filename, $json);
+    }
+
+    /**
+     * Retourne le JSON d'export pour prévisualisation/copie dans l'UI.
+     */
+    public function preview_export_ecritures() {
+        $this->_check_transfert_access();
+        $ids = $this->input->post('ids');
+
+        if (empty($ids) || !is_array($ids)) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json', 'utf-8')
+                ->set_output(json_encode(['error' => 'No entries selected']));
+            return;
+        }
+
+        $export = $this->_build_export_payload($ids);
+        $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $this->output
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output($json);
     }
 
     /**
@@ -3617,14 +3645,30 @@ class Compta extends Gvv_Controller {
     public function import_ecritures() {
         $this->_check_transfert_access();
         $this->data['upload_error'] = null;
+        $this->data['json_text'] = '';
         // Nettoie un éventuel contexte de création de compte manquant après retour.
         $this->session->unset_userdata('import_missing_compte_context');
 
         if ($this->input->server('REQUEST_METHOD') === 'POST') {
-            if (empty($_FILES['userfile']['tmp_name'])) {
-                $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
+            $source = (string)$this->input->post('import_source', true);
+            $raw = '';
+
+            if ($source === 'text') {
+                $raw = (string)$this->input->post('json_text', false);
+                $this->data['json_text'] = $raw;
+                if (trim($raw) === '') {
+                    $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
+                }
             } else {
-                $raw  = file_get_contents($_FILES['userfile']['tmp_name']);
+                // Par défaut (et compatibilité), import par fichier.
+                if (empty($_FILES['userfile']['tmp_name'])) {
+                    $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
+                } else {
+                    $raw  = file_get_contents($_FILES['userfile']['tmp_name']);
+                }
+            }
+
+            if ($this->data['upload_error'] === null) {
                 $json = json_decode($raw, true);
 
                 if (!$json || empty($json['entries'])) {
@@ -3649,6 +3693,10 @@ class Compta extends Gvv_Controller {
                     load_last_view('compta/bs_import_previewView', $this->data);
                     return;
                 }
+            }
+
+            if ($source !== 'text') {
+                $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
             }
         }
 

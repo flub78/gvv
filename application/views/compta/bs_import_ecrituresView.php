@@ -15,6 +15,7 @@ $this->load->view('bs_banner');
 <?php endif; ?>
 
 <form method="post" action="<?= controller_url('compta/import_ecritures') ?>" enctype="multipart/form-data">
+    <input type="hidden" name="import_source" value="file">
     <div class="mb-3">
         <label for="userfile" class="form-label">
             <?= $this->lang->line('gvv_import_file_label') ?>
@@ -23,6 +24,19 @@ $this->load->view('bs_banner');
     </div>
     <button type="submit" class="btn btn-primary">
         <i class="fas fa-search me-1"></i><?= $this->lang->line('gvv_import_submit') ?>
+    </button>
+</form>
+
+<hr class="my-4">
+
+<form method="post" action="<?= controller_url('compta/import_ecritures') ?>">
+    <input type="hidden" name="import_source" value="text">
+    <div class="mb-3">
+        <label for="json_text" class="form-label"><?= $this->lang->line('gvv_import_text_label') ?></label>
+        <textarea class="form-control" id="json_text" name="json_text" rows="14" style="font-family: monospace;"><?= htmlspecialchars($json_text ?? '') ?></textarea>
+    </div>
+    <button type="submit" class="btn btn-outline-primary">
+        <i class="fas fa-paste me-1"></i><?= $this->lang->line('gvv_import_text_submit') ?>
     </button>
 </form>
 
