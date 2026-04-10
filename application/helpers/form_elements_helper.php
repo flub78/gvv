@@ -492,6 +492,23 @@ if (! function_exists('bilan_table')) {
             euro($bilan_prec['fonds_associatifs'], $sep, $output_format)
         );
 
+        $autres_fonds_propres_label = $CI->lang->line('comptes_bilan_autres_fonds_propres');
+        if ($html) {
+            $autres_fonds_propres_label = anchor(controller_url("comptes/balance/13/14"), $autres_fonds_propres_label);
+        }
+
+        $table[] = array(
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $tab,
+            $autres_fonds_propres_label,
+            euro($bilan['autres_fonds_propres'], $sep, $output_format),
+            euro($bilan_prec['autres_fonds_propres'], $sep, $output_format)
+        );
+
         // reports à nouveau créditeur
         $table[] = array(
             $tab,

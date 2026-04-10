@@ -72,6 +72,7 @@ $lang['comptes_bilan_immobilise'] = "Fixed assets";
 $lang['comptes_bilan_fonds_propres'] = "Capital";
 $lang['comptes_bilan_immobilisations_corp'] = "Tangible assets";
 $lang['comptes_bilan_fonds_associatifs'] = "Capital";
+$lang['comptes_bilan_autres_fonds_propres'] = "Other equity";
 $lang['comptes_bilan_report_debt'] = "Retained earnings credit";
 $lang['comptes_bilan_report_cred'] = "Retained earnings debit";
 $lang['comptes_bilan_dispo'] = "Available";

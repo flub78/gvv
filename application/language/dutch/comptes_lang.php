@@ -72,6 +72,7 @@ $lang['comptes_bilan_immobilise'] = "Vastgoed";
 $lang['comptes_bilan_fonds_propres'] = "Kapitaal";
 $lang['comptes_bilan_immobilisations_corp'] = "Onroerende goederen en bedrijfsmiddelen";
 $lang['comptes_bilan_fonds_associatifs'] = "Kapitaal";
+$lang['comptes_bilan_autres_fonds_propres'] = "Overige eigen fondsen";
 $lang['comptes_bilan_report_debt'] = "Rapport debiteuren";
 $lang['comptes_bilan_report_cred'] = "Rapport crediteuren";
 $lang['comptes_bilan_dispo'] = "Beschikbaar";

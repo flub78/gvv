@@ -73,6 +73,7 @@ $lang['comptes_bilan_immobilise'] = "Immobilisé";
 $lang['comptes_bilan_fonds_propres'] = "Fonds associatifs propres";
 $lang['comptes_bilan_immobilisations_corp'] = "Immobilisations corporelles";
 $lang['comptes_bilan_fonds_associatifs'] = "Fonds associatifs";
+$lang['comptes_bilan_autres_fonds_propres'] = "Autre fonds propres";
 $lang['comptes_bilan_report_debt'] = "Reports à nouveau débiteurs";
 $lang['comptes_bilan_report_cred'] = "Reports à nouveau créditeurs";
 $lang['comptes_bilan_dispo'] = "Actifs financiers";

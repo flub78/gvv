@@ -636,6 +636,9 @@ class Comptes_model extends Common_Model {
         // Fonds associatif = solde des comptes de classe 1 et 11
         $data['capital_2'] = $this->ecritures_model->select_solde($date_op, 1, 12, FALSE);
 
+        // Autres fonds propres = comptes de classe 13 (inclut 131 / 139)
+        $data['autres_fonds_propres'] = $this->total_of($this->ecritures_model->select_solde($date_op, 13, 14, TRUE));
+
         $data['amortissements_corp'] = $this->total_of($this->ecritures_model->select_solde($date_op, "28", "29", TRUE));
 
         $data['fonds_associatifs'] = $this->total_of($this->ecritures_model->select_solde($date_op, 102, 103, TRUE));
@@ -674,7 +677,7 @@ class Comptes_model extends Common_Model {
         $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo + $data['prets'];
 
         $total_capital = $this->total_of($data['capital_2']);
-        $data['total_passif'] = $dettes_pilotes + $total_capital + $data['resultat'];
+        $data['total_passif'] = $dettes_pilotes + $total_capital + $data['autres_fonds_propres'] + $data['resultat'];
 
         $data['emprunts'] = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE));
         $data['total_passif'] += $data['emprunts'];
