@@ -1259,6 +1259,97 @@ class Comptes extends Gvv_Controller {
     /**
      * Bilan
      */
+    private function actif_detail_data($bilan) {
+        $disponibilites = -$this->gvv_model->total_of($bilan['dispo']);
+
+        $immobilisations_corporelles = [
+            'brut' => $bilan['valeur_brute_immo_corp'],
+            'amort' => $bilan['amortissements_corp'],
+            'net' => $bilan['valeur_nette_immo_corp'],
+        ];
+
+        $immobilisations_financieres = [
+            'brut' => $bilan['prets'],
+            'amort' => 0,
+            'net' => $bilan['prets'],
+        ];
+
+        $total_actif_immobilise = [
+            'brut' => $immobilisations_corporelles['brut'] + $immobilisations_financieres['brut'],
+            'amort' => $immobilisations_corporelles['amort'] + $immobilisations_financieres['amort'],
+            'net' => $immobilisations_corporelles['net'] + $immobilisations_financieres['net'],
+        ];
+
+        $creances_tiers = [
+            'brut' => $bilan['creances_pilotes'],
+            'amort' => 0,
+            'net' => $bilan['creances_pilotes'],
+        ];
+
+        $dispo = [
+            'brut' => $disponibilites,
+            'amort' => 0,
+            'net' => $disponibilites,
+        ];
+
+        $total_actif_circulant = [
+            'brut' => $creances_tiers['brut'] + $dispo['brut'],
+            'amort' => 0,
+            'net' => $creances_tiers['net'] + $dispo['net'],
+        ];
+
+        return [
+            'immobilisations_corporelles' => $immobilisations_corporelles,
+            'immobilisations_financieres' => $immobilisations_financieres,
+            'total_actif_immobilise' => $total_actif_immobilise,
+            'creances_tiers' => $creances_tiers,
+            'disponibilites' => $dispo,
+            'total_actif_circulant' => $total_actif_circulant,
+            'total_actif' => $bilan['total_actif'],
+        ];
+    }
+
+    private function passif_detail_data($year, $bilan) {
+        $date_op = $year . '-12-31';
+
+        $reserves = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 106, 107, TRUE));
+        $subventions_investissement = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 13, 14, TRUE));
+
+        $provisions_risques = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 151, 156, TRUE));
+        $provisions_charges = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 157, 159, TRUE));
+
+        // Soldes créditeurs des comptes de classe 4 (même logique que le premier tableau)
+        $avances_membres = $bilan['dettes_pilotes'];
+        $dettes_financieres = $bilan['emprunts'];
+
+        $fonds_propres_sans_droit_reprise = $bilan['fonds_associatifs'] + $bilan['reports_cred'] + $bilan['reports_deb'];
+
+        $total_fonds_reportes_dedies =
+            $fonds_propres_sans_droit_reprise +
+            $reserves +
+            $bilan['resultat'] +
+            $subventions_investissement;
+
+        $total_provisions = $provisions_risques + $provisions_charges;
+        $total_dettes = $avances_membres + $dettes_financieres;
+        $total_passif = $bilan['total_passif'];
+
+        return [
+            'fonds_propres_sans_droit_reprise' => $fonds_propres_sans_droit_reprise,
+            'reserves' => $reserves,
+            'resultat' => $bilan['resultat'],
+            'subventions_investissement' => $subventions_investissement,
+            'total_fonds_reportes_dedies' => $total_fonds_reportes_dedies,
+            'provisions_risques' => $provisions_risques,
+            'provisions_charges' => $provisions_charges,
+            'total_provisions' => $total_provisions,
+            'avances_membres' => $avances_membres,
+            'dettes_financieres' => $dettes_financieres,
+            'total_dettes' => $total_dettes,
+            'total_passif' => $total_passif,
+        ];
+    }
+
     function bilan() {
         $this->push_return_url("bilan");
 
@@ -1267,6 +1358,10 @@ class Comptes extends Gvv_Controller {
         $bilan = $this->gvv_model->select_all_for_bilan($year);
         $bilan_prec = $this->gvv_model->select_all_for_bilan($year - 1);
         $this->data = $bilan;
+        $this->data['actif_detail_n'] = $this->actif_detail_data($bilan);
+        $this->data['actif_detail_n1'] = $this->actif_detail_data($bilan_prec);
+        $this->data['passif_detail_n'] = $this->passif_detail_data($year, $bilan);
+        $this->data['passif_detail_n1'] = $this->passif_detail_data($year - 1, $bilan_prec);
         $this->data['bilan_table'] = bilan_table($bilan, $bilan_prec, true);
         $this->data['section'] = $this->gvv_model->section();
 

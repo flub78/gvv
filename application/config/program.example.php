@@ -190,6 +190,7 @@ $config['use_standard_email_configuration_for_vd'] = false;
 $config['auto_planchiste'] = false;
 
 $config['new_layout'] = true;
+$config['former_bilan_layout'] = false;
 
 /*
  * Couleur de fond de la bannière principale (CSS color, ex: "#1f6f8b" ou "darkgreen")
