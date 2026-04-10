@@ -1397,7 +1397,8 @@ class Comptes extends Gvv_Controller {
 
         $csv_data = array();
         $csv_data[] = array('Bilan Actif');
-        $csv_data[] = array('Actif', "31/12/$year_n Brut", "31/12/$year_n Amort. et depr.", "31/12/$year_n Net", "31/12/$year_n1 Net");
+        $csv_data[] = array('Actif', "31/12/$year_n", '', '', "31/12/$year_n1");
+        $csv_data[] = array('', 'Brut', 'Amort. et depr.', 'Net', 'Net');
         $csv_data[] = array('Actif immobilise', '', '', '', '');
 
         if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
@@ -1468,7 +1469,7 @@ class Comptes extends Gvv_Controller {
 
         $csv_data[] = array();
         $csv_data[] = array('Bilan Passif');
-        $csv_data[] = array('Passif', "31/12/$year_n", "31/12/$year_n1");
+        $csv_data[] = array('Passif', '', '', "31/12/$year_n", "31/12/$year_n1");
 
         $passif_rows = array(
             array('Fonds propres sans droit de reprise', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']),
@@ -1488,6 +1489,8 @@ class Comptes extends Gvv_Controller {
         foreach ($passif_rows as $row) {
             $csv_data[] = array(
                 $row[0],
+                '',
+                '',
                 euro($row[1], ',', 'csv'),
                 euro($row[2], ',', 'csv')
             );
