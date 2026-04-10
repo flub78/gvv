@@ -88,13 +88,11 @@ $lang['comptes_bilan_resultat'] = "Resultaat";
 $lang['comptes_bilan_resultat_avant_repartition'] = "Resultaat voor verdeling";
 $lang['comptes_bilan_title_actif'] = "Balans Actief";
 $lang['comptes_bilan_title_passif'] = "Balans Passief";
-$lang['comptes_bilan_net'] = "Netto";
 $lang['comptes_bilan_amort_depr'] = "Afschr. en waardeverm.";
 $lang['comptes_bilan_actif_immobilise'] = "Vaste activa";
 $lang['comptes_bilan_immobilisations_financieres'] = "Financiele vaste activa";
 $lang['comptes_bilan_total_actif_immobilise'] = "Totaal vaste activa";
 $lang['comptes_bilan_actif_circulant'] = "Vlottende activa";
-$lang['comptes_bilan_disponibilites'] = "Beschikbare middelen";
 $lang['comptes_bilan_total_actif_circulant'] = "Totaal vlottende activa";
 $lang['comptes_bilan_fonds_propres_sans_droit_reprise'] = "Eigen vermogen zonder recht op terugname";
 $lang['comptes_bilan_reserves'] = "Reserves";
@@ -105,7 +103,6 @@ $lang['comptes_bilan_provisions_charges'] = "Voorzieningen voor kosten";
 $lang['comptes_bilan_total_provisions'] = "Totaal voorzieningen";
 $lang['comptes_bilan_dettes_financieres'] = "Financiele schulden";
 $lang['comptes_bilan_total_dettes'] = "Totaal schulden";
-$lang['comptes_bilan_total_du_passif'] = "Totaal passiva";
 
 $lang['comptes_button_cloture'] = "Sluiting boekjaar";
 

@@ -59,14 +59,14 @@ if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 	$lbl_actif = $this->lang->line('comptes_bilan_actif');
 	$lbl_brut = $this->lang->line('comptes_bilan_valeur_brute');
 	$lbl_amort_depr = $this->lang->line('comptes_bilan_amort_depr');
-	$lbl_net = $this->lang->line('comptes_bilan_net');
+	$lbl_net = $this->lang->line('comptes_bilan_valeur_nette');
 	$lbl_actif_immobilise = $this->lang->line('comptes_bilan_actif_immobilise');
 	$lbl_immobilisations_corp = $this->lang->line('comptes_bilan_immobilisations_corp');
 	$lbl_immobilisations_financieres = $this->lang->line('comptes_bilan_immobilisations_financieres');
 	$lbl_total_actif_immobilise = $this->lang->line('comptes_bilan_total_actif_immobilise');
 	$lbl_actif_circulant = $this->lang->line('comptes_bilan_actif_circulant');
 	$lbl_creances_tiers = $this->lang->line('comptes_bilan_creances_tiers');
-	$lbl_disponibilites = $this->lang->line('comptes_bilan_disponibilites');
+	$lbl_disponibilites = $this->lang->line('comptes_bilan_dispo');
 	$lbl_total_actif_circulant = $this->lang->line('comptes_bilan_total_actif_circulant');
 	$lbl_total_actif = $this->lang->line('comptes_bilan_total_actif');
 
@@ -183,7 +183,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	$lbl_dettes_tiers = $this->lang->line('comptes_bilan_dettes_tiers');
 	$lbl_dettes_financieres = $this->lang->line('comptes_bilan_dettes_financieres');
 	$lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
-	$lbl_total_passif = $this->lang->line('comptes_bilan_total_du_passif');
+	$lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
 	echo br(2);
 	echo heading($lbl_title_passif, 3, '');

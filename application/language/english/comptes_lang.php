@@ -88,13 +88,11 @@ $lang['comptes_bilan_resultat'] = "Budget year's results";
 $lang['comptes_bilan_resultat_avant_repartition'] = "Results before distribution";
 $lang['comptes_bilan_title_actif'] = "Balance Sheet Assets";
 $lang['comptes_bilan_title_passif'] = "Balance Sheet Liabilities";
-$lang['comptes_bilan_net'] = "Net";
 $lang['comptes_bilan_amort_depr'] = "Depreciation";
 $lang['comptes_bilan_actif_immobilise'] = "Fixed assets";
 $lang['comptes_bilan_immobilisations_financieres'] = "Financial fixed assets";
 $lang['comptes_bilan_total_actif_immobilise'] = "Total fixed assets";
 $lang['comptes_bilan_actif_circulant'] = "Current assets";
-$lang['comptes_bilan_disponibilites'] = "Cash and cash equivalents";
 $lang['comptes_bilan_total_actif_circulant'] = "Total current assets";
 $lang['comptes_bilan_fonds_propres_sans_droit_reprise'] = "Equity without right of return";
 $lang['comptes_bilan_reserves'] = "Reserves";
@@ -105,7 +103,6 @@ $lang['comptes_bilan_provisions_charges'] = "Expense provisions";
 $lang['comptes_bilan_total_provisions'] = "Total provisions";
 $lang['comptes_bilan_dettes_financieres'] = "Financial debts";
 $lang['comptes_bilan_total_dettes'] = "Total debts";
-$lang['comptes_bilan_total_du_passif'] = "Total liabilities";
 
 $lang['comptes_button_cloture'] = "End or year operations";
 

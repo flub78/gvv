@@ -90,13 +90,11 @@ $lang['comptes_bilan_resultat_avant_repartition'] = "Résultat";
 $lang['comptes_bilan_prets'] = "Prêts";
 $lang['comptes_bilan_title_actif'] = "Bilan Actif";
 $lang['comptes_bilan_title_passif'] = "Bilan Passif";
-$lang['comptes_bilan_net'] = "Net";
 $lang['comptes_bilan_amort_depr'] = "Amort. et dépr.";
 $lang['comptes_bilan_actif_immobilise'] = "Actif immobilisé";
 $lang['comptes_bilan_immobilisations_financieres'] = "Immobilisations financières";
 $lang['comptes_bilan_total_actif_immobilise'] = "Total actif immobilisé";
 $lang['comptes_bilan_actif_circulant'] = "Actif circulant";
-$lang['comptes_bilan_disponibilites'] = "Disponibilités";
 $lang['comptes_bilan_total_actif_circulant'] = "Total actif circulant";
 $lang['comptes_bilan_fonds_propres_sans_droit_reprise'] = "Fonds propres sans droit de reprise";
 $lang['comptes_bilan_reserves'] = "Réserves";
@@ -107,7 +105,6 @@ $lang['comptes_bilan_provisions_charges'] = "Provisions pour charges";
 $lang['comptes_bilan_total_provisions'] = "Total des provisions";
 $lang['comptes_bilan_dettes_financieres'] = "Dettes financières";
 $lang['comptes_bilan_total_dettes'] = "Total des dettes";
-$lang['comptes_bilan_total_du_passif'] = "Total du passif";
 
 
 $lang['comptes_button_cloture'] = "Clôture";

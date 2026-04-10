@@ -588,14 +588,14 @@ class Document {
         $lbl_actif = $this->CI->lang->line('comptes_bilan_actif');
         $lbl_brut = $this->CI->lang->line('comptes_bilan_valeur_brute');
         $lbl_amort_depr = $this->CI->lang->line('comptes_bilan_amort_depr');
-        $lbl_net = $this->CI->lang->line('comptes_bilan_net');
+        $lbl_net = $this->CI->lang->line('comptes_bilan_valeur_nette');
         $lbl_actif_immobilise = $this->CI->lang->line('comptes_bilan_actif_immobilise');
         $lbl_immobilisations_corp = $this->CI->lang->line('comptes_bilan_immobilisations_corp');
         $lbl_immobilisations_financieres = $this->CI->lang->line('comptes_bilan_immobilisations_financieres');
         $lbl_total_actif_immobilise = $this->CI->lang->line('comptes_bilan_total_actif_immobilise');
         $lbl_actif_circulant = $this->CI->lang->line('comptes_bilan_actif_circulant');
         $lbl_creances_tiers = $this->CI->lang->line('comptes_bilan_creances_tiers');
-        $lbl_disponibilites = $this->CI->lang->line('comptes_bilan_disponibilites');
+        $lbl_disponibilites = $this->CI->lang->line('comptes_bilan_dispo');
         $lbl_total_actif_circulant = $this->CI->lang->line('comptes_bilan_total_actif_circulant');
         $lbl_total_actif = $this->CI->lang->line('comptes_bilan_total_actif');
 
@@ -612,7 +612,7 @@ class Document {
         $lbl_dettes_tiers = $this->CI->lang->line('comptes_bilan_dettes_tiers');
         $lbl_dettes_financieres = $this->CI->lang->line('comptes_bilan_dettes_financieres');
         $lbl_total_dettes = $this->CI->lang->line('comptes_bilan_total_dettes');
-        $lbl_total_passif = $this->CI->lang->line('comptes_bilan_total_du_passif');
+        $lbl_total_passif = $this->CI->lang->line('comptes_bilan_total_passif');
 
         $actif_data = array();
         $actif_data[] = array('<b>' . $lbl_actif_immobilise . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>');
