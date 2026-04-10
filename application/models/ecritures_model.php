@@ -2896,6 +2896,64 @@ array (size=2)
         }
     }
 
+    /**
+     * Retourne un sélecteur d'écritures pour une année donnée (pour big_select).
+     * Clé = id ecriture, valeur = libellé affiché.
+     */
+    public function selector_for_transfer($year) {
+        $select  = "ecritures.id, ecritures.date_op, ecritures.montant, ecritures.description, ecritures.num_cheque";
+        $select .= ", c1.codec as code1, c1.nom as nom1, c2.codec as code2, c2.nom as nom2";
+
+        $res = $this->db
+            ->select($select)
+            ->from('ecritures')
+            ->join('comptes as c1', 'c1.id = ecritures.compte1')
+            ->join('comptes as c2', 'c2.id = ecritures.compte2')
+            ->where('YEAR(ecritures.date_op)', (int)$year)
+            ->order_by('ecritures.date_op ASC, ecritures.id ASC')
+            ->get()->result_array();
+
+        $hash = [];
+        foreach ($res as $row) {
+            $label = date_db2ht($row['date_op'])
+                . ' - ' . $row['code1'] . ' ' . $row['nom1']
+                . ' → ' . $row['code2'] . ' ' . $row['nom2']
+                . ' - ' . euro($row['montant'], ',', 'csv')
+                . ($row['description'] ? ' - ' . $row['description'] : '')
+                . ($row['num_cheque']  ? ' [' . $row['num_cheque'] . ']' : '');
+            $hash[$row['id']] = $label;
+        }
+        return $hash;
+    }
+
+    /**
+     * Retourne les données complètes d'une liste d'écritures (avec codecs et noms des comptes).
+     * Utilisé pour la génération du fichier d'export.
+     */
+    public function get_by_ids_for_export(array $ids) {
+        if (empty($ids)) {
+            return [];
+        }
+        $safe_ids = array_map('intval', $ids);
+
+        $select  = "ecritures.id, ecritures.annee_exercise, ecritures.date_op, ecritures.montant";
+        $select .= ", ecritures.description, ecritures.num_cheque, ecritures.type";
+        $select .= ", ecritures.quantite, ecritures.prix, ecritures.categorie, ecritures.saisie_par";
+        $select .= ", ecritures.compte1 as compte1_id, c1.codec as compte1_codec, c1.nom as compte1_nom, s1.nom as compte1_section";
+        $select .= ", ecritures.compte2 as compte2_id, c2.codec as compte2_codec, c2.nom as compte2_nom, s2.nom as compte2_section";
+
+        return $this->db
+            ->select($select)
+            ->from('ecritures')
+            ->join('comptes as c1', 'c1.id = ecritures.compte1')
+            ->join('comptes as c2', 'c2.id = ecritures.compte2')
+            ->join('sections as s1', 's1.id = c1.club', 'left')
+            ->join('sections as s2', 's2.id = c2.club', 'left')
+            ->where_in('ecritures.id', $safe_ids)
+            ->order_by('ecritures.date_op ASC, ecritures.id ASC')
+            ->get()->result_array();
+    }
+
     // ...existing code...
 }
 

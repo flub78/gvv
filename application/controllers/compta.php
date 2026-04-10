@@ -59,7 +59,7 @@ class Compta extends Gvv_Controller {
         // mon_compte, journal_compte, export, pdf, new_year, datatable_journal_compte and filterValidation are accessible to regular users (own data only)
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
-            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation'])) {
+            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
                 $this->require_roles(['tresorier']);
             }
         }
@@ -3404,6 +3404,341 @@ class Compta extends Gvv_Controller {
             return '.' . substr($abs_path, strlen($doc_root));
         }
         return $abs_path;
+    }
+
+    // -------------------------------------------------------------------------
+    // Transfert d'écritures entre instances
+    // Réservé aux super-tresorier et aux admins (role_id = 2)
+    // -------------------------------------------------------------------------
+
+    private function _check_transfert_access() {
+        if (!has_role('super-tresorier') && !$this->dx_auth->is_admin()) {
+            show_error($this->lang->line('gvv_error_not_authorized') ?: 'Accès non autorisé', 403);
+        }
+    }
+
+    /**
+     * Page de sélection des écritures à exporter.
+     */
+    public function transfert($year = null) {
+        $this->_check_transfert_access();
+
+        if ($year === null) {
+            $year = $this->session->userdata('year') ?: date('Y');
+        } else {
+            $this->session->set_userdata('year', $year);
+        }
+
+        $this->data['year']          = $year;
+        $this->data['year_selector'] = $this->gvv_model->getYearSelector('date_op');
+        $this->data['controller']    = $this->controller;
+        $this->data['ecriture_selector'] = $this->gvv_model->selector_for_transfer($year);
+
+        load_last_view('compta/bs_transfertView', $this->data);
+    }
+
+    /**
+     * AJAX : retourne les écritures d'une année pour le big_select du transfert.
+     */
+    public function ajax_ecritures_for_transfer($year) {
+        $this->_check_transfert_access();
+        header('Content-Type: application/json');
+        $year = (int)$year;
+        $entries = $this->gvv_model->selector_for_transfer($year);
+        $options = [];
+        foreach ($entries as $id => $label) {
+            $options[] = ['id' => $id, 'text' => $label];
+        }
+        echo json_encode($options);
+    }
+
+    /**
+     * Génère le fichier JSON d'export à partir d'une liste d'IDs postés.
+     */
+    public function export_ecritures() {
+        $this->_check_transfert_access();
+
+        $ids = $this->input->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            redirect('compta/transfert');
+            return;
+        }
+
+        $entries = $this->gvv_model->get_by_ids_for_export($ids);
+
+        $export = [
+            'version'     => '2.0',
+            'exported_at' => date('Y-m-d\TH:i:s'),
+            'source_host' => $this->config->item('base_url') ?: $_SERVER['HTTP_HOST'],
+            'entries'     => $entries,
+        ];
+
+        $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $filename = 'ecritures_' . date('Ymd_His') . '.json';
+
+        $this->load->helper('download');
+        force_download($filename, $json);
+    }
+
+    /**
+     * Valide une entrée d'import : résolution par ID, vérifications croisées.
+     * Retourne ['valid' => bool, 'errors' => [], 'compte1_id' => int, 'compte2_id' => int, 'section_id' => int]
+     */
+    private function _validate_import_entry(array $entry) {
+        $errors = [];
+        $missing_accounts = [];
+        $compte1_id = null;
+        $compte2_id = null;
+        $section_id = null;
+
+        // Vérification format v2.0
+        if (empty($entry['compte1_id']) || empty($entry['compte2_id'])) {
+            return ['valid' => false, 'errors' => [$this->lang->line('gvv_import_error_old_format')],
+                    'compte1_id' => null, 'compte2_id' => null, 'section_id' => null,
+                    'missing_accounts' => []];
+        }
+
+        // Résolution compte1 par ID
+        $c1 = $this->db->where('id', (int)$entry['compte1_id'])->get('comptes')->row_array();
+        if (!$c1) {
+            $errors[] = $this->lang->line('gvv_import_error_compte_not_found')
+                . ' ' . $entry['compte1_codec'] . ' ' . $entry['compte1_nom']
+                . ' (id=' . $entry['compte1_id'] . ')';
+            $missing_accounts[] = [
+                'codec' => (string)($entry['compte1_codec'] ?? ''),
+                'nom'   => (string)($entry['compte1_nom'] ?? ''),
+                'desc'  => (string)($entry['compte1_nom'] ?? ''),
+            ];
+        } else {
+            if ($c1['codec'] !== (string)$entry['compte1_codec']) {
+                $errors[] = $this->lang->line('gvv_import_error_codec_mismatch')
+                    . ' ' . $entry['compte1_codec'] . ' ≠ ' . $c1['codec'];
+            }
+            if ($c1['nom'] !== (string)$entry['compte1_nom']) {
+                $errors[] = $this->lang->line('gvv_import_error_nom_mismatch')
+                    . ' "' . $entry['compte1_nom'] . '" ≠ "' . $c1['nom'] . '"';
+            }
+            $compte1_id = $c1['id'];
+            $section_id = $c1['club'];
+        }
+
+        // Résolution compte2 par ID
+        $c2 = $this->db->where('id', (int)$entry['compte2_id'])->get('comptes')->row_array();
+        if (!$c2) {
+            $errors[] = $this->lang->line('gvv_import_error_compte_not_found')
+                . ' ' . $entry['compte2_codec'] . ' ' . $entry['compte2_nom']
+                . ' (id=' . $entry['compte2_id'] . ')';
+            $missing_accounts[] = [
+                'codec' => (string)($entry['compte2_codec'] ?? ''),
+                'nom'   => (string)($entry['compte2_nom'] ?? ''),
+                'desc'  => (string)($entry['compte2_nom'] ?? ''),
+            ];
+        } else {
+            if ($c2['codec'] !== (string)$entry['compte2_codec']) {
+                $errors[] = $this->lang->line('gvv_import_error_codec_mismatch')
+                    . ' ' . $entry['compte2_codec'] . ' ≠ ' . $c2['codec'];
+            }
+            if ($c2['nom'] !== (string)$entry['compte2_nom']) {
+                $errors[] = $this->lang->line('gvv_import_error_nom_mismatch')
+                    . ' "' . $entry['compte2_nom'] . '" ≠ "' . $c2['nom'] . '"';
+            }
+            $compte2_id = $c2['id'];
+            // Vérification même section
+            if ($compte1_id !== null && $c1['club'] !== $c2['club']) {
+                $errors[] = $this->lang->line('gvv_import_error_section_mismatch')
+                    . ' (' . ($entry['compte1_section'] ?? '') . ' / ' . ($entry['compte2_section'] ?? '') . ')';
+            }
+        }
+
+        return [
+            'valid'      => empty($errors),
+            'errors'     => $errors,
+            'compte1_id' => $compte1_id,
+            'compte2_id' => $compte2_id,
+            'section_id' => $section_id,
+            'missing_accounts' => $missing_accounts,
+        ];
+    }
+
+    /**
+     * Ouvre la création d'un compte manquant depuis la prévisualisation d'import.
+     * Les champs nom/desc/codec sont pré-remplis, puis l'utilisateur revient à l'import.
+     */
+    public function create_missing_compte() {
+        $this->_check_transfert_access();
+
+        $codec = trim((string)$this->input->get('codec', true));
+        $nom   = trim((string)$this->input->get('nom', true));
+        $desc  = trim((string)$this->input->get('desc', true));
+
+        if ($desc === '') {
+            $desc = $nom;
+        }
+
+        if ($codec === '' || $nom === '') {
+            $this->session->set_flashdata('popup', $this->lang->line('gvv_import_missing_account_invalid_data'));
+            redirect('compta/import_ecritures');
+            return;
+        }
+
+        $return_to = site_url('compta/import_ecritures');
+
+        // Permet au bouton Annuler de revenir vers la page d'import.
+        $url_stack = $this->session->userdata('return_url_stack');
+        if (!is_array($url_stack)) {
+            $url_stack = [];
+        }
+        if ($this->validate_return_url($return_to)) {
+            $url_stack[] = $return_to;
+            $this->session->set_userdata('return_url_stack', $url_stack);
+            $this->session->set_userdata('url_stack_time', time());
+        }
+
+        $this->session->set_userdata('import_missing_compte_context', [
+            'codec' => $codec,
+            'nom' => $nom,
+            'desc' => $desc,
+            'return_to' => $return_to,
+        ]);
+
+        $this->session->set_flashdata(
+            'popup',
+            sprintf($this->lang->line('gvv_import_missing_account_context_msg'), $codec, $nom)
+        );
+
+        redirect('comptes/create');
+    }
+
+    /**
+     * Import d'un fichier JSON d'écritures — phase 1 : prévisualisation.
+     * GET  : formulaire d'upload.
+     * POST : validation et prévisualisation avec checkboxes.
+     */
+    public function import_ecritures() {
+        $this->_check_transfert_access();
+        $this->data['upload_error'] = null;
+        // Nettoie un éventuel contexte de création de compte manquant après retour.
+        $this->session->unset_userdata('import_missing_compte_context');
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            if (empty($_FILES['userfile']['tmp_name'])) {
+                $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
+            } else {
+                $raw  = file_get_contents($_FILES['userfile']['tmp_name']);
+                $json = json_decode($raw, true);
+
+                if (!$json || empty($json['entries'])) {
+                    $this->data['upload_error'] = $this->lang->line('gvv_import_error_json');
+                } elseif (($json['version'] ?? '') !== '2.0') {
+                    $this->data['upload_error'] = $this->lang->line('gvv_import_error_old_format');
+                } else {
+                    // Validation de toutes les entrées (aucune écriture DB)
+                    $validated = [];
+                    foreach ($json['entries'] as $entry) {
+                        $check       = $this->_validate_import_entry($entry);
+                        $validated[] = array_merge($check, ['entry' => $entry]);
+                    }
+
+                    // Stockage en session pour confirm_import
+                    $this->session->set_userdata('import_preview', [
+                        'entries'   => $validated,
+                        'timestamp' => time(),
+                    ]);
+
+                    $this->data['validated'] = $validated;
+                    load_last_view('compta/bs_import_previewView', $this->data);
+                    return;
+                }
+            }
+        }
+
+        load_last_view('compta/bs_import_ecrituresView', $this->data);
+    }
+
+    /**
+     * Import d'un fichier JSON d'écritures — phase 2 : confirmation et insertion.
+     * POST : indices des entrées sélectionnées par l'utilisateur.
+     */
+    public function confirm_import() {
+        $this->_check_transfert_access();
+
+        $preview = $this->session->userdata('import_preview');
+        if (empty($preview['entries'])) {
+            redirect('compta/import_ecritures');
+            return;
+        }
+
+        $selected_indices = $this->input->post('selected_indices');
+        if (empty($selected_indices) || !is_array($selected_indices)) {
+            $this->session->set_flashdata('message', $this->lang->line('gvv_import_nothing_selected'));
+            $this->data['validated'] = $preview['entries'];
+            load_last_view('compta/bs_import_previewView', $this->data);
+            return;
+        }
+
+        $all_entries = $preview['entries'];
+        $inserted    = 0;
+        $insert_errors = [];
+        $username    = $this->dx_auth->get_username();
+
+        $this->db->trans_begin();
+
+        foreach ($selected_indices as $idx) {
+            $idx = (int)$idx;
+            if (!isset($all_entries[$idx])) continue;
+
+            $row = $all_entries[$idx];
+
+            // Re-validation de sécurité
+            $check = $this->_validate_import_entry($row['entry']);
+            if (!$check['valid']) {
+                $insert_errors[] = '[' . ($row['entry']['date_op'] ?? '?') . '] '
+                    . implode(', ', $check['errors']);
+                continue;
+            }
+
+            $entry = $row['entry'];
+            $ecriture = [
+                'annee_exercise' => $entry['annee_exercise'],
+                'date_creation'  => date('Y-m-d'),
+                'date_op'        => $entry['date_op'],
+                'compte1'        => $check['compte1_id'],
+                'compte2'        => $check['compte2_id'],
+                'montant'        => $entry['montant'],
+                'description'    => $entry['description'] ?? '',
+                'type'           => $entry['type'] ?? 0,
+                'num_cheque'     => $entry['num_cheque'] ?? '',
+                'quantite'       => $entry['quantite'] ?? '0',
+                'prix'           => $entry['prix'] ?? -1,
+                'categorie'      => $entry['categorie'] ?? 0,
+                'saisie_par'     => $username,
+                'club'           => $check['section_id'],
+                'gel'            => 0,
+            ];
+
+            // Mise à jour manuelle des soldes + insertion (sans trans interne)
+            $this->comptes_model->maj_comptes($check['compte1_id'], $check['compte2_id'], $entry['montant']);
+            $id = $this->gvv_model->create($ecriture);
+
+            if (!$id) {
+                $insert_errors[] = $this->lang->line('gvv_import_error_insert') . ' ' . $entry['date_op'];
+            } else {
+                $inserted++;
+            }
+        }
+
+        if (!empty($insert_errors) || $this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $inserted = 0;
+            $this->data['insert_errors'] = $insert_errors;
+        } else {
+            $this->db->trans_commit();
+            $this->session->unset_userdata('import_preview');
+        }
+
+        $this->data['count']     = $inserted;
+        $this->data['validated'] = $all_entries;
+        load_last_view('compta/bs_import_resultView', $this->data);
     }
 
     /**

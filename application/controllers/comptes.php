@@ -71,6 +71,59 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Affiche le formulaire de création avec pré-remplissage optionnel
+     * lorsqu'il est appelé depuis l'import d'écritures.
+     */
+    function create() {
+        if (func_num_args() > 0) {
+            $no_view_loading = func_get_arg(0);
+        }
+
+        $table = $this->gvv_model->table();
+        $this->data = $this->gvvmetadata->defaults_list($table);
+
+        $context = $this->session->userdata('import_missing_compte_context');
+        if (is_array($context)) {
+            if (!empty($context['nom'])) {
+                $this->data['nom'] = $context['nom'];
+            }
+            if (!empty($context['desc'])) {
+                $this->data['desc'] = $context['desc'];
+            }
+            if (!empty($context['codec'])) {
+                $this->data['codec'] = $context['codec'];
+            }
+            if (!empty($context['return_to'])) {
+                $this->data['import_return_to'] = $context['return_to'];
+            }
+        }
+
+        $this->form_static_element(CREATION);
+
+        if (!isset($no_view_loading)) {
+            return load_last_view($this->form_view, $this->data, $this->unit_test);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * Redirection après création : retour à l'import quand la création
+     * est déclenchée depuis la prévisualisation des écritures.
+     */
+    function validationOkPage($processed_data, $button) {
+        $context = $this->session->userdata('import_missing_compte_context');
+        if (is_array($context) && !empty($context['return_to'])) {
+            $return_to = $context['return_to'];
+            $this->session->unset_userdata('import_missing_compte_context');
+            redirect($return_to);
+            return;
+        }
+
+        parent::validationOkPage($processed_data, $button);
+    }
+
+    /**
      * Supprime un élèment
      */
     function delete($id) {
