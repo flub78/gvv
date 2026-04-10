@@ -1395,15 +1395,45 @@ class Comptes extends Gvv_Controller {
             return $non_zero($line_n['brut']) || $non_zero($line_n['amort']) || $non_zero($line_n['net']) || $non_zero($line_n1['net']);
         };
 
+        $lbl_title_actif = $this->lang->line('comptes_bilan_title_actif');
+        $lbl_actif = $this->lang->line('comptes_bilan_actif');
+        $lbl_brut = $this->lang->line('comptes_bilan_valeur_brute');
+        $lbl_amort_depr = $this->lang->line('comptes_bilan_amort_depr');
+        $lbl_net = $this->lang->line('comptes_bilan_net');
+        $lbl_actif_immobilise = $this->lang->line('comptes_bilan_actif_immobilise');
+        $lbl_immobilisations_corp = $this->lang->line('comptes_bilan_immobilisations_corp');
+        $lbl_immobilisations_financieres = $this->lang->line('comptes_bilan_immobilisations_financieres');
+        $lbl_total_actif_immobilise = $this->lang->line('comptes_bilan_total_actif_immobilise');
+        $lbl_actif_circulant = $this->lang->line('comptes_bilan_actif_circulant');
+        $lbl_creances_tiers = $this->lang->line('comptes_bilan_creances_tiers');
+        $lbl_disponibilites = $this->lang->line('comptes_bilan_disponibilites');
+        $lbl_total_actif_circulant = $this->lang->line('comptes_bilan_total_actif_circulant');
+        $lbl_total_actif = $this->lang->line('comptes_bilan_total_actif');
+
+        $lbl_title_passif = $this->lang->line('comptes_bilan_title_passif');
+        $lbl_passif = $this->lang->line('comptes_bilan_passif');
+        $lbl_fonds_propres_sans_droit_reprise = $this->lang->line('comptes_bilan_fonds_propres_sans_droit_reprise');
+        $lbl_reserves = $this->lang->line('comptes_bilan_reserves');
+        $lbl_resultat = $this->lang->line('comptes_bilan_resultat');
+        $lbl_subventions_investissement = $this->lang->line('comptes_bilan_subventions_investissement');
+        $lbl_total_fonds_reportes_dedies = $this->lang->line('comptes_bilan_total_fonds_reportes_dedies');
+        $lbl_provisions_risques = $this->lang->line('comptes_bilan_provisions_risques');
+        $lbl_provisions_charges = $this->lang->line('comptes_bilan_provisions_charges');
+        $lbl_total_provisions = $this->lang->line('comptes_bilan_total_provisions');
+        $lbl_dettes_tiers = $this->lang->line('comptes_bilan_dettes_tiers');
+        $lbl_dettes_financieres = $this->lang->line('comptes_bilan_dettes_financieres');
+        $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
+        $lbl_total_passif = $this->lang->line('comptes_bilan_total_du_passif');
+
         $csv_data = array();
-        $csv_data[] = array('Bilan Actif');
-        $csv_data[] = array('Actif', "31/12/$year_n", '', '', "31/12/$year_n1");
-        $csv_data[] = array('', 'Brut', 'Amort. et depr.', 'Net', 'Net');
-        $csv_data[] = array('Actif immobilise', '', '', '', '');
+        $csv_data[] = array($lbl_title_actif);
+        $csv_data[] = array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1");
+        $csv_data[] = array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net);
+        $csv_data[] = array($lbl_actif_immobilise, '', '', '', '');
 
         if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
             $csv_data[] = array(
-                'Immobilisations corporelles',
+                $lbl_immobilisations_corp,
                 euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'csv'),
                 euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'csv'),
                 euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'csv'),
@@ -1413,7 +1443,7 @@ class Comptes extends Gvv_Controller {
 
         if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
             $csv_data[] = array(
-                'Immobilisations financieres',
+                $lbl_immobilisations_financieres,
                 euro($actif_detail_n['immobilisations_financieres']['brut'], ',', 'csv'),
                 euro($actif_detail_n['immobilisations_financieres']['amort'], ',', 'csv'),
                 euro($actif_detail_n['immobilisations_financieres']['net'], ',', 'csv'),
@@ -1422,18 +1452,18 @@ class Comptes extends Gvv_Controller {
         }
 
         $csv_data[] = array(
-            'Total actif immobilise',
+            $lbl_total_actif_immobilise,
             euro($actif_detail_n['total_actif_immobilise']['brut'], ',', 'csv'),
             euro($actif_detail_n['total_actif_immobilise']['amort'], ',', 'csv'),
             euro($actif_detail_n['total_actif_immobilise']['net'], ',', 'csv'),
             euro($actif_detail_n1['total_actif_immobilise']['net'], ',', 'csv')
         );
 
-        $csv_data[] = array('Actif circulant', '', '', '', '');
+        $csv_data[] = array($lbl_actif_circulant, '', '', '', '');
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
             $csv_data[] = array(
-                'Creances de tiers',
+                $lbl_creances_tiers,
                 euro($actif_detail_n['creances_tiers']['brut'], ',', 'csv'),
                 euro($actif_detail_n['creances_tiers']['amort'], ',', 'csv'),
                 euro($actif_detail_n['creances_tiers']['net'], ',', 'csv'),
@@ -1443,7 +1473,7 @@ class Comptes extends Gvv_Controller {
 
         if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
             $csv_data[] = array(
-                'Disponibilites',
+                $lbl_disponibilites,
                 euro($actif_detail_n['disponibilites']['brut'], ',', 'csv'),
                 euro($actif_detail_n['disponibilites']['amort'], ',', 'csv'),
                 euro($actif_detail_n['disponibilites']['net'], ',', 'csv'),
@@ -1452,7 +1482,7 @@ class Comptes extends Gvv_Controller {
         }
 
         $csv_data[] = array(
-            'Total actif circulant',
+            $lbl_total_actif_circulant,
             euro($actif_detail_n['total_actif_circulant']['brut'], ',', 'csv'),
             euro($actif_detail_n['total_actif_circulant']['amort'], ',', 'csv'),
             euro($actif_detail_n['total_actif_circulant']['net'], ',', 'csv'),
@@ -1460,7 +1490,7 @@ class Comptes extends Gvv_Controller {
         );
 
         $csv_data[] = array(
-            'Total actif',
+            $lbl_total_actif,
             '',
             '',
             euro($actif_detail_n['total_actif'], ',', 'csv'),
@@ -1468,22 +1498,22 @@ class Comptes extends Gvv_Controller {
         );
 
         $csv_data[] = array();
-        $csv_data[] = array('Bilan Passif');
-        $csv_data[] = array('Passif', '', '', "31/12/$year_n", "31/12/$year_n1");
+        $csv_data[] = array($lbl_title_passif);
+        $csv_data[] = array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1");
 
         $passif_rows = array(
-            array('Fonds propres sans droit de reprise', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']),
-            array('Reserves', $passif_detail_n['reserves'], $passif_detail_n1['reserves']),
-            array('Resultat', $passif_detail_n['resultat'], $passif_detail_n1['resultat']),
-            array('Subventions d\'investissement', $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']),
-            array('Total des fonds reportes et dedies', $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']),
-            array('Provisions pour risques', $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']),
-            array('Provisions pour charges', $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']),
-            array('Total des provisions', $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']),
-            array('Dettes envers des tiers', $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']),
-            array('Dettes financieres', $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']),
-            array('Total des dettes', $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']),
-            array('Total du passif', $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'])
+            array($lbl_fonds_propres_sans_droit_reprise, $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']),
+            array($lbl_reserves, $passif_detail_n['reserves'], $passif_detail_n1['reserves']),
+            array($lbl_resultat, $passif_detail_n['resultat'], $passif_detail_n1['resultat']),
+            array($lbl_subventions_investissement, $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']),
+            array($lbl_total_fonds_reportes_dedies, $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']),
+            array($lbl_provisions_risques, $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']),
+            array($lbl_provisions_charges, $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']),
+            array($lbl_total_provisions, $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']),
+            array($lbl_dettes_tiers, $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']),
+            array($lbl_dettes_financieres, $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']),
+            array($lbl_total_dettes, $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']),
+            array($lbl_total_passif, $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'])
         );
 
         foreach ($passif_rows as $row) {

@@ -88,6 +88,26 @@ $lang['comptes_bilan_total_passif'] = "Total passif";
 $lang['comptes_bilan_resultat'] = "Résultat";
 $lang['comptes_bilan_resultat_avant_repartition'] = "Résultat";
 $lang['comptes_bilan_prets'] = "Prêts";
+$lang['comptes_bilan_title_actif'] = "Bilan Actif";
+$lang['comptes_bilan_title_passif'] = "Bilan Passif";
+$lang['comptes_bilan_net'] = "Net";
+$lang['comptes_bilan_amort_depr'] = "Amort. et depr.";
+$lang['comptes_bilan_actif_immobilise'] = "Actif immobilise";
+$lang['comptes_bilan_immobilisations_financieres'] = "Immobilisations financieres";
+$lang['comptes_bilan_total_actif_immobilise'] = "Total actif immobilise";
+$lang['comptes_bilan_actif_circulant'] = "Actif circulant";
+$lang['comptes_bilan_disponibilites'] = "Disponibilites";
+$lang['comptes_bilan_total_actif_circulant'] = "Total actif circulant";
+$lang['comptes_bilan_fonds_propres_sans_droit_reprise'] = "Fonds propres sans droit de reprise";
+$lang['comptes_bilan_reserves'] = "Reserves";
+$lang['comptes_bilan_subventions_investissement'] = "Subventions d'investissement";
+$lang['comptes_bilan_total_fonds_reportes_dedies'] = "Total des fonds reportes et dedies";
+$lang['comptes_bilan_provisions_risques'] = "Provisions pour risques";
+$lang['comptes_bilan_provisions_charges'] = "Provisions pour charges";
+$lang['comptes_bilan_total_provisions'] = "Total des provisions";
+$lang['comptes_bilan_dettes_financieres'] = "Dettes financieres";
+$lang['comptes_bilan_total_dettes'] = "Total des dettes";
+$lang['comptes_bilan_total_du_passif'] = "Total du passif";
 
 
 $lang['comptes_button_cloture'] = "Clôture";
