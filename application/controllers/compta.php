@@ -3540,11 +3540,13 @@ class Compta extends Gvv_Controller {
         } else {
             if ($c1['codec'] !== (string)$entry['compte1_codec']) {
                 $errors[] = $this->lang->line('gvv_import_error_codec_mismatch')
-                    . ' ' . $entry['compte1_codec'] . ' ≠ ' . $c1['codec'];
+                    . ' ' . $entry['compte1_codec'] . ' ≠ ' . $c1['codec']
+                    . ' (id=' . $c1['id'] . ')';
             }
             if ($c1['nom'] !== (string)$entry['compte1_nom']) {
                 $errors[] = $this->lang->line('gvv_import_error_nom_mismatch')
-                    . ' "' . $entry['compte1_nom'] . '" ≠ "' . $c1['nom'] . '"';
+                    . ' "' . $entry['compte1_nom'] . '" ≠ "' . $c1['nom'] . '"'
+                    . ' (id=' . $c1['id'] . ')';
             }
             $compte1_id = $c1['id'];
             $section_id = $c1['club'];
@@ -3564,17 +3566,24 @@ class Compta extends Gvv_Controller {
         } else {
             if ($c2['codec'] !== (string)$entry['compte2_codec']) {
                 $errors[] = $this->lang->line('gvv_import_error_codec_mismatch')
-                    . ' ' . $entry['compte2_codec'] . ' ≠ ' . $c2['codec'];
+                    . ' ' . $entry['compte2_codec'] . ' ≠ ' . $c2['codec']
+                    . ' (id=' . $c2['id'] . ')';
             }
             if ($c2['nom'] !== (string)$entry['compte2_nom']) {
                 $errors[] = $this->lang->line('gvv_import_error_nom_mismatch')
-                    . ' "' . $entry['compte2_nom'] . '" ≠ "' . $c2['nom'] . '"';
+                    . ' "' . $entry['compte2_nom'] . '" ≠ "' . $c2['nom'] . '"'
+                    . ' (id=' . $c2['id'] . ')';
             }
             $compte2_id = $c2['id'];
             // Vérification même section
             if ($compte1_id !== null && $c1['club'] !== $c2['club']) {
+                $s1 = $this->db->select('nom')->where('id', (int)$c1['club'])->get('sections')->row_array();
+                $s2 = $this->db->select('nom')->where('id', (int)$c2['club'])->get('sections')->row_array();
+                $section1 = ($s1 && !empty($s1['nom'])) ? $s1['nom'] : ('id=' . $c1['club']);
+                $section2 = ($s2 && !empty($s2['nom'])) ? $s2['nom'] : ('id=' . $c2['club']);
                 $errors[] = $this->lang->line('gvv_import_error_section_mismatch')
-                    . ' (' . ($entry['compte1_section'] ?? '') . ' / ' . ($entry['compte2_section'] ?? '') . ')';
+                    . ' (' . $section1 . ' [id=' . $c1['club'] . '] / '
+                    . $section2 . ' [id=' . $c2['club'] . '])';
             }
         }
 
