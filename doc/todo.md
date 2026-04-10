@@ -28,7 +28,8 @@ Cela implique de:
 
 * [x]Supprimer la date du jour par défaut dans les écritures
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
-* [] Timeout, il faudrait mieux déconnecter. 
+* [] Timeout, il faudrait mieux déconnecter. La section active a été perdue. Merci de sélectionner à nouveau une 
+ 
 * [] Accepter les paiements en centimes. ou pas ?
 * [] On perd l'occasion sur les vols de découverte
 

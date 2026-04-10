@@ -267,6 +267,17 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Calcule l'année d'exercice à partir de la date d'opération.
+     */
+    private function exercise_year_from_date_op($date_op) {
+        $timestamp = strtotime((string) $date_op);
+        if ($timestamp === false) {
+            return date('Y');
+        }
+        return date('Y', $timestamp);
+    }
+
+    /**
      * Validation callback to check that compte1 and compte2 are different
      * 
      * @return boolean True if accounts are different, false if they are the same
@@ -349,6 +360,11 @@ class Compta extends Gvv_Controller {
             // get the processed data. It must not be done before because all the
             // processing is done by the run method.
             $processed_data = $this->form2database($action);
+
+            // L'année d'exercice suit toujours l'année de la date d'opération.
+            if (isset($processed_data['date_op'])) {
+                $processed_data['annee_exercise'] = $this->exercise_year_from_date_op($processed_data['date_op']);
+            }
 
             if ($action == CREATION) {
                 unset($processed_data['id']);
