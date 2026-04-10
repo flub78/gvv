@@ -192,6 +192,12 @@ $config['auto_planchiste'] = false;
 $config['new_layout'] = true;
 
 /*
+ * Couleur de fond de la bannière principale (CSS color, ex: "#1f6f8b" ou "darkgreen")
+ * Si non défini ou vide, la couleur par défaut est verte.
+ */
+$config['banner_color'] = 'green';
+
+/*
  * Numéro de la visite médicale dans event_type
  */
 $config['medical_id'] = 26;

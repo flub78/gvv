@@ -1,5 +1,13 @@
 <!-- VIEW: application/views/bs_footer.php -->
-<footer class="container-fluid p-3 mt-3 bg-success text-white text-center">
+<?php
+$CI =& get_instance();
+$CI->config->load('program');
+$banner_color = trim((string) $CI->config->item('banner_color'));
+if ($banner_color === '') {
+    $banner_color = 'green';
+}
+?>
+<footer class="container-fluid p-3 mt-3 text-white text-center" style="background-color: <?= htmlspecialchars($banner_color, ENT_QUOTES, 'UTF-8') ?>;">
     <p>
         <?= $this->lang->line("gvv_copyright") ?>
         <?= $this->lang->line("gvv_generated") ?>

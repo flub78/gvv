@@ -4,9 +4,13 @@
 $CI =& get_instance();
 $CI->config->load('program');
 $ran_mode_active = $CI->config->item('ran_mode_enabled') && $CI->dx_auth->is_role('admin');
+$banner_color = trim((string) $CI->config->item('banner_color'));
+if ($banner_color === '') {
+    $banner_color = 'green';
+}
 ?>
 
-<header class="container-fluid p-3 bg-success text-white text-center">
+<header class="container-fluid p-3 text-white text-center" style="background-color: <?= htmlspecialchars($banner_color, ENT_QUOTES, 'UTF-8') ?>;">
     <!-- Ici on mettra la bannière -->
     <div id="header_left"></div>
     <h1 class="text-center header"><?= $this->config->item('nom_club') ?></h1>
