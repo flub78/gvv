@@ -104,7 +104,7 @@ if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 		echo '<tr>';
 		echo '<td>' . anchor(controller_url('comptes/balance/2/28'), $lbl_immobilisations_corp) . '</td>';
 		echo '<td class="text-end">' . euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'html') . '</td>';
-		echo '<td class="text-end">' . euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'html') . '</td>';
+		echo '<td class="text-end">' . anchor(controller_url('comptes/balance/281'), euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'html')) . '</td>';
 		echo '<td class="text-end">' . euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'html') . '</td>';
 		echo '<td class="text-end">' . euro($actif_detail_n1['immobilisations_corporelles']['net'], ',', 'html') . '</td>';
 		echo '</tr>';

@@ -35,7 +35,10 @@ $this->lang->load('compta');
     if (isset($message)) {
         echo p($message) . br();
     }
-    echo checkalert($this->session);
+    $popup_message = $this->session->flashdata('popup');
+    if ($popup_message) {
+        echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($popup_message) . '</div>';
+    }
 
     $title = $this->lang->line("gvv_comptes_title_journal");
     if ($section) {

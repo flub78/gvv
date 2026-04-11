@@ -651,8 +651,12 @@ class Ecritures_model extends Common_Model {
             return false;
         }
 
-        $this->db->trans_start();
         $previous = $this->ecritures_model->get_by_id('id', $id);
+        if (!$previous || !isset($previous['id'])) {
+            $this->session->set_flashdata('popup', "Suppression impossible : écriture introuvable.");
+            return false;
+        }
+
         $compte1 = $previous['compte1'];
         $compte2 = $previous['compte2'];
         $montant = $previous['montant'];
@@ -675,19 +679,22 @@ class Ecritures_model extends Common_Model {
                 $year = $matches[3];
                 $freeze_time = mktime(0, 0, 0, $month, $day, $year);
                 if ($time < $freeze_time) {
-                    if (! $this->session->userdata('popup')) {
-                        $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure au " . $date_gel);
-                    }
-                    return;
+                    $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure au " . $date_gel);
+                    return false;
                 }
             } else {
                 gvv_error("Erreur mauvais format de date de gel");
+                $this->session->set_flashdata('popup', "Suppression impossible : format de date de gel invalide.");
+                return false;
             }
         } else {
             gvv_error("Erreur mauvais format de date d'opération");
+            $this->session->set_flashdata('popup', "Suppression impossible : format de date d'opération invalide.");
+            return false;
         }
 
         if ($previous['gel'] == 0) { // Pas gel
+            $this->db->trans_start();
             $this->load->model("comptes_model");
             $this->comptes_model->maj_comptes($compte1, $compte2, -$montant);
 
@@ -699,12 +706,16 @@ class Ecritures_model extends Common_Model {
             ));
             $this->associations_ecriture_model->delete_rapprochements($id);
             $this->db->trans_complete();
+
+            if (!$res || $this->db->affected_rows() === 0) {
+                $this->session->set_flashdata('popup', "Suppression impossible : aucune écriture supprimée.");
+                return false;
+            }
+
             return $res;
         } else {
             $msg = "Suppression impossible, écriture gelée";
-            if (! $this->session->userdata('popup')) {
-                $this->session->set_flashdata('popup', $msg);
-            }
+            $this->session->set_flashdata('popup', $msg);
             return false;
         }
     }

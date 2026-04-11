@@ -222,6 +222,13 @@ class Compta extends Gvv_Controller {
     function delete($id) {
         $this->data = $this->gvv_model->get_by_id($this->kid, $id);
 
+        if (!$this->data || !isset($this->data['id'])) {
+            $msg = "Suppression impossible : écriture introuvable ou inaccessible dans la section active.";
+            $this->session->set_flashdata('popup', $msg);
+            redirect(controller_url('compta/page') . '?delete_error=' . rawurlencode($msg));
+            return;
+        }
+
         if ($this->data['achat']) {
             redirect("achats/delete/" . $this->data['achat']);
             return;
@@ -231,13 +238,28 @@ class Compta extends Gvv_Controller {
         if ($this->data['gel']) {
             $msg = $this->lang->line('gvv_compta_frozen_line_cannot_delete');
             $this->session->set_flashdata('popup', $msg);
-            $this->pop_return_url();
+            redirect(controller_url('compta/page') . '?delete_error=' . rawurlencode($msg));
             return;
         }
 
         $this->load->model('ecritures_model');
-        $this->ecritures_model->delete_ecriture($id);
-        // Note: delete_ecriture sets flashdata popup on failure; pop_return_url redirects in all cases
+        $deleted = $this->ecritures_model->delete_ecriture($id);
+        if (!$deleted) {
+            $msg = $this->session->userdata('popup');
+            if (!$msg) {
+                $this->load->model('clotures_model');
+                $date_op = isset($this->data['date_op']) ? $this->data['date_op'] : '';
+                if ($date_op && $this->clotures_model->before_freeze_date($date_op)) {
+                    $date_gel = $this->clotures_model->freeze_date(true);
+                    $msg = "Suppression impossible : l'écriture du $date_op est antérieure à la date de gel ($date_gel).";
+                } else {
+                    $msg = "Suppression impossible : l'écriture ne peut pas être supprimée dans le contexte courant.";
+                }
+            }
+            $this->session->set_flashdata('popup', $msg);
+            redirect(controller_url('compta/page') . '?delete_error=' . rawurlencode($msg));
+            return;
+        }
         $this->pop_return_url();
     }
 
@@ -1421,6 +1443,11 @@ class Compta extends Gvv_Controller {
      *            afficher
      */
     function page($premier = 0, $message = '', $selection = array()) {
+        $delete_error = $this->input->get('delete_error', true);
+        if ($delete_error) {
+            $message = $delete_error;
+        }
+
         $current_url = current_url();
 
         $this->push_return_url("grand journal");
