@@ -141,6 +141,7 @@ class Sections_model extends Common_Model {
 
         $is_admin         = false;
         $has_global_role  = false;
+        $is_treasurer     = false;
         $user_section_ids = [];
         $sections_with_user_role = [];
 
@@ -157,6 +158,9 @@ class Sections_model extends Common_Model {
                 if ($r['role_nom'] === 'user') {
                     $sections_with_user_role[$sid] = true;
                 }
+                if (in_array($r['role_nom'], ['tresorier', 'super-tresorier'])) {
+                    $is_treasurer = true;
+                }
             }
         }
 
@@ -167,7 +171,24 @@ class Sections_model extends Common_Model {
             return $this->selector_with_all();
         }
 
-        // 4. Sinon : uniquement les sections où l'utilisateur a le rôle 'user', sans "Toutes"
+        // 4. Trésorier : sections où l'utilisateur a au moins un rôle + "Toutes"
+        //    On part du sélecteur complet pour garantir une clé cohérente pour "Toutes",
+        //    puis on filtre pour ne garder que les sections de l'utilisateur + "Toutes".
+        if ($is_treasurer) {
+            $full = $this->selector_with_all();
+            $all_ids_set = array_fill_keys($all_section_ids, true);
+            $result = [];
+            foreach ($full as $key => $label) {
+                // Garder si l'utilisateur a un rôle dans cette section,
+                // ou si ce n'est pas une vraie section (= entrée "Toutes")
+                if (isset($user_section_ids[$key]) || !isset($all_ids_set[$key])) {
+                    $result[$key] = $label;
+                }
+            }
+            return $result;
+        }
+
+        // 5. Sinon : uniquement les sections où l'utilisateur a le rôle 'user', sans "Toutes"
         $ids = array_keys($sections_with_user_role);
         if (empty($ids)) {
             return [];

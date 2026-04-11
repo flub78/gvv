@@ -242,6 +242,14 @@ class MY_Controller extends CI_Controller
             $section_id = $this->session->userdata('section');
         }
 
+        // Mode "Toutes" : section_id ne correspond pas à une vraie section → vérification globale (toutes sections)
+        if ($section_id) {
+            $q = $this->db->where('id', (int) $section_id)->get('sections');
+            if ($q->num_rows() === 0) {
+                $section_id = NULL;
+            }
+        }
+
         return $this->gvv_authorization->require_roles($roles, $section_id, $replace);
     }
 
