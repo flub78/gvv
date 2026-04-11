@@ -243,17 +243,32 @@ class Compta extends Gvv_Controller {
         }
 
         $this->load->model('ecritures_model');
-        $deleted = $this->ecritures_model->delete_ecriture($id);
+        $delete_reason = null;
+        $deleted = $this->ecritures_model->delete_ecriture($id, $delete_reason);
         if (!$deleted) {
             $msg = $this->session->userdata('popup');
             if (!$msg) {
-                $this->load->model('clotures_model');
-                $date_op = isset($this->data['date_op']) ? $this->data['date_op'] : '';
-                if ($date_op && $this->clotures_model->before_freeze_date($date_op)) {
+                if ($delete_reason === 'before_freeze_date') {
+                    $this->load->model('clotures_model');
+                    $date_op = isset($this->data['date_op']) ? $this->data['date_op'] : '';
                     $date_gel = $this->clotures_model->freeze_date(true);
                     $msg = "Suppression impossible : l'écriture du $date_op est antérieure à la date de gel ($date_gel).";
+                } elseif ($delete_reason === 'linked_to_online_payment') {
+                    $msg = "Suppression impossible : l'écriture est liée à un paiement en ligne HelloAsso.";
+                } elseif ($delete_reason === 'entry_not_found') {
+                    $msg = "Suppression impossible : écriture introuvable.";
+                } elseif ($delete_reason === 'invalid_operation_date_format') {
+                    $msg = "Suppression impossible : format de date d'opération invalide.";
+                } elseif ($delete_reason === 'invalid_freeze_date_format') {
+                    $msg = "Suppression impossible : format de date de gel invalide.";
+                } elseif ($delete_reason === 'database_delete_error') {
+                    $msg = "Suppression impossible : erreur base de données lors de la suppression.";
+                } elseif ($delete_reason === 'no_row_deleted') {
+                    $msg = "Suppression impossible : aucune écriture supprimée (déjà supprimée ou inaccessible).";
+                } elseif ($delete_reason === 'entry_frozen') {
+                    $msg = "Suppression impossible : l'écriture est gelée.";
                 } else {
-                    $msg = "Suppression impossible : l'écriture ne peut pas être supprimée dans le contexte courant.";
+                    $msg = "Suppression impossible : cause non déterminée.";
                 }
             }
             $this->session->set_flashdata('popup', $msg);
