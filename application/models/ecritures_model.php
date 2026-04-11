@@ -642,10 +642,13 @@ class Ecritures_model extends Common_Model {
      *
      * @param unknown_type $id
      */
-    public function delete_ecriture($id) {
+    public function delete_ecriture($id, &$error_reason = null) {
+        $error_reason = null;
+
         // Check if ecriture is referenced by a HelloAsso online payment
         $ref = $this->db->where('ecriture_id', $id)->count_all_results('paiements_en_ligne');
         if ($ref > 0) {
+            $error_reason = 'linked_to_online_payment';
             $this->session->set_flashdata('popup',
                 "Suppression impossible : cette écriture est liée à un paiement en ligne HelloAsso.");
             return false;
@@ -653,6 +656,7 @@ class Ecritures_model extends Common_Model {
 
         $previous = $this->ecritures_model->get_by_id('id', $id);
         if (!$previous || !isset($previous['id'])) {
+            $error_reason = 'entry_not_found';
             $this->session->set_flashdata('popup', "Suppression impossible : écriture introuvable.");
             return false;
         }
@@ -663,6 +667,7 @@ class Ecritures_model extends Common_Model {
 
         $date = $previous['date_op'];
         $date_gel = $this->clotures_model->freeze_date(true);
+        $has_freeze_date = !empty($date_gel);
 
         // format database
         if (preg_match('/(\d+)\-(\d+)\-(\d+)/', $date, $matches)) {
@@ -672,23 +677,29 @@ class Ecritures_model extends Common_Model {
 
             $time = mktime(0, 0, 0, $month, $day, $year);
 
-            // format français
-            if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date_gel, $matches)) {
-                $day = $matches[1];
-                $month = $matches[2];
-                $year = $matches[3];
-                $freeze_time = mktime(0, 0, 0, $month, $day, $year);
-                if ($time < $freeze_time) {
-                    $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure au " . $date_gel);
+            // Absence de date de gel: aucune restriction de suppression.
+            if ($has_freeze_date) {
+                // format français
+                if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date_gel, $matches)) {
+                    $day = $matches[1];
+                    $month = $matches[2];
+                    $year = $matches[3];
+                    $freeze_time = mktime(0, 0, 0, $month, $day, $year);
+                    if ($time < $freeze_time) {
+                        $error_reason = 'before_freeze_date';
+                        $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure au " . $date_gel);
+                        return false;
+                    }
+                } else {
+                    gvv_error("Erreur mauvais format de date de gel");
+                    $error_reason = 'invalid_freeze_date_format';
+                    $this->session->set_flashdata('popup', "Suppression impossible : format de date de gel invalide.");
                     return false;
                 }
-            } else {
-                gvv_error("Erreur mauvais format de date de gel");
-                $this->session->set_flashdata('popup', "Suppression impossible : format de date de gel invalide.");
-                return false;
             }
         } else {
             gvv_error("Erreur mauvais format de date d'opération");
+            $error_reason = 'invalid_operation_date_format';
             $this->session->set_flashdata('popup', "Suppression impossible : format de date d'opération invalide.");
             return false;
         }
@@ -708,13 +719,21 @@ class Ecritures_model extends Common_Model {
             $this->db->trans_complete();
 
             if (!$res || $this->db->affected_rows() === 0) {
-                $this->session->set_flashdata('popup', "Suppression impossible : aucune écriture supprimée.");
+                $db_error = $this->db->_error_message();
+                if (!empty($db_error)) {
+                    $error_reason = 'database_delete_error';
+                    $this->session->set_flashdata('popup', "Suppression impossible : erreur base de données ($db_error).");
+                } else {
+                    $error_reason = 'no_row_deleted';
+                    $this->session->set_flashdata('popup', "Suppression impossible : aucune écriture supprimée.");
+                }
                 return false;
             }
 
             return $res;
         } else {
             $msg = "Suppression impossible, écriture gelée";
+            $error_reason = 'entry_frozen';
             $this->session->set_flashdata('popup', $msg);
             return false;
         }
