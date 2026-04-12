@@ -102,6 +102,7 @@ $lang['comptes_bilan_provisions_risques'] = "Risk provisions";
 $lang['comptes_bilan_provisions_charges'] = "Expense provisions";
 $lang['comptes_bilan_total_provisions'] = "Total provisions";
 $lang['comptes_bilan_dettes_financieres'] = "Financial debts";
+$lang['comptes_bilan_stocks'] = "Inventories";
 $lang['comptes_bilan_total_dettes'] = "Total debts";
 
 $lang['comptes_button_cloture'] = "End or year operations";

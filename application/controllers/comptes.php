@@ -1280,6 +1280,12 @@ class Comptes extends Gvv_Controller {
             'net' => $immobilisations_corporelles['net'] + $immobilisations_financieres['net'],
         ];
 
+        $stocks = [
+            'brut' => $bilan['stocks'],
+            'amort' => 0,
+            'net' => $bilan['stocks'],
+        ];
+
         $creances_tiers = [
             'brut' => $bilan['creances_pilotes'],
             'amort' => 0,
@@ -1293,15 +1299,16 @@ class Comptes extends Gvv_Controller {
         ];
 
         $total_actif_circulant = [
-            'brut' => $creances_tiers['brut'] + $dispo['brut'],
+            'brut' => $stocks['brut'] + $creances_tiers['brut'] + $dispo['brut'],
             'amort' => 0,
-            'net' => $creances_tiers['net'] + $dispo['net'],
+            'net' => $stocks['net'] + $creances_tiers['net'] + $dispo['net'],
         ];
 
         return [
             'immobilisations_corporelles' => $immobilisations_corporelles,
             'immobilisations_financieres' => $immobilisations_financieres,
             'total_actif_immobilise' => $total_actif_immobilise,
+            'stocks' => $stocks,
             'creances_tiers' => $creances_tiers,
             'disponibilites' => $dispo,
             'total_actif_circulant' => $total_actif_circulant,
@@ -1405,6 +1412,7 @@ class Comptes extends Gvv_Controller {
         $lbl_immobilisations_financieres = $this->lang->line('comptes_bilan_immobilisations_financieres');
         $lbl_total_actif_immobilise = $this->lang->line('comptes_bilan_total_actif_immobilise');
         $lbl_actif_circulant = $this->lang->line('comptes_bilan_actif_circulant');
+        $lbl_stocks = $this->lang->line('comptes_bilan_stocks');
         $lbl_creances_tiers = $this->lang->line('comptes_bilan_creances_tiers');
         $lbl_disponibilites = $this->lang->line('comptes_bilan_dispo');
         $lbl_total_actif_circulant = $this->lang->line('comptes_bilan_total_actif_circulant');
@@ -1460,6 +1468,16 @@ class Comptes extends Gvv_Controller {
         );
 
         $csv_data[] = array($lbl_actif_circulant, '', '', '', '');
+
+        if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
+            $csv_data[] = array(
+                $lbl_stocks,
+                euro($actif_detail_n['stocks']['brut'], ',', 'csv'),
+                '',
+                euro($actif_detail_n['stocks']['net'], ',', 'csv'),
+                euro($actif_detail_n1['stocks']['net'], ',', 'csv')
+            );
+        }
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
             $csv_data[] = array(

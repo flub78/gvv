@@ -647,6 +647,9 @@ class Comptes_model extends Common_Model {
 
         $data['prets'] = $this->total_of($this->ecritures_model->select_solde($date_op, 274, 275, TRUE)) * - 1;
 
+        // Stocks = solde des comptes de classe 37
+        $data['stocks'] = -$this->total_of($this->ecritures_model->select_solde($date_op, 37, 38, TRUE));
+
         $data['valeur_brute_immo_corp'] = -$this->total_of($data['immo']);
         $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['amortissements_corp'];
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
@@ -674,7 +677,7 @@ class Comptes_model extends Common_Model {
         $data['resultat'] = $total_produits - $total_charges;
 
         $total_dispo = $this->total_of($data['dispo']);
-        $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo + $data['prets'];
+        $data['total_actif'] = $creances_pilotes + $data['valeur_nette_immo_corp'] - $total_dispo + $data['prets'] + $data['stocks'];
 
         $total_capital = $this->total_of($data['capital_2']);
         $data['total_passif'] = $dettes_pilotes + $total_capital + $data['autres_fonds_propres'] + $data['resultat'];

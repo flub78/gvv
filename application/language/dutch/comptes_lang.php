@@ -102,6 +102,7 @@ $lang['comptes_bilan_provisions_risques'] = "Voorzieningen voor risico's";
 $lang['comptes_bilan_provisions_charges'] = "Voorzieningen voor kosten";
 $lang['comptes_bilan_total_provisions'] = "Totaal voorzieningen";
 $lang['comptes_bilan_dettes_financieres'] = "Financiele schulden";
+$lang['comptes_bilan_stocks'] = "Voorraden";
 $lang['comptes_bilan_total_dettes'] = "Totaal schulden";
 
 $lang['comptes_button_cloture'] = "Sluiting boekjaar";

@@ -500,6 +500,12 @@ class Document {
                 'net' => $immobilisations_corporelles['net'] + $immobilisations_financieres['net'],
             );
 
+            $stocks = array(
+                'brut' => $bilan_data['stocks'],
+                'amort' => 0,
+                'net' => $bilan_data['stocks'],
+            );
+
             $creances_tiers = array(
                 'brut' => $bilan_data['creances_pilotes'],
                 'amort' => 0,
@@ -513,15 +519,16 @@ class Document {
             );
 
             $total_actif_circulant = array(
-                'brut' => $creances_tiers['brut'] + $dispo['brut'],
+                'brut' => $stocks['brut'] + $creances_tiers['brut'] + $dispo['brut'],
                 'amort' => 0,
-                'net' => $creances_tiers['net'] + $dispo['net'],
+                'net' => $stocks['net'] + $creances_tiers['net'] + $dispo['net'],
             );
 
             return array(
                 'immobilisations_corporelles' => $immobilisations_corporelles,
                 'immobilisations_financieres' => $immobilisations_financieres,
                 'total_actif_immobilise' => $total_actif_immobilise,
+                'stocks' => $stocks,
                 'creances_tiers' => $creances_tiers,
                 'disponibilites' => $dispo,
                 'total_actif_circulant' => $total_actif_circulant,
@@ -594,6 +601,7 @@ class Document {
         $lbl_immobilisations_financieres = $this->CI->lang->line('comptes_bilan_immobilisations_financieres');
         $lbl_total_actif_immobilise = $this->CI->lang->line('comptes_bilan_total_actif_immobilise');
         $lbl_actif_circulant = $this->CI->lang->line('comptes_bilan_actif_circulant');
+        $lbl_stocks = $this->CI->lang->line('comptes_bilan_stocks');
         $lbl_creances_tiers = $this->CI->lang->line('comptes_bilan_creances_tiers');
         $lbl_disponibilites = $this->CI->lang->line('comptes_bilan_dispo');
         $lbl_total_actif_circulant = $this->CI->lang->line('comptes_bilan_total_actif_circulant');
@@ -646,6 +654,16 @@ class Document {
         );
 
         $actif_data[] = array('<b>' . $lbl_actif_circulant . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>');
+
+        if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
+            $actif_data[] = array(
+                $lbl_stocks,
+                euro($actif_detail_n['stocks']['brut'], ',', 'pdf'),
+                '',
+                euro($actif_detail_n['stocks']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['stocks']['net'], ',', 'pdf')
+            );
+        }
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
             $actif_data[] = array(

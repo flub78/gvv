@@ -104,6 +104,7 @@ $lang['comptes_bilan_provisions_risques'] = "Provisions pour risques";
 $lang['comptes_bilan_provisions_charges'] = "Provisions pour charges";
 $lang['comptes_bilan_total_provisions'] = "Total des provisions";
 $lang['comptes_bilan_dettes_financieres'] = "Dettes financières";
+$lang['comptes_bilan_stocks'] = "Stocks";
 $lang['comptes_bilan_total_dettes'] = "Total des dettes";
 
 

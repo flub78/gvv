@@ -65,6 +65,7 @@ if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 	$lbl_immobilisations_financieres = $this->lang->line('comptes_bilan_immobilisations_financieres');
 	$lbl_total_actif_immobilise = $this->lang->line('comptes_bilan_total_actif_immobilise');
 	$lbl_actif_circulant = $this->lang->line('comptes_bilan_actif_circulant');
+	$lbl_stocks = $this->lang->line('comptes_bilan_stocks');
 	$lbl_creances_tiers = $this->lang->line('comptes_bilan_creances_tiers');
 	$lbl_disponibilites = $this->lang->line('comptes_bilan_dispo');
 	$lbl_total_actif_circulant = $this->lang->line('comptes_bilan_total_actif_circulant');
@@ -129,6 +130,16 @@ if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 	echo '</tr>';
 
 	echo '<tr class="fw-bold table-secondary"><td colspan="5">' . $lbl_actif_circulant . '</td></tr>';
+
+	if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
+		echo '<tr>';
+		echo '<td>' . anchor(controller_url('comptes/balance/37/38'), $lbl_stocks) . '</td>';
+		echo '<td class="text-end">' . euro($actif_detail_n['stocks']['brut'], ',', 'html') . '</td>';
+		echo '<td class="text-end"></td>';
+		echo '<td class="text-end">' . euro($actif_detail_n['stocks']['net'], ',', 'html') . '</td>';
+		echo '<td class="text-end">' . euro($actif_detail_n1['stocks']['net'], ',', 'html') . '</td>';
+		echo '</tr>';
+	}
 
 	if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
 		echo '<tr>';
