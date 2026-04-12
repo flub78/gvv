@@ -197,6 +197,8 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	$lbl_dettes_tiers = $this->lang->line('comptes_bilan_dettes_tiers');
 	$lbl_dettes_financieres = $this->lang->line('comptes_bilan_dettes_financieres');
 	$lbl_dettes_exploitation = $this->lang->line('comptes_bilan_dettes_exploitation');
+	$lbl_dettes_fournisseurs = $this->lang->line('comptes_bilan_dettes_fournisseurs');
+	$lbl_dettes_fiscales_sociales = $this->lang->line('comptes_bilan_dettes_fiscales_sociales');
 	$lbl_dettes_diverses = $this->lang->line('comptes_bilan_dettes_diverses');
 	$lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
 	$lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
@@ -219,9 +221,11 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 		[anchor(controller_url('comptes/balance/15/16'), $lbl_total_provisions), $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions'], true],
 		[$lbl_dettes, null, null, false, true],
 		[$lbl_section_dettes_financieres, null, null, false, true],
-		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_dettes_tiers), $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres'], false],
+		[anchor(controller_url('comptes/balance/411/412'), $lbl_dettes_tiers), $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres'], false],
 		[anchor(controller_url('comptes/balance/16/17/1'), $lbl_dettes_financieres), $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres'], false],
 		[$lbl_dettes_exploitation, null, null, false, true],
+		[anchor(controller_url('comptes/balance/40/41'), $lbl_dettes_fournisseurs), $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs'], false],
+		[anchor(controller_url('comptes/balance/42/44'), $lbl_dettes_fiscales_sociales), $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales'], false],
 		[$lbl_dettes_diverses, null, null, false, true],
 		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_total_dettes), $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true],
 		[anchor(controller_url('comptes/bilan'), $lbl_total_passif), $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], true],

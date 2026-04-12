@@ -656,16 +656,21 @@ class Comptes_model extends Common_Model {
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
 
         $creances_pilotes = 0.0;
-        $dettes_pilotes = 0.0;
         foreach ($tiers as $row) {
-            // var_dump($row);
-            if ($row['solde'] > 0) {
-                $dettes_pilotes += $row['solde'];
-            } else {
+            if ($row['solde'] < 0) {
                 $creances_pilotes -= $row['solde'];
             }
         }
         $data['creances_pilotes'] = $creances_pilotes;
+
+        // Avances des membres : comptes 411 uniquement
+        $dettes_pilotes = 0.0;
+        $avances_411 = $this->ecritures_model->select_solde($date_op, 411, 412, FALSE);
+        foreach ($avances_411 as $row) {
+            if ($row['solde'] > 0) {
+                $dettes_pilotes += $row['solde'];
+            }
+        }
         $data['dettes_pilotes'] = $dettes_pilotes;
 
         // Résultat

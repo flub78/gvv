@@ -1328,6 +1328,8 @@ class Comptes extends Gvv_Controller {
         // Soldes créditeurs des comptes de classe 4 (même logique que le premier tableau)
         $avances_membres = $bilan['dettes_pilotes'];
         $dettes_financieres = $bilan['emprunts'];
+        $dettes_fournisseurs = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 40, 41, TRUE));
+        $dettes_fiscales_sociales = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 42, 44, TRUE));
 
         $fonds_propres_sans_droit_reprise = $bilan['fonds_associatifs'] + $bilan['reports_cred'] + $bilan['reports_deb'];
 
@@ -1338,7 +1340,7 @@ class Comptes extends Gvv_Controller {
             $subventions_investissement;
 
         $total_provisions = $provisions_risques + $provisions_charges;
-        $total_dettes = $avances_membres + $dettes_financieres;
+        $total_dettes = $avances_membres + $dettes_financieres + $dettes_fournisseurs + $dettes_fiscales_sociales;
         $total_passif = $bilan['total_passif'];
 
         return [
@@ -1352,6 +1354,8 @@ class Comptes extends Gvv_Controller {
             'total_provisions' => $total_provisions,
             'avances_membres' => $avances_membres,
             'dettes_financieres' => $dettes_financieres,
+            'dettes_fournisseurs' => $dettes_fournisseurs,
+            'dettes_fiscales_sociales' => $dettes_fiscales_sociales,
             'total_dettes' => $total_dettes,
             'total_passif' => $total_passif,
         ];
@@ -1420,6 +1424,7 @@ class Comptes extends Gvv_Controller {
 
         $lbl_title_passif = $this->lang->line('comptes_bilan_title_passif');
         $lbl_passif = $this->lang->line('comptes_bilan_passif');
+        $lbl_section_fonds_propres = $this->lang->line('comptes_bilan_section_fonds_propres');
         $lbl_fonds_propres_sans_droit_reprise = $this->lang->line('comptes_bilan_fonds_propres_sans_droit_reprise');
         $lbl_reserves = $this->lang->line('comptes_bilan_reserves');
         $lbl_resultat = $this->lang->line('comptes_bilan_resultat');
@@ -1428,8 +1433,14 @@ class Comptes extends Gvv_Controller {
         $lbl_provisions_risques = $this->lang->line('comptes_bilan_provisions_risques');
         $lbl_provisions_charges = $this->lang->line('comptes_bilan_provisions_charges');
         $lbl_total_provisions = $this->lang->line('comptes_bilan_total_provisions');
+        $lbl_dettes = $this->lang->line('comptes_bilan_dettes');
+        $lbl_section_dettes_financieres = $this->lang->line('comptes_bilan_section_dettes_financieres');
         $lbl_dettes_tiers = $this->lang->line('comptes_bilan_dettes_tiers');
         $lbl_dettes_financieres = $this->lang->line('comptes_bilan_dettes_financieres');
+        $lbl_dettes_exploitation = $this->lang->line('comptes_bilan_dettes_exploitation');
+        $lbl_dettes_fournisseurs = $this->lang->line('comptes_bilan_dettes_fournisseurs');
+        $lbl_dettes_fiscales_sociales = $this->lang->line('comptes_bilan_dettes_fiscales_sociales');
+        $lbl_dettes_diverses = $this->lang->line('comptes_bilan_dettes_diverses');
         $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
@@ -1519,30 +1530,31 @@ class Comptes extends Gvv_Controller {
         $csv_data[] = array($lbl_title_passif);
         $csv_data[] = array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1");
 
-        $passif_rows = array(
-            array($lbl_fonds_propres_sans_droit_reprise, $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']),
-            array($lbl_reserves, $passif_detail_n['reserves'], $passif_detail_n1['reserves']),
-            array($lbl_resultat, $passif_detail_n['resultat'], $passif_detail_n1['resultat']),
-            array($lbl_subventions_investissement, $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']),
-            array($lbl_total_fonds_reportes_dedies, $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']),
-            array($lbl_provisions_risques, $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']),
-            array($lbl_provisions_charges, $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']),
-            array($lbl_total_provisions, $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']),
-            array($lbl_dettes_tiers, $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']),
-            array($lbl_dettes_financieres, $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']),
-            array($lbl_total_dettes, $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']),
-            array($lbl_total_passif, $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'])
-        );
+        // Fonds propres
+        $csv_data[] = array($lbl_section_fonds_propres, '', '', '', '');
+        $csv_data[] = array($lbl_fonds_propres_sans_droit_reprise, '', '', euro($passif_detail_n['fonds_propres_sans_droit_reprise'], ',', 'csv'), euro($passif_detail_n1['fonds_propres_sans_droit_reprise'], ',', 'csv'));
+        $csv_data[] = array($lbl_reserves, '', '', euro($passif_detail_n['reserves'], ',', 'csv'), euro($passif_detail_n1['reserves'], ',', 'csv'));
+        $csv_data[] = array($lbl_resultat, '', '', euro($passif_detail_n['resultat'], ',', 'csv'), euro($passif_detail_n1['resultat'], ',', 'csv'));
+        $csv_data[] = array($lbl_subventions_investissement, '', '', euro($passif_detail_n['subventions_investissement'], ',', 'csv'), euro($passif_detail_n1['subventions_investissement'], ',', 'csv'));
+        $csv_data[] = array($lbl_total_fonds_reportes_dedies, '', '', euro($passif_detail_n['total_fonds_reportes_dedies'], ',', 'csv'), euro($passif_detail_n1['total_fonds_reportes_dedies'], ',', 'csv'));
 
-        foreach ($passif_rows as $row) {
-            $csv_data[] = array(
-                $row[0],
-                '',
-                '',
-                euro($row[1], ',', 'csv'),
-                euro($row[2], ',', 'csv')
-            );
-        }
+        // Provisions
+        $csv_data[] = array($lbl_provisions_risques, '', '', euro($passif_detail_n['provisions_risques'], ',', 'csv'), euro($passif_detail_n1['provisions_risques'], ',', 'csv'));
+        $csv_data[] = array($lbl_provisions_charges, '', '', euro($passif_detail_n['provisions_charges'], ',', 'csv'), euro($passif_detail_n1['provisions_charges'], ',', 'csv'));
+        $csv_data[] = array($lbl_total_provisions, '', '', euro($passif_detail_n['total_provisions'], ',', 'csv'), euro($passif_detail_n1['total_provisions'], ',', 'csv'));
+
+        // Dettes
+        $csv_data[] = array($lbl_dettes, '', '', '', '');
+        $csv_data[] = array($lbl_section_dettes_financieres, '', '', '', '');
+        $csv_data[] = array($lbl_dettes_tiers, '', '', euro($passif_detail_n['avances_membres'], ',', 'csv'), euro($passif_detail_n1['avances_membres'], ',', 'csv'));
+        $csv_data[] = array($lbl_dettes_financieres, '', '', euro($passif_detail_n['dettes_financieres'], ',', 'csv'), euro($passif_detail_n1['dettes_financieres'], ',', 'csv'));
+        $csv_data[] = array($lbl_dettes_exploitation, '', '', '', '');
+        $csv_data[] = array($lbl_dettes_fournisseurs, '', '', euro($passif_detail_n['dettes_fournisseurs'], ',', 'csv'), euro($passif_detail_n1['dettes_fournisseurs'], ',', 'csv'));
+        $csv_data[] = array($lbl_dettes_fiscales_sociales, '', '', euro($passif_detail_n['dettes_fiscales_sociales'], ',', 'csv'), euro($passif_detail_n1['dettes_fiscales_sociales'], ',', 'csv'));
+        $csv_data[] = array($lbl_dettes_diverses, '', '', '', '');
+        $csv_data[] = array($lbl_total_dettes, '', '', euro($passif_detail_n['total_dettes'], ',', 'csv'), euro($passif_detail_n1['total_dettes'], ',', 'csv'));
+
+        $csv_data[] = array($lbl_total_passif, '', '', euro($passif_detail_n['total_passif'], ',', 'csv'), euro($passif_detail_n1['total_passif'], ',', 'csv'));
 
         $year = $this->session->userdata('year');
         $section = $this->gvv_model->section();
