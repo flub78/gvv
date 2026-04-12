@@ -1362,6 +1362,15 @@ $this->lang->load('tableaux_de_bord');
                 </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-calendar-alt text-danger"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_freeze_date_edit') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_freeze_date_edit') ?></div>
+                        <a href="<?= controller_url('dates_gel/page') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-success">
                         <i class="fas fa-file-archive text-success"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_gen_test_db') ?></div>

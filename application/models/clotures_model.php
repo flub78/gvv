@@ -26,7 +26,13 @@ class Clotures_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = $this->select_columns('id, date, section, description');
+        $where = array();
+        $section = $this->section();
+        if ($section && isset($section['id'])) {
+            $where['section'] = $section['id'];
+        }
+
+        $select = $this->select_columns('id, date, section, description', $nb, $debut, $where);
         $this->gvvmetadata->store_table("vue_clotures", $select);
         return $select;
     }
@@ -45,7 +51,7 @@ class Clotures_model extends Common_Model {
         if (array_key_exists('id', $vals) && array_key_exists('section', $vals)) {
             return $vals['date'] . " " . $vals['section'] . " " . $vals['description'];
         } else {
-            return "terrain inconnu $key";
+            return "clôture inconnue $key";
         }
     }
 

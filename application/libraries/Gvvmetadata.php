@@ -403,6 +403,30 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_tarifs']['nb_personnes_max']['Min'] = 1;
 
                 /**
+                 * Table clotures
+                 */
+                $this->field['clotures']['id']['Type'] = 'int';
+                $this->field['clotures']['id']['Subtype'] = 'key';
+                $this->field['clotures']['date']['Name'] = 'Date de gel';
+                $this->field['clotures']['date']['Type'] = 'date';
+                $this->field['clotures']['description']['Name'] = 'Description';
+                $this->field['clotures']['section']['Name'] = 'Section';
+                $this->field['clotures']['section']['Subtype'] = 'selector';
+                $this->field['clotures']['section']['Selector'] = 'section_selector';
+
+                $this->field['vue_clotures']['id']['Type'] = 'int';
+                $this->field['vue_clotures']['id']['Subtype'] = 'key';
+                $this->field['vue_clotures']['date']['Name'] = 'Date de gel';
+                $this->field['vue_clotures']['date']['Type'] = 'date';
+                $this->field['vue_clotures']['description']['Name'] = 'Description';
+                $this->field['vue_clotures']['section']['Name'] = 'Section';
+
+                $this->db['default_fields']['vue_clotures'] = array(
+                        'date',
+                        'description'
+                );
+
+                /**
                  * Table terrains
                  */
                 $this->keys['vue_terrains'] = 'oaci';

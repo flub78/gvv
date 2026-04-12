@@ -203,6 +203,9 @@ $lang['db_desc_collection']     = "Collection";
 
 $lang['db_card_decloture']  = "Décloture";
 $lang['db_desc_decloture']  = "Supprimer la dernière clôture";
+$lang['db_card_freeze_date_edit'] = "Modification de la date de gel";
+$lang['db_desc_freeze_date_edit'] = "Créer ou modifier une date de gel";
+$lang['db_title_freeze_date_edit'] = "Modification de la date de gel";
 
 // ─── Confirmation ─────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Êtes-vous sûr d'être sur un environnement de développement ?";

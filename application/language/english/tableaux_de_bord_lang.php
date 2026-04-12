@@ -203,6 +203,9 @@ $lang['db_desc_collection']     = "Collection";
 
 $lang['db_card_decloture']  = "Un-close";
 $lang['db_desc_decloture']  = "Remove last fiscal year closing";
+$lang['db_card_freeze_date_edit'] = "Freeze date modification";
+$lang['db_desc_freeze_date_edit'] = "Create or edit a freeze date";
+$lang['db_title_freeze_date_edit'] = "Freeze date modification";
 
 // ─── Confirmation ─────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Are you sure you are on a development environment?";

@@ -203,6 +203,9 @@ $lang['db_desc_collection']     = "Inning";
 
 $lang['db_card_decloture']  = "Openbreken";
 $lang['db_desc_decloture']  = "Laatste boekjaarafsluiting verwijderen";
+$lang['db_card_freeze_date_edit'] = "Wijziging van de bevriezingsdatum";
+$lang['db_desc_freeze_date_edit'] = "Maak of wijzig een bevriezingsdatum";
+$lang['db_title_freeze_date_edit'] = "Wijziging van de bevriezingsdatum";
 
 // ─── Bevestiging ──────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Weet u zeker dat u zich in een ontwikkelomgeving bevindt?";
