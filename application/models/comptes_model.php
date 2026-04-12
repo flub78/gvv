@@ -691,6 +691,27 @@ class Comptes_model extends Common_Model {
         $data['emprunts'] = $this->total_of($this->ecritures_model->select_solde($date_op, 16, 17, TRUE));
         $data['total_passif'] += $data['emprunts'];
 
+        // Dettes fournisseurs (40x)
+        $dettes_fournisseurs = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 40, 41, FALSE) as $row) {
+            if ($row['solde'] > 0) $dettes_fournisseurs += $row['solde'];
+        }
+        $data['total_passif'] += $dettes_fournisseurs;
+
+        // Dettes fiscales et sociales (42-44x)
+        $dettes_fiscales_sociales = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 42, 44, FALSE) as $row) {
+            if ($row['solde'] > 0) $dettes_fiscales_sociales += $row['solde'];
+        }
+        $data['total_passif'] += $dettes_fiscales_sociales;
+
+        // Autres créditeurs (46-47x)
+        $autres_crediteurs = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 46, 47, FALSE) as $row) {
+            if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
+        }
+        $data['total_passif'] += $autres_crediteurs;
+
         // var_dump($data); exit;
         return $data;
     }
