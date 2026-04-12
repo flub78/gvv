@@ -547,9 +547,18 @@ class Document {
 
             $avances_membres = $bilan_data['dettes_pilotes'];
             $dettes_financieres = $bilan_data['emprunts'];
-            $dettes_fournisseurs = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 40, 41, TRUE));
-            $dettes_fiscales_sociales = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 42, 44, TRUE));
-            $autres_crediteurs = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 46, 47, TRUE));
+            $dettes_fournisseurs = 0.0;
+            foreach ($this->CI->ecritures_model->select_solde($date_op, 40, 41, FALSE) as $row) {
+                if ($row['solde'] > 0) $dettes_fournisseurs += $row['solde'];
+            }
+            $dettes_fiscales_sociales = 0.0;
+            foreach ($this->CI->ecritures_model->select_solde($date_op, 42, 44, FALSE) as $row) {
+                if ($row['solde'] > 0) $dettes_fiscales_sociales += $row['solde'];
+            }
+            $autres_crediteurs = 0.0;
+            foreach ($this->CI->ecritures_model->select_solde($date_op, 46, 47, FALSE) as $row) {
+                if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
+            }
 
             $fonds_propres_sans_droit_reprise = $bilan_data['fonds_associatifs'] + $bilan_data['reports_cred'] + $bilan_data['reports_deb'];
 
@@ -747,7 +756,7 @@ class Document {
             '<b>' . euro($actif_detail_n['total_actif'], ',', 'pdf') . '</b>',
             '<b>' . euro($actif_detail_n1['total_actif'], ',', 'pdf') . '</b>'
         ));
-        $this->pdf->Ln(4);
+        $this->pdf->AddPage();
 
         $passif_width  = array(135, 27.5, 27.5);
         $passif_height = 8;

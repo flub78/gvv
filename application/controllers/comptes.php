@@ -1328,9 +1328,18 @@ class Comptes extends Gvv_Controller {
         // Soldes créditeurs des comptes de classe 4 (même logique que le premier tableau)
         $avances_membres = $bilan['dettes_pilotes'];
         $dettes_financieres = $bilan['emprunts'];
-        $dettes_fournisseurs = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 40, 41, TRUE));
-        $dettes_fiscales_sociales = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 42, 44, TRUE));
-        $autres_crediteurs = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 46, 47, TRUE));
+        $dettes_fournisseurs = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 40, 41, FALSE) as $row) {
+            if ($row['solde'] > 0) $dettes_fournisseurs += $row['solde'];
+        }
+        $dettes_fiscales_sociales = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 42, 44, FALSE) as $row) {
+            if ($row['solde'] > 0) $dettes_fiscales_sociales += $row['solde'];
+        }
+        $autres_crediteurs = 0.0;
+        foreach ($this->ecritures_model->select_solde($date_op, 46, 47, FALSE) as $row) {
+            if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
+        }
 
         $fonds_propres_sans_droit_reprise = $bilan['fonds_associatifs'] + $bilan['reports_cred'] + $bilan['reports_deb'];
 

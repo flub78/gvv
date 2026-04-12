@@ -29,8 +29,8 @@ $lang['gvv_comptes_error_no_account'] = "De gebruiker heeft rekening gekoppeld a
 $lang['gvv_compta_title_entries'] = "Uittreksel rekening";
 
 $lang['gvv_ecritures_field_date_op'] = "Boekingsdatum";
-$lang['gvv_ecritures_field_compte1'] = "Bron";
-$lang['gvv_ecritures_field_compte2'] = "Grootboekrekening";
+$lang['gvv_ecritures_field_compte1'] = "Debet";
+$lang['gvv_ecritures_field_compte2'] = "Credit";
 $lang['gvv_ecritures_field_montant'] = "Bedrag";
 $lang['gvv_ecritures_field_description'] = "Omschrijving";
 $lang['gvv_ecritures_field_num_cheque'] = "Referentie boeking";
@@ -41,15 +41,15 @@ $lang['gvv_ecritures_field_gel'] = "Gecontroleerd";
 $lang['gvv_compta_message_advice_manual'] = "Indien mogelijk probeer aankoop product te gebruiken"
 	. " dat registreert ook een verkoop.";
 
-$lang['gvv_compta_message_advice_wire'] = "De bron is de te krediteren rekeningen, de grootboekrekening is de te debiteren rekening";
+$lang['gvv_compta_message_advice_wire'] = "Debet: gedebiteerde rekening — Credit: gecrediteerde rekening";
 
 $lang['gvv_compta_comptes'] = "Rekeningen";
 $lang['gvv_compta_compte'] = "Rekening";
 $lang['gvv_compta_date'] = "Datum";
 $lang['gvv_compta_jusqua'] = "Tot en met";
 $lang['gvv_compta_type_ecriture'] = array(0 => 'Alles', 1 => 'Gecontroleerd', 2 => 'Niet gecontroleerd');
-$lang['gvv_compta_emploi'] = "Uitgave";
-$lang['gvv_compta_resource'] = "Inkomst";
+$lang['gvv_compta_emploi'] = "Debet";
+$lang['gvv_compta_resource'] = "Credit";
 $lang['gvv_compta_montant_min'] = "Minimum bedrag";
 $lang['gvv_compta_montant_max'] = "Maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Debet en credit', 1 => 'Debet', 2 => 'Credit');

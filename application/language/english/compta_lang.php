@@ -29,8 +29,8 @@ $lang['gvv_comptes_error_no_account'] = "The logged user has no billing account:
 $lang['gvv_compta_title_entries'] = "Account entries";
 
 $lang['gvv_ecritures_field_date_op'] = "Operation date";
-$lang['gvv_ecritures_field_compte1'] = "Emploi";
-$lang['gvv_ecritures_field_compte2'] = "Resource";
+$lang['gvv_ecritures_field_compte1'] = "Debit";
+$lang['gvv_ecritures_field_compte2'] = "Credit";
 $lang['gvv_ecritures_field_montant'] = "Amount";
 $lang['gvv_ecritures_field_description'] = "Description";
 $lang['gvv_ecritures_field_num_cheque'] = "Accounting document reference";
@@ -42,15 +42,15 @@ $lang['gvv_ecritures_field_gel'] = "Checked";
 $lang['gvv_compta_message_advice_manual'] = "Rather use product purchase (if possible)"
 	. " it also records a sale.";
 
-$lang['gvv_compta_message_advice_wire'] = "Emploi is the account to credit, Resource is the account to debit";
+$lang['gvv_compta_message_advice_wire'] = "Debit: debited account — Credit: credited account";
 
 $lang['gvv_compta_comptes'] = "Accounts";
 $lang['gvv_compta_compte'] = "Account";
 $lang['gvv_compta_date'] = "Date";
 $lang['gvv_compta_jusqua'] = "to";
 $lang['gvv_compta_type_ecriture'] = array(0 => 'All', 1 => 'Checked', 2 => 'Unchecked');
-$lang['gvv_compta_emploi'] = "Emploi";
-$lang['gvv_compta_resource'] = "Resource";
+$lang['gvv_compta_emploi'] = "Debit";
+$lang['gvv_compta_resource'] = "Credit";
 $lang['gvv_compta_montant_min'] = "Minimum amount";
 $lang['gvv_compta_montant_max'] = "maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Debits and credits', 1 => 'Debits', 2 => 'Credits');

@@ -29,8 +29,8 @@ $lang['gvv_comptes_error_no_account'] = "Il n'y a pas de compte associé à l'id
 $lang['gvv_compta_title_entries'] = "Extrait de compte";
 
 $lang['gvv_ecritures_field_date_op'] = "Date de l'opération";
-$lang['gvv_ecritures_field_compte1'] = "Emploi";
-$lang['gvv_ecritures_field_compte2'] = "Ressource";
+$lang['gvv_ecritures_field_compte1'] = "Débit";
+$lang['gvv_ecritures_field_compte2'] = "Crédit";
 $lang['gvv_ecritures_field_montant'] = "Montant de l'écriture";
 $lang['gvv_ecritures_field_description'] = "Libellé";
 $lang['gvv_ecritures_field_num_cheque'] = "Numéro de pièce comptable";
@@ -41,15 +41,15 @@ $lang['gvv_ecritures_field_gel'] = "Vérifié";
 $lang['gvv_compta_message_advice_manual'] = "Si possible utilisez plutôt l'achat de produit"
 	. " qui enregistrera aussi une vente.";
 
-$lang['gvv_compta_message_advice_wire'] = "Emploi est le compte à créditer, Ressource est le compte à débiter";
+$lang['gvv_compta_message_advice_wire'] = "Débit : compte débité — Crédit : compte crédité";
 
 $lang['gvv_compta_comptes'] = "Comptes";
 $lang['gvv_compta_compte'] = "Compte";
 $lang['gvv_compta_date'] = "Date";
 $lang['gvv_compta_jusqua'] = "Jusqu'à";
 $lang['gvv_compta_type_ecriture'] = array(0 => 'Tout', 1 => 'Vérifiés', 2 => 'Non vérifiés');
-$lang['gvv_compta_emploi'] = "Emploi";
-$lang['gvv_compta_resource'] = "Ressource";
+$lang['gvv_compta_emploi'] = "Débit";
+$lang['gvv_compta_resource'] = "Crédit";
 $lang['gvv_compta_montant_min'] = "Montant minimum";
 $lang['gvv_compta_montant_max'] = "maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Débits et crédits', 1 => 'Débits', 2 => 'Crédits');
@@ -151,8 +151,8 @@ $lang['gvv_transfert_empty']            = "Aucune écriture sélectionnée.";
 $lang['gvv_transfert_export']           = "Exporter";
 $lang['gvv_transfert_already_added']    = "Cette écriture est déjà dans la liste.";
 $lang['gvv_transfert_col_date']         = "Date";
-$lang['gvv_transfert_col_emploi']       = "Emploi";
-$lang['gvv_transfert_col_ressource']    = "Ressource";
+$lang['gvv_transfert_col_emploi']       = "Débit";
+$lang['gvv_transfert_col_ressource']    = "Crédit";
 $lang['gvv_transfert_col_montant']      = "Montant";
 $lang['gvv_transfert_col_description']  = "Libellé";
 $lang['gvv_transfert_col_actions']      = "";
@@ -182,8 +182,8 @@ $lang['gvv_import_nothing_selected']    = "Aucune écriture sélectionnée.";
 $lang['gvv_import_preview_title']       = "Prévisualisation de l'import";
 $lang['gvv_import_col_status']          = "Statut";
 $lang['gvv_import_col_date']            = "Date";
-$lang['gvv_import_col_emploi']          = "Emploi";
-$lang['gvv_import_col_ressource']       = "Ressource";
+$lang['gvv_import_col_emploi']          = "Débit";
+$lang['gvv_import_col_ressource']       = "Crédit";
 $lang['gvv_import_col_montant']         = "Montant";
 $lang['gvv_import_col_description']     = "Libellé";
 $lang['gvv_import_confirm']             = "Importer la sélection";
