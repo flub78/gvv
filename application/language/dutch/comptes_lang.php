@@ -103,9 +103,21 @@ $lang['comptes_bilan_provisions_risques'] = "Voorzieningen voor risico's";
 $lang['comptes_bilan_provisions_charges'] = "Voorzieningen voor kosten";
 $lang['comptes_bilan_total_provisions'] = "Totaal voorzieningen";
 $lang['comptes_bilan_dettes'] = "Schulden";
+$lang['comptes_bilan_section_dettes_financieres'] = "Financiële schulden";
+$lang['comptes_bilan_dettes_exploitation'] = "Exploitatieschulden";
+$lang['comptes_bilan_dettes_diverses'] = "Overige schulden";
 $lang['comptes_bilan_dettes_financieres'] = "Financiele schulden";
 $lang['comptes_bilan_stocks'] = "Voorraden";
 $lang['comptes_bilan_total_dettes'] = "Totaal schulden";
+$lang['comptes_label_total_club'] = "Club Totaal";
+$lang['comptes_label_total_recettes'] = "Totaal inkomsten";
+$lang['comptes_label_total_depenses'] = "Totaal uitgaven";
+$lang['comptes_label_comptes'] = "Rekeningen";
+$lang['comptes_bilan_comptes_banque'] = "Bank- en financiële rekeningen";
+$lang['comptes_bilan_cumul_amortissements'] = "Gecumuleerde afschrijvingen";
+$lang['comptes_bilan_depreciations'] = "Waardeverminderingen";
+$lang['comptes_bilan_total_actifs_financiers'] = "Totaal financiële activa";
+$lang['comptes_bilan_diff_actif_passif'] = "Totaal activa - totaal schulden";
 
 $lang['comptes_button_cloture'] = "Sluiting boekjaar";
 

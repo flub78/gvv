@@ -103,9 +103,21 @@ $lang['comptes_bilan_provisions_risques'] = "Risk provisions";
 $lang['comptes_bilan_provisions_charges'] = "Expense provisions";
 $lang['comptes_bilan_total_provisions'] = "Total provisions";
 $lang['comptes_bilan_dettes'] = "Liabilities";
+$lang['comptes_bilan_section_dettes_financieres'] = "Financial liabilities";
+$lang['comptes_bilan_dettes_exploitation'] = "Operating liabilities";
+$lang['comptes_bilan_dettes_diverses'] = "Other liabilities";
 $lang['comptes_bilan_dettes_financieres'] = "Financial debts";
 $lang['comptes_bilan_stocks'] = "Inventories";
 $lang['comptes_bilan_total_dettes'] = "Total debts";
+$lang['comptes_label_total_club'] = "Club Total";
+$lang['comptes_label_total_recettes'] = "Total income";
+$lang['comptes_label_total_depenses'] = "Total expenses";
+$lang['comptes_label_comptes'] = "Accounts";
+$lang['comptes_bilan_comptes_banque'] = "Bank and financial accounts";
+$lang['comptes_bilan_cumul_amortissements'] = "Accumulated depreciation";
+$lang['comptes_bilan_depreciations'] = "Depreciation";
+$lang['comptes_bilan_total_actifs_financiers'] = "Total financial assets";
+$lang['comptes_bilan_diff_actif_passif'] = "Total assets - total liabilities";
 
 $lang['comptes_button_cloture'] = "End or year operations";
 

@@ -21,6 +21,7 @@ class Comptes_model extends Common_Model {
     function __construct() {
         parent::__construct();
         $this->CI = &get_instance();
+        $this->CI->lang->load('comptes');
         $this->load->model("ecritures_model");
         $this->load->model("membres_model");
         $this->load->model("sections_model");
@@ -703,7 +704,7 @@ class Comptes_model extends Common_Model {
     function select_par_section($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = true, $sections = null) {
 
         $table = [];
-        $title = ["Code", "Comptes"];
+        $title = [$this->CI->lang->line('gvv_vue_comptes_short_field_codec'), $this->CI->lang->line('comptes_label_comptes')];
 
         // selectionne les codec de comptes de la selection
         $this->db
@@ -730,7 +731,7 @@ class Comptes_model extends Common_Model {
         }
         // Only add "Total Club" column if there are 2 or more sections
         if (count($sections) >= 2) {
-            $title[] = "Total Club";
+            $title[] = $this->CI->lang->line('comptes_label_total_club');
         }
         $table[] = $title;
 
@@ -833,13 +834,13 @@ class Comptes_model extends Common_Model {
         }
         // Only add "Total Club" column if there are 2 or more sections
         if ($sections_count >= 2) {
-            $title[] = "Total Club";
+            $title[] = $this->CI->lang->line('comptes_label_total_club');
         }
         $resultat[] = $title;
-        $resultat[] = $this->compute_total(["Total des recettes"], $produits);
-        $resultat[] = $this->compute_total(["Total des dépenses"], $charges);
+        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_total_recettes')], $produits);
+        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_total_depenses')], $charges);
 
-        $total_row = ["Résultat"];
+        $total_row = [$this->CI->lang->line('comptes_bilan_resultat')];
 
         // Calculate the correct column range based on whether we added "Total Club"
         $max_col_index = $header_count + $sections_count;
@@ -903,50 +904,50 @@ class Comptes_model extends Common_Model {
         if ($html) {
             // http://gvv.net/comptes/page/512
             $url = controller_url("comptes") . "/page/512/600";
-            $banques = [anchor($url, "Comptes de banque et financiers")];
+            $banques = [anchor($url, $this->CI->lang->line('comptes_bilan_comptes_banque'))];
 
             // http://gvv.net/comptes/page/4/5/1
             $url = controller_url("comptes") . "/page/4/5/1";
-            $creances = [anchor($url, "Créances de tiers")];
+            $creances = [anchor($url, $this->CI->lang->line('comptes_bilan_creances_tiers'))];
 
             // http://gvv.net/comptes/page/4/5/1
             $url = controller_url("comptes") . "/page/4/5/1";
-            $dettes_tiers = [anchor($url, "Dettes envers des tiers")];
+            $dettes_tiers = [anchor($url, $this->CI->lang->line('comptes_bilan_dettes_tiers'))];
 
             // http://gvv.net/comptes/page/16/17/1
             $url = controller_url("comptes") . "/page/16/17/1";
-            $emprunts = [anchor($url, "Emprunts bancaires")];
+            $emprunts = [anchor($url, $this->CI->lang->line('comptes_bilan_dettes_banques'))];
 
             // https://gvv.planeur-abbeville.fr/index.php/comptes/page/2/28
             $url = controller_url("comptes") . "/page/2/28/1";
-            $immos_brutes = [anchor($url, "Valeur brute")]; 
+            $immos_brutes = [anchor($url, $this->CI->lang->line('comptes_bilan_valeur_brute'))];
 
             // https://gvv.planeur-abbeville.fr/index.php/comptes/page/281
             $url = controller_url("comptes") . "/page/281";
-            $immos_cumul_amortissements = [anchor($url, "Cumul amortissements")];
+            $immos_cumul_amortissements = [anchor($url, $this->CI->lang->line('comptes_bilan_cumul_amortissements'))];
 
             $url = controller_url("comptes") . "/page/274";
-            $prets = [anchor($url, "Prêts")];
+            $prets = [anchor($url, $this->CI->lang->line('comptes_bilan_prets'))];
 
-            $immos_depreciations = ["Dépréciations"];
-            $immos_nettes = ["Valeur nette"];
+            $immos_depreciations = [$this->CI->lang->line('comptes_bilan_depreciations')];
+            $immos_nettes = [$this->CI->lang->line('comptes_bilan_valeur_nette')];
 
         } else {
-            $banques = ["Comptes de banque et financiers"];
-            $creances = ["Créances de tiers"];
-            $dettes_tiers = ["Dettes envers des tiers"];
-            $emprunts = ["Emprunts bancaires"];
-            $prets = ["Prêts"];
+            $banques = [$this->CI->lang->line('comptes_bilan_comptes_banque')];
+            $creances = [$this->CI->lang->line('comptes_bilan_creances_tiers')];
+            $dettes_tiers = [$this->CI->lang->line('comptes_bilan_dettes_tiers')];
+            $emprunts = [$this->CI->lang->line('comptes_bilan_dettes_banques')];
+            $prets = [$this->CI->lang->line('comptes_bilan_prets')];
 
-            $immos_brutes = ["Valeur brute"];
-            $immos_cumul_amortissements = ["Cumul amortissements"];
-            $immos_depreciations = ["Dépréciations"];
-            $immos_nettes = ["Valeur nette"];
+            $immos_brutes = [$this->CI->lang->line('comptes_bilan_valeur_brute')];
+            $immos_cumul_amortissements = [$this->CI->lang->line('comptes_bilan_cumul_amortissements')];
+            $immos_depreciations = [$this->CI->lang->line('comptes_bilan_depreciations')];
+            $immos_nettes = [$this->CI->lang->line('comptes_bilan_valeur_nette')];
         }
 
-        $total_dispo = ["Total des actifs financiers"];
-        $total_dettes = ["Total des dettes"];
-        $diff_actif_passif = ["Total des actifs - total des dettes"];
+        $total_dispo = [$this->CI->lang->line('comptes_bilan_total_actifs_financiers')];
+        $total_dettes = [$this->CI->lang->line('comptes_bilan_total_dettes')];
+        $diff_actif_passif = [$this->CI->lang->line('comptes_bilan_diff_actif_passif')];
 
         $tot_banque = 0;
         $tot_creances = 0;
@@ -1021,7 +1022,7 @@ class Comptes_model extends Common_Model {
 
         // la colonne Total - Only add "Total Club" column if there are 2 or more sections
         if ($sections_count >= 2) {
-            $title[] = "Total Club";
+            $title[] = $this->CI->lang->line('comptes_label_total_club');
             $banques[] =  $tot_banque;
             $emprunts[] =  $tot_emprunt;
             $prets[] = $tot_prets;
@@ -1374,7 +1375,8 @@ class Comptes_model extends Common_Model {
         $sections_count = count($sections);
 
         // En-tête avec années groupées par section (N et N-1 adjacentes)
-        $header = ['Code', 'Comptes'];
+        $lbl_total_club = $this->CI->lang->line('comptes_label_total_club');
+        $header = [$this->CI->lang->line('gvv_vue_comptes_short_field_codec'), $this->CI->lang->line('comptes_label_comptes')];
         $section_field = $use_full_names ? 'nom' : 'acronyme';
         foreach ($sections as $section) {
             $header[] = $section[$section_field] . ' ' . $year_current;
@@ -1382,8 +1384,8 @@ class Comptes_model extends Common_Model {
         }
         // Only add Total Club columns if there are 2 or more sections
         if ($sections_count > 1) {
-            $header[] = 'Total Club ' . $year_current;
-            $header[] = 'Total Club ' . $year_prev;
+            $header[] = $lbl_total_club . ' ' . $year_current;
+            $header[] = $lbl_total_club . ' ' . $year_prev;
         }
 
         $table = [$header];
@@ -1636,9 +1638,9 @@ class Comptes_model extends Common_Model {
         $header_offset = 2; // Code + Comptes
 
         // Calculer les totaux par section ET les totaux globaux
-        $total_charges = ["", "Charges"];
-        $total_produits = ["", "Produits"];
-        $total_resultat = ["", "Total"];
+        $total_charges = ["", $this->CI->lang->line('comptes_label_expenses')];
+        $total_produits = ["", $this->CI->lang->line('comptes_label_earnings')];
+        $total_resultat = ["", $this->CI->lang->line('comptes_label_total')];
 
         // Pour chaque colonne de section (+ total si applicable)
         for ($i = 0; $i < $cols_per_year * 2; $i++) {
@@ -1774,7 +1776,7 @@ class Comptes_model extends Common_Model {
         foreach ($sections as $section) {
             $title[] = $section['acronyme'];
         }
-        $title[] = "Total Club";
+        $title[] = $this->CI->lang->line('comptes_label_total_club');
         $table[] = $title;
         
         // Pour chaque compte du codec
