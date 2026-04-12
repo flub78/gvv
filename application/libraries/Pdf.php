@@ -104,7 +104,7 @@ class PDF extends tFPDF {
             }
 
             // Always use Cell for single-line content to avoid overflow
-            parent::Cell($w[$col], $height, $field_str, $cell_border, 0, $algn);
+            parent::Cell($w[$col], $height, $field_str, $cell_border, 0, $algn, $fill);
 
             // Restore original font if we changed it
             if ($is_bold) {

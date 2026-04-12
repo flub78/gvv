@@ -622,84 +622,9 @@ class Document {
         $lbl_total_dettes = $this->CI->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->CI->lang->line('comptes_bilan_total_passif');
 
-        $actif_data = array();
-        $actif_data[] = array('<b>' . $lbl_actif_immobilise . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>');
-
-        if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
-            $actif_data[] = array(
-                $lbl_immobilisations_corp,
-                euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'pdf'),
-                euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'pdf'),
-                euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'pdf'),
-                euro($actif_detail_n1['immobilisations_corporelles']['net'], ',', 'pdf')
-            );
-        }
-
-        if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
-            $actif_data[] = array(
-                $lbl_immobilisations_financieres,
-                euro($actif_detail_n['immobilisations_financieres']['brut'], ',', 'pdf'),
-                euro($actif_detail_n['immobilisations_financieres']['amort'], ',', 'pdf'),
-                euro($actif_detail_n['immobilisations_financieres']['net'], ',', 'pdf'),
-                euro($actif_detail_n1['immobilisations_financieres']['net'], ',', 'pdf')
-            );
-        }
-
-        $actif_data[] = array(
-            '<b>' . $lbl_total_actif_immobilise . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_immobilise']['brut'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_immobilise']['amort'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_immobilise']['net'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n1['total_actif_immobilise']['net'], ',', 'pdf') . '</b>'
-        );
-
-        $actif_data[] = array('<b>' . $lbl_actif_circulant . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>');
-
-        if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
-            $actif_data[] = array(
-                $lbl_stocks,
-                euro($actif_detail_n['stocks']['brut'], ',', 'pdf'),
-                '',
-                euro($actif_detail_n['stocks']['net'], ',', 'pdf'),
-                euro($actif_detail_n1['stocks']['net'], ',', 'pdf')
-            );
-        }
-
-        if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
-            $actif_data[] = array(
-                $lbl_creances_tiers,
-                euro($actif_detail_n['creances_tiers']['brut'], ',', 'pdf'),
-                euro($actif_detail_n['creances_tiers']['amort'], ',', 'pdf'),
-                euro($actif_detail_n['creances_tiers']['net'], ',', 'pdf'),
-                euro($actif_detail_n1['creances_tiers']['net'], ',', 'pdf')
-            );
-        }
-
-        if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
-            $actif_data[] = array(
-                $lbl_disponibilites,
-                euro($actif_detail_n['disponibilites']['brut'], ',', 'pdf'),
-                euro($actif_detail_n['disponibilites']['amort'], ',', 'pdf'),
-                euro($actif_detail_n['disponibilites']['net'], ',', 'pdf'),
-                euro($actif_detail_n1['disponibilites']['net'], ',', 'pdf')
-            );
-        }
-
-        $actif_data[] = array(
-            '<b>' . $lbl_total_actif_circulant . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_circulant']['brut'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_circulant']['amort'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n['total_actif_circulant']['net'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n1['total_actif_circulant']['net'], ',', 'pdf') . '</b>'
-        );
-
-        $actif_data[] = array(
-            '<b>' . $lbl_total_actif . '</b>',
-            '<b></b>',
-            '<b></b>',
-            '<b>' . euro($actif_detail_n['total_actif'], ',', 'pdf') . '</b>',
-            '<b>' . euro($actif_detail_n1['total_actif'], ',', 'pdf') . '</b>'
-        );
+        // Bootstrap 5 table colors
+        $color_secondary = array(226, 227, 229); // table-secondary
+        $color_primary   = array(207, 226, 255); // table-primary
 
         $this->pdf->title($lbl_title_actif, 2);
         $actif_width = array(80, 27.5, 27.5, 27.5, 27.5);
@@ -708,67 +633,177 @@ class Document {
 
         // Header row 1 with merged year cell across columns 2, 3 and 4.
         $this->pdf->SetFont('DejaVu', 'B', 6);
-        $this->pdf->Cell($actif_width[0], $actif_height, $lbl_actif, 'LRT', 0, 'L');
-        $this->pdf->Cell($actif_width[1] + $actif_width[2] + $actif_width[3], $actif_height, "31/12/$year_n", 'LRTB', 0, 'C');
-        $this->pdf->Cell($actif_width[4], $actif_height, "31/12/$year_n1", 'LRTB', 1, 'C');
+        $this->pdf->SetFillColor($color_primary[0], $color_primary[1], $color_primary[2]);
+        $this->pdf->Cell($actif_width[0], $actif_height, $lbl_actif, 'LRT', 0, 'L', true);
+        $this->pdf->Cell($actif_width[1] + $actif_width[2] + $actif_width[3], $actif_height, "31/12/$year_n", 'LRTB', 0, 'C', true);
+        $this->pdf->Cell($actif_width[4], $actif_height, "31/12/$year_n1", 'LRTB', 1, 'C', true);
 
         // Header row 2; first cell completes the rowspan effect of "Actif".
-        $this->pdf->Cell($actif_width[0], $actif_height, '', 'LRB', 0, 'L');
-        $this->pdf->Cell($actif_width[1], $actif_height, $lbl_brut, 'LRTB', 0, 'R');
-        $this->pdf->Cell($actif_width[2], $actif_height, $lbl_amort_depr, 'LRTB', 0, 'R');
-        $this->pdf->Cell($actif_width[3], $actif_height, $lbl_net, 'LRTB', 0, 'R');
-        $this->pdf->Cell($actif_width[4], $actif_height, $lbl_net, 'LRTB', 1, 'R');
+        $this->pdf->Cell($actif_width[0], $actif_height, '', 'LRB', 0, 'L', true);
+        $this->pdf->Cell($actif_width[1], $actif_height, $lbl_brut, 'LRTB', 0, 'R', true);
+        $this->pdf->Cell($actif_width[2], $actif_height, $lbl_amort_depr, 'LRTB', 0, 'R', true);
+        $this->pdf->Cell($actif_width[3], $actif_height, $lbl_net, 'LRTB', 0, 'R', true);
+        $this->pdf->Cell($actif_width[4], $actif_height, $lbl_net, 'LRTB', 1, 'R', true);
 
         $this->pdf->SetFont('DejaVu', '', 6);
 
-        foreach ($actif_data as $row) {
+        $row_secondary = function($row) use ($actif_width, $actif_height, $actif_align, $color_secondary) {
+            $this->pdf->SetFillColor($color_secondary[0], $color_secondary[1], $color_secondary[2]);
+            $this->pdf->row($actif_width, $actif_height, $actif_align, $row, 'LRTB', true);
+        };
+        $row_primary = function($row) use ($actif_width, $actif_height, $actif_align, $color_primary) {
+            $this->pdf->SetFillColor($color_primary[0], $color_primary[1], $color_primary[2]);
+            $this->pdf->row($actif_width, $actif_height, $actif_align, $row, 'LRTB', true);
+        };
+        $row_normal = function($row) use ($actif_width, $actif_height, $actif_align) {
             $this->pdf->row($actif_width, $actif_height, $actif_align, $row);
+        };
+
+        // Actif immobilisé
+        $row_secondary(array('<b>' . $lbl_actif_immobilise . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>'));
+
+        if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
+            $row_normal(array(
+                $lbl_immobilisations_corp,
+                euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'pdf'),
+                euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'pdf'),
+                euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['immobilisations_corporelles']['net'], ',', 'pdf')
+            ));
         }
+
+        if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
+            $row_normal(array(
+                $lbl_immobilisations_financieres,
+                euro($actif_detail_n['immobilisations_financieres']['brut'], ',', 'pdf'),
+                euro($actif_detail_n['immobilisations_financieres']['amort'], ',', 'pdf'),
+                euro($actif_detail_n['immobilisations_financieres']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['immobilisations_financieres']['net'], ',', 'pdf')
+            ));
+        }
+
+        $row_secondary(array(
+            '<b>' . $lbl_total_actif_immobilise . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_immobilise']['brut'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_immobilise']['amort'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_immobilise']['net'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n1['total_actif_immobilise']['net'], ',', 'pdf') . '</b>'
+        ));
+
+        // Actif circulant
+        $row_secondary(array('<b>' . $lbl_actif_circulant . '</b>', '<b></b>', '<b></b>', '<b></b>', '<b></b>'));
+
+        if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
+            $row_normal(array(
+                $lbl_stocks,
+                euro($actif_detail_n['stocks']['brut'], ',', 'pdf'),
+                '',
+                euro($actif_detail_n['stocks']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['stocks']['net'], ',', 'pdf')
+            ));
+        }
+
+        if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
+            $row_normal(array(
+                $lbl_creances_tiers,
+                euro($actif_detail_n['creances_tiers']['brut'], ',', 'pdf'),
+                euro($actif_detail_n['creances_tiers']['amort'], ',', 'pdf'),
+                euro($actif_detail_n['creances_tiers']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['creances_tiers']['net'], ',', 'pdf')
+            ));
+        }
+
+        if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
+            $row_normal(array(
+                $lbl_disponibilites,
+                euro($actif_detail_n['disponibilites']['brut'], ',', 'pdf'),
+                euro($actif_detail_n['disponibilites']['amort'], ',', 'pdf'),
+                euro($actif_detail_n['disponibilites']['net'], ',', 'pdf'),
+                euro($actif_detail_n1['disponibilites']['net'], ',', 'pdf')
+            ));
+        }
+
+        $row_secondary(array(
+            '<b>' . $lbl_total_actif_circulant . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_circulant']['brut'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_circulant']['amort'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n['total_actif_circulant']['net'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n1['total_actif_circulant']['net'], ',', 'pdf') . '</b>'
+        ));
+
+        $row_primary(array(
+            '<b>' . $lbl_total_actif . '</b>',
+            '<b></b>',
+            '<b></b>',
+            '<b>' . euro($actif_detail_n['total_actif'], ',', 'pdf') . '</b>',
+            '<b>' . euro($actif_detail_n1['total_actif'], ',', 'pdf') . '</b>'
+        ));
         $this->pdf->Ln(4);
 
-        $passif_data = array();
-        $passif_data[] = array($lbl_passif, "31/12/$year_n", "31/12/$year_n1");
+        $passif_width  = array(135, 27.5, 27.5);
+        $passif_height = 8;
+        $passif_align  = array('L', 'R', 'R');
+
+        $passif_secondary = function($row) use ($passif_width, $passif_height, $passif_align, $color_secondary) {
+            $this->pdf->SetFillColor($color_secondary[0], $color_secondary[1], $color_secondary[2]);
+            $this->pdf->row($passif_width, $passif_height, $passif_align, $row, 'LRTB', true);
+        };
+        $passif_normal = function($row) use ($passif_width, $passif_height, $passif_align) {
+            $this->pdf->row($passif_width, $passif_height, $passif_align, $row);
+        };
+
+        $this->pdf->title($lbl_title_passif, 2);
+
+        // Passif header
+        $this->pdf->SetFont('DejaVu', 'B', 6);
+        $this->pdf->SetFillColor($color_primary[0], $color_primary[1], $color_primary[2]);
+        $this->pdf->Cell($passif_width[0], $passif_height, $lbl_passif, 'LRTB', 0, 'L', true);
+        $this->pdf->Cell($passif_width[1], $passif_height, "31/12/$year_n", 'LRTB', 0, 'C', true);
+        $this->pdf->Cell($passif_width[2], $passif_height, "31/12/$year_n1", 'LRTB', 1, 'C', true);
+        $this->pdf->SetFont('DejaVu', '', 6);
 
         $passif_rows = array(
-            array($lbl_fonds_propres_sans_droit_reprise, $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']),
-            array($lbl_reserves, $passif_detail_n['reserves'], $passif_detail_n1['reserves']),
-            array($lbl_resultat, $passif_detail_n['resultat'], $passif_detail_n1['resultat']),
-            array($lbl_subventions_investissement, $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']),
-            array($lbl_total_fonds_reportes_dedies, $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']),
-            array($lbl_provisions_risques, $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']),
-            array($lbl_provisions_charges, $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']),
-            array($lbl_total_provisions, $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']),
-            array($lbl_dettes_tiers, $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']),
-            array($lbl_dettes_financieres, $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']),
-            array($lbl_total_dettes, $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']),
-            array($lbl_total_passif, $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'])
+            array($lbl_fonds_propres_sans_droit_reprise, $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise'], false),
+            array($lbl_reserves, $passif_detail_n['reserves'], $passif_detail_n1['reserves'], false),
+            array($lbl_resultat, $passif_detail_n['resultat'], $passif_detail_n1['resultat'], false),
+            array($lbl_subventions_investissement, $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement'], false),
+            array($lbl_total_fonds_reportes_dedies, $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies'], true),
+            array($lbl_provisions_risques, $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques'], false),
+            array($lbl_provisions_charges, $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges'], false),
+            array($lbl_total_provisions, $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions'], true),
+            array($lbl_dettes_tiers, $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres'], false),
+            array($lbl_dettes_financieres, $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres'], false),
+            array($lbl_total_dettes, $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true),
+            array($lbl_total_passif, $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], 'primary'),
         );
 
-        foreach ($passif_rows as $row) {
-            $is_bold = in_array($row[0], array(
-                $lbl_total_fonds_reportes_dedies,
-                $lbl_total_provisions,
-                $lbl_total_dettes,
-                $lbl_total_passif
-            ));
+        $passif_primary = function($row) use ($passif_width, $passif_height, $passif_align, $color_primary) {
+            $this->pdf->SetFillColor($color_primary[0], $color_primary[1], $color_primary[2]);
+            $this->pdf->row($passif_width, $passif_height, $passif_align, $row, 'LRTB', true);
+        };
 
-            if ($is_bold) {
-                $passif_data[] = array(
+        foreach ($passif_rows as $row) {
+            $style = $row[3];
+            if ($style === 'primary') {
+                $passif_primary(array(
                     '<b>' . $row[0] . '</b>',
                     '<b>' . euro($row[1], ',', 'pdf') . '</b>',
                     '<b>' . euro($row[2], ',', 'pdf') . '</b>'
-                );
+                ));
+            } elseif ($style === true) {
+                $passif_secondary(array(
+                    '<b>' . $row[0] . '</b>',
+                    '<b>' . euro($row[1], ',', 'pdf') . '</b>',
+                    '<b>' . euro($row[2], ',', 'pdf') . '</b>'
+                ));
             } else {
-                $passif_data[] = array(
+                $passif_normal(array(
                     $row[0],
                     euro($row[1], ',', 'pdf'),
                     euro($row[2], ',', 'pdf')
-                );
+                ));
             }
         }
-
-        $this->pdf->title($lbl_title_passif, 2);
-        $this->pdf->table(array(135, 27.5, 27.5), 8, array('L', 'R', 'R'), $passif_data);
     }
 
     /**
