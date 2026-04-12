@@ -183,6 +183,7 @@ if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	$lbl_title_passif = $this->lang->line('comptes_bilan_title_passif');
 	$lbl_passif = $this->lang->line('comptes_bilan_passif');
+	$lbl_section_fonds_propres = $this->lang->line('comptes_bilan_section_fonds_propres');
 	$lbl_fonds_propres_sans_droit_reprise = $this->lang->line('comptes_bilan_fonds_propres_sans_droit_reprise');
 	$lbl_reserves = $this->lang->line('comptes_bilan_reserves');
 	$lbl_resultat = $this->lang->line('comptes_bilan_resultat');
@@ -191,6 +192,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	$lbl_provisions_risques = $this->lang->line('comptes_bilan_provisions_risques');
 	$lbl_provisions_charges = $this->lang->line('comptes_bilan_provisions_charges');
 	$lbl_total_provisions = $this->lang->line('comptes_bilan_total_provisions');
+	$lbl_dettes = $this->lang->line('comptes_bilan_dettes');
 	$lbl_dettes_tiers = $this->lang->line('comptes_bilan_dettes_tiers');
 	$lbl_dettes_financieres = $this->lang->line('comptes_bilan_dettes_financieres');
 	$lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
@@ -203,6 +205,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	$year_n1 = $year_n - 1;
 
 	$rows = [
+		[$lbl_section_fonds_propres, null, null, false, true],
 		[anchor(controller_url('comptes/balance/102/103'), $lbl_fonds_propres_sans_droit_reprise), $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise'], false],
 		[anchor(controller_url('comptes/balance/106/107'), $lbl_reserves), $passif_detail_n['reserves'], $passif_detail_n1['reserves'], false],
 		[anchor(controller_url('comptes/resultat'), $lbl_resultat), $passif_detail_n['resultat'], $passif_detail_n1['resultat'], false],
@@ -211,6 +214,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 		[anchor(controller_url('comptes/balance/151/156'), $lbl_provisions_risques), $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques'], false],
 		[anchor(controller_url('comptes/balance/157/159'), $lbl_provisions_charges), $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges'], false],
 		[anchor(controller_url('comptes/balance/15/16'), $lbl_total_provisions), $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions'], true],
+		[$lbl_dettes, null, null, false, true],
 		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_dettes_tiers), $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres'], false],
 		[anchor(controller_url('comptes/balance/16/17/1'), $lbl_dettes_financieres), $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres'], false],
 		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_total_dettes), $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true],
@@ -232,6 +236,10 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	echo '</tr></thead><tbody>';
 
 	foreach ($rows as $r) {
+		if (!empty($r[4])) {
+			echo '<tr class="fw-bold table-secondary"><td colspan="5">' . $r[0] . '</td></tr>';
+			continue;
+		}
 		$class = $r[3] ? ' class="fw-bold table-secondary"' : '';
 		echo '<tr' . $class . '>';
 		echo '<td colspan="3">' . $r[0] . '</td>';
