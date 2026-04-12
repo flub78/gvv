@@ -50,6 +50,7 @@ $lang['comptes_label_total_incomes'] = "Total produits";
 $lang['comptes_label_total_expenses'] = "Total charges";
 $lang['comptes_label_total_pertes'] = "Pertes";
 $lang['comptes_label_total_benefices'] = "Profits";
+$lang['comptes_label_total_club'] = "Club";
 $lang['comptes_label_resultat_avant_dep']  = "Résultat avant dépréciations";
 $lang['comptes_label_resultat_apres_dep']  = "Résultat après dépréciations";
 $lang['comptes_label_total_charges_hd']    = "Total charges hors dépréciations";
