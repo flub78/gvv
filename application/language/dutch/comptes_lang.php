@@ -108,6 +108,7 @@ $lang['comptes_bilan_dettes_exploitation'] = "Exploitatieschulden";
 $lang['comptes_bilan_dettes_fournisseurs'] = "Leveranciersschulden en verbonden rekeningen";
 $lang['comptes_bilan_dettes_fiscales_sociales'] = "Fiscale en sociale schulden";
 $lang['comptes_bilan_dettes_diverses'] = "Overige schulden";
+$lang['comptes_bilan_autres_crediteurs'] = "Overige crediteuren";
 $lang['comptes_bilan_dettes_financieres'] = "Financiele schulden";
 $lang['comptes_bilan_stocks'] = "Voorraden";
 $lang['comptes_bilan_total_dettes'] = "Totaal schulden";

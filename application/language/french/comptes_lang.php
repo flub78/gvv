@@ -110,6 +110,7 @@ $lang['comptes_bilan_dettes_exploitation'] = "Dettes d'exploitation";
 $lang['comptes_bilan_dettes_fournisseurs'] = "Dettes fournisseurs et comptes rattachés";
 $lang['comptes_bilan_dettes_fiscales_sociales'] = "Dettes fiscales et sociales";
 $lang['comptes_bilan_dettes_diverses'] = "Dettes diverses";
+$lang['comptes_bilan_autres_crediteurs'] = "Autres dettes et créditeurs";
 $lang['comptes_bilan_dettes_financieres'] = "Emprunts et dettes financières diverses";
 $lang['comptes_bilan_stocks'] = "Stocks";
 $lang['comptes_bilan_total_dettes'] = "Total des dettes";

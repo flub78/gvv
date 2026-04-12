@@ -549,6 +549,7 @@ class Document {
             $dettes_financieres = $bilan_data['emprunts'];
             $dettes_fournisseurs = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 40, 41, TRUE));
             $dettes_fiscales_sociales = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 42, 44, TRUE));
+            $autres_crediteurs = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 46, 47, TRUE));
 
             $fonds_propres_sans_droit_reprise = $bilan_data['fonds_associatifs'] + $bilan_data['reports_cred'] + $bilan_data['reports_deb'];
 
@@ -559,7 +560,7 @@ class Document {
                 $subventions_investissement;
 
             $total_provisions = $provisions_risques + $provisions_charges;
-            $total_dettes = $avances_membres + $dettes_financieres + $dettes_fournisseurs + $dettes_fiscales_sociales;
+            $total_dettes = $avances_membres + $dettes_financieres + $dettes_fournisseurs + $dettes_fiscales_sociales + $autres_crediteurs;
 
             return array(
                 'fonds_propres_sans_droit_reprise' => $fonds_propres_sans_droit_reprise,
@@ -574,6 +575,7 @@ class Document {
                 'dettes_financieres' => $dettes_financieres,
                 'dettes_fournisseurs' => $dettes_fournisseurs,
                 'dettes_fiscales_sociales' => $dettes_fiscales_sociales,
+                'autres_crediteurs' => $autres_crediteurs,
                 'total_dettes' => $total_dettes,
                 'total_passif' => $bilan_data['total_passif'],
             );
@@ -625,6 +627,7 @@ class Document {
         $lbl_dettes_financieres = $this->CI->lang->line('comptes_bilan_dettes_financieres');
         $lbl_dettes_fournisseurs = $this->CI->lang->line('comptes_bilan_dettes_fournisseurs');
         $lbl_dettes_fiscales_sociales = $this->CI->lang->line('comptes_bilan_dettes_fiscales_sociales');
+        $lbl_autres_crediteurs = $this->CI->lang->line('comptes_bilan_autres_crediteurs');
         $lbl_total_dettes = $this->CI->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->CI->lang->line('comptes_bilan_total_passif');
 
@@ -781,6 +784,7 @@ class Document {
             array($lbl_dettes_financieres, $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres'], false),
             array($lbl_dettes_fournisseurs, $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs'], false),
             array($lbl_dettes_fiscales_sociales, $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales'], false),
+            array($lbl_autres_crediteurs, $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs'], false),
             array($lbl_total_dettes, $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true),
             array($lbl_total_passif, $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], 'primary'),
         );

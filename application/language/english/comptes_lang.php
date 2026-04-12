@@ -108,6 +108,7 @@ $lang['comptes_bilan_dettes_exploitation'] = "Operating liabilities";
 $lang['comptes_bilan_dettes_fournisseurs'] = "Trade payables and related accounts";
 $lang['comptes_bilan_dettes_fiscales_sociales'] = "Tax and social liabilities";
 $lang['comptes_bilan_dettes_diverses'] = "Other liabilities";
+$lang['comptes_bilan_autres_crediteurs'] = "Other creditors";
 $lang['comptes_bilan_dettes_financieres'] = "Financial debts";
 $lang['comptes_bilan_stocks'] = "Inventories";
 $lang['comptes_bilan_total_dettes'] = "Total debts";

@@ -1330,6 +1330,7 @@ class Comptes extends Gvv_Controller {
         $dettes_financieres = $bilan['emprunts'];
         $dettes_fournisseurs = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 40, 41, TRUE));
         $dettes_fiscales_sociales = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 42, 44, TRUE));
+        $autres_crediteurs = $this->gvv_model->total_of($this->ecritures_model->select_solde($date_op, 46, 47, TRUE));
 
         $fonds_propres_sans_droit_reprise = $bilan['fonds_associatifs'] + $bilan['reports_cred'] + $bilan['reports_deb'];
 
@@ -1340,7 +1341,7 @@ class Comptes extends Gvv_Controller {
             $subventions_investissement;
 
         $total_provisions = $provisions_risques + $provisions_charges;
-        $total_dettes = $avances_membres + $dettes_financieres + $dettes_fournisseurs + $dettes_fiscales_sociales;
+        $total_dettes = $avances_membres + $dettes_financieres + $dettes_fournisseurs + $dettes_fiscales_sociales + $autres_crediteurs;
         $total_passif = $bilan['total_passif'];
 
         return [
@@ -1356,6 +1357,7 @@ class Comptes extends Gvv_Controller {
             'dettes_financieres' => $dettes_financieres,
             'dettes_fournisseurs' => $dettes_fournisseurs,
             'dettes_fiscales_sociales' => $dettes_fiscales_sociales,
+            'autres_crediteurs' => $autres_crediteurs,
             'total_dettes' => $total_dettes,
             'total_passif' => $total_passif,
         ];
@@ -1441,6 +1443,7 @@ class Comptes extends Gvv_Controller {
         $lbl_dettes_fournisseurs = $this->lang->line('comptes_bilan_dettes_fournisseurs');
         $lbl_dettes_fiscales_sociales = $this->lang->line('comptes_bilan_dettes_fiscales_sociales');
         $lbl_dettes_diverses = $this->lang->line('comptes_bilan_dettes_diverses');
+        $lbl_autres_crediteurs = $this->lang->line('comptes_bilan_autres_crediteurs');
         $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
@@ -1552,6 +1555,7 @@ class Comptes extends Gvv_Controller {
         $csv_data[] = array($lbl_dettes_fournisseurs, '', '', euro($passif_detail_n['dettes_fournisseurs'], ',', 'csv'), euro($passif_detail_n1['dettes_fournisseurs'], ',', 'csv'));
         $csv_data[] = array($lbl_dettes_fiscales_sociales, '', '', euro($passif_detail_n['dettes_fiscales_sociales'], ',', 'csv'), euro($passif_detail_n1['dettes_fiscales_sociales'], ',', 'csv'));
         $csv_data[] = array($lbl_dettes_diverses, '', '', '', '');
+        $csv_data[] = array($lbl_autres_crediteurs, '', '', euro($passif_detail_n['autres_crediteurs'], ',', 'csv'), euro($passif_detail_n1['autres_crediteurs'], ',', 'csv'));
         $csv_data[] = array($lbl_total_dettes, '', '', euro($passif_detail_n['total_dettes'], ',', 'csv'), euro($passif_detail_n1['total_dettes'], ',', 'csv'));
 
         $csv_data[] = array($lbl_total_passif, '', '', euro($passif_detail_n['total_passif'], ',', 'csv'), euro($passif_detail_n1['total_passif'], ',', 'csv'));
