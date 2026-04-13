@@ -480,7 +480,7 @@ class Document {
         $bilan_prec = $this->CI->comptes_model->select_all_for_bilan($year - 1);
 
         $build_actif_detail = function ($bilan_data) {
-            $disponibilites = -$this->CI->gvv_model->total_of($bilan_data['dispo']);
+            $disponibilites = -$this->CI->comptes_model->total_of($bilan_data['dispo']);
 
             $immobilisations_corporelles = array(
                 'brut' => $bilan_data['valeur_brute_immo_corp'],
@@ -539,11 +539,11 @@ class Document {
         $build_passif_detail = function ($year_data, $bilan_data) {
             $date_op = $year_data . '-12-31';
 
-            $reserves = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 106, 107, TRUE));
-            $subventions_investissement = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 13, 14, TRUE));
+            $reserves = $this->CI->comptes_model->total_of($this->CI->ecritures_model->select_solde($date_op, 106, 107, TRUE));
+            $subventions_investissement = $this->CI->comptes_model->total_of($this->CI->ecritures_model->select_solde($date_op, 13, 14, TRUE));
 
-            $provisions_risques = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 151, 156, TRUE));
-            $provisions_charges = $this->CI->gvv_model->total_of($this->CI->ecritures_model->select_solde($date_op, 157, 159, TRUE));
+            $provisions_risques = $this->CI->comptes_model->total_of($this->CI->ecritures_model->select_solde($date_op, 151, 156, TRUE));
+            $provisions_charges = $this->CI->comptes_model->total_of($this->CI->ecritures_model->select_solde($date_op, 157, 159, TRUE));
 
             $avances_membres = $bilan_data['dettes_pilotes'];
             $dettes_financieres = $bilan_data['emprunts'];
