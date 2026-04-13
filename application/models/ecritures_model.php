@@ -715,10 +715,11 @@ class Ecritures_model extends Common_Model {
             $res = $this->db->delete($this->table, array(
                 'id' => $id
             ));
+            $affected = $this->db->affected_rows(); // capture immediately before other queries change it
             $this->associations_ecriture_model->delete_rapprochements($id);
             $this->db->trans_complete();
 
-            if (!$res || $this->db->affected_rows() === 0) {
+            if (!$res || $affected === 0) {
                 $db_error = $this->db->_error_message();
                 if (!empty($db_error)) {
                     $error_reason = 'database_delete_error';
