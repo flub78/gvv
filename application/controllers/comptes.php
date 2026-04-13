@@ -1337,7 +1337,7 @@ class Comptes extends Gvv_Controller {
             if ($row['solde'] > 0) $dettes_fiscales_sociales += $row['solde'];
         }
         $autres_crediteurs = 0.0;
-        foreach ($this->ecritures_model->select_solde($date_op, 46, 47, FALSE) as $row) {
+        foreach ($this->ecritures_model->select_solde($date_op, 44, 47, FALSE) as $row) {
             if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
         }
 

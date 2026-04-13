@@ -705,9 +705,9 @@ class Comptes_model extends Common_Model {
         }
         $data['total_passif'] += $dettes_fiscales_sociales;
 
-        // Autres créditeurs (46-47x)
+        // Autres créditeurs (44-47x) : État (44), groupe/associés (45, dont 451), débiteurs divers (46)
         $autres_crediteurs = 0.0;
-        foreach ($this->ecritures_model->select_solde($date_op, 46, 47, FALSE) as $row) {
+        foreach ($this->ecritures_model->select_solde($date_op, 44, 47, FALSE) as $row) {
             if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
         }
         $data['total_passif'] += $autres_crediteurs;

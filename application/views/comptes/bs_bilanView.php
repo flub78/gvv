@@ -228,7 +228,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 		[anchor(controller_url('comptes/balance/40/41'), $lbl_dettes_fournisseurs), $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs'], false],
 		[anchor(controller_url('comptes/balance/42/44'), $lbl_dettes_fiscales_sociales), $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales'], false],
 		[$lbl_dettes_diverses, null, null, false, true],
-		[anchor(controller_url('comptes/balance/46/47'), $lbl_autres_crediteurs), $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs'], false],
+		[anchor(controller_url('comptes/balance/44/47'), $lbl_autres_crediteurs), $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs'], false],
 		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_total_dettes), $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true],
 		[anchor(controller_url('comptes/bilan'), $lbl_total_passif), $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], true],
 	];
