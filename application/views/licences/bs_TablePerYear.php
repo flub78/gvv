@@ -29,13 +29,37 @@ $this->load->library('DataTable');
 
 echo '<div id="body" class="body container-fluid">';
 
-echo heading("Licences", 3);
+echo heading("Licences et cotisations", 3);
 
+?>
+<!-- ===== Onglets principaux ===== -->
+<ul class="nav nav-tabs mt-2" id="mainTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-global" data-bs-toggle="tab"
+                data-bs-target="#pane-global" type="button" role="tab"
+                aria-controls="pane-global" aria-selected="false">
+            <i class="fas fa-table me-2"></i> Vue globale
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-detail" data-bs-toggle="tab"
+                data-bs-target="#pane-detail" type="button" role="tab"
+                aria-controls="pane-detail" aria-selected="true">
+            <i class="fas fa-calendar-alt me-2"></i> Vue par année
+        </button>
+    </li>
+</ul>
+<div class="tab-content border border-top-0 rounded-bottom p-3" id="mainTabsContent">
+
+    <!-- ============================= -->
+    <!-- Onglet 1 : Vue globale        -->
+    <!-- ============================= -->
+    <div class="tab-pane fade" id="pane-global" role="tabpanel" aria-labelledby="tab-global">
+<?php
 // Sélecteur de type de licence
 echo licence_selector($controller, $type);
-
-// Filtres dans un accordion Bootstrap
 ?>
+<!-- Filtres -->
 <div class="row mb-3 mt-3">
     <div class="col-md-12">
         <div class="accordion" id="filtersAccordion">
@@ -115,7 +139,7 @@ echo licence_selector($controller, $type);
 <?php
 
 echo br(1);
-$table = new DataTable(array(
+$dt = new DataTable(array(
 	'title' => "",
 	'values' => $table,
 	'controller' => '',
@@ -123,7 +147,7 @@ $table = new DataTable(array(
 	'create' => "",
     'first' => 0));
 
-$table->display();
+$dt->display();
 
 // Afficher la ligne de total en dehors du DataTable
 echo '<div class="row mt-2">';
@@ -143,227 +167,268 @@ echo '</div>';
 echo '</div>';
 
 ?>
+    </div><!-- /#pane-global -->
+
+    <!-- ============================= -->
+    <!-- Onglet 2 : Vue par année      -->
+    <!-- ============================= -->
+    <div class="tab-pane fade show active" id="pane-detail" role="tabpanel" aria-labelledby="tab-detail">
+
+                <!-- Sélecteur d'année + filtre cotisation -->
+                <div class="row mb-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="detail_year_selector" class="form-label fw-bold">Année :</label>
+                        <select class="form-select" id="detail_year_selector">
+                            <?php for ($y = $max_year_data; $y >= $min_year_data; $y--): ?>
+                                <option value="<?php echo $y; ?>" <?php echo ($y == $detail_year) ? 'selected' : ''; ?>>
+                                    <?php echo $y; ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Cotisation :</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="cotisation_filter" id="cot_all" value="all" <?php echo ($cotisation_filter === 'all') ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="cot_all">Toutes</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="cotisation_filter" id="cot_paid" value="paid" <?php echo ($cotisation_filter === 'paid') ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="cot_paid">Payée</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="cotisation_filter" id="cot_unpaid" value="unpaid" <?php echo ($cotisation_filter === 'unpaid') ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="cot_unpaid">Non payée</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tableau détaillé -->
+                <div class="table-responsive">
+                    <table id="detail-table" class="datatable table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Pilote</th>
+                                <th>Email</th>
+                                <th class="text-center">Cotisation</th>
+                                <?php foreach ($detail_data['sections'] as $s): ?>
+                                    <th class="text-center"><?php echo htmlspecialchars($s['nom']); ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($detail_data['members'] as $m): ?>
+                            <tr data-cotisation="<?php echo $m['cotisation'] ? '1' : '0'; ?>">
+                                <td>
+                                    <a href="<?php echo controller_url('event/page/' . htmlspecialchars($m['mlogin'])); ?>">
+                                        <?php echo htmlspecialchars($m['nom'] . ' ' . $m['prenom']); ?>
+                                    </a>
+                                </td>
+                                <td><?php echo htmlspecialchars($m['email']); ?></td>
+                                <td class="text-center">
+                                    <input type="checkbox" class="detail-checkbox"
+                                           data-pilote="<?php echo htmlspecialchars($m['mlogin']); ?>"
+                                           data-year="<?php echo $detail_year; ?>"
+                                           data-type="0"
+                                           <?php echo $m['cotisation'] ? 'checked' : ''; ?>>
+                                </td>
+                                <?php foreach ($detail_data['sections'] as $s): ?>
+                                <td class="text-center">
+                                    <input type="checkbox" class="detail-checkbox"
+                                           data-pilote="<?php echo htmlspecialchars($m['mlogin']); ?>"
+                                           data-year="<?php echo $detail_year; ?>"
+                                           data-type="<?php echo $s['licence_type']; ?>"
+                                           <?php echo $m['section_' . $s['id']] ? 'checked' : ''; ?>>
+                                </td>
+                                <?php endforeach; ?>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+<?php
+$bar = array(
+    array('label' => "Excel", 'url' => "licences/per_year_detail_csv"),
+    array('label' => "Pdf",   'url' => "licences/per_year_detail_pdf"),
+);
+echo button_bar4($bar);
+?>
+    </div><!-- /#pane-detail -->
+
+</div><!-- /#mainTabsContent -->
+
+<?php echo '</div>'; /* #body */ ?>
+
+<script type="text/javascript" src="<?php echo js_url('balance'); ?>"></script>
 <script>
 $(document).ready(function() {
+
+    // ============================================================
+    // Vue globale – sliders, statut membre, section, checkboxes
+    // ============================================================
     var yearMinSlider = $('#year_min_slider');
     var yearMaxSlider = $('#year_max_slider');
     var yearMinValue = $('#year_min_value');
     var yearMaxValue = $('#year_max_value');
     var updateTimeout = null;
 
-    // Mettre à jour l'affichage des valeurs
     function updateYearDisplay() {
         var minVal = parseInt(yearMinSlider.val());
         var maxVal = parseInt(yearMaxSlider.val());
-
-        // Empêcher le croisement
-        if (minVal > maxVal) {
-            yearMinSlider.val(maxVal);
-            minVal = maxVal;
-        }
-
+        if (minVal > maxVal) { yearMinSlider.val(maxVal); minVal = maxVal; }
         yearMinValue.text(minVal);
         yearMaxValue.text(maxVal);
     }
 
-    // Gérer les changements de slider avec debounce
     function handleSliderChange() {
         updateYearDisplay();
-
-        // Annuler le timeout précédent
-        if (updateTimeout) {
-            clearTimeout(updateTimeout);
-        }
-
-        // Attendre 500ms après le dernier changement avant de recharger
+        if (updateTimeout) clearTimeout(updateTimeout);
         updateTimeout = setTimeout(function() {
             var minVal = parseInt(yearMinSlider.val());
             var maxVal = parseInt(yearMaxSlider.val());
-
-            // Envoyer la requête AJAX pour mettre à jour la plage
             $.ajax({
                 url: '<?php echo site_url('licences/set_year_range'); ?>/' + minVal + '/' + maxVal,
-                type: 'GET',
-                dataType: 'json',
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Recharger la page pour afficher la nouvelle plage
-                        window.location.reload();
-                    } else {
-                        console.error('Erreur lors de la mise à jour de la plage d\'années');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erreur AJAX:', error);
-                }
+                type: 'GET', dataType: 'json',
+                beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+                success: function(r) { if (r.success) window.location.reload(); },
+                error: function(xhr, s, e) { console.error('Erreur AJAX:', e); }
             });
         }, 500);
     }
 
-    // Écouter les changements sur les sliders
     yearMinSlider.on('input', updateYearDisplay);
     yearMaxSlider.on('input', updateYearDisplay);
     yearMinSlider.on('change', handleSliderChange);
     yearMaxSlider.on('change', handleSliderChange);
 
-    // Gestionnaire pour les changements de statut de membre
     $('input[name="member_status"]').on('change', function() {
-        var status = $(this).val();
-
-        // Envoyer la requête AJAX pour mettre à jour le statut
         $.ajax({
-            url: '<?php echo site_url('licences/set_member_status'); ?>/' + status,
-            type: 'GET',
-            dataType: 'json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Recharger la page pour afficher les nouveaux membres
-                    window.location.reload();
-                } else {
-                    console.error('Erreur lors de la mise à jour du statut');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Erreur AJAX:', error);
-            }
+            url: '<?php echo site_url('licences/set_member_status'); ?>/' + $(this).val(),
+            type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) { if (r.success) window.location.reload(); },
+            error: function(xhr, s, e) { console.error('Erreur AJAX:', e); }
         });
     });
 
-    // Gestionnaire pour les changements de section
     $('#section_selector').on('change', function() {
-        var sectionId = $(this).val();
-
-        // Envoyer la requête AJAX pour mettre à jour la section
         $.ajax({
-            url: '<?php echo site_url('licences/set_section'); ?>/' + sectionId,
-            type: 'GET',
-            dataType: 'json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Recharger la page pour afficher les membres de la section
-                    window.location.reload();
-                } else {
-                    console.error('Erreur lors de la mise à jour de la section');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Erreur AJAX:', error);
-            }
+            url: '<?php echo site_url('licences/set_section'); ?>/' + $(this).val(),
+            type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) { if (r.success) window.location.reload(); },
+            error: function(xhr, s, e) { console.error('Erreur AJAX:', e); }
         });
     });
 
-    // Fonction pour mettre à jour les totaux
-    function updateTotals() {
-        // Pour chaque colonne d'année
-        $('#total-row th[data-col-index]').each(function() {
-            var colIndex = parseInt($(this).data('col-index'));
-
-            // La première colonne est "Total", on la saute
-            if (colIndex === 0) {
-                return;
-            }
-
-            // Compter les checkboxes cochées dans cette colonne
-            var year = $(this).data('year');
-            var count = 0;
-
-            // Trouver toutes les checkboxes pour cette année
-            $('.licence-checkbox').each(function() {
-                var checkboxYear = $(this).data('year');
-                if (checkboxYear && parseInt(checkboxYear) === year && $(this).is(':checked')) {
-                    count++;
-                }
-            });
-
-            // Mettre à jour le total affiché
-            $(this).text(count);
-        });
-    }
-
-    // Stocker l'année dans chaque cellule de total pour faciliter le comptage
-    $('#total-row th[data-col-index]').each(function(index) {
-        if (index > 0) { // Ignorer la première cellule "Total"
-            // Récupérer l'année depuis l'en-tête du DataTable
-            var yearHeader = $('.datatable thead th').eq(index);
-            var year = yearHeader.text().trim();
-            if (year && !isNaN(year)) {
-                $(this).attr('data-year', year);
-            }
-        }
-    });
-
-    // Gestionnaire pour les changements de checkboxes
+    // Checkboxes Vue globale
     $('.licence-checkbox').on('change', function() {
-        var checkbox = $(this);
-        var pilote = checkbox.data('pilote');
-        var year = checkbox.data('year');
-        var type = checkbox.data('type');
-        var isChecked = checkbox.is(':checked');
-
-        // Désactiver la checkbox pendant le traitement
-        checkbox.prop('disabled', true);
-
-        // Déterminer l'URL en fonction de l'état de la checkbox
-        var url;
-        if (isChecked) {
-            // Cocher = créer la licence
-            url = '<?php echo site_url('licences/set'); ?>/' + pilote + '/' + year + '/' + type;
-        } else {
-            // Décocher = supprimer la licence
-            url = '<?php echo site_url('licences/switch_it'); ?>/' + pilote + '/' + year + '/' + type;
-        }
-
-        // Envoyer la requête AJAX
+        var cb = $(this);
+        var pilote = cb.data('pilote');
+        var year   = cb.data('year');
+        var type   = cb.data('type');
+        var checked = cb.is(':checked');
+        cb.prop('disabled', true);
+        var url = checked
+            ? '<?php echo site_url('licences/set'); ?>/' + pilote + '/' + year + '/' + type
+            : '<?php echo site_url('licences/switch_it'); ?>/' + pilote + '/' + year + '/' + type;
         $.ajax({
-            url: url,
-            type: 'GET',
-            dataType: 'json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            },
-            success: function(response) {
-                // Réactiver la checkbox
-                checkbox.prop('disabled', false);
-
-                // Vérifier si l'opération a réussi
-                if (response.success) {
-                    // Succès silencieux - pas de message
-                    // Mettre à jour les totaux
-                    updateTotals();
-                } else {
-                    console.error('Licence error:', response.error);
-                    alert('Erreur: ' + response.error);
-                    checkbox.prop('checked', !isChecked);
+            url: url, type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) {
+                cb.prop('disabled', false);
+                if (!r.success) {
+                    alert('Erreur: ' + r.error);
+                    cb.prop('checked', !checked);
                 }
             },
-            error: function(xhr, status, error) {
-                console.error('Licence AJAX error:', error);
-                // En cas d'erreur, remettre la checkbox dans son état précédent
-                checkbox.prop('checked', !isChecked);
-                checkbox.prop('disabled', false);
+            error: function(xhr, s, e) {
+                cb.prop('disabled', false);
+                cb.prop('checked', !checked);
+                alert('Erreur lors de la mise à jour de la licence: ' + e);
+            }
+        });
+    });
 
-                // Afficher un message d'erreur
-                var errorMsg = 'Erreur lors de la mise à jour de la licence: ' + error;
-                if (xhr.responseText && xhr.responseText.length < 500) {
-                    errorMsg += '\n\nRéponse: ' + xhr.responseText;
+    // ============================================================
+    // Vue par année – filtre cotisation (avant init par le footer)
+    // ============================================================
+    $.fn.dataTableExt.afnFiltering.push(function(oSettings, aData, iDataIndex) {
+        if (oSettings.nTable.id !== 'detail-table') return true;
+        var filter = $('input[name="cotisation_filter"]:checked').val();
+        if (!filter || filter === 'all') return true;
+        var nTr = oSettings.aoData[iDataIndex].nTr;
+        var cot = parseInt($(nTr).data('cotisation'), 10);
+        return filter === 'paid' ? cot === 1 : cot === 0;
+    });
+
+    $('input[name="cotisation_filter"]').on('change', function() {
+        var filter = $(this).val();
+        $.ajax({
+            url: '<?php echo site_url('licences/set_cotisation_filter'); ?>/' + filter,
+            type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) {
+                if (r.success && $.fn.dataTable && $.fn.dataTable.fnIsDataTable(document.getElementById('detail-table'))) {
+                    $('#detail-table').dataTable().fnDraw();
                 }
-                alert(errorMsg);
+            },
+            error: function(xhr, s, e) { console.error('Erreur AJAX:', e); }
+        });
+    });
+
+    // ============================================================
+    // Vue par année – DataTable + sélecteur d'année + checkboxes
+    // ============================================================
+    // Ré-initialiser la DataTable quand l'onglet "Vue par année" devient visible
+    // (nécessaire car le footer initialise les tables cachées sans calculer les colonnes)
+    $('#tab-detail').on('shown.bs.tab', function () {
+        if ($.fn.dataTable && $.fn.dataTable.fnIsDataTable(document.getElementById('detail-table'))) {
+            $('#detail-table').dataTable().fnAdjustColumnSizing();
+        }
+    });
+
+    // Sélecteur d'année
+    $('#detail_year_selector').on('change', function() {
+        var year = $(this).val();
+        $.ajax({
+            url: '<?php echo site_url('licences/set_detail_year'); ?>/' + year,
+            type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) { if (r.success) window.location.reload(); },
+            error: function(xhr, s, e) { console.error('Erreur AJAX:', e); }
+        });
+    });
+
+    // Checkboxes Vue par année
+    $(document).on('change', '.detail-checkbox', function() {
+        var cb = $(this);
+        var pilote = cb.data('pilote');
+        var year   = cb.data('year');
+        var type   = cb.data('type');
+        var checked = cb.is(':checked');
+        cb.prop('disabled', true);
+        var url = checked
+            ? '<?php echo site_url('licences/set'); ?>/' + pilote + '/' + year + '/' + type
+            : '<?php echo site_url('licences/switch_it'); ?>/' + pilote + '/' + year + '/' + type;
+        $.ajax({
+            url: url, type: 'GET', dataType: 'json',
+            beforeSend: function(xhr) { xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); },
+            success: function(r) {
+                cb.prop('disabled', false);
+                if (!r.success) {
+                    alert('Erreur: ' + r.error);
+                    cb.prop('checked', !checked);
+                }
+            },
+            error: function(xhr, s, e) {
+                cb.prop('disabled', false);
+                cb.prop('checked', !checked);
+                alert('Erreur lors de la mise à jour: ' + e);
             }
         });
     });
 });
 </script>
-<?php
-
-echo '</div>';
-
-?>

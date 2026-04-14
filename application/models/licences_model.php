@@ -224,6 +224,81 @@ class Licences_model extends Common_Model {
         return false;
     }
 
+    /**
+     * Retourne les données pour la vue annuelle détaillée (Vue par année).
+     *
+     * Colonnes : Pilote (nom+prénom), Email, Cotisation (type 0),
+     * puis une colonne par section possédant un type de licence associé.
+     *
+     * Mapping acronyme → type de licence :
+     *   PLA → 1 (Licence/Assurance planeur)
+     *   AVI → 2 (Licence/Assurance avion)
+     *   ULM → 3 (Licence/Assurance ULM)
+     *
+     * @param int    $year          Année à afficher
+     * @param string $member_status 'active' | 'inactive' | 'all'
+     * @return array ['members' => [...], 'sections' => [...]]
+     */
+    public function per_year_detail($year, $member_status = 'active') {
+        $CI = &get_instance();
+        $CI->load->model('sections_model');
+        $sections_raw = $CI->sections_model->section_list();
+
+        $acronyme_to_type = array('PLA' => 1, 'AVI' => 2, 'ULM' => 3);
+        $sections = array();
+        foreach ($sections_raw as $s) {
+            if (isset($acronyme_to_type[$s['acronyme']])) {
+                $sections[] = array(
+                    'id'           => $s['id'],
+                    'nom'          => $s['nom'],
+                    'acronyme'     => $s['acronyme'],
+                    'licence_type' => $acronyme_to_type[$s['acronyme']],
+                );
+            }
+        }
+
+        // Membres
+        $this->db->select('mlogin, mnom, mprenom, memail');
+        $this->db->from('membres');
+        if ($member_status === 'active') {
+            $this->db->where('actif', 1);
+        } elseif ($member_status === 'inactive') {
+            $this->db->where('actif', 0);
+        }
+        $this->db->order_by('mnom', 'asc');
+        $this->db->order_by('mprenom', 'asc');
+        $members_raw = $this->db->get()->result_array();
+
+        // Licences de l'année
+        $this->db->select('pilote, type');
+        $this->db->from('licences');
+        $this->db->where('year', $year);
+        $licences_raw = $this->db->get()->result_array();
+
+        $licences_index = array();
+        foreach ($licences_raw as $lic) {
+            $licences_index[$lic['pilote']][$lic['type']] = true;
+        }
+
+        $members = array();
+        foreach ($members_raw as $m) {
+            $login = $m['mlogin'];
+            $row = array(
+                'mlogin'     => $login,
+                'nom'        => $m['mnom'],
+                'prenom'     => $m['mprenom'],
+                'email'      => $m['memail'] ?: '',
+                'cotisation' => isset($licences_index[$login][0]),
+            );
+            foreach ($sections as $s) {
+                $row['section_' . $s['id']] = isset($licences_index[$login][$s['licence_type']]);
+            }
+            $members[] = $row;
+        }
+
+        return array('members' => $members, 'sections' => $sections);
+    }
+
 }
 
 /* End of file licences_model.php */

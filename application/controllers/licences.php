@@ -76,14 +76,19 @@ class Licences extends Gvv_Controller {
         if (!$this->session->userdata('licence_section_id')) {
             $this->session->set_userdata('licence_section_id', 'all');
         }
+        if (!$this->session->userdata('licence_cotisation_filter')) {
+            $this->session->set_userdata('licence_cotisation_filter', 'all');
+        }
 
         $year_min = (int)$this->session->userdata('licence_year_min');
         $year_max = (int)$this->session->userdata('licence_year_max');
         $member_status = $this->session->userdata('licence_member_status');
         $section_id = $this->session->userdata('licence_section_id');
+        $cotisation_filter = $this->session->userdata('licence_cotisation_filter');
 
         // Charger la liste des sections
         $this->load->model('sections_model');
+        $this->load->model('licences_model');
         $sections = $this->sections_model->section_list();
 
         // Passer les données à la vue
@@ -95,12 +100,22 @@ class Licences extends Gvv_Controller {
         $data['member_status'] = $member_status;
         $data['section_id'] = $section_id;
         $data['sections'] = $sections;
+        $data['cotisation_filter'] = $cotisation_filter;
 
         // Récupérer les données et le total séparément
         $format = $this->user_has_role('ca') ? "html" : "text";
         $result = $this->gvv_model->per_year($data ['type'], $year_min, $year_max, $member_status, $section_id, $format);
         $data['table'] = $result['data'];
         $data['total'] = $result['total'];
+
+        // Vue par année détaillée
+        $detail_year = $this->session->userdata('licence_detail_year');
+        if (!$detail_year) {
+            $detail_year = $max_year_data ?: (int)date("Y");
+            $this->session->set_userdata('licence_detail_year', $detail_year);
+        }
+        $data['detail_year'] = (int)$detail_year;
+        $data['detail_data'] = $this->licences_model->per_year_detail($detail_year, $member_status);
 
         load_last_view('licences/TablePerYear', $data);
     }
@@ -339,6 +354,153 @@ class Licences extends Gvv_Controller {
                 'success' => true,
                 'section_id' => $section_id
             ));
+            exit();
+        } else {
+            redirect(controller_url("licences/per_year"));
+        }
+    }
+
+    /**
+     * Définit l'année pour la vue par année détaillée
+     *
+     * @param int $year Année à afficher
+     */
+    /**
+     * Stores the cotisation filter in session
+     */
+    public function set_cotisation_filter($filter) {
+        $allowed = array('all', 'paid', 'unpaid');
+        if (!in_array($filter, $allowed)) {
+            $filter = 'all';
+        }
+        $this->session->set_userdata('licence_cotisation_filter', $filter);
+
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+        if ($is_ajax) {
+            while (ob_get_level()) { ob_end_clean(); }
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => true, 'filter' => $filter));
+            exit();
+        } else {
+            redirect(controller_url('licences/per_year'));
+        }
+    }
+
+    /**
+     * Export CSV de la vue par année
+     */
+    public function per_year_detail_csv() {
+        $this->load->model('licences_model');
+        $this->load->model('sections_model');
+
+        $detail_year = (int)($this->session->userdata('licence_detail_year') ?: date('Y'));
+        $member_status = $this->session->userdata('licence_member_status') ?: 'active';
+        $cotisation_filter = $this->session->userdata('licence_cotisation_filter') ?: 'all';
+
+        $detail_data = $this->licences_model->per_year_detail($detail_year, $member_status);
+
+        $title = "Licences_" . $detail_year;
+
+        $header = array('Pilote', 'Email', 'Cotisation');
+        foreach ($detail_data['sections'] as $s) {
+            $header[] = $s['nom'];
+        }
+
+        $csv_data = array();
+        $csv_data[] = array($title);
+        $csv_data[] = array('Année', $detail_year);
+        $csv_data[] = array();
+        $csv_data[] = $header;
+
+        foreach ($detail_data['members'] as $m) {
+            if ($cotisation_filter === 'paid'   && !$m['cotisation']) continue;
+            if ($cotisation_filter === 'unpaid' &&  $m['cotisation']) continue;
+            $row = array(
+                $m['nom'] . ' ' . $m['prenom'],
+                $m['email'],
+                $m['cotisation'] ? 'Oui' : 'Non',
+            );
+            foreach ($detail_data['sections'] as $s) {
+                $row[] = $m['section_' . $s['id']] ? 'Oui' : 'Non';
+            }
+            $csv_data[] = $row;
+        }
+
+        $this->load->helper('csv');
+        csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export PDF de la vue par année
+     */
+    public function per_year_detail_pdf() {
+        $this->load->model('licences_model');
+        $this->load->model('sections_model');
+
+        $detail_year = (int)($this->session->userdata('licence_detail_year') ?: date('Y'));
+        $member_status = $this->session->userdata('licence_member_status') ?: 'active';
+        $cotisation_filter = $this->session->userdata('licence_cotisation_filter') ?: 'all';
+
+        $detail_data = $this->licences_model->per_year_detail($detail_year, $member_status);
+
+        $title = "Licences et cotisations " . $detail_year;
+
+        $header = array('Pilote', 'Email', 'Cotisation');
+        foreach ($detail_data['sections'] as $s) {
+            $header[] = $s['nom'];
+        }
+
+        $rows = array($header);
+        foreach ($detail_data['members'] as $m) {
+            if ($cotisation_filter === 'paid'   && !$m['cotisation']) continue;
+            if ($cotisation_filter === 'unpaid' &&  $m['cotisation']) continue;
+            $row = array(
+                $m['nom'] . ' ' . $m['prenom'],
+                $m['email'],
+                $m['cotisation'] ? 'Oui' : 'Non',
+            );
+            foreach ($detail_data['sections'] as $s) {
+                $row[] = $m['section_' . $s['id']] ? 'Oui' : 'Non';
+            }
+            $rows[] = $row;
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('L');
+        $pdf->title($title, 1);
+
+        $nb_cols = count($header);
+        $usable = 270;
+        $w_pilote = 55;
+        $w_email  = 65;
+        $w_extra  = max(1, $nb_cols - 2);
+        $w_each   = ($usable - $w_pilote - $w_email) / $w_extra;
+        $widths = array($w_pilote, $w_email);
+        $aligns = array('L', 'L');
+        for ($i = 2; $i < $nb_cols; $i++) {
+            $widths[] = $w_each;
+            $aligns[] = 'C';
+        }
+
+        $pdf->table($widths, 6, $aligns, $rows);
+        $pdf->Output();
+    }
+
+    public function set_detail_year($year) {
+        $year = (int)$year;
+        $this->session->set_userdata('licence_detail_year', $year);
+
+        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                   strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+        if ($is_ajax) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json');
+            echo json_encode(array('success' => true, 'year' => $year));
             exit();
         } else {
             redirect(controller_url("licences/per_year"));

@@ -1965,7 +1965,7 @@ class Comptes extends Gvv_Controller {
             // Message de succès
             $this->session->set_flashdata('success', $this->lang->line("comptes_cloture_success") . " " . $date_fin);
 
-            redirect($this->controller . "/cloture/" . VISUALISATION);
+            redirect($this->controller . "/bilan");
         }
         return load_last_view($this->controller . "/cloture", $this->data, $this->unit_test);
     }
