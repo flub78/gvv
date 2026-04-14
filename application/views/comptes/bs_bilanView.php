@@ -230,7 +230,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 		[$lbl_dettes_diverses, null, null, false, true],
 		[anchor(controller_url('comptes/balance/44/47'), $lbl_autres_crediteurs), $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs'], false],
 		[anchor(controller_url('comptes/balance/4/5/1'), $lbl_total_dettes), $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes'], true],
-		[anchor(controller_url('comptes/bilan'), $lbl_total_passif), $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], true],
+		[anchor(controller_url('comptes/bilan'), $lbl_total_passif), $passif_detail_n['total_passif'], $passif_detail_n1['total_passif'], true, 'primary'],
 	];
 
 	echo '<table class="table table-sm table-bordered table-hover">';
@@ -248,11 +248,12 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 	echo '</tr></thead><tbody>';
 
 	foreach ($rows as $r) {
-		if (!empty($r[4])) {
+		if (isset($r[4]) && $r[4] === true) {
 			echo '<tr class="fw-bold table-secondary"><td colspan="5">' . $r[0] . '</td></tr>';
 			continue;
 		}
-		$class = $r[3] ? ' class="fw-bold table-secondary"' : '';
+		$row_color = (isset($r[4]) && $r[4] === 'primary') ? 'table-primary' : 'table-secondary';
+		$class = $r[3] ? ' class="fw-bold ' . $row_color . '"' : '';
 		echo '<tr' . $class . '>';
 		echo '<td colspan="3">' . $r[0] . '</td>';
 		echo '<td class="text-end">' . euro($r[1], ',', 'html') . '</td>';

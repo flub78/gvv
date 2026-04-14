@@ -97,6 +97,12 @@ if ($action == MODIFICATION && !$error && $section) {
 }
 echo form_close();
 
+$bar = array(
+    array('label' => "Excel", 'url' => "comptes/cloture_csv", 'role' => 'super-tresorier'),
+    array('label' => "Pdf",   'url' => "comptes/cloture_pdf", 'role' => 'super-tresorier'),
+);
+echo button_bar4($bar);
+
 echo '</div>';
 ?>
 <script type="text/javascript" src="<?php echo js_url('balance'); ?>"></script>

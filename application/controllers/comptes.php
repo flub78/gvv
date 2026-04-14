@@ -1731,6 +1731,27 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Retourne une liste de comptes formatée pour export sans HTML (PDF ou CSV)
+     * $target : 'pdf' ou 'csv'
+     */
+    private function liste_comptes_pdf($selection, $date, $target = 'pdf') {
+        $result = $this->gvv_model->select_page($selection, $date);
+        $header = $this->lang->line("comptes_cloture_list_header");
+        $table = array();
+        $table[] = array_map('strip_tags', $header);
+
+        foreach ($result as $row) {
+            $table[] = array(
+                $row['codec'],
+                $row['nom'],
+                euro($row['solde_debit'], ',', $target),
+                euro($row['solde_credit'], ',', $target)
+            );
+        }
+        return $table;
+    }
+
+    /**
      * Retourne une liste de comptes
      *
      * @param unknown $selection
@@ -1947,6 +1968,101 @@ class Comptes extends Gvv_Controller {
             redirect($this->controller . "/cloture/" . VISUALISATION);
         }
         return load_last_view($this->controller . "/cloture", $this->data, $this->unit_test);
+    }
+
+    /**
+     * Export de l'état de clôture en CSV
+     */
+    function cloture_csv() {
+        if ($this->use_new_auth) {
+            $this->require_roles(['super-tresorier']);
+        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
+            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
+        }
+
+        $balance_date = $this->session->userdata('balance_date');
+        if (!$balance_date) {
+            $balance_date = date("d/m/Y");
+        }
+        $year = substr($balance_date, 6, 4);
+        $section = $this->gvv_model->section();
+
+        $title = $this->lang->line("gvv_comptes_title_cloture");
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " $year";
+
+        $a_integrer = $this->liste_comptes_pdf("codec >= \"110\" and codec < \"130\"", $balance_date, 'csv');
+        $charges    = $this->liste_comptes_pdf("codec >= \"6\" and codec < \"7\"", $balance_date, 'csv');
+        $produits   = $this->liste_comptes_pdf("codec >= \"7\" and codec < \"8\"", $balance_date, 'csv');
+
+        $csv_data = array();
+        $csv_data[] = [$title];
+        $csv_data[] = [$this->lang->line("comptes_label_date"), $balance_date];
+        $csv_data[] = [];
+
+        $csv_data[] = [$this->lang->line("comptes_cloture_title_previous")];
+        $csv_data = array_merge($csv_data, $a_integrer);
+
+        $csv_data[] = [];
+        $csv_data[] = [$this->lang->line("comptes_cloture_title_charges_a_integrer")];
+        $csv_data = array_merge($csv_data, $charges);
+
+        $csv_data[] = [];
+        $csv_data[] = [$this->lang->line("comptes_cloture_title_produits_a_integrer")];
+        $csv_data = array_merge($csv_data, $produits);
+
+        csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export de l'état de clôture en PDF
+     */
+    function cloture_pdf() {
+        if ($this->use_new_auth) {
+            $this->require_roles(['super-tresorier']);
+        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
+            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
+        }
+
+        $balance_date = $this->session->userdata('balance_date');
+        if (!$balance_date) {
+            $balance_date = date("d/m/Y");
+        }
+        $year = substr($balance_date, 6, 4);
+        $section = $this->gvv_model->section();
+
+        $title = $this->lang->line("gvv_comptes_title_cloture");
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " $year";
+
+        $a_integrer = $this->liste_comptes_pdf("codec >= \"110\" and codec < \"130\"", $balance_date);
+        $charges    = $this->liste_comptes_pdf("codec >= \"6\" and codec < \"7\"", $balance_date);
+        $produits   = $this->liste_comptes_pdf("codec >= \"7\" and codec < \"8\"", $balance_date);
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage();
+        $pdf->title($title, 1);
+
+        $render_section = function($section_title, $table_data) use ($pdf) {
+            if (empty($table_data)) return;
+            $pdf->title($section_title, 2);
+            $pdf->SetY($pdf->GetY() - 3);
+            $widths = array(20, 90, 35, 35);
+            $align  = array('L', 'L', 'R', 'R');
+            $pdf->table($widths, 6, $align, $table_data);
+            $pdf->Ln(6);
+        };
+
+        $render_section($this->lang->line("comptes_cloture_title_previous"), $a_integrer);
+        $render_section($this->lang->line("comptes_cloture_title_charges_a_integrer"), $charges);
+        $render_section($this->lang->line("comptes_cloture_title_produits_a_integrer"), $produits);
+
+        $pdf->Output();
     }
 
     /**
