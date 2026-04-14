@@ -216,6 +216,14 @@ $this->lang->load('admin');
                         <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm">Générer</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-paper-plane text-warning"></i>
+                        <div class="card-title">Test email</div>
+                        <div class="card-text text-muted">Tester l'envoi SMTP</div>
+                        <a href="<?= controller_url('admin/test_email') ?>" class="btn btn-warning btn-sm">Tester</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

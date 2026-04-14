@@ -2903,4 +2903,82 @@ SQL;
         return $result;
     }
 
+
+    /**
+     * Test email sending form and handler.
+     * GET: display the form (with optional flash messages)
+     * POST: send email and redirect back with success/error flash
+     */
+    public function test_email() {
+        $data = array(
+            'title'   => 'Test email',
+            'success' => $this->session->flashdata('email_test_success'),
+            'error'   => $this->session->flashdata('email_test_error'),
+            'debug'   => $this->session->flashdata('email_test_debug'),
+            'to'      => '',
+            'subject' => '',
+            'body'    => '',
+        );
+
+        if ($this->input->post('send')) {
+            $to      = trim($this->input->post('to'));
+            $subject = trim($this->input->post('subject'));
+            $body    = trim($this->input->post('body'));
+
+            // Keep form values for re-display on validation errors
+            $data['to']      = $to;
+            $data['subject'] = $subject;
+            $data['body']    = $body;
+
+            if (empty($to) || empty($subject) || empty($body)) {
+                $data['error'] = 'Tous les champs sont obligatoires.';
+            } elseif (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+                $data['error'] = 'Adresse email destinataire invalide : ' . htmlspecialchars($to);
+            } else {
+                $this->load->library('email');
+
+                $from = $this->config->item('email_club');
+                if (empty($from)) {
+                    $from = $this->config->item('smtp_user');
+                }
+                if (empty($from)) {
+                    $from = 'noreply@gvv.net';
+                }
+
+                $from_name = $this->config->item('nom_club');
+                if (empty($from_name)) {
+                    $from_name = 'GVV';
+                }
+
+                $this->email->clear(true);
+                $this->email->from($from, $from_name);
+                $this->email->to($to);
+                $this->email->subject($subject);
+                $this->email->message(nl2br(htmlspecialchars($body)));
+
+                if ($this->email->send()) {
+                    $this->session->set_flashdata('email_test_success',
+                        'Email envoyé avec succès à <strong>' . htmlspecialchars($to) . '</strong>.');
+                } else {
+                    $debug_info = $this->email->print_debugger();
+                    $protocol   = $this->config->item('protocol');
+                    $smtp_host  = $this->config->item('smtp_host');
+                    $smtp_port  = $this->config->item('smtp_port');
+                    $this->session->set_flashdata('email_test_error',
+                        'Echec de l\'envoi. Protocole: <code>' . htmlspecialchars($protocol) . '</code>, '
+                        . 'SMTP: <code>' . htmlspecialchars($smtp_host) . ':' . htmlspecialchars($smtp_port) . '</code>, '
+                        . 'Expediteur: <code>' . htmlspecialchars($from) . '</code>.');
+                    $this->session->set_flashdata('email_test_debug', nl2br(htmlspecialchars($debug_info)));
+                }
+                redirect('admin/test_email');
+                return;
+            }
+        }
+
+        $this->load->view('bs_header');
+        $this->load->view('bs_menu');
+        $this->load->view('bs_banner');
+        $this->load->view('admin/bs_test_email', $data);
+        $this->load->view('bs_footer');
+    }
 }

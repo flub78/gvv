@@ -1347,6 +1347,15 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-warning">
+                        <i class="fas fa-paper-plane text-warning"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_test_email') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_test_email') ?></div>
+                        <a href="<?= controller_url('admin/test_email') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
                 <!-- Outils de Développement -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> <?= $this->lang->line('db_sub_dev_tools') ?></h6>
