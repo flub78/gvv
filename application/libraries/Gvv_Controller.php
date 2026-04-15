@@ -81,8 +81,6 @@ class Gvv_Controller extends MY_Controller {
             }
         }
 
-        $this->restore_missing_section();
-
         $this->lang->load('gvv');
 
         $this->load->helper('date');
@@ -107,63 +105,6 @@ class Gvv_Controller extends MY_Controller {
         }
         // On a besoin du clotures_model pour connaitre les dates de gel
         $this->load->model('clotures_model');
-    }
-
-    /**
-     * Restore the active section when the session was recreated and lost it.
-     *
-     * Do not override non-empty values because some screens intentionally use
-     * special cross-section values like "Toutes".
-     */
-    private function restore_missing_section()
-    {
-        if (!isset($this->dx_auth) || !$this->dx_auth->is_logged_in()) {
-            return;
-        }
-
-        $current_section = $this->session->userdata('section');
-        if (!empty($current_section)) {
-            return;
-        }
-
-        $restored_section = $this->remembered_section_cookie();
-        if ($this->is_real_section_id($restored_section)) {
-            $this->session->set_userdata('section', (int) $restored_section);
-            log_message('debug', 'GVV_Controller(lib): Restored missing section from remembered cookie: ' . $restored_section);
-        }
-    }
-
-    /**
-     * Return remembered section cookie if available.
-     *
-     * Reads both through CodeIgniter and raw PHP cookies because the auth login
-     * form already uses the same fallback strategy.
-     */
-    private function remembered_section_cookie()
-    {
-        $remembered_section = $this->input->cookie('gvv_remembered_section');
-        if (!$remembered_section && isset($_COOKIE['gvv_remembered_section'])) {
-            $remembered_section = $_COOKIE['gvv_remembered_section'];
-        }
-        return $remembered_section;
-    }
-
-    /**
-     * Check whether a section id corresponds to a real section row.
-     */
-    private function is_real_section_id($section_id)
-    {
-        if (empty($section_id) || !is_numeric($section_id)) {
-            return FALSE;
-        }
-
-        $query = $this->db->select('id')
-            ->from('sections')
-            ->where('id', (int) $section_id)
-            ->limit(1)
-            ->get();
-
-        return $query && $query->num_rows() === 1;
     }
 
     /**

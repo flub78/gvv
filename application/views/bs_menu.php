@@ -38,8 +38,6 @@ $this->lang->load('email_lists');
 $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
-$active_section_missing = FALSE;
-
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
 $uses_new_auth = $CI->session->userdata('use_new_auth')
     || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
@@ -53,10 +51,6 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $section_count = $CI->sections_model->safe_count_all();
 }
 
-$raw_section = $CI->session->userdata('section');
-if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
-  $active_section_missing = TRUE;
-}
 ?>
 
 <body>
@@ -478,11 +472,6 @@ if (is_logged_in() && $section_count > 1 && empty($raw_section)) {
             <?php endif; ?>
 
             <?php if ($section_count > 1) : ?>
-              <?php if ($active_section_missing) : ?>
-              <div class="alert alert-warning py-1 px-2 mt-2 mb-2 small" role="alert">
-                <?= $this->lang->line("gvv_active_section_missing_warning") ?>
-              </div>
-              <?php endif; ?>
               <div>
                 <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="' . ($selector_functional ? 'updateSection(this.value)' : 'warnSectionNotFunctional(this)') . '"') ?>
               </div>
