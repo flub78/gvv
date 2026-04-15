@@ -27,9 +27,10 @@ Cela implique de:
 ## Reste à faire
 
 * [x]Supprimer la date du jour par défaut dans les écritures
-* [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce.
+* [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce. Discutable, c'est pratique quand on fait des ajustements comptables.
 * [] Timeout, il faudrait mieux déconnecter. La section active a été perdue. Merci de sélectionner à nouveau une section.
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
+* [] Le gel/dégel des écritures ne retourne pas exactement sur l'endroit ou était l'utilisateur, il faudrait faire mieux.
    
  
 * [] Accepter les paiements en centimes. ou pas ?
@@ -46,7 +47,7 @@ Cela implique de:
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
-* [] Supprimer l'ancienne vue du bilan
+* [x] Supprimer l'ancienne vue du bilan
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 

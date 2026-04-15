@@ -234,7 +234,7 @@ class Comptes extends Gvv_Controller {
 
         // Check for duplicate: only one 411 account per member per section
         $section_id = $this->session->userdata('section');
-        $compte_id = $this->input->post('id'); // For modification, exclude current account
+        $compte_id = $this->input->post('original_' . $this->kid); // For modification, exclude current account
 
         $this->db->where('codec', '411');
         $this->db->where('pilote', $pilote_value);
