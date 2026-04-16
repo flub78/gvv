@@ -311,7 +311,7 @@ class Gvv_Controller extends MY_Controller {
         }
 
         $date_gel = $this->clotures_model->freeze_date(true);
-        $this->form_validation->set_message('valid_activity_date', "Date antérieure au " . $date_gel);
+        $this->form_validation->set_message('valid_activity_date', "Date antérieure ou égale au " . $date_gel);
 
         if (preg_match('/(\d+)\/(\d+)\/(\d+)/', $date, $matches)) {
             $day = $matches[1];

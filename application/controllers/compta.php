@@ -252,7 +252,7 @@ class Compta extends Gvv_Controller {
                     $this->load->model('clotures_model');
                     $date_op = isset($this->data['date_op']) ? $this->data['date_op'] : '';
                     $date_gel = $this->clotures_model->freeze_date(true);
-                    $msg = "Suppression impossible : l'écriture du $date_op est antérieure à la date de gel ($date_gel).";
+                    $msg = "Suppression impossible : l'écriture du $date_op est antérieure ou égale à la date de gel ($date_gel).";
                 } elseif ($delete_reason === 'linked_to_online_payment') {
                     $msg = "Suppression impossible : l'écriture est liée à un paiement en ligne HelloAsso.";
                 } elseif ($delete_reason === 'entry_not_found') {

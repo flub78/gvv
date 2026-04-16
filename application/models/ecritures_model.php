@@ -685,9 +685,9 @@ class Ecritures_model extends Common_Model {
                     $month = $matches[2];
                     $year = $matches[3];
                     $freeze_time = mktime(0, 0, 0, $month, $day, $year);
-                    if ($time < $freeze_time) {
+                    if ($time <= $freeze_time) {
                         $error_reason = 'before_freeze_date';
-                        $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure au " . $date_gel);
+                        $this->session->set_flashdata('popup', "Suppression impossible, écriture antérieure ou égale au " . $date_gel);
                         return false;
                     }
                 } else {
@@ -1194,7 +1194,7 @@ array (size=2)
         $db_res = $this->db
             ->select("achat, gel, date_op")
             ->from("ecritures")
-            ->where("(gel != 0  or date_op<\"$date_gel\" )")
+            ->where("(gel != 0  or date_op<=\"$date_gel\" )")
             ->where("achat = \"$achat\"")
             ->get();
         $res = $this->get_to_array($db_res);
@@ -1217,7 +1217,7 @@ array (size=2)
         $db_res = $this->db
             ->select("achat, gel, $field, date_op")
             ->from("ecritures, achats")
-            ->where("(gel != 0 or date_op<\"$date_gel\" )")
+            ->where("(gel != 0 or date_op<=\"$date_gel\" )")
             ->where("achats.id = ecritures.achat")
             ->where("$field = \"$vol\"")
             ->get();

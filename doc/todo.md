@@ -7,7 +7,10 @@
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-
+* [] Simplifier le workflow des briefings passagers
+* [] Si il n'y a pas de sections avec des ventes de vol de découverte, la page doit être informative
+* [] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
+* [] Toujours des plaintes sur les pages de retour.
 
 ## Priorités
 
