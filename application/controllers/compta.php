@@ -2082,13 +2082,15 @@ class Compta extends Gvv_Controller {
             $sEcho = isset($_GET['sEcho']) ? intval($_GET['sEcho']) : 1;
             $iDisplayStart = isset($_GET['iDisplayStart']) ? intval($_GET['iDisplayStart']) : 0;
             $iDisplayLength = isset($_GET['iDisplayLength']) ? intval($_GET['iDisplayLength']) : 100;
-            
+
             // Handle search parameter - clean it properly
             $sSearch = isset($_GET['sSearch']) ? trim($_GET['sSearch']) : '';
-            
-            // Debug search specifically
-            if (!empty($sSearch)) {
-                log_message('debug', "DataTables: Search request with term: '$sSearch'");
+
+            // When all=1, return all records for client-side processing (search/filter done by DataTables in browser)
+            if (isset($_GET['all']) && $_GET['all'] == '1') {
+                $iDisplayStart  = 0;
+                $iDisplayLength = 0;  // 0 = no LIMIT in get_datatable_data
+                $sSearch        = '';
             }
 
             // Build SQL query with filters

@@ -434,8 +434,8 @@ echo '</div>';
         
         $('#journal-table').dataTable({
             "bProcessing": true,
-            "bServerSide": true,
-            "sAjaxSource": "<?= $ajax_url ?>",
+            "bServerSide": false,   // Client-side : DataTables filtre sur les cellules affichées (Débit, Crédit, Solde inclus)
+            "sAjaxSource": "<?= $ajax_url ?>?all=1",
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
@@ -447,40 +447,19 @@ echo '</div>';
             "sPaginationType": "full_numbers",
             "aoColumns": [
                 <?php if ($has_modification_rights && $section): ?>
-                { "bSortable": false },                // Actions
+                { "bSortable": false, "bSearchable": false },  // Actions (HTML boutons, non pertinent pour la recherche)
                 <?php endif; ?>
-                { "sType": "date-fr", "bSortable": false },  // Date - tri désactivé car les soldes doivent rester chronologiques
-                { "bSortable": false },                // Autre compte
-                { "bSortable": false },                // Description
-                { "bSortable": false },                // N° chèque
-                { "bSortable": false },                // Prix
-                { "bSortable": false },                // Quantité
-                { "bSortable": false },                // Débit
-                { "bSortable": false },                // Crédit
-                { "bSortable": false },                // Solde
-                { "bSortable": false }                 // Gel
+                { "sType": "date-fr", "bSortable": false },    // Date
+                { "bSortable": false },                         // Autre compte
+                { "bSortable": false },                         // Description
+                { "bSortable": false },                         // N° chèque
+                { "bSortable": false },                         // Prix
+                { "bSortable": false },                         // Quantité
+                { "bSortable": false },                         // Débit
+                { "bSortable": false },                         // Crédit
+                { "bSortable": false },                         // Solde
+                { "bSortable": false, "bSearchable": false }    // Gel (checkbox HTML, non pertinent pour la recherche)
             ],
-            "fnServerData": function(sSource, aoData, fnCallback) {
-                console.log('DataTables requesting data from:', sSource);
-                console.log('Request parameters:', aoData);
-                
-                $.ajax({
-                    "dataType": 'json',
-                    "type": "GET",
-                    "url": sSource,
-                    "data": aoData,
-                    "success": function(json) {
-                        console.log('DataTables received response:', json);
-                        console.log('Number of columns in first row:', json.aaData && json.aaData.length > 0 ? json.aaData[0].length : 'no data');
-                        fnCallback(json);
-                    },
-                    "error": function(xhr, error, thrown) {
-                        console.error('DataTables AJAX error:', error, thrown);
-                        console.error('Response text:', xhr.responseText);
-                        console.error('Status:', xhr.status);
-                    }
-                });
-            },
             "oLanguage": olanguage,
             "aLengthMenu": [
                 [10, 25, 50, 100, 500, 1000, -1],
