@@ -31,6 +31,10 @@ function new_balance_date() {
 	if (controllers.length < 1) {
 		alert('controller_url not found');
 	} else {
+		if (!/^\d{2}\/\d{2}\/\d{4}$/.test(balance_date)) {
+			alert('Format de date invalide. Utilisez JJ/MM/AAAA.');
+			return;
+		}
 		var url = controllers[0].value + "/new_balance_date/" + balance_date;
 		window.location.href = url;
 	}

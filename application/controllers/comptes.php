@@ -1698,7 +1698,14 @@ class Comptes extends Gvv_Controller {
     /*
      * Recalcul la balance pour la nouvelle date
      */
-    function new_balance_date($jour, $mois, $annee) {
+    function new_balance_date($jour = null, $mois = null, $annee = null) {
+        if ($jour === null || $mois === null || $annee === null ||
+            !is_numeric($jour) || !is_numeric($mois) || !is_numeric($annee) ||
+            (int)$jour < 1 || (int)$jour > 31 || (int)$mois < 1 || (int)$mois > 12) {
+            $this->pop_return_url();
+            return;
+        }
+
         $date = "$jour/$mois/$annee";
         gvv_debug("Balance date = $date");
 
