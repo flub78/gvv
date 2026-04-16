@@ -100,6 +100,14 @@ class Compta extends Gvv_Controller {
             return;
         }
 
+        // On initial GET, save the origin page to return to after modification
+        if (!$this->input->post()) {
+            $referer = $this->input->server('HTTP_REFERER');
+            if ($referer && strpos($referer, base_url()) === 0) {
+                $this->session->set_userdata('ecriture_return_url', $referer);
+            }
+        }
+
         $this->push_return_url("edit ecriture");
 
         // Store whether the line is frozen to pass to view
@@ -486,17 +494,20 @@ class Compta extends Gvv_Controller {
                 // Modification
                 $this->change_ecriture($processed_data);
 
-                // Redirect to journal of compte1 after successful modification
-                $compte = isset($processed_data['compte1']) ? $processed_data['compte1'] : '';
-                if ($compte) {
-                    $message = isset($processed_data['gel']) && $processed_data['gel'] == 1
-                        ? 'Écriture modifiée et gelée avec succès.'
-                        : 'Écriture modifiée avec succès.';
-                    $this->session->set_flashdata('message', $message);
-                    redirect("compta/journal_compte/" . $compte);
+                $message = isset($processed_data['gel']) && $processed_data['gel'] == 1
+                    ? 'Écriture modifiée et gelée avec succès.'
+                    : 'Écriture modifiée avec succès.';
+                $this->session->set_flashdata('message', $message);
+
+                // Return to the page the user came from (journal_compte origin)
+                $return_url = $this->session->userdata('ecriture_return_url');
+                if ($return_url) {
+                    $this->session->unset_userdata('ecriture_return_url');
+                    redirect($return_url);
                 } else {
-                    // Fallback if no compte1 found
-                    $this->pop_return_url(1);
+                    // Fallback: journal of compte1
+                    $compte = isset($processed_data['compte1']) ? $processed_data['compte1'] : '';
+                    redirect($compte ? "compta/journal_compte/" . $compte : "compta/page");
                 }
             }
         }
