@@ -1225,6 +1225,6 @@ class StatementOperation {
         $str .= $this->interbank_label() . "_";
         $str .= implode(" ", $this->comments()) . "_";
         $str = preg_replace('/[^a-zA-Z0-9]+/', '_', $str);
-        return $str;
+        return substr($str, 0, 512);
     }
 }

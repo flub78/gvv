@@ -154,3 +154,10 @@
 * [x] Améliorer les vues saisies des vols (avion, planeur)
 
 * [x] Paiements en ligne                                       10j (PRD OK)
+
+* [x] Rapprochement, lors des rapprochements, au lieu de considérer rapprochés les écritures qui ont une entrée de rapprochement, il faudrait aussi vérifier qu'elle pointe sur une écriture existante. Et sinon supprimer l'écriture de rapprochement.
+* [x] Si il n'y a pas de sections avec des ventes de vol de découverte, la page doit être informative
+* [x]Supprimer la date du jour par défaut dans les écritures
+* [x] Les trésoriers doivent avoir accès à l'option toutes.
+* [x] Supprimer l'ancienne vue du bilan
+

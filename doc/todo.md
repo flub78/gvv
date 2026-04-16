@@ -3,14 +3,14 @@
 
 ## Bugs
 
-* [] Rapprochement, lors des rapprochements, au lieu de considérer rapprochés les entrées qui ont une entrée de rapprochement, il faudrait aussi vérifier qu'elle pointe sur une écriture existante. Et sinon supprimer l'écriture de rapprochement.
+
 
 * [] **la page de retour après une modification des écritures est discutable**
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [] Simplifier le workflow des briefings passagers
-* [] Si il n'y a pas de sections avec des ventes de vol de découverte, la page doit être informative
 * [] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
 * [] Toujours des plaintes sur les pages de retour.
+* [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 
 ## Priorités
 
@@ -29,7 +29,6 @@ Cela implique de:
 
 ## Reste à faire
 
-* [x]Supprimer la date du jour par défaut dans les écritures
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce. Discutable, c'est pratique quand on fait des ajustements comptables.
 * [] Timeout, il faudrait mieux déconnecter. La section active a été perdue. Merci de sélectionner à nouveau une section.
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
@@ -38,7 +37,6 @@ Cela implique de:
  
 * [] Accepter les paiements en centimes. ou pas ?
 * [] On perd l'occasion sur les vols de découverte
-* [x] Les trésoriers doivent avoir accès à l'option toutes.
 
 * [] Facture automatique de hangar
 * [] Briefing passager, simplifier le workflow avec le QRCode ???
@@ -50,7 +48,6 @@ Cela implique de:
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
-* [x] Supprimer l'ancienne vue du bilan
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 

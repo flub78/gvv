@@ -386,7 +386,7 @@ class Rapprochements extends CI_Controller {
                     }
 
                     // Check string length for security
-                    if (strlen($string_releve) > 500) {
+                    if (strlen($string_releve) > 512) {
                         gvv_error("String releve too long for line $line: " . strlen($string_releve) . " characters");
                         continue; // Skip this operation
                     }
@@ -827,7 +827,7 @@ class Rapprochements extends CI_Controller {
             // Enhanced input validation
             if (empty($string_releve) || empty($ecriture_id)) {
                 $response['message'] = 'Paramètres manquants';
-            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 512) {
                 $response['message'] = 'Paramètre string_releve invalide';
             } elseif (!is_numeric($ecriture_id) || $ecriture_id <= 0) {
                 $response['message'] = 'Paramètre ecriture_id invalide';
@@ -880,7 +880,7 @@ class Rapprochements extends CI_Controller {
             // Enhanced input validation
             if (empty($string_releve)) {
                 $response['message'] = 'Paramètre manquant';
-            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 512) {
                 $response['message'] = 'Paramètre string_releve invalide';
             } else {
                 // Supprimer l'association
@@ -930,7 +930,7 @@ class Rapprochements extends CI_Controller {
             // Enhanced input validation
             if (empty($string_releve) || empty($ecriture_ids)) {
                 $response['message'] = 'Paramètres manquants';
-            } elseif (!is_string($string_releve) || strlen($string_releve) > 500) {
+            } elseif (!is_string($string_releve) || strlen($string_releve) > 512) {
                 $response['message'] = 'Paramètre string_releve invalide';
             } else {
                 // Décoder les IDs des écritures

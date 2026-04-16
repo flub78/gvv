@@ -145,41 +145,50 @@ class Associations_ecriture_model extends Common_Model {
         }
         
         // Additional security: limit string length to prevent potential issues
-        if (strlen($string_releve) > 500) {
+        if (strlen($string_releve) > 512) {
             gvv_error("String releve too long: " . strlen($string_releve) . " characters");
             return [];
         }
-        
+
         // CodeIgniter's where() method properly escapes parameters
         $this->db->where('string_releve', $string_releve);
         $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
         $db_res = $this->db->get($this->table);
         $result = $this->get_to_array($db_res);
+
+        // Fallback pour les anciennes entrées tronquées à 256 caractères (avant migration 103)
+        if (empty($result) && strlen($string_releve) > 256) {
+            $truncated = substr($string_releve, 0, 256);
+            $this->db->where('string_releve', $truncated);
+            $this->db->group_by(['string_releve', 'id_ecriture_gvv']);
+            $db_res = $this->db->get($this->table);
+            $result = $this->get_to_array($db_res);
+        }
+
         // Return all elements for multiple reconciliations
         $rapprochements = $result;
 
         // maybe that I will need to fetch additional information from the ecriture
         // like the amount or the date
-        foreach ($rapprochements as &$rapprochement) {
+        $valid_rapprochements = [];
+        foreach ($rapprochements as $rapprochement) {
             try {
                 $ecriture = $this->ecritures_model->get_by_id('id', $rapprochement['id_ecriture_gvv']);
 
-                // Check if the ecriture actually exists
                 if (empty($ecriture)) {
-                    // Mark as orphaned - ecriture no longer exists
-                    $rapprochement['ecriture_exists'] = false;
-                    $rapprochement['ecriture'] = null;
-                    gvv_info("Orphaned association found: string_releve={$string_releve}, id_ecriture_gvv={$rapprochement['id_ecriture_gvv']}");
+                    // Écriture supprimée : supprimer l'association orpheline
+                    gvv_info("Deleting orphaned association id={$rapprochement['id']}: string_releve={$string_releve}, id_ecriture_gvv={$rapprochement['id_ecriture_gvv']}");
+                    $this->delete(['id' => $rapprochement['id']]);
                 } else {
                     $rapprochement['ecriture_exists'] = true;
                     $rapprochement['ecriture'] = $ecriture;
+                    $valid_rapprochements[] = $rapprochement;
                 }
             } catch (Exception $ex) {
                 gvv_error('Exception in get_by_string_releve: ' . $ex->getMessage());
-                $rapprochement['ecriture_exists'] = false;
-                $rapprochement['ecriture'] = null;
             }
         }
+        $rapprochements = $valid_rapprochements;
         // gvv_dump($rapprochements);
         return $rapprochements;
     }
@@ -202,7 +211,7 @@ class Associations_ecriture_model extends Common_Model {
         }
         
         // Additional security: limit string length to prevent potential issues
-        if (strlen($string_releve) > 500) {
+        if (strlen($string_releve) > 512) {
             gvv_error("String releve too long for delete: " . strlen($string_releve) . " characters");
             return false;
         }
