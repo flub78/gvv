@@ -672,6 +672,7 @@ class Rapprochements extends CI_Controller {
         }
 
         $status = "";
+        $errors = [];
         foreach ($posts as $key => $value) {
             // echo "$key => $value<br>";
             if (strpos($key, 'cbdel_') === 0) {
@@ -680,20 +681,39 @@ class Rapprochements extends CI_Controller {
 
                 // supprimer les rapprochements
                 $rapproched = $this->associations_ecriture_model->get_rapproches($id);
-                foreach ($rapproched   as $r) {
+                foreach ($rapproched as $r) {
                     $status .= "rapprochement " . $r['id'] . " supprimé<br>";
                 }
                 $this->associations_ecriture_model->delete_rapprochements($id);
                 if (!$rappro) {
                     // les rapprochements et l'écriture
                     $image = $this->ecritures_model->image($id);
-                    $this->ecritures_model->delete_ecriture($id);
-                    $status .= "$image supprimée<br>";
+                    $error_reason = null;
+                    $result = $this->ecritures_model->delete_ecriture($id, $error_reason);
+                    if ($result) {
+                        $status .= "$image supprimée<br>";
+                    } else {
+                        $reasons = [
+                            'entry_frozen'              => "écriture gelée",
+                            'before_freeze_date'        => "écriture antérieure ou égale à la date de clôture",
+                            'linked_to_online_payment'  => "écriture liée à un paiement en ligne",
+                            'entry_not_found'           => "écriture introuvable",
+                            'database_delete_error'     => "erreur base de données",
+                            'no_row_deleted'            => "aucune écriture supprimée",
+                            'invalid_freeze_date_format'    => "format de date de clôture invalide",
+                            'invalid_operation_date_format' => "format de date d'opération invalide",
+                        ];
+                        $reason = isset($reasons[$error_reason]) ? $reasons[$error_reason] : "raison inconnue";
+                        $errors[] = "Suppression impossible ($reason) : $image";
+                    }
                 }
             }
         }
 
         $this->session->set_userdata('status', $status);
+        if (!empty($errors)) {
+            $this->session->set_userdata('errors', $errors);
+        }
         redirect('rapprochements/import_releve_from_file');
     }
 
@@ -733,9 +753,17 @@ class Rapprochements extends CI_Controller {
             $elt[] = euro($line['montant']);
             $elt[] = $line['description'];
             $elt[] = $line['num_cheque'];
-
             $elt[] = anchor_compte($line['compte1']);
             $elt[] = anchor_compte($line['compte2']);
+
+            $gel = isset($line['gel']) ? (int)$line['gel'] : 0;
+            if ($gel) {
+                $elt[] = '<span class="gel-ecriture-badge" data-ecriture-id="' . $line['id'] . '" data-gel="1"'
+                    . ' title="Cliquez pour dégeler" style="cursor:pointer">🔒</span>';
+            } else {
+                $elt[] = '<span class="gel-ecriture-badge" data-ecriture-id="' . $line['id'] . '" data-gel="0"'
+                    . ' title="Cliquez pour geler" style="cursor:pointer">🔓</span>';
+            }
             $res[] = $elt;
         }
         return $res;
@@ -1035,6 +1063,37 @@ class Rapprochements extends CI_Controller {
             $error_msg = 'Erreur lors de la suppression de rapprochement d\'écriture: ' . $e->getMessage();
             gvv_error($error_msg);
             $response['message'] = 'Erreur: ' . $e->getMessage();
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
+    }
+
+    /**
+     * Gèle ou dégèle une écriture (AJAX)
+     *
+     * @return void JSON response
+     */
+    public function set_gel_ecriture() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+
+        $response = array('success' => false, 'message' => '');
+
+        $ecriture_id = $this->input->post('ecriture_id');
+        $new_gel     = $this->input->post('gel');
+
+        if (empty($ecriture_id) || !is_numeric($ecriture_id) || $ecriture_id <= 0) {
+            $response['message'] = 'ID écriture invalide';
+        } elseif (!in_array((string)$new_gel, ['0', '1'])) {
+            $response['message'] = 'Valeur gel invalide';
+        } else {
+            $this->ecritures_model->switch_line((int)$ecriture_id, (int)$new_gel);
+            $response['success'] = true;
+            $response['message'] = $new_gel ? 'Écriture gelée' : 'Écriture dégelée';
         }
 
         $this->output

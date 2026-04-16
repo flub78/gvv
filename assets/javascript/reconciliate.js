@@ -358,6 +358,47 @@ function initReconciliation() {
             });
         }
 
+        // Gestion du gel/dégel via badge (onglet GVV)
+        const gelBadge = e.target.closest('.gel-ecriture-badge');
+        if (gelBadge) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const badge = gelBadge;
+            const ecritureId = badge.getAttribute('data-ecriture-id');
+            const currentGel = parseInt(badge.getAttribute('data-gel') || '0');
+            const newGel = currentGel ? 0 : 1;
+            const originalIcon = currentGel ? '🔒' : '🔓';
+
+            badge.textContent = '...';
+            badge.style.pointerEvents = 'none';
+
+            fetch(window.APP_BASE_URL + 'rapprochements/set_gel_ecriture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'ecriture_id=' + encodeURIComponent(ecritureId) + '&gel=' + newGel
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        redirectWithScrollPosition(getReturnUrl());
+                    } else {
+                        badge.textContent = originalIcon;
+                        badge.style.pointerEvents = 'auto';
+                        alert('Erreur : ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    badge.textContent = originalIcon;
+                    badge.style.pointerEvents = 'auto';
+                    alert('Erreur de communication avec le serveur');
+                });
+        }
+
         // Gestion du rapprochement manuel
         if (e.target.classList.contains('manual-reconcile-btn')) {
             e.preventDefault();

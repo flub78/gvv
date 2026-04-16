@@ -281,8 +281,8 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
         echo '<div class="mt-3">';
         echo table_from_array($gvv_lines, array(
-            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
-            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte', 'Gel'),
+            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left', 'center'),
             'class' => 'datatable table'
         ));
         echo '</div>';
@@ -341,8 +341,8 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
         echo '<div class="mt-3">';
         echo table_from_array($gvv_lines, array(
-            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte'),
-            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+            'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte', 'Compte', 'Gel'),
+            'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left', 'center'),
             'class' => 'datatable table'
         ));
         echo '</div>';

@@ -45,7 +45,19 @@ if ($banner_color === '') {
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
-            "bStateSave": true,  // Sauvegarde l'état (pagination, recherche) dans localStorage
+            "bStateSave": true,
+            "fnStateSaveCallback": function(oSettings, sValue) {
+                try {
+                    localStorage.setItem('DT_' + oSettings.sInstance, sValue);
+                } catch(e) {}
+            },
+            "fnStateLoadCallback": function(oSettings) {
+                try {
+                    return localStorage.getItem('DT_' + oSettings.sInstance);
+                } catch(e) {
+                    return null;
+                }
+            },
             "bSort": true,
             "bInfo": true,
             "bJQueryUI": true,
