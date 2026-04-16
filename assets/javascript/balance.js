@@ -35,10 +35,42 @@ function new_balance_date() {
 			alert('Format de date invalide. Utilisez JJ/MM/AAAA.');
 			return;
 		}
+		saveAccordionState();
 		var url = controllers[0].value + "/new_balance_date/" + balance_date;
 		window.location.href = url;
 	}
 }
+
+function saveAccordionState() {
+	var collapses = document.querySelectorAll('#balanceAccordion .accordion-collapse');
+	if (collapses.length === 0) return;
+	var states = {};
+	collapses.forEach(function(el) {
+		states[el.id] = el.classList.contains('show');
+	});
+	sessionStorage.setItem('balance_accordion_state', JSON.stringify(states));
+}
+
+function restoreAccordionState() {
+	var saved = sessionStorage.getItem('balance_accordion_state');
+	if (!saved) return;
+	sessionStorage.removeItem('balance_accordion_state');
+	var states = JSON.parse(saved);
+	var collapses = document.querySelectorAll('#balanceAccordion .accordion-collapse');
+	collapses.forEach(function(el) {
+		if (!(el.id in states)) return;
+		var button = document.querySelector('[data-bs-target="#' + el.id + '"]');
+		if (states[el.id]) {
+			el.classList.add('show');
+			if (button) { button.classList.remove('collapsed'); button.setAttribute('aria-expanded', 'true'); }
+		} else {
+			el.classList.remove('show');
+			if (button) { button.classList.add('collapsed'); button.setAttribute('aria-expanded', 'false'); }
+		}
+	});
+}
+
+restoreAccordionState();
 
 /**
  * Bascule generale/détaillée
