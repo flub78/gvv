@@ -728,7 +728,8 @@ class Rapprochements extends CI_Controller {
             $elt[] = $element;
 
 
-            $elt[] = date_db2ht($line['date_op']);
+            $sort_date = str_replace('-', '', substr($line['date_op'], 0, 10));
+            $elt[] = '<span class="d-none">' . $sort_date . '</span>' . date_db2ht($line['date_op']);
             $elt[] = euro($line['montant']);
             $elt[] = $line['description'];
             $elt[] = $line['num_cheque'];
