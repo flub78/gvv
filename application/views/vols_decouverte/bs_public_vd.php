@@ -35,30 +35,19 @@ if (!empty($errors) && is_array($errors)) {
   }
 }
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= htmlspecialchars($title) ?></title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/408316024a.js" crossorigin="anonymous"></script>
-  <style>
-    body { background: #f8f9fa; }
-    .vd-hero {
-      background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-      color: #fff;
-      padding: 2rem 1.5rem;
-      border-radius: .5rem;
-      margin-bottom: 1.5rem;
-    }
-    .vd-hero h1 { font-size: 1.75rem; margin-bottom: .5rem; }
-    .section-card { cursor: pointer; transition: box-shadow .15s; }
-    .section-card:hover { box-shadow: 0 0 0 3px #0d6efd44; }
-    .section-card.active { border-color: #0d6efd; box-shadow: 0 0 0 3px #0d6efd88; }
-  </style>
-</head>
-<body>
+<style>
+  .vd-hero {
+    background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    color: #fff;
+    padding: 2rem 1.5rem;
+    border-radius: .5rem;
+    margin-bottom: 1.5rem;
+  }
+  .vd-hero h1 { font-size: 1.75rem; margin-bottom: .5rem; }
+  .section-card { cursor: pointer; transition: box-shadow .15s; }
+  .section-card:hover { box-shadow: 0 0 0 3px #0d6efd44; }
+  .section-card.active { border-color: #0d6efd; box-shadow: 0 0 0 3px #0d6efd88; }
+</style>
 <div class="container py-4" style="max-width: 720px;">
 
   <!-- En-tête -->
@@ -82,7 +71,9 @@ if (!empty($errors) && is_array($errors)) {
   <?php endif; ?>
 
   <!-- Sélecteur de section (masqué si section forcée depuis l'URL) -->
-  <?php if (empty($section_row) || count($sections_disponibles) > 1): ?>
+  <?php if (empty($sections_disponibles)): ?>
+  <div class="alert alert-info"><?= $this->lang->line('gvv_vd_public_no_section_available') ?></div>
+  <?php elseif (empty($section_row) || count($sections_disponibles) > 1): ?>
   <div class="mb-4">
     <h5><?= $this->lang->line('gvv_vd_public_choose_section') ?></h5>
     <div class="row g-2">
@@ -306,9 +297,23 @@ if (!empty($errors) && is_array($errors)) {
 
   <?php endif; // section sélectionnée ?>
 
+  <?php if (!empty($contact_email) || !empty($contact_signature)): ?>
+  <hr class="mt-4">
+  <p class="text-muted small text-center">
+    <?= $this->lang->line('gvv_vd_public_contact_us') ?>
+    <?php if (!empty($contact_email)): ?>
+      <a href="mailto:<?= htmlspecialchars($contact_email, ENT_QUOTES, 'UTF-8') ?>">
+        <?= htmlspecialchars($contact_email, ENT_QUOTES, 'UTF-8') ?>
+      </a>
+    <?php endif; ?>
+    <?php if (!empty($contact_signature)): ?>
+      — <?= htmlspecialchars($contact_signature, ENT_QUOTES, 'UTF-8') ?>
+    <?php endif; ?>
+  </p>
+  <?php endif; ?>
+
 </div><!-- /container -->
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function updateNbPersonnes(select) {
     var opt    = select.options[select.selectedIndex];
@@ -329,5 +334,3 @@ function updateNbPersonnes(select) {
     }
 }
 </script>
-</body>
-</html>

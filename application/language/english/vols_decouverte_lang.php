@@ -116,3 +116,5 @@ $lang['gvv_vd_quota_complet_badge']       = "Full";
 $lang['gvv_vd_quota_complet_reset']       = "Available in %d d";
 $lang['gvv_vd_quota_erreur_post']         = "This section is no longer accepting new bookings at this time.";
 $lang['gvv_vd_date_vol_future']           = "Enter the date the flight was performed. This is not a planning date";
+$lang['gvv_vd_public_contact_us']        = "For any questions, contact us:";
+$lang['gvv_vd_public_no_section_available'] = "The online discovery flight booking service is not available at the moment.";

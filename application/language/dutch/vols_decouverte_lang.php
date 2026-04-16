@@ -116,3 +116,5 @@ $lang['gvv_vd_quota_complet_badge']       = "Vol";
 $lang['gvv_vd_quota_complet_reset']       = "Beschikbaar over %d d";
 $lang['gvv_vd_quota_erreur_post']         = "Deze sectie accepteert momenteel geen nieuwe reserveringen.";
 $lang['gvv_vd_date_vol_future']           = "Voer de datum in waarop de vlucht is uitgevoerd. Dit is geen planningsdatum";
+$lang['gvv_vd_public_contact_us']        = "Voor vragen, neem contact met ons op:";
+$lang['gvv_vd_public_no_section_available'] = "De online boekingsservice voor ontdekkingsvluchten is momenteel niet beschikbaar.";

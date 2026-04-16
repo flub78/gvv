@@ -116,3 +116,5 @@ $lang['gvv_vd_quota_complet_badge']       = "Complet";
 $lang['gvv_vd_quota_complet_reset']       = "Disponible dans %d j";
 $lang['gvv_vd_quota_erreur_post']         = "Cette section n'accepte plus de nouvelles réservations pour le moment.";
 $lang['gvv_vd_date_vol_future']           = "Entrez la date où le vol a été effectué. Ce n'est pas une date de planification";
+$lang['gvv_vd_public_contact_us']        = "Pour toute question, contactez-nous :";
+$lang['gvv_vd_public_no_section_available'] = "Le service d'achat de vols de découverte en ligne n'est pas disponible en ce moment.";

@@ -1460,6 +1460,9 @@ EOD;
             }
         }
 
+        $contact_email     = (string) ($this->configuration_model->get_param('vd.email.sender_email') ?: '');
+        $contact_signature = (string) ($this->configuration_model->get_param('vd.email.sender_signature') ?: '');
+
         $data = array(
             'section_id'           => $section_id,
             'section_row'          => $section_row,
@@ -1472,8 +1475,13 @@ EOD;
             'errors'               => $errors,
             'form_data'            => $form_data,
             'title'                => $this->lang->line('gvv_vd_public_title'),
+            'contact_email'        => $contact_email,
+            'contact_signature'    => $contact_signature,
         );
 
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_banner');
         $this->load->view('vols_decouverte/bs_public_vd', $data);
+        $this->load->view('bs_footer');
     }
 }
