@@ -207,10 +207,8 @@ if ( ! function_exists('anchor_ecriture')) {
 if ( ! function_exists('anchor_ecriture_edit')) {
 	function anchor_ecriture_edit($ecriture, $attributes = '')
 	{
-		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
 		$url = controller_url("compta/edit/" . $ecriture);
-		$img_url = base_url('themes/binary-news/images/pencil.png');
-		$img = '<img class="icon" src="'.$img_url.'" title="Changer" alt="">';
+		$img = '<i class="fas fa-pencil-alt" title="Changer"></i>';
 		return anchor($url, $img, $attributes);
 	}
 }
@@ -233,8 +231,7 @@ if ( ! function_exists('anchor_ecriture_delete')) {
 		}
 		// Construire l'URL complète en une seule fois pour éviter les problèmes de concaténation
 		$url = controller_url("compta/delete/" . $ecriture);
-		$img_url = base_url('themes/binary-news/images/delete.png');
-		$img = '<img class="icon" src="'.$img_url.'" title="Supprimer" alt="">';
+		$img = '<i class="fas fa-trash-alt" title="Supprimer"></i>';
 		$onclick = "return confirm('".htmlspecialchars($confirm, ENT_QUOTES, 'UTF-8')."')";
 		$attributes = trim($attributes . ' onclick="'.$onclick.'"');
 		return anchor($url, $img, $attributes);

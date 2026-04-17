@@ -214,8 +214,8 @@ echo '</div>';
             }
 
             echo table_from_array($selected_display_lines, array(
-                'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
-                'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+                'fields' => array('', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2', 'Gel'),
+                'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left', 'center'),
                 'class' => 'datatable_500 table table-selected'
             ));
             echo '</div>';
@@ -288,8 +288,8 @@ echo '</div>';
                 }
 
                 echo table_from_array($modified_gvv_lines, array(
-                    'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2'),
-                    'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left'),
+                    'fields' => array('Id', 'Date', 'Montant', 'Description', 'Référence', 'Compte1', 'Compte2', 'Gel'),
+                    'align' => array('', 'right', 'right', 'left', 'left', 'left', 'left', 'center'),
                     'class' => 'datatable_500 table table-available'
                 ));
                 ?>
