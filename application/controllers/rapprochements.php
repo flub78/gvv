@@ -803,6 +803,13 @@ class Rapprochements extends CI_Controller {
         // Get filtered GVV lines (respects current filters)
         $filtered_lines = $this->get_filtered_gvv_lines($startDate, $endDate, $gvv_bank);
 
+        // Replace account IDs with account names for export
+        foreach ($filtered_lines as &$line) {
+            $line['compte1'] = isset($line['compte1_nom']) ? $line['compte1_nom'] : $line['compte1'];
+            $line['compte2'] = isset($line['compte2_nom']) ? $line['compte2_nom'] : $line['compte2'];
+        }
+        unset($line);
+
         // Fields to export (matching display columns, excluding checkboxes/actions)
         $fields = array('id', 'date_op', 'montant', 'description', 'num_cheque', 'compte1', 'compte2');
         $title = $this->lang->line('gvv_rapprochements_title') . ' - ' . $this->lang->line('gvv_rapprochements_ecritures_gvv');
