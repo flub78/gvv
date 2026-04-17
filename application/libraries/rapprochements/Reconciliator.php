@@ -527,7 +527,7 @@ class Reconciliator {
             // Compare with a tolerance of 1 cent
             $diff = abs(round(((float)$bank_solde) - ((float)$gvv_solde), 2));
             if ($diff > 0.00) {
-                $combined = '<span class="text-danger">' . $combined . '</span>';
+                $combined = '<span class="text-danger">' . $combined . ' (écart: ' . euro($diff) . ')</span>';
             }
         }
 

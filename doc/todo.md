@@ -11,7 +11,9 @@
 * [] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
 * [] Toujours des plaintes sur les pages de retour.
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
-
+* [] QUand on supprime une opération depuis un listing de compte on se retrouve sur un formulaire de création d'écriture
+* [] Fusion de comptes. Nettoyage 451 467.
+  
 ## Priorités
 
 ### Priorité 1
