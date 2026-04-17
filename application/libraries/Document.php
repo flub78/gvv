@@ -901,6 +901,6 @@ class Document {
     }
 
     function generate() {
-        $this->pdf->Output();
+        $this->pdf->Output('I', pdf_filename($this->pdf->title ?? ''));
     }
 }

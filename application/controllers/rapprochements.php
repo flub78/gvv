@@ -828,7 +828,7 @@ class Rapprochements extends CI_Controller {
             'width' => $width,
         ));
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**

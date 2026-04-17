@@ -192,7 +192,7 @@ class Planeur extends Gvv_Controller {
             'fields' => $fields,
             'width' => $width,
         ));
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**

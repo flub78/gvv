@@ -143,7 +143,8 @@ class Tickets extends Gvv_Controller {
             $pdf = new Pdf();
 
             $pdf->AddPage('P');
-            $pdf->title("Soldes tickets par pilote", 1);
+            $title = "Soldes tickets par pilote";
+            $pdf->title($title, 1);
 
             $attrs = array (
                     'fields' => array (
@@ -159,7 +160,7 @@ class Tickets extends Gvv_Controller {
                     'mode' => "pdf"
             );
             $this->gvvmetadata->pdf("vue_solde_tickets", $pdf, $attrs);
-            $pdf->Output();
+            $pdf->Output('I', pdf_filename($title));
             return;
         }
 
@@ -343,7 +344,8 @@ class Tickets extends Gvv_Controller {
             $pdf = new Pdf();
 
             $pdf->AddPage('P');
-            $pdf->title("Gestion des tickets", 1);
+            $title = "Gestion des tickets";
+            $pdf->title($title, 1);
 
             $attrs = array (
                     'fields' => array (
@@ -365,7 +367,7 @@ class Tickets extends Gvv_Controller {
                     'mode' => "pdf"
             );
             $this->gvvmetadata->pdf("vue_tickets", $pdf, $attrs);
-            $pdf->Output();
+            $pdf->Output('I', pdf_filename($title));
         }
     }
 

@@ -431,7 +431,7 @@ class Event extends Gvv_Controller {
         }
 
         $pdf->table($w, 8, $align, $table);
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
 }

@@ -803,7 +803,7 @@ class Vols_planeur extends Gvv_Controller {
         );
         $pdf->table($w, 8, $align, $tab);
         gvv_debug("generating pdf ... ");
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($titre));
     }
 
     /**
@@ -1394,7 +1394,7 @@ class Vols_planeur extends Gvv_Controller {
         $y = $pdf->GetY();
         $pdf->Image(image_dir() . "planeur_machine_$year.png", $x + 10, $y, 170);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title1));
     }
 
     /**
@@ -1419,7 +1419,7 @@ class Vols_planeur extends Gvv_Controller {
 
         pdf_per_month_page($pdf, $year, $data, $title, "planeur");
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**
@@ -1959,7 +1959,7 @@ class Vols_planeur extends Gvv_Controller {
             $pdf->title($titles [$what], 1);
 
             $pdf->table($wdth, 8, $algn, $data [$what]);
-            $pdf->Output();
+            $pdf->Output('I', pdf_filename($titles[$what]));
         }
     }
 

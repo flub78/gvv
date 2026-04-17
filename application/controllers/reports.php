@@ -178,7 +178,7 @@ class Reports extends Gvv_Controller {
         $pdf->title($title);
         $pdf->table($width, 8, $align_pdf, $table);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**

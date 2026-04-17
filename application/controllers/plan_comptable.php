@@ -249,7 +249,7 @@ class Plan_Comptable extends Gvv_Controller {
             'width' => array(30, 160),
             'fields' => array('pcode', 'pdesc')
         ));
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
 }

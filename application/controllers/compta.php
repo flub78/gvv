@@ -1803,7 +1803,7 @@ class Compta extends Gvv_Controller {
                 'mode' => "pdf"
             );
             $this->gvvmetadata->pdf("vue_journal", $pdf, $attrs);
-            $pdf->Output();
+            $pdf->Output('I', pdf_filename($title));
         }
     }
 

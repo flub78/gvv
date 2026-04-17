@@ -419,8 +419,9 @@ class Rapports extends Gvv_Controller {
                 $this->load->library('Pdf');
                 $pdf = new Pdf();
                 $pdf->AddPage();
-                $pdf->title($this->lang->line("gvv_rapports_title") . " $year", 1);
-                $pdf->Output();
+                $title = $this->lang->line("gvv_rapports_title") . " $year";
+                $pdf->title($title, 1);
+                $pdf->Output('I', pdf_filename($title));
         }
 
         /**

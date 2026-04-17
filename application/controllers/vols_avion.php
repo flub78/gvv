@@ -716,7 +716,7 @@ class Vols_avion extends Gvv_Controller {
             'L'
         );
         $pdf->table($w, 8, $align, $tab);
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($titre));
     }
 
     /**
@@ -947,7 +947,7 @@ class Vols_avion extends Gvv_Controller {
         $title = "Répartition des heures de vol avion $year par mois";
         pdf_per_month_page($pdf, $year, $data, $title, "avion");
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**
@@ -1054,7 +1054,7 @@ class Vols_avion extends Gvv_Controller {
         $y = $pdf->GetY();
         $pdf->Image(image_dir() . "avion_machine_$year.png", $x + 10, $y, 170);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title1));
     }
 
     /**

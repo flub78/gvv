@@ -736,7 +736,7 @@ class Comptes extends Gvv_Controller {
         // Immos
         $render_section("Immobilisations", isset($data['immos']) ? $data['immos'] : array(), 1);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
 
@@ -1147,7 +1147,7 @@ class Comptes extends Gvv_Controller {
             ),
             'fields' => $fields
         ));
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($titre));
     }
 
     /**
@@ -1252,8 +1252,8 @@ class Comptes extends Gvv_Controller {
 
         // Générer un PDF personnalisé avec couleurs différentes pour les entêtes
         $this->pdf_table_hierarchical_balance($merged_result, $pdf, $titre);
-        
-        $pdf->Output();
+
+        $pdf->Output('I', pdf_filename($titre));
     }
 
     /**
@@ -2069,7 +2069,7 @@ class Comptes extends Gvv_Controller {
         $render_section($this->lang->line("comptes_cloture_title_charges_a_integrer"), $charges);
         $render_section($this->lang->line("comptes_cloture_title_produits_a_integrer"), $produits);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**
@@ -2696,7 +2696,7 @@ class Comptes extends Gvv_Controller {
         // Résultat (sans Code/Comptes)
         $render_section($this->lang->line("comptes_label_total"), $data['resultat'], true);
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     /**
@@ -2790,7 +2790,7 @@ class Comptes extends Gvv_Controller {
             $pdf->table($compute_widths($cols, 3), 6, $compute_align($cols, 3), $data['detail']);
         }
 
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
 }

@@ -23,6 +23,17 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
+if (!function_exists('pdf_filename')) {
+    function pdf_filename($title) {
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = "gvv_" . ($title ?: 'document') . "_$dt.pdf";
+        $filename = strtolower($filename);
+        $filename = str_replace(' ', '_', $filename);
+        return $filename;
+    }
+}
+
 if (!function_exists('csv_file')) {
 
     /**

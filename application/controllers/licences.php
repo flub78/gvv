@@ -485,7 +485,7 @@ class Licences extends Gvv_Controller {
         }
 
         $pdf->table($widths, 6, $aligns, $rows);
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($title));
     }
 
     public function set_detail_year($year) {

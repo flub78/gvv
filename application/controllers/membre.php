@@ -804,11 +804,10 @@ class Membre extends Gvv_Controller {
         $pdf = new Pdf();
         $pdf->AddPage();
 
-        if ($is_subscription) {
-            $pdf->title($this->lang->line("membre_title_subscription"), 1);
-        } else {
-            $pdf->title($this->lang->line("membre_title_perso"), 1);
-        }
+        $doc_title = $is_subscription
+            ? $this->lang->line("membre_title_subscription")
+            : $this->lang->line("membre_title_perso");
+        $pdf->title($doc_title, 1);
 
         // photo
         if ($this->data['photo']) {
@@ -923,7 +922,7 @@ class Membre extends Gvv_Controller {
                 $pdf->Ln(15);
             }
         }
-        $pdf->Output();
+        $pdf->Output('I', pdf_filename($doc_title));
     }
 
     /**
