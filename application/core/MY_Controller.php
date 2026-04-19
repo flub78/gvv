@@ -300,4 +300,70 @@ class MY_Controller extends CI_Controller
     {
         return $this->use_new_auth;
     }
+
+    /**
+     * Push current URL onto the return-URL stack so pop_return_url() can go back here.
+     * Call this at the start of every "main" page (lists, dashboards, journals).
+     */
+    function push_return_url($context) {
+        $this->session->set_userdata('back_url', current_url());
+        gvv_debug("push back_url  $context: " . current_url());
+
+        $url_stack = $this->session->userdata('return_url_stack');
+        if (!is_array($url_stack)) {
+            $url_stack = array();
+        }
+
+        $url = current_url();
+        if ($this->validate_return_url($url)) {
+            array_push($url_stack, $url);
+            $this->session->set_userdata('return_url_stack', $url_stack);
+            $this->session->set_userdata('url_stack_time', time());
+        }
+    }
+
+    /**
+     * Redirect back to the most recent URL pushed by push_return_url().
+     * Falls back to <controller>/page if the stack is empty.
+     */
+    function pop_return_url($skip = 0) {
+        $this->clean_old_url_stack();
+
+        $url_stack = $this->session->userdata('return_url_stack');
+
+        if (!empty($url_stack) && $skip && $skip < count($url_stack)) {
+            array_pop($url_stack);
+            $this->session->set_userdata('return_url_stack', $url_stack);
+        }
+
+        while (!empty($url_stack)) {
+            $url = array_pop($url_stack);
+            $this->session->set_userdata('return_url_stack', $url_stack);
+            if ($url != current_url()) {
+                redirect($url);
+            }
+        }
+
+        $controller = isset($this->controller) ? $this->controller : $this->router->fetch_class();
+        gvv_debug("pop default back_url $controller/page");
+        redirect($controller . "/page");
+    }
+
+    /**
+     * Validate that a return URL is safe (internal only).
+     */
+    protected function validate_return_url($url) {
+        return (strpos($url, base_url()) === 0);
+    }
+
+    /**
+     * Wipe the URL stack if it is older than 1 hour (prevents stale redirects).
+     */
+    protected function clean_old_url_stack() {
+        $stack_time = $this->session->userdata('url_stack_time');
+        if (!$stack_time || (time() - $stack_time > 3600)) {
+            $this->session->unset_userdata('return_url_stack');
+            $this->session->unset_userdata('url_stack_time');
+        }
+    }
 }

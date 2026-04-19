@@ -261,6 +261,7 @@ class Welcome extends Gvv_Controller {
             $data['mod'] = $this->config->item('mod');
         }
 
+        $this->push_return_url("welcome dashboard");
         load_last_view('dashboard', $data);
     }
 

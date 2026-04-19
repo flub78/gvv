@@ -486,9 +486,8 @@ class Compta extends Gvv_Controller {
                     load_last_view($this->form_view, $this->data);
                     return;
                 } else {
-                    // Créer il faut retourner sur qq chose de logique
-                    $target = "compta/journal_compte/" . $processed_data['compte1'];
-                    redirect($target);
+                    // Retourner à la page d'origine (dashboard, journal, liste…)
+                    $this->pop_return_url();
                 }
             } else {
                 // Modification
