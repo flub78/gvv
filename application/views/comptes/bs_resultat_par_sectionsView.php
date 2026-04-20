@@ -144,6 +144,19 @@ $url = controller_url($controller);
         color: #dc3545;
         font-weight: bold;
     }
+
+    /* Lignes de résultat avant/après dépréciations */
+    .resultat-table tbody tr.row-resultat-avant-dep td,
+    .resultat-table tbody tr.row-resultat-apres-dep td {
+        font-weight: bold;
+        border-top: 2px solid #8b939a;
+    }
+    .resultat-table tbody tr.row-resultat-avant-dep td {
+        background-color: #e8f4e8 !important;
+    }
+    .resultat-table tbody tr.row-resultat-apres-dep td {
+        background-color: #d4edda !important;
+    }
 </style>
 
 <?php
@@ -245,9 +258,21 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
     $html .= "</thead>\n";
 
     // Corps du tableau
+    $CI = get_instance();
+    $CI->lang->load('comptes');
+    $label_avant_dep = $CI->lang->line('comptes_label_resultat_avant_dep');
+    $label_apres_dep = $CI->lang->line('comptes_label_resultat_apres_dep');
+
     $html .= "<tbody>\n";
     foreach ($rows as $row) {
-        $html .= "<tr>\n";
+        $row_class = '';
+        $row_label = isset($row[1]) ? strip_tags($row[1]) : '';
+        if ($row_label === $label_avant_dep) {
+            $row_class = ' class="row-resultat-avant-dep"';
+        } elseif ($row_label === $label_apres_dep) {
+            $row_class = ' class="row-resultat-apres-dep"';
+        }
+        $html .= "<tr{$row_class}>\n";
         foreach ($row as $col_idx => $cell_value) {
             if ($col_idx == 0 && $skip_label_cols) {
                 // Sauter la colonne 0 (vide) pour le tableau Total

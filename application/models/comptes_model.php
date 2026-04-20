@@ -1624,13 +1624,18 @@ class Comptes_model extends Common_Model {
         $tables['charges'] = $this->select_par_section_deux_annees('codec >= "6" and codec < "7"', $balance_date, 1, false, $html, $use_full_names);
         $tables['produits'] = $this->select_par_section_deux_annees('codec >= "7" and codec < "8"', $balance_date, 1, false, $html, $use_full_names);
 
-        // Calcul du résultat pour les deux années (sur les données brutes)
-        $tables['resultat'] = $this->compute_resultat_deux_annees($tables['charges'], $tables['produits']);
+        // Dépréciations seules (68x et 78x) pour le calcul avant dépréciations
+        // Même logique que resultat_avec_depreciation : avant_dep = apres_dep + dep68 - rec78
+        $dep68 = $this->select_par_section_deux_annees('codec >= "68" and codec < "69"', $balance_date, 1, false, false, $use_full_names);
+        $rec78 = $this->select_par_section_deux_annees('codec >= "78" and codec < "79"', $balance_date, 1, false, false, $use_full_names);
+
+        // Calcul du résultat pour les deux années avec avant/après dépréciations (sur données brutes)
+        $tables['resultat'] = $this->compute_resultat_deux_annees_avec_dep($tables['charges'], $tables['produits'], $dep68, $rec78);
 
         // Formatage des colonnes numériques après les calculs
         $tables['charges'] = $this->format_numeric_columns($tables['charges'], 2, $html);
         $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
-        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html); // Ne pas formater la colonne 1 (Charges/Produits/Total)
+        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html);
 
         return $tables;
     }
@@ -1698,6 +1703,86 @@ class Comptes_model extends Common_Model {
         $resultat[] = $total_charges;
         $resultat[] = $total_produits;
         $resultat[] = $total_resultat;
+
+        return $resultat;
+    }
+
+    /**
+     * Calcule le résultat avec avant et après dépréciations pour deux années.
+     * Retourne un tableau de résultat étendu avec 4 lignes de données :
+     *   [1] total_charges_all   (utilisé par le contrôleur pour la ligne Total des charges)
+     *   [2] total_produits_all  (utilisé par le contrôleur pour la ligne Total des produits)
+     *   [3] resultat_avant_dep  (produits_hd - charges_hd)
+     *   [4] resultat_apres_dep  (produits_all - charges_all)
+     *
+     * @param array $charges     Toutes les charges (incluant 68x), données brutes float
+     * @param array $produits    Tous les produits (incluant 78x), données brutes float
+     * @param array $charges_hd  Charges hors dépréciations (< 68x), données brutes float
+     * @param array $produits_hd Produits hors dépréciations (< 78x), données brutes float
+     * @return array Table du résultat avec 4 lignes de données (en float)
+     */
+    function compute_resultat_deux_annees_avec_dep($charges, $produits, $dep68, $rec78) {
+        $sections = $this->sections_model->section_list();
+        $sections_count = count($sections);
+
+        $resultat = [];
+        if (!empty($produits)) {
+            $resultat[] = $produits[0]; // En-tête
+        }
+
+        $cols_per_year = ($sections_count > 1) ? ($sections_count + 1) : $sections_count;
+        $header_offset = 2;
+
+        $total_charges    = ["", $this->CI->lang->line('comptes_label_expenses')];
+        $total_produits   = ["", $this->CI->lang->line('comptes_label_earnings')];
+        $res_avant_dep    = ["", $this->CI->lang->line('comptes_label_resultat_avant_dep')];
+        $res_apres_dep    = ["", $this->CI->lang->line('comptes_label_resultat_apres_dep')];
+
+        for ($i = 0; $i < $cols_per_year * 2; $i++) {
+            $col_index = $header_offset + $i;
+
+            $sum_charges = 0.0;
+            for ($row = 1; $row < count($charges); $row++) {
+                if (isset($charges[$row][$col_index])) {
+                    $sum_charges += floatval($charges[$row][$col_index]);
+                }
+            }
+            $total_charges[] = $sum_charges;
+
+            $sum_produits = 0.0;
+            for ($row = 1; $row < count($produits); $row++) {
+                if (isset($produits[$row][$col_index])) {
+                    $sum_produits += floatval($produits[$row][$col_index]);
+                }
+            }
+            $total_produits[] = $sum_produits;
+
+            // Dépréciations 68x (charges) et reprises 78x (produits)
+            $sum_dep68 = 0.0;
+            for ($row = 1; $row < count($dep68); $row++) {
+                if (isset($dep68[$row][$col_index])) {
+                    $sum_dep68 += floatval($dep68[$row][$col_index]);
+                }
+            }
+
+            $sum_rec78 = 0.0;
+            for ($row = 1; $row < count($rec78); $row++) {
+                if (isset($rec78[$row][$col_index])) {
+                    $sum_rec78 += floatval($rec78[$row][$col_index]);
+                }
+            }
+
+            // avant_dep = apres_dep + dep68 - rec78
+            // (même logique que resultat_avec_depreciation: total - dep68 pour charges, total - rec78 pour produits)
+            $apres_dep = $sum_produits - $sum_charges;
+            $res_apres_dep[]  = $apres_dep;
+            $res_avant_dep[]  = $apres_dep + $sum_dep68 - $sum_rec78;
+        }
+
+        $resultat[] = $total_charges;
+        $resultat[] = $total_produits;
+        $resultat[] = $res_avant_dep;
+        $resultat[] = $res_apres_dep;
 
         return $resultat;
     }

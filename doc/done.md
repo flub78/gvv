@@ -160,4 +160,4 @@
 * [x]Supprimer la date du jour par défaut dans les écritures
 * [x] Les trésoriers doivent avoir accès à l'option toutes.
 * [x] Supprimer l'ancienne vue du bilan
-
+* [x] **la page de retour après une modification des écritures est discutable**
