@@ -238,8 +238,8 @@ test.describe('Abraracourcix Recursive Authorization Crawl', () => {
         const initialLinks = await extractInternalLinks(page);
         for (const link of initialLinks) enqueue(link);
 
-        console.log(`Starting crawl from ${startUrl}`);
-        console.log(`Initial queue: ${queue.length} unique route patterns`);
+        console.log(`[${ABRARACOURCIX.username} / section ${ABRARACOURCIX.section}] Starting crawl from ${startUrl}`);
+        console.log(`[${ABRARACOURCIX.username} / section ${ABRARACOURCIX.section}] Initial queue: ${queue.length} unique route patterns`);
 
         // --- Crawl loop ---
         while (queue.length > 0) {
@@ -250,7 +250,7 @@ test.describe('Abraracourcix Recursive Authorization Crawl', () => {
             visitedPatterns.add(pattern);
             visitedUrls.add(url);
 
-            console.log(`  Testing: ${url}`);
+            console.log(`  [${ABRARACOURCIX.username} / section ${ABRARACOURCIX.section}] Testing: ${url}`);
 
             try {
                 const response = await page.goto(url, {
@@ -264,13 +264,13 @@ test.describe('Abraracourcix Recursive Authorization Crawl', () => {
 
                 if (isAccessDenied(finalUrl, content)) {
                     accessDenied.push({ url, pattern });
-                    console.log(`    => DENIED`);
+                    console.log(`    => DENIED  [${ABRARACOURCIX.username} / section ${ABRARACOURCIX.section}]`);
                     continue;
                 }
 
                 // Access granted
                 accessGranted.push({ url, pattern });
-                console.log(`    => OK`);
+                console.log(`    => OK  [${ABRARACOURCIX.username} / section ${ABRARACOURCIX.section}]`);
 
                 // Extract and enqueue new links
                 const newLinks = await extractInternalLinks(page);

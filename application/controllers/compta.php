@@ -81,7 +81,7 @@ class Compta extends Gvv_Controller {
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
         // Check authorization - only users with modification_level role can edit entries
-        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+        if (!$this->has_modification_rights()) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -352,7 +352,7 @@ class Compta extends Gvv_Controller {
      */
     public function formValidation($action, $return_on_success = false) {
         // Check authorization - only users with modification_level role can submit entries
-        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+        if (!$this->has_modification_rights()) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -520,9 +520,7 @@ class Compta extends Gvv_Controller {
      */
     function ecriture(string $title_key, $emploi_selection, $resource_selection, $message = "") {
         // Check authorization - only users with modification_level role can create entries
-        $authorized = $this->use_new_auth
-            ? $this->user_has_role($this->modification_level)
-            : $this->dx_auth->is_role($this->modification_level, true, true);
+        $authorized = $this->has_modification_rights();
         if (!$authorized) {
             $this->dx_auth->deny_access();
             return;
@@ -1497,10 +1495,9 @@ class Compta extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['premier'] = $premier;
         $this->data['compte'] = '';
-        $this->data['tresorier'] = $this->dx_auth->is_role('tresorier', true, true);
+        $this->data['tresorier'] = $this->has_modification_rights();
 
-        $has_modification_rights = (!isset($this->modification_level)
-            || $this->dx_auth->is_role($this->modification_level, true, true));
+        $has_modification_rights = $this->has_modification_rights();
         $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
 
         $this->data['has_modification_rights'] = $has_modification_rights;
@@ -1593,7 +1590,7 @@ class Compta extends Gvv_Controller {
         $raw_result = $result;
         // gvv_debug("ajax result 1 =" . var_export($result, true));
 
-        $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $has_modification_rights = $this->has_modification_rights();
 
         $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
 
@@ -1916,7 +1913,7 @@ class Compta extends Gvv_Controller {
         $this->data['premier'] = $premier;
         $this->data['compte'] = $compte;
         $this->data['navigation_allowed'] = $this->dx_auth->is_role('bureau', true, true);
-        $this->data['tresorier'] = $this->dx_auth->is_role('tresorier', true, true);
+        $this->data['tresorier'] = $this->has_modification_rights();
 
         // fields for purchase
         $this->data['date'] = date("d/m/Y", time());
@@ -1939,7 +1936,7 @@ class Compta extends Gvv_Controller {
             $this->data['solde_avant'] -= $solde_previous_year;
             $this->data['solde_fin'] -= $solde_previous_year;
         }
-        $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
     }
 
     /**
@@ -1981,8 +1978,10 @@ class Compta extends Gvv_Controller {
             redirect("comptes/balance");
         }
 
-        // Regular users can only view their own account
-        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+        // Regular users can only view their own account.
+        $section_context = $section ? $section : $this->gvv_model->section();
+        $modification_section_id = $section_context ? $section_context['id'] : (isset($data['club']) ? $data['club'] : null);
+        if (!$this->has_modification_rights($modification_section_id)) {
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
             if ($owner != $mlogin) {
@@ -1991,9 +1990,6 @@ class Compta extends Gvv_Controller {
             }
         }
 
-        // Determine the expected section context
-        $section_context = $section ? $section : $this->gvv_model->section();
-        
         // If a section is explicitly provided, validate that the account belongs to it
         if ($section && isset($section['id']) && isset($data['club'])) {
             if ($section['id'] != $data['club']) {
@@ -2120,7 +2116,7 @@ class Compta extends Gvv_Controller {
 
             // Check permissions for actions
             $section = $this->gvv_model->section();
-            $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+            $has_modification_rights = $this->has_modification_rights();
 
             // Format data for older DataTables format
             $aaData = [];
@@ -2261,7 +2257,7 @@ class Compta extends Gvv_Controller {
         }
         
         // Check if user has modification rights
-        $has_modification_rights = (!isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $has_modification_rights = $this->has_modification_rights();
         if (!$has_modification_rights) {
             $this->output->set_output(json_encode(['success' => false, 'message' => 'Insufficient permissions']));
             return;
@@ -2542,8 +2538,11 @@ class Compta extends Gvv_Controller {
             $compte = $this->comptes_model->compte_pilote_id($user);
         }
 
-        // Regular users can only export their own account
-        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+        $compte_data = $this->comptes_model->get_by_id('id', $compte);
+
+        // Regular users can only export their own account.
+        $modification_section_id = $section_id ? (int) $section_id : (isset($compte_data['club']) ? (int) $compte_data['club'] : null);
+        if (!$this->has_modification_rights($modification_section_id)) {
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
             if ($owner != $mlogin) {
@@ -2553,7 +2552,6 @@ class Compta extends Gvv_Controller {
         }
 
         $height = 6;
-        $compte_data = $this->comptes_model->get_by_id('id', $compte);
         
         // Determine which section to use
         $section = null;
@@ -2821,8 +2819,11 @@ class Compta extends Gvv_Controller {
             $compte = $this->comptes_model->compte_pilote_id($user);
         }
 
-        // Regular users can only export their own account
-        if (!$this->dx_auth->is_role('tresorier', true, true)) {
+        $compte_data = $this->comptes_model->get_by_id('id', $compte);
+
+        // Regular users can only export their own account.
+        $modification_section_id = $section_id ? (int) $section_id : (isset($compte_data['club']) ? (int) $compte_data['club'] : null);
+        if (!$this->has_modification_rights($modification_section_id)) {
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
             if ($owner != $mlogin) {
@@ -2836,8 +2837,6 @@ class Compta extends Gvv_Controller {
             return;
         }
 
-        $compte_data = $this->comptes_model->get_by_id('id', $compte);
-        
         // Determine which section to use
         $section = null;
         if ($section_id) {

@@ -31,6 +31,7 @@ Cela implique de:
 
 ## Reste à faire
 
+* [] AJout de vrais export excel en sus des csv.
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce. Discutable, c'est pratique quand on fait des ajustements comptables.
 * [] Timeout, il faudrait mieux déconnecter. La section active a été perdue. Merci de sélectionner à nouveau une section.
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.

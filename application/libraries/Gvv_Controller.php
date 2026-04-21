@@ -123,7 +123,34 @@ class Gvv_Controller extends MY_Controller {
         if ($action == "visualisation") {
             $this->data['readonly'] = "readonly";
         }
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
+    }
+
+    /**
+     * Returns whether the current user can modify data for this controller.
+     *
+     * In new authorization mode, checks can be scoped to an explicit section.
+     * This keeps section-scoped roles working outside the current session
+     * context when a controller handles cross-section routes.
+     *
+     * @param int|null $section_id Optional section context override
+     * @return bool
+     */
+    protected function has_modification_rights($section_id = NULL)
+    {
+        if (!isset($this->modification_level) || $this->modification_level === '') {
+            return TRUE;
+        }
+
+        if ($this->dx_auth->is_admin()) {
+            return TRUE;
+        }
+
+        if ($this->use_new_auth) {
+            return $this->allow_roles([$this->modification_level], $section_id);
+        }
+
+        return $this->dx_auth->is_role($this->modification_level, true, true);
     }
 
     /**
@@ -141,11 +168,7 @@ class Gvv_Controller extends MY_Controller {
             return TRUE;
         }
 
-        if (!isset($this->modification_level) || $this->modification_level === '') {
-            return TRUE;
-        }
-
-        if ($this->dx_auth->is_admin() || $this->user_has_role($this->modification_level)) {
+        if ($this->has_modification_rights()) {
             return TRUE;
         }
 
@@ -761,7 +784,7 @@ class Gvv_Controller extends MY_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }

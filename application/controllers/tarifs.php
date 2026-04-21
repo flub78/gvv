@@ -95,7 +95,7 @@ class Tarifs extends Gvv_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
         $this->data['section'] = $this->gvv_model->section();
 
 

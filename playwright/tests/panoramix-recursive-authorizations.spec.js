@@ -232,8 +232,8 @@ test.describe('Panoramix Recursive Authorization Crawl', () => {
         const initialLinks = await extractInternalLinks(page);
         for (const link of initialLinks) enqueue(link);
 
-        console.log(`Starting crawl from ${startUrl}`);
-        console.log(`Initial queue: ${queue.length} unique route patterns`);
+        console.log(`[${PANORAMIX.username} / section ${PANORAMIX.section}] Starting crawl from ${startUrl}`);
+        console.log(`[${PANORAMIX.username} / section ${PANORAMIX.section}] Initial queue: ${queue.length} unique route patterns`);
 
         // --- Crawl loop ---
         while (queue.length > 0) {
@@ -244,7 +244,7 @@ test.describe('Panoramix Recursive Authorization Crawl', () => {
             visitedPatterns.add(pattern);
             visitedUrls.add(url);
 
-            console.log(`  Testing: ${url}`);
+            console.log(`  [${PANORAMIX.username} / section ${PANORAMIX.section}] Testing: ${url}`);
 
             try {
                 const response = await page.goto(url, {
@@ -258,13 +258,13 @@ test.describe('Panoramix Recursive Authorization Crawl', () => {
 
                 if (isAccessDenied(finalUrl, content)) {
                     accessDenied.push({ url, pattern });
-                    console.log('    => DENIED');
+                    console.log(`    => DENIED  [${PANORAMIX.username} / section ${PANORAMIX.section}]`);
                     continue;
                 }
 
                 // Access granted
                 accessGranted.push({ url, pattern });
-                console.log('    => OK');
+                console.log(`    => OK  [${PANORAMIX.username} / section ${PANORAMIX.section}]`);
 
                 // Extract and enqueue new links
                 const newLinks = await extractInternalLinks(page);
