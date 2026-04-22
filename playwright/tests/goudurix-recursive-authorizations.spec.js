@@ -52,6 +52,7 @@ const SKIP_PATTERNS = [
     /\/testunit/,
     /\/api\//,
     /\/resultat_par_sections/, // Heavy cross-section query — tested in resultat-par-sections.spec.js
+    /^\/compta\/journal_compte\//, // Row-level security: accessible to account owner or ca only
     /\/user_guide\//,         // CodeIgniter documentation
     /\/libraries\//,          // CI library docs
     /javascript:/,
@@ -91,7 +92,8 @@ function getRoutePattern(url) {
                 || segments[i - 1] === 'vols_du_pilote'
                 || segments[i - 1] === 'vols_de_la_machine'
                 || segments[i - 1] === 'journal_compte'
-                || segments[i - 1] === 'mon_compte')) {
+                || segments[i - 1] === 'mon_compte'
+                || segments[i - 1] === 'page')) {
                 return '{param}';
             }
             return seg;
@@ -124,7 +126,7 @@ function normalizeUrl(url) {
     try {
         const parsed = new URL(url, BASE_URL);
         if (parsed.origin !== new URL(BASE_URL).origin) return null;
-        const path = parsed.pathname.replace(/\/+$/, '') || '/';
+        const path = parsed.pathname.replace(/\/index\.php\//, '/').replace(/\/+$/, '') || '/';
         return parsed.origin + path + parsed.search;
     } catch {
         return null;
@@ -180,6 +182,14 @@ function isAccessDenied(url, content) {
  */
 function isExpectedDownloadNavigationError(err) {
     return Boolean(err && err.message && err.message.includes('Download is starting'));
+}
+
+async function getCurrentSection(page) {
+    try {
+        return await page.$eval('select[name="section"] option:checked', el => el.textContent.trim());
+    } catch {
+        return '?';
+    }
 }
 
 test.describe('Goudurix Recursive Authorization Crawl', () => {
@@ -241,8 +251,9 @@ test.describe('Goudurix Recursive Authorization Crawl', () => {
             visitedPatterns.add(pattern);
             visitedUrls.add(url);
 
-            console.log(`  [${GOUDURIX.username} / section ${GOUDURIX.section}] Testing: ${url}`);
+            console.log(`  [${GOUDURIX.username}] Testing: ${url}`);
 
+            let activeSection = '?';
             try {
                 const response = await page.goto(url, {
                     waitUntil: 'domcontentloaded',
@@ -252,16 +263,17 @@ test.describe('Goudurix Recursive Authorization Crawl', () => {
 
                 const finalUrl = page.url();
                 const content = await page.content();
+                activeSection = await getCurrentSection(page);
 
                 if (isAccessDenied(finalUrl, content)) {
-                    accessDenied.push({ url, pattern });
-                    console.log(`    => DENIED  [${GOUDURIX.username} / section ${GOUDURIX.section}]`);
+                    accessDenied.push({ url, pattern, section: activeSection });
+                    console.log(`    => DENIED  [${GOUDURIX.username} / section ${activeSection}]`);
                     continue;
                 }
 
                 // Access granted
                 accessGranted.push({ url, pattern });
-                console.log(`    => OK  [${GOUDURIX.username} / section ${GOUDURIX.section}]`);
+                console.log(`    => OK  [${GOUDURIX.username} / section ${activeSection}]`);
 
                 // Extract and enqueue new links
                 const newLinks = await extractInternalLinks(page);
@@ -284,8 +296,8 @@ test.describe('Goudurix Recursive Authorization Crawl', () => {
                     continue;
                 }
 
-                errors.push({ url, pattern, error: err.message });
-                console.log(`  ERROR: ${pattern}  (${url}) - ${err.message}`);
+                errors.push({ url, pattern, error: err.message, section: activeSection });
+                console.log(`  ERROR: ${pattern}  (${url}) [section ${activeSection}] - ${err.message}`);
             }
         }
 
@@ -333,15 +345,15 @@ test.describe('Goudurix Recursive Authorization Crawl', () => {
         //    every URL we find is visible to the user. If access is denied,
         //    the link should not have been shown in the first place.
         expect(accessDenied.length,
-            `[${GOUDURIX.username} / section ${GOUDURIX.section}] ${accessDenied.length} visible link(s) returned access denied. ` +
+            `[${GOUDURIX.username}] ${accessDenied.length} visible link(s) returned access denied. ` +
             `Forbidden URLs must be filtered from menus and dashboards:\n` +
-            accessDenied.map(({ url, pattern }) => `  - ${pattern}  (${url})`).join('\n')
+            accessDenied.map(({ url, pattern, section }) => `  - ${pattern}  (${url})  [section: ${section}]`).join('\n')
         ).toBe(0);
 
         // 4. No unexpected navigation errors
         expect(errors.length,
-            `[${GOUDURIX.username} / section ${GOUDURIX.section}] ${errors.length} route(s) had navigation errors:\n` +
-            errors.map(({ url, pattern, error }) => `  - ${pattern}  (${url}): ${error}`).join('\n')
+            `[${GOUDURIX.username}] ${errors.length} route(s) had navigation errors:\n` +
+            errors.map(({ url, pattern, error, section }) => `  - ${pattern}  (${url})  [section: ${section}]: ${error}`).join('\n')
         ).toBe(0);
     });
 });
