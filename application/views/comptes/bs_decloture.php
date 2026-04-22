@@ -12,8 +12,9 @@ if ($section) {
 echo heading($title, 2, "");
 
 // Message de succès
-if ($this->session->flashdata('success')) {
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+$has_success = (bool) $this->session->flashdata('success');
+if ($has_success) {
+    echo '<div id="decloture-success-alert" class="alert alert-success alert-dismissible fade show" role="alert">';
     echo '<i class="fas fa-check-circle me-2"></i>';
     echo nl2br(htmlspecialchars($this->session->flashdata('success')));
     echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
@@ -98,16 +99,36 @@ $freeze_only = !empty($freeze_only);
         <?php echo form_open(controller_url($controller) . "/decloture"); ?>
         <div class="d-flex gap-2">
             <?php echo form_hidden('confirm_decloture', '1'); ?>
-            <button type="submit" class="btn btn-danger">
+            <button type="submit" id="btn-confirm-decloture" class="btn btn-danger"
+                    <?= $has_success ? 'disabled' : '' ?>>
                 <i class="fas fa-unlock me-1"></i>
                 <?= $this->lang->line("comptes_decloture_btn_confirm") ?>
             </button>
-            <a href="<?= controller_url('comptes/cloture') ?>" class="btn btn-secondary">
+            <a href="<?= controller_url('comptes/cloture') ?>" id="btn-cancel-decloture"
+               class="btn btn-secondary <?= $has_success ? 'disabled' : '' ?>"
+               <?= $has_success ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
                 <i class="fas fa-times me-1"></i>
                 <?= $this->lang->line("comptes_decloture_btn_cancel") ?>
             </a>
         </div>
         <?php echo form_close(); ?>
+
+<?php if ($has_success): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var alert = document.getElementById('decloture-success-alert');
+    if (alert) {
+        alert.addEventListener('closed.bs.alert', function () {
+            document.getElementById('btn-confirm-decloture').disabled = false;
+            var cancel = document.getElementById('btn-cancel-decloture');
+            cancel.classList.remove('disabled');
+            cancel.removeAttribute('aria-disabled');
+            cancel.removeAttribute('tabindex');
+        });
+    }
+});
+</script>
+<?php endif; ?>
     </div>
 </div>
 
