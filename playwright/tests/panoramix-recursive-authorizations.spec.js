@@ -336,14 +336,14 @@ test.describe('Panoramix Recursive Authorization Crawl', () => {
         //    every URL we find is visible to the user. If access is denied,
         //    the link should not have been shown in the first place.
         expect(accessDenied.length,
-            `${accessDenied.length} visible link(s) returned access denied. ` +
+            `[${PANORAMIX.username} / section ${PANORAMIX.section}] ${accessDenied.length} visible link(s) returned access denied. ` +
             `Forbidden URLs must be filtered from menus and dashboards:\n` +
             accessDenied.map(({ url, pattern }) => `  - ${pattern}  (${url})`).join('\n')
         ).toBe(0);
 
         // 4. No unexpected navigation errors
         expect(errors.length,
-            `${errors.length} route(s) had navigation errors:\n` +
+            `[${PANORAMIX.username} / section ${PANORAMIX.section}] ${errors.length} route(s) had navigation errors:\n` +
             errors.map(({ url, pattern, error }) => `  - ${pattern}  (${url}): ${error}`).join('\n')
         ).toBe(0);
     });

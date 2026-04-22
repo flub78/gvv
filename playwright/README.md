@@ -53,13 +53,6 @@ BASE_URL=https://gvvg.flub78.net npx playwright test
   Comportement: Uniquement les 3 tests destructeurs, en séquentiel
   ────────────────────────────────────────
   Commande: cd playwright && npx playwright test
-  Comportement: À éviter : les deux projets tournent en parallèle l'un de
-    l'autre, l'isolation n'est pas garantie
+  Comportement: À éviter : race condition possible.
 
-  Pourquoi npx playwright test sans argument était problématique : le mécanisme
-  dependencies de Playwright est conçu pour les scénarios de setup/teardown. Son
-   comportement est strict : si un test du projet sequential échoue, le projet
-  chromium est entièrement sauté. Comme migration-test.spec.js peut échouer
-  selon l'état de l'environnement, cela bloquait toute la suite. La bonne
-  séquence passe par && dans le script npm, qui isole les deux phases tout en
-  permettant à chacune de gérer ses propres échecs.
+
