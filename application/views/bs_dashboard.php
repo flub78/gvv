@@ -635,7 +635,7 @@ $this->lang->load('tableaux_de_bord');
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-hand-holding-usd text-success"></i>
-                        <div class="card-title"><?= translation("gvv_menu_entries_pilot_payment") ?></div>
+                        <div class="card-title"><?= $this->lang->line('db_card_pilot_payment') ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line('db_desc_payment') ?></div>
                         <a href="<?= controller_url('compta/reglement_pilote') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
@@ -757,7 +757,7 @@ $this->lang->load('tableaux_de_bord');
                     <div class="sub-card text-center">
                         <i class="fas fa-tools text-secondary"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_depreciation') ?></div>
-                        <div class="card-text text-muted">68x / 281x</div>
+                        <div class="card-text text-muted">(68 - 281)</div>
                         <a href="<?= controller_url('compta/amortissement') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
@@ -776,7 +776,7 @@ $this->lang->load('tableaux_de_bord');
                     <div class="sub-card text-center">
                         <i class="fas fa-exchange-alt text-secondary"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_section_transfer') ?></div>
-                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_transfer') ?></div>
+                        <div class="card-text text-muted">(467 - 512)</div>
                         <a href="<?= controller_url('compta/reversement_section') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
