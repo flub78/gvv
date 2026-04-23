@@ -132,6 +132,7 @@ $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence',
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "La modification d'une écriture gelée est interdite.";
 $lang['gvv_compta_frozen_line_cannot_delete'] = "La suppression d'une écriture gelée est interdite.";
+$lang['gvv_compta_other_section_cannot_modify'] = "Vous êtes trésorier d'une autre section : cette écriture est en lecture seule.";
 
 // Attachment upload (Phase 1)
 $lang['gvv_choose_files'] = "Choisir des fichiers";

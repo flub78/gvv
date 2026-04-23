@@ -159,6 +159,51 @@ test.describe('Goudurix Authorization - New Auth System', () => {
     });
 
     // ============================================================
+    // READ ACCESS IN ALL TRESORIER SECTIONS
+    // Goudurix is tresorier in sections 3 (Avion) and 4 (Général).
+    // Accounting pages must be accessible from either tresorier section.
+    // ============================================================
+    test.describe('Tresorier - read access in all tresorier sections', () => {
+
+        test('compta/page accessible when logged in with section Général (4)', async ({ page }) => {
+            await loginAndGoto(page, 'compta/page', '4');
+            await expectAccessGranted(page, 'compta/page');
+        });
+
+        test('comptes/page accessible when logged in with section Général (4)', async ({ page }) => {
+            await loginAndGoto(page, 'comptes/page', '4');
+            await expectAccessGranted(page, 'comptes/page');
+        });
+    });
+
+    // ============================================================
+    // SECTION-BASED WRITE RESTRICTION
+    // Goudurix is tresorier in section 3 (Avion) and 4 (Général).
+    // Entry 29563 belongs to section 3 (Avion)  → can edit.
+    // Entry 1696  belongs to section 1 (Planeur) → read-only.
+    // ============================================================
+    test.describe('Tresorier - section-based write restriction', () => {
+
+        test('edit entry from own section (Avion=3, id=29563) shows modification form', async ({ page }) => {
+            await loginAndGoto(page, 'compta/edit/29563', '3');
+            await expectAccessGranted(page, 'compta/edit/29563');
+            const content = await page.content();
+            // MODIFICATION mode: no "autre section" readonly message
+            expect(content).not.toContain('trésorier d\'une autre section');
+            expect(content).not.toContain('lecture seule');
+        });
+
+        test('edit entry from other section (Planeur=1, id=1696) shows read-only form', async ({ page }) => {
+            await loginAndGoto(page, 'compta/edit/1696', '3');
+            // Access is granted (tresorier can view any section)
+            await expectAccessGranted(page, 'compta/edit/1696');
+            const content = await page.content();
+            // VISUALISATION mode: readonly message shown, no submit button
+            expect(content).toContain('autre section');
+        });
+    });
+
+    // ============================================================
     // DENIED ROUTES - planchiste stats (requires planchiste role via legacy dx_auth)
     // Goudurix has no planchiste role
     // ============================================================

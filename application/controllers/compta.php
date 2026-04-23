@@ -80,7 +80,8 @@ class Compta extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
-        // Check authorization - only users with modification_level role can edit entries
+        // Any tresorier (in any section) can access this page for reading.
+        // Section-scoped modification rights are checked below per entry.
         if (!$this->has_modification_rights()) {
             $this->dx_auth->deny_access();
             return;
@@ -114,12 +115,18 @@ class Compta extends Gvv_Controller {
 
         $this->push_return_url("edit ecriture");
 
-        // Store whether the line is frozen to pass to view
+        // Determine display mode: tresoriers can view entries from any section,
+        // but can only modify entries belonging to their own section.
         $is_frozen = $this->data['gel'];
-        
+        $entry_section_id = isset($this->data['club']) ? $this->data['club'] : NULL;
+        $can_modify_entry = $this->has_modification_rights($entry_section_id);
+
         if ($is_frozen) {
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = $this->lang->line('gvv_compta_frozen_line_cannot_modify');
+        } elseif (!$can_modify_entry) {
+            $this->form_static_element(VISUALISATION);
+            $this->data['frozen_message'] = $this->lang->line('gvv_compta_other_section_cannot_modify');
         } else {
             $this->form_static_element(MODIFICATION);
         }
@@ -243,6 +250,15 @@ class Compta extends Gvv_Controller {
 
         if ($this->data['achat']) {
             redirect("achats/delete/" . $this->data['achat']);
+            return;
+        }
+
+        // Tresoriers can only delete entries in their own section.
+        $entry_section_id = isset($this->data['club']) ? $this->data['club'] : NULL;
+        if (!$this->has_modification_rights($entry_section_id)) {
+            $msg = $this->lang->line('gvv_compta_other_section_cannot_modify');
+            $this->session->set_flashdata('popup', $msg);
+            redirect(controller_url('compta/page') . '?delete_error=' . rawurlencode($msg));
             return;
         }
 
@@ -494,7 +510,13 @@ class Compta extends Gvv_Controller {
                     $this->pop_return_url();
                 }
             } else {
-                // Modification
+                // Modification: verify the user has rights in the entry's section.
+                $entry_section_id = isset($processed_data['club']) ? $processed_data['club'] : NULL;
+                if (!$this->has_modification_rights($entry_section_id)) {
+                    $this->dx_auth->deny_access();
+                    return;
+                }
+
                 $this->change_ecriture($processed_data);
 
                 $message = isset($processed_data['gel']) && $processed_data['gel'] == 1
@@ -1499,14 +1521,15 @@ class Compta extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['premier'] = $premier;
         $this->data['compte'] = '';
-        $this->data['tresorier'] = $this->has_modification_rights();
+        $page_section = $this->gvv_model->section();
+        $page_section_id = $page_section ? $page_section['id'] : NULL;
+        $this->data['tresorier'] = $this->has_modification_rights($page_section_id);
 
-        $has_modification_rights = $this->has_modification_rights();
-        $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
+        $has_modification_rights = $this->has_modification_rights($page_section_id) && $page_section;
 
         $this->data['has_modification_rights'] = $has_modification_rights;
 
-        $this->data['section'] = $this->gvv_model->section();
+        $this->data['section'] = $page_section;
 
         load_last_view('compta/journalView', $this->data);
     }
@@ -1917,7 +1940,7 @@ class Compta extends Gvv_Controller {
         $this->data['premier'] = $premier;
         $this->data['compte'] = $compte;
         $this->data['navigation_allowed'] = $this->dx_auth->is_role('bureau', true, true);
-        $this->data['tresorier'] = $this->has_modification_rights();
+        $this->data['tresorier'] = $this->has_modification_rights($query_section_id);
 
         // fields for purchase
         $this->data['date'] = date("d/m/Y", time());
@@ -1940,7 +1963,7 @@ class Compta extends Gvv_Controller {
             $this->data['solde_avant'] -= $solde_previous_year;
             $this->data['solde_fin'] -= $solde_previous_year;
         }
-        $this->data['has_modification_rights'] = $this->has_modification_rights();
+        $this->data['has_modification_rights'] = $this->has_modification_rights($query_section_id);
     }
 
     /**
@@ -2118,9 +2141,12 @@ class Compta extends Gvv_Controller {
                 log_message('debug', "DataTables: First row keys: " . implode(', ', array_keys($ecritures[0])));
             }
 
-            // Check permissions for actions
+            // Check permissions for actions.
+            // Use the journal's section (explicit parameter or session section) so that
+            // tresoriers only get edit buttons for entries in their own section.
             $section = $this->gvv_model->section();
-            $has_modification_rights = $this->has_modification_rights();
+            $journal_section_id = $section_id ?: ($section ? $section['id'] : NULL);
+            $has_modification_rights = $this->has_modification_rights($journal_section_id);
 
             // Format data for older DataTables format
             $aaData = [];

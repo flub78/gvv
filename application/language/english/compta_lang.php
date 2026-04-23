@@ -133,6 +133,7 @@ $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', '
 $lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "Modification of a frozen entry is forbidden.";
 $lang['gvv_compta_frozen_line_cannot_delete'] = "Deletion of a frozen entry is forbidden.";
+$lang['gvv_compta_other_section_cannot_modify'] = "You are treasurer of another section: this entry is read-only.";
 
 // Attachment upload (Phase 1)
 $lang['gvv_choose_files'] = "Choose Files";

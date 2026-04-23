@@ -117,6 +117,12 @@ Categorie Model Integration
  [x] Multiple categories and search
  [x] Transaction rollback
 
+Compta Edit Authorization
+ [x] Shared modification rights helper supports section context
+ [x] Edit paths use has modification rights helper
+ [x] Account routes use section aware modification helper
+ [x] Other accounting controllers use shared helper
+
 Compta Export Authorization
  [x] Comptes model user returns owner
  [x] Ownership check grants access to own account
@@ -345,24 +351,24 @@ Smart Adjustor Correlation Integration
  [x] Correlation for virement emis against all images
 
 Users Coherence
- [ ] User exists with data set "asterix"
- [ ] User exists with data set "obelix"
- [ ] User exists with data set "abraracourcix"
- [ ] User exists with data set "goudurix"
- [ ] User exists with data set "panoramix"
- [ ] User in new authorization with data set "asterix"
- [ ] User in new authorization with data set "obelix"
- [ ] User in new authorization with data set "abraracourcix"
- [ ] User in new authorization with data set "goudurix"
- [ ] User in new authorization with data set "panoramix"
- [ ] User has expected roles with data set "asterix"
- [ ] User has expected roles with data set "obelix"
- [ ] User has expected roles with data set "abraracourcix"
- [ ] User has expected roles with data set "goudurix"
+ [x] User exists with data set "asterix"
+ [x] User exists with data set "obelix"
+ [x] User exists with data set "abraracourcix"
+ [x] User exists with data set "goudurix"
+ [x] User exists with data set "panoramix"
+ [x] User in new authorization with data set "asterix"
+ [x] User in new authorization with data set "obelix"
+ [x] User in new authorization with data set "abraracourcix"
+ [x] User in new authorization with data set "goudurix"
+ [x] User in new authorization with data set "panoramix"
+ [x] User has expected roles with data set "asterix"
+ [x] User has expected roles with data set "obelix"
+ [x] User has expected roles with data set "abraracourcix"
+ [x] User has expected roles with data set "goudurix"
  [ ] User has expected roles with data set "panoramix"
- [ ] Panoramix is club admin in all sections
+ [x] Panoramix is club admin in all sections
  [x] Panoramix has no comptes
- [ ] Abraracourcix ca role is avion only
+ [x] Abraracourcix ca role is avion only
 
 Vols Decouverte Date Validite
  [x] Date validite column exists
