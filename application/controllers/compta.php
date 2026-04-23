@@ -100,10 +100,14 @@ class Compta extends Gvv_Controller {
             return;
         }
 
-        // On initial GET, save the origin page to return to after modification
+        // On initial GET, save the origin page to return to after modification.
+        // Exclude edit form URLs to avoid overwriting the real return URL when the
+        // page is reloaded after an in-form unfreeze (location.reload() sets the
+        // edit form itself as referer).
         if (!$this->input->post()) {
             $referer = $this->input->server('HTTP_REFERER');
-            if ($referer && strpos($referer, base_url()) === 0) {
+            if ($referer && strpos($referer, base_url()) === 0
+                && strpos($referer, site_url('compta/edit')) === false) {
                 $this->session->set_userdata('ecriture_return_url', $referer);
             }
         }
