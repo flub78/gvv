@@ -148,7 +148,10 @@ class Welcome extends Gvv_Controller {
             $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
             $data['is_bureau'] = $this->gvv_authorization->has_role($this->user_id, 'bureau', $section_id);
             $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
-            $data['is_treasurer'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', $section_id);
+            // Global check: treasurer accordion and read menu visible in all sections
+            $data['is_treasurer'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', NULL);
+            // Section-specific: write capabilities only for the current section
+            $data['is_treasurer_in_section'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', $section_id);
             $data['is_mecano'] = $this->gvv_authorization->has_role($this->user_id, 'mecano', $section_id);
             $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
             $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
@@ -169,6 +172,7 @@ class Welcome extends Gvv_Controller {
             $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
             $data['is_auto_planchiste'] = false;
             $data['can_view_formation'] = $data['is_ca'] || $data['is_admin'];
+            $data['is_treasurer_in_section'] = $data['is_treasurer'];
         }
 
         // Check if user is authorized for development/test features

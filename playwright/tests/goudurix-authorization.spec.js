@@ -156,6 +156,54 @@ test.describe('Goudurix Authorization - New Auth System', () => {
             const content = await page.content();
             expect(content, 'Expected "Trésorerie" section to be visible on dashboard for tresorier').toContain('Trésorerie');
         });
+
+        test('dashboard shows Tresorerie section when logged in with section Général (4)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '4');
+            const content = await page.content();
+            expect(content, 'Expected "Trésorerie" visible on dashboard even from section 4').toContain('Trésorerie');
+        });
+
+        test('accounting nav menu visible when logged in with section Général (4)', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '4');
+            const content = await page.content();
+            // The Comptabilité nav item must appear regardless of current section
+            expect(content, 'Expected accounting nav menu for tresorier in section 4').toContain('Comptabilit');
+        });
+    });
+
+    // ============================================================
+    // SECTION SELECTOR - only authorized sections visible
+    // Goudurix has roles in sections 3 (Avion) and 4 (Général) only.
+    // The nav section selector must NOT show sections 1 (Planeur) or 2 (ULM).
+    // ============================================================
+    test.describe('Section selector - only authorized sections', () => {
+
+        test('nav section selector shows Avion (3) for goudurix', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            const content = await page.content();
+            expect(content, 'Expected Avion in section selector').toContain('Avion');
+        });
+
+        test('nav section selector shows Général (4) for goudurix', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            const content = await page.content();
+            expect(content, 'Expected Général in section selector').toContain('Général');
+        });
+
+        test('nav section selector does NOT show Planeur (1) for goudurix', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            // The section selector dropdown — find the select element for section
+            const sectionSelect = page.locator('select[name="section"]');
+            const options = await sectionSelect.locator('option').allTextContents();
+            expect(options, 'Section selector must not contain Planeur for goudurix').not.toContain('Planeur');
+        });
+
+        test('nav section selector does NOT show ULM (2) for goudurix', async ({ page }) => {
+            await loginAndGoto(page, 'welcome');
+            const sectionSelect = page.locator('select[name="section"]');
+            const options = await sectionSelect.locator('option').allTextContents();
+            expect(options, 'Section selector must not contain ULM for goudurix').not.toContain('ULM');
+        });
     });
 
     // ============================================================

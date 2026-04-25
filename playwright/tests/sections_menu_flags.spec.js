@@ -84,26 +84,53 @@ test.describe('Section form — new fields', () => {
 
 test.describe('Navigation menu visibility by section flags', () => {
     test.describe.configure({ mode: 'serial' });
-    test.beforeEach(async ({ page }) => {
+
+    // Original values read before any test modifies the section.
+    let originalGestionPlaneurs = false;
+    let originalGestionAvions   = false;
+    let originalLibelle         = '';
+
+    test.beforeAll(async ({ browser }) => {
+        // Read the current state of section 1 so we can restore it afterwards.
+        const ctx  = await browser.newContext();
+        const page = await ctx.newPage();
         await login(page);
-        // Start with both flags OFF on section 1 (default after migration)
         await editSection(page, TEST_SECTION_ID);
-        const planeurs = page.locator('input[name="gestion_planeurs"][type="checkbox"]');
-        const avions   = page.locator('input[name="gestion_avions"][type="checkbox"]');
-        if (await planeurs.isChecked()) await planeurs.uncheck();
-        if (await avions.isChecked())   await avions.uncheck();
-        await saveSection(page);
+        originalGestionPlaneurs = await page.locator('input[name="gestion_planeurs"][type="checkbox"]').isChecked();
+        originalGestionAvions   = await page.locator('input[name="gestion_avions"][type="checkbox"]').isChecked();
+        originalLibelle         = await page.locator('input[name="libelle_menu_avions"]').inputValue();
+        await ctx.close();
     });
 
-    test.afterEach(async ({ page }) => {
-        // Restore section 1 to no flags, no custom label
+    test.afterAll(async ({ browser }) => {
+        // Restore section 1 to its exact state before the suite ran.
+        const ctx  = await browser.newContext();
+        const page = await ctx.newPage();
+        await login(page);
         await editSection(page, TEST_SECTION_ID);
         const planeurs = page.locator('input[name="gestion_planeurs"][type="checkbox"]');
         const avions   = page.locator('input[name="gestion_avions"][type="checkbox"]');
         const label    = page.locator('input[name="libelle_menu_avions"]');
+        if (originalGestionPlaneurs !== await planeurs.isChecked()) {
+            if (originalGestionPlaneurs) await planeurs.check(); else await planeurs.uncheck();
+        }
+        if (originalGestionAvions !== await avions.isChecked()) {
+            if (originalGestionAvions) await avions.check(); else await avions.uncheck();
+        }
+        await label.fill(originalLibelle);
+        await saveSection(page);
+        await ctx.close();
+    });
+
+    test.beforeEach(async ({ page }) => {
+        await login(page);
+        // Start each test with both flags OFF so all tests begin from a known state.
+        await editSection(page, TEST_SECTION_ID);
+        const planeurs = page.locator('input[name="gestion_planeurs"][type="checkbox"]');
+        const avions   = page.locator('input[name="gestion_avions"][type="checkbox"]');
         if (await planeurs.isChecked()) await planeurs.uncheck();
         if (await avions.isChecked())   await avions.uncheck();
-        await label.fill('');
+        await page.locator('input[name="libelle_menu_avions"]').fill('');
         await saveSection(page);
     });
 

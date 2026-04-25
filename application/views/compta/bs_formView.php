@@ -123,9 +123,15 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
     </div>
     <div class="ms-4">
         <?php
+        $is_recette_form = isset($title_key) && $title_key === 'gvv_compta_title_recette';
+        $attachments_heading = $this->lang->line("gvv_attachments_title");
+        if ($is_recette_form) {
+            $attachments_heading .= ' <i class="fas fa-paperclip text-secondary" title="Justificatifs"></i>';
+        }
+
         if ($action == CREATION) {
             // Inline Attachment Upload (for creation)
-            echo heading("gvv_attachments_title", 3);
+            echo '<h3>' . $attachments_heading . '</h3>';
             echo '<small class="text-muted">(' . $this->lang->line("gvv_optional") . ')</small>';
         ?>
             <div class="form-group mt-2">
@@ -147,7 +153,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
         <?php
         } elseif ($action == MODIFICATION || $action == VISUALISATION) {
             // Existing attachment display for edit mode with inline editing
-            echo heading("gvv_attachments_title", 3);
+            echo '<h3>' . $attachments_heading . '</h3>';
 
             // Container for attachments section
             echo '<div id="attachmentsFormSection" data-ecriture-id="' . $id . '">';

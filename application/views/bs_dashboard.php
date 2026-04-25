@@ -794,7 +794,7 @@ $this->lang->load('tableaux_de_bord');
                 <?php endif; ?>
                 <?php endif; ?>
 
-                <?php if ($is_treasurer): ?>
+                <?php if ($is_treasurer_in_section): ?>
                 <!-- Configuration comptable -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-cog"></i> <?= $this->lang->line('db_sub_accounting_config') ?></h6>

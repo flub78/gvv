@@ -180,6 +180,47 @@ if (!function_exists('has_role')) {
     }
 }
 
+if (!function_exists('has_global_role')) {
+    /**
+     * Check if the current user has a role in ANY section (global check).
+     * Used for menu/dashboard visibility: a tresorier in section 3 should
+     * still see the accounting menu regardless of the currently selected section.
+     */
+    function has_global_role($role) {
+        $CI = &get_instance();
+
+        if ($CI->dx_auth->is_logged_in()) {
+            if ($CI->dx_auth->is_admin()) {
+                return true;
+            }
+            $user_id = $CI->dx_auth->get_user_id();
+            if ($user_id) {
+                $admin_q = $CI->db->select('role_id')->from('users')
+                    ->where('id', (int) $user_id)->limit(1)->get();
+                if ($admin_q && $admin_q->num_rows() > 0 && (int)$admin_q->row()->role_id === 2) {
+                    return true;
+                }
+            }
+        }
+
+        $uses_new_auth = $CI->session->userdata('use_new_auth')
+            || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
+
+        if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
+            $CI->load->library('Gvv_Authorization');
+            $user_id = $CI->dx_auth->get_user_id();
+            if ($role !== 'club-admin' && $CI->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
+                return true;
+            }
+            // NULL section_id → check across all sections
+            return $CI->gvv_authorization->has_role($user_id, $role, NULL);
+        }
+
+        // Fallback to regular section-scoped check for legacy users
+        return has_role($role);
+    }
+}
+
 if (!function_exists('has_vd_role')) {
     /**
      * Returns true if the current user has any role granting access to the

@@ -55,6 +55,34 @@ class User_roles_per_section extends Gvv_Controller {
     function set_section() {
         $section = $this->input->post('section');
         $current_url = $this->input->post('current_url');
+
+        // For new-auth users, validate the section before accepting it.
+        // "Toutes" is represented by a key that does not match any real section id.
+        if ($this->use_new_auth && $this->dx_auth->is_logged_in()) {
+            $section_int = (int) $section;
+            $is_real_section = $section_int > 0
+                && $this->db->where('id', $section_int)->count_all_results('sections') > 0;
+
+            if ($is_real_section) {
+                $user_id = $this->dx_auth->get_user_id();
+                $has_role = $this->db
+                    ->where('user_id', $user_id)
+                    ->where('section_id', $section_int)
+                    ->where('revoked_at IS NULL')
+                    ->count_all_results('user_roles_per_section') > 0;
+
+                if (!$has_role) {
+                    log_message('warning', "set_section: user $user_id denied access to section $section_int (no role)");
+                    if ($this->input->is_ajax_request()) {
+                        echo json_encode(['redirect' => site_url('welcome'), 'error' => 'no_role']);
+                    } else {
+                        redirect('welcome');
+                    }
+                    return;
+                }
+            }
+        }
+
         $this->session->set_userdata('section', $section);
         gvv_debug("section set to $section");
 

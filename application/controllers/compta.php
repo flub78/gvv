@@ -1926,10 +1926,12 @@ class Compta extends Gvv_Controller {
         $mlogin = $this->dx_auth->get_username();
         $info_pilote = $this->membres_model->get_by_id('mlogin', $mlogin);
 
-        // Check that the user as the right to display this account
+        // Check that the user has the right to display this account
         if ($user == $this->dx_auth->get_username()) {
         } else if ($this->dx_auth->is_role('bureau', true, true)) {
         } else if ($compte == $info_pilote['compte']) {
+        } else if ($this->has_modification_rights(NULL)) {
+            // Tresorier in any section — read-only access allowed
         } else {
             $this->dx_auth->deny_access();
         }
@@ -2005,15 +2007,21 @@ class Compta extends Gvv_Controller {
             redirect("comptes/balance");
         }
 
+        // Tresoriers can view any section's account journal (cross-section read access).
         // Regular users can only view their own account.
         $section_context = $section ? $section : $this->gvv_model->section();
         $modification_section_id = $section_context ? $section_context['id'] : (isset($data['club']) ? $data['club'] : null);
         if (!$this->has_modification_rights($modification_section_id)) {
-            $owner = $this->comptes_model->user($compte);
-            $mlogin = $this->dx_auth->get_username();
-            if ($owner != $mlogin) {
-                $this->dx_auth->deny_access();
-                return;
+            // Cross-section tresorier: has modification_level role in some other section — read-only allowed.
+            if ($this->use_new_auth && $this->has_modification_rights(NULL)) {
+                // read-only access granted, no deny
+            } else {
+                $owner = $this->comptes_model->user($compte);
+                $mlogin = $this->dx_auth->get_username();
+                if ($owner != $mlogin) {
+                    $this->dx_auth->deny_access();
+                    return;
+                }
             }
         }
 
