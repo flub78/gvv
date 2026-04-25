@@ -386,7 +386,8 @@ class Comptes extends Gvv_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = 0;
         $this->data['message'] = "";
-        $this->data['has_modification_rights'] = $this->has_modification_rights();
+        $page_section = $this->data['section'];
+        $this->data['has_modification_rights'] = $this->has_modification_rights($page_section ? $page_section['id'] : NULL);
 
         // Ici l'URL de retour est toujours correct, donc écrasé après ...
         // echo "# " . $this->session->userdata('return_url');
@@ -515,7 +516,8 @@ class Comptes extends Gvv_Controller {
         $this->data['count'] = count($result_general);
         $this->data['premier'] = 0;
         $this->data['message'] = "";
-        $this->data['has_modification_rights'] = $this->has_modification_rights();
+        $balance_section = $this->data['section'];
+        $this->data['has_modification_rights'] = $this->has_modification_rights($balance_section ? $balance_section['id'] : NULL);
 
         return load_last_view('comptes/bs_balanceView', $this->data, $this->unit_test);
     }
