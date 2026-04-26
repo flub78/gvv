@@ -446,7 +446,7 @@ $this->lang->load('tableaux_de_bord');
     </div>
     <?php endif; ?>
 
-    <?php if ($is_admin || $is_treasurer): ?>
+    <?php if ($is_admin || ($this->config->item('tresorers_can_access_others_sections') ? $is_treasurer : $is_treasurer_in_section)): ?>
     <!-- Section Trésorier -->
     <div class="accordion-item section-card treasurer">
         <h2 class="accordion-header" id="headingTreasurer">
@@ -472,7 +472,7 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
-                <?php if (has_role('club-admin') || has_role('tresorier')) : ?>
+                <?php if (has_role('club-admin') || has_role('tresorier') || ($this->config->item('tresorers_can_access_others_sections') && $is_treasurer)) : ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-book text-primary"></i>

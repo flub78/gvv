@@ -47,9 +47,9 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
         );
 
         $this->assertRegExp(
-            '/function datatable_journal_compte\(.*?\$has_modification_rights = \$this->has_modification_rights\(\);/s',
+            '/function datatable_journal_compte\(.*?\$journal_section_id = isset\(\$data\[\'club\'\]\) \? \(int\) \$data\[\'club\'\] : NULL;.*?\$has_modification_rights = \$this->has_modification_rights\(\$journal_section_id\);/s',
             $source,
-            'datatable_journal_compte() must use has_modification_rights() when deciding whether to render edit links'
+            'datatable_journal_compte() must use has_modification_rights() with the account section when deciding whether to render edit links'
         );
 
         $this->assertRegExp(
@@ -69,9 +69,15 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents($controller_file);
 
         $this->assertRegExp(
-            '/function journal_compte\(.*?\$modification_section_id = .*?;.*?if \(!\$this->has_modification_rights\(\$modification_section_id\)\) \{/s',
+            '/function journal_compte\(.*?\$modification_section_id = isset\(\$data\[\'club\'\]\) \? \(int\) \$data\[\'club\'\] : null;.*?if \(!\$this->has_modification_rights\(\$modification_section_id\)\) \{/s',
             $source,
             'journal_compte() must use has_modification_rights() with the account section context'
+        );
+
+        $this->assertRegExp(
+            '/function journal_compte\(.*?\$cross_section_ok = \$this->use_new_auth\s*&& \$this->config->item\(\'tresorers_can_access_others_sections\'\)\s*&& \$this->has_modification_rights\(NULL\);/s',
+            $source,
+            'journal_compte() cross-section treasurer read access must remain gated by feature flag'
         );
 
         $this->assertRegExp(
@@ -96,10 +102,11 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
         $comptes_source = file_get_contents(APPPATH . 'controllers/comptes.php');
         $tarifs_source = file_get_contents(APPPATH . 'controllers/tarifs.php');
 
+        // comptes.php now passes the section id so rights are scoped to the displayed section.
         $this->assertRegExp(
-            '/\$this->data\[\'has_modification_rights\'\] = \$this->has_modification_rights\(\);/s',
+            '/\$this->data\[\'has_modification_rights\'\] = \$this->has_modification_rights\(\$[a-z_]+ \? \$[a-z_]+\[\'id\'\] : NULL\);/s',
             $comptes_source,
-            'comptes controller must use the shared has_modification_rights() helper'
+            'comptes controller must use the shared has_modification_rights() helper with section context'
         );
 
         $this->assertRegExp(

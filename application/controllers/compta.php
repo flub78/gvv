@@ -1617,9 +1617,9 @@ class Compta extends Gvv_Controller {
         $raw_result = $result;
         // gvv_debug("ajax result 1 =" . var_export($result, true));
 
-        $has_modification_rights = $this->has_modification_rights();
-
-        $has_modification_rights = $has_modification_rights && ($this->gvv_model->section());
+        $ajax_section = $this->gvv_model->section();
+        $ajax_section_id = $ajax_section ? $ajax_section['id'] : NULL;
+        $has_modification_rights = $this->has_modification_rights($ajax_section_id) && $ajax_section;
 
         $actions = [];
         if ($has_modification_rights) {
@@ -1927,11 +1927,13 @@ class Compta extends Gvv_Controller {
         $info_pilote = $this->membres_model->get_by_id('mlogin', $mlogin);
 
         // Check that the user has the right to display this account
+        $cross_section_tresorier = $this->config->item('tresorers_can_access_others_sections')
+            && $this->has_modification_rights(NULL);
         if ($user == $this->dx_auth->get_username()) {
         } else if ($this->dx_auth->is_role('bureau', true, true)) {
         } else if ($compte == $info_pilote['compte']) {
-        } else if ($this->has_modification_rights(NULL)) {
-            // Tresorier in any section — read-only access allowed
+        } else if ($cross_section_tresorier) {
+            // Tresorier in any section — read-only access allowed when feature flag is active
         } else {
             $this->dx_auth->deny_access();
         }
@@ -2010,10 +2012,15 @@ class Compta extends Gvv_Controller {
         // Tresoriers can view any section's account journal (cross-section read access).
         // Regular users can only view their own account.
         $section_context = $section ? $section : $this->gvv_model->section();
-        $modification_section_id = $section_context ? $section_context['id'] : (isset($data['club']) ? $data['club'] : null);
+        // Authorization must be based on the account section, not the session section.
+        $modification_section_id = isset($data['club']) ? (int) $data['club'] : null;
         if (!$this->has_modification_rights($modification_section_id)) {
-            // Cross-section tresorier: has modification_level role in some other section — read-only allowed.
-            if ($this->use_new_auth && $this->has_modification_rights(NULL)) {
+            // Cross-section tresorier: has modification_level role in some other section — read-only allowed
+            // when the feature flag is active.
+            $cross_section_ok = $this->use_new_auth
+                && $this->config->item('tresorers_can_access_others_sections')
+                && $this->has_modification_rights(NULL);
+            if ($cross_section_ok) {
                 // read-only access granted, no deny
             } else {
                 $owner = $this->comptes_model->user($compte);
@@ -2150,10 +2157,9 @@ class Compta extends Gvv_Controller {
             }
 
             // Check permissions for actions.
-            // Use the journal's section (explicit parameter or session section) so that
-            // tresoriers only get edit buttons for entries in their own section.
+            // Use account section as reference, not the current session section.
             $section = $this->gvv_model->section();
-            $journal_section_id = $section_id ?: ($section ? $section['id'] : NULL);
+            $journal_section_id = isset($data['club']) ? (int) $data['club'] : NULL;
             $has_modification_rights = $this->has_modification_rights($journal_section_id);
 
             // Format data for older DataTables format

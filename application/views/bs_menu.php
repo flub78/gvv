@@ -294,12 +294,12 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
         </li>
         <?php endif; ?>
 
-        <?php if (has_role('ca') || has_global_role('tresorier') || has_role('club-admin')) : ?>
+        <?php if (has_role('ca') || has_role('club-admin') || ($this->config->item('tresorers_can_access_others_sections') ? has_global_role('tresorier') : has_role('tresorier'))) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_accounting") ?></a>
             <ul class="dropdown-menu">
 
-              <?php if (has_role('club-admin') || has_global_role('tresorier')) : ?>
+              <?php if (has_role('club-admin') || ($this->config->item('tresorers_can_access_others_sections') ? has_global_role('tresorier') : has_role('tresorier'))) : ?>
                 <li><a class="dropdown-item" href="<?= controller_url("compta/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("gvv_menu_accounting_journal") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance") ?>"><i class="fas fa-balance-scale text-info"></i> <?= translation("gvv_menu_accounting_balance") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("comptes/balance/512?start_expanded=true") ?>"><i class="fas fa-university text-primary"></i> <?= translation("gvv_menu_accounting_banking_accounts") ?></a></li>
