@@ -1740,6 +1740,10 @@ class Compta extends Gvv_Controller {
                 $date_op = isset($raw_row['date_op']) ? $raw_row['date_op'] : '';
                 $montant = isset($raw_row['montant']) ? $raw_row['montant'] : '';
                 $desc = htmlspecialchars(isset($raw_row['description']) ? $raw_row['description'] : '');
+                $is_reconciled = $this->db->where('id_ecriture_gvv', $ecriture_id)->count_all_results('associations_ecriture') > 0;
+                $reconciled_badge = $is_reconciled
+                    ? '<span title="Rapproché" style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;"></span>'
+                    : '';
                 $row[] = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" '
                     . 'data-ecriture-id="' . $ecriture_id . '" '
                     . 'data-attachment-count="' . $attachment_count . '" '
@@ -1747,7 +1751,8 @@ class Compta extends Gvv_Controller {
                     . 'data-description="' . $desc . '" '
                     . 'data-montant="' . htmlspecialchars($montant) . '" '
                     . 'title="' . $title . '" '
-                    . 'style="cursor: pointer; font-size: 1.1em;"></i>';
+                    . 'style="cursor: pointer; font-size: 1.1em;"></i>'
+                    . $reconciled_badge;
             } else {
                 $row[] = '';
             }
@@ -2202,37 +2207,10 @@ class Compta extends Gvv_Controller {
                     $row[] = htmlspecialchars($autre_compte_nom);
                 }
                 
-                // Add description (with paperclip icon for users with modification rights only)
+                // Description
                 $description = isset($ecriture['description']) ? $ecriture['description'] : '';
                 $ecriture_id = $ecriture['id'];
-
-                if ($has_modification_rights) {
-                    // Get attachment count
-                    $this->db->where('referenced_table', 'ecritures');
-                    $this->db->where('referenced_id', $ecriture_id);
-                    $attachment_count = $this->db->count_all_results('attachments');
-
-                    $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
-                    $title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
-
-                    $date_op = isset($ecriture['date_op']) ? $ecriture['date_op'] : '';
-                    $debit = isset($ecriture['debit']) ? $ecriture['debit'] : '';
-                    $credit = isset($ecriture['credit']) ? $ecriture['credit'] : '';
-
-                    $icon_html = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" ' .
-                        'data-ecriture-id="' . $ecriture_id . '" ' .
-                        'data-attachment-count="' . $attachment_count . '" ' .
-                        'data-date="' . $date_op . '" ' .
-                        'data-description="' . htmlspecialchars($description) . '" ' .
-                        'data-debit="' . $debit . '" ' .
-                        'data-credit="' . $credit . '" ' .
-                        'style="cursor: pointer; margin-right: 5px; font-size: 1.1em;" ' .
-                        'title="' . $title . '"></i>';
-
-                    $row[] = $icon_html . htmlspecialchars($description);
-                } else {
-                    $row[] = htmlspecialchars($description);
-                }
+                $row[] = htmlspecialchars($description);
                 $num_cheque = isset($ecriture['num_cheque']) ? $ecriture['num_cheque'] : '';
                 if (strpos($num_cheque, 'HelloAsso:') === 0) {
                     $ref = htmlspecialchars(substr($num_cheque, strlen('HelloAsso:')));
@@ -2250,7 +2228,31 @@ class Compta extends Gvv_Controller {
                 $gel_disabled = $has_modification_rights ? '' : ' disabled="disabled"';
                 $gel_checkbox = '<input type="checkbox" class="gel-checkbox" data-ecriture-id="' . $ecriture['id'] . '" ' . $gel_checked . $gel_disabled . ' />';
                 $row[] = $gel_checkbox;
-                
+
+                // Paperclip column for attachments
+                $this->db->where('referenced_table', 'ecritures');
+                $this->db->where('referenced_id', $ecriture_id);
+                $attachment_count = $this->db->count_all_results('attachments');
+                $icon_class = $attachment_count > 0 ? 'text-success fw-bold' : 'text-muted';
+                $attach_title = $attachment_count > 0 ? $attachment_count . ' justificatif(s)' : 'Aucun justificatif';
+                $date_op = isset($ecriture['date_op']) ? $ecriture['date_op'] : '';
+                $debit = isset($ecriture['debit']) ? $ecriture['debit'] : '';
+                $credit = isset($ecriture['credit']) ? $ecriture['credit'] : '';
+                $is_reconciled = $this->db->where('id_ecriture_gvv', $ecriture_id)->count_all_results('associations_ecriture') > 0;
+                $reconciled_badge = $is_reconciled
+                    ? '<span title="Rapproché" style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;"></span>'
+                    : '';
+                $row[] = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" '
+                    . 'data-ecriture-id="' . $ecriture_id . '" '
+                    . 'data-attachment-count="' . $attachment_count . '" '
+                    . 'data-date="' . $date_op . '" '
+                    . 'data-description="' . htmlspecialchars($description) . '" '
+                    . 'data-debit="' . $debit . '" '
+                    . 'data-credit="' . $credit . '" '
+                    . 'title="' . $attach_title . '" '
+                    . 'style="cursor: pointer; font-size: 1.1em;"></i>'
+                    . $reconciled_badge;
+
                 $aaData[] = $row;
             }
 

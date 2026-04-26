@@ -254,6 +254,7 @@ echo '<th>Débit</th>';
 echo '<th>Crédit</th>';
 echo '<th>Solde</th>';
 echo '<th>Gel</th>';
+echo '<th><i class="fas fa-paperclip text-secondary" title="Justificatifs"></i></th>';
 echo '</tr>';
 echo '</thead>';
 echo '<tbody>';
@@ -454,11 +455,12 @@ echo '</div>';
                 { "bSortable": false },                         // Description
                 { "bSortable": false },                         // N° chèque
                 { "bSortable": false },                         // Prix
-                { "bSortable": false },                         // Quantité
+                { "bSortable": false, "sWidth": "55px" },           // Quantité
                 { "bSortable": false },                         // Débit
                 { "bSortable": false },                         // Crédit
                 { "bSortable": false },                         // Solde
-                { "bSortable": false, "bSearchable": false }    // Gel (checkbox HTML, non pertinent pour la recherche)
+                { "bSortable": false, "bSearchable": false },   // Gel (checkbox HTML, non pertinent pour la recherche)
+                { "bSortable": false, "bSearchable": false, "sWidth": "35px" }  // Justificatifs (trombone)
             ],
             "oLanguage": olanguage,
             "aLengthMenu": [

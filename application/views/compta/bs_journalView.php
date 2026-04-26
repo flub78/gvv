@@ -175,12 +175,14 @@ $this->lang->load('compta');
     if ($has_modification_rights && $section) {
         $column_defs = [
             ["aTargets" => [10], "sClass" => "text-end"],
-            ["aTargets" => [4, 6, 11, 12], "sClass" => "text-center"]
+            ["aTargets" => [4, 6, 11, 12], "sClass" => "text-center"],
+            ["aTargets" => [13], "sWidth" => "35px", "sClass" => "text-center"]
         ];
     } else {
         $column_defs = [
             ["aTargets" => [8], "sClass" => "text-end"],
-            ["aTargets" => [2, 4, 9, 10], "sClass" => "text-center"]
+            ["aTargets" => [2, 4, 9, 10], "sClass" => "text-center"],
+            ["aTargets" => [11], "sWidth" => "35px", "sClass" => "text-center"]
         ];
     }
     ?>
