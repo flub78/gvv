@@ -30,8 +30,8 @@ test.describe('UC4 - Bon decouverte via vols_decouverte/create', () => {
         const response = await page.goto(CREATE_URL);
         await page.waitForLoadState('domcontentloaded');
 
-        // Should receive 404 (show_404 does not redirect, just returns 404 status)
-        expect(response.status()).toBe(404);
+        // Should receive 403 (show_403 does not redirect, just returns 403 status)
+        expect(response.status()).toBe(403);
     });
 
     test('Tresorier can access vols_decouverte/create', async ({ page }) => {

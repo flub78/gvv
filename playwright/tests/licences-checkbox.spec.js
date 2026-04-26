@@ -34,6 +34,10 @@ test.describe('Licences Checkbox Interface', () => {
     await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
+    // Activer l'onglet Vue globale (les licence-checkbox y sont, pas dans l'onglet par défaut)
+    await page.click('#tab-global');
+    await page.waitForSelector('#pane-global.show.active');
+
     // Vérifier que le titre est présent
     await expect(page.locator('h3:has-text("Licences")')).toBeVisible();
 
@@ -58,6 +62,10 @@ test.describe('Licences Checkbox Interface', () => {
     // Naviguer vers la page des licences
     await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
+
+    // Activer l'onglet Vue globale (les licence-checkbox y sont, pas dans l'onglet par défaut)
+    await page.click('#tab-global');
+    await page.waitForSelector('#pane-global.show.active');
 
     // Trouver une checkbox non cochée
     const uncheckedCheckbox = page.locator('input.licence-checkbox[type="checkbox"]:not(:checked)').first();
@@ -101,6 +109,10 @@ test.describe('Licences Checkbox Interface', () => {
     await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
 
+    // Activer l'onglet Vue globale (les licence-checkbox y sont, pas dans l'onglet par défaut)
+    await page.click('#tab-global');
+    await page.waitForSelector('#pane-global.show.active');
+
     // Trouver une checkbox cochée
     const checkedCheckbox = page.locator('input.licence-checkbox[type="checkbox"]:checked').first();
 
@@ -142,6 +154,10 @@ test.describe('Licences Checkbox Interface', () => {
     // Naviguer vers la page des licences
     await page.goto('/index.php/licences/per_year');
     await page.waitForLoadState('networkidle');
+
+    // Activer l'onglet Vue globale (les licence-checkbox y sont, pas dans l'onglet par défaut)
+    await page.click('#tab-global');
+    await page.waitForSelector('#pane-global.show.active');
 
     // Trouver une checkbox
     const checkbox = page.locator('input.licence-checkbox[type="checkbox"]').first();
