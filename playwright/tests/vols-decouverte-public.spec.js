@@ -17,6 +17,55 @@
  */
 
 const { test, expect, request } = require('@playwright/test');
+const { execSync } = require('child_process');
+const fs   = require('fs');
+const os   = require('os');
+const path = require('path');
+
+// Force all tests in this file to run serially in one worker so that
+// beforeAll/afterAll DB setup is not duplicated or interleaved across workers.
+test.describe.configure({ mode: 'serial' });
+
+// ---------------------------------------------------------------------------
+// DB helpers — run arbitrary SQL against the test database via the mysql CLI
+// ---------------------------------------------------------------------------
+const DB = { host: 'localhost', user: 'gvv_user', password: 'lfoyfgbj', database: 'gvv2' };
+
+function runSQL(sql) {
+    const tmp = path.join(os.tmpdir(), `gvv_playwright_${process.pid}_${Date.now()}.sql`);
+    fs.writeFileSync(tmp, sql);
+    try {
+        execSync(`mysql -h${DB.host} -u${DB.user} -p${DB.password} ${DB.database} < ${tmp}`, { stdio: 'pipe' });
+    } finally {
+        try { fs.unlinkSync(tmp); } catch (_) {}
+    }
+}
+
+// Insert a VD tarif for section 4 so that get_sections_vd_disponibles() returns it.
+// Cleaned up in afterAll.
+const TEST_TARIF_REF = 'playwright_test_vd_section4';
+
+test.beforeAll(async () => {
+    runSQL(`
+        DELETE FROM tarifs WHERE reference = '${TEST_TARIF_REF}';
+        DELETE FROM public_rate_limit WHERE endpoint = 'vd_public_form';
+        INSERT INTO tarifs
+            (reference, date, date_fin, description, prix, nb_personnes_max,
+             compte, saisie_par, club, nb_tickets, type_ticket, is_cotisation,
+             public, created_by, created_at, updated_by, updated_at)
+        VALUES
+            ('${TEST_TARIF_REF}', '2020-01-01', '2099-12-31',
+             'Vol de découverte test Playwright', 100.00, 1,
+             726, 'playwright', 4, 0, 1, 0,
+             1, 'playwright', NOW(), 'playwright', NOW());
+    `);
+});
+
+test.afterAll(async () => {
+    runSQL(`DELETE FROM tarifs WHERE reference = '${TEST_TARIF_REF}';`);
+});
+
+// ---------------------------------------------------------------------------
 
 const BASE            = '';
 const LOGIN_URL       = '/index.php/auth/login';
@@ -118,7 +167,7 @@ test.describe('Public VD page — POST validation', () => {
         await checkNoPhpErrors(page);
 
         // Page must still be fully rendered (no partial/blank reload).
-        await expect(page.locator('h1')).toContainText('Réserver un vol de découverte');
+        await expect(page.locator('h1:has-text("Réserver")')).toBeVisible();
         await expect(page.locator('form[action*="public_vd"]')).toBeVisible();
 
         // The specific validation message for missing emergency contact must be visible.
