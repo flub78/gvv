@@ -177,15 +177,21 @@ $this->load->view('bs_banner');
         
         .time-slot-header {
             min-width: 60px;
-            padding: 8px 4px;
-            text-align: center;
+            flex: 0 0 60px;
             border-right: 1px solid #eee;
+            position: relative;
+        }
+
+        .time-label {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateX(-50%) translateY(-50%);
             font-size: 11px;
             font-weight: 600;
             color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            white-space: nowrap;
+            pointer-events: none;
         }
         
         /* Resources timeline */
@@ -542,10 +548,11 @@ $this->load->view('bs_banner');
             let html = '<div class="timeline-time-header">';
             for (let hour = 6; hour < 24; hour++) {
                 const timeStr = String(hour).padStart(2, '0') + ':00';
-                html += `<div class="time-slot-header">${timeStr}</div>`;
+                const label = hour === 6 ? '' : `<span class="time-label">${timeStr}</span>`;
+                html += `<div class="time-slot-header">${label}</div>`;
             }
             html += '</div>';
-            
+
             document.getElementById('timelineContent').innerHTML = html;
         }
         
