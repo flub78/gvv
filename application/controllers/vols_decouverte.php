@@ -663,6 +663,10 @@ class Vols_decouverte extends Gvv_Controller {
      * email un bon
      */
     function email_vd($obfuscated_id) {
+        if (!parent::user_has_role('pilote_vd') && !$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
+            return;
+        }
         $id = reverseTransform($obfuscated_id);
         $vd = $this->gvv_model->get_by_id($this->kid, $id);
         // var_dump($vd);exit;
