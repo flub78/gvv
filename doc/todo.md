@@ -12,7 +12,6 @@
 * []qui a le droit de modifier des droits. Ca ne sert à rien qu'on ait un système de droit sophistiqués si les gens qui gèrent les droits peuvent se donner tous les droits... Ou donner à leurs copains plus de droits qu'ils n'en ont eux-mêmes. un membre du CA qui veut ajouter ou supprimer un pilote VD, c'est OK.
 
 * [] comptes/resultat_par_sections, essayer d'optimiser le nombre de requêtes SQL, c'est très lent quand on a beaucoup de sections et de comptes.
-* [] Vérifier ou sont placées les unités sur la timeline de réservation
 
 ## Priorités
 
@@ -33,7 +32,6 @@ Cela implique de:
 
 * [] AJout de vrais export excel en sus des csv.
 * [] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce. Discutable, c'est pratique quand on fait des ajustements comptables.
-* [] Timeout, il faudrait mieux déconnecter. La section active a été perdue. Merci de sélectionner à nouveau une section.
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
 * [] Le gel/dégel des écritures ne retourne pas exactement sur l'endroit ou était l'utilisateur, il faudrait faire mieux.
    

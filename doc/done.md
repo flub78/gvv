@@ -161,3 +161,5 @@
 * [x] Les trésoriers doivent avoir accès à l'option toutes.
 * [x] Supprimer l'ancienne vue du bilan
 * [x] **la page de retour après une modification des écritures est discutable**
+* [x] Vérifier ou sont placées les unités sur la timeline de réservation
+* [x] Timeout, il faut mieux déconnecter. 
