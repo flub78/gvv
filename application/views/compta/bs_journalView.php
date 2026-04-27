@@ -231,5 +231,38 @@ $this->lang->load('compta');
         //
         -->
     </script>
+
+    <!-- Modal rapprochement -->
+    <div class="modal fade" id="rapprochement-modal" tabindex="-1" aria-labelledby="rapprochement-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="rapprochement-modal-label">
+                        <i class="fas fa-check-circle me-2"></i>Relevé de rapprochement
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="rapprochement-content" class="mb-0" style="white-space:pre-wrap;word-break:break-word;font-size:0.9em;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).on('click', '.reconciled-badge', function() {
+        var raw = $(this).data('releve') || '';
+        var lines = raw.split('\n');
+        var formatted = lines.map(function(line) {
+            return line.replace(/_/g, ' ').trim();
+        }).join('\n');
+        $('#rapprochement-content').text(formatted);
+        var modal = new bootstrap.Modal(document.getElementById('rapprochement-modal'));
+        modal.show();
+    });
+    </script>
     <?php
     ?>

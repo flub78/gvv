@@ -1740,9 +1740,13 @@ class Compta extends Gvv_Controller {
                 $date_op = isset($raw_row['date_op']) ? $raw_row['date_op'] : '';
                 $montant = isset($raw_row['montant']) ? $raw_row['montant'] : '';
                 $desc = htmlspecialchars(isset($raw_row['description']) ? $raw_row['description'] : '');
-                $is_reconciled = $this->db->where('id_ecriture_gvv', $ecriture_id)->count_all_results('associations_ecriture') > 0;
-                $reconciled_badge = $is_reconciled
-                    ? '<span title="Rapproché" style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;"></span>'
+                $releve_rows = $this->db->select('string_releve')->where('id_ecriture_gvv', $ecriture_id)->get('associations_ecriture')->result_array();
+                $releve_strings = array_column($releve_rows, 'string_releve');
+                $reconciled_badge = !empty($releve_strings)
+                    ? '<span class="reconciled-badge" '
+                      . 'data-releve="' . htmlspecialchars(implode("\n", $releve_strings), ENT_QUOTES) . '" '
+                      . 'title="Rapproché — cliquer pour voir le relevé" '
+                      . 'style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;cursor:pointer;"></span>'
                     : '';
                 $row[] = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" '
                     . 'data-ecriture-id="' . $ecriture_id . '" '
@@ -2238,9 +2242,13 @@ class Compta extends Gvv_Controller {
                 $date_op = isset($ecriture['date_op']) ? $ecriture['date_op'] : '';
                 $debit = isset($ecriture['debit']) ? $ecriture['debit'] : '';
                 $credit = isset($ecriture['credit']) ? $ecriture['credit'] : '';
-                $is_reconciled = $this->db->where('id_ecriture_gvv', $ecriture_id)->count_all_results('associations_ecriture') > 0;
-                $reconciled_badge = $is_reconciled
-                    ? '<span title="Rapproché" style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;"></span>'
+                $releve_rows = $this->db->select('string_releve')->where('id_ecriture_gvv', $ecriture_id)->get('associations_ecriture')->result_array();
+                $releve_strings = array_column($releve_rows, 'string_releve');
+                $reconciled_badge = !empty($releve_strings)
+                    ? '<span class="reconciled-badge" '
+                      . 'data-releve="' . htmlspecialchars(implode("\n", $releve_strings), ENT_QUOTES) . '" '
+                      . 'title="Rapproché — cliquer pour voir le relevé" '
+                      . 'style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:#198754;vertical-align:middle;margin-left:3px;cursor:pointer;"></span>'
                     : '';
                 $row[] = '<i class="fas fa-paperclip ' . $icon_class . ' attachment-icon" '
                     . 'data-ecriture-id="' . $ecriture_id . '" '
