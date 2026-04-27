@@ -432,6 +432,15 @@ $this->lang->load('tableaux_de_bord');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-plus-circle text-warning"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_sell_voucher') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_sell_voucher') ?></div>
+                        <a href="<?= controller_url('vols_decouverte/create') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-clipboard-check text-success"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_passenger_briefing') ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line('db_desc_declarations') ?></div>

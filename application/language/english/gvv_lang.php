@@ -413,6 +413,7 @@ $lang['section_selected'] = 'A section must be selected to perform this action';
 $lang['gvv_menu_vols_decouverte'] = "Discovery flights";
 $lang['gvv_menu_vols_decouverte_select'] = "Discovery flight";
 $lang['gvv_menu_liste_des_bons'] = "Voucher list";
+$lang['gvv_menu_vendre_un_bon'] = "Sell a voucher";
 $lang['gvv_configuration_title_list'] = "Configuration parameters";
 $lang['gvv_menu_validities'] = "License validity";
 $lang['gvv_menu_reports_financial_reports'] = "Financial reports";

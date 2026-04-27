@@ -95,6 +95,30 @@ if ($modification_type == 'edit') {
 		</div>
 	</div>
 
+	<?php if ($action == CREATION): ?>
+	<!-- Création : contact d'urgence uniquement, les champs vol/paiement sont renseignés à l'édition -->
+	<div class="card mb-3">
+		<div class="card-header bg-info text-white">
+			<h5 class="mb-0">Contact d'urgence</h5>
+		</div>
+		<div class="card-body">
+			<?php
+			echo ($this->gvvmetadata->form('vols_decouverte', array(
+				'urgence' => $urgence,
+			)));
+			?>
+		</div>
+	</div>
+	<?php
+	echo form_hidden('date_vol', '', '');
+	echo form_hidden('pilote', '', '');
+	echo form_hidden('airplane_immat', '', '');
+	echo form_hidden('aerodrome', isset($aerodrome) ? $aerodrome : '', '');
+	echo form_hidden('paiement', '', '');
+	echo form_hidden('participation', '', '');
+	echo form_hidden('cancelled', '0', '');
+	?>
+	<?php else: ?>
 	<!-- Groupe 2: Contact d'urgence et vol -->
 	<div class="card mb-3">
 		<div class="card-header bg-info text-white">
@@ -128,6 +152,7 @@ if ($modification_type == 'edit') {
 			?>
 		</div>
 	</div>
+	<?php endif; ?>
 	<?php
 } else {
 
