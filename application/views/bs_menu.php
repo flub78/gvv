@@ -78,7 +78,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
 
                         <?php if (has_vd_role()) : ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
+                          <?php if (has_role('gestion_vd')) : ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/create") ?>"><i class="fas fa-plus-circle text-warning"></i> <?= translation("gvv_menu_vendre_un_bon") ?></a></li>
+                          <?php endif; ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
                           <li><a class="dropdown-item" href="<?= controller_url("briefing_passager/admin_list") ?>"><i class="fas fa-clipboard-check text-success"></i> <?= translation("briefing_passager_menu") ?></a></li>
                         <?php endif; ?>
@@ -211,7 +213,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-plane-departure text-info"></i> <?= translation("gvv_menu_vols_decouverte") ?></a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
+            <?php if (has_role('gestion_vd')) : ?>
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/create") ?>"><i class="fas fa-plus-circle text-warning"></i> <?= translation("gvv_menu_vendre_un_bon") ?></a></li>
+            <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
           </ul>
         </li>
