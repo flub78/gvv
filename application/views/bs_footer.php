@@ -17,6 +17,14 @@ if ($banner_color === '') {
 <script type="text/javascript">
     <!--
     $(document).ready(function() {
+        // Prevent double-submission on slow networks: disable submit buttons after first click.
+        // setTimeout defers the disable until after the browser has collected form data,
+        // so named submit buttons (name="button") are still included in the POST payload.
+        $('form').on('submit', function() {
+            var $btns = $(this).find('button[type="submit"], input[type="submit"]');
+            setTimeout(function() { $btns.prop('disabled', true); }, 0);
+        });
+
         // notre code ici
         $(".jbutton").button();
         $("#tabs").tabs();

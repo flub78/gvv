@@ -1217,7 +1217,10 @@ EOD;
             return;
         }
 
-        $this->_render_public_vd($section_id, $section_row, $sections_disponibles, $section_error);
+        // PRG: restore errors and form data from a failed POST redirect
+        $errors    = (array) ($this->session->flashdata('vd_public_errors')    ?: array());
+        $form_data = (array) ($this->session->flashdata('vd_public_form_data') ?: array());
+        $this->_render_public_vd($section_id, $section_row, $sections_disponibles, $section_error, $errors, null, $form_data);
     }
 
     /**
@@ -1226,10 +1229,9 @@ EOD;
     private function _post_public_vd($section_id, $section_row, array $sections_disponibles) {
         // Rate limiting
         if (!check_rate_limit('vd_public_form', 10, 3600)) {
-            $this->_render_public_vd(
-                $section_id, $section_row, $sections_disponibles, '',
-                array('rate_limit' => $this->lang->line('gvv_vd_public_rate_limit'))
-            );
+            $this->session->set_flashdata('vd_public_errors',
+                array('rate_limit' => $this->lang->line('gvv_vd_public_rate_limit')));
+            redirect('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
             return;
         }
 
@@ -1237,10 +1239,9 @@ EOD;
         if ($section_id > 0) {
             $quota_status = get_vd_quota_status($section_id);
             if ($quota_status['atteint']) {
-                $this->_render_public_vd(
-                    $section_id, $section_row, $sections_disponibles, '',
-                    array(), $quota_status
-                );
+                $this->session->set_flashdata('vd_public_errors',
+                    array('quota' => $this->lang->line('gvv_vd_quota_erreur_post')));
+                redirect('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
                 return;
             }
         }
@@ -1321,7 +1322,9 @@ EOD;
         }
 
         if (!empty($errors)) {
-            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            $this->session->set_flashdata('vd_public_errors', $errors);
+            $this->session->set_flashdata('vd_public_form_data', $form_data);
+            redirect('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
             return;
         }
 
@@ -1329,7 +1332,9 @@ EOD;
         $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id);
         if ($enabled !== '1') {
             $errors['general'] = $this->lang->line('gvv_vd_public_section_disabled');
-            $this->_render_public_vd($section_id, $section_row, $sections_disponibles, '', $errors, null, $form_data);
+            $this->session->set_flashdata('vd_public_errors', $errors);
+            $this->session->set_flashdata('vd_public_form_data', $form_data);
+            redirect('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
             return;
         }
 
