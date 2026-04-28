@@ -1350,120 +1350,6 @@ class Comptes_model extends Common_Model {
 
 
     /**
-     * Liste par codec des soldes par sections pour deux années consécutives
-     * Retourne les données brutes (float) sans formatage pour permettre les calculs.
-     * Le formatage doit être fait après les calculs via format_numeric_columns().
-     *
-     * @param string $selection Filtering criteria for selecting accounts
-     * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
-     * @param float $factor Multiplication factor for balance values (default: 1)
-     * @param bool $with_sections Whether to filter by selected section
-     * @param bool $html Whether to create HTML links for codes (formatting is done separately)
-     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
-     * @return array Table with raw float data for current year and previous year side by side
-     */
-    function select_par_section_deux_annees($selection, $balance_date, $factor = 1, $with_sections = true, $html = false, $use_full_names = false) {
-        // Détermine les années et bornes de période (accepte JJ/MM/AAAA ou AAAA-MM-JJ)
-        $year_current = 0;
-        $date_parts = explode('/', $balance_date);
-        if (count($date_parts) == 3) {
-            $year_current = intval($date_parts[2]);
-        } else {
-            $date_parts_dash = explode('-', $balance_date);
-            if (count($date_parts_dash) == 3) {
-                // format AAAA-MM-JJ
-                $year_current = intval($date_parts_dash[0]);
-            }
-        }
-        if ($year_current <= 0) {
-            $year_current = intval(date('Y'));
-        }
-        $year_prev = $year_current - 1;
-
-        $end_current_db = $year_current . '-12-31';
-        $end_prev_db = $year_prev . '-12-31';
-
-        // Récupère la liste des codecs et noms (sans montants)
-        $this->db
-            ->select('pcode as codec, pdesc as nom, club')
-            ->from('planc, comptes')
-            ->where('codec = planc.pcode')
-            ->where($selection)
-            ->order_by('codec');
-
-        if ($this->sections_model->section() && $with_sections) {
-//            $this->db->where('club', $this->sections_model->section_id());
-        }
-
-        $res = $this->db->group_by('codec')->get()->result_array();
-
-        $sections = $this->sections_model->section_list();
-        $sections_count = count($sections);
-
-        // En-tête avec années groupées par section (N et N-1 adjacentes)
-        $lbl_total_club = $this->CI->lang->line('comptes_label_total_club');
-        $header = [$this->CI->lang->line('gvv_vue_comptes_short_field_codec'), $this->CI->lang->line('comptes_label_comptes')];
-        $section_field = $use_full_names ? 'nom' : 'acronyme';
-        foreach ($sections as $section) {
-            $header[] = $section[$section_field] . ' ' . $year_current;
-            $header[] = $section[$section_field] . ' ' . $year_prev;
-        }
-        // Only add Total Club columns if there are 2 or more sections
-        if ($sections_count > 1) {
-            $header[] = $lbl_total_club . ' ' . $year_current;
-            $header[] = $lbl_total_club . ' ' . $year_prev;
-        }
-
-        $table = [$header];
-
-        foreach ($res as $codec_row) {
-            $codec = $codec_row['codec'];
-            $row_label = $codec_row['nom'];
-
-            // Cellule code (avec lien si HTML)
-            if ($html) {
-                $url = controller_url("comptes") . "/resultat_par_sections_detail/" . $codec;
-                $code_cell = anchor($url, $codec);
-            } else {
-                $code_cell = $codec;
-            }
-
-            $row = [$code_cell, $row_label];
-
-            $total_current = 0.0;
-            $total_prev = 0.0;
-
-            // Montants par section : année N et N-1 adjacentes pour chaque section
-            $is_charge = (substr($codec, 0, 1) == '6');
-            foreach ($sections as $section) {
-                $sid = $section['id'];
-                $amount_current_raw = $this->year_amount_codec_section($codec, $year_current, $sid, $is_charge);
-                $amount_prev_raw = $this->year_amount_codec_section($codec, $year_prev, $sid, $is_charge);
-
-                $amount_current = $amount_current_raw * $factor;
-                $amount_prev = $amount_prev_raw * $factor;
-
-                $total_current += $amount_current;
-                $total_prev += $amount_prev;
-
-                // Année N puis année N-1 pour cette section
-                $row[] = $amount_current;
-                $row[] = $amount_prev;
-            }
-
-            // Totaux club : année N puis année N-1 (only if 2+ sections)
-            if ($sections_count > 1) {
-                $row[] = $total_current;
-                $row[] = $total_prev;
-            }
-
-            $table[] = $row;
-        }
-
-        return $table;
-    }
-
-    /**
      * Calcule le montant d'un codec pour une section et une année, en suivant la logique de /comptes/resultat.
      * Charges (6xx): débit sur compte1 (codec=6xx) moins crédit sur compte2 (codec=6xx).
      * Produits (7xx): crédit sur compte2 (codec=7xx) moins débit sur compte1 (codec=7xx).
@@ -1605,40 +1491,6 @@ class Comptes_model extends Common_Model {
         return $formatted_table;
     }
 
-    /**
-     * Récupère les charges, produits et résultats par sections pour deux années consécutives
-     * Les calculs sont effectués sur les données brutes (float), puis formatés selon le mode d'affichage.
-     *
-     * @param string $balance_date Date for calculating account balances (format: DD/MM/YYYY)
-     * @param bool $html Whether to format for HTML display
-     * @param bool $use_full_names Whether to use full section names instead of acronyms in headers
-     * @return array Array with 'charges', 'produits', and 'resultat' tables for two years
-     */
-    function select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
-        $this->load->model('comptes_model');
-
-        // Récupération des charges et produits pour deux années (données brutes en float)
-        // Les charges sont affichées en positif (facteur = 1) pour la présentation
-        // Le paramètre $html est utilisé uniquement pour créer les liens dans la colonne Code
-        $tables = [];
-        $tables['charges'] = $this->select_par_section_deux_annees('codec >= "6" and codec < "7"', $balance_date, 1, false, $html, $use_full_names);
-        $tables['produits'] = $this->select_par_section_deux_annees('codec >= "7" and codec < "8"', $balance_date, 1, false, $html, $use_full_names);
-
-        // Dépréciations seules (68x et 78x) pour le calcul avant dépréciations
-        // Même logique que resultat_avec_depreciation : avant_dep = apres_dep + dep68 - rec78
-        $dep68 = $this->select_par_section_deux_annees('codec >= "68" and codec < "69"', $balance_date, 1, false, false, $use_full_names);
-        $rec78 = $this->select_par_section_deux_annees('codec >= "78" and codec < "79"', $balance_date, 1, false, false, $use_full_names);
-
-        // Calcul du résultat pour les deux années avec avant/après dépréciations (sur données brutes)
-        $tables['resultat'] = $this->compute_resultat_deux_annees_avec_dep($tables['charges'], $tables['produits'], $dep68, $rec78);
-
-        // Formatage des colonnes numériques après les calculs
-        $tables['charges'] = $this->format_numeric_columns($tables['charges'], 2, $html);
-        $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
-        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html);
-
-        return $tables;
-    }
 
     /**
      * Calcule le résultat (produits - charges) pour deux années
@@ -1935,17 +1787,16 @@ class Comptes_model extends Common_Model {
     }
 
     /**
-     * Version optimisée de select_resultat_par_sections_deux_annees.
-     * Utilise 3 requêtes SQL au lieu d'une par codec×section×année.
-     * Une requête unique récupère toutes les écritures 6xx-7xx pour les deux exercices,
+     * Calcule les charges, produits et résultat par sections pour deux exercices consécutifs.
+     * Utilise une requête SQL unique pour extraire toutes les écritures 6xx-7xx des deux années,
      * puis accumule les montants en PHP par codec, section et année.
      *
      * @param string $balance_date Date de fin d'exercice (format: DD/MM/YYYY)
      * @param bool   $html         Formatage HTML (liens, euros)
      * @param bool   $use_full_names Noms complets des sections dans les en-têtes
-     * @return array Tableaux 'charges', 'produits', 'resultat' identiques à la version lente
+     * @return array Tableaux 'charges', 'produits', 'resultat'
      */
-    function fast_select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
+    function select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
         // Détermine les années
         $year_current = 0;
         $date_parts = explode('/', $balance_date);
@@ -2030,7 +1881,7 @@ class Comptes_model extends Common_Model {
             return $is_charge ? ($debits - $credits) : ($credits - $debits);
         };
 
-        // Construction d'un tableau résultat dans le même format que select_par_section_deux_annees
+        // Construction du tableau résultat par codec et section
         $build_table = function($codecs_list) use ($sections, $sections_count, $year_current, $year_prev, $html, $use_full_names, $get_solde) {
             $lbl_total_club = $this->CI->lang->line('comptes_label_total_club');
             $section_field  = $use_full_names ? 'nom' : 'acronyme';
