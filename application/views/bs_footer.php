@@ -17,6 +17,11 @@ if ($banner_color === '') {
 <script type="text/javascript">
     <!--
     $(document).ready(function() {
+        // Prevent double-submission on slow networks: disable submit buttons after first click
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"], input[type="submit"]').prop('disabled', true);
+        });
+
         // notre code ici
         $(".jbutton").button();
         $("#tabs").tabs();
