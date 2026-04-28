@@ -52,6 +52,7 @@ const { test, expect } = require('@playwright/test');
 
 // Use a fixed section ID so tests are deterministic regardless of table ordering.
 const TEST_SECTION_ID = 1;
+const TEST_SECTION_NAME = 'Section Test Ordre';
 
 async function login(page) {
     await page.goto('/index.php/auth/login');
@@ -62,9 +63,37 @@ async function login(page) {
     await page.waitForLoadState('networkidle');
 }
 
+async function deleteTestSections(page) {
+    await page.goto('/index.php/sections/page');
+    await page.waitForLoadState('networkidle');
+    const dialogHandler = dialog => dialog.accept();
+    page.on('dialog', dialogHandler);
+    try {
+        let found = true;
+        while (found) {
+            const testRow = page.locator('table tbody tr').filter({ hasText: TEST_SECTION_NAME }).first();
+            found = await testRow.count() > 0;
+            if (found) {
+                await testRow.locator('a[href*="delete"]').click();
+                await page.waitForLoadState('networkidle');
+            }
+        }
+    } finally {
+        page.off('dialog', dialogHandler);
+    }
+}
+
 test.describe('Sections ordre affichage', () => {
     test.beforeEach(async ({ page }) => {
         await login(page);
+    });
+
+    test.afterEach(async ({ page }) => {
+        try {
+            await deleteTestSections(page);
+        } catch (e) {
+            // Cleanup failure must not mask test failure
+        }
     });
 
     test('should display ordre_affichage field in sections list', async ({ page }) => {
@@ -102,7 +131,7 @@ test.describe('Sections ordre affichage', () => {
         await page.click('a[href*="sections/create"]');
         await page.waitForSelector('form');
 
-        await page.fill('input[name="nom"]', 'Section Test Ordre');
+        await page.fill('input[name="nom"]', TEST_SECTION_NAME);
         await page.fill('input[name="description"]', 'Test description');
         await page.fill('input[name="acronyme"]', 'STO');
 
@@ -114,12 +143,7 @@ test.describe('Sections ordre affichage', () => {
         await page.waitForURL('**/sections/page');
 
         const sections = await page.locator('table tbody tr td').allTextContents();
-        expect(sections.some(text => text.includes('Section Test Ordre'))).toBeTruthy();
-
-        // Clean up: delete the test section immediately after creation.
-        const testRow = page.locator('table tbody tr').filter({ hasText: 'Section Test Ordre' });
-        page.on('dialog', dialog => dialog.accept());
-        await testRow.locator('a[href*="delete"]').click();
-        await page.waitForTimeout(1000);
+        expect(sections.some(text => text.includes(TEST_SECTION_NAME))).toBeTruthy();
+        // Cleanup handled by afterEach — runs even if the test fails
     });
 });
