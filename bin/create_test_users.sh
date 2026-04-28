@@ -140,11 +140,19 @@ create_legacy_user() {
         "
     fi
 
-    # 4. Create user role per section (single role in default section)
+    # 4. Create user roles per section: specific role + base 'user' role
     mysql_exec -e "
         INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id, granted_at)
         VALUES ($user_id, $types_roles_id, $SECTION_ID, NOW());
     "
+    # Also grant base 'user' role (id=1) so _check_login_permission() passes when
+    # use_new_authorization=true. Skip if specific role is already 'user'.
+    if [ "$types_roles_id" -ne "$TR_USER" ]; then
+        mysql_exec -e "
+            INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id, granted_at)
+            VALUES ($user_id, $TR_USER, $SECTION_ID, NOW());
+        "
+    fi
 
     # NOTE: Legacy users are NOT added to use_new_authorization
 

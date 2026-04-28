@@ -150,6 +150,11 @@ class MY_Controller extends CI_Controller
      */
     private function _check_login_permission()
     {
+        // DX_Auth admins (role_id=2) bypass the login permission check.
+        if ($this->dx_auth->is_admin()) {
+            return;
+        }
+
         $section_id = $this->session->userdata('section');
 
         // "Toutes" : section_id does not correspond to a real section — skip check.

@@ -6,7 +6,7 @@
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 * [] Simplifier le workflow des briefings passagers
-* [] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
+* [x] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 * []violation du principe qu'un membre ne devrait voir dans les menus que les actions qui lui sont permises... pman sur config
 * []qui a le droit de modifier des droits. Ca ne sert à rien qu'on ait un système de droit sophistiqués si les gens qui gèrent les droits peuvent se donner tous les droits... Ou donner à leurs copains plus de droits qu'ils n'en ont eux-mêmes. un membre du CA qui veut ajouter ou supprimer un pilote VD, c'est OK.

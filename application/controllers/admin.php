@@ -2880,9 +2880,9 @@ SQL;
                     $this->db->insert('comptes', $compte_insert);
                 }
 
-                // 4. Create user roles per section for new authorization system
-                // Even though these users use legacy auth, we create the roles
-                // so they can be migrated to new system if needed
+                // 4. Create user roles per section: specific role + base 'user' role.
+                // The base 'user' role (id=1) is required by _check_login_permission()
+                // when use_new_authorization=true, so all legacy users need it.
                 $role_insert = array(
                     'user_id' => $user_id,
                     'types_roles_id' => $user_data['types_roles_id'],
@@ -2890,6 +2890,15 @@ SQL;
                     'granted_at' => date('Y-m-d H:i:s')
                 );
                 $this->db->insert('user_roles_per_section', $role_insert);
+
+                if ($user_data['types_roles_id'] != $types_roles['user']) {
+                    $this->db->insert('user_roles_per_section', array(
+                        'user_id' => $user_id,
+                        'types_roles_id' => $types_roles['user'],
+                        'section_id' => $default_section,
+                        'granted_at' => date('Y-m-d H:i:s')
+                    ));
+                }
 
                 $result['created']++;
                 log_message('info', "Created legacy test user: $username (role_id={$user_data['role_id']})");
