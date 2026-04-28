@@ -38,6 +38,6 @@ class Migration_Vols_decouverte_unique_submit extends CI_Migration {
     }
 
     public function down() {
-        $this->db->query("ALTER TABLE vols_decouverte DROP INDEX uk_vd_no_double_submit");
+        $this->db->query("ALTER TABLE vols_decouverte DROP INDEX IF EXISTS uk_vd_no_double_submit");
     }
 }

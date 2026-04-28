@@ -1239,7 +1239,8 @@ EOD;
         if ($section_id > 0) {
             $quota_status = get_vd_quota_status($section_id);
             if ($quota_status['atteint']) {
-                // Redirect to GET — quota state is re-detected naturally by _render_public_vd
+                $this->session->set_flashdata('vd_public_errors',
+                    array('quota' => $this->lang->line('gvv_vd_quota_erreur_post')));
                 redirect('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
                 return;
             }
