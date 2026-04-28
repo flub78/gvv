@@ -2298,6 +2298,51 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Version optimisée de resultat_par_sections.
+     * Utilise une requête SQL unique par exercice au lieu d'une par codec×section×année.
+     */
+    function fast_resultat_par_sections($mode = 'html') {
+        $this->data['controller'] = 'comptes';
+        $this->load->model('ecritures_model');
+        $year_selector = $this->ecritures_model->getYearSelector("date_op");
+        $this->data['year_selector'] = is_array($year_selector) ? $year_selector : array();
+
+        $year = $this->session->userdata('year');
+        $this->data['year'] = $year;
+        $this->data['balance_date'] = '31/12/' . $year;
+
+        $html = ($mode == "html");
+        $use_full_names = true;
+        $tables = $this->gvv_model->fast_select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names);
+
+        $this->data['charges'] = $tables['charges'];
+        $this->data['produits'] = $tables['produits'];
+        $this->data['resultat'] = $tables['resultat'];
+
+        if (count($this->data['resultat']) >= 3) {
+            $total_charges = $this->data['resultat'][1];
+            $total_charges[1] = "Total des charges";
+            $this->data['charges'][] = $total_charges;
+
+            $total_produits = $this->data['resultat'][2];
+            $total_produits[1] = "Total des produits";
+            $this->data['produits'][] = $total_produits;
+        }
+
+        if ($mode == "csv") {
+            $this->csv_resultat_par_sections($this->data);
+            return;
+        } else if ($mode == "pdf") {
+            $this->pdf_resultat_par_sections($this->data);
+            return;
+        }
+
+        $this->push_return_url("fast_resultat_par_sections");
+
+        load_last_view('comptes/bs_resultat_par_sectionsView', $this->data);
+    }
+
+    /**
      * Affiche le détail d'un codec par sections pour deux années consécutives
      *
      * @param string $codec Code comptable (ex: '606', '701')

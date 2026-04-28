@@ -1933,6 +1933,184 @@ class Comptes_model extends Common_Model {
 
         return $this->selector_with_null($where, $filter_section);
     }
+
+    /**
+     * Version optimisée de select_resultat_par_sections_deux_annees.
+     * Utilise 3 requêtes SQL au lieu d'une par codec×section×année.
+     * Une requête unique récupère toutes les écritures 6xx-7xx pour les deux exercices,
+     * puis accumule les montants en PHP par codec, section et année.
+     *
+     * @param string $balance_date Date de fin d'exercice (format: DD/MM/YYYY)
+     * @param bool   $html         Formatage HTML (liens, euros)
+     * @param bool   $use_full_names Noms complets des sections dans les en-têtes
+     * @return array Tableaux 'charges', 'produits', 'resultat' identiques à la version lente
+     */
+    function fast_select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
+        // Détermine les années
+        $year_current = 0;
+        $date_parts = explode('/', $balance_date);
+        if (count($date_parts) == 3) {
+            $year_current = intval($date_parts[2]);
+        } else {
+            $date_parts_dash = explode('-', $balance_date);
+            if (count($date_parts_dash) == 3) {
+                $year_current = intval($date_parts_dash[0]);
+            }
+        }
+        if ($year_current <= 0) {
+            $year_current = intval(date('Y'));
+        }
+        $year_prev = $year_current - 1;
+
+        $sections = $this->sections_model->section_list();
+        $sections_count = count($sections);
+
+        // Requête 1 : liste des codecs de charges (6xx)
+        $codecs_charges = $this->db
+            ->select('pcode as codec, pdesc as nom')
+            ->from('planc, comptes')
+            ->where('codec = planc.pcode')
+            ->where('codec >= "6"')->where('codec < "7"')
+            ->group_by('codec')->order_by('codec')
+            ->get()->result_array();
+
+        // Requête 2 : liste des codecs de produits (7xx)
+        $codecs_produits = $this->db
+            ->select('pcode as codec, pdesc as nom')
+            ->from('planc, comptes')
+            ->where('codec = planc.pcode')
+            ->where('codec >= "7"')->where('codec < "8"')
+            ->group_by('codec')->order_by('codec')
+            ->get()->result_array();
+
+        // Requête 3 : toutes les écritures 6xx-7xx pour les deux exercices
+        // Exclut les comptes 120 et 129 (résultat d'exercice), même logique que solde_compte_gestion
+        $sql = "SELECT YEAR(e.date_op) AS yr, e.club AS section_id,
+                       c1.codec AS codec1, c2.codec AS codec2, e.montant
+                FROM ecritures e
+                LEFT JOIN comptes c1 ON e.compte1 = c1.id
+                LEFT JOIN comptes c2 ON e.compte2 = c2.id
+                WHERE e.date_op >= '" . $year_prev . "-01-01'
+                  AND e.date_op <= '" . $year_current . "-12-31'
+                  AND (
+                      (c1.codec >= '6' AND c1.codec < '8') OR
+                      (c2.codec >= '6' AND c2.codec < '8')
+                  )
+                  AND c1.codec != '120' AND c1.codec != '129'
+                  AND c2.codec != '120' AND c2.codec != '129'";
+
+        $rows = $this->db->query($sql)->result_array();
+
+        // Accumulation : débits/crédits par (codec, section_id, année)
+        // Les 6xx en compte1 génèrent des débits ; en compte2 des crédits (et inversement pour 7xx)
+        // NOTE: on compare le premier caractère du codec pour éviter la comparaison numérique de PHP
+        // qui transformerait "606" >= "6" en 606 >= 6 (OK) mais "606" < "8" en 606 < 8 (faux).
+        $data = [];
+        foreach ($rows as $row) {
+            $yr  = intval($row['yr']);
+            $sid = intval($row['section_id']);
+            $m   = floatval($row['montant']);
+
+            $c1 = $row['codec1'];
+            $c2 = $row['codec2'];
+
+            if (!empty($c1) && ($c1[0] === '6' || $c1[0] === '7')) {
+                $data[$c1][$sid][$yr]['debits'] = ($data[$c1][$sid][$yr]['debits'] ?? 0.0) + $m;
+            }
+            if (!empty($c2) && ($c2[0] === '6' || $c2[0] === '7')) {
+                $data[$c2][$sid][$yr]['credits'] = ($data[$c2][$sid][$yr]['credits'] ?? 0.0) + $m;
+            }
+        }
+
+        // Calcul du solde : 6xx (charges) = débits - crédits ; 7xx (produits) = crédits - débits
+        $get_solde = function($codec, $sid, $yr) use (&$data) {
+            $is_charge = ($codec[0] === '6');
+            $debits  = $data[$codec][$sid][$yr]['debits']  ?? 0.0;
+            $credits = $data[$codec][$sid][$yr]['credits'] ?? 0.0;
+            return $is_charge ? ($debits - $credits) : ($credits - $debits);
+        };
+
+        // Construction d'un tableau résultat dans le même format que select_par_section_deux_annees
+        $build_table = function($codecs_list) use ($sections, $sections_count, $year_current, $year_prev, $html, $use_full_names, $get_solde) {
+            $lbl_total_club = $this->CI->lang->line('comptes_label_total_club');
+            $section_field  = $use_full_names ? 'nom' : 'acronyme';
+
+            $header = [
+                $this->CI->lang->line('gvv_vue_comptes_short_field_codec'),
+                $this->CI->lang->line('comptes_label_comptes')
+            ];
+            foreach ($sections as $section) {
+                $header[] = $section[$section_field] . ' ' . $year_current;
+                $header[] = $section[$section_field] . ' ' . $year_prev;
+            }
+            if ($sections_count > 1) {
+                $header[] = $lbl_total_club . ' ' . $year_current;
+                $header[] = $lbl_total_club . ' ' . $year_prev;
+            }
+
+            $table = [$header];
+
+            foreach ($codecs_list as $codec_row) {
+                $codec = $codec_row['codec'];
+
+                if ($html) {
+                    $url = controller_url("comptes") . "/resultat_par_sections_detail/" . $codec;
+                    $code_cell = anchor($url, $codec);
+                } else {
+                    $code_cell = $codec;
+                }
+
+                $row           = [$code_cell, $codec_row['nom']];
+                $total_current = 0.0;
+                $total_prev    = 0.0;
+
+                foreach ($sections as $section) {
+                    $sid            = intval($section['id']);
+                    $amount_current = $get_solde($codec, $sid, $year_current);
+                    $amount_prev    = $get_solde($codec, $sid, $year_prev);
+                    $total_current += $amount_current;
+                    $total_prev    += $amount_prev;
+                    $row[]          = $amount_current;
+                    $row[]          = $amount_prev;
+                }
+
+                if ($sections_count > 1) {
+                    $row[] = $total_current;
+                    $row[] = $total_prev;
+                }
+
+                $table[] = $row;
+            }
+
+            return $table;
+        };
+
+        $tables             = [];
+        $tables['charges']  = $build_table($codecs_charges);
+        $tables['produits'] = $build_table($codecs_produits);
+
+        // Sous-tableaux dépréciations/reprises (sous-ensembles déjà dans $codecs_charges/$produits)
+        // On utilise strncmp pour un test de préfixe (évite la comparaison numérique de PHP)
+        $codecs_dep68 = array_values(array_filter($codecs_charges, function ($c) {
+            return strncmp($c['codec'], '68', 2) === 0;
+        }));
+        $codecs_rec78 = array_values(array_filter($codecs_produits, function ($c) {
+            return strncmp($c['codec'], '78', 2) === 0;
+        }));
+
+        $dep68 = $build_table($codecs_dep68);
+        $rec78 = $build_table($codecs_rec78);
+
+        $tables['resultat'] = $this->compute_resultat_deux_annees_avec_dep(
+            $tables['charges'], $tables['produits'], $dep68, $rec78
+        );
+
+        $tables['charges']  = $this->format_numeric_columns($tables['charges'],  2, $html);
+        $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
+        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html);
+
+        return $tables;
+    }
 }
 
 /* End of file */
