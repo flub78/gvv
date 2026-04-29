@@ -983,13 +983,13 @@ class Paiements_en_ligne_model extends CI_Model {
     }
 
     public function get_config($plateforme, $key, $club_id) {
-        $row = $this->db
+        $query = $this->db
             ->select('param_value')
             ->where('plateforme', $plateforme)
             ->where('param_key', $key)
             ->where('club', (int) $club_id)
-            ->get('paiements_en_ligne_config')
-            ->row_array();
+            ->get('paiements_en_ligne_config');
+        $row = ($query !== false) ? $query->row_array() : false;
         if (!$row) {
             return false;
         }
