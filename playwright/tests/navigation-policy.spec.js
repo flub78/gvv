@@ -14,6 +14,12 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
+
+// All tests in this file use legacy test users — skip when new auth is active.
+test.beforeEach(async ({}) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+});
 
 const LOGIN_URL       = '/index.php/auth/login';
 const WELCOME_URL     = '/index.php/welcome';

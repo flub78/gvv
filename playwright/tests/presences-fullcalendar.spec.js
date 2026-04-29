@@ -19,6 +19,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 // Test configuration
 const PRESENCES_URL = '/index.php/presences';
@@ -478,6 +479,7 @@ test.describe('Presences FullCalendar v6', () => {
   });
 
   test('should show authorization error for regular user editing another user presence', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     // First, login as admin and create a presence for admin
     await clickOnDay(page, 12);
 

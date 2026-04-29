@@ -16,6 +16,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('../helpers/LoginPage');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('../helpers/gvv-config');
 
 // Test users and their expected access levels
 const TEST_USERS = {
@@ -153,7 +154,8 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
   });
 
   test.describe('Regular User Access', () => {
-    
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+
     test('regular user has limited access to non-admin pages', async ({ page }) => {
       const loginPage = new LoginPage(page);
       const user = TEST_USERS.user;
@@ -204,7 +206,8 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
   });
 
   test.describe('Bureau User Access', () => {
-    
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+
     test('bureau user has intermediate access level', async ({ page }) => {
       const loginPage = new LoginPage(page);
       const user = TEST_USERS.bureau;
@@ -235,7 +238,8 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
   });
 
   test.describe('CA (Board) User Access', () => {
-    
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+
     test('CA user has access to management and reports', async ({ page }) => {
       const loginPage = new LoginPage(page);
       const user = TEST_USERS.ca;
@@ -265,7 +269,8 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
   });
 
   test.describe('Planchiste User Access', () => {
-    
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+
     test('planchiste user has access to flight operations', async ({ page }) => {
       const loginPage = new LoginPage(page);
       const user = TEST_USERS.planchiste;
@@ -296,7 +301,8 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
   });
 
   test.describe('Cross-User Navigation Tests', () => {
-    
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
+
     test('all user types can access basic flight pages', async ({ page }) => {
       const loginPage = new LoginPage(page);
       

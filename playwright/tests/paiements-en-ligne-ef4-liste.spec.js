@@ -14,6 +14,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 const LISTE_URL = '/index.php/paiements_en_ligne/liste';
 
@@ -45,6 +46,7 @@ test.describe('EF4 — Liste paiements trésorier', () => {
     // ── 2. Accès autorisé pour un trésorier ───────────────────────────────
 
     test('GET /liste accessible for a tresorier', async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);
@@ -60,6 +62,7 @@ test.describe('EF4 — Liste paiements trésorier', () => {
     // ── 3. Filtres et tableau présents ────────────────────────────────────
 
     test('Liste page shows filter form and table (or empty message)', async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);
@@ -86,6 +89,7 @@ test.describe('EF4 — Liste paiements trésorier', () => {
     // ── 4. Lien export CSV présent ────────────────────────────────────────
 
     test('Liste page has CSV export link', async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);

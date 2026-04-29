@@ -16,6 +16,11 @@
  * - Uploads and restores the same file after migration testing
  * - Verifies database integrity after restore
  *
+ * Safety guarantee: if the test fails at any point after downgrading, the finally
+ * block restores the database — first via backup restore, then via re-migration.
+ * If backup is not accessible the test is skipped rather than proceeding without
+ * a safety net.
+ *
  * Environment Variables (all optional with defaults):
  * - BASE_URL: Application base URL (default: http://gvv.net, uses Playwright baseURL)
  * - TEST_USER: Test username (default: testadmin)
@@ -41,20 +46,20 @@ const CONFIG = {
  */
 async function getCurrentMigrationFromGui(page) {
   await page.goto('/index.php/migration', { waitUntil: 'networkidle' });
-  
+
   // Check if redirected to login
   if (page.url().includes('auth/login')) {
     throw new Error('Not authenticated - cannot access migration page');
   }
-  
+
   // Read the actual database level from the page text
   const pageText = await page.locator('body').textContent();
   const match = pageText.match(/Niveau de la base:\s*(\d+)/);
-  
+
   if (!match) {
     throw new Error('Could not find current database migration level on page');
   }
-  
+
   return parseInt(match[1]);
 }
 
@@ -63,30 +68,30 @@ async function getCurrentMigrationFromGui(page) {
  */
 async function setMigrationViaGui(page, targetVersion) {
   console.log(`\n🔧 Setting migration to version ${targetVersion}...`);
-  
+
   await page.goto('/index.php/migration', { waitUntil: 'networkidle' });
-  
+
   // Wait for the dropdown to be visible and stable
   await page.waitForSelector('select[name="target_level"]');
-  
+
   // Select target version
   await page.selectOption('select[name="target_level"]', targetVersion.toString());
   console.log(`   ✅ Selected version ${targetVersion}`);
-  
+
   // Submit form
   await page.getByRole('button', { name: 'Valider' }).click();
-  
+
   // Wait longer for migration to complete
   await page.waitForTimeout(5000);
   await page.waitForLoadState('networkidle');
   console.log(`   ⏳ Migration complete, verifying...`);
-  
+
   // Verify the change by checking the page again
   const newVersion = await getCurrentMigrationFromGui(page);
   if (newVersion !== targetVersion) {
     throw new Error(`Migration failed: expected ${targetVersion}, got ${newVersion}`);
   }
-  
+
   console.log(`   ✅ Migration to version ${targetVersion} successful`);
   return newVersion;
 }
@@ -97,9 +102,9 @@ async function setMigrationViaGui(page, targetVersion) {
 async function migrateInSteps(page, fromVersion, toVersion) {
   const stepSize = 10;
   let currentVersion = fromVersion;
-  
+
   console.log(`\n📊 Planning migration from ${fromVersion} to ${toVersion} in steps of ${stepSize}`);
-  
+
   if (fromVersion > toVersion) {
     // Downgrade
     while (currentVersion > toVersion) {
@@ -117,219 +122,221 @@ async function migrateInSteps(page, fromVersion, toVersion) {
       currentVersion = nextVersion;
     }
   }
-  
+
   console.log(`\n✅ Migration completed: final version is ${currentVersion}`);
   return currentVersion;
+}
+
+/**
+ * Restore database via GUI from a local backup file
+ */
+async function restoreDatabaseViaGui(page, backupFilePath) {
+  console.log(`\n📤 Restoring backup from: ${backupFilePath}`);
+
+  await page.goto('/index.php/admin/restore', { waitUntil: 'networkidle' });
+
+  const restorePageContent = await page.locator('body').textContent();
+  if (restorePageContent.includes('Access denied') || restorePageContent.includes('Accès refusé')) {
+    throw new Error('No access to restore page');
+  }
+
+  const fileInput = await page.locator('#userfile');
+  await fileInput.setInputFiles(backupFilePath);
+
+  await page.check('input[name="erase_db"]');
+
+  await Promise.all([
+    page.waitForLoadState('networkidle'),
+    page.locator('button[type="submit"]').first().click()
+  ]);
+
+  const resultContent = await page.locator('body').textContent();
+  if (resultContent.includes('error') || resultContent.includes('erreur')) {
+    throw new Error('Restore reported an error');
+  }
+
+  console.log('   ✅ Database restored successfully');
 }
 
 test.describe('Database Migration End-to-End Test', () => {
 
   test('should backup, downgrade, upgrade, and restore database via GUI', async ({ page }) => {
-    // Increase timeout for this long-running end-to-end test
-    // This test performs: backup, multiple migrations (58→20→58), restore, and verification
-    test.setTimeout(120000); // 2 minutes
+    test.setTimeout(240000); // 4 minutes — includes safety-net recovery time
 
     console.log('\n════════════════════════════════════════════════════════════');
     console.log('  Complete End-to-End Migration Test');
     console.log('════════════════════════════════════════════════════════════');
 
-    // Track backup file for cleanup
     let backupFilePath = null;
+    let initialVersion = null;
+    let restoreDone = false;
 
     try {
-    // ============================================================
-    // STEP 1: Login
-    // ============================================================
-    console.log('\n📋 STEP 1: Login to application');
-    console.log('────────────────────────────────────────────────────────────');
-    
-    await page.goto('/index.php/auth/login', { waitUntil: 'networkidle' });
-    await page.fill('input[name="username"]', CONFIG.testUser);
-    await page.fill('input[name="password"]', CONFIG.testPassword);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('networkidle');
-    
-    // Verify login succeeded
-    if (page.url().includes('auth/login')) {
-      throw new Error('Login failed - still on login page');
-    }
-    console.log('✅ Login successful');
+      // ============================================================
+      // STEP 1: Login
+      // ============================================================
+      console.log('\n📋 STEP 1: Login to application');
+      console.log('────────────────────────────────────────────────────────────');
 
-    // ============================================================
-    // STEP 2: Get Initial Migration Version
-    // ============================================================
-    console.log('\n📋 STEP 2: Check initial migration version');
-    console.log('────────────────────────────────────────────────────────────');
-    
-    const initialVersion = await getCurrentMigrationFromGui(page);
-    console.log(`✅ Initial migration version: ${initialVersion}`);
-    
-    await page.screenshot({ path: 'build/screenshots/migration-01-initial.png' }).catch(() => {});
+      await page.goto('/index.php/auth/login', { waitUntil: 'networkidle' });
+      await page.fill('input[name="username"]', CONFIG.testUser);
+      await page.fill('input[name="password"]', CONFIG.testPassword);
+      await page.click('button[type="submit"], input[type="submit"]');
+      await page.waitForLoadState('networkidle');
 
-    // ============================================================
-    // STEP 3: Backup Database via GUI
-    // ============================================================
-    console.log('\n📋 STEP 3: Backup database via GUI');
-    console.log('────────────────────────────────────────────────────────────');
+      if (page.url().includes('auth/login')) {
+        throw new Error('Login failed - still on login page');
+      }
+      console.log('✅ Login successful');
 
-    await page.goto('/index.php/admin/backup_form', { waitUntil: 'networkidle' });
+      // ============================================================
+      // STEP 2: Get Initial Migration Version
+      // ============================================================
+      console.log('\n📋 STEP 2: Check initial migration version');
+      console.log('────────────────────────────────────────────────────────────');
 
-    // Check if we have access to backup page
-    const backupPageContent = await page.locator('body').textContent();
-    let skipRestore = true;
+      initialVersion = await getCurrentMigrationFromGui(page);
+      console.log(`✅ Initial migration version: ${initialVersion}`);
 
-    if (backupPageContent.includes('Access denied') || backupPageContent.includes('Accès refusé')) {
-      console.log('⚠️  No access to backup page - skipping backup/restore tests');
-      // Skip backup and restore if no access
-    } else {
+      await page.screenshot({ path: 'build/screenshots/migration-01-initial.png' }).catch(() => {});
+
+      // ============================================================
+      // STEP 3: Backup Database - REQUIRED safety net before downgrade
+      // ============================================================
+      console.log('\n📋 STEP 3: Backup database via GUI');
+      console.log('────────────────────────────────────────────────────────────');
+
+      await page.goto('/index.php/admin/backup_form', { waitUntil: 'networkidle' });
+
+      const backupPageContent = await page.locator('body').textContent();
+      if (backupPageContent.includes('Access denied') || backupPageContent.includes('Accès refusé')) {
+        // Without a backup we have no safety net — skip rather than risk leaving
+        // the database at a very old migration level.
+        test.skip(true, 'No access to backup page - skipping destructive migration test (no safety net available)');
+        return;
+      }
+
       console.log('✅ Backup page accessible - creating backup...');
-
-      // Create backup by submitting the form
       const downloadPromise = page.waitForEvent('download', { timeout: 60000 });
-
-      // Click the "Sauvegarde complète" button (unencrypted backup)
       await page.locator('button[type="submit"][name="type"][value=""]').first().click();
-
-      // Wait for download to start
       const download = await downloadPromise;
       console.log(`   📦 Backup download started: ${download.suggestedFilename()}`);
-
-      // Save the backup file
       backupFilePath = `build/test-backup-${Date.now()}.zip`;
       await download.saveAs(backupFilePath);
       console.log(`   ✅ Backup saved to: ${backupFilePath}`);
 
-      skipRestore = false;
-    }
+      await page.screenshot({ path: 'build/screenshots/migration-02-backup.png' }).catch(() => {});
 
-    await page.screenshot({ path: 'build/screenshots/migration-02-backup.png' }).catch(() => {});
+      // ============================================================
+      // STEP 4: Downgrade to Migration 20
+      // ============================================================
+      console.log('\n📋 STEP 4: Downgrade to migration 20');
+      console.log('────────────────────────────────────────────────────────────');
 
-    // ============================================================
-    // STEP 4: Downgrade to Migration 20
-    // ============================================================
-    console.log('\n📋 STEP 4: Downgrade to migration 20');
-    console.log('────────────────────────────────────────────────────────────');
-    
-    if (initialVersion <= 20) {
-      console.log(`⚠️  Already at version ${initialVersion} (<= 20), skipping downgrade`);
-    } else {
-      await migrateInSteps(page, initialVersion, 20);
-      const versionAfterDowngrade = await getCurrentMigrationFromGui(page);
-      expect(versionAfterDowngrade).toBe(20);
-      console.log(`✅ Successfully downgraded from ${initialVersion} to 20`);
-    }
-    
-    await page.screenshot({ path: 'build/screenshots/migration-03-downgraded.png' }).catch(() => {});
-
-    // ============================================================
-    // STEP 5: Upgrade back to Initial Version
-    // ============================================================
-    console.log('\n📋 STEP 5: Upgrade back to initial version');
-    console.log('────────────────────────────────────────────────────────────');
-    
-    await migrateInSteps(page, 20, initialVersion);
-    const versionAfterUpgrade = await getCurrentMigrationFromGui(page);
-    expect(versionAfterUpgrade).toBe(initialVersion);
-    console.log(`✅ Successfully upgraded back to ${initialVersion}`);
-    
-    await page.screenshot({ path: 'build/screenshots/migration-04-upgraded.png' }).catch(() => {});
-
-    // ============================================================
-    // STEP 6: Verify Application Still Works
-    // ============================================================
-    console.log('\n📋 STEP 6: Verify application functionality');
-    console.log('────────────────────────────────────────────────────────────');
-    
-    await page.goto('/index.php/welcome', { waitUntil: 'networkidle' });
-    const dashboardContent = await page.locator('body').textContent();
-    
-    if (dashboardContent.includes('username') && dashboardContent.includes('password')) {
-      throw new Error('Application check failed - redirected to login page');
-    }
-    console.log('✅ Application is functional after migrations');
-    
-    await page.screenshot({ path: 'build/screenshots/migration-05-verified.png' }).catch(() => {});
-
-    // ============================================================
-    // STEP 7: Restore Database via GUI
-    // ============================================================
-    console.log('\n📋 STEP 7: Restore database via GUI');
-    console.log('────────────────────────────────────────────────────────────');
-
-    if (skipRestore) {
-      console.log('⚠️  Skipping restore - backup was not created');
-    } else {
-      console.log(`📤 Restoring backup from: ${backupFilePath}`);
-
-      await page.goto('/index.php/admin/restore', { waitUntil: 'networkidle' });
-
-      const restorePageContent = await page.locator('body').textContent();
-      if (restorePageContent.includes('Access denied') || restorePageContent.includes('Accès refusé')) {
-        console.log('⚠️  No access to restore page');
+      if (initialVersion <= 20) {
+        console.log(`⚠️  Already at version ${initialVersion} (<= 20), skipping downgrade`);
       } else {
-        console.log('✅ Restore page accessible - uploading backup...');
-
-        // Upload the backup file (use specific ID to avoid ambiguity with media restore field)
-        const fileInput = await page.locator('#userfile');
-        await fileInput.setInputFiles(backupFilePath);
-        console.log('   📤 Backup file uploaded to form');
-
-        // Check the "erase_db" checkbox to overwrite
-        await page.check('input[name="erase_db"]');
-        console.log('   ☑️  Database overwrite option selected');
-
-        // Submit the restore form and wait for navigation
-        console.log('   ⏳ Restore in progress...');
-        await Promise.all([
-          page.waitForLoadState('networkidle'),
-          page.locator('button[type="submit"]').first().click()
-        ]);
-
-        // Check if restore was successful
-        const resultContent = await page.locator('body').textContent();
-        if (resultContent.includes('success') || resultContent.includes('succès') || resultContent.includes('Restauration')) {
-          console.log('   ✅ Database restored successfully');
-        } else if (resultContent.includes('error') || resultContent.includes('erreur')) {
-          console.log('   ⚠️  Restore may have encountered issues - check manually');
-        } else {
-          console.log('   ℹ️  Restore completed (status unclear from page content)');
-        }
-
-        // Verify we can still access the migration page
-        await page.goto('/index.php/migration', { waitUntil: 'networkidle' });
-        const finalVersion = await getCurrentMigrationFromGui(page);
-        console.log(`   ✅ Migration version after restore: ${finalVersion}`);
+        await migrateInSteps(page, initialVersion, 20);
+        const versionAfterDowngrade = await getCurrentMigrationFromGui(page);
+        expect(versionAfterDowngrade).toBe(20);
+        console.log(`✅ Successfully downgraded from ${initialVersion} to 20`);
       }
-    }
 
-    await page.screenshot({ path: 'build/screenshots/migration-06-restore-page.png' }).catch(() => {});
+      await page.screenshot({ path: 'build/screenshots/migration-03-downgraded.png' }).catch(() => {});
 
-    // ============================================================
-    // Final Summary
-    // ============================================================
-    console.log('\n════════════════════════════════════════════════════════════');
-    console.log('  ✅ End-to-End Migration Test Complete');
-    console.log('════════════════════════════════════════════════════════════');
-    console.log(`✅ Successfully tested migration cycle: ${initialVersion} → 20 → ${initialVersion}`);
-    console.log(`✅ Application remains functional after migrations`);
-    if (skipRestore) {
-      console.log(`ℹ️  Backup and restore pages verified (operations skipped due to permissions)`);
-    } else {
+      // ============================================================
+      // STEP 5: Upgrade back to Initial Version
+      // ============================================================
+      console.log('\n📋 STEP 5: Upgrade back to initial version');
+      console.log('────────────────────────────────────────────────────────────');
+
+      await migrateInSteps(page, 20, initialVersion);
+      const versionAfterUpgrade = await getCurrentMigrationFromGui(page);
+      expect(versionAfterUpgrade).toBe(initialVersion);
+      console.log(`✅ Successfully upgraded back to ${initialVersion}`);
+
+      await page.screenshot({ path: 'build/screenshots/migration-04-upgraded.png' }).catch(() => {});
+
+      // ============================================================
+      // STEP 6: Verify Application Still Works
+      // ============================================================
+      console.log('\n📋 STEP 6: Verify application functionality');
+      console.log('────────────────────────────────────────────────────────────');
+
+      await page.goto('/index.php/welcome', { waitUntil: 'networkidle' });
+      const dashboardContent = await page.locator('body').textContent();
+
+      if (dashboardContent.includes('username') && dashboardContent.includes('password')) {
+        throw new Error('Application check failed - redirected to login page');
+      }
+      console.log('✅ Application is functional after migrations');
+
+      await page.screenshot({ path: 'build/screenshots/migration-05-verified.png' }).catch(() => {});
+
+      // ============================================================
+      // STEP 7: Restore Database via GUI
+      // ============================================================
+      console.log('\n📋 STEP 7: Restore database via GUI');
+      console.log('────────────────────────────────────────────────────────────');
+
+      await restoreDatabaseViaGui(page, backupFilePath);
+      restoreDone = true;
+
+      const finalVersion = await getCurrentMigrationFromGui(page);
+      console.log(`   ✅ Migration version after restore: ${finalVersion}`);
+
+      await page.screenshot({ path: 'build/screenshots/migration-06-restore-page.png' }).catch(() => {});
+
+      console.log('\n════════════════════════════════════════════════════════════');
+      console.log('  ✅ End-to-End Migration Test Complete');
+      console.log('════════════════════════════════════════════════════════════');
+      console.log(`✅ Successfully tested migration cycle: ${initialVersion} → 20 → ${initialVersion}`);
       console.log(`✅ Database backup created and restored successfully via GUI`);
-    }
-    console.log('════════════════════════════════════════════════════════════\n');
+      console.log('════════════════════════════════════════════════════════════\n');
 
     } finally {
       // ============================================================
-      // Cleanup: Delete backup file
+      // SAFETY NET: Restore database to initialVersion if test failed
+      // mid-migration (e.g. upgrade from 20 back to initialVersion
+      // failed partway through, leaving DB at an intermediate level).
       // ============================================================
+      if (!restoreDone && initialVersion !== null) {
+        console.log('\n⚠️  Safety net: test did not complete — attempting database recovery...');
+
+        // Primary recovery: restore from backup (most reliable)
+        if (backupFilePath) {
+          try {
+            await restoreDatabaseViaGui(page, backupFilePath);
+            console.log('✅ Safety net: database restored from backup');
+            restoreDone = true;
+          } catch (restoreError) {
+            console.error(`❌ Safety net backup restore failed: ${restoreError.message}`);
+          }
+        }
+
+        // Fallback recovery: migrate from wherever we are back to initialVersion
+        if (!restoreDone) {
+          try {
+            const safeCurrentVersion = await getCurrentMigrationFromGui(page);
+            if (safeCurrentVersion !== initialVersion) {
+              console.log(`   DB is at ${safeCurrentVersion}, migrating to ${initialVersion}...`);
+              await migrateInSteps(page, safeCurrentVersion, initialVersion);
+              console.log(`✅ Safety net: migrated back to ${initialVersion}`);
+            }
+          } catch (migrationError) {
+            console.error(`❌ Safety net migration also failed: ${migrationError.message}`);
+            console.error('🚨 DATABASE MAY BE AT AN INCONSISTENT MIGRATION LEVEL — manual intervention required');
+          }
+        }
+      }
+
+      // Cleanup: delete local backup file
       if (backupFilePath) {
         try {
           await fs.unlink(backupFilePath);
-          console.log(`🧹 Cleanup: Deleted backup file ${backupFilePath}`);
+          console.log(`🧹 Cleanup: deleted backup file ${backupFilePath}`);
         } catch (error) {
-          // File might not exist or already deleted, not a critical error
-          console.log(`⚠️  Cleanup: Could not delete backup file ${backupFilePath}: ${error.message}`);
+          console.log(`⚠️  Cleanup: could not delete backup file: ${error.message}`);
         }
       }
     }

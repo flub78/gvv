@@ -14,6 +14,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 const LOGIN_URL = '/index.php/auth/login';
 const MY_DOCS_URL = '/index.php/archived_documents/my_documents';
@@ -106,6 +107,7 @@ test.describe('Archived Documents Smoke Tests', () => {
   });
 
   test('pilot can access their own documents page', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     await login(page, PILOT_USER);
 
     await page.goto(MY_DOCS_URL);
@@ -120,6 +122,7 @@ test.describe('Archived Documents Smoke Tests', () => {
   });
 
   test('non-admin is redirected from admin list to my_documents', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     await login(page, PILOT_USER);
 
     await page.goto(ADMIN_LIST_URL);

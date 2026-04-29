@@ -11,6 +11,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 const CREATE_URL = '/index.php/vols_decouverte/create';
 const QR_URL_FAKE = '/index.php/paiements_en_ligne/decouverte_qr/txid-inexistant-000';
@@ -35,6 +36,7 @@ test.describe('UC4 - Bon decouverte via vols_decouverte/create', () => {
     });
 
     test('Tresorier can access vols_decouverte/create', async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);
@@ -47,6 +49,7 @@ test.describe('UC4 - Bon decouverte via vols_decouverte/create', () => {
     });
 
     test('decouverte_qr with invalid txid redirects', async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login(TRESORIER.username, TRESORIER.password, TRESORIER.section);

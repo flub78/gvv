@@ -22,6 +22,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 // Test configuration
 // URL_PREFIX: empty string for servers with URL rewriting, '/index.php' for servers without
@@ -287,8 +288,9 @@ async function checkPageAccess(page, url) {
  */
 for (const [key, user] of Object.entries(TEST_USERS)) {
     test(`${user.username} should be able to login`, async ({ page }) => {
+        test.skip(USE_NEW_AUTHORIZATION && user.role !== 'club-admin', SKIP_LEGACY_USERS_REASON);
         console.log(`\n[TEST] Login test for ${user.username} (${user.description})`);
-        
+
         await loginUser(page, user.username, user.password);
         
         // Verify we're not on login page (domain-agnostic)
@@ -306,6 +308,7 @@ for (const [key, user] of Object.entries(TEST_USERS)) {
  */
 for (const [userKey, user] of Object.entries(TEST_USERS)) {
     test.describe(`${user.username} page access tests`, () => {
+        test.skip(USE_NEW_AUTHORIZATION && user.role !== 'club-admin', SKIP_LEGACY_USERS_REASON);
         test.beforeEach(async ({ page }) => {
             await loginUser(page, user.username, user.password);
         });
@@ -340,6 +343,7 @@ for (const [userKey, user] of Object.entries(TEST_USERS)) {
  * Test: Sequential login verification (all users can login/logout)
  */
 test('all users should be able to login and logout sequentially', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     console.log('\n[TEST] Sequential login/logout for all users');
     
     for (const [key, user] of Object.entries(TEST_USERS)) {
@@ -394,6 +398,7 @@ test('testadmin should have access to all admin pages', async ({ page }) => {
  * Test: Basic user restricted access
  */
 test('testuser should NOT have access to admin/treasurer pages', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     console.log('\n[TEST] Basic user restriction verification');
 
     await loginUser(page, 'testuser', 'password');
@@ -420,6 +425,7 @@ test('testuser should NOT have access to admin/treasurer pages', async ({ page }
  * Test: Treasurer financial access
  */
 test('testtresorier should have access to financial pages', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     console.log('\n[TEST] Treasurer financial access verification');
 
     await loginUser(page, 'testtresorier', 'password');
@@ -448,6 +454,7 @@ test('testtresorier should have access to financial pages', async ({ page }) => 
  * CA members should have access to dashboard and tresorerie only, not to full accounting
  */
 test('testca should have partial access to accounting (dashboard and tresorerie only)', async ({ page }) => {
+    test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
     console.log('\n[TEST] CA member partial accounting access verification');
 
     await loginUser(page, 'testca', 'password');
