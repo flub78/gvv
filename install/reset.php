@@ -169,7 +169,7 @@ $base = "gvv2";
 
     /*
  * Suppression des images
-*/
+
     echo "<H3>Suppression des images générées</H3>";
     foreach (glob("../assets/images/*.png") as $filename) {
         try {
@@ -186,6 +186,7 @@ $base = "gvv2";
             echo "Erreur pendant la suppression de $filename. Essayez de le détruire vous-même.</br>" . "\n";
         }
     }
+    */
     $dir = opendir("../assets/images");
     while (false !== ($entry = readdir($dir))) {
         echo "Fichier dans le répèrtoire assets/images: $entry</br>";

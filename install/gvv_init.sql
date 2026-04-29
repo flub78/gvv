@@ -1,9 +1,9 @@
 /*M!999999\- enable the sandbox mode */
--- MariaDB dump 10.19  Distrib 10.11.13-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.11.14-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: gvv2
 -- ------------------------------------------------------
--- Server version	10.11.13-MariaDB-0ubuntu0.24.04.1
+-- Server version	10.11.14-MariaDB-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -15,6 +15,130 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `acceptance_items`
+--
+
+DROP TABLE IF EXISTS `acceptance_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acceptance_items` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL COMMENT 'Titre de l element',
+  `category` enum('document','formation','controle','briefing','autorisation') NOT NULL COMMENT 'Categorie acceptation',
+  `pdf_path` varchar(255) DEFAULT NULL COMMENT 'Chemin fichier PDF',
+  `target_type` enum('internal','external') NOT NULL DEFAULT 'internal' COMMENT 'Interne ou externe',
+  `version_date` date DEFAULT NULL COMMENT 'Date de creation/version',
+  `mandatory` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Obligatoire',
+  `deadline` date DEFAULT NULL COMMENT 'Date limite acceptation',
+  `dual_validation` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Necessite double validation',
+  `role_1` varchar(64) DEFAULT NULL COMMENT 'Premier role (ex: instructeur)',
+  `role_2` varchar(64) DEFAULT NULL COMMENT 'Second role (ex: eleve)',
+  `target_roles` varchar(255) DEFAULT NULL COMMENT 'Roles cibles separes par virgule',
+  `active` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Element actif',
+  `created_by` varchar(25) NOT NULL COMMENT 'Administrateur createur',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_category` (`category`),
+  KEY `idx_active` (`active`),
+  KEY `idx_deadline` (`deadline`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Elements a faire accepter';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `acceptance_records`
+--
+
+DROP TABLE IF EXISTS `acceptance_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acceptance_records` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `item_id` int(11) unsigned NOT NULL COMMENT 'Element concerne',
+  `user_login` varchar(25) DEFAULT NULL COMMENT 'Membre (NULL si externe)',
+  `external_name` varchar(128) DEFAULT NULL COMMENT 'Nom complet personne externe',
+  `status` enum('pending','accepted','refused') NOT NULL DEFAULT 'pending',
+  `validation_role` varchar(64) DEFAULT NULL COMMENT 'Role dans double validation',
+  `partner_record_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Enregistrement partenaire (double validation)',
+  `formula_text` text DEFAULT NULL COMMENT 'Formule enregistree',
+  `acted_at` datetime DEFAULT NULL COMMENT 'Date action',
+  `created_at` datetime NOT NULL,
+  `initiated_by` varchar(25) DEFAULT NULL COMMENT 'Responsable ayant initie (si externe)',
+  `signature_mode` enum('direct','link','qrcode','paper') DEFAULT NULL COMMENT 'Mode signature externe',
+  `linked_pilot_login` varchar(25) DEFAULT NULL COMMENT 'Pilote rattache ulterieurement',
+  `linked_by` varchar(25) DEFAULT NULL COMMENT 'Utilisateur ayant effectue le rattachement',
+  `linked_at` datetime DEFAULT NULL COMMENT 'Date du rattachement',
+  PRIMARY KEY (`id`),
+  KEY `idx_item` (`item_id`),
+  KEY `idx_user` (`user_login`),
+  KEY `idx_status` (`status`),
+  KEY `idx_partner` (`partner_record_id`),
+  KEY `idx_linked_pilot` (`linked_pilot_login`),
+  KEY `fk_acceptance_records_linked_by` (`linked_by`),
+  CONSTRAINT `fk_acceptance_records_item` FOREIGN KEY (`item_id`) REFERENCES `acceptance_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_acceptance_records_linked_by` FOREIGN KEY (`linked_by`) REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_acceptance_records_linked_pilot` FOREIGN KEY (`linked_pilot_login`) REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_acceptance_records_partner` FOREIGN KEY (`partner_record_id`) REFERENCES `acceptance_records` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_acceptance_records_user` FOREIGN KEY (`user_login`) REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Enregistrements acceptation/refus';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `acceptance_signatures`
+--
+
+DROP TABLE IF EXISTS `acceptance_signatures`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acceptance_signatures` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `record_id` bigint(20) unsigned NOT NULL,
+  `signer_first_name` varchar(64) NOT NULL,
+  `signer_last_name` varchar(64) NOT NULL,
+  `signer_quality` varchar(64) DEFAULT NULL COMMENT 'pere, mere, tuteur legal (pour autorisation)',
+  `beneficiary_first_name` varchar(64) DEFAULT NULL COMMENT 'Prenom mineur (pour autorisation)',
+  `beneficiary_last_name` varchar(64) DEFAULT NULL COMMENT 'Nom mineur (pour autorisation)',
+  `signature_type` enum('tactile','upload') NOT NULL,
+  `signature_data` mediumtext DEFAULT NULL COMMENT 'Donnees base64 signature tactile',
+  `file_path` varchar(255) DEFAULT NULL COMMENT 'Chemin fichier uploade',
+  `original_filename` varchar(255) DEFAULT NULL,
+  `file_size` int(11) unsigned DEFAULT NULL,
+  `mime_type` varchar(64) DEFAULT NULL,
+  `signed_at` datetime NOT NULL,
+  `pilot_attestation` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Attestation presence pilote (mode papier)',
+  PRIMARY KEY (`id`),
+  KEY `idx_record` (`record_id`),
+  CONSTRAINT `fk_signatures_record` FOREIGN KEY (`record_id`) REFERENCES `acceptance_records` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Signatures externes';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `acceptance_tokens`
+--
+
+DROP TABLE IF EXISTS `acceptance_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acceptance_tokens` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `token` varchar(128) NOT NULL COMMENT 'Token aleatoire',
+  `item_id` int(11) unsigned NOT NULL,
+  `record_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Enregistrement associe une fois cree',
+  `mode` enum('direct','link','qrcode') NOT NULL,
+  `created_by` varchar(25) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT 0,
+  `used_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_token` (`token`),
+  KEY `idx_item` (`item_id`),
+  KEY `idx_expires` (`expires_at`),
+  CONSTRAINT `fk_tokens_item` FOREIGN KEY (`item_id`) REFERENCES `acceptance_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Liens temporaires pour signatures externes';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `achats`
@@ -39,12 +163,65 @@ CREATE TABLE `achats` (
   `vol_avion` int(11) DEFAULT NULL COMMENT 'Vol avion',
   `mvt_pompe` int(11) DEFAULT NULL COMMENT 'Livraison essence',
   `num_cheque` varchar(50) DEFAULT NULL COMMENT 'Numéro de pièce comptable',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`),
   KEY `pilote` (`pilote`),
   KEY `saisie_par` (`saisie_par`),
   KEY `vol_planeur` (`vol_planeur`),
   KEY `vol_avion` (`vol_avion`)
-) ENGINE=InnoDB AUTO_INCREMENT=26640 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC COMMENT='Lignes de factures';
+) ENGINE=InnoDB AUTO_INCREMENT=26701 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC COMMENT='Lignes de factures';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `archived_documents`
+--
+
+DROP TABLE IF EXISTS `archived_documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `archived_documents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `document_type_id` int(11) unsigned DEFAULT NULL COMMENT 'Type de document',
+  `pilot_login` varchar(25) DEFAULT NULL COMMENT 'Pilote associe (NULL si club/section)',
+  `section_id` int(11) DEFAULT NULL COMMENT 'Section associee',
+  `vld_id` int(11) DEFAULT NULL,
+  `machine_immat` varchar(20) DEFAULT NULL,
+  `file_path` varchar(255) NOT NULL COMMENT 'Chemin du fichier',
+  `original_filename` varchar(255) NOT NULL COMMENT 'Nom fichier original',
+  `description` varchar(255) DEFAULT NULL COMMENT 'Description libre',
+  `uploaded_by` varchar(25) NOT NULL COMMENT 'Utilisateur ayant uploade',
+  `uploaded_at` datetime NOT NULL COMMENT 'Date upload',
+  `valid_from` date DEFAULT NULL COMMENT 'Date debut validite',
+  `valid_until` date DEFAULT NULL COMMENT 'Date fin validite',
+  `alarm_disabled` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Alerte desactivee par admin',
+  `previous_version_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Lien vers version precedente',
+  `is_current_version` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Version courante',
+  `file_size` int(11) unsigned DEFAULT NULL COMMENT 'Taille fichier en octets',
+  `mime_type` varchar(64) DEFAULT NULL COMMENT 'Type MIME',
+  `validation_status` enum('pending','approved','rejected') NOT NULL DEFAULT 'approved' COMMENT 'Statut de validation',
+  `validated_by` varchar(25) DEFAULT NULL COMMENT 'Utilisateur ayant valide',
+  `validated_at` datetime DEFAULT NULL COMMENT 'Date de validation',
+  `rejection_reason` varchar(255) DEFAULT NULL COMMENT 'Motif du refus',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated metadata',
+  PRIMARY KEY (`id`),
+  KEY `idx_pilot` (`pilot_login`),
+  KEY `idx_section` (`section_id`),
+  KEY `idx_type` (`document_type_id`),
+  KEY `idx_expiration` (`valid_until`),
+  KEY `idx_current` (`is_current_version`),
+  KEY `idx_alarm` (`alarm_disabled`),
+  KEY `idx_validation_status` (`validation_status`),
+  KEY `fk_archived_documents_prev` (`previous_version_id`),
+  KEY `fk_archived_documents_vld` (`vld_id`),
+  CONSTRAINT `fk_archived_documents_pilot` FOREIGN KEY (`pilot_login`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_archived_documents_prev` FOREIGN KEY (`previous_version_id`) REFERENCES `archived_documents` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_archived_documents_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_archived_documents_type` FOREIGN KEY (`document_type_id`) REFERENCES `document_types` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_archived_documents_vld` FOREIGN KEY (`vld_id`) REFERENCES `vols_decouverte` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Documents archives avec expiration';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -56,12 +233,12 @@ DROP TABLE IF EXISTS `associations_ecriture`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `associations_ecriture` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `string_releve` varchar(256) NOT NULL,
+  `string_releve` varchar(512) NOT NULL,
   `id_ecriture_gvv` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_associations_ecriture_ecritures` (`id_ecriture_gvv`),
   CONSTRAINT `fk_associations_ecriture_ecritures` FOREIGN KEY (`id_ecriture_gvv`) REFERENCES `ecritures` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1458 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1886 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -79,7 +256,7 @@ CREATE TABLE `associations_of` (
   PRIMARY KEY (`id`),
   KEY `fk_associations_of_comptes` (`id_compte_gvv`),
   CONSTRAINT `fk_associations_of_comptes` FOREIGN KEY (`id_compte_gvv`) REFERENCES `comptes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,8 +294,12 @@ CREATE TABLE `attachments` (
   `file` varchar(255) DEFAULT NULL,
   `club` tinyint(4) DEFAULT 0 COMMENT 'Commentaire gestion multi-section',
   `file_backup` varchar(255) DEFAULT NULL COMMENT 'Backup of original file path before section reorganization',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=333 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=381 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +325,7 @@ CREATE TABLE `authorization_audit_log` (
   KEY `idx_actor` (`actor_user_id`),
   KEY `idx_target` (`target_user_id`),
   KEY `idx_timestamp` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -201,6 +382,28 @@ CREATE TABLE `authorization_migration_status` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `briefing_tokens`
+--
+
+DROP TABLE IF EXISTS `briefing_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `briefing_tokens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `vld_id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_briefing_tokens_token` (`token`),
+  KEY `fk_briefing_tokens_vld` (`vld_id`),
+  CONSTRAINT `fk_briefing_tokens_vld` FOREIGN KEY (`vld_id`) REFERENCES `vols_decouverte` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `calendar`
 --
 
@@ -226,7 +429,7 @@ CREATE TABLE `calendar` (
   KEY `idx_mlogin` (`mlogin`),
   KEY `idx_status` (`status`),
   KEY `idx_full_day` (`full_day`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -276,7 +479,7 @@ CREATE TABLE `clotures` (
   `date` date DEFAULT NULL,
   `description` varchar(124) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -298,11 +501,15 @@ CREATE TABLE `comptes` (
   `saisie_par` varchar(25) NOT NULL DEFAULT '""' COMMENT 'Créateur',
   `club` tinyint(1) DEFAULT 0 COMMENT 'Gestion multi-club',
   `masked` tinyint(1) NOT NULL DEFAULT 0,
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`),
   KEY `codec` (`codec`),
   KEY `pilote` (`pilote`),
   CONSTRAINT `fk_comptes_planc` FOREIGN KEY (`codec`) REFERENCES `planc` (`pcode`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1410 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=1441 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -324,7 +531,32 @@ CREATE TABLE `configuration` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_cle_lang_club` (`cle`,`lang`,`club`),
   KEY `idx_cle` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `cotisation_produits`
+--
+
+DROP TABLE IF EXISTS `cotisation_produits`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cotisation_produits` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `section_id` int(11) NOT NULL COMMENT 'Identifiant de la section',
+  `libelle` varchar(150) NOT NULL COMMENT 'Libellé du produit de cotisation',
+  `montant` decimal(10,2) NOT NULL COMMENT 'Montant en euros',
+  `annee` int(4) NOT NULL COMMENT 'Année de validité de la cotisation',
+  `compte_cotisation_id` int(11) NOT NULL COMMENT 'Compte 417 à créditer',
+  `actif` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Produit actif (visible au pilote)',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `created_by` varchar(50) DEFAULT NULL,
+  `updated_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_section_actif` (`section_id`,`actif`),
+  KEY `idx_section_annee` (`section_id`,`annee`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -346,6 +578,37 @@ CREATE TABLE `data_access_rules` (
   UNIQUE KEY `unique_rule` (`types_roles_id`,`table_name`,`access_scope`),
   CONSTRAINT `fk_data_access_rules_role` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `document_types`
+--
+
+DROP TABLE IF EXISTS `document_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `document_types` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) NOT NULL COMMENT 'Code unique (ex: medical, insurance, license)',
+  `name` varchar(128) NOT NULL COMMENT 'Libelle affiche',
+  `section_id` int(11) DEFAULT NULL COMMENT 'Section specifique (NULL = toutes sections)',
+  `scope` enum('pilot','section','club') NOT NULL DEFAULT 'pilot' COMMENT 'Portee du document',
+  `required` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Document obligatoire',
+  `has_expiration` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Document avec date expiration',
+  `storage_by_year` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Stockage organise par annee',
+  `alert_days_before` int(11) DEFAULT 30 COMMENT 'Jours avant expiration pour alerte',
+  `active` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Type actif',
+  `is_private` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Acces aux fichiers restreint au bureau, admins et proprietaire',
+  `display_order` int(11) NOT NULL DEFAULT 0 COMMENT 'Ordre affichage',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_code_section` (`code`,`section_id`),
+  KEY `idx_section` (`section_id`),
+  CONSTRAINT `fk_document_types_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Types de documents et regles associees';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -373,11 +636,15 @@ CREATE TABLE `ecritures` (
   `quantite` varchar(11) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT '0' COMMENT 'Quantitè de l''achat',
   `prix` decimal(8,2) DEFAULT -1.00 COMMENT 'Prix de l''achat',
   `categorie` int(11) NOT NULL DEFAULT 0 COMMENT 'Catégorie de dépense ou recette',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`),
   KEY `compte1` (`compte1`),
   KEY `saisie_par` (`saisie_par`),
   KEY `compte2` (`compte2`)
-) ENGINE=InnoDB AUTO_INCREMENT=37983 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=38860 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -417,7 +684,7 @@ CREATE TABLE `email_list_members` (
   KEY `idx_membre_id` (`membre_id`),
   CONSTRAINT `fk_elm_email_list_id` FOREIGN KEY (`email_list_id`) REFERENCES `email_lists` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_elm_membre_id` FOREIGN KEY (`membre_id`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -443,7 +710,7 @@ CREATE TABLE `email_list_roles` (
   CONSTRAINT `fk_elr_email_list_id` FOREIGN KEY (`email_list_id`) REFERENCES `email_lists` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_elr_section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`),
   CONSTRAINT `fk_elr_types_roles_id` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -464,7 +731,7 @@ CREATE TABLE `email_list_sublists` (
   KEY `idx_child` (`child_list_id`),
   CONSTRAINT `fk_email_list_sublists_child` FOREIGN KEY (`child_list_id`) REFERENCES `email_lists` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_email_list_sublists_parent` FOREIGN KEY (`parent_list_id`) REFERENCES `email_lists` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -483,11 +750,12 @@ CREATE TABLE `email_lists` (
   `created_by` int(11) NOT NULL COMMENT 'User ID who created the list',
   `created_at` datetime NOT NULL DEFAULT current_timestamp() COMMENT 'Creation timestamp',
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Last update timestamp',
+  `updated_by` int(11) DEFAULT NULL COMMENT 'User ID who last updated the list',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`),
   KEY `idx_created_by` (`created_by`),
   CONSTRAINT `fk_email_lists_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -532,6 +800,41 @@ CREATE TABLE `events_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `formation_autorisations_solo`
+--
+
+DROP TABLE IF EXISTS `formation_autorisations_solo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `formation_autorisations_solo` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `inscription_id` int(11) NOT NULL COMMENT 'FK to formation_inscriptions',
+  `eleve_id` varchar(25) NOT NULL COMMENT 'Student member login',
+  `instructeur_id` varchar(25) NOT NULL COMMENT 'Instructor member login',
+  `date_autorisation` date NOT NULL COMMENT 'Authorization date',
+  `section_id` int(11) DEFAULT NULL COMMENT 'Section ID',
+  `machine_id` varchar(10) NOT NULL COMMENT 'Aircraft registration',
+  `consignes` text NOT NULL COMMENT 'Instructions (min 250 chars)',
+  `date_creation` datetime NOT NULL COMMENT 'Creation timestamp',
+  `date_modification` datetime DEFAULT NULL COMMENT 'Last modification timestamp',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_inscription` (`inscription_id`),
+  KEY `idx_eleve` (`eleve_id`),
+  KEY `idx_instructeur` (`instructeur_id`),
+  KEY `idx_date` (`date_autorisation`),
+  KEY `idx_section` (`section_id`),
+  CONSTRAINT `fk_autosolo_eleve` FOREIGN KEY (`eleve_id`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_autosolo_inscription` FOREIGN KEY (`inscription_id`) REFERENCES `formation_inscriptions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_autosolo_instructeur` FOREIGN KEY (`instructeur_id`) REFERENCES `membres` (`mlogin`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_autosolo_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Solo flight authorizations for students';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `formation_chapitres`
 --
 
@@ -542,6 +845,10 @@ CREATE TABLE `formation_chapitres` (
   `name` varchar(64) NOT NULL,
   `description` varchar(128) NOT NULL,
   `ordre` int(4) NOT NULL DEFAULT 9999,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -559,6 +866,10 @@ CREATE TABLE `formation_evaluations` (
   `sujet_id` int(11) NOT NULL COMMENT 'Evaluated topic ID',
   `niveau` enum('-','A','R','Q') NOT NULL DEFAULT '-' COMMENT 'Evaluation level: - (not covered), A (introduced), R (review needed), Q (acquired)',
   `commentaire` text DEFAULT NULL COMMENT 'Evaluation comment',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_seance_sujet` (`seance_id`,`sujet_id`),
   KEY `idx_seance` (`seance_id`),
@@ -566,7 +877,7 @@ CREATE TABLE `formation_evaluations` (
   KEY `idx_niveau` (`niveau`),
   CONSTRAINT `fk_form_eval_seance` FOREIGN KEY (`seance_id`) REFERENCES `formation_seances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_form_eval_sujet` FOREIGN KEY (`sujet_id`) REFERENCES `formation_sujets` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Topic evaluations within training sessions';
+) ENGINE=InnoDB AUTO_INCREMENT=306 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Topic evaluations within training sessions';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -589,6 +900,10 @@ CREATE TABLE `formation_inscriptions` (
   `date_cloture` date DEFAULT NULL COMMENT 'Closure date',
   `motif_cloture` text DEFAULT NULL COMMENT 'Closure reason',
   `commentaires` text DEFAULT NULL COMMENT 'General comments',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_pilote` (`pilote_id`),
   KEY `idx_programme` (`programme_id`),
@@ -597,7 +912,7 @@ CREATE TABLE `formation_inscriptions` (
   CONSTRAINT `fk_form_inscr_inst` FOREIGN KEY (`instructeur_referent_id`) REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_form_inscr_pilote` FOREIGN KEY (`pilote_id`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_form_inscr_prog` FOREIGN KEY (`programme_id`) REFERENCES `formation_programmes` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Student enrollments in training programs';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Student enrollments in training programs';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -612,6 +927,10 @@ CREATE TABLE `formation_item` (
   `description` varchar(128) NOT NULL,
   `phase` varchar(64) NOT NULL,
   `ordre` int(8) NOT NULL DEFAULT 9999,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `to_phase` (`phase`),
   CONSTRAINT `belongs_to` FOREIGN KEY (`phase`) REFERENCES `formation_chapitres` (`name`)
@@ -632,11 +951,15 @@ CREATE TABLE `formation_lecons` (
   `titre` varchar(255) NOT NULL COMMENT 'Lesson title',
   `description` text DEFAULT NULL COMMENT 'Lesson description',
   `ordre` int(11) NOT NULL COMMENT 'Display order',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_programme` (`programme_id`),
   KEY `idx_ordre` (`programme_id`,`ordre`),
   CONSTRAINT `fk_form_lecon_prog` FOREIGN KEY (`programme_id`) REFERENCES `formation_programmes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Lessons within training programs';
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Lessons within training programs';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -658,12 +981,16 @@ CREATE TABLE `formation_programmes` (
   `statut` enum('actif','archive') NOT NULL DEFAULT 'actif' COMMENT 'Program status',
   `date_creation` datetime NOT NULL COMMENT 'Creation date',
   `date_modification` datetime DEFAULT NULL COMMENT 'Last modification date',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_code` (`code`),
   KEY `idx_section` (`section_id`),
   KEY `idx_statut` (`statut`),
   CONSTRAINT `fk_form_prog_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Training programs for glider pilots';
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Training programs for glider pilots';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -680,6 +1007,10 @@ CREATE TABLE `formation_progres` (
   `date` date NOT NULL,
   `subject` int(8) NOT NULL,
   `niveau` int(4) NOT NULL,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `pilote` (`pilote`),
   UNIQUE KEY `instructeur` (`instructeur`),
@@ -697,18 +1028,24 @@ DROP TABLE IF EXISTS `formation_seances`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `formation_seances` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type_seance_id` int(11) DEFAULT NULL COMMENT 'Type de séance (formation_types_seance.id)',
   `inscription_id` int(11) DEFAULT NULL COMMENT 'Enrollment ID (NULL = free session)',
-  `pilote_id` varchar(25) NOT NULL COMMENT 'Student receiving training',
+  `pilote_id` varchar(25) DEFAULT NULL COMMENT 'NULL pour séances théoriques (participants dans table dédiée)',
   `programme_id` int(11) DEFAULT NULL,
   `categorie_seance` varchar(100) DEFAULT NULL COMMENT 'Session category (Formation, Remise en vol, Réentrainement, Contrôle pilote VLD)',
   `date_seance` date NOT NULL COMMENT 'Session date',
   `instructeur_id` varchar(25) NOT NULL COMMENT 'Instructor login',
-  `machine_id` varchar(10) NOT NULL COMMENT 'Aircraft registration',
-  `duree` time NOT NULL COMMENT 'Session duration (HH:MM:SS)',
-  `nb_atterrissages` int(11) NOT NULL DEFAULT 1 COMMENT 'Number of landings',
+  `machine_id` varchar(10) DEFAULT NULL COMMENT 'NULL pour séances théoriques',
+  `duree` time DEFAULT NULL COMMENT 'NULL si non renseigné',
+  `nb_atterrissages` int(11) DEFAULT NULL COMMENT 'NULL pour séances théoriques',
   `meteo` text DEFAULT NULL COMMENT 'Weather conditions (JSON array)',
+  `lieu` varchar(255) DEFAULT NULL,
   `commentaires` text DEFAULT NULL COMMENT 'Session comments',
   `prochaines_lecons` varchar(255) DEFAULT NULL COMMENT 'Recommended next lessons',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_inscription` (`inscription_id`),
   KEY `idx_pilote` (`pilote_id`),
@@ -717,11 +1054,36 @@ CREATE TABLE `formation_seances` (
   KEY `idx_instructeur` (`instructeur_id`),
   KEY `idx_machine` (`machine_id`),
   KEY `idx_categorie` (`categorie_seance`),
+  KEY `fk_seance_type` (`type_seance_id`),
   CONSTRAINT `fk_form_seance_inscr` FOREIGN KEY (`inscription_id`) REFERENCES `formation_inscriptions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_form_seance_inst` FOREIGN KEY (`instructeur_id`) REFERENCES `membres` (`mlogin`) ON UPDATE CASCADE,
   CONSTRAINT `fk_form_seance_pilote` FOREIGN KEY (`pilote_id`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_form_seance_prog` FOREIGN KEY (`programme_id`) REFERENCES `formation_programmes` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Training sessions (with or without enrollment)';
+  CONSTRAINT `fk_form_seance_prog` FOREIGN KEY (`programme_id`) REFERENCES `formation_programmes` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_seance_type` FOREIGN KEY (`type_seance_id`) REFERENCES `formation_types_seance` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Training sessions (with or without enrollment)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `formation_seances_participants`
+--
+
+DROP TABLE IF EXISTS `formation_seances_participants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `formation_seances_participants` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `seance_id` int(11) NOT NULL,
+  `pilote_id` varchar(25) NOT NULL,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_seance_pilote` (`seance_id`,`pilote_id`),
+  KEY `fk_part_pilote` (`pilote_id`),
+  CONSTRAINT `fk_part_pilote` FOREIGN KEY (`pilote_id`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_part_seance` FOREIGN KEY (`seance_id`) REFERENCES `formation_seances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -739,11 +1101,39 @@ CREATE TABLE `formation_sujets` (
   `description` text DEFAULT NULL COMMENT 'Topic description',
   `objectifs` text DEFAULT NULL COMMENT 'Learning objectives',
   `ordre` int(11) NOT NULL COMMENT 'Display order',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_lecon` (`lecon_id`),
   KEY `idx_ordre` (`lecon_id`,`ordre`),
   CONSTRAINT `fk_form_sujet_lecon` FOREIGN KEY (`lecon_id`) REFERENCES `formation_lecons` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Topics within training lessons';
+) ENGINE=InnoDB AUTO_INCREMENT=246 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Topics within training lessons';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `formation_types_seance`
+--
+
+DROP TABLE IF EXISTS `formation_types_seance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `formation_types_seance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(100) NOT NULL COMMENT 'Libellé court du type de séance',
+  `nature` enum('vol','theorique') NOT NULL COMMENT 'vol = séance en vol, theorique = cours au sol',
+  `description` text DEFAULT NULL COMMENT 'Description détaillée',
+  `periodicite_max_jours` int(11) DEFAULT NULL COMMENT 'Délai max en jours entre deux séances de ce type pour un même élève (NULL = sans contrainte)',
+  `actif` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1 = utilisable lors de la saisie',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_nature` (`nature`),
+  KEY `idx_actif` (`actif`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Types de séances de formation (vol ou sol)';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -776,8 +1166,12 @@ CREATE TABLE `licences` (
   `year` int(4) NOT NULL COMMENT 'Année de validité',
   `date` date NOT NULL COMMENT 'Date de souscription',
   `comment` varchar(250) NOT NULL COMMENT 'Commentaire',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=358 DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=430 DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -792,7 +1186,7 @@ CREATE TABLE `login_attempts` (
   `ip_address` varchar(40) NOT NULL,
   `time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1852 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=1893 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -818,6 +1212,10 @@ CREATE TABLE `machinesa` (
   `maprixproprio` varchar(32) DEFAULT NULL COMMENT 'Prix de l''heure propriétaire',
   `horametre_mode` int(11) DEFAULT 0 COMMENT 'Format horamètre (0=1/100h, 1=heures/minutes, 2=1/10h)',
   `fabrication` int(11) DEFAULT NULL COMMENT 'Année de mise en service',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`macimmat`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -850,6 +1248,10 @@ CREATE TABLE `machinesp` (
   `fabrication` int(11) DEFAULT NULL COMMENT 'Année de mise en service',
   `banalise` tinyint(1) DEFAULT NULL COMMENT 'Machine banalisée',
   `proprio` varchar(25) DEFAULT NULL COMMENT 'Propriétaire',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`mpimmat`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -872,6 +1274,10 @@ CREATE TABLE `mails` (
   `texte` varchar(4096) NOT NULL,
   `debut_facturation` date DEFAULT NULL COMMENT 'Date de début de facturation',
   `fin_facturation` date DEFAULT NULL COMMENT 'Date de fin de facturation',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Courriels';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -907,7 +1313,7 @@ CREATE TABLE `membres` (
   `username` varchar(25) DEFAULT NULL COMMENT 'Utilisateur autorisé à accéder au compte',
   `photo` varchar(64) DEFAULT NULL COMMENT 'Photo',
   `compte` int(11) DEFAULT NULL COMMENT 'Compte pilote',
-  `comment` varchar(2048) DEFAULT NULL COMMENT 'Commentaires',
+  `comment` text DEFAULT NULL,
   `trigramme` varchar(12) DEFAULT NULL COMMENT 'Trigramme',
   `categorie` varchar(12) DEFAULT '' COMMENT 'Cat?gorie du pilote',
   `profession` varchar(64) DEFAULT NULL COMMENT 'Profession',
@@ -918,6 +1324,10 @@ CREATE TABLE `membres` (
   `inscription_date` date DEFAULT NULL COMMENT 'Date d''inscription',
   `validation_date` date DEFAULT NULL COMMENT 'Date de validation de l''adhésion',
   `membre_payeur` varchar(25) DEFAULT NULL,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`mlogin`),
   KEY `idx_membre_payeur` (`membre_payeur`),
   CONSTRAINT `fk_membres_membre_payeur` FOREIGN KEY (`membre_payeur`) REFERENCES `membres` (`mlogin`) ON DELETE SET NULL
@@ -934,6 +1344,64 @@ DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE `migrations` (
   `version` int(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `paiements_en_ligne`
+--
+
+DROP TABLE IF EXISTS `paiements_en_ligne`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `paiements_en_ligne` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `montant` decimal(10,2) NOT NULL,
+  `plateforme` varchar(50) NOT NULL,
+  `transaction_id` varchar(255) DEFAULT NULL,
+  `ecriture_id` int(11) DEFAULT NULL,
+  `statut` enum('pending','completed','failed','cancelled') NOT NULL DEFAULT 'pending',
+  `date_demande` datetime NOT NULL,
+  `date_paiement` datetime DEFAULT NULL,
+  `metadata` text DEFAULT NULL,
+  `commission` decimal(10,2) DEFAULT 0.00,
+  `club` int(11) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `created_by` varchar(50) DEFAULT NULL,
+  `updated_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_transaction_id` (`transaction_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_statut` (`statut`),
+  KEY `idx_date_paiement` (`date_paiement`),
+  KEY `idx_club` (`club`),
+  KEY `fk_pel_ecriture` (`ecriture_id`),
+  CONSTRAINT `fk_pel_ecriture` FOREIGN KEY (`ecriture_id`) REFERENCES `ecritures` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `paiements_en_ligne_config`
+--
+
+DROP TABLE IF EXISTS `paiements_en_ligne_config`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `paiements_en_ligne_config` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `plateforme` varchar(50) NOT NULL,
+  `param_key` varchar(100) NOT NULL,
+  `param_value` text DEFAULT NULL,
+  `club` int(11) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `created_by` varchar(50) DEFAULT NULL,
+  `updated_by` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_config_key` (`plateforme`,`param_key`,`club`),
+  KEY `idx_config_club` (`club`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -961,6 +1429,10 @@ DROP TABLE IF EXISTS `planc`;
 CREATE TABLE `planc` (
   `pcode` varchar(10) NOT NULL,
   `pdesc` varchar(128) NOT NULL,
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   UNIQUE KEY `pcode` (`pcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -985,8 +1457,38 @@ CREATE TABLE `pompes` (
   `pprix` decimal(8,2) NOT NULL COMMENT 'Prix total',
   `pdesc` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL COMMENT 'commentaires',
   `psaisipar` varchar(25) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT 'Nom de l''opérateur',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`pid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `preparation_cards`
+--
+
+DROP TABLE IF EXISTS `preparation_cards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `preparation_cards` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL COMMENT 'Titre de la carte',
+  `type` enum('html','link','iframe') NOT NULL DEFAULT 'html' COMMENT 'Type de carte',
+  `html_fragment` mediumtext DEFAULT NULL COMMENT 'Snippet HTML tiers (optionnel)',
+  `image_url` varchar(255) DEFAULT NULL COMMENT 'URL miniature',
+  `link_url` varchar(255) DEFAULT NULL COMMENT 'URL de redirection',
+  `category` varchar(128) DEFAULT NULL COMMENT 'Categorie libre',
+  `display_order` int(11) NOT NULL DEFAULT 0 COMMENT 'Ordre affichage',
+  `visible` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Visibilite',
+  `created_at` datetime NOT NULL COMMENT 'Date creation',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Date mise a jour',
+  PRIMARY KEY (`id`),
+  KEY `idx_type` (`type`),
+  KEY `idx_visible` (`visible`),
+  KEY `idx_display_order` (`display_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Cartes de preparation des vols';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1016,6 +1518,22 @@ CREATE TABLE `procedures` (
   KEY `idx_created_by` (`created_by`),
   CONSTRAINT `fk_procedures_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Gestion des procédures du club';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `public_rate_limit`
+--
+
+DROP TABLE IF EXISTS `public_rate_limit`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `public_rate_limit` (
+  `ip` varchar(45) NOT NULL,
+  `endpoint` varchar(50) NOT NULL,
+  `attempts` int(11) NOT NULL DEFAULT 1,
+  `window_start` datetime NOT NULL,
+  PRIMARY KEY (`ip`,`endpoint`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1066,7 +1584,7 @@ CREATE TABLE `reservations` (
   KEY `idx_pilot` (`pilot_member_id`),
   KEY `idx_instructor` (`instructor_member_id`),
   KEY `idx_section` (`section_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Aircraft reservations for FullCalendar booking system';
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Aircraft reservations for FullCalendar booking system';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1124,6 +1642,14 @@ CREATE TABLE `sections` (
   `acronyme` varchar(10) DEFAULT NULL,
   `couleur` varchar(7) DEFAULT NULL,
   `ordre_affichage` int(11) DEFAULT NULL,
+  `gestion_planeurs` tinyint(1) NOT NULL DEFAULT 0,
+  `gestion_avions` tinyint(1) NOT NULL DEFAULT 0,
+  `libelle_menu_avions` varchar(64) DEFAULT NULL,
+  `show_presences` tinyint(1) NOT NULL DEFAULT 1,
+  `has_bar` tinyint(1) NOT NULL DEFAULT 0,
+  `bar_account_id` int(11) DEFAULT NULL,
+  `has_vd_par_cb` tinyint(1) NOT NULL DEFAULT 0,
+  `has_approvisio_par_cb` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1142,15 +1668,21 @@ CREATE TABLE `tarifs` (
   `date_fin` date DEFAULT '2099-12-31' COMMENT 'Date de fin',
   `description` varchar(80) DEFAULT NULL COMMENT 'Description',
   `prix` decimal(8,2) NOT NULL DEFAULT 0.00 COMMENT 'Prix unitaire',
+  `nb_personnes_max` tinyint(3) unsigned NOT NULL DEFAULT 1,
   `compte` int(11) NOT NULL DEFAULT 0 COMMENT 'Numéro de compte associé',
   `saisie_par` varchar(25) NOT NULL COMMENT 'Opérateur',
   `club` tinyint(1) DEFAULT 0 COMMENT 'Gestion multi-club',
   `nb_tickets` decimal(8,2) NOT NULL DEFAULT 0.00 COMMENT 'Quantité de ticket à créditer',
   `type_ticket` int(11) DEFAULT NULL COMMENT 'Type de ticket à créditer',
+  `is_cotisation` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Produit de cotisation — présenté au pilote dans UC3',
   `public` tinyint(4) DEFAULT 1 COMMENT 'Permet le filtrage sur l''impression',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`),
   KEY `compte` (`compte`)
-) ENGINE=InnoDB AUTO_INCREMENT=163 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=175 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1166,6 +1698,10 @@ CREATE TABLE `terrains` (
   `freq1` decimal(6,3) DEFAULT 0.000 COMMENT 'Fréquence principale',
   `freq2` decimal(6,3) DEFAULT 0.000 COMMENT 'Fréquence secondaire',
   `comment` varchar(256) DEFAULT NULL COMMENT 'Description',
+  `created_by` varchar(25) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_by` varchar(25) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`oaci`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1188,6 +1724,10 @@ CREATE TABLE `tickets` (
   `club` tinyint(4) NOT NULL COMMENT 'Gestion multi-club',
   `type` int(11) NOT NULL DEFAULT 0 COMMENT 'Type de ticket',
   `vol` int(11) DEFAULT NULL COMMENT 'Vol associé',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=522 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC COMMENT='Tickets de remorqué ou treuillé';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1222,7 +1762,7 @@ CREATE TABLE `types_roles` (
   `display_order` int(11) NOT NULL DEFAULT 100,
   `translation_key` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Type de rôle pour les section';
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Type de rôle pour les section';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1235,11 +1775,11 @@ DROP TABLE IF EXISTS `use_new_authorization`;
 CREATE TABLE `use_new_authorization` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
-  `created_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp() COMMENT 'When user was added to migration list',
   `notes` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1272,7 +1812,7 @@ CREATE TABLE `user_profile` (
   `country` varchar(20) DEFAULT NULL,
   `website` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=327 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=333 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1301,7 +1841,7 @@ CREATE TABLE `user_roles_per_section` (
   CONSTRAINT `section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `types_roles_id` FOREIGN KEY (`types_roles_id`) REFERENCES `types_roles` (`id`),
   CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=804 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=978 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1347,7 +1887,7 @@ CREATE TABLE `users` (
   `modified` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=325 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=331 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1378,13 +1918,18 @@ CREATE TABLE `vols_decouverte` (
   `time_vol` time DEFAULT NULL,
   `pilote` varchar(64) DEFAULT NULL,
   `airplane_immat` varchar(10) DEFAULT NULL,
+  `aerodrome` varchar(10) CHARACTER SET latin1 COLLATE latin1_general_ci DEFAULT NULL,
   `cancelled` tinyint(1) DEFAULT 0,
   `nb_personnes` tinyint(1) DEFAULT NULL,
   `prix` decimal(14,12) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=260010 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  PRIMARY KEY (`id`),
+  KEY `fk_vd_aerodrome` (`aerodrome`),
+  CONSTRAINT `fk_vd_aerodrome` FOREIGN KEY (`aerodrome`) REFERENCES `terrains` (`oaci`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=260025 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1425,11 +1970,15 @@ CREATE TABLE `volsa` (
   `essence` int(11) DEFAULT 0 COMMENT 'Quantité d''essence',
   `vahdeb` decimal(4,2) NOT NULL COMMENT 'Heure de décollage',
   `vahfin` decimal(4,2) NOT NULL COMMENT 'Heure d''atterrissage',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`vaid`),
   KEY `vapilid` (`vapilid`),
   KEY `vamacid` (`vamacid`),
   KEY `saisie_par` (`saisie_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=2522 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=2523 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1468,11 +2017,15 @@ CREATE TABLE `volsp` (
   `reappro` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Ravitaillement',
   `essence` int(11) DEFAULT 0,
   `vpticcolle` tinyint(1) NOT NULL COMMENT 'Si ticket collé ou pas',
+  `created_by` varchar(25) DEFAULT NULL COMMENT 'User who created the row',
+  `created_at` datetime DEFAULT NULL COMMENT 'Creation timestamp',
+  `updated_by` varchar(25) DEFAULT NULL COMMENT 'User who last updated the row',
+  `updated_at` datetime DEFAULT NULL COMMENT 'Last update timestamp',
   PRIMARY KEY (`vpid`),
   KEY `saisie_par` (`saisie_par`),
   KEY `pilote_remorqueur` (`pilote_remorqueur`),
   KEY `remorqueur` (`remorqueur`)
-) ENGINE=InnoDB AUTO_INCREMENT=9125 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=9133 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -1484,13 +2037,13 @@ CREATE TABLE `volsp` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-14 18:17:24
+-- Dump completed on 2026-04-29 10:40:54
 -- ========================================
 -- Données de test minimales
 -- ========================================
 
 -- Migration version
-INSERT INTO `migrations` (`version`) VALUES (65);
+INSERT INTO `migrations` (`version`) VALUES (103);
 
 -- Membres de test (utilisateurs Gaulois)
 INSERT INTO `membres` (`mlogin`, `mnom`, `mprenom`, `memail`, `memailparent`, `madresse`, `cp`, `ville`, `pays`, `mtelf`, `mtelm`, `mdaten`, `m25ans`, `mlieun`, `msexe`, `mniveaux`, `macces`, `club`, `ext`, `actif`, `username`, `photo`, `compte`, `comment`, `trigramme`, `categorie`, `profession`, `inst_glider`, `inst_airplane`, `licfed`) VALUES
