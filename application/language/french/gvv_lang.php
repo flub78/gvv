@@ -105,7 +105,7 @@ $lang['gvv_menu_entries_wire_withdrawal'] = "Retrait de liquide (531 - 512)";
 $lang['gvv_menu_entries_wire_remb_capital'] = "Remboursement de capital (164 - 512)";
 $lang['gvv_menu_entries_wire_loan_disbursement'] = "Mise a disposition d'emprunt (512 - 164)";
 $lang['gvv_menu_entries_depreciation'] = "Dotation aux amortissements (68 - 281)";
-$lang['gvv_menu_entries_section_collection'] = "Encaissement pour une section (512 - 467)";
+$lang['gvv_menu_entries_section_collection'] = "Encaissement pour une section, HelloAsso (512 - 467)";
 $lang['gvv_menu_entries_section_reversal'] = "Reversement section (467 - 512)";
 $lang['welcome_section_operations_title'] = "Opérations de section";
 

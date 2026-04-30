@@ -203,7 +203,7 @@ $lang['db_desc_configuration']  = "Configuration";
 $lang['db_desc_per_user']       = "Par utilisateur";
 $lang['db_desc_documentation']  = "Documentation";
 $lang['db_desc_regulatory']     = "Réglementaires";
-$lang['db_desc_collection']     = "(512 - 467)";
+$lang['db_desc_collection']     = "HelloAsso, (512 - 467)";
 
 $lang['db_card_decloture']  = "Décloture";
 $lang['db_desc_decloture']  = "Supprimer la dernière clôture";
