@@ -163,3 +163,5 @@
 * [x] **la page de retour après une modification des écritures est discutable**
 * [x] Vérifier ou sont placées les unités sur la timeline de réservation
 * [x] Timeout, il faut mieux déconnecter. 
+* [x] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
+* [x]violation du principe qu'un membre ne devrait voir dans les menus que les actions qui lui sont permises... pman sur config

@@ -135,6 +135,14 @@ class Config extends CI_Controller {
         }
         $this->dx_auth->check_uri_permissions();
 
+        // Authorization: Code-based (v2.0) - only for migrated users
+        // Load with TRUE (namespaced) to match how DX_Auth loads it; access with section name
+        $this->config->load('gvv_config', TRUE);
+        if ($this->config->item('use_new_authorization', 'gvv_config')) {
+            $this->load->library('Gvv_Authorization');
+            $this->gvv_authorization->require_roles(['club-admin']);
+        }
+
         $this->config->load('club');
         $this->load->helper('file');
         $this->load->helper('directory');

@@ -1002,6 +1002,7 @@ $this->lang->load('tableaux_de_bord');
         <div id="collapseAdminClub" class="accordion-collapse collapse" aria-labelledby="headingAdminClub" data-bs-parent="#dashboardAccordion">
         <div class="accordion-body">
             <div class="row g-2">
+                <?php if (has_role('club-admin')): ?>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-cog text-primary"></i>
@@ -1019,6 +1020,7 @@ $this->lang->load('tableaux_de_bord');
                         <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">

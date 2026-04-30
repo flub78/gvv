@@ -31,10 +31,9 @@ echo heading("welcome_forbiden_title", 3);
 
 echo "<p>" . $this->lang->line("welcome_forbiden_text") . "</p>";
 $this->load->library('session');
-$user_data = $this->session->all_userdata();
+$requested_url = $this->session->userdata('requested_url');
 echo "<pre>";
-// print_r($user_data);
-echo "URL: " . $user_data['requested_url'] . "\n";
+echo "URL: " . ($requested_url ? $requested_url : '-') . "\n";
 echo "</pre>";
 ?>
 </div>
