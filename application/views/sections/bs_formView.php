@@ -42,10 +42,10 @@ $this->lang->load('sections');
 		</div>
 		<div class="card-body">
 			<?php echo validation_errors(); ?>
-			<p><?= $image ?></p>
+			<?php if (!empty($image)) echo '<p>' . $image . '</p>'; ?>
 			<form action="<?= controller_url($controller) . '/formValidation/' . $action ?>" method="post" accept-charset="utf-8" name="saisie" enctype="multipart/form-data">
 
-				<input type="hidden" name="original_<?= $kid ?>" value="<?= $id ?>">
+				<?php if (isset($kid) && isset($$kid)) echo form_hidden('original_' . $kid, $$kid); ?>
 
 				<?= ($this->gvvmetadata->form('sections', array(
 					'nom' => $nom,

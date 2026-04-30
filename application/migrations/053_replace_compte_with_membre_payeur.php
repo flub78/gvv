@@ -86,7 +86,7 @@ class Migration_Replace_compte_with_membre_payeur extends CI_Migration
         } catch (Exception $e) {
             log_message('error', 'Migration 053 FAILED: ' . $e->getMessage());
             log_message('error', 'Migration 053 Error trace: ' . $e->getTraceAsString());
-            throw $e;
+            return false;
         }
     }
 
@@ -132,7 +132,7 @@ class Migration_Replace_compte_with_membre_payeur extends CI_Migration
 
         } catch (Exception $e) {
             log_message('error', 'Migration 053 rollback FAILED: ' . $e->getMessage());
-            throw $e;
+            return false;
         }
     }
 

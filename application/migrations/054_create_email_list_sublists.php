@@ -31,7 +31,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
         // Verify parent table exists
         if (!$this->db->table_exists('email_lists')) {
             log_message('error', 'Migration 054: Parent table email_lists does not exist');
-            throw new Exception('Migration 054: Cannot create email_list_sublists without email_lists table');
+            return false;
         }
         log_message('info', 'Migration 054: Parent table email_lists verified');
 
@@ -49,7 +49,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to create table email_list_sublists');
-            throw new Exception('Migration 054: Table creation failed');
+            return false;
         }
 
         // Clear CodeIgniter table cache to detect newly created table
@@ -59,7 +59,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
         $verify = $this->db->query("SHOW TABLES LIKE 'email_list_sublists'");
         if ($verify->num_rows() === 0) {
             log_message('error', 'Migration 054: Table creation succeeded but table not found');
-            throw new Exception('Migration 054: Table verification failed after creation');
+            return false;
         }
         log_message('info', 'Migration 054: Table created and verified');
 
@@ -74,7 +74,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to add FK parent');
-            throw new Exception('Migration 054: Foreign key constraint (parent) failed');
+            return false;
         }
 
         // FK child: RESTRICT - cannot delete a list if it's used as sublist elsewhere
@@ -87,7 +87,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to add FK child');
-            throw new Exception('Migration 054: Foreign key constraint (child) failed');
+            return false;
         }
 
         // Add unique constraint to prevent duplicate (parent, child) pairs
@@ -97,7 +97,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to add unique constraint');
-            throw new Exception('Migration 054: Unique constraint failed');
+            return false;
         }
 
         // Add indexes for performance
@@ -106,7 +106,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to create index idx_parent');
-            throw new Exception('Migration 054: Index creation (parent) failed');
+            return false;
         }
 
         log_message('info', 'Migration 054: Creating index idx_child');
@@ -114,14 +114,14 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to create index idx_child');
-            throw new Exception('Migration 054: Index creation (child) failed');
+            return false;
         }
 
         // Final verification
         $query = $this->db->query("SHOW CREATE TABLE email_list_sublists");
         if ($query->num_rows() === 0) {
             log_message('error', 'Migration 054: Final verification failed - table not found');
-            throw new Exception('Migration 054: Final table verification failed');
+            return false;
         }
 
         log_message('info', 'Migration 054: email_list_sublists table created successfully with all constraints and indexes');
@@ -150,7 +150,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
 
         if ($result === FALSE) {
             log_message('error', 'Migration 054: Failed to drop table email_list_sublists');
-            throw new Exception('Migration 054: Table drop failed');
+            return false;
         }
 
         // Clear CodeIgniter table cache to detect table removal
@@ -160,7 +160,7 @@ class Migration_Create_email_list_sublists extends CI_Migration {
         $verify = $this->db->query("SHOW TABLES LIKE 'email_list_sublists'");
         if ($verify->num_rows() > 0) {
             log_message('error', 'Migration 054: Table drop succeeded but table still exists');
-            throw new Exception('Migration 054: Table verification failed after drop');
+            return false;
         }
 
         log_message('info', 'Migration 054: email_list_sublists table dropped successfully');

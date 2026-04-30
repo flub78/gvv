@@ -1776,10 +1776,11 @@ class Paiements_en_ligne extends MY_Controller {
 
             $subject = $this->lang->line('gvv_decouverte_email_subject') ?: 'Bon découverte confirmé';
             $message = sprintf(
-                "Bonjour %s,\n\nVotre bon découverte (%s) a été réglé avec succès (%s€).\n\nVeuillez trouver ci-joint votre bon en PDF.\n\nCordialement,\n%s",
+                "Bonjour %s,\n\nVotre bon découverte (%s) a été réglé avec succès (%s€).\n\nVeuillez trouver ci-joint votre bon en PDF.\n\nBon envoyé par : %s\n\nCordialement,\n%s",
                 $benef,
                 $product ?: 'vol découverte',
                 $montant,
+                $sender_name,
                 $sender_name
             );
 

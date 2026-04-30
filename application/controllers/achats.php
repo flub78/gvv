@@ -204,7 +204,7 @@ class Achats extends Gvv_Controller {
      * @param array $data
      *            tableau des champs de l'enregistrement
      */
-    function pre_update($id, $data = array()) {
+    function pre_update($id, &$data = array()) {
         // cancel previous action
         $previous = $this->gvv_model->get_by_id('id', $data[$id]);
 

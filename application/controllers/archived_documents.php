@@ -106,7 +106,11 @@ class Archived_documents extends Gvv_Controller {
         $this->data['current_user'] = $pilot_login;
 
         $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
-        $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
+        if ($pilot) {
+            $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
+        } else {
+            $this->data['title'] = $this->lang->line('archived_documents_my_documents');
+        }
 
         load_last_view($this->controller . '/my_documents', $this->data);
     }
@@ -278,7 +282,11 @@ class Archived_documents extends Gvv_Controller {
 
         // Get pilot info
         $pilot = $this->membres_model->get_by_id('mlogin', $pilot_login);
-        $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
+        if ($pilot) {
+            $this->data['title'] = $this->lang->line('archived_documents_documents_of') . ' ' . $pilot['mprenom'] . ' ' . $pilot['mnom'];
+        } else {
+            $this->data['title'] = $this->lang->line('archived_documents_my_documents');
+        }
 
         load_last_view($this->controller . '/my_documents', $this->data);
     }

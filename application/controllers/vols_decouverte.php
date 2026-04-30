@@ -727,9 +727,19 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->email->subject('Votre bon de vol de découverte');
 
+        // Get operator name
+        $username = $this->dx_auth->get_username();
+        $operator_name = $username; // default to username
+        $this->load->model('membres_model');
+        $membre = $this->membres_model->get_by_id('mlogin', $username);
+        if (!empty($membre) && !empty($membre['mprenom']) && !empty($membre['mnom'])) {
+            $operator_name = $membre['mprenom'] . ' ' . $membre['mnom'];
+        }
+
         $message = "Bonjour " . $vd['beneficiaire'] . ",<br><br>";
 
         $message .= "Voici votre bon pour un vol de découverte. Il est valable jusqu'au <strong>" . $validity_date . "</strong>.<br><br>";
+        $message .= "<p>Bon envoyé par : " . htmlspecialchars($operator_name, ENT_QUOTES, 'UTF-8') . "</p><br>";
         $message .= "Cordialement,<br><br>L'équipe de l'Aéroclub d'Abbeville";
 
         $this->email->message($message);
@@ -1121,6 +1131,7 @@ EOD;
                       . '<p>' . $intro . '</p>'
                       . $custom_block
                       . '<p><a href="' . $lien_safe . '">' . $cta . '</a></p>'
+                      . '<p>Lien envoyé par : ' . htmlspecialchars($sender_name, ENT_QUOTES, 'UTF-8') . '</p>'
                       . '<p>' . $closing . '<br>' . htmlspecialchars($sender_name, ENT_QUOTES, 'UTF-8') . '</p>';
 
             $this->email->from($sender_email, $sender_name);

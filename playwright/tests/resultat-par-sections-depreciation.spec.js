@@ -59,10 +59,13 @@ async function setYear(page, year) {
  */
 async function switchSection(page, sectionId) {
     const sectionSelect = page.locator('select[name="section"]');
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }),
-        sectionSelect.selectOption(String(sectionId)),
-    ]);
+    const currentVal = await sectionSelect.inputValue();
+    if (currentVal === String(sectionId)) {
+        return; // Already on this section, no navigation needed
+    }
+    const navPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sectionSelect.selectOption(String(sectionId));
+    await navPromise;
 }
 
 /**
