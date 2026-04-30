@@ -1895,43 +1895,39 @@ class Paiements_en_ligne extends MY_Controller {
 EOD;
             $pdf->writeHTML($header_html, true, false, false, false, '');
 
-            $checked   = '<img src="' . image_dir() . 'checked.png" width="10" height="10" alt="v">';
-            $unchecked = '<img src="' . image_dir() . 'unchecked.png" width="10" height="10" alt=" ">';
-            $product   = isset($vd['product']) ? $vd['product'] : '';
+            $this->load->model('sections_model');
 
-            $abbeville     = ($product === 'abbeville')     ? $checked : $unchecked;
-            $baie          = ($product === 'baie')          ? $checked : $unchecked;
-            $falaise       = ($product === 'falaises')      ? $checked : $unchecked;
-            $autre         = ($product === 'autre')         ? $checked : $unchecked;
-            $noyelles      = ($product === 'noyelles')      ? $checked : $unchecked;
-            $planeur       = ($product === 'planeur')       ? $checked : $unchecked;
-            $abbeville_ulm = ($product === 'abbeville_ulm') ? $checked : $unchecked;
-            $baie_ulm      = ($product === 'baie_ulm')      ? $checked : $unchecked;
-            $falaise_ulm   = ($product === 'falaises_ulm')  ? $checked : $unchecked;
-            $autre_ulm     = ($product === 'autre_ulm')     ? $checked : $unchecked;
+            $section = $this->sections_model->get_by_id('id', $vd['club']);
+            $section_name = isset($section['nom']) ? trim((string) $section['nom']) : '';
+            $section_label = $section_name;
+            if ($section_label !== '' && !preg_match('/^[A-Z0-9]+$/', $section_label)) {
+                $section_label = strtolower($section_label);
+            }
+            $voucher_title = $section_label !== '' ? 'Un vol en ' . $section_label : 'Un vol de découverte';
+
+            $tarif = $this->db->select('description')
+                ->from('tarifs')
+                ->where('reference', $vd['product'])
+                ->where('club', (int) $vd['club'])
+                ->where('date <=', $vd['date_vente'])
+                ->order_by('date', 'desc')
+                ->limit(1)
+                ->get()
+                ->row_array();
+            $voucher_detail = !empty($tarif['description'])
+                ? trim((string) $tarif['description'])
+                : trim((string) $vd['product']);
+
+            $title_safe = htmlspecialchars($voucher_title, ENT_QUOTES, 'UTF-8');
+            $detail_safe = htmlspecialchars($voucher_detail, ENT_QUOTES, 'UTF-8');
 
             $options_html = <<<EOD
 <table cellspacing="0" cellpadding="5" border="1">
     <tr>
-        <td width="33%" align="center"><strong>Pour l'avion</strong></td>
-        <td width="34%" align="center"><strong>Pour le planeur</strong></td>
-        <td width="33%" align="center"><strong>Pour l'ULM</strong></td>
-    </tr>
-    <tr>
-        <td width="33%" style="height: 120px; vertical-align: top;">
-            <br />{$abbeville} Tour d'Abbeville (15 mn environ) pour 2 personnes
-            <br /><br />{$baie} Baie de Somme (30 mn environ) pour 2 personnes
-            <br /><br />{$falaise} Falaises ou Marquenterre (40 mn) pour 2 personnes
-            <br /><br />{$noyelles} Noyelles - Portes de la baie (20 mn) pour 2 personnes
-        </td>
-        <td width="34%" style="vertical-align: top;">
-            <br /><br />{$planeur} Vol en planeur (largage 500 m, 15 à 30 mn suivant la météo)
-        </td>
-        <td width="33%" style="height: 120px; vertical-align: top;">
-            <br />{$abbeville_ulm} Tour d'Abbeville (15 mn environ) pour 1 personne
-            <br /><br />{$baie_ulm} Baie de Somme (30 mn environ) pour 1 personne
-            <br /><br />{$falaise_ulm} Falaises ou Marquenterre (40 mn) pour 1 personne
-            <br /><br />{$autre_ulm} Autre (à détailler) :
+        <td style="height: 150px; vertical-align: middle; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold;">{$title_safe}</div>
+            <br />
+            <div style="font-size: 14px;">{$detail_safe}</div>
         </td>
     </tr>
 </table>
