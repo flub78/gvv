@@ -165,3 +165,8 @@
 * [x] Timeout, il faut mieux déconnecter. 
 * [x] Des utilisateurs arrivent à générer deux vols de découvertes, pourquoi ?
 * [x]violation du principe qu'un membre ne devrait voir dans les menus que les actions qui lui sont permises... pman sur config
+* [x] comptes/resultat_par_sections, essayer d'optimiser le nombre de requêtes SQL, c'est très lent quand on a beaucoup de sections et de comptes.
+* [x] Sur créer et continuer, ne pas garder les montants, libellés et numéro de pièce. Discutable, c'est pratique quand on fait des ajustements comptables.
+* [x] Le gel/dégel des écritures ne retourne pas exactement sur l'endroit ou était l'utilisateur, il faudrait faire mieux.
+
+* [x] Afficher une marque sur les écritures rapprochés.
