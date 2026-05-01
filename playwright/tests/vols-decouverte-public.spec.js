@@ -71,7 +71,7 @@ const BASE            = '';
 const LOGIN_URL       = '/index.php/auth/login';
 const PUBLIC_VD_URL   = '/index.php/vols_decouverte/public_vd';
 const VD_LIST_URL     = '/index.php/vols_decouverte/page';
-const QR_URL          = '/index.php/vols_decouverte/qrcode/4';
+const QR_URL          = '/index.php/vols_decouverte/qrcode/2'; // Section ULM has has_vd_par_cb=1
 const ADMIN_USER      = { username: 'testadmin', password: 'password' };
 const TEST_SECTION    = 4; // Section "Général" — always present in test env
 

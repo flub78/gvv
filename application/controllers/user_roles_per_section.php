@@ -65,11 +65,31 @@ class User_roles_per_section extends Gvv_Controller {
 
             if ($is_real_section) {
                 $user_id = $this->dx_auth->get_user_id();
-                $has_role = $this->db
+
+                // Direct role in target section
+                $has_direct_role = $this->db
                     ->where('user_id', $user_id)
                     ->where('section_id', $section_int)
                     ->where('revoked_at IS NULL')
                     ->count_all_results('user_roles_per_section') > 0;
+
+                // Global role (section_id IS NULL) grants access everywhere
+                $has_global_role = $this->db
+                    ->where('user_id', $user_id)
+                    ->where('section_id IS NULL', null, false)
+                    ->where('revoked_at IS NULL')
+                    ->count_all_results('user_roles_per_section') > 0;
+
+                // Admin role in any section grants access to all sections (mirrors selector_for_user logic)
+                $has_admin_role = $this->db
+                    ->from('user_roles_per_section urps')
+                    ->join('types_roles tr', 'tr.id = urps.types_roles_id')
+                    ->where('urps.user_id', $user_id)
+                    ->where('urps.revoked_at IS NULL')
+                    ->where_in('tr.nom', ['admin', 'club-admin'])
+                    ->count_all_results() > 0;
+
+                $has_role = $has_direct_role || $has_global_role || $has_admin_role;
 
                 if (!$has_role) {
                     log_message('warning', "set_section: user $user_id denied access to section $section_int (no role)");
