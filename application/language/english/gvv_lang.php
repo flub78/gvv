@@ -682,3 +682,27 @@ $lang['gvv_choose_file'] = 'Choose a file';
 $lang['gvv_no_file_selected'] = 'No file selected';
 
 $lang['gvv_nb_personnes_max'] = 'Max passengers';
+
+// Member cards
+$lang['gvv_cartes_membre_lot_title']    = 'Member card batch generation';
+$lang['gvv_cartes_membre_config_title'] = 'Member card configuration';
+$lang['gvv_cartes_membre_config']       = 'Configuration';
+$lang['gvv_cartes_membre_year']         = 'Year';
+$lang['gvv_cartes_membre_membres_count'] = 'member(s) with subscription';
+$lang['gvv_cartes_membre_no_membres']   = 'No members with subscription for this year.';
+$lang['gvv_cartes_membre_select_membres'] = 'Select members to include';
+$lang['gvv_cartes_membre_select_all']   = 'Select all';
+$lang['gvv_cartes_membre_deselect_all'] = 'Deselect all';
+$lang['gvv_cartes_membre_nom']          = 'Last name';
+$lang['gvv_cartes_membre_prenom']       = 'First name';
+$lang['gvv_cartes_membre_numero']       = 'Member N°';
+$lang['gvv_cartes_membre_generate']     = 'Generate cards (PDF)';
+$lang['gvv_cartes_membre_fond_recto']   = 'Front background';
+$lang['gvv_cartes_membre_fond_verso']   = 'Back background';
+$lang['gvv_cartes_membre_fond_defined'] = 'Background configured';
+$lang['gvv_cartes_membre_fond_absent']  = 'No background configured — card generated with simple border.';
+$lang['gvv_cartes_membre_fond_info']    = 'Recommended format: JPEG or PNG, 1011 × 638 px (300 dpi), max size 4 MB.';
+$lang['gvv_cartes_membre_upload']       = 'Upload';
+$lang['gvv_cartes_membre_upload_ok']    = 'Background saved successfully.';
+$lang['gvv_cartes_membre_invalid_face'] = 'Invalid face (recto or verso expected).';
+$lang['gvv_menu_cartes_membre']         = 'Member cards';

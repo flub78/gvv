@@ -347,6 +347,9 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['photo_with_badges']['Name'] = 'Photo';
 
 
+                $this->field['membres']['mnumero']['Type'] = 'int';
+                $this->field['membres']['mnumero']['Name'] = 'N° membre';
+
                 $this->field['membres']['inscription_date']['Type'] = 'date';
                 $this->field['membres']['validation_date']['Type'] = 'date';
 

@@ -216,3 +216,7 @@ $lang['db_title_freeze_date_edit'] = "Modification de la date de gel";
 // ─── Confirmation ─────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Êtes-vous sûr d'être sur un environnement de développement ?";
 $lang['db_card_pilot_payment'] = "Approvisionnement pilote";
+
+// Cartes de membre
+$lang['db_card_member_cards'] = "Cartes de membre";
+$lang['db_desc_member_cards'] = "Générer les cartes en lot";

@@ -693,3 +693,27 @@ $lang['gvv_or'] = 'ou';
 $lang['gvv_choose_file'] = 'Choisir un fichier';
 $lang['gvv_no_file_selected'] = 'Aucun fichier sélectionné';
 $lang['gvv_nb_personnes_max'] = 'Nb max passagers';
+
+// Cartes de membre
+$lang['gvv_cartes_membre_lot_title']    = 'Génération des cartes de membre en lot';
+$lang['gvv_cartes_membre_config_title'] = 'Configuration des cartes de membre';
+$lang['gvv_cartes_membre_config']       = 'Configuration';
+$lang['gvv_cartes_membre_year']         = 'Année';
+$lang['gvv_cartes_membre_membres_count'] = 'membre(s) avec cotisation';
+$lang['gvv_cartes_membre_no_membres']   = 'Aucun membre avec cotisation pour cette année.';
+$lang['gvv_cartes_membre_select_membres'] = 'Sélectionner les membres à inclure';
+$lang['gvv_cartes_membre_select_all']   = 'Tout sélectionner';
+$lang['gvv_cartes_membre_deselect_all'] = 'Tout désélectionner';
+$lang['gvv_cartes_membre_nom']          = 'Nom';
+$lang['gvv_cartes_membre_prenom']       = 'Prénom';
+$lang['gvv_cartes_membre_numero']       = 'N° membre';
+$lang['gvv_cartes_membre_generate']     = 'Générer les cartes (PDF)';
+$lang['gvv_cartes_membre_fond_recto']   = 'Fond recto';
+$lang['gvv_cartes_membre_fond_verso']   = 'Fond verso';
+$lang['gvv_cartes_membre_fond_defined'] = 'Fond configuré';
+$lang['gvv_cartes_membre_fond_absent']  = 'Aucun fond configuré — carte générée avec bordure simple.';
+$lang['gvv_cartes_membre_fond_info']    = 'Format recommandé : JPEG ou PNG, 1011 × 638 px (300 dpi), taille max 4 Mo.';
+$lang['gvv_cartes_membre_upload']       = 'Téléverser';
+$lang['gvv_cartes_membre_upload_ok']    = 'Fond enregistré avec succès.';
+$lang['gvv_cartes_membre_invalid_face'] = 'Face invalide (recto ou verso attendu).';
+$lang['gvv_menu_cartes_membre']         = 'Cartes de membre';

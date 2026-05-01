@@ -8,8 +8,6 @@
 
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 
-* [] On perd l'occasion sur les vols de découverte
-
 * []qui a le droit de modifier des droits. Ca ne sert à rien qu'on ait un système de droit sophistiqués si les gens qui gèrent les droits peuvent se donner tous les droits... Ou donner à leurs copains plus de droits qu'ils n'en ont eux-mêmes. un membre du CA qui veut ajouter ou supprimer un pilote VD, c'est OK.
 
 
@@ -18,10 +16,6 @@
 
 ### Priorité 1
 La priorité opérationnelle est de pouvoir remplacer complètement OpenFlyers qui gèrent pour l'instant les réservations et la facturation ULM et avion. 
-
-La synchronisation périodique des opérations OpenFLyers est fastidieuse et source d'erreurs.
-
-Ont peut envisager un déploiement avant que toutes les fonctionnalités d'OpenFLyers ne soient complètement terminées (acceptation de documents, validités) par contre il faut que la facturation et les réservations soient opérationnelles.
 
 Cela implique de:
 

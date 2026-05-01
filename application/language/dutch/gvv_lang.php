@@ -682,3 +682,27 @@ $lang['gvv_choose_file'] = 'Bestand kiezen';
 $lang['gvv_no_file_selected'] = 'Geen bestand geselecteerd';
 
 $lang['gvv_nb_personnes_max'] = 'Max passagiers';
+
+// Ledenpassen
+$lang['gvv_cartes_membre_lot_title']    = 'Ledenpassen batch genereren';
+$lang['gvv_cartes_membre_config_title'] = 'Configuratie ledenpassen';
+$lang['gvv_cartes_membre_config']       = 'Configuratie';
+$lang['gvv_cartes_membre_year']         = 'Jaar';
+$lang['gvv_cartes_membre_membres_count'] = 'lid/leden met abonnement';
+$lang['gvv_cartes_membre_no_membres']   = 'Geen leden met abonnement voor dit jaar.';
+$lang['gvv_cartes_membre_select_membres'] = 'Leden selecteren om op te nemen';
+$lang['gvv_cartes_membre_select_all']   = 'Alles selecteren';
+$lang['gvv_cartes_membre_deselect_all'] = 'Alles deselecteren';
+$lang['gvv_cartes_membre_nom']          = 'Achternaam';
+$lang['gvv_cartes_membre_prenom']       = 'Voornaam';
+$lang['gvv_cartes_membre_numero']       = 'Lidnr.';
+$lang['gvv_cartes_membre_generate']     = 'Passen genereren (PDF)';
+$lang['gvv_cartes_membre_fond_recto']   = 'Voorkant achtergrond';
+$lang['gvv_cartes_membre_fond_verso']   = 'Achterkant achtergrond';
+$lang['gvv_cartes_membre_fond_defined'] = 'Achtergrond geconfigureerd';
+$lang['gvv_cartes_membre_fond_absent']  = 'Geen achtergrond geconfigureerd — pas gegenereerd met eenvoudige rand.';
+$lang['gvv_cartes_membre_fond_info']    = 'Aanbevolen formaat: JPEG of PNG, 1011 × 638 px (300 dpi), max 4 MB.';
+$lang['gvv_cartes_membre_upload']       = 'Uploaden';
+$lang['gvv_cartes_membre_upload_ok']    = 'Achtergrond succesvol opgeslagen.';
+$lang['gvv_cartes_membre_invalid_face'] = 'Ongeldige zijde (voor- of achterkant verwacht).';
+$lang['gvv_menu_cartes_membre']         = 'Ledenpassen';

@@ -216,3 +216,7 @@ $lang['db_title_freeze_date_edit'] = "Wijziging van de bevriezingsdatum";
 // ─── Bevestiging ──────────────────────────────────────────────────────────────
 $lang['db_confirm_dev_env'] = "Weet u zeker dat u zich in een ontwikkelomgeving bevindt?";
 $lang['db_card_pilot_payment'] = "Piloot opwaarderen";
+
+// Ledenpassen
+$lang['db_card_member_cards'] = "Ledenpassen";
+$lang['db_desc_member_cards'] = "Passen batch genereren";

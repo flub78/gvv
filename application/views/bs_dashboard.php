@@ -1109,6 +1109,17 @@ $this->lang->load('tableaux_de_bord');
                         <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
                     </div>
                 </div>
+
+                <?php if (has_role('club-admin')): ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-id-badge text-primary"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_member_cards') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_member_cards') ?></div>
+                        <a href="<?= controller_url('cartes_membre/lot') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Gestion documentaire subsection -->

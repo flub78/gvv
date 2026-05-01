@@ -172,3 +172,4 @@
 * [x] Afficher une marque sur les écritures rapprochés.
 * [x] Simplifier le workflow de vente de vol de découverte
 * [x] Simplifier le workflow des briefings passagers avec le QRCode 
+* [x] On perd l'occasion sur les vols de découverte

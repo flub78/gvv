@@ -236,6 +236,11 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
             <?php if (has_role('ca')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("licences/per_year") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_menu_membres_licences") ?></a></li>
             <?php endif; ?>
+            <?php if (has_role('club-admin')) : ?>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="<?= controller_url("cartes_membre/lot") ?>"><i class="fas fa-id-badge text-primary"></i> <?= translation("gvv_menu_cartes_membre") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("cartes_membre/config") ?>"><i class="fas fa-cog text-secondary"></i> <?= translation("gvv_cartes_membre_config_title") ?></a></li>
+            <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>

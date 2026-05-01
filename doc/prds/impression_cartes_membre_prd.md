@@ -137,6 +137,10 @@ Chaque carte doit contenir :
 - Taux d’erreur d’impression (mauvais membre/année) inférieur à 1 %.
 - Adoption par les clubs pour les campagnes annuelles de cartes.
 
-## Questions ouvertes
-- La signature du président est-elle une image, un texte, ou les deux ?
-- En lot, faut-il proposer des filtres complémentaires (catégorie, section) en plus du filtre par membres actifs de l’année précédente ?
+## Décisions arrêtées
+
+- **Numéro de membre** : champ `mnumero` dédié, ajouté via migration.
+- **Signature du président** : texte uniquement (nom et prénom du membre ayant le rôle président dans GVV).
+- **Fond absent** : impression autorisée sans fond, avec une bordure de 1 px autour de chaque carte.
+- **Ordre verso** : miroir horizontal validé — les cartes sont imprimées en ordre inverse sur la page verso pour assurer l’alignement recto-verso.
+- **Filtres lot** : filtre par défaut « membres actifs de l’année précédente » uniquement ; pas de filtre complémentaire par catégorie ou section dans cette version.
