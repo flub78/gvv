@@ -1721,6 +1721,9 @@ class Paiements_en_ligne extends MY_Controller {
         if ($this->db->field_exists('urgence', 'vols_decouverte')) {
             $insert['urgence'] = isset($meta['urgence']) ? (string) $meta['urgence'] : '';
         }
+        if ($this->db->field_exists('occasion', 'vols_decouverte')) {
+            $insert['occasion'] = isset($meta['occasion']) ? (string) $meta['occasion'] : '';
+        }
         if ($this->db->field_exists('nb_personnes', 'vols_decouverte')) {
             $insert['nb_personnes'] = isset($meta['nb_personnes']) ? (int) $meta['nb_personnes'] : 1;
         }

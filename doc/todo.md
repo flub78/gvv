@@ -25,7 +25,6 @@ Ont peut envisager un déploiement avant que toutes les fonctionnalités d'OpenF
 
 Cela implique de:
 
-* terminer le changement du mécanisme d'autorisation
 * Vérifier le support de la facturation ULM et avion
 * Mettre en place une stratégie de migration
 
@@ -48,6 +47,7 @@ Cela implique de:
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 s
+
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
