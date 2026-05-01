@@ -70,6 +70,65 @@ if (!empty($errors) && is_array($errors)) {
     <div class="alert alert-danger"><?= htmlspecialchars($errors['general']) ?></div>
   <?php endif; ?>
 
+  <?php if (!empty($flash_success)): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($flash_success) ?></div>
+  <?php endif; ?>
+
+  <?php if (!empty($flash_error)): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($flash_error) ?></div>
+  <?php endif; ?>
+
+  <?php if (!empty($is_logged_in)): ?>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">
+        <i class="fas fa-share-alt me-2"></i><?= $this->lang->line('gvv_vd_share_link_btn') ?>
+      </h5>
+
+      <?php if (!empty($section_id) && !empty($section_row)): ?>
+      <?php $public_url = site_url('vols_decouverte/public_vd?section=' . (int) $section_id); ?>
+
+      <div class="row g-3 align-items-start">
+        <div class="col-md-4 text-center">
+          <img
+            src="<?= site_url('vols_decouverte/qrcode/' . (int) $section_id) ?>"
+            alt="QR Code"
+            class="img-fluid border rounded p-2 bg-white"
+            style="max-width: 180px;"
+          >
+        </div>
+
+        <div class="col-md-8">
+          <?= form_open('vols_decouverte/send_public_link', array('class' => 'row g-2')) ?>
+          <input type="hidden" name="section_id" value="<?= (int) $section_id ?>">
+          <input type="hidden" name="return_url" value="<?= htmlspecialchars($public_url, ENT_QUOTES, 'UTF-8') ?>">
+
+          <div class="col-12">
+            <label class="form-label" for="share-email"><?= $this->lang->line('gvv_vd_share_link_email_label') ?></label>
+            <input type="email" name="to" id="share-email" class="form-control" required>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="share-custom-msg"><?= $this->lang->line('gvv_vd_share_link_custom_msg_label') ?></label>
+            <textarea name="custom_message" id="share-custom-msg" class="form-control" rows="3"
+                      placeholder="<?= htmlspecialchars($this->lang->line('gvv_vd_share_link_custom_msg_placeholder'), ENT_QUOTES, 'UTF-8') ?>"></textarea>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane me-1"></i><?= $this->lang->line('gvv_vd_share_link_send_btn') ?>
+            </button>
+          </div>
+          <?= form_close() ?>
+        </div>
+      </div>
+      <?php else: ?>
+      <p class="text-muted mb-0"><?= $this->lang->line('gvv_vd_public_choose_section') ?></p>
+      <?php endif; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- Sélecteur de section (masqué si section forcée depuis l'URL) -->
   <?php if (empty($sections_disponibles)): ?>
   <div class="alert alert-info"><?= $this->lang->line('gvv_vd_public_no_section_available') ?></div>

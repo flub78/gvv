@@ -1082,7 +1082,7 @@ EOD;
     public function send_public_link() {
         $this->lang->load('vols_decouverte');
 
-        if (!$this->has_full_vd_rights()) {
+        if (!$this->dx_auth->is_logged_in()) {
             show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
@@ -1090,10 +1090,13 @@ EOD;
         $section_id     = (int) $this->input->post('section_id');
         $to             = trim((string) $this->input->post('to') ?: '');
         $custom_message = trim((string) $this->input->post('custom_message') ?: '');
+        $return_url     = trim((string) $this->input->post('return_url') ?: '');
+        $fallback_url   = site_url('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
+        $redirect_url   = (strpos($return_url, site_url('vols_decouverte/public_vd')) === 0) ? $return_url : $fallback_url;
 
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
             $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_email'));
-            redirect('vols_decouverte/page');
+            redirect($redirect_url);
             return;
         }
 
@@ -1143,7 +1146,7 @@ EOD;
             $this->session->set_flashdata('error', $this->lang->line('gvv_vd_public_error_checkout'));
         }
 
-        redirect('vols_decouverte/page');
+        redirect($redirect_url);
     }
 
     /**
@@ -1154,7 +1157,7 @@ EOD;
      * @param int $section_id  Identifiant de la section
      */
     public function qrcode($section_id = 0) {
-        if (!$this->has_full_vd_rights()) {
+        if (!$this->dx_auth->is_logged_in()) {
             show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
             return;
         }
@@ -1471,6 +1474,7 @@ EOD;
 
         $contact_email     = (string) ($this->configuration_model->get_param('vd.email.sender_email') ?: '');
         $contact_signature = (string) ($this->configuration_model->get_param('vd.email.sender_signature') ?: '');
+        $is_logged_in      = (bool) $this->dx_auth->is_logged_in();
 
         $data = array(
             'section_id'           => $section_id,
@@ -1486,9 +1490,15 @@ EOD;
             'title'                => $this->lang->line('gvv_vd_public_title'),
             'contact_email'        => $contact_email,
             'contact_signature'    => $contact_signature,
+            'is_logged_in'         => $is_logged_in,
+            'flash_success'        => $this->session->flashdata('success'),
+            'flash_error'          => $this->session->flashdata('error'),
         );
 
         $this->load->view('bs_header', $data);
+        if ($is_logged_in) {
+            $this->load->view('bs_menu', array('is_planchiste' => false, 'is_auto_planchiste' => false));
+        }
         $this->load->view('bs_banner');
         $this->load->view('vols_decouverte/bs_public_vd', $data);
         $this->load->view('bs_footer');
