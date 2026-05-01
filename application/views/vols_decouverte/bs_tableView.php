@@ -105,13 +105,6 @@ if ($has_modification_rights) {
         . $this->lang->line('gvv_button_create')
         . '</a>';
 
-    if (!empty($vd_par_cb_enabled)) {
-        $btn_bar .= ' <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#shareModal">'
-            . '<i class="fas fa-share-alt me-1"></i>'
-            . $this->lang->line('gvv_vd_share_link_btn')
-            . '</button>';
-    }
-
     $btn_bar .= '</div>';
     echo $btn_bar;
 }
@@ -219,85 +212,10 @@ echo '</div>';
 
 ?>
 
-<?php if (!empty($vd_par_cb_enabled)): ?>
-<!-- Modale de partage de la page publique VD -->
-<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="shareModalLabel">
-          <i class="fas fa-share-alt me-2"></i><?= $this->lang->line('gvv_vd_share_link_btn') ?>
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-
-        <?php
-        $public_url = site_url('vols_decouverte/public_vd?section=' . (int) $current_section_id);
-        $qr_url     = site_url('vols_decouverte/qrcode/' . (int) $current_section_id);
-        ?>
-
-        <!-- URL publique -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold"><?= $this->lang->line('gvv_vd_public_title') ?></label>
-          <div class="input-group">
-            <input type="text" id="share-url" class="form-control font-monospace small"
-                   value="<?= htmlspecialchars($public_url) ?>" readonly>
-            <button type="button" class="btn btn-outline-secondary" onclick="copyShareUrl()" title="Copier">
-              <i class="fas fa-copy"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- QR Code -->
-        <div class="mb-3">
-          <a href="<?= $qr_url ?>" class="btn btn-outline-secondary btn-sm" target="_blank">
-            <i class="fas fa-qrcode me-1"></i><?= $this->lang->line('gvv_vols_decouverte_field_qr_code') ?>
-          </a>
-        </div>
-
-        <hr>
-
-        <!-- Envoi par email -->
-        <?= form_open('vols_decouverte/send_public_link', array('id' => 'share-form')) ?>
-        <input type="hidden" name="section_id" value="<?= (int) $current_section_id ?>">
-        <div class="mb-3">
-          <label class="form-label" for="share-email">
-            <?= $this->lang->line('gvv_vd_share_link_email_label') ?>
-          </label>
-          <input type="email" name="to" id="share-email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label" for="share-custom-msg">
-            <?= $this->lang->line('gvv_vd_share_link_custom_msg_label') ?>
-          </label>
-          <textarea name="custom_message" id="share-custom-msg" class="form-control" rows="3"
-                    placeholder="<?= htmlspecialchars($this->lang->line('gvv_vd_share_link_custom_msg_placeholder'), ENT_QUOTES, 'UTF-8') ?>"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary btn-sm">
-          <i class="fas fa-paper-plane me-1"></i><?= $this->lang->line('gvv_vd_share_link_send_btn') ?>
-        </button>
-        <?= form_close() ?>
-
-      </div>
-    </div>
-  </div>
-</div>
-<?php endif; ?>
-
 <script>
 function new_year() {
     var year = document.getElementById('year_selector').value;
     var url = document.querySelector('input[name="controller_url"]').value + '/page/' + year;
     window.location.href = url;
-}
-
-function copyShareUrl() {
-    var el = document.getElementById('share-url');
-    el.select();
-    document.execCommand('copy');
-    var btn = el.nextElementSibling;
-    btn.innerHTML = '<i class="fas fa-check text-success"></i>';
-    setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 2000);
 }
 </script>

@@ -12,6 +12,7 @@ $lang['gvv_menu_vols_decouverte'] = "Vols de découverte";
 $lang['gvv_menu_vols_decouverte_select'] = "Rechercher un bon";
 $lang['gvv_menu_liste_des_bons'] = "Liste des bons";
 $lang['gvv_menu_vendre_un_bon'] = "Vendre un bon";
+$lang['gvv_menu_public_page'] = "Page publique";
 
 $lang['gvv_configuration_title_list'] = "Paramètres de configuration";
 

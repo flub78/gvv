@@ -417,6 +417,7 @@ $this->lang->load('tableaux_de_bord');
 
                 <!-- Sous-section Vols de découverte -->
                 <?php if ($this->config->item('gestion_vd') && has_vd_role()) : ?>
+                <?php $current_section_id = (int) $this->session->userdata('section'); ?>
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-gift"></i> <?= $this->lang->line('db_sub_discovery') ?></h6>
                 </div>
@@ -438,6 +439,17 @@ $this->lang->load('tableaux_de_bord');
                         <a href="<?= controller_url('vols_decouverte/create') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
+
+                <?php if ($current_section_id > 0) : ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-globe text-info"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_public_page') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_public_page') ?></div>
+                        <a href="<?= site_url('vols_decouverte/public_vd?section=' . $current_section_id) ?>" class="btn btn-info btn-sm" target="_blank" rel="noopener noreferrer"><?= $this->lang->line('gvv_button_open') ?></a>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">

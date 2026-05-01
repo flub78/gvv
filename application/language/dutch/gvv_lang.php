@@ -409,6 +409,7 @@ $lang['gvv_menu_vols_decouverte'] = "Ontdekkingsvluchten";
 $lang['gvv_menu_vols_decouverte_select'] = "Ontdekkingsvlucht";
 $lang['gvv_menu_liste_des_bons'] = "Voucherlijst";
 $lang['gvv_menu_vendre_un_bon'] = "Voucher verkopen";
+$lang['gvv_menu_public_page'] = "Publieke pagina";
 $lang['gvv_configuration_title_list'] = "Configuratieparameters";
 $lang['gvv_menu_admin'] = "Beheer";
 $lang['gvv_menu_admin_club'] = "Club beheer";

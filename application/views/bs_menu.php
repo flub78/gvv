@@ -38,6 +38,8 @@ $this->lang->load('email_lists');
 $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
+$current_section_id = (int) $CI->session->userdata('section');
+$public_vd_url = site_url('vols_decouverte/public_vd?section=' . $current_section_id);
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
 $uses_new_auth = $CI->session->userdata('use_new_auth')
     || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
@@ -80,6 +82,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
                           <?php if (has_role('gestion_vd')) : ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/create") ?>"><i class="fas fa-plus-circle text-warning"></i> <?= translation("gvv_menu_vendre_un_bon") ?></a></li>
+                          <?php endif; ?>
+                          <?php if ($current_section_id > 0) : ?>
+                          <li><a class="dropdown-item" href="<?= $public_vd_url ?>" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe text-info"></i> <?= translation("gvv_menu_public_page") ?></a></li>
                           <?php endif; ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
                           <li><a class="dropdown-item" href="<?= controller_url("briefing_passager/admin_list") ?>"><i class="fas fa-clipboard-check text-success"></i> <?= translation("briefing_passager_menu") ?></a></li>
@@ -215,6 +220,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte") ?>"><i class="fas fa-ticket-alt text-success"></i> <?= translation("gvv_menu_liste_des_bons") ?></a></li>
             <?php if (has_role('gestion_vd')) : ?>
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/create") ?>"><i class="fas fa-plus-circle text-warning"></i> <?= translation("gvv_menu_vendre_un_bon") ?></a></li>
+            <?php endif; ?>
+            <?php if ($current_section_id > 0) : ?>
+            <li><a class="dropdown-item" href="<?= $public_vd_url ?>" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe text-info"></i> <?= translation("gvv_menu_public_page") ?></a></li>
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
           </ul>
