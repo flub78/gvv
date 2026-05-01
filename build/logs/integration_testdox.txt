@@ -109,6 +109,22 @@ Briefing Signature
  [x] MarkTokenUsed SetsUsedAt
  [x] MarkTokenUsed PreventReuse
 
+Cartes Member Model
+ [x] Get membre returns null for unknown login
+ [x] Get membre returns array for existing login
+ [x] Get years with cotisation returns array
+ [x] Get years with cotisation returned in descending order
+ [x] Get membres actifs annee returns array
+ [x] Get membres actifs annee rows have required fields
+ [x] Get president returns null or array
+ [x] Get president array has name fields
+ [x] Get photo path returns null for empty input
+ [x] Get photo path returns null for non existent file
+ [x] Get fond path returns null for unconfigured year
+ [x] Save fond path persists and get fond path reads it
+ [x] Get all membres actifs returns only active
+ [x] Get all membres includes inactive
+
 Categorie Model Integration
  [x] Basic crud operations
  [x] Image method
