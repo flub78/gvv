@@ -145,7 +145,7 @@ $this->lang->load('vols_decouverte');
                 <i class="fas fa-upload"></i> <?= $this->lang->line('briefing_passager_upload') ?>
             </button>
             <button type="submit" name="action" value="link" class="btn btn-outline-secondary">
-                <i class="fas fa-qrcode"></i> <?= $this->lang->line('briefing_passager_generate_link') ?>
+                <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_sign_online') ?>
             </button>
             <button type="submit" name="action" value="save" class="btn btn-outline-primary">
                 <i class="fas fa-save"></i> <?= $this->lang->line('gvv_button_save') ?>

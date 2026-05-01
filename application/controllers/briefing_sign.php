@@ -58,25 +58,71 @@ class Briefing_sign extends CI_Controller {
         $vld['aerodrome_nom'] = $this->_terrain_nom($vld['aerodrome']);
         $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
 
-        $sign_url = $this->_build_public_sign_url($token);
-
-        // Generate QR code to temp file, embed as base64, then clean up
-        $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
-        QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
-        $qr_base64 = base64_encode(file_get_contents($qr_file));
-        @unlink($qr_file);
-
-        $data = array(
-            'token'      => $token,
-            'vld'        => $vld,
-            'consignes'  => $consignes,
-            'qr_base64'  => $qr_base64,
-            'sign_url'   => $sign_url,
-            'message'    => '',
-        );
+        $data = $this->_build_sign_view_data($token, $vld, $consignes, '');
 
         $this->load->view('briefing_passager/bs_signView', $data);
         
+    }
+
+    /**
+     * Send the public signature page link by email (logged users only).
+     *
+     * @param string $token One-time token
+     */
+    function send_link($token = '') {
+        if (!isset($this->dx_auth) || !$this->dx_auth->is_logged_in()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
+            return;
+        }
+
+        $token_row = $this->_validate_token($token);
+        if (!$token_row || !empty($token_row['used_at'])) {
+            $this->session->set_flashdata('error', $this->lang->line('briefing_passager_sign_invalid_token'));
+            redirect('briefing_sign/' . $token);
+            return;
+        }
+
+        $to             = trim((string) $this->input->post('to') ?: '');
+        $custom_message = trim((string) $this->input->post('custom_message') ?: '');
+        $sign_url       = $this->_build_public_sign_url($token);
+
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $this->session->set_flashdata('error', $this->lang->line('briefing_passager_public_error_email'));
+            redirect('briefing_sign/' . $token);
+            return;
+        }
+
+        try {
+            $this->load->library('email');
+            $this->email->initialize(array(
+                'wordwrap' => true,
+                'mailtype' => 'html',
+                'charset'  => 'utf-8',
+            ));
+
+            $sender_email = $this->config->item('smtp_user') ?: 'noreply@gvv.net';
+            $sender_name  = $this->config->item('nom_club') ?: 'GVV';
+
+            $body  = '<p>' . nl2br(htmlspecialchars($custom_message, ENT_QUOTES, 'UTF-8')) . '</p>';
+            $body .= '<p><a href="' . htmlspecialchars($sign_url, ENT_QUOTES, 'UTF-8') . '">'
+                  . $this->lang->line('briefing_passager_public_share_cta')
+                  . '</a></p>';
+
+            $this->email->from($sender_email, $sender_name);
+            $this->email->to($to);
+            $this->email->subject($this->lang->line('briefing_passager_public_share_subject'));
+            $this->email->message($body);
+
+            if (@$this->email->send()) {
+                $this->session->set_flashdata('success', $this->lang->line('briefing_passager_public_share_sent'));
+            } else {
+                $this->session->set_flashdata('error', $this->lang->line('briefing_passager_public_share_error'));
+            }
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error', $this->lang->line('briefing_passager_public_share_error'));
+        }
+
+        redirect('briefing_sign/' . $token);
     }
 
     /**
@@ -115,19 +161,12 @@ class Briefing_sign extends CI_Controller {
         $signature_data = $this->input->post('signature_data', false);
 
         if (!$accept) {
-            $sign_url = $this->_build_public_sign_url($token);
             $consignes = $this->archived_documents_model->get_consignes_by_section($vld['club']);
-            $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
-            QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
-            $qr_base64 = base64_encode(file_get_contents($qr_file));
-            @unlink($qr_file);
-            $data = array(
-                'token'     => $token,
-                'vld'       => $vld,
-                'consignes' => $consignes,
-                'qr_base64' => $qr_base64,
-                'sign_url'  => $sign_url,
-                'message'   => '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' . $this->lang->line('briefing_passager_sign_accept_required') . '</div>',
+            $data = $this->_build_sign_view_data(
+                $token,
+                $vld,
+                $consignes,
+                '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' . $this->lang->line('briefing_passager_sign_accept_required') . '</div>'
             );
             $this->load->view('briefing_passager/bs_signView', $data);
             
@@ -231,6 +270,34 @@ class Briefing_sign extends CI_Controller {
         $data = array('error_message' => $message);
         $this->load->view('briefing_passager/bs_signErrorView', $data);
         
+    }
+
+    /**
+     * Build sign page view data with optional sharing tools for logged users.
+     */
+    private function _build_sign_view_data($token, array $vld, $consignes, $message = '') {
+        $is_logged_in = isset($this->dx_auth) && $this->dx_auth->is_logged_in();
+        $sign_url = $this->_build_public_sign_url($token);
+        $qr_base64 = null;
+
+        if ($is_logged_in) {
+            $qr_file = sys_get_temp_dir() . '/bp_sign_qr_' . md5($token) . '.png';
+            QRcode::png($sign_url, $qr_file, QR_ECLEVEL_L, 6, 2);
+            $qr_base64 = base64_encode(file_get_contents($qr_file));
+            @unlink($qr_file);
+        }
+
+        return array(
+            'token'        => $token,
+            'vld'          => $vld,
+            'consignes'    => $consignes,
+            'qr_base64'    => $qr_base64,
+            'sign_url'     => $sign_url,
+            'message'      => $message,
+            'is_logged_in' => $is_logged_in,
+            'flash_success'=> $this->session->flashdata('success'),
+            'flash_error'  => $this->session->flashdata('error'),
+        );
     }
 
     /**

@@ -5,9 +5,6 @@
 
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [] Simplifier le workflow des briefings passagers avec le QRCode 
-
-* [] Simplifier le workflow de vente de vol de découverte
 
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 
@@ -46,12 +43,11 @@ Cela implique de:
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer
-  * [x] donner les droits dans les controllers WIP
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
-
+s
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.

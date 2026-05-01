@@ -195,7 +195,7 @@ class Briefing_passager extends Gvv_Controller {
         }
 
         if ($action === 'link') {
-            redirect('briefing_passager/generate_link/' . $vld_id);
+            redirect('briefing_passager/generate_link/' . $vld_id . '?direct=1');
             return;
         }
 
@@ -551,6 +551,11 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['token']   = $token;
         $this->data['sign_url'] = $this->_build_public_sign_url($token);
         $this->data['message'] = '';
+
+        if ((int) $this->input->get('direct') === 1) {
+            redirect($this->data['sign_url']);
+            return;
+        }
 
         load_last_view('briefing_passager/linkView', $this->data);
     }

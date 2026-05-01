@@ -170,3 +170,5 @@
 * [x] Le gel/dégel des écritures ne retourne pas exactement sur l'endroit ou était l'utilisateur, il faudrait faire mieux.
 
 * [x] Afficher une marque sur les écritures rapprochés.
+* [x] Simplifier le workflow de vente de vol de découverte
+* [x] Simplifier le workflow des briefings passagers avec le QRCode 

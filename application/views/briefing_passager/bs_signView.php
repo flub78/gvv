@@ -17,6 +17,10 @@
 </head>
 <body class="bg-light">
 
+<?php if (!empty($is_logged_in)): ?>
+<?php $this->load->view('bs_menu'); ?>
+<?php endif; ?>
+
 <header class="container-fluid p-3 bg-success text-white text-center">
     <h1 class="text-center header"><?= $this->config->item('nom_club') ?></h1>
 </header>
@@ -24,6 +28,46 @@
 <div class="container-fluid py-4 px-4">
 
 <?= $message ?>
+
+<?php if (!empty($flash_success)): ?>
+    <div class="alert alert-success"><?= htmlspecialchars($flash_success) ?></div>
+<?php endif; ?>
+
+<?php if (!empty($flash_error)): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($flash_error) ?></div>
+<?php endif; ?>
+
+<?php if (!empty($is_logged_in)): ?>
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="section-title mt-0"><i class="fas fa-share-alt"></i> <?= $this->lang->line('briefing_passager_public_share_title') ?></h5>
+        <div class="row g-3 align-items-start">
+            <div class="col-md-4 text-center">
+                <?php if (!empty($qr_base64)): ?>
+                <img src="data:image/png;base64,<?= $qr_base64 ?>" alt="QR Code" class="img-fluid border rounded p-2 bg-white" style="max-width: 220px;">
+                <?php endif; ?>
+            </div>
+            <div class="col-md-8">
+                <?= form_open('briefing_sign/send_link/' . $token, array('class' => 'row g-2')) ?>
+                <div class="col-12">
+                    <label class="form-label" for="share-email"><?= $this->lang->line('briefing_passager_public_share_email_label') ?></label>
+                    <input type="email" name="to" id="share-email" class="form-control" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="share-custom-msg"><?= $this->lang->line('briefing_passager_public_share_message_label') ?></label>
+                    <textarea name="custom_message" id="share-custom-msg" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> <?= $this->lang->line('briefing_passager_public_share_send_btn') ?>
+                    </button>
+                </div>
+                <?= form_close() ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 
 <h4 class="text-center mb-4"><?= $this->lang->line('briefing_passager_sign_title') ?></h4>
