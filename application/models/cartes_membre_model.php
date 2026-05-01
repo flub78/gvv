@@ -172,6 +172,97 @@ class Cartes_membre_model extends CI_Model {
     }
 
     /**
+     * Configuration de mise en page par défaut — reproduit le layout statique du Lot 1.
+     * Utilisée quand aucune configuration n'a été sauvegardée pour une saison.
+     *
+     * @return array
+     */
+    private function _default_layout() {
+        return array(
+            'version' => 1,
+            'recto' => array(
+                'variable_fields' => array(
+                    array('id' => 'nom_club',      'enabled' => true,  'x' => 3.0,  'y' => 3.0,  'font' => 'helvetica', 'bold' => true,  'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 56.0),
+                    array('id' => 'saison',        'enabled' => true,  'x' => 62.6, 'y' => 3.0,  'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'R', 'width' => 20.0),
+                    array('id' => 'nom_prenom',    'enabled' => true,  'x' => 3.0,  'y' => 28.0, 'font' => 'helvetica', 'bold' => true,  'size' => 9, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'numero_membre', 'enabled' => true,  'x' => 3.0,  'y' => 36.0, 'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'activites',     'enabled' => false, 'x' => 3.0,  'y' => 42.0, 'font' => 'helvetica', 'bold' => false, 'size' => 6, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'numero_carte',  'enabled' => false, 'x' => 3.0,  'y' => 48.0, 'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                ),
+                'static_fields' => array(),
+                'photo' => array('enabled' => true, 'x' => 62.0, 'y' => 14.0, 'w' => 20.0, 'h' => 25.0),
+            ),
+            'verso' => array(
+                'variable_fields' => array(
+                    array('id' => 'nom_club',      'enabled' => false, 'x' => 3.0,  'y' => 3.0,  'font' => 'helvetica', 'bold' => true,  'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 56.0),
+                    array('id' => 'saison',        'enabled' => false, 'x' => 62.6, 'y' => 3.0,  'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'R', 'width' => 20.0),
+                    array('id' => 'nom_prenom',    'enabled' => false, 'x' => 3.0,  'y' => 28.0, 'font' => 'helvetica', 'bold' => true,  'size' => 9, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'numero_membre', 'enabled' => false, 'x' => 3.0,  'y' => 36.0, 'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'activites',     'enabled' => false, 'x' => 3.0,  'y' => 42.0, 'font' => 'helvetica', 'bold' => false, 'size' => 6, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                    array('id' => 'numero_carte',  'enabled' => false, 'x' => 3.0,  'y' => 48.0, 'font' => 'helvetica', 'bold' => false, 'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 58.0),
+                ),
+                'static_fields' => array(
+                    array('text' => 'Le Président',   'x' => 3.0, 'y' => 32.0, 'font' => 'helvetica', 'bold' => false, 'size' => 6, 'color' => array(0,0,0), 'align' => 'L', 'width' => 40.0),
+                    array('text' => '',               'x' => 3.0, 'y' => 36.0, 'font' => 'helvetica', 'bold' => true,  'size' => 7, 'color' => array(0,0,0), 'align' => 'L', 'width' => 50.0),
+                ),
+                'photo' => null,
+            ),
+        );
+    }
+
+    /**
+     * Retourne la configuration de mise en page pour une année.
+     * Lit le fichier JSON depuis uploads/configuration/ ou retourne le layout par défaut.
+     *
+     * @param int $annee
+     * @return array
+     */
+    public function get_layout($annee) {
+        $cle = 'carte_layout_' . (int)$annee;
+        $row = $this->db
+            ->select('valeur')
+            ->from('configuration')
+            ->where('cle', $cle)
+            ->get()->row_array();
+
+        if ($row && !empty($row['valeur'])) {
+            $path = FCPATH . $row['valeur'];
+            if (file_exists($path)) {
+                $decoded = json_decode(file_get_contents($path), true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+        return $this->_default_layout();
+    }
+
+    /**
+     * Sauvegarde la configuration de mise en page pour une année.
+     * Écrit un fichier JSON dans uploads/configuration/ et référence dans la table configuration.
+     *
+     * @param int   $annee
+     * @param array $layout
+     */
+    public function save_layout($annee, $layout) {
+        $upload_dir = FCPATH . 'uploads/configuration/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0775, true);
+        }
+        $filename = 'carte_layout_' . (int)$annee . '.json';
+        file_put_contents($upload_dir . $filename, json_encode($layout, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        $cle      = 'carte_layout_' . (int)$annee;
+        $relative = 'uploads/configuration/' . $filename;
+        $exists   = $this->db->where('cle', $cle)->count_all_results('configuration') > 0;
+        if ($exists) {
+            $this->db->where('cle', $cle)->update('configuration', array('valeur' => $relative));
+        } else {
+            $this->db->insert('configuration', array('cle' => $cle, 'valeur' => $relative));
+        }
+    }
+
+    /**
      * Retourne la liste de tous les membres (actifs et inactifs) pour ajout manuel.
      *
      * @return array

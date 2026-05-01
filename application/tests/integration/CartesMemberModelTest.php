@@ -223,4 +223,90 @@ class CartesMemberModelTest extends TestCase
         $this->assertGreaterThanOrEqual(count($actifs), count($all),
             'get_all_membres() should return at least as many rows as get_all_membres_actifs()');
     }
+
+    // ------------------------------------------------------------------
+    // get_layout() / save_layout()
+    // ------------------------------------------------------------------
+
+    public function testGetLayoutReturnsDefaultWhenNotConfigured()
+    {
+        $layout = $this->model->get_layout(1899);
+        $this->assertIsArray($layout);
+        $this->assertArrayHasKey('recto', $layout);
+        $this->assertArrayHasKey('verso', $layout);
+        $this->assertArrayHasKey('variable_fields', $layout['recto']);
+        $this->assertArrayHasKey('static_fields', $layout['recto']);
+        $this->assertArrayHasKey('photo', $layout['recto']);
+    }
+
+    public function testSaveLayoutAndGetLayoutRoundTrip()
+    {
+        $year = 8888;
+        $layout = array(
+            'version' => 1,
+            'recto' => array(
+                'variable_fields' => array(
+                    array('id' => 'nom_prenom', 'enabled' => true, 'x' => 5.0, 'y' => 10.0,
+                          'font' => 'helvetica', 'bold' => true, 'size' => 8,
+                          'color' => array(255, 0, 0), 'align' => 'L', 'width' => 50.0),
+                ),
+                'static_fields' => array(
+                    array('text' => 'Test Club', 'x' => 3.0, 'y' => 3.0,
+                          'font' => 'helvetica', 'bold' => false, 'size' => 6,
+                          'color' => array(0, 0, 0), 'align' => 'L', 'width' => 40.0),
+                ),
+                'photo' => array('enabled' => true, 'x' => 60.0, 'y' => 15.0, 'w' => 18.0, 'h' => 22.0),
+            ),
+            'verso' => array(
+                'variable_fields' => array(),
+                'static_fields'   => array(),
+                'photo'           => null,
+            ),
+        );
+
+        $this->model->save_layout($year, $layout);
+        $loaded = $this->model->get_layout($year);
+
+        $this->assertEquals(1, $loaded['version']);
+        $this->assertCount(1, $loaded['recto']['variable_fields']);
+        $this->assertEquals('nom_prenom', $loaded['recto']['variable_fields'][0]['id']);
+        $this->assertEquals(5.0, $loaded['recto']['variable_fields'][0]['x']);
+        $this->assertCount(1, $loaded['recto']['static_fields']);
+        $this->assertEquals('Test Club', $loaded['recto']['static_fields'][0]['text']);
+        $this->assertTrue($loaded['recto']['photo']['enabled']);
+
+        // Cleanup
+        $cle = 'carte_layout_' . $year;
+        $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
+        if ($row && !empty($row['valeur'])) {
+            $path = FCPATH . $row['valeur'];
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+        $this->CI->db->where('cle', $cle)->delete('configuration');
+    }
+
+    public function testSaveLayoutUpserts()
+    {
+        $year   = 7777;
+        $layout = $this->model->get_layout(1899); // use default as fixture
+
+        $this->model->save_layout($year, $layout);
+        $this->model->save_layout($year, $layout); // second call must not duplicate
+
+        $cle   = 'carte_layout_' . $year;
+        $count = $this->CI->db->where('cle', $cle)->count_all_results('configuration');
+        $this->assertEquals(1, $count, 'save_layout should upsert, not insert duplicates');
+
+        // Cleanup
+        $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
+        if ($row && !empty($row['valeur'])) {
+            $path = FCPATH . $row['valeur'];
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+        $this->CI->db->where('cle', $cle)->delete('configuration');
+    }
 }

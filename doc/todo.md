@@ -24,15 +24,13 @@ Cela implique de:
 
 ## Reste à faire
 
-* [] AJout de vrais export excel en sus des csv.
+* [] Ajout de vrais export excel en sus des csv.
 
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Accepter les paiements en centimes. ou pas ?
 
-
 * [] Facture automatique de hangar
-
      
 * [] gestion des droits multi sections (wip)
   * [] quelques colonnes inutiles à supprimer

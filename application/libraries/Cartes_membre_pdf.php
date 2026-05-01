@@ -16,15 +16,19 @@ require_once(APPPATH . 'third_party/tcpdf/tcpdf.php');
  * Ordre verso : miroir horizontal — pour N cartes par page, le verso
  * imprime les cartes en ordre inverse afin d'assurer l'alignement lors
  * de l'impression recto-verso par rapport au bord long.
+ *
+ * Le layout injecté (array PHP décodé depuis JSON) contrôle la position,
+ * la police, la taille et la couleur de chaque champ. Aucune position
+ * n'est codée en dur dans ce moteur.
  */
 class Cartes_membre_pdf extends TCPDF {
 
     // Gabarit Avery C32016-10 (mm)
     const CARD_W  = 85.6;
     const CARD_H  = 54.0;
-    const MARGIN_LEFT = 7.2;
+    const MARGIN_LEFT = 15.0;
     const MARGIN_TOP  = 13.0;
-    const GAP_H   = 2.5;   // gouttière horizontale
+    const GAP_H   = 10.0;  // gouttière horizontale
     const GAP_V   = 0.0;   // gouttière verticale
     const COLS    = 2;
     const ROWS    = 5;
@@ -33,12 +37,8 @@ class Cartes_membre_pdf extends TCPDF {
     // Épaisseur de la bordure de substitution (fond absent), en mm
     const BORDER_WIDTH = 0.35;  // ≈ 1 px à 72 dpi
 
-    /** @var string Nom du club */
-    private $nom_club = '';
-
-    function __construct($nom_club = '') {
+    function __construct() {
         parent::__construct('P', 'mm', 'A4', true, 'UTF-8', false);
-        $this->nom_club = $nom_club;
 
         $this->SetCreator(PDF_CREATOR);
         $this->SetTitle('Cartes de membre');
@@ -62,104 +62,145 @@ class Cartes_membre_pdf extends TCPDF {
     }
 
     /**
-     * Dessine une carte recto à la position absolue ($ox, $oy) sur la page.
+     * Résout la valeur d'un champ variable depuis les données membre.
      *
-     * @param array  $data     Données membre : mnom, mprenom, mnumero, photo_path, annee
-     * @param string $fond     Chemin absolu du fond recto, ou null
-     * @param float  $ox       Coordonnée X du coin supérieur gauche (mm)
-     * @param float  $oy       Coordonnée Y du coin supérieur gauche (mm)
+     * @param string $id    Identifiant du champ (ex. 'nom_prenom')
+     * @param array  $data  Données membre enrichies (annee, nom_club, nom_president, …)
+     * @return string
      */
-    public function render_recto($data, $fond, $ox, $oy) {
+    private function resolve_variable($id, array $data) {
+        switch ($id) {
+            case 'nom_prenom':
+                return strtoupper($data['mnom'] ?? '') . ' ' . ($data['mprenom'] ?? '');
+            case 'saison':
+                return isset($data['annee']) ? (string)$data['annee'] : '';
+            case 'numero_membre':
+                return !empty($data['mnumero']) ? 'N° ' . $data['mnumero'] : '';
+            case 'numero_carte':
+                return isset($data['numero_carte']) ? (string)$data['numero_carte'] : '';
+            case 'activites':
+                return $data['activites'] ?? '';
+            case 'nom_club':
+                return $data['nom_club'] ?? '';
+            default:
+                return $data[$id] ?? '';
+        }
+    }
+
+    /**
+     * Dessine le fond (image ou blanc + bordure) pour une carte.
+     *
+     * @param string|null $fond  Chemin absolu vers l'image de fond, ou null
+     * @param float       $ox    Coin supérieur gauche X (mm)
+     * @param float       $oy    Coin supérieur gauche Y (mm)
+     */
+    private function render_background($fond, $ox, $oy) {
         $w = self::CARD_W;
         $h = self::CARD_H;
 
         if ($fond && file_exists($fond)) {
             $this->Image($fond, $ox, $oy, $w, $h, '', '', '', false, 300, '', false, false, 0);
         } else {
-            // Fond blanc + bordure
             $this->SetFillColor(255, 255, 255);
             $this->Rect($ox, $oy, $w, $h, 'F');
             $this->SetDrawColor(0, 0, 0);
             $this->SetLineWidth(self::BORDER_WIDTH);
             $this->Rect($ox, $oy, $w, $h, 'D');
         }
+    }
 
-        // Nom du club (haut gauche)
-        $this->SetFont('helvetica', 'B', 7);
-        $this->SetTextColor(0, 0, 0);
-        $this->SetXY($ox + 3, $oy + 3);
-        $this->Cell($w - 26, 4, $this->nom_club, 0, 0, 'L');
+    /**
+     * Dessine une face (recto ou verso) d'une carte à la position absolue donnée.
+     *
+     * @param array       $face_layout  Entrée 'recto' ou 'verso' du layout JSON décodé
+     * @param array       $data         Données membre enrichies
+     * @param string|null $fond         Chemin absolu fond, ou null
+     * @param float       $ox
+     * @param float       $oy
+     */
+    private function render_face(array $face_layout, array $data, $fond, $ox, $oy) {
+        $this->render_background($fond, $ox, $oy);
 
-        // Année (haut droite)
-        $this->SetFont('helvetica', '', 7);
-        $this->SetXY($ox + $w - 23, $oy + 3);
-        $this->Cell(20, 4, isset($data['annee']) ? (string)$data['annee'] : '', 0, 0, 'R');
-
-        // Photo (droite, milieu)
-        if (!empty($data['photo_path']) && file_exists($data['photo_path'])) {
-            $this->Image($data['photo_path'], $ox + 62, $oy + 14, 20, 25, '', '', '', false, 150, '', false, false, 0);
+        // Champs variables
+        foreach ($face_layout['variable_fields'] as $field) {
+            if (empty($field['enabled'])) continue;
+            $value = $this->resolve_variable($field['id'], $data);
+            $this->render_field($field, $value, $ox, $oy);
         }
 
-        // Nom + Prénom
-        $nom_complet = strtoupper($data['mnom']) . ' ' . $data['mprenom'];
-        $this->SetFont('helvetica', 'B', 9);
-        $this->SetXY($ox + 3, $oy + 28);
-        $this->Cell(58, 5, $nom_complet, 0, 0, 'L');
+        // Champs statiques
+        foreach ($face_layout['static_fields'] as $field) {
+            $this->render_field($field, $field['text'], $ox, $oy);
+        }
 
-        // Numéro de membre
-        $num = !empty($data['mnumero']) ? 'N° ' . $data['mnumero'] : '';
-        $this->SetFont('helvetica', '', 7);
-        $this->SetXY($ox + 3, $oy + 36);
-        $this->Cell(58, 4, $num, 0, 0, 'L');
+        // Photo
+        if (!empty($face_layout['photo']['enabled']) && !empty($data['photo_path']) && file_exists($data['photo_path'])) {
+            $p = $face_layout['photo'];
+            $this->Image($data['photo_path'], $ox + $p['x'], $oy + $p['y'], $p['w'], $p['h'], '', '', '', false, 150, '', false, false, 0);
+        }
+    }
+
+    /**
+     * Dessine un champ texte (variable ou statique) à la position relative à la carte.
+     *
+     * @param array  $field  Définition du champ (x, y, font, bold, size, color, align, width)
+     * @param string $value  Valeur à afficher
+     * @param float  $ox     Coin supérieur gauche de la carte (mm)
+     * @param float  $oy
+     */
+    private function render_field(array $field, $value, $ox, $oy) {
+        $style = $field['bold'] ? 'B' : '';
+        $this->SetFont($field['font'], $style, (int)$field['size']);
+
+        $color = $field['color'];
+        $this->SetTextColor($color[0], $color[1], $color[2]);
+
+        $width = isset($field['width']) ? (float)$field['width'] : 60.0;
+        $align = isset($field['align']) ? $field['align'] : 'L';
+
+        $this->SetXY($ox + (float)$field['x'], $oy + (float)$field['y']);
+        $this->Cell($width, 4, $value, 0, 0, $align);
+    }
+
+    /**
+     * Dessine une carte recto à la position absolue ($ox, $oy) sur la page.
+     *
+     * @param array       $data    Données membre enrichies (mnom, mprenom, mnumero, photo_path, annee, nom_club, nom_president)
+     * @param array       $layout  Layout JSON décodé (complet, avec 'recto' et 'verso')
+     * @param string|null $fond    Chemin absolu du fond recto, ou null
+     * @param float       $ox
+     * @param float       $oy
+     */
+    public function render_recto(array $data, array $layout, $fond, $ox, $oy) {
+        $this->render_face($layout['recto'], $data, $fond, $ox, $oy);
     }
 
     /**
      * Dessine une carte verso à la position absolue ($ox, $oy) sur la page.
      *
-     * @param array  $president  ['mnom' => ..., 'mprenom' => ...] ou null
-     * @param string $fond       Chemin absolu du fond verso, ou null
-     * @param float  $ox
-     * @param float  $oy
+     * @param array       $data    Données membre enrichies
+     * @param array       $layout  Layout JSON décodé
+     * @param string|null $fond    Chemin absolu du fond verso, ou null
+     * @param float       $ox
+     * @param float       $oy
      */
-    public function render_verso($president, $fond, $ox, $oy) {
-        $w = self::CARD_W;
-        $h = self::CARD_H;
-
-        if ($fond && file_exists($fond)) {
-            $this->Image($fond, $ox, $oy, $w, $h, '', '', '', false, 300, '', false, false, 0);
-        } else {
-            $this->SetFillColor(255, 255, 255);
-            $this->Rect($ox, $oy, $w, $h, 'F');
-            $this->SetDrawColor(0, 0, 0);
-            $this->SetLineWidth(self::BORDER_WIDTH);
-            $this->Rect($ox, $oy, $w, $h, 'D');
-        }
-
-        if ($president) {
-            $this->SetFont('helvetica', '', 6);
-            $this->SetTextColor(0, 0, 0);
-            $this->SetXY($ox + 3, $oy + 32);
-            $this->Cell(40, 3, 'Le Président', 0, 0, 'L');
-
-            $this->SetFont('helvetica', 'B', 7);
-            $this->SetXY($ox + 3, $oy + 36);
-            $nom_president = $president['mprenom'] . ' ' . strtoupper($president['mnom']);
-            $this->Cell(50, 4, $nom_president, 0, 0, 'L');
-        }
+    public function render_verso(array $data, array $layout, $fond, $ox, $oy) {
+        $this->render_face($layout['verso'], $data, $fond, $ox, $oy);
     }
 
     /**
      * Génère une page de rectos pour un tableau de cartes (max 10).
      *
-     * @param array  $cards    Tableau de données membre (chaque entrée : données recto)
-     * @param string $fond     Chemin du fond recto, ou null
+     * @param array       $cards   Tableau de données membre
+     * @param array       $layout  Layout JSON décodé
+     * @param string|null $fond    Chemin du fond recto, ou null
      */
-    public function render_recto_page(array $cards, $fond) {
+    public function render_recto_page(array $cards, array $layout, $fond) {
         $this->AddPage();
         foreach ($cards as $i => $card) {
             if ($i >= self::CARDS_PER_PAGE) break;
             list($x, $y) = $this->card_position($i);
-            $this->render_recto($card, $fond, $x, $y);
+            $this->render_recto($card, $layout, $fond, $x, $y);
         }
     }
 
@@ -167,23 +208,17 @@ class Cartes_membre_pdf extends TCPDF {
      * Génère une page de versos pour un tableau de cartes (max 10).
      * Ordre miroir horizontal : les cartes sont inversées pour l'impression recto-verso.
      *
-     * Le miroir s'applique par colonne : dans chaque rangée, la colonne gauche et
-     * droite sont échangées, puis l'ordre des rangées est inversé.
-     *
-     * @param array  $cards    Même tableau que render_recto_page (même ordre)
-     * @param array  $president
-     * @param string $fond     Chemin du fond verso, ou null
+     * @param array       $cards     Même tableau que render_recto_page (même ordre)
+     * @param array       $layout    Layout JSON décodé
+     * @param string|null $fond      Chemin du fond verso, ou null
      */
-    public function render_verso_page(array $cards, $president, $fond) {
+    public function render_verso_page(array $cards, array $layout, $fond) {
         $this->AddPage();
-
-        // Miroir : inverser l'ordre global des cartes sur la page
         $mirrored = array_reverse($cards);
-
         foreach ($mirrored as $i => $card) {
             if ($i >= self::CARDS_PER_PAGE) break;
             list($x, $y) = $this->card_position($i);
-            $this->render_verso($president, $fond, $x, $y);
+            $this->render_verso($card, $layout, $fond, $x, $y);
         }
     }
 
@@ -191,36 +226,34 @@ class Cartes_membre_pdf extends TCPDF {
      * Génère un PDF complet pour un lot de membres.
      * Alterne pages recto / pages verso par tranches de 10.
      *
-     * @param array  $membres    Tableau de données membres (mnom, mprenom, mnumero, photo_path, annee)
-     * @param array  $president  Données du président
-     * @param string $fond_recto Chemin absolu fond recto, ou null
-     * @param string $fond_verso Chemin absolu fond verso, ou null
+     * @param array       $membres     Tableau de données membres enrichies
+     * @param array       $layout      Layout JSON décodé
+     * @param string|null $fond_recto  Chemin absolu fond recto, ou null
+     * @param string|null $fond_verso  Chemin absolu fond verso, ou null
      */
-    public function generate_lot(array $membres, $president, $fond_recto, $fond_verso) {
+    public function generate_lot(array $membres, array $layout, $fond_recto, $fond_verso) {
         $chunks = array_chunk($membres, self::CARDS_PER_PAGE);
         foreach ($chunks as $chunk) {
-            $this->render_recto_page($chunk, $fond_recto);
-            $this->render_verso_page($chunk, $president, $fond_verso);
+            $this->render_recto_page($chunk, $layout, $fond_recto);
+            $this->render_verso_page($chunk, $layout, $fond_verso);
         }
     }
 
     /**
      * Génère une page A4 avec une seule carte (individuelle), centrée.
      *
-     * @param array  $data       Données membre
-     * @param array  $president  Données du président
-     * @param string $fond_recto
-     * @param string $fond_verso
+     * @param array       $data        Données membre enrichies
+     * @param array       $layout      Layout JSON décodé
+     * @param string|null $fond_recto
+     * @param string|null $fond_verso
      */
-    public function generate_individuelle($data, $president, $fond_recto, $fond_verso) {
-        // Recto — centré sur A4 (210 × 297 mm)
+    public function generate_individuelle(array $data, array $layout, $fond_recto, $fond_verso) {
+        // Centré sur A4 (210 × 297 mm), recto et verso côte à côte verticalement
         $cx = (210 - self::CARD_W) / 2;
         $cy = (297 - self::CARD_H * 2 - 10) / 2;
 
         $this->AddPage();
-        $this->render_recto($data, $fond_recto, $cx, $cy);
-
-        // Verso — dessous avec une marge de 10 mm
-        $this->render_verso($president, $fond_verso, $cx, $cy + self::CARD_H + 10);
+        $this->render_recto($data, $layout, $fond_recto, $cx, $cy);
+        $this->render_verso($data, $layout, $fond_verso, $cx, $cy + self::CARD_H + 10);
     }
 }

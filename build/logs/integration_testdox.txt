@@ -124,6 +124,9 @@ Cartes Member Model
  [x] Save fond path persists and get fond path reads it
  [x] Get all membres actifs returns only active
  [x] Get all membres includes inactive
+ [x] Get layout returns default when not configured
+ [x] Save layout and get layout round trip
+ [x] Save layout upserts
 
 Categorie Model Integration
  [x] Basic crud operations

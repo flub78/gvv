@@ -10,3 +10,4 @@ node_modules/
 /playwright/build/screenshots/
 !.
 
+.original_sender_email.tmp

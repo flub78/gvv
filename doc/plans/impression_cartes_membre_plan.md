@@ -11,6 +11,9 @@ Source PRD: `doc/prds/impression_cartes_membre_prd.md`
 | Signature président | Texte seul (`mnom` + `mprenom` du membre ayant `mniveaux & PRESIDENT`) |
 | Fond absent | Impression sans fond avec bordure 1 px, génération non bloquée |
 | Ordre verso planche | Miroir horizontal : pour N cartes par page, verso imprimé en ordre inverse |
+| Mise en page | Configuration JSON par saison ; moteur de rendu séparé du contrôleur |
+| Stockage config | Clé `carte_layout_{annee}` dans la table `configuration`, fichier JSON dans `uploads/configuration/` |
+| Réutilisabilité | Le moteur de rendu configurable sera réutilisé pour les bons de vols de découverte |
 
 ## Design technique
 
@@ -23,7 +26,6 @@ TCPDF (déjà dans `application/third_party/tcpdf/`) est utilisé pour les carte
 - Dimensions : **85,6 × 54 mm** (ISO ID-1, format carte bancaire) à 300 dpi → **1011 × 638 px**
 - Formats acceptés : JPEG ou PNG
 - Stockage : clés `carte_recto_{annee}` et `carte_verso_{annee}` dans la table `configuration`, fichiers dans `uploads/configuration/`
-- Upload via le mécanisme existant du contrôleur `configuration` (CI `upload` library)
 - Fallback fond absent : carte avec fond blanc + bordure 1 px, génération autorisée
 
 ### Gabarit Avery C32016-10
@@ -31,61 +33,111 @@ TCPDF (déjà dans `application/third_party/tcpdf/`) est utilisé pour les carte
 10 cartes par A4, 2 colonnes × 5 lignes :
 
 ```
-Marges (mm) : haut = 13,0   gauche = 7,2
+Marges (mm) : haut = 13,0   gauche = 15,0
 Carte        : 85,6 × 54 mm
-Gouttière H  : 2,5 mm        Gouttière V : 0 mm
+Gouttière H  : 10,0 mm       Gouttière V : 0 mm
 
-Col 0 : X = 7,2     Col 1 : X = 95,3
+Col 0 : X = 15,0    Col 1 : X = 110,6
 Lig 0 : Y = 13,0    Lig 1 : Y = 67,0    Lig 2 : Y = 121,0
 Lig 3 : Y = 175,0   Lig 4 : Y = 229,0
 ```
+
+### Format JSON de configuration de mise en page
+
+Une configuration de mise en page est un fichier JSON structuré ainsi :
+
+```json
+{
+  "version": 1,
+  "recto": {
+    "variable_fields": [
+      {
+        "id": "nom_prenom",
+        "enabled": true,
+        "x": 3, "y": 28,
+        "font": "helvetica", "bold": true, "size": 9,
+        "color": [0, 0, 0]
+      },
+      { "id": "saison",         "enabled": true,  "x": 55, "y": 3,  "font": "helvetica", "bold": false, "size": 7,  "color": [0,0,0] },
+      { "id": "activites",      "enabled": false, "x": 3,  "y": 42, "font": "helvetica", "bold": false, "size": 6,  "color": [0,0,0] },
+      { "id": "numero_membre",  "enabled": true,  "x": 3,  "y": 36, "font": "helvetica", "bold": false, "size": 7,  "color": [0,0,0] },
+      { "id": "numero_carte",   "enabled": false, "x": 3,  "y": 48, "font": "helvetica", "bold": false, "size": 7,  "color": [0,0,0] }
+    ],
+    "static_fields": [
+      { "text": "Aéroclub d'Abbeville",    "x": 3,  "y": 3,  "font": "helvetica", "bold": true,  "size": 7, "color": [0,0,0] }
+    ],
+    "photo": { "enabled": true, "x": 62, "y": 14, "w": 20, "h": 25 }
+  },
+  "verso": {
+    "variable_fields": [
+      { "id": "nom_president",  "enabled": true,  "x": 3,  "y": 36, "font": "helvetica", "bold": true,  "size": 7, "color": [0,0,0] }
+    ],
+    "static_fields": [
+      { "text": "Le Président", "x": 3, "y": 32, "font": "helvetica", "bold": false, "size": 6, "color": [0,0,0] }
+    ],
+    "photo": null
+  }
+}
+```
+
+**Champs variables disponibles :**
+
+| id | Source |
+|----|--------|
+| `nom_prenom` | `mprenom` + `mnom` du membre |
+| `saison` | Année de la carte |
+| `activites` | Libellé(s) de section(s) du membre |
+| `numero_membre` | `mnumero` du membre |
+| `numero_carte` | Numéro séquentiel dans le lot |
+| `nom_president` | `mprenom` + `mnom` du président actif |
 
 ### Architecture
 
 ```
 Controller : cartes_membre
-├── index()               → liste membres (admin)
-├── carte($mlogin, $year) → PDF individuel
-├── lot()                 → écran sélection lot (admin)
-├── lot_pdf()             → PDF planches recto/verso (admin)
-└── config()              → upload fonds par année (admin)
+├── index()                  → redirige vers lot()
+├── lot()                    → sélection lot (admin)
+├── lot_pdf()                → PDF planches recto/verso (admin)
+├── config()                 → fonds + export/import JSON mise en page (admin)
+├── layout_save()            → sauvegarde configuration JSON (POST, admin)
+├── layout_export($annee)    → télécharge le fichier JSON (admin)
+├── layout_import()          → import depuis fichier JSON uploadé (admin)
+└── carte($mlogin, $year)    → PDF individuel (Lot 3)
 
 Model : cartes_membre_model
 ├── get_membre($mlogin)
-├── get_years_with_cotisation($mlogin)  ← table cotisation_produits
-├── get_membres_actifs_annee($year)     ← membres WHERE actif = 1
-└── get_president()                     ← WHERE (mniveaux & 2) != 0 AND actif = 1
+├── get_years_with_cotisation($mlogin)
+├── get_membres_actifs_annee($year)
+├── get_president()
+├── get_photo_path($photo)
+├── get_fond_path($annee, $face)
+├── save_fond_path($annee, $face, $valeur)
+├── get_layout($annee)           → retourne la config JSON décodée (défaut embarqué si absente)
+└── save_layout($annee, $layout) → encode et stocke le JSON
 
 Library : Cartes_membre_pdf extends TCPDF
-├── render_card($data, $x, $y)         ← position absolue sur la page
-├── render_recto_page(array $cards)    ← 1 page A4, jusqu'à 10 cartes
-└── render_verso_page(array $cards)    ← ordre miroir horizontal
+├── render_recto($data, $layout, $fond, $ox, $oy)   ← layout injecté
+├── render_verso($data, $layout, $fond, $ox, $oy)
+├── render_recto_page(array $cards, $layout, $fond)
+├── render_verso_page(array $cards, $layout, $president, $fond)
+├── generate_lot(array $membres, $layout, $president, $fond_recto, $fond_verso)
+└── generate_individuelle($data, $layout, $president, $fond_recto, $fond_verso)
 ```
 
-La bibliothèque est instanciée depuis les actions `carte()` et `lot_pdf()` du contrôleur ; elle ne connaît que la mise en page, pas les règles métier.
+La bibliothèque reçoit la configuration de mise en page par injection ; elle ne contient aucune position codée en dur après la refonte.
 
-### Composition d'une carte
+### Rendu d'un champ avec la configuration
 
-**Recto** — positions relatives au coin supérieur gauche de la carte (en mm) :
+Pour chaque champ activé dans le layout, le moteur applique :
 
-| Zone | Position | Dimensions |
-|------|----------|------------|
-| Fond recto | (0, 0) | 85,6 × 54 (pleine carte) |
-| Nom association | (3, 3) | texte, police 7 pt bold |
-| Année validité | (55, 3) | texte, police 7 pt, aligné droite |
-| Photo membre | (62, 14) | 20 × 25 mm — absente : espace vide |
-| Nom + Prénom | (3, 28) | texte, police 9 pt bold |
-| Numéro membre | (3, 36) | texte `mnumero`, police 7 pt |
-| Bordure (fond absent) | (0, 0) | rect 85,6 × 54, trait 0,35 mm |
+```
+SetFont(font, bold ? 'B' : '', size)
+SetTextColor(r, g, b)
+SetXY(ox + field.x, oy + field.y)
+Cell(w, h, valeur_resolue, ...)
+```
 
-**Verso** — positions relatives :
-
-| Zone | Position | Dimensions |
-|------|----------|------------|
-| Fond verso | (0, 0) | 85,6 × 54 |
-| Nom président | (3, 36) | `mprenom mnom`, police 7 pt |
-| Libellé « Le Président » | (3, 32) | texte, police 6 pt |
-| Bordure (fond absent) | (0, 0) | rect 85,6 × 54 |
+La `valeur_resolue` est obtenue par un résolveur qui mappe l'`id` du champ variable vers la donnée membre correspondante.
 
 ### Planche recto/verso (lot)
 
@@ -96,148 +148,109 @@ Page 2k-1 : rectos des cartes [10k+1 .. 10k+10]   (ordre naturel)
 Page 2k   : versos des cartes [10k+10 .. 10k+1]   (ordre miroir horizontal)
 ```
 
-Le miroir garantit l'alignement physique lors de l'impression recto-verso par rapport au bord long.
-
-### Migration — champ `mnumero`
-
-Nouvelle migration `application/migrations/0NN_mnumero_membre.php` :
-- Ajout colonne `mnumero INT UNSIGNED NULL` dans la table `membres`
-- Peuplement initial optionnel (séquence à définir lors de l'implémentation)
-- Mise à jour de `application/config/migration.php`
-- Ajout de la métadonnée `mnumero` dans `Gvvmetadata.php`
-
 ---
 
 ## Stratégie de livraison
 
-Priorité produit :
-1. Planches A4 recto/verso (administration, campagne annuelle)
-2. Carte individuelle (membre puis administrateur)
+| Lot | Contenu | Statut |
+|-----|---------|--------|
+| Lot 1 | Planches en lot, layout statique, fonds, menu, dashboard | ✅ Livré |
+| Lot 2 | Moteur de mise en page configurable (JSON) + UI de configuration | ✅ Livré |
+| Lot 3 | Cartes individuelles (membre + administrateur) | À faire |
 
-Approche : livraison incrémentale en 2 lots fonctionnels. Chaque étape se termine par une preuve exécutable. Aucun développement du lot 2 tant que le lot 1 n'est pas validé en bout en bout.
+Lot 2 doit être terminé avant Lot 3 car Lot 3 réutilise le moteur configurable.
 
 ## Definition of Done globale
 
-- EF3, EF4, EF5, EF6, EF7 (partie lot) couverts pour le lot 1.
-- EF1, EF2, EF7 (partie individuelle) couverts pour le lot 2.
+- EF3, EF4, EF5, EF6, EF7, EF8 (partie lot + config) couverts pour les lots 1 et 2.
+- EF1, EF2, EF7 (partie individuelle) couverts pour le lot 3.
 - PDF imprimables sur A4, alignement recto/verso cohérent.
+- Configuration JSON exportable, importable, reproductible.
 - Tests automatisés ajoutés et passants dans la suite projet.
 - Smoke Playwright disponible pour chaque parcours critique.
 
 ---
 
-## Lot 1 (prioritaire) — Planches A4 recto/verso administrateur
+## Lot 1 (livré) — Planches A4 recto/verso, layout statique ✅
 
-### Étape 1 — Migration et sources de données
-
-Implémentation :
-1. Créer la migration `mnumero` dans la table `membres` et mettre à jour `config/migration.php`.
-2. Ajouter la métadonnée `mnumero` dans `Gvvmetadata.php`.
-3. Identifier et documenter les sources de données pour la génération : `membres` (mnom, mprenom, mnumero, photo, actif), `cotisation_produits` (années), `configuration` (fonds, nom_club), président via `mniveaux & PRESIDENT`.
-4. Définir les règles de sélection du lot par défaut (membres avec `actif = 1` pour l'année N-1) et de surcharge manuelle.
-
-Validation :
-- Test PHPUnit : migration crée `mnumero`, rollback restaure l'état initial.
-- Checklist champs EF5 complète et vérifiée.
-
-### Étape 2 — Gestion des fonds recto/verso (admin)
-
-Implémentation :
-1. Ajouter sous-écran `cartes_membre/config` : upload recto et verso pour une année donnée.
-2. Stocker via le mécanisme `configuration` existant (clés `carte_recto_{annee}` et `carte_verso_{annee}`).
-3. Contrôle d'accès : réservé aux administrateurs (même garde que les autres écrans admin).
-
-Validation :
-- Test PHPUnit : persistance configuration saisonnière, refus non-admin.
-- Test manuel : uploader recto + verso, recharger, vérifier fond affiché.
-
-### Étape 3 — Moteur de composition carte (library Cartes_membre_pdf)
-
-Implémentation :
-1. Créer `application/libraries/Cartes_membre_pdf.php` étendant TCPDF.
-2. Implémenter `render_card($data, $x, $y)` : fond si disponible sinon blanc + bordure, photo conditionnelle, textes positionnés.
-3. Implémenter `render_recto_page()` et `render_verso_page()` (ordre miroir).
-4. Recto et verso synchronisés sur la même clé d'ordre (`mnumero` ou `mlogin`).
-
-Validation :
-- Tests PHPUnit sur `render_card()` : photo présente, photo absente, fond absent (bordure).
-- Vérification visuelle de 3 cartes échantillon (champs présents et positionnés).
-
-### Étape 4 — Génération des planches A4 en lot
-
-Implémentation :
-1. Créer `cartes_membre_model` avec `get_membres_actifs_annee()` et `get_president()`.
-2. Implémenter `cartes_membre/lot()` : sélection par défaut (actifs N-1), sélection manuelle, ajout d'un membre hors actif.
-3. Implémenter `cartes_membre/lot_pdf()` : constitution des tranches de 10, génération des pages recto/verso alternées, sortie PDF.
-
-Validation :
-- Tests intégration : constitution du lot (défaut, manuel, ajout hors actif).
-- Test non-régression ordre recto/verso : même séquence d'identifiants entre faces.
-- Test performance : lot représentatif (50 membres) dans un délai acceptable.
-
-### Étape 5 — UX admin et vérification d'impression
-
-Implémentation :
-1. Finaliser l'écran `lot()` : filtres, liste finale, récapitulatif avant génération (année, nombre de membres).
-2. Messages d'erreur explicites (fond manquant mais génération autorisée, président introuvable → bloquant avec message).
-3. Documenter la procédure d'impression recommandée (recto-verso bord long, papier cartonné).
-
-Validation :
-- Smoke Playwright : parcours complet admin lot jusqu'au téléchargement PDF.
-- Recette manuelle avec impression réelle, contrôle alignement recto/verso.
-
-### Gate de fin Lot 1
-
-Lot 1 validé si :
-- EF3, EF4, EF5, EF6, EF7 (partie lot) démontrables.
-- Smoke Playwright passe.
-- Test d'impression physique conforme.
+Réalisations :
+- Migration 105 (`mnumero` sur `membres`), métadonnée `Gvvmetadata`
+- `cartes_membre_model` : accès données membres, cotisations, président, fonds
+- `Cartes_membre_pdf` : layout statique codé en dur (positions, polices, couleurs)
+- Contrôleur `cartes_membre` : `lot()`, `lot_pdf()`, `config()` (upload fonds)
+- Vues `bs_lot.php`, `bs_config.php`
+- Menu Membres (club-admin), dashboard Administration Club
+- Tests PHPUnit migration + modèle, smoke Playwright 9 tests
 
 ---
 
-## Lot 2 (second temps) — Cartes individuelles
+## Lot 2 — Moteur de mise en page configurable ✅
 
-### Étape 6 — Impression individuelle membre
+### Étape A — Modèle et format JSON ✅
+
+Réalisations :
+- `get_layout($annee)` et `save_layout($annee, $layout)` dans `cartes_membre_model`
+- `_default_layout()` embarquée : reproduit exactement le comportement statique du Lot 1
+- Tests PHPUnit : `get_layout` retourne le défaut, round-trip `save_layout`/`get_layout`, upsert sans doublon
+
+### Étape B — Refonte du moteur PDF ✅
+
+Réalisations :
+- `Cartes_membre_pdf` entièrement refactorisé : layout injecté en paramètre sur toutes les méthodes publiques
+- Résolveur `resolve_variable($id, $data)` : mappe les 7 champs variables vers `$data`
+- `render_face()` générique, `render_field()` et `render_background()` extraits
+- `lot_pdf()` injecte `nom_club`, `nom_president`, `numero_carte`, `annee` dans chaque entrée membre
+- Smoke Playwright : génération PDF lot, 16 tests passants
+
+### Étape C — UI de configuration mise en page ✅
+
+Réalisations :
+- Vue `bs_layout.php` : onglets Recto/Verso, tableau champs variables, tableau champs statiques dynamique (ajout/suppression JS), section photo
+- Actions contrôleur : `layout()`, `layout_save()`, `layout_export()`, `layout_import()`, `layout_reset()`
+- Helpers privés : `_hex_to_rgb()`, `_parse_layout_from_post()`
+- Lien « Configurer la mise en page » ajouté à `bs_config.php`
+- Strings multilingues (fr/en/nl) pour toute l'UI layout
+- Smoke Playwright : 7 nouveaux tests (accès, onglets, sauvegarde avec confirmation, export/import, lien depuis config)
+
+### Gate de fin Lot 2 ✅
+
+- Layout configurable appliqué sur la génération lot.
+- Export JSON produit un fichier valide ; import du même fichier produit un résultat identique.
+- Aucune régression : 1 257 tests PHPUnit passants, 16 smoke Playwright passants.
+
+---
+
+## Lot 3 — Cartes individuelles
+
+### Étape D — Impression individuelle membre
 
 Implémentation :
 1. Ajouter entrée « Imprimer ma carte » dans l'espace membre.
-2. Proposer par défaut la dernière année avec cotisation (`cotisation_produits`).
+2. Proposer par défaut la dernière année avec cotisation.
 3. Permettre la sélection parmi les années cotisées uniquement.
-4. Générer le PDF individuel A4 via le même `Cartes_membre_pdf` que le lot.
+4. Générer via `generate_individuelle()` avec le layout de la saison.
 
 Validation :
 - Tests autorisation : membre limité à sa propre carte.
-- Tests fonctionnels : année par défaut + changement d'année autorisée.
 - Smoke Playwright membre jusqu'au téléchargement PDF.
 
-### Étape 7 — Impression individuelle administrateur
+### Étape E — Impression individuelle administrateur
 
 Implémentation :
-1. Ajouter recherche/sélection de membre côté admin dans `cartes_membre/carte()`.
-2. Autoriser la génération même sans cotisation payée.
-3. Permettre le choix de l'année de carte (toutes années, pas seulement cotisées).
-4. Réutiliser strictement `Cartes_membre_pdf`.
+1. Implémenter `cartes_membre/carte($mlogin, $year)` : recherche/sélection de membre, génération sans contrainte de cotisation, layout de la saison.
 
 Validation :
 - Tests intégration : génération admin avec et sans cotisation.
 - Tests autorisation : réservé admin.
-- Vérification manuelle de 2 cas réels (membre cotisant / non cotisant).
 
-### Gate de fin Lot 2
+### Gate de fin Lot 3
 
-Lot 2 validé si :
 - EF1, EF2, EF7 (partie individuelle) démontrables.
 - Parcours membre et admin individuels passent en smoke test.
 
 ---
 
 ## Plan de tests transverse
-
-Pour chaque étape :
-1. Tests PHPUnit unitaires (logique métier, composition, ordre recto/verso).
-2. Tests PHPUnit intégration sur données réelles (modèle / contrôleur).
-3. Tests E2E Playwright sur parcours critiques.
-4. Validation manuelle d'impression à la fin des lots 1 et 2.
 
 ```bash
 source setenv.sh
@@ -247,7 +260,8 @@ cd playwright && npx playwright test --reporter=line
 
 ## Risques et parades
 
-- **Décalage recto/verso** : verrouiller l'ordre carte dans le modèle, recette physique obligatoire au gate lot 1.
-- **Président introuvable** : bloquer la génération avec message explicite si `(mniveaux & 2) = 0` sur tous les membres actifs.
-- **Volume lot élevé** : génération en tranches de 10, mesurer le temps, alerter l'utilisateur si > 30 secondes.
-- **Photo de mauvaise dimension** : recadrer/redimensionner à 20 × 25 mm dans TCPDF sans déformation (mode `fit`).
+- **Décalage recto/verso** : verrouiller l'ordre carte dans le modèle, recette physique obligatoire.
+- **Président introuvable** : bloquer la génération avec message explicite.
+- **Volume lot élevé** : génération en tranches de 10, alerter si > 30 secondes.
+- **Config JSON invalide à l'import** : valider le JSON et les champs obligatoires avant d'accepter l'import ; rejeter avec message d'erreur explicite.
+- **Régression layout** : la config par défaut embarquée doit reproduire exactement le comportement du Lot 1 — couvrir par des tests de non-régression avant de supprimer le code statique.

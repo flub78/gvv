@@ -88,9 +88,9 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         await expect(page.locator('select[name="year"]')).toBeVisible();
-        // Two upload forms (recto + verso)
+        // Two upload forms (recto + verso) + one JSON import in modal = 3 total
         const uploadInputs = page.locator('input[type="file"]');
-        await expect(uploadInputs).toHaveCount(2);
+        await expect(uploadInputs).toHaveCount(3);
     });
 
     test('should show lot page link from config page', async ({ page }) => {
@@ -139,5 +139,49 @@ test.describe('Cartes de membre — smoke tests', () => {
                 expect(bodyText).not.toContain('404');
             }
         }
+    });
+
+    // -----------------------------------------------------------------------
+    // Lot 2 — Layout configuration UI (merged into config page)
+    // -----------------------------------------------------------------------
+
+    test('should display recto and verso layout tabs on config page', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/config');
+        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('#recto-tab')).toBeVisible();
+        await expect(page.locator('#verso-tab')).toBeVisible();
+    });
+
+    test('should display variable fields table on config recto tab', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/config');
+        await page.waitForLoadState('networkidle');
+
+        // Recto tab is active by default — at least 6 variable fields
+        const rows = page.locator('#tab-recto table tbody tr');
+        expect(await rows.count()).toBeGreaterThanOrEqual(6);
+    });
+
+    test('should show export and import buttons on config page', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/config');
+        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('a[href*="layout_export"]')).toBeVisible();
+        await expect(page.locator('button[data-bs-target="#importModal"]')).toBeVisible();
+    });
+
+    test('should save layout and show confirmation', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/config');
+        await page.waitForLoadState('networkidle');
+
+        // Submit the layout save form by button text (upload buttons also have btn-primary)
+        await page.click('button[type="submit"]:has-text("Enregistrer la mise en page")');
+        await page.waitForLoadState('networkidle');
+
+        const bodyText = await page.locator('body').textContent();
+        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('404');
+        const alert = page.locator('.alert-success');
+        await expect(alert).toBeVisible();
     });
 });
