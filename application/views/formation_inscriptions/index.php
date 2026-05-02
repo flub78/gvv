@@ -31,20 +31,12 @@ $this->lang->load('gvv');
 
 ?>
 <div id="body" class="body container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>
-            <i class="fas fa-user-graduate" aria-hidden="true"></i>
-            <?= $this->lang->line("formation_inscriptions_title") ?>
-        </h3>
-        <div>
-            <a href="<?= controller_url($controller) ?>/ouvrir" class="btn btn-primary">
-                <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_inscriptions_ouvrir") ?>
-            </a>
-        </div>
-    </div>
+    <h3>
+        <i class="fas fa-user-graduate" aria-hidden="true"></i>
+        <?= $this->lang->line("formation_inscriptions_title") ?>
+    </h3>
 
     <?php
-    // Display flash messages
     if ($this->session->flashdata('success')) {
         echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
         echo '<i class="fas fa-check-circle" aria-hidden="true"></i> ' . $this->session->flashdata('success');
@@ -59,149 +51,76 @@ $this->lang->load('gvv');
     }
     ?>
 
-    <!-- Filters -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="get" action="<?= controller_url($controller) ?>" class="row g-3">
-                <div class="col-md-3">
-                    <label for="pilote_id" class="form-label"><?= $this->lang->line("formation_inscription_pilote") ?></label>
-                    <select class="form-select" id="pilote_id" name="pilote_id">
-                        <option value="">-- Tous --</option>
-                        <?php foreach ($pilotes as $id => $nom): ?>
-                            <option value="<?= $id ?>" <?= isset($filters['pilote_id']) && $filters['pilote_id'] == $id ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($nom) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label for="programme_id" class="form-label"><?= $this->lang->line("formation_inscription_programme") ?></label>
-                    <select class="form-select" id="programme_id" name="programme_id">
-                        <option value="">-- Tous --</option>
-                        <?php foreach ($programmes as $id => $titre): ?>
-                            <option value="<?= $id ?>" <?= isset($filters['programme_id']) && $filters['programme_id'] == $id ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($titre) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label for="statut" class="form-label"><?= $this->lang->line("formation_inscription_statut") ?></label>
-                    <select class="form-select" id="statut" name="statut">
-                        <option value="">-- Tous --</option>
-                        <option value="ouverte" <?= isset($filters['statut']) && $filters['statut'] == 'ouverte' ? 'selected' : '' ?>>Ouverte</option>
-                        <option value="suspendue" <?= isset($filters['statut']) && $filters['statut'] == 'suspendue' ? 'selected' : '' ?>>Suspendue</option>
-                        <option value="cloturee" <?= isset($filters['statut']) && $filters['statut'] == 'cloturee' ? 'selected' : '' ?>>Clôturée</option>
-                        <option value="abandonnee" <?= isset($filters['statut']) && $filters['statut'] == 'abandonnee' ? 'selected' : '' ?>>Abandonnée</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label for="instructeur_referent_id" class="form-label"><?= $this->lang->line("formation_inscription_instructeur") ?></label>
-                    <select class="form-select" id="instructeur_referent_id" name="instructeur_referent_id">
-                        <option value="">-- Tous --</option>
-                        <?php foreach ($instructeurs as $id => $nom): ?>
-                            <option value="<?= $id ?>" <?= isset($filters['instructeur_referent_id']) && $filters['instructeur_referent_id'] == $id ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($nom) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Inscriptions list -->
-    <?php if (empty($inscriptions)): ?>
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle" aria-hidden="true"></i> <?= $this->lang->line("formation_inscriptions_empty") ?>
-        </div>
-    <?php else: ?>
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
+    <div class="table-responsive">
+        <table id="inscriptions-table" class="datatable table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th><?= $this->lang->line("formation_inscription_pilote") ?></th>
+                    <th><?= $this->lang->line("formation_inscription_programme") ?></th>
+                    <th><?= $this->lang->line("formation_inscription_instructeur") ?></th>
+                    <th><?= $this->lang->line("formation_inscription_date_ouverture") ?></th>
+                    <th><?= $this->lang->line("formation_inscription_statut") ?></th>
+                    <th class="text-center"><?= $this->lang->line("gvv_str_actions") ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($inscriptions as $inscription): ?>
                     <tr>
-                        <th><?= $this->lang->line("formation_inscription_pilote") ?></th>
-                        <th><?= $this->lang->line("formation_inscription_programme") ?></th>
-                        <th><?= $this->lang->line("formation_inscription_instructeur") ?></th>
-                        <th><?= $this->lang->line("formation_inscription_date_ouverture") ?></th>
-                        <th><?= $this->lang->line("formation_inscription_statut") ?></th>
-                        <th class="text-center"><?= $this->lang->line("gvv_str_actions") ?></th>
+                        <td>
+                            <?= htmlspecialchars($inscription['pilote_prenom'] . ' ' . $inscription['pilote_nom']) ?>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($inscription['programme_titre']) ?>
+                        </td>
+                        <td>
+                            <?php if (!empty($inscription['instructeur_nom'])): ?>
+                                <?= htmlspecialchars($inscription['instructeur_prenom'] . ' ' . $inscription['instructeur_nom']) ?>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= date('d/m/Y', strtotime($inscription['date_ouverture'])) ?></td>
+                        <td>
+                            <?php
+                            $badge_class = 'secondary';
+                            $statut_label = $inscription['statut'];
+                            switch ($inscription['statut']) {
+                                case 'ouverte':
+                                    $badge_class = 'success';
+                                    $statut_label = 'Ouverte';
+                                    break;
+                                case 'suspendue':
+                                    $badge_class = 'warning';
+                                    $statut_label = 'Suspendue';
+                                    break;
+                                case 'cloturee':
+                                    $badge_class = 'primary';
+                                    $statut_label = 'Clôturée';
+                                    break;
+                                case 'abandonnee':
+                                    $badge_class = 'danger';
+                                    $statut_label = 'Abandonnée';
+                                    break;
+                            }
+                            ?>
+                            <span class="badge bg-<?= $badge_class ?>"><?= $statut_label ?></span>
+                        </td>
+                        <td class="text-center">
+                            <a href="<?= controller_url($controller) ?>/detail/<?= $inscription['id'] ?>"
+                               class="btn btn-sm btn-info" title="Détails">
+                                <i class="fas fa-eye" aria-hidden="true"></i>
+                            </a>
+
+                            <a href="<?= site_url('formation_seances/create?inscription_id=' . $inscription['id']) ?>"
+                               class="btn btn-sm btn-primary" title="Ajouter une séance">
+                                <i class="fas fa-plus" aria-hidden="true"></i>
+                            </a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($inscriptions as $inscription): ?>
-                        <tr>
-                            <td>
-                                <?= htmlspecialchars($inscription['pilote_prenom'] . ' ' . $inscription['pilote_nom']) ?>
-                            </td>
-                            <td>
-                                <?= htmlspecialchars($inscription['programme_titre']) ?>
-                            </td>
-                            <td>
-                                <?php if (!empty($inscription['instructeur_nom'])): ?>
-                                    <?= htmlspecialchars($inscription['instructeur_prenom'] . ' ' . $inscription['instructeur_nom']) ?>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= date('d/m/Y', strtotime($inscription['date_ouverture'])) ?></td>
-                            <td>
-                                <?php
-                                $badge_class = 'secondary';
-                                $statut_label = $inscription['statut'];
-                                switch ($inscription['statut']) {
-                                    case 'ouverte':
-                                        $badge_class = 'success';
-                                        $statut_label = 'Ouverte';
-                                        break;
-                                    case 'suspendue':
-                                        $badge_class = 'warning';
-                                        $statut_label = 'Suspendue';
-                                        break;
-                                    case 'cloturee':
-                                        $badge_class = 'primary';
-                                        $statut_label = 'Clôturée';
-                                        break;
-                                    case 'abandonnee':
-                                        $badge_class = 'danger';
-                                        $statut_label = 'Abandonnée';
-                                        break;
-                                }
-                                ?>
-                                <span class="badge bg-<?= $badge_class ?>"><?= $statut_label ?></span>
-                            </td>
-                            <td class="text-center">
-                                <a href="<?= controller_url($controller) ?>/detail/<?= $inscription['id'] ?>" 
-                                   class="btn btn-sm btn-info" title="Détails">
-                                    <i class="fas fa-eye" aria-hidden="true"></i>
-                                </a>
-                                
-                                <a href="<?= site_url('formation_seances/create?inscription_id=' . $inscription['id']) ?>" 
-                                   class="btn btn-sm btn-primary" title="Ajouter une séance">
-                                    <i class="fas fa-plus" aria-hidden="true"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="mt-2">
-            <small class="text-muted">
-                <?= count($inscriptions) ?> <?= $this->lang->line("formation_inscriptions_count") ?>
-            </small>
-        </div>
-    <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php $this->load->view('bs_footer'); ?>

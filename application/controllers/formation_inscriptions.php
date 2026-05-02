@@ -47,37 +47,16 @@ class Formation_inscriptions extends CI_Controller {
     }
     
     /**
-     * Liste des inscriptions avec filtres
+     * Liste de toutes les inscriptions
      */
     public function index() {
-        log_message('debug', 'FORMATION_INSCRIPTIONS: index() method called');
-        
-        // Get filters from query string
-        $filters = array(
-            'pilote_id' => $this->input->get('pilote_id'),
-            'programme_id' => $this->input->get('programme_id'),
-            'statut' => $this->input->get('statut'),
-            'instructeur_referent_id' => $this->input->get('instructeur_referent_id')
-        );
-        
-        // Remove empty filters
-        $filters = array_filter($filters, function($value) {
-            return $value !== null && $value !== '';
-        });
-        
-        // Get inscriptions
-        $inscriptions = $this->formation_inscription_model->get_all($filters);
-        
-        // Prepare data for view
+        $inscriptions = $this->formation_inscription_model->get_all(array());
+
         $data = array(
             'controller' => 'formation_inscriptions',
             'inscriptions' => $inscriptions,
-            'filters' => $filters,
-            'pilotes' => $this->membres_model->get_selector(),
-            'programmes' => $this->formation_programme_model->get_selector(),
-            'instructeurs' => $this->membres_model->get_selector_instructeurs()
         );
-        
+
         $this->load->view('formation_inscriptions/index', $data);
     }
     

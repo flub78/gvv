@@ -220,3 +220,7 @@ $lang['db_card_pilot_payment'] = "Pilot top-up";
 // Member cards
 $lang['db_card_member_cards'] = "Member cards";
 $lang['db_desc_member_cards'] = "Generate cards in batch";
+
+// Open a training
+$lang['db_card_open_training']   = "Open a training";
+$lang['db_desc_new_inscription'] = "New enrollment";

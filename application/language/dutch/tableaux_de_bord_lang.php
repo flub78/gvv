@@ -220,3 +220,7 @@ $lang['db_card_pilot_payment'] = "Piloot opwaarderen";
 // Ledenpassen
 $lang['db_card_member_cards'] = "Ledenpassen";
 $lang['db_desc_member_cards'] = "Passen batch genereren";
+
+// Opleiding openen
+$lang['db_card_open_training']   = "Opleiding openen";
+$lang['db_desc_new_inscription'] = "Nieuwe inschrijving";

@@ -916,6 +916,15 @@ $this->lang->load('tableaux_de_bord');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-plus-circle text-primary"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_open_training') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_new_inscription') ?></div>
+                        <a href="<?= controller_url('formation_inscriptions') ?>/ouvrir" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_creer') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-book text-primary"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_programs') ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
