@@ -18,6 +18,9 @@ $this->load->view('bs_header');
 $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
+$this->lang->load('formation');
+$this->lang->load('gvv');
+
 ?>
 <div id="body" class="body container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -25,16 +28,12 @@ $this->load->view('bs_banner');
             <i class="fas fa-plane" aria-hidden="true"></i>
             <?= $this->lang->line("formation_seances_libres_title") ?>
         </h3>
-        <div class="d-flex align-items-center gap-3">
-            <?= year_selector('formation_seances', $year, $year_selector) ?>
-            <a href="<?= controller_url($controller) ?>/create" class="btn btn-success">
-                <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_seances_create") ?>
-            </a>
-        </div>
+        <a href="<?= controller_url($controller) ?>/create" class="btn btn-success">
+            <i class="fas fa-plus" aria-hidden="true"></i> <?= $this->lang->line("formation_seances_create") ?>
+        </a>
     </div>
 
     <?php
-    // Display flash messages
     if ($this->session->flashdata('success')) {
         echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
         echo '<i class="fas fa-check-circle" aria-hidden="true"></i> ' . $this->session->flashdata('success');
@@ -49,56 +48,44 @@ $this->load->view('bs_banner');
     }
     ?>
 
-    <!-- Seances table -->
-    <div class="card">
-        <div class="card-header">
-            <strong><?= count($seances) ?></strong> <?= $this->lang->line("formation_seance") ?>(s)
-        </div>
-        <div class="card-body">
-            <?php if (empty($seances)): ?>
-                <p class="text-muted"><?= $this->lang->line("formation_seances_empty") ?></p>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="seances-table">
-                        <thead>
-                            <tr>
-                                <th><?= $this->lang->line("formation_seance_date") ?></th>
-                                <th><?= $this->lang->line("formation_seance_pilote") ?></th>
-                                <th><?= $this->lang->line("formation_seance_programme") ?></th>
-                                <th><?= $this->lang->line("formation_seance_instructeur") ?></th>
-                                <th><?= $this->lang->line("formation_seance_machine") ?></th>
-                                <th><?= $this->lang->line("formation_seance_duree") ?></th>
-                                <th><?= $this->lang->line("formation_seance_nb_atterrissages") ?></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($seances as $seance): ?>
-                                <tr>
-                                    <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
-                                    <td><?= htmlspecialchars(($seance['pilote_prenom'] ?? '') . ' ' . ($seance['pilote_nom'] ?? '')) ?></td>
-                                    <td><?= htmlspecialchars($seance['programme_titre'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars(($seance['instructeur_prenom'] ?? '') . ' ' . ($seance['instructeur_nom'] ?? '')) ?></td>
-                                    <td><?= htmlspecialchars($seance['machine_modele'] ?? '') ?></td>
-                                    <td><?= substr($seance['duree'], 0, 5) ?></td>
-                                    <td><?= $seance['nb_atterrissages'] ?></td>
-                                    <td>
-                                        <a href="<?= controller_url($controller) ?>/detail/<?= $seance['id'] ?>"
-                                           class="btn btn-sm btn-info" title="Détail">
-                                            <i class="fas fa-eye" aria-hidden="true"></i>
-                                        </a>
-                                        <a href="<?= controller_url($controller) ?>/edit/<?= $seance['id'] ?>"
-                                           class="btn btn-sm btn-warning" title="Modifier">
-                                            <i class="fas fa-edit" aria-hidden="true"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
+    <div class="table-responsive">
+        <table class="datatable table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th><?= $this->lang->line("formation_seance_date") ?></th>
+                    <th><?= $this->lang->line("formation_seance_pilote") ?></th>
+                    <th><?= $this->lang->line("formation_seance_programme") ?></th>
+                    <th><?= $this->lang->line("formation_seance_instructeur") ?></th>
+                    <th><?= $this->lang->line("formation_seance_machine") ?></th>
+                    <th><?= $this->lang->line("formation_seance_duree") ?></th>
+                    <th><?= $this->lang->line("formation_seance_nb_atterrissages") ?></th>
+                    <th class="text-center"><?= $this->lang->line("gvv_str_actions") ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($seances as $seance): ?>
+                    <tr>
+                        <td><?= date('d/m/Y', strtotime($seance['date_seance'])) ?></td>
+                        <td><?= htmlspecialchars(trim(($seance['pilote_prenom'] ?? '') . ' ' . ($seance['pilote_nom'] ?? ''))) ?></td>
+                        <td><?= htmlspecialchars($seance['programme_titre'] ?? '') ?></td>
+                        <td><?= htmlspecialchars(trim(($seance['instructeur_prenom'] ?? '') . ' ' . ($seance['instructeur_nom'] ?? ''))) ?></td>
+                        <td><?= htmlspecialchars($seance['machine_modele'] ?? '') ?></td>
+                        <td><?= !empty($seance['duree']) ? substr($seance['duree'], 0, 5) : '—' ?></td>
+                        <td><?= $seance['nb_atterrissages'] ?? '—' ?></td>
+                        <td class="text-center">
+                            <a href="<?= controller_url($controller) ?>/detail/<?= $seance['id'] ?>"
+                               class="btn btn-sm btn-info" title="Détail">
+                                <i class="fas fa-eye" aria-hidden="true"></i>
+                            </a>
+                            <a href="<?= controller_url($controller) ?>/edit/<?= $seance['id'] ?>"
+                               class="btn btn-sm btn-warning" title="Modifier">
+                                <i class="fas fa-edit" aria-hidden="true"></i>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

@@ -800,7 +800,14 @@ class Formation_seances extends CI_Controller {
      * Redirige vers la vue principale avec le filtre type=libre
      */
     public function libres() {
-        redirect('formation_seances?type=libre');
+        $seances = $this->formation_seance_model->select_page(array('type' => 'libre'));
+
+        $data = array(
+            'controller' => 'formation_seances',
+            'seances' => $seances,
+        );
+
+        $this->load->view('formation_seances/libres', $data);
     }
 
     /**
