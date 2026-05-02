@@ -21,6 +21,7 @@ $lang['gvv_sections_field_libelle_menu_avions'] = "Libellé menu avions/ULM";
 $lang['gvv_sections_field_show_presences'] = "Calendrier présences";
 $lang['gvv_sections_field_has_bar'] = "Bar";
 $lang['gvv_sections_field_bar_account_id'] = "Compte produits bar";
+$lang['gvv_sections_field_show_on_member_card'] = "Afficher sur carte de membre";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Nom";
 $lang['gvv_vue_sections_short_field_description'] = "Description";

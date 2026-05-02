@@ -1,0 +1,394 @@
+{
+    "version": 1,
+    "recto": {
+        "variable_fields": [
+            {
+                "id": "saison",
+                "enabled": true,
+                "x": 61,
+                "y": 9,
+                "font": "helvetica",
+                "bold": true,
+                "size": 14,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "R",
+                "width": 20
+            },
+            {
+                "id": "nom_prenom",
+                "enabled": true,
+                "x": 3,
+                "y": 32,
+                "font": "helvetica",
+                "bold": false,
+                "size": 12,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "numero_membre",
+                "enabled": true,
+                "x": 3,
+                "y": 36,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    255,
+                    127,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "activites",
+                "enabled": true,
+                "x": 3,
+                "y": 42,
+                "font": "helvetica",
+                "bold": false,
+                "size": 6,
+                "color": [
+                    255,
+                    127,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "numero_carte",
+                "enabled": true,
+                "x": 3,
+                "y": 48,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    255,
+                    127,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            }
+        ],
+        "static_fields": [
+            {
+                "text": "AEROCLUB D'ABBEVILLE",
+                "x": 18,
+                "y": 3,
+                "font": "helvetica",
+                "bold": false,
+                "size": 8,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "BUIGNY - BAIE DE SOMME",
+                "x": 18,
+                "y": 8,
+                "font": "helvetica",
+                "bold": false,
+                "size": 8,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "CARTE DE MEMBRE",
+                "x": 18,
+                "y": 13,
+                "font": "helvetica",
+                "bold": true,
+                "size": 10,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "SAISON",
+                "x": 66,
+                "y": 3,
+                "font": "helvetica",
+                "bold": true,
+                "size": 8,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "TITULAIRE",
+                "x": 3,
+                "y": 28,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            }
+        ],
+        "photo": {
+            "enabled": true,
+            "x": 66,
+            "y": 28,
+            "w": 18,
+            "h": 23
+        }
+    },
+    "verso": {
+        "variable_fields": [
+            {
+                "id": "nom_club",
+                "enabled": false,
+                "x": 3,
+                "y": 3,
+                "font": "helvetica",
+                "bold": true,
+                "size": 7,
+                "color": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L",
+                "width": 56
+            },
+            {
+                "id": "saison",
+                "enabled": true,
+                "x": 25,
+                "y": 25,
+                "font": "helvetica",
+                "bold": true,
+                "size": 7,
+                "color": [
+                    43,
+                    61,
+                    103
+                ],
+                "align": "L",
+                "width": 20
+            },
+            {
+                "id": "nom_prenom",
+                "enabled": false,
+                "x": 3,
+                "y": 28,
+                "font": "helvetica",
+                "bold": false,
+                "size": 9,
+                "color": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "numero_membre",
+                "enabled": false,
+                "x": 3,
+                "y": 36,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "activites",
+                "enabled": true,
+                "x": 25,
+                "y": 15,
+                "font": "helvetica",
+                "bold": true,
+                "size": 6,
+                "color": [
+                    43,
+                    61,
+                    103
+                ],
+                "align": "L",
+                "width": 58
+            },
+            {
+                "id": "numero_carte",
+                "enabled": false,
+                "x": 3,
+                "y": 48,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    0,
+                    0,
+                    0
+                ],
+                "align": "L",
+                "width": 58
+            }
+        ],
+        "static_fields": [
+            {
+                "text": "Le Président",
+                "x": 39.9,
+                "y": 45,
+                "font": "helvetica",
+                "bold": false,
+                "size": 6,
+                "color": [
+                    39,
+                    170,
+                    96
+                ],
+                "align": "R",
+                "width": 40
+            },
+            {
+                "text": "Aéroclub d'Abbeville - Buigny - Baie de Somme",
+                "x": 10,
+                "y": 3,
+                "font": "helvetica",
+                "bold": true,
+                "size": 8,
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "COTISATION",
+                "x": 3,
+                "y": 25,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    39,
+                    170,
+                    96
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "URGENCE",
+                "x": 3,
+                "y": 35,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    39,
+                    170,
+                    96
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "www.aeroclub-abbeville.fr",
+                "x": 3,
+                "y": 45,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    39,
+                    170,
+                    96
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "Mathieu Caudrelier",
+                "x": 40,
+                "y": 50,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    43,
+                    61,
+                    103
+                ],
+                "align": "R",
+                "width": 40
+            },
+            {
+                "text": "SECTION",
+                "x": 3,
+                "y": 15,
+                "font": "helvetica",
+                "bold": false,
+                "size": 7,
+                "color": [
+                    39,
+                    170,
+                    96
+                ],
+                "align": "L",
+                "width": 60
+            },
+            {
+                "text": "15 - 17 - 18 - 112 - 191",
+                "x": 25,
+                "y": 35,
+                "font": "helvetica",
+                "bold": true,
+                "size": 7,
+                "color": [
+                    43,
+                    61,
+                    103
+                ],
+                "align": "L",
+                "width": 60
+            }
+        ],
+        "photo": null
+    }
+}

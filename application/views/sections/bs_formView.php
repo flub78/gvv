@@ -58,7 +58,8 @@ $this->lang->load('sections');
 					'libelle_menu_avions' => $libelle_menu_avions,
 					'show_presences' => $show_presences,
 					'has_bar' => $has_bar,
-					'bar_account_id' => $bar_account_id
+					'bar_account_id' => $bar_account_id,
+					'show_on_member_card' => $show_on_member_card
 				))); ?>
 
 				<?= validation_button($action); ?>

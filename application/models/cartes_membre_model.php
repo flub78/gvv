@@ -20,8 +20,19 @@ class Cartes_membre_model extends CI_Model {
      * @return array|null
      */
     public function get_membre($mlogin) {
+        // Sous-requête pour récupérer les activités (noms des sections avec rôle 'user')
+        // Filtre les sections avec show_on_member_card = 1, triées alphabétiquement
+        $activites_subquery = '(SELECT GROUP_CONCAT(s.nom ORDER BY s.nom SEPARATOR \', \')
+            FROM users u
+            JOIN user_roles_per_section urps ON u.id = urps.user_id
+            JOIN sections s ON urps.section_id = s.id
+            WHERE u.username = membres.mlogin
+              AND urps.types_roles_id = 1
+              AND s.show_on_member_card = 1)';
+
         $row = $this->db
             ->select('mlogin, mnom, mprenom, mnumero, photo, actif')
+            ->select($activites_subquery . ' as activites', FALSE)
             ->from('membres')
             ->where('mlogin', $mlogin)
             ->get()->row_array();
@@ -230,11 +241,29 @@ class Cartes_membre_model extends CI_Model {
             if (file_exists($path)) {
                 $decoded = json_decode(file_get_contents($path), true);
                 if (is_array($decoded)) {
-                    return $decoded;
+                    return $this->_normalize_layout($decoded);
                 }
             }
         }
         return $this->_default_layout();
+    }
+
+    /**
+     * Retire les champs variables obsolètes des layouts sauvegardés.
+     * Appelé au chargement pour assurer la compatibilité ascendante.
+     */
+    private function _normalize_layout(array $layout) {
+        $obsolete = array('nom_president');
+        foreach (array('recto', 'verso') as $face) {
+            if (!isset($layout[$face]['variable_fields'])) continue;
+            $layout[$face]['variable_fields'] = array_values(array_filter(
+                $layout[$face]['variable_fields'],
+                function($f) use ($obsolete) {
+                    return !in_array($f['id'], $obsolete, true);
+                }
+            ));
+        }
+        return $layout;
     }
 
     /**

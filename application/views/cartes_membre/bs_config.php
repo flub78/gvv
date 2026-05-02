@@ -110,7 +110,14 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                 <div class="card-body">
                     <?php if ($fond_recto): ?>
                         <div class="mb-2 text-center">
-                            <img src="<?= base_url('uploads/configuration/' . basename($fond_recto)) ?>"
+                            <?php
+                            $recto_path = FCPATH . 'uploads/configuration/' . basename($fond_recto);
+                            $recto_url = base_url('uploads/configuration/' . basename($fond_recto));
+                            if (file_exists($recto_path)) {
+                                $recto_url .= '?t=' . filemtime($recto_path);
+                            }
+                            ?>
+                            <img src="<?= $recto_url ?>"
                                  class="img-thumbnail" style="max-height:120px;"
                                  alt="<?= $this->lang->line('gvv_cartes_membre_fond_recto') ?>">
                         </div>
@@ -143,7 +150,14 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                 <div class="card-body">
                     <?php if ($fond_verso): ?>
                         <div class="mb-2 text-center">
-                            <img src="<?= base_url('uploads/configuration/' . basename($fond_verso)) ?>"
+                            <?php
+                            $verso_path = FCPATH . 'uploads/configuration/' . basename($fond_verso);
+                            $verso_url = base_url('uploads/configuration/' . basename($fond_verso));
+                            if (file_exists($verso_path)) {
+                                $verso_url .= '?t=' . filemtime($verso_path);
+                            }
+                            ?>
+                            <img src="<?= $verso_url ?>"
                                  class="img-thumbnail" style="max-height:120px;"
                                  alt="<?= $this->lang->line('gvv_cartes_membre_fond_verso') ?>">
                         </div>
@@ -223,14 +237,14 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php foreach ($face_layout['variable_fields'] as $field): ?>
+                            <?php foreach ($face_layout['variable_fields'] as $idx => $field): ?>
                                 <tr>
                                     <td>
                                         <?= htmlspecialchars($var_field_labels[$field['id']] ?? $field['id']) ?>
                                         <input type="hidden" name="<?= $face ?>_var_id[]" value="<?= htmlspecialchars($field['id']) ?>">
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_var_enabled[]"
+                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_var_enabled[<?= $idx ?>]"
                                                value="1" <?= !empty($field['enabled']) ? 'checked' : '' ?>>
                                     </td>
                                     <td><input type="number" step="0.1" class="form-control form-control-sm" style="width:70px"
@@ -245,7 +259,7 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                                         </select>
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_var_bold[]"
+                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_var_bold[<?= $idx ?>]"
                                                value="1" <?= !empty($field['bold']) ? 'checked' : '' ?>>
                                     </td>
                                     <td><input type="number" min="4" max="24" class="form-control form-control-sm" style="width:60px"
@@ -303,7 +317,7 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php foreach ($face_layout['static_fields'] as $sf): ?>
+                            <?php foreach ($face_layout['static_fields'] as $idx => $sf): ?>
                                 <tr>
                                     <td><input type="text" class="form-control form-control-sm"
                                                name="<?= $face ?>_st_text[]" value="<?= htmlspecialchars($sf['text']) ?>" style="min-width:120px"></td>
@@ -319,7 +333,7 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                                         </select>
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_st_bold[]"
+                                        <input type="checkbox" class="form-check-input" name="<?= $face ?>_st_bold[<?= $idx ?>]"
                                                value="1" <?= !empty($sf['bold']) ? 'checked' : '' ?>>
                                     </td>
                                     <td><input type="number" min="4" max="24" class="form-control form-control-sm" style="width:60px"

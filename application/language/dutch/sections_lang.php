@@ -21,6 +21,7 @@ $lang['gvv_sections_field_libelle_menu_avions'] = "Menulabel vliegtuig";
 $lang['gvv_sections_field_show_presences'] = "Aanwezigheidskalender";
 $lang['gvv_sections_field_has_bar'] = "Bar";
 $lang['gvv_sections_field_bar_account_id'] = "Opbrengstrekening bar";
+$lang['gvv_sections_field_show_on_member_card'] = "Weergeven op lidkaart";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Naam";
 $lang['gvv_vue_sections_short_field_description'] = "Beschrijving";

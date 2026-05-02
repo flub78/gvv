@@ -274,25 +274,25 @@ class Cartes_membre extends CI_Controller {
         foreach (array('recto', 'verso') as $face) {
             // Champs variables
             $variable_fields = array();
-            $ids    = $this->input->post($face . '_var_id')    ?: array();
+            $ids    = $this->input->post($face . '_var_id')      ?: array();
             $enab   = $this->input->post($face . '_var_enabled') ?: array();
-            $xs     = $this->input->post($face . '_var_x')     ?: array();
-            $ys     = $this->input->post($face . '_var_y')     ?: array();
-            $fonts  = $this->input->post($face . '_var_font')  ?: array();
-            $bolds  = $this->input->post($face . '_var_bold')  ?: array();
-            $sizes  = $this->input->post($face . '_var_size')  ?: array();
-            $colors = $this->input->post($face . '_var_color') ?: array();
-            $aligns = $this->input->post($face . '_var_align') ?: array();
-            $widths = $this->input->post($face . '_var_width') ?: array();
+            $xs     = $this->input->post($face . '_var_x')       ?: array();
+            $ys     = $this->input->post($face . '_var_y')       ?: array();
+            $fonts  = $this->input->post($face . '_var_font')    ?: array();
+            $bolds  = $this->input->post($face . '_var_bold')    ?: array();
+            $sizes  = $this->input->post($face . '_var_size')    ?: array();
+            $colors = $this->input->post($face . '_var_color')   ?: array();
+            $aligns = $this->input->post($face . '_var_align')   ?: array();
+            $widths = $this->input->post($face . '_var_width')   ?: array();
 
             foreach ($ids as $i => $id) {
                 $variable_fields[] = array(
                     'id'      => $id,
-                    'enabled' => isset($enab[$i]) && $enab[$i] == '1',
+                    'enabled' => !empty($enab[$i]),
                     'x'       => (float)($xs[$i] ?? 0),
                     'y'       => (float)($ys[$i] ?? 0),
                     'font'    => $fonts[$i] ?? 'helvetica',
-                    'bold'    => isset($bolds[$i]) && $bolds[$i] == '1',
+                    'bold'    => !empty($bolds[$i]),
                     'size'    => (int)($sizes[$i] ?? 7),
                     'color'   => $this->_hex_to_rgb($colors[$i] ?? '#000000'),
                     'align'   => $aligns[$i] ?? 'L',
@@ -319,7 +319,7 @@ class Cartes_membre extends CI_Controller {
                     'x'     => (float)($st_xs[$i] ?? 0),
                     'y'     => (float)($st_ys[$i] ?? 0),
                     'font'  => $st_fonts[$i] ?? 'helvetica',
-                    'bold'  => isset($st_bolds[$i]) && $st_bolds[$i] == '1',
+                    'bold'  => !empty($st_bolds[$i]),
                     'size'  => (int)($st_sizes[$i] ?? 7),
                     'color' => $this->_hex_to_rgb($st_colrs[$i] ?? '#000000'),
                     'align' => $st_algns[$i] ?? 'L',

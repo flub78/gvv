@@ -857,6 +857,10 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['bar_account_id']['Subtype'] = 'selector';
                 $this->field['sections']['bar_account_id']['Selector'] = 'bar_compte_selector';
 
+                $this->field['sections']['show_on_member_card']['Name']    = $CI->lang->line('gvv_sections_field_show_on_member_card');
+                $this->field['sections']['show_on_member_card']['Type']    = 'int';
+                $this->field['sections']['show_on_member_card']['Subtype'] = 'boolean';
+
                 /**
                  * Vue sections
                  */
@@ -880,6 +884,9 @@ class GVVMetadata extends Metadata {
 
                 $this->field['vue_sections']['show_presences']['Name']    = $CI->lang->line('gvv_sections_field_show_presences');
                 $this->field['vue_sections']['show_presences']['Subtype'] = 'boolean';
+
+                $this->field['vue_sections']['show_on_member_card']['Name']    = $CI->lang->line('gvv_sections_field_show_on_member_card');
+                $this->field['vue_sections']['show_on_member_card']['Subtype'] = 'boolean';
 
                 /**
                  * Document types (archivage documentaire)
