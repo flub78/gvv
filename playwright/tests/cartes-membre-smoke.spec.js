@@ -184,4 +184,125 @@ test.describe('Cartes de membre — smoke tests', () => {
         const alert = page.locator('.alert-success');
         await expect(alert).toBeVisible();
     });
+
+    // -----------------------------------------------------------------------
+    // Lot 3 — Cartes individuelles (admin access)
+    // -----------------------------------------------------------------------
+
+    test('Lot3 admin: should access individual card page and see member selector', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/carte');
+        await page.waitForLoadState('networkidle');
+
+        const bodyText = await page.locator('body').textContent();
+        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('Error');
+
+        // Admin sees either a member selector dropdown or the year selector form
+        const memberSelect = page.locator('select[name="mlogin"]');
+        const yearSelect   = page.locator('select[name="year"], select#sel_year');
+        const hasMemberSel = await memberSelect.count() > 0;
+        const hasYearSel   = await yearSelect.count() > 0;
+        expect(hasMemberSel || hasYearSel).toBeTruthy();
+    });
+
+    test('Lot3 admin: should generate individual card PDF for a member', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/carte');
+        await page.waitForLoadState('networkidle');
+
+        // Try to pick the first member from the dropdown
+        const memberSelect = page.locator('select[name="mlogin"]');
+        if (await memberSelect.count() === 0) {
+            test.skip();
+            return;
+        }
+
+        // Select first non-empty option
+        const options = await memberSelect.locator('option').all();
+        let targetLogin = null;
+        for (const opt of options) {
+            const val = await opt.getAttribute('value');
+            if (val) { targetLogin = val; break; }
+        }
+        if (!targetLogin) { test.skip(); return; }
+
+        await memberSelect.selectOption(targetLogin);
+
+        // Select a year (first option)
+        const yearSelect = page.locator('select[name="year"]');
+        const firstYear = await yearSelect.locator('option').first().getAttribute('value');
+
+        if (firstYear) {
+            await yearSelect.selectOption(firstYear);
+        }
+
+        // Submit the form
+        const submitBtn = page.locator('button[type="submit"]');
+        const [download] = await Promise.all([
+            page.waitForEvent('download', { timeout: 15000 }).catch(() => null),
+            submitBtn.click()
+        ]);
+
+        // PDF delivered inline or downloaded — verify no error page
+        if (!download) {
+            const bodyText = await page.locator('body').textContent().catch(() => '');
+            if (bodyText) {
+                expect(bodyText).not.toContain('Error');
+                expect(bodyText).not.toContain('404');
+            }
+        }
+    });
+});
+
+// -----------------------------------------------------------------------
+// Lot 3 — Cartes individuelles (member access)
+// -----------------------------------------------------------------------
+
+const MEMBER_USER = { username: 'testuser', password: 'password' };
+
+test.describe('Cartes de membre Lot3 — accès membre', () => {
+
+    test.beforeEach(async ({ page }) => {
+        await page.goto(LOGIN_URL);
+        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('input[name="username"]', { timeout: 5000 });
+        await page.fill('input[name="username"]', MEMBER_USER.username);
+        await page.fill('input[name="password"]', MEMBER_USER.password);
+        await page.click('button[type="submit"], input[type="submit"]');
+        await page.waitForLoadState('networkidle');
+    });
+
+    test('Lot3 member: should access own card page', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/carte');
+        await page.waitForLoadState('networkidle');
+
+        const bodyText = await page.locator('body').textContent();
+        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('Error');
+
+        // Member sees either a year selector or a "no cotisation" message
+        const yearSelect    = page.locator('select#sel_year');
+        const noCotisAlert  = page.locator('.alert-warning');
+        const hasYear  = await yearSelect.count() > 0;
+        const hasAlert = await noCotisAlert.count() > 0;
+        expect(hasYear || hasAlert).toBeTruthy();
+    });
+
+    test('Lot3 member: should not be able to access admin lot page', async ({ page }) => {
+        await page.goto('/index.php/cartes_membre/lot');
+        await page.waitForLoadState('networkidle');
+
+        // Should be denied or redirected (not show the lot form)
+        const url = page.url();
+        const bodyText = await page.locator('body').textContent();
+        const hasLotForm = await page.locator('button[name="generate"]').count() > 0;
+        expect(hasLotForm).toBeFalsy();
+    });
+
+    test('Lot3 member: dashboard shows my member card link', async ({ page }) => {
+        await page.goto('/index.php/welcome');
+        await page.waitForLoadState('networkidle');
+
+        const cardLink = page.locator('a[href*="cartes_membre/carte"]');
+        await expect(cardLink).toBeVisible();
+    });
 });

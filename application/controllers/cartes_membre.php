@@ -20,7 +20,12 @@ class Cartes_membre extends CI_Controller {
         if (!$this->dx_auth->is_logged_in()) {
             redirect('auth/login');
         }
-        $this->dx_auth->check_uri_permissions();
+
+        // carte() is accessible to any logged-in member; all other actions require admin privileges.
+        $method = $this->router->fetch_method();
+        if ($method !== 'carte') {
+            $this->dx_auth->check_uri_permissions();
+        }
 
         $this->load->model('cartes_membre_model');
         $this->lang->load('gvv');
@@ -29,6 +34,100 @@ class Cartes_membre extends CI_Controller {
     /** Redirige vers l'écran de sélection du lot. */
     public function index() {
         redirect(controller_url('cartes_membre/lot'));
+    }
+
+    /**
+     * Génère ou affiche le formulaire pour une carte individuelle.
+     *
+     * GET sans $year  : affiche le formulaire de sélection d'année.
+     * GET avec $year  : génère le PDF et l'envoie au navigateur.
+     *
+     * Accès membre    : limité à sa propre carte, uniquement pour les années cotisées.
+     * Accès admin     : tout membre, toute année.
+     *
+     * @param string|null $mlogin  Login du membre (admin uniquement depuis l'URL).
+     * @param int|null    $year    Année de la carte.
+     */
+    public function carte($mlogin = null, $year = null) {
+        $current_user = $this->dx_auth->get_username();
+        $is_admin     = $this->dx_auth->is_admin();
+
+        // Non-admin : accès limité à sa propre carte.
+        if (!$is_admin) {
+            $mlogin = $current_user;
+        }
+
+        // Lire année depuis GET si pas dans l'URL.
+        if (empty($year)) {
+            $year = (int)($this->input->get('year') ?: 0) ?: null;
+        } else {
+            $year = (int)$year;
+        }
+
+        // Admin sans login : lire depuis GET ou afficher formulaire de sélection.
+        if ($is_admin && empty($mlogin)) {
+            $mlogin = $this->input->get('mlogin') ?: null;
+        }
+
+        // --- Génération PDF ---
+        if (!empty($mlogin) && !empty($year)) {
+            $membre = $this->cartes_membre_model->get_membre($mlogin);
+            if (!$membre) {
+                show_error($this->lang->line('gvv_error_not_found'), 404);
+                return;
+            }
+
+            // Membre : vérifier la cotisation pour l'année demandée.
+            if (!$is_admin) {
+                $years_cotisation = $this->cartes_membre_model->get_years_with_cotisation($mlogin);
+                if (!in_array((int)$year, array_map('intval', $years_cotisation))) {
+                    show_error($this->lang->line('gvv_cartes_membre_no_cotisation_year'), 403);
+                    return;
+                }
+            }
+
+            $fond_recto = $this->cartes_membre_model->get_fond_path($year, 'recto');
+            $fond_verso = $this->cartes_membre_model->get_fond_path($year, 'verso');
+            $layout     = $this->cartes_membre_model->get_layout($year);
+            $nom_club   = $this->config->item('nom_club') ?: 'GVV';
+
+            $membre['annee']        = $year;
+            $membre['photo_path']   = $this->cartes_membre_model->get_photo_path($membre['photo'] ?? null);
+            $membre['nom_club']     = $nom_club;
+            $membre['numero_carte'] = 1;
+
+            require_once(APPPATH . 'libraries/Cartes_membre_pdf.php');
+            $pdf = new Cartes_membre_pdf();
+            $pdf->generate_individuelle($membre, $layout, $fond_recto, $fond_verso);
+            $filename = 'carte_' . preg_replace('/[^a-z0-9_-]/i', '_', $mlogin) . '_' . $year . '.pdf';
+            $pdf->Output($filename, 'I');
+            return;
+        }
+
+        // --- Formulaire de sélection ---
+        $membre = !empty($mlogin) ? $this->cartes_membre_model->get_membre($mlogin) : null;
+
+        if ($is_admin) {
+            $years   = range((int)date('Y') + 1, 2010);
+            $membres = $this->cartes_membre_model->get_all_membres();
+        } else {
+            $years   = $this->cartes_membre_model->get_years_with_cotisation($mlogin);
+            $membres = array();
+        }
+
+        $year_default = !empty($years) ? $years[0] : (int)date('Y');
+
+        $data = array(
+            'controller' => $this->controller,
+            'mlogin'     => $mlogin,
+            'membre'     => $membre,
+            'years'      => $years,
+            'year'       => $year_default,
+            'is_admin'   => $is_admin,
+            'membres'    => $membres,
+        );
+
+        load_last_view('cartes_membre/bs_carte', $data);
     }
 
     /**

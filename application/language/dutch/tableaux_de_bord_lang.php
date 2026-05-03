@@ -218,8 +218,10 @@ $lang['db_confirm_dev_env'] = "Weet u zeker dat u zich in een ontwikkelomgeving 
 $lang['db_card_pilot_payment'] = "Piloot opwaarderen";
 
 // Ledenpassen
-$lang['db_card_member_cards'] = "Ledenpassen";
-$lang['db_desc_member_cards'] = "Passen batch genereren";
+$lang['db_card_member_cards']    = "Ledenpassen";
+$lang['db_desc_member_cards']    = "Passen batch genereren";
+$lang['db_card_my_member_card']  = "Mijn ledenpas";
+$lang['db_desc_my_member_card']  = "Mijn pas downloaden";
 
 // Opleiding openen
 $lang['db_card_open_training']   = "Opleiding openen";

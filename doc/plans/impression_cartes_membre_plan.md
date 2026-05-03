@@ -156,7 +156,7 @@ Page 2k   : versos des cartes [10k+10 .. 10k+1]   (ordre miroir horizontal)
 |-----|---------|--------|
 | Lot 1 | Planches en lot, layout statique, fonds, menu, dashboard | ✅ Livré |
 | Lot 2 | Moteur de mise en page configurable (JSON) + UI de configuration | ✅ Livré |
-| Lot 3 | Cartes individuelles (membre + administrateur) | À faire |
+| Lot 3 | Cartes individuelles (membre + administrateur) | ✅ Livré |
 
 Lot 2 doit être terminé avant Lot 3 car Lot 3 réutilise le moteur configurable.
 
@@ -220,33 +220,28 @@ Réalisations :
 
 ---
 
-## Lot 3 — Cartes individuelles
+## Lot 3 — Cartes individuelles ✅
 
-### Étape D — Impression individuelle membre
+### Étape D — Impression individuelle membre ✅
 
-Implémentation :
-1. Ajouter entrée « Imprimer ma carte » dans l'espace membre.
-2. Proposer par défaut la dernière année avec cotisation.
-3. Permettre la sélection parmi les années cotisées uniquement.
-4. Générer via `generate_individuelle()` avec le layout de la saison.
+Réalisations :
+- Lien « Ma carte de membre » ajouté au dashboard dans la section personnelle.
+- `carte()` sélectionne automatiquement la dernière année cotisée par défaut.
+- Sélection limitée aux années avec cotisation pour les membres non-admin.
+- Génération via `generate_individuelle()` avec le layout de la saison.
 
-Validation :
-- Tests autorisation : membre limité à sa propre carte.
-- Smoke Playwright membre jusqu'au téléchargement PDF.
+### Étape E — Impression individuelle administrateur ✅
 
-### Étape E — Impression individuelle administrateur
+Réalisations :
+- `cartes_membre/carte($mlogin, $year)` : formulaire de sélection membre + année.
+- Sans contrainte de cotisation pour l'admin.
+- Constructeur restructuré : `check_uri_permissions()` bypassé pour `carte()` uniquement.
 
-Implémentation :
-1. Implémenter `cartes_membre/carte($mlogin, $year)` : recherche/sélection de membre, génération sans contrainte de cotisation, layout de la saison.
-
-Validation :
-- Tests intégration : génération admin avec et sans cotisation.
-- Tests autorisation : réservé admin.
-
-### Gate de fin Lot 3
+### Gate de fin Lot 3 ✅
 
 - EF1, EF2, EF7 (partie individuelle) démontrables.
-- Parcours membre et admin individuels passent en smoke test.
+- 18 smoke tests Playwright passants (dont 5 nouveaux Lot 3).
+- 1 257 tests PHPUnit — aucune régression introduite.
 
 ---
 

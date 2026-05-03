@@ -259,6 +259,15 @@ $this->lang->load('tableaux_de_bord');
                 </div>
                 <?php endif; ?>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-id-badge text-success"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_my_member_card') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_my_member_card') ?></div>
+                        <a href="<?= controller_url('cartes_membre/carte') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
                 <?php if (!empty($active_payment_section) || !empty($show_pay_cotisation_card)): ?>
                 <?php
                     $active_section_name = (!empty($section['id']) && (int) $section['id'] > 0 && !empty($section['nom']))

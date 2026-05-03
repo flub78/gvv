@@ -218,8 +218,10 @@ $lang['db_confirm_dev_env'] = "Êtes-vous sûr d'être sur un environnement de d
 $lang['db_card_pilot_payment'] = "Approvisionnement pilote";
 
 // Cartes de membre
-$lang['db_card_member_cards'] = "Cartes de membre";
-$lang['db_desc_member_cards'] = "Générer les cartes en lot";
+$lang['db_card_member_cards']    = "Cartes de membre";
+$lang['db_desc_member_cards']    = "Générer les cartes en lot";
+$lang['db_card_my_member_card']  = "Ma carte de membre";
+$lang['db_desc_my_member_card']  = "Télécharger ma carte";
 
 // Ouvrir une formation
 $lang['db_card_open_training']   = "Ouvrir une formation";
