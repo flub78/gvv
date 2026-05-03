@@ -405,6 +405,7 @@ $lang['safe_sql'] = "Invalid SQL request, DROP and DELETE are forbidden.";
 $lang['safe_sql_update'] = "Invalid SQL request, UPDATE is forbidden.";
 $lang['safe_sql_select'] = "Invalid SQL request, SELECT is mandatory.";
 $lang['check_uniq'] = "The element already exist.";
+$lang['mlogin_not_numeric'] = "The login cannot be purely numeric.";
 
 $lang['delete'] = 'Delete';
 

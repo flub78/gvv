@@ -39,7 +39,7 @@ class Membre extends Gvv_Controller {
 
     // régles de validation
     protected $rules = array(
-        'mlogin' => 'alpha_dash'
+        'mlogin' => 'alpha_dash|callback_not_numeric_only'
     );
     protected $filter_variables = array(
         'filter_active',
@@ -1173,6 +1173,14 @@ class Membre extends Gvv_Controller {
         $data['text'] = "$count_updated comptes 411 ont été synchronisés avec les noms des membres anonymisés. " .
                        "Relations traitées: membres.compte ET comptes.pilote.";
         load_last_view('message', $data);
+    }
+
+    function not_numeric_only($str) {
+        if (ctype_digit($str)) {
+            $this->form_validation->set_message('not_numeric_only', $this->lang->line('mlogin_not_numeric'));
+            return FALSE;
+        }
+        return TRUE;
     }
 
 }

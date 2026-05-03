@@ -466,6 +466,7 @@ $lang['safe_sql'] = "Requête SQL invalide. DROP et DELETE interdit.";
 $lang['safe_sql_update'] = "Requête SQL invalide. UPDATE interdit.";
 $lang['safe_sql_select'] = "Requête SQL invalide. SELECT obligatoire";
 $lang['check_uniq'] = "L'élément existe déjà";
+$lang['mlogin_not_numeric'] = "L'identifiant ne peut pas être uniquement numérique.";
 
 $lang['HEVA'] = "HEVA";
 $lang['Association'] = "Association";

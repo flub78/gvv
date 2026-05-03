@@ -400,6 +400,7 @@ $lang['safe_sql'] = "Ongeldig SQL-verzoek, DROP en DELETE zijn verboden.";
 $lang['safe_sql_update'] = "Ongeldig SQL-verzoek, UPDATE is verboden.";
 $lang['safe_sql_select'] = "Ongeldig SQL-verzoek, SELECT is verplicht.";
 $lang['check_uniq'] = "Het element bestaat al.";
+$lang['mlogin_not_numeric'] = "De gebruikersnaam mag niet puur numeriek zijn.";
 
 $lang['delete'] = 'Verwijderen';
 
