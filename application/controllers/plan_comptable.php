@@ -39,13 +39,12 @@ class Plan_Comptable extends Gvv_Controller {
         'pdesc' => array(
             'label' => 'Description',
             'default' => '',
-            'rules' => 'trim|required|max_length[50]'
+            'rules' => 'trim|required'
         )
     );
 
     protected $rules = array(
-        'pcode' => "required|is_uniq[planc.pcode]",
-        'pdesc' => "trim|required|max_length[50]"
+        'pcode' => "required|is_uniq[planc.pcode]"
     );
 
     /**
@@ -53,6 +52,12 @@ class Plan_Comptable extends Gvv_Controller {
      */
     function __construct() {
         parent::__construct();
+
+        // Keep form-level rule display in sync with DB metadata for planc.pdesc.
+        $pdesc_size = (int) $this->gvvmetadata->field_size('planc', 'pdesc');
+        if ($pdesc_size > 0) {
+            $this->fields['pdesc']['rules'] = 'trim|required|max_length[' . $pdesc_size . ']';
+        }
     }
 
     /**
