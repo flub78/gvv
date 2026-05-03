@@ -29,6 +29,7 @@ const { test, expect } = require('@playwright/test');
 
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
+const DASHBOARD_URL = '/index.php/welcome';
 const INSCRIPTIONS_URL = '/index.php/formation_inscriptions';
 const PROGRAMMES_URL = '/index.php/programmes';
 // abraracourcix has instructor rights (BIT_FI_AVION + BIT_CA)
@@ -46,11 +47,16 @@ async function login(page) {
   await page.click('button[type="submit"], input[type="submit"]');
   await page.waitForLoadState('networkidle');
 
-  // Close "Message du jour" dialog if it appears
+  await closeMessageDuJour(page);
+}
+
+async function closeMessageDuJour(page) {
   try {
-    const modDialog = page.locator('.ui-dialog');
-    if (await modDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
-      const closeButton = page.locator('.ui-dialog-buttonpane button:has-text("OK")');
+    const dialog = page.locator('.ui-dialog, [role="dialog"]');
+    if (await dialog.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+      const closeButton = page.locator(
+        '.ui-dialog-buttonpane button:has-text("OK"), [role="dialog"] button:has-text("OK"), [role="dialog"] button[aria-label="close"], [role="dialog"] button:has-text("close")'
+      ).first();
       if (await closeButton.isVisible().catch(() => false)) {
         await closeButton.click();
         await page.waitForTimeout(500);
@@ -152,12 +158,20 @@ test.describe('Formation Inscriptions Workflow', () => {
       }
     }
 
-    // Navigate to inscriptions list and open the creation form
-    await page.goto(INSCRIPTIONS_URL);
+    // Navigate to the dashboard and open the creation form from the Formation section
+    await page.goto(DASHBOARD_URL);
     await page.waitForLoadState('networkidle');
+    await closeMessageDuJour(page);
 
-    // Click "Ouvrir une inscription" button
-    await page.click('a:has-text("Ouvrir"), button:has-text("Ouvrir"), a[href*="/ouvrir"]');
+    const formationSection = page.locator('#collapseFormation');
+    if (!(await formationSection.isVisible().catch(() => false))) {
+      await page.click('button[aria-controls="collapseFormation"]');
+    }
+
+    // Click the dashboard action that opens a new inscription
+    const openInscriptionLink = page.locator('a[href*="/formation_inscriptions/ouvrir"]').first();
+    await expect(openInscriptionLink).toBeVisible();
+    await openInscriptionLink.click();
     await page.waitForLoadState('networkidle');
 
     // Check we're on the form page

@@ -11,24 +11,19 @@
 * []qui a le droit de modifier des droits. Ca ne sert à rien qu'on ait un système de droit sophistiqués si les gens qui gèrent les droits peuvent se donner tous les droits... Ou donner à leurs copains plus de droits qu'ils n'en ont eux-mêmes. un membre du CA qui veut ajouter ou supprimer un pilote VD, c'est OK.
 
 
-
-## Priorités
-
-### Priorité 1
-La priorité opérationnelle est de pouvoir remplacer complètement OpenFlyers qui gèrent pour l'instant les réservations et la facturation ULM et avion. 
-
-Cela implique de:
-
-* Vérifier le support de la facturation ULM et avion
-* Mettre en place une stratégie de migration
-
 ## Reste à faire
 
+* [] Procédure d'import des vols OpenFlyers
+
+* [] Génération des certificats de formation
+  
 * [] Ajout de vrais export excel en sus des csv.
 
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Accepter les paiements en centimes. ou pas ?
+
+* [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
 
 * [] Facture automatique de hangar
      
