@@ -240,7 +240,7 @@ class Cartes_membre_pdf extends TCPDF {
     }
 
     /**
-     * Génère une page A4 avec une seule carte (individuelle), centrée.
+        * Génère une page A4 avec une seule carte (individuelle), à position fixe.
      *
      * @param array       $data        Données membre enrichies
      * @param array       $layout      Layout JSON décodé
@@ -248,12 +248,12 @@ class Cartes_membre_pdf extends TCPDF {
      * @param string|null $fond_verso
      */
     public function generate_individuelle(array $data, array $layout, $fond_recto, $fond_verso) {
-        // Centré sur A4 (210 × 297 mm), recto et verso côte à côte verticalement
-        $cx = (210 - self::CARD_W) / 2;
-        $cy = (297 - self::CARD_H * 2 - 10) / 2;
+        // Position fixe sur A4: 11 mm du bord gauche, 228 mm du haut, sans écart.
+        $cx = 11.0;
+        $cy = 228.0;
 
         $this->AddPage();
         $this->render_recto($data, $layout, $fond_recto, $cx, $cy);
-        $this->render_verso($data, $layout, $fond_verso, $cx, $cy + self::CARD_H + 10);
+        $this->render_verso($data, $layout, $fond_verso, $cx + self::CARD_W, $cy);
     }
 }
