@@ -57,10 +57,12 @@ class Membre extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view accessible to all users, create/edit/delete requires ca
+        // delete requires club-admin; create/formValidation require ca; all others require user
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
-            if (in_array($method, ['create', 'delete', 'formValidation'])) {
+            if ($method === 'delete') {
+                $this->require_roles(['club-admin']);
+            } elseif (in_array($method, ['create', 'formValidation'])) {
                 $this->require_roles(['ca']);
             } else {
                 $this->require_roles(['user']);
@@ -96,6 +98,10 @@ class Membre extends Gvv_Controller {
         parent::pre_update($id, $data);
         if (isset($data['compte']) && $data['compte'] === '') {
             $data['compte'] = 0;
+        }
+        // In new auth, only club-admin may change identity fields
+        if ($this->use_new_auth && !$this->user_has_role('club-admin')) {
+            unset($data['mnom'], $data['mprenom'], $data['mdaten']);
         }
     }
 
@@ -519,6 +525,8 @@ class Membre extends Gvv_Controller {
         // Utilisé seulement pour les certificats
         $this->data['has_modification_rights'] = $this->dx_auth->is_role('ca', true, true);
         parent::form_static_element($action);
+        // In new auth, only club-admin may edit identity fields (name, firstname, birthdate)
+        $this->data['has_admin_rights'] = !$this->use_new_auth || $this->user_has_role('club-admin');
         $this->load->model('comptes_model');
         if ($this->dx_auth->is_role('ca', true, true)) {
             $this->data['pilote_selector'] = $this->membres_model->selector();
@@ -658,7 +666,7 @@ class Membre extends Gvv_Controller {
      * - Suppression de l'ancienne photo si elle existe
      */
     public function formValidation($action, $return_on_success = false) {
-        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
+        if (!$this->use_new_auth && !$this->dx_auth->is_role($this->modification_level, true, true)) {
             $this->dx_auth->deny_access();
             return;
         }

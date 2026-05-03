@@ -158,11 +158,19 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <div class="d-flex flex-wrap gap-3">
                     <div class="flex-fill" style="min-width: 200px;">
                         <label for="mprenom" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mprenom"); ?></label>
-                        <?php echo $this->gvvmetadata->input_field("membres", 'mprenom', $mprenom); ?>
+                        <?php if ($has_admin_rights || $action == CREATION): ?>
+                            <?php echo $this->gvvmetadata->input_field("membres", 'mprenom', $mprenom); ?>
+                        <?php else: ?>
+                            <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars($mprenom); ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="flex-fill" style="min-width: 200px;">
                         <label for="mnom" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mnom"); ?></label>
-                        <?php echo $this->gvvmetadata->input_field("membres", 'mnom', $mnom); ?>
+                        <?php if ($has_admin_rights || $action == CREATION): ?>
+                            <?php echo $this->gvvmetadata->input_field("membres", 'mnom', $mnom); ?>
+                        <?php else: ?>
+                            <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars($mnom); ?></p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -243,7 +251,11 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <div class="d-flex flex-wrap gap-3">
                     <div class="flex-fill" style="min-width: 150px;">
                         <label for="mdaten" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mdaten"); ?></label>
-                        <?php echo $this->gvvmetadata->input_field("membres", 'mdaten', $mdaten); ?>
+                        <?php if ($has_admin_rights || $action == CREATION): ?>
+                            <?php echo $this->gvvmetadata->input_field("membres", 'mdaten', $mdaten); ?>
+                        <?php else: ?>
+                            <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars(date_db2ht($mdaten)); ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="flex-fill" style="min-width: 150px;">
                         <label for="place_of_birth" class="form-label"><?php echo $this->lang->line("gvv_membres_field_place_of_birth"); ?></label>
