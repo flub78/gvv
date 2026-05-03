@@ -207,7 +207,7 @@ class RealDatabase {
     
     // Simple query builder methods for testing
     private $where_conditions = [];
-    private $select_fields = '*';
+    private $select_fields = [];
     private $limit_clause = '';
     private $order_by_clause = '';
     private $group_by_clause = '';
@@ -216,16 +216,16 @@ class RealDatabase {
     private $from_alias = '';
     private $last_executed_query;
 
-    public function select($fields) {
-        $this->select_fields = $fields;
+    public function select($fields, $escape = NULL) {
+        $this->select_fields[] = $fields;
         return $this;
     }
 
     public function select_sum($field, $alias = '') {
         if ($alias == '') {
-            $this->select_fields = "SUM(" . $field . ") as " . $field;
+            $this->select_fields[] = "SUM(" . $field . ") as " . $field;
         } else {
-            $this->select_fields = "SUM(" . $field . ") as " . $alias;
+            $this->select_fields[] = "SUM(" . $field . ") as " . $alias;
         }
         return $this;
     }
@@ -401,7 +401,8 @@ class RealDatabase {
             $table_alias = $this->from_alias ? ' ' . $this->from_alias : '';
         }
 
-        $sql = "SELECT " . $this->select_fields . " FROM " . $table_name . $table_alias;
+        $select_expr = empty($this->select_fields) ? '*' : implode(', ', $this->select_fields);
+        $sql = "SELECT " . $select_expr . " FROM " . $table_name . $table_alias;
 
         foreach ($this->join_clauses as $join) {
             $sql .= " " . $join;
@@ -419,7 +420,7 @@ class RealDatabase {
 
         // Reset query builder state
         $this->where_conditions = [];
-        $this->select_fields = '*';
+        $this->select_fields = [];
         $this->limit_clause = '';
         $this->order_by_clause = '';
         $this->group_by_clause = '';
@@ -551,13 +552,13 @@ class RealDatabase {
         
         // Reset query builder state
         $this->where_conditions = [];
-        $this->select_fields = '*';
+        $this->select_fields = [];
         $this->limit_clause = '';
         $this->order_by_clause = '';
         $this->join_clauses = [];
         $this->from_table = '';
         $this->from_alias = '';
-        
+
         $result = $this->query($sql);
         if ($result->num_rows() == 0) {
             return 0;
@@ -616,7 +617,7 @@ class RealDatabase {
      */
     public function reset_query() {
         $this->where_conditions = [];
-        $this->select_fields = '*';
+        $this->select_fields = [];
         $this->limit_clause = '';
         $this->order_by_clause = '';
         $this->join_clauses = [];
