@@ -330,7 +330,7 @@ class Admin extends CI_Controller {
         // upload archive
         $config['upload_path'] = $upload_path;
         $config['allowed_types'] = '*'; // Allow all types, we'll validate manually
-        $config['max_size'] = '1500';
+        $config['max_size'] = '10240';
         $config['file_ext_tolower'] = FALSE; // Don't force lowercase for .enc.zip detection
 
         $this->load->library('upload', $config);
