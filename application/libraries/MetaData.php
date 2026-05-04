@@ -1148,7 +1148,7 @@ abstract class Metadata {
         if ($subtype == 'boolean') {
             if ($mode == 'csv' || $mode == 'pdf')
                 return $value;
-            return ($value) ? img(theme() . "/images/tick.png") : '';
+            return ($value) ? '<span class="fw-bold text-success">X</span>' : '';
         } elseif ('currency' == $subtype) {
 
             if ($value === '')
@@ -1187,7 +1187,7 @@ abstract class Metadata {
                 ));
                 return $check;
             } else {
-                return ($value) ? img(theme() . "/images/tick.png") : '';
+                return ($value) ? '<span class="fw-bold text-success">X</span>' : '';
             }
         } elseif ('key' == $subtype) {
             if ($value == '')
