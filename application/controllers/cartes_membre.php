@@ -109,7 +109,7 @@ class Cartes_membre extends CI_Controller {
 
         if ($is_admin) {
             $years   = range((int)date('Y') + 1, 2010);
-            $membres = $this->cartes_membre_model->get_all_membres();
+            $membres = $this->cartes_membre_model->get_all_membres_actifs();
         } else {
             $years   = $this->cartes_membre_model->get_years_with_cotisation($mlogin);
             $membres = array();
