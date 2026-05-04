@@ -205,8 +205,32 @@ class Cartes_membre_pdf extends TCPDF {
     }
 
     /**
+     * Retourne un tableau indexé par position de page où chaque carte est placée
+     * à la colonne miroir de sa position recto, sur la même ligne.
+     * Exemple 2 colonnes : recto[col 0, ligne 2] → verso[col 1, ligne 2].
+     *
+     * @param array $cards  Tableau de données membres (max CARDS_PER_PAGE)
+     * @return array        Tableau sparse [position => données_membre]
+     */
+    private function mirror_for_duplex(array $cards) {
+        $result = array();
+        $n = count($cards);
+        for ($i = 0; $i < self::CARDS_PER_PAGE; $i++) {
+            $col = $i % self::COLS;
+            $row = (int)($i / self::COLS);
+            $src = $row * self::COLS + (self::COLS - 1 - $col);
+            if ($src < $n) {
+                $result[$i] = $cards[$src];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Génère une page de versos pour un tableau de cartes (max 10).
-     * Ordre miroir horizontal : les cartes sont inversées pour l'impression recto-verso.
+     * Miroir colonne uniquement : chaque carte verso est sur la même ligne que
+     * son recto, mais dans la colonne opposée, pour l'impression recto-verso
+     * bord long.
      *
      * @param array       $cards     Même tableau que render_recto_page (même ordre)
      * @param array       $layout    Layout JSON décodé
@@ -214,9 +238,8 @@ class Cartes_membre_pdf extends TCPDF {
      */
     public function render_verso_page(array $cards, array $layout, $fond) {
         $this->AddPage();
-        $mirrored = array_reverse($cards);
+        $mirrored = $this->mirror_for_duplex($cards);
         foreach ($mirrored as $i => $card) {
-            if ($i >= self::CARDS_PER_PAGE) break;
             list($x, $y) = $this->card_position($i);
             $this->render_verso($card, $layout, $fond, $x, $y);
         }
