@@ -152,6 +152,7 @@ $lang['membre_sheet_occupation'] = "Profession ";
 $lang['membre_sheet_telephone'] = "Téléphone fixe ";
 $lang['membre_sheet_mobile'] = "mobile ";
 $lang['membre_sheet_email'] = "Courriel ";
+$lang['membre_email_already_used'] = "Cette adresse courriel est déjà utilisée par un autre membre.";
 $lang['membre_sheet_demande'] = "déclare solliciter mon adhésion à ";
 
 $lang['membre_title_licences'] = "Pour les brevetés, titres et N° des licences possédées ";

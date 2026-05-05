@@ -155,6 +155,7 @@ $lang['membre_sheet_occupation'] = "Beroep ";
 $lang['membre_sheet_telephone'] = "Telefoon ";
 $lang['membre_sheet_mobile'] = "GSM ";
 $lang['membre_sheet_email'] = "E-mail ";
+$lang['membre_email_already_used'] = "Dit e-mailadres wordt al gebruikt door een ander lid.";
 $lang['membre_sheet_demande'] = "déclare solliciter mon adhésion à ";
 
 $lang['membre_title_licences'] = "Pour les brevetés, titres et N° des licences possédées ";

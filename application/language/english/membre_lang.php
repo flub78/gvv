@@ -150,6 +150,7 @@ $lang['membre_sheet_occupation'] = "Occupation";
 $lang['membre_sheet_telephone'] = "Phone";
 $lang['membre_sheet_mobile'] = "mobile";
 $lang['membre_sheet_email'] = "Email ";
+$lang['membre_email_already_used'] = "This email address is already used by another member.";
 
 $lang['membre_title_licences'] = "Licenses, type and number";
 $lang['membre_sheet_bia'] = "Ground training certificate ";

@@ -13,6 +13,8 @@
 
 ## Reste à faire
 
+* [] Test approfondi gestion des vols avion et ULM.
+  
 * [] Génération des certificats de formation
   
 * [] Ajout de vrais export excel en sus des csv.
@@ -63,6 +65,11 @@
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
 
+* [] Passer à php8
+
+* [] Configuration de la facturation
+
+* [] Automatiser le déploiement pour héberger des clubs multiple dans des sou-domaines.
 
 ## Dette technique
 
@@ -85,8 +92,6 @@
 * [] Verifier qu'il n'y a plus d'erreurs dans les logs pendant les tests phpunit et playwright.
 
 ## Idées et suggestions
-
-* restreindre la suppression des membres aux admin. (sera géré correctement avec Laravel cascading)
 
 * Accès à un carnet de vol ULM pour les membres
 

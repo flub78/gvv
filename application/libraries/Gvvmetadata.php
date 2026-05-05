@@ -341,6 +341,7 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['actif']['Subtype'] = 'boolean';
                 $this->field['membres']['nom_prenom']['Type'] = 'varchar';
                 $this->field['membres']['memail']['Subtype'] = 'email';
+                $this->field['membres']['memail']['Null'] = 'NO';
                 $this->field['membres']['memailparent']['Subtype'] = 'email';
                 $this->field['membres']['photo']['Subtype'] = 'upload_image';
                 $this->field['membres']['photo_with_badges']['Type'] = 'varchar';
@@ -351,6 +352,7 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['mnumero']['Name'] = 'N° membre';
 
                 $this->field['membres']['inscription_date']['Type'] = 'date';
+                $this->field['membres']['inscription_date']['Default'] = 'today';
                 $this->field['membres']['validation_date']['Type'] = 'date';
 
                 // membre_payeur: Member who should be charged for this member's flights

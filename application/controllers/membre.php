@@ -39,7 +39,8 @@ class Membre extends Gvv_Controller {
 
     // régles de validation
     protected $rules = array(
-        'mlogin' => 'alpha_dash|callback_not_numeric_only'
+        'mlogin' => 'alpha_dash|callback_not_numeric_only',
+        'memail' => 'callback_email_unique'
     );
     protected $filter_variables = array(
         'filter_active',
@@ -1186,6 +1187,19 @@ class Membre extends Gvv_Controller {
     function not_numeric_only($str) {
         if (ctype_digit($str)) {
             $this->form_validation->set_message('not_numeric_only', $this->lang->line('mlogin_not_numeric'));
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    function email_unique($email) {
+        if (empty($email)) {
+            return TRUE;
+        }
+        $mlogin = $this->input->post('mlogin');
+        $count = $this->db->where('memail', $email)->where('mlogin !=', $mlogin)->count_all_results('membres');
+        if ($count > 0) {
+            $this->form_validation->set_message('email_unique', $this->lang->line('membre_email_already_used'));
             return FALSE;
         }
         return TRUE;
