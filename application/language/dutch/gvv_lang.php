@@ -749,3 +749,9 @@ $lang['gvv_cartes_membre_carte_generate']     = 'Pas downloaden (PDF)';
 $lang['gvv_cartes_membre_carte_no_cotisation']= 'Geen abonnement gevonden — kan pas niet genereren.';
 $lang['gvv_cartes_membre_carte_member_select']= 'Selecteer een lid';
 $lang['gvv_cartes_membre_no_cotisation_year'] = 'U hebt geen abonnement voor dit jaar.';
+
+$lang['gvv_gestion_roles_title'] = "Rollenbeheer";
+$lang['gvv_btn_gerer_roles']     = "Rollen beheren";
+$lang['gvv_menu_gestion_roles']  = "Rollenbeheer";
+$lang['gvv_gestion_roles_select_hint'] = "Selecteer een gebruiker om zijn rollen te beheren.";
+$lang['gvv_role_saved']                = "Wijziging opgeslagen.";

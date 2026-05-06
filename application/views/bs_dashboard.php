@@ -1103,6 +1103,15 @@ $this->lang->load('tableaux_de_bord');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
+                        <i class="fas fa-users-cog text-warning"></i>
+                        <div class="card-title"><?= $this->lang->line('gvv_gestion_roles_title') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                        <a href="<?= controller_url('gestion_roles') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
                         <i class="fas fa-id-card text-success"></i>
                         <div class="card-title"><?= $this->lang->line('db_card_memberships') ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_year') ?></div>
@@ -1232,32 +1241,6 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-danger">
-                        <i class="fas fa-user-tag text-info"></i>
-                        <div class="card-title"><?= $this->lang->line('db_card_roles') ?></div>
-                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
-                        <a href="<?= controller_url('backend/roles') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-danger">
-                        <i class="fas fa-lock text-danger"></i>
-                        <div class="card-title"><?= $this->lang->line('db_card_permissions') ?></div>
-                        <div class="card-text text-muted">URI</div>
-                        <a href="<?= controller_url('backend/uri_permissions') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center border-danger">
-                        <i class="fas fa-user-cog text-warning"></i>
-                        <div class="card-title"><?= $this->lang->line('db_card_section_roles') ?></div>
-                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_per_user') ?></div>
-                        <a href="<?= controller_url('user_roles_per_section') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-                    </div>
-                </div>
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">

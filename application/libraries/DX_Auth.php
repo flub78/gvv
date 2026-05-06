@@ -18,7 +18,9 @@ class DX_Auth {
     // Private
     var $_banned;
     var $_ban_reason;
-    var $_auth_error; // Contain user error when login
+    var $_auth_error;         // Contain user error when login
+    var $_forgot_state;       // 'too_soon' | 'resend_available' | null
+    var $_forgot_wait_seconds = 0; // secondes restantes dans l'état too_soon
     var $_captcha_image;
     function __construct() {
         $this->ci = & get_instance();
@@ -941,54 +943,68 @@ class DX_Auth {
         }
         $this->check_uri_permissions();
     }
-    function forgot_password($login) {
-        // Default return value
+    function forgot_password($login, $force_resend = false) {
         $result = FALSE;
+        $this->_forgot_state = NULL;
 
         if ($login) {
-            // Load Model
             $this->ci->load->model('dx_auth/users', 'users');
-            // Load Helper
             $this->ci->load->helper('url');
 
-            // Get login and check if it's exist
             if ($query = $this->ci->users->get_login($login) and $query->num_rows() == 1) {
-                // Get User data
                 $row = $query->row();
 
-                // Check if there is already new password created but waiting to be activated for this login
                 if (! $row->newpass_key) {
-                    // Create key
-                    $data ['key'] = md5(rand() . microtime());
-
-                    // Store key without pre-generated password (user will choose their own)
-                    $this->ci->users->newpass($row->id, NULL, $data ['key']);
-
-                    // Create reset password link to be included in email
-                    $data ['reset_password_uri'] = site_url($this->ci->config->item('DX_reset_password_uri') . "{$row->username}/{$data['key']}");
-
-                    // Create email
-                    $from = $this->ci->config->item('DX_webmaster_email');
-                    $subject = $this->ci->lang->line('auth_forgot_password_subject');
-
-                    // Trigger event and get email content
-                    $this->ci->dx_auth_event->sending_forgot_password_email($data, $message);
-
-                    // Send instruction email
-                    $result = $this->_email($row->email, $from, $subject, $message);
-                    
-                    if (!$result) {
-                        $this->_auth_error = $this->ci->lang->line('auth_forgot_password_email_error');
-                    }
+                    // Aucune demande en cours : créer la clé et envoyer l'email
+                    $result = $this->_send_reset_email($row);
                 } else {
-                    // There is already new password waiting to be activated
-                    $this->_auth_error = $this->ci->lang->line('auth_request_sent');
+                    // Demande déjà en cours : calculer l'ancienneté
+                    $expire      = (int)$this->ci->config->item('DX_forgot_password_expire');
+                    $request_ts  = strtotime($row->newpass_time) - $expire;
+                    $seconds_ago = time() - $request_ts;
+
+                    if ($seconds_ago < 60) {
+                        // Moins d'une minute : bloquer
+                        $wait = 60 - (int)$seconds_ago;
+                        $this->_forgot_state        = 'too_soon';
+                        $this->_forgot_wait_seconds = $wait;
+                        $this->_auth_error          = sprintf(
+                            $this->ci->lang->line('auth_request_too_soon'), $wait
+                        );
+                    } elseif ($force_resend) {
+                        // L'utilisateur a explicitement demandé le renvoi
+                        $result = $this->_send_reset_email($row);
+                    } else {
+                        // Plus d'une minute : proposer le renvoi
+                        $this->_forgot_state = 'resend_available';
+                        $this->_auth_error   = $this->ci->lang->line('auth_email_already_sent');
+                    }
                 }
             } else {
                 $this->_auth_error = $this->ci->lang->line('auth_username_or_email_not_exist');
             }
         }
 
+        return $result;
+    }
+
+    private function _send_reset_email($row) {
+        $data['key'] = md5(rand() . microtime());
+        $this->ci->users->newpass($row->id, NULL, $data['key']);
+
+        $data['reset_password_uri'] = site_url(
+            $this->ci->config->item('DX_reset_password_uri') . "{$row->username}/{$data['key']}"
+        );
+
+        $from    = $this->ci->config->item('DX_webmaster_email');
+        $subject = $this->ci->lang->line('auth_forgot_password_subject');
+
+        $this->ci->dx_auth_event->sending_forgot_password_email($data, $message);
+
+        $result = $this->_email($row->email, $from, $subject, $message);
+        if (!$result) {
+            $this->_auth_error = $this->ci->lang->line('auth_forgot_password_email_error');
+        }
         return $result;
     }
     function validate_reset_key($username, $key) {

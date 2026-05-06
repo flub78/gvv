@@ -360,26 +360,25 @@ class Auth extends CI_Controller {
     function forgot_password() {
         $val = $this->form_validation;
 
-        // Set form validation rules
         $val->set_rules('login', 'lang:auth_user_or_email', 'trim|required|xss_clean');
 
-        // Validate rules and call forgot password function
-        if ($val->run() and $this->dx_auth->forgot_password($val->set_value('login'))) {
-            // Get user email for logging
+        $force_resend = (bool)$this->input->post('resend_email');
+
+        if ($val->run() and $this->dx_auth->forgot_password($val->set_value('login'), $force_resend)) {
             $this->load->model('dx_auth/users', 'users');
             $login = $val->set_value('login');
             if ($query = $this->users->get_login($login) and $query->num_rows() == 1) {
-                $row = $query->row();
-                gvv_info("Demande de réinitialisation de mot de passe envoyée à " . $row->email);
+                gvv_info("Demande de réinitialisation de mot de passe envoyée à " . $query->row()->email);
             }
-            
+
             $data['auth_message'] = $this->lang->line("auth_forgot_pw_msg");
             load_last_view($this->dx_auth->forgot_password_success_view, $data);
         } else {
-            // If dx_auth has set an error, use it in the view
             if ($this->dx_auth->_auth_error) {
                 $data['auth_error'] = $this->dx_auth->_auth_error;
             }
+            $data['forgot_state']    = $this->dx_auth->_forgot_state;
+            $data['wait_seconds']    = $this->dx_auth->_forgot_wait_seconds;
             load_last_view($this->dx_auth->forgot_password_view, $data);
         }
     }

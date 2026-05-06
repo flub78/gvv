@@ -760,3 +760,9 @@ $lang['gvv_cartes_membre_carte_generate']     = 'Télécharger la carte (PDF)';
 $lang['gvv_cartes_membre_carte_no_cotisation']= 'Aucune cotisation enregistrée — impossible de générer la carte.';
 $lang['gvv_cartes_membre_carte_member_select']= 'Sélectionner un membre';
 $lang['gvv_cartes_membre_no_cotisation_year'] = 'Vous n\'avez pas de cotisation pour cette année.';
+
+$lang['gvv_gestion_roles_title'] = "Gestion des rôles";
+$lang['gvv_btn_gerer_roles']     = "Gérer les rôles";
+$lang['gvv_menu_gestion_roles']  = "Gestion des rôles";
+$lang['gvv_gestion_roles_select_hint'] = "Sélectionnez un utilisateur pour gérer ses rôles.";
+$lang['gvv_role_saved']                = "Modification enregistrée.";

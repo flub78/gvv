@@ -35,7 +35,7 @@ $lang['auth_incorrect_activation'] = "Votre code d'activation est incorrect. Vé
 $lang['auth_forgot_pw_msg'] = 'Un courriel vous a été envoyé avec un lien pour choisir votre nouveau mot de passe.';
 $lang['auth_forgot_password_email_error'] = 'Erreur lors de l\'envoi de l\'email de réinitialisation, contactez l\'administrateur.';
 $lang['auth_reinit_password'] = 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter. ';
-$lang['auth_reinit_password_failed'] = 'Echec de la réinitialisation. Votre identifiant ou mot de passe sont incorrects. Les instructions de réinitialisation on du vous être envoyées par courriel.';
+$lang['auth_reinit_password_failed'] = 'Échec de la réinitialisation. Les instructions de réinitialisation vous ont été envoyées par courriel. Si vous avez fait plusieurs demandes, utilisez la plus récente.';
 $lang['auth_password_changed'] = 'Votre mot de passe a été changé';
 
 # lang:
@@ -66,3 +66,8 @@ $lang['gvv_error_duplicate_user'] = "L'utilisateur existe déjà";
 
 $lang['legacy_gui'] = "Ancienne interface graphique pour les utilisateurs de Firefox 46.";
 
+
+$lang['auth_request_too_soon']  = "Merci de patienter %d seconde(s) avant de faire une nouvelle demande.";
+$lang['auth_email_already_sent'] = "Un email de réinitialisation a déjà été envoyé. Vous pouvez le renvoyer ci-dessous.";
+$lang['auth_resend_email']      = "Renvoyer l'email";
+$lang['auth_request_ready']     = "Vous pouvez maintenant soumettre une nouvelle demande.";

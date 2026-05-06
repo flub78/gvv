@@ -65,3 +65,8 @@ $lang['gvv_error_confirm_password'] = "Het bevestigde wachtwoord kwam niet overe
 $lang['gvv_error_duplicate_user'] = "De gebruiker bestaat reeds";
 
 $lang['legacy_gui'] = "Verouderde grafische interface.";
+
+$lang['auth_request_too_soon']  = "Wacht %d seconde(n) voordat u een nieuwe aanvraag doet.";
+$lang['auth_email_already_sent'] = "Er is al een herstel-e-mail verzonden. U kunt deze hieronder opnieuw verzenden.";
+$lang['auth_resend_email']      = "E-mail opnieuw verzenden";
+$lang['auth_request_ready']     = "U kunt nu een nieuwe aanvraag indienen.";

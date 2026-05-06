@@ -749,3 +749,9 @@ $lang['gvv_cartes_membre_carte_generate']     = 'Download card (PDF)';
 $lang['gvv_cartes_membre_carte_no_cotisation']= 'No subscription recorded — cannot generate card.';
 $lang['gvv_cartes_membre_carte_member_select']= 'Select a member';
 $lang['gvv_cartes_membre_no_cotisation_year'] = 'You have no subscription for this year.';
+
+$lang['gvv_gestion_roles_title'] = "Role management";
+$lang['gvv_btn_gerer_roles']     = "Manage roles";
+$lang['gvv_menu_gestion_roles']  = "Role management";
+$lang['gvv_gestion_roles_select_hint'] = "Select a user to manage their roles.";
+$lang['gvv_role_saved']                = "Change saved.";

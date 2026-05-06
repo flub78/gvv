@@ -558,52 +558,74 @@ class Membre extends Gvv_Controller {
      * @see Gvv_Controller::post_create()
      */
     function post_create($data = array()) {
-        if (! $data['compte']) {
-            // Creation du compte comptable
-            $id = $data['mlogin'];
-            $section = $this->membres_model->section();
-            if ($section)
-                $section_id = $section['id'];
-            else {
-                $section_id = null;
-                gvv_error("Nos section selected while creating a account for $id");
-            }
+        $mlogin  = $data['mlogin'];
+        $section = $this->membres_model->section();
+        $section_id = $section ? $section['id'] : null;
 
-            $cpt = array(
-                'nom' => $data['mnom'] . " " . $data['mprenom'],
-                'pilote' => $id,
-                'desc' => "Compte client 411 " . $section['nom'] . " " . $data['mnom'] . " " . $data['mprenom'],
-                'codec' => 411,
-                'actif' => 1,
-                'debit' => 0.0,
-                'credit' => 0.0,
-                'club' => $section_id,
-                'saisie_par' => $this->dx_auth->get_username()
-            );
-            $this->load->model('comptes_model');
-            if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $section_id)) {
-                $this->comptes_model->create($cpt);
-            }
-
-            // Et un second sur le compte général 
-            $section_general = $this->config->item('section_general');
-            if ($section_general) {
-                $cpt['club'] = $section_general;
-                $cpt['desc'] = "Compte client 411 général " . $data['mnom'] . " " . $data['mprenom'];
-                if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $cpt['club'])) {
+        // Création du compte comptable
+        if (!$data['compte']) {
+            if (!$section) {
+                gvv_error("No section selected while creating an account for $mlogin");
+            } else {
+                $cpt = array(
+                    'nom'        => $data['mnom'] . " " . $data['mprenom'],
+                    'pilote'     => $mlogin,
+                    'desc'       => "Compte client 411 " . $section['nom'] . " " . $data['mnom'] . " " . $data['mprenom'],
+                    'codec'      => 411,
+                    'actif'      => 1,
+                    'debit'      => 0.0,
+                    'credit'     => 0.0,
+                    'club'       => $section_id,
+                    'saisie_par' => $this->dx_auth->get_username()
+                );
+                $this->load->model('comptes_model');
+                if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $section_id)) {
                     $this->comptes_model->create($cpt);
+                }
+
+                // Et un second sur le compte général
+                $section_general = $this->config->item('section_general');
+                if ($section_general) {
+                    $cpt['club'] = $section_general;
+                    $cpt['desc'] = "Compte client 411 général " . $data['mnom'] . " " . $data['mprenom'];
+                    if (!$this->comptes_model->get_by_pilote_codec($cpt['pilote'], $cpt['codec'], $cpt['club'])) {
+                        $this->comptes_model->create($cpt);
+                    }
                 }
             }
         }
 
-        // Creation de l'utilisateur
-        if (! $this->dx_auth->is_username_available($data['mlogin'])) {
-            // echo "l'utilisateur " . $data['mlogin'] . " existe déjà" . br();
+        // Création du compte utilisateur DX_Auth (si pas encore existant)
+        if ($this->dx_auth->is_username_available($mlogin)) {
+            if (!$this->dx_auth->register($mlogin, $mlogin, $data['memail'])) {
+                gvv_error("Erreur sur la création de l'utilisateur $mlogin");
+            }
+        }
+
+        // Récupération de l'ID utilisateur
+        $user_row = $this->db->select('id')->from('users')->where('username', $mlogin)->get()->row();
+        if (!$user_row) {
             return;
         }
-        if (! $user = $this->dx_auth->register($data['mlogin'], $data['mlogin'], $data['memail'])) {
-            gvv_error("Erreur sur la création de l'utilisateur");
+        $user_id          = $user_row->id;
+        $current_user_id  = $this->dx_auth->get_user_id();
+        $current_username = $this->dx_auth->get_username();
+
+        // Attribution du rôle 'user' dans la section active
+        if ($section_id) {
+            $role_row = $this->db->select('id')->from('types_roles')
+                ->where('nom', 'user')->where('scope', 'section')->get()->row();
+            if ($role_row) {
+                $this->load->model('authorization_model');
+                $this->load->library('Gvv_Authorization');
+                $this->gvv_authorization->grant_role($user_id, $role_row->id, $section_id, $current_user_id, NULL);
+                log_message('info', "membre/post_create: $current_username a attribué le rôle 'user' à $mlogin (section {$section['nom']})");
+            } else {
+                log_message('error', "membre/post_create: rôle 'user' introuvable dans types_roles");
+            }
         }
+
+        redirect('gestion_roles/index/' . $user_id);
     }
 
     /**

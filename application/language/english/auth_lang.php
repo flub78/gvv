@@ -65,3 +65,8 @@ $lang['gvv_error_confirm_password'] = "Incorrect password confirmation";
 $lang['gvv_error_duplicate_user'] = "The user already exists";
 
 $lang['legacy_gui'] = "Legacy graphical interface.";
+
+$lang['auth_request_too_soon']  = "Please wait %d second(s) before making a new request.";
+$lang['auth_email_already_sent'] = "A reset email has already been sent. You can resend it below.";
+$lang['auth_resend_email']      = "Resend email";
+$lang['auth_request_ready']     = "You can now submit a new request.";

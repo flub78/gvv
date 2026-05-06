@@ -141,6 +141,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                     <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
                     <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("email_lists_menu") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("gestion_roles") ?>"><i class="fas fa-users-cog text-warning"></i> <?= translation("gvv_menu_gestion_roles") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>
@@ -199,10 +200,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                     <li><a class="dropdown-item" href="<?= controller_url("admin/restore") ?>"><i class="fas fa-undo text-warning"></i> <?= translation("gvv_admin_menu_restore") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("migration") ?>"><i class="fas fa-exchange-alt text-info"></i> <?= translation("gvv_admin_menu_migrate") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("backend/users") ?>"><i class="fas fa-users text-primary"></i> <?= translation("gvv_admin_menu_users") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("backend/roles") ?>"><i class="fas fa-user-tag text-info"></i> <?= translation("gvv_admin_menu_roles") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("backend/uri_permissions") ?>"><i class="fas fa-lock text-danger"></i> <?= translation("gvv_admin_menu_permissions") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url('sections') ?>"><i class="fas fa-layer-group text-success"></i> <?= translation("gvv_sections_title") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url('user_roles_per_section') ?>"><i class="fas fa-user-cog text-warning"></i> <?= translation("gvv_users_roles_per_sections_title") ?></a></li>
                     <?php endif; ?>
                   </ul>
                 </li>
