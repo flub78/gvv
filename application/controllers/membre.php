@@ -136,6 +136,7 @@ class Membre extends Gvv_Controller {
      *            message message à afficher
      */
     function page($premier = 0, $message = '', $selection = array()) {
+        $this->push_return_url("membre page");
         $this->data['action'] = VISUALISATION;
         $this->load_filter($this->filter_variables);
 
