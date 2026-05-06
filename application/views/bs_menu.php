@@ -516,24 +516,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
             }
           </script>
 
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle  text-white" href="#" role="button" data-bs-toggle="dropdown">
-              <i class="fa-solid fa-user fa-2xl" dusk="user_icon"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="<?= controller_url("membre/ma_fiche") ?>"><i class="fas fa-id-card text-primary"></i> <?= translation("gvv_menu_ma_fiche") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
-              <?php if ($this->config->item('gestion_tickets')) : ?>
-                <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>
-              <?php endif; ?>
-              <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("gvv_menu_validities") ?></a></li>
-
-              <?php if ($this->config->item('gestion_documentaire')) : ?>
-              <li><a class="dropdown-item" href="<?= controller_url("archived_documents/my_documents") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_my_documents") ?></a></li>
-              <?php endif; ?>
-              <li><a class="dropdown-item" href="<?= controller_url("auth/logout") ?>"><i class="fas fa-sign-out-alt text-danger"></i> <?= translation("gvv_button_exit") ?></a></li>
-            </ul>
-          </li>
+          <a class="btn btn-outline-light btn-sm ms-2" href="<?= controller_url("auth/logout") ?>">
+            <i class="fas fa-sign-out-alt"></i> <?= translation("gvv_button_exit") ?>
+          </a>
 
         </form>
       <?php endif; ?>

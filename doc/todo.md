@@ -8,8 +8,6 @@
 
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 
-* []qui a le droit de modifier des droits. Ca ne sert à rien qu'on ait un système de droit sophistiqués si les gens qui gèrent les droits peuvent se donner tous les droits... Ou donner à leurs copains plus de droits qu'ils n'en ont eux-mêmes. un membre du CA qui veut ajouter ou supprimer un pilote VD, c'est OK.
-
 
 ## Reste à faire
 
@@ -27,8 +25,6 @@
 
 * [] Facture automatique de hangar
      
-* [] gestion des droits multi sections (wip)
-  * [] quelques colonnes inutiles à supprimer
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 

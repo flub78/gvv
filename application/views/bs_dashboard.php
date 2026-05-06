@@ -259,6 +259,17 @@ $this->lang->load('tableaux_de_bord');
                 </div>
                 <?php endif; ?>
 
+                <?php if ($this->config->item('gestion_documentaire')): ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-archive text-info"></i>
+                        <div class="card-title"><?= translation('archived_documents_my_documents') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_documents') ?></div>
+                        <a href="<?= controller_url('archived_documents/my_documents') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-id-badge text-success"></i>
@@ -1103,10 +1114,10 @@ $this->lang->load('tableaux_de_bord');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-users-cog text-warning"></i>
+                        <i class="fas fa-users-cog text-danger"></i>
                         <div class="card-title"><?= $this->lang->line('gvv_gestion_roles_title') ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
-                        <a href="<?= controller_url('gestion_roles') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                        <a href="<?= controller_url('gestion_roles') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
                     </div>
                 </div>
 
