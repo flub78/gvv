@@ -686,6 +686,24 @@ class Membres_model extends Common_Model {
     public function get_selector_instructeurs($section_id = 0, $only_actif = true) {
         return $this->inst_selector($section_id, $only_actif);
     }
+
+    /**
+     * Create a member and auto-assign member number when not provided.
+     *
+     * The requested business rule is: mnumero = current member count + 1.
+     *
+     * @param array $data Member data
+     * @return mixed Insert id or primary key fallback from Common_Model::create
+     */
+    public function create($data) {
+        if (!isset($data['mnumero']) || $data['mnumero'] === '' || $data['mnumero'] === NULL) {
+            $row = $this->db->select('COUNT(*) AS cnt')->from($this->table)->get()->row_array();
+            $count = isset($row['cnt']) ? (int)$row['cnt'] : 0;
+            $data['mnumero'] = $count + 1;
+        }
+
+        return parent::create($data);
+    }
 }
 
 /* End of file membres_model.php */
