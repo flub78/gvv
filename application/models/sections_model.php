@@ -231,6 +231,14 @@ class Sections_model extends Common_Model {
         return parent::safe_count_all($table);;
     }
 
+    public function count_real() {
+        return $this->db->where('id !=', 0)->count_all_results('sections');
+    }
+
+    public function get_unique_section() {
+        return $this->db->where('id !=', 0)->limit(1)->get('sections')->row_array();
+    }
+
 }
 
 /* End of file */

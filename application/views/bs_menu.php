@@ -39,6 +39,19 @@ $CI = &get_instance();
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
 $current_section_id = (int) $CI->session->userdata('section');
+
+// Nombre réel de sections dans la table (hors section interne id=0)
+$total_real_sections = $CI->sections_model->count_real();
+
+// Quand il n'y a qu'une seule section, synchroniser automatiquement la session
+if ($total_real_sections == 1) {
+    $unique_section = $CI->sections_model->get_unique_section();
+    if ($unique_section && $current_section_id != (int) $unique_section['id']) {
+        $CI->session->set_userdata('section', $unique_section['id']);
+        $current_section_id = (int) $unique_section['id'];
+    }
+}
+
 $public_vd_url = site_url('vols_decouverte/public_vd?section=' . $current_section_id);
 // Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
 $uses_new_auth = $CI->session->userdata('use_new_auth')
@@ -47,10 +60,8 @@ $selector_functional = $uses_new_auth || $CI->dx_auth->is_admin();
 if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
     $user_id = $CI->dx_auth->get_user_id();
     $section_selector = $CI->sections_model->selector_for_user($user_id);
-    $section_count = count($section_selector);
 } else {
     $section_selector = $CI->sections_model->selector_with_all();
-    $section_count = $CI->sections_model->safe_count_all();
 }
 
 ?>
@@ -364,7 +375,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
           </li>
         <?php endif; ?>
 
-        <?php if (has_role('tresorier') && ($section || ($section_count < 2))) : ?>
+        <?php if (has_role('tresorier') && ($section || ($total_real_sections < 2))) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_entries") ?></a>
             <ul class="dropdown-menu">
@@ -402,7 +413,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
               <li><a class="dropdown-item" href="<?= controller_url("compta/mise_a_disposition_emprunt") ?>"><i class="fas fa-university text-success"></i> <?= translation("gvv_menu_entries_wire_loan_disbursement") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/amortissement") ?>"><i class="fas fa-tools text-secondary"></i> <?= translation("gvv_menu_entries_depreciation") ?></a></li>
 
-              <?php if ($section_count > 1) : ?>
+              <?php if ($total_real_sections > 1) : ?>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
@@ -488,7 +499,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
             </div>
             <?php endif; ?>
 
-            <?php if ($section_count > 1) : ?>
+            <?php if ($total_real_sections > 1) : ?>
               <div>
                 <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="' . ($selector_functional ? 'updateSection(this.value)' : 'warnSectionNotFunctional(this)') . '"') ?>
               </div>
