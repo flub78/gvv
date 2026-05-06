@@ -195,27 +195,31 @@ if ($section) {
                             <?= $this->lang->line("gvv_compta_label_description") . ": " ?>
                             <input type="text" name="desc" value="<?= $desc ?>" size="80" readonly="readonly" />
                         </div>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex flex-row align-items-center">
-                                <div style="width:220px"><?= $this->lang->line("gvv_compta_label_balance_before") . "  $date_deb" ?></div>
-                                <div class="me-3">
-                                    <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
-                                    <input type="text" name="previous_debit" value="<?= $solde_deb ?>" readonly="readonly" />
-                                </div>
-                                <div>
-                                    <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
-                                    <input type="text" name="previous_credit" value="<?= $solde_cred ?>" readonly="readonly" />
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div class="flex-shrink-0" style="min-width:220px"><?= $this->lang->line("gvv_compta_label_balance_before") . "  $date_deb" ?></div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div>
+                                        <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
+                                        <input type="text" name="previous_debit" value="<?= $solde_deb ?>" readonly="readonly" />
+                                    </div>
+                                    <div>
+                                        <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
+                                        <input type="text" name="previous_credit" value="<?= $solde_cred ?>" readonly="readonly" />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="d-flex flex-row align-items-center">
-                                <div style="width:220px"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin" ?></div>
-                                <div class="me-3">
-                                    <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
-                                    <input type="text" name="current_debit" value="<?= $solde_fin < 0 ? euro(abs($solde_fin)) : '' ?>" readonly="readonly" />
-                                </div>
-                                <div>
-                                    <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
-                                    <input type="text" name="current_credit" value="<?= $solde_fin >= 0 ? euro($solde_fin) : '' ?>" readonly="readonly" />
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div class="flex-shrink-0" style="min-width:220px"><?= $this->lang->line("gvv_compta_label_balance_at") . "  $date_fin" ?></div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div>
+                                        <?= $this->lang->line("gvv_compta_label_debitor") . ": " ?>
+                                        <input type="text" name="current_debit" value="<?= $solde_fin < 0 ? euro(abs($solde_fin)) : '' ?>" readonly="readonly" />
+                                    </div>
+                                    <div>
+                                        <?= $this->lang->line("gvv_compta_label_creditor") . ": " ?>
+                                        <input type="text" name="current_credit" value="<?= $solde_fin >= 0 ? euro($solde_fin) : '' ?>" readonly="readonly" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
