@@ -104,4 +104,27 @@ class CartesMembreMigrationTest extends TestCase
         // Restore for subsequent tests
         $migration->up();
     }
+
+    public static function tearDownAfterClass(): void
+    {
+        $CI =& get_instance();
+        $db = $CI->db;
+
+        // Re-apply migration 108 changes destroyed by migration 105 down/up cycle
+        $query = $db->query(
+            "SELECT EXTRA FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'membres' AND COLUMN_NAME = 'mnumero'"
+        );
+        $row = $query ? $query->row_array() : null;
+        if (!$row || strpos(strtolower((string)$row['EXTRA']), 'auto_increment') === false) {
+            if (!class_exists('CI_Migration')) {
+                require_once BASEPATH . 'libraries/Migration.php';
+            }
+            if (!class_exists('Migration_Mnumero_autoincrement')) {
+                require_once APPPATH . 'migrations/108_mnumero_autoincrement.php';
+            }
+            $migration108 = new Migration_Mnumero_autoincrement();
+            $migration108->up();
+        }
+    }
 }

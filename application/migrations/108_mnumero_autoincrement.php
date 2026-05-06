@@ -22,16 +22,14 @@ class Migration_Mnumero_autoincrement extends CI_Migration {
 
     public function up() {
         // 1. Affecter des numéros séquentiels aux membres sans mnumero
-        $this->db->query(
-            "UPDATE membres m
-            JOIN (
-                SELECT mlogin, (@row_num := @row_num + 1) + (SELECT COALESCE(MAX(mnumero), 0) FROM membres) AS new_num
-                FROM membres, (SELECT @row_num := 0) AS initialization
-                WHERE mnumero IS NULL
-                ORDER BY mlogin
-            ) AS seq ON m.mlogin = seq.mlogin
-            SET m.mnumero = seq.new_num"
-        );
+        $res = $this->db->query("SELECT COALESCE(MAX(mnumero), 0) AS max_num FROM membres");
+        $offset = (int)$res->row()->max_num;
+        $members = $this->db->query("SELECT mlogin FROM membres WHERE mnumero IS NULL ORDER BY mlogin")->result_array();
+        foreach ($members as $i => $member) {
+            $new_num = $offset + $i + 1;
+            $login = $this->db->escape($member['mlogin']);
+            $this->db->query("UPDATE membres SET mnumero = $new_num WHERE mlogin = $login");
+        }
 
         // 2. Ajouter clé UNIQUE sur mnumero (pré-requis pour AUTO_INCREMENT)
         // Vérifier que la clé n'existe pas déjà
