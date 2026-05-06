@@ -59,20 +59,17 @@ Cordialement,
 L'équipe %s
 ";
 
-$lang['auth_forgot_password_content'] = "%s,
+$lang['auth_forgot_password_content'] = "Vous avez demandé la réinitialisation de votre mot de passe.
 
-Vous avez demandé à changer votre mot de passe.
-Cliquez sur le lien suivant pour compléter le changement: 
+Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :
 %s
 
-Votre nouveau mot de passe: %s
-Votre clé d'activation: %s
+Ce lien est valable %d minutes. Passé ce délai, vous devrez refaire une demande.
 
-Une fois la procédure terminée, vous pourrez changer ce mot de passe pour un autre.
 En cas de problème, contactez %s.
 
 Cordialement,
-L'équipe %s
+L'équipe du site
 ";
 
 /* End of file dx_auth_lang.php */

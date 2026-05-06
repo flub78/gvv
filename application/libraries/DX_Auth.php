@@ -958,17 +958,11 @@ class DX_Auth {
 
                 // Check if there is already new password created but waiting to be activated for this login
                 if (! $row->newpass_key) {
-                    // Appearantly there is no password created yet for this login, so we create new password
-                    $data ['password'] = $this->_gen_pass();
-
-                    // Encode & Crypt password
-                    $encode = crypt($this->_encode($data ['password']));
-
                     // Create key
                     $data ['key'] = md5(rand() . microtime());
 
-                    // Create new password (but it haven't activated yet)
-                    $this->ci->users->newpass($row->id, $encode, $data ['key']);
+                    // Store key without pre-generated password (user will choose their own)
+                    $this->ci->users->newpass($row->id, NULL, $data ['key']);
 
                     // Create reset password link to be included in email
                     $data ['reset_password_uri'] = site_url($this->ci->config->item('DX_reset_password_uri') . "{$row->username}/{$data['key']}");
@@ -997,8 +991,31 @@ class DX_Auth {
 
         return $result;
     }
+    function validate_reset_key($username, $key) {
+        $this->ci->load->model('dx_auth/users', 'users');
+        if (empty($username) || empty($key)) return FALSE;
+        if ($query = $this->ci->users->get_user_by_username($username) and $query->num_rows() == 1) {
+            return $this->ci->users->check_reset_key($query->row()->id, $key);
+        }
+        return FALSE;
+    }
+
+    function apply_reset_password($username, $key, $new_password) {
+        $this->ci->load->model('dx_auth/users', 'users');
+        $this->ci->load->model('dx_auth/user_autologin', 'user_autologin');
+        if ($query = $this->ci->users->get_user_by_username($username) and $query->num_rows() == 1) {
+            $user_id = $query->row()->id;
+            $encoded = crypt($this->_encode($new_password));
+            if ($this->ci->users->set_password_with_key($user_id, $key, $encoded)) {
+                $this->ci->user_autologin->clear_keys($user_id);
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
+
     function reset_password($username, $key = '') {
-        // Load Models
+        // Kept for backward compatibility — use validate_reset_key + apply_reset_password instead
         $this->ci->load->model('dx_auth/users', 'users');
         $this->ci->load->model('dx_auth/user_autologin', 'user_autologin');
 

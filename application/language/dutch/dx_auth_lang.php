@@ -54,20 +54,18 @@ Password: %s
 Groeten,
 Het %s Team";
 
-$lang['auth_forgot_password_content'] = "%s,
+$lang['auth_forgot_password_content'] = "U heeft een aanvraag voor een wachtwoordreset ingediend.
 
-U heeft een aanvraag voor een nieuw paswoord gedaan.
-Gelieve volgende link te volgen om dit te bevestigen:
+Klik op de onderstaande link om een nieuw wachtwoord te kiezen:
 %s
 
-Nieuw paswoord: %s
-Activatiesleutel: %s
+Deze link is geldig voor %d minuten. Daarna moet u een nieuwe aanvraag indienen.
 
-Nadat u de procedure hebt doorlopen kan u opnieuw inloggen met bovenstaand paswoord.
-In geval van problemen contacteer:  %s.
+Bij problemen kunt u contact opnemen met %s.
 
-Groeten,
-Het %s Team";
+Met vriendelijke groeten,
+Het siteteam
+";
 
 /* End of file dx_auth_lang.php */
 /* Location: ./application/language/english/dx_auth_lang.php */

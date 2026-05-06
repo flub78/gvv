@@ -28,7 +28,7 @@ class Auth extends CI_Controller {
     // Used for registering and changing password form validation
     var $min_username = 4;
     var $max_username = 20;
-    var $min_password = 4;
+    var $min_password = 8;
     var $max_password = 20;
 
     function __construct() {
@@ -384,17 +384,33 @@ class Auth extends CI_Controller {
         }
     }
     function reset_password() {
-        // Get username and key
         $username = $this->uri->segment(3);
         $key = $this->uri->segment(4);
 
-        // Reset password
-        if ($this->dx_auth->reset_password($username, $key)) {
-            $data['auth_message'] = $this->lang->line("auth_reinit_password") . anchor(site_url($this->dx_auth->login_uri), 'Login');
-            load_last_view($this->dx_auth->reset_password_success_view, $data);
+        if ($this->input->post('submit_new_password')) {
+            // Form submitted — validate and apply the new password
+            $val = $this->form_validation;
+            $val->set_rules('new_password', 'lang:auth_new_password', 'trim|required|xss_clean|min_length[' . $this->min_password . ']|max_length[' . $this->max_password . ']|matches[confirm_new_password]');
+            $val->set_rules('confirm_new_password', 'lang:auth_confirm_password', 'trim|required|xss_clean');
+
+            if ($val->run() && $this->dx_auth->apply_reset_password($username, $key, $this->input->post('new_password'))) {
+                $data['auth_message'] = $this->lang->line("auth_reinit_password") . anchor(site_url($this->dx_auth->login_uri), $this->lang->line('auth_sign_in'));
+                load_last_view($this->dx_auth->reset_password_success_view, $data);
+            } else {
+                $data['username'] = $username;
+                $data['key'] = $key;
+                load_last_view('auth/bs_reset_password_form', $data);
+            }
         } else {
-            $data['auth_message'] = $this->lang->line("auth_reinit_password_failed");
-            load_last_view($this->dx_auth->reset_password_failed_view, $data);
+            // GET — validate key then show form
+            if ($this->dx_auth->validate_reset_key($username, $key)) {
+                $data['username'] = $username;
+                $data['key'] = $key;
+                load_last_view('auth/bs_reset_password_form', $data);
+            } else {
+                $data['auth_message'] = $this->lang->line("auth_reinit_password_failed");
+                load_last_view($this->dx_auth->reset_password_failed_view, $data);
+            }
         }
     }
 

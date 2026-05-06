@@ -86,8 +86,12 @@ class DX_Auth_Event {
     // $content is email content, passed by reference	
     // You can customize email content here
     function sending_forgot_password_email($data, & $content) {
-        // Create content
-        $content = sprintf($this->ci->lang->line('auth_forgot_password_content'), $this->ci->config->item('DX_website_name'), $data['reset_password_uri'], $data['password'], $data['key'], $this->ci->config->item('DX_webmaster_email'), $this->ci->config->item('DX_website_name'));
+        $content = sprintf(
+            $this->ci->lang->line('auth_forgot_password_content'),
+            $data['reset_password_uri'],
+            $this->ci->config->item('DX_forgot_password_expire') / 60,
+            $this->ci->config->item('DX_webmaster_email')
+        );
     }
 }
 ?>

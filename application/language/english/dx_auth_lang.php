@@ -57,21 +57,18 @@ We hope that you enjoy your stay with us :)
 Regards,
 The %s Team";
 
-$lang['auth_forgot_password_content'] = "%s,
+$lang['auth_forgot_password_content'] = "You have requested a password reset.
 
-You have requested your password to be changed, because you forgot the password.
-Please follow this link in order to complete change password process:
+Click the link below to choose a new password:
 %s
 
-Your New Password: %s
-Key for Activation: %s
+This link is valid for %d minutes. After that, you will need to make a new request.
 
-After you successfully complete the process, you can change this new password into password that you want.
-
-If you have any more problems with gaining access to your account please contact %s.
+If you have any problems, please contact %s.
 
 Regards,
-The %s Team";
+The site team
+";
 
 /* End of file dx_auth_lang.php */
 /* Location: ./application/language/english/dx_auth_lang.php */

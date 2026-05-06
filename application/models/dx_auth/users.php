@@ -249,6 +249,27 @@ class Users extends Common_Model {
         return $this->db->update($this->_table);
     }
 
+    function check_reset_key($user_id, $key) {
+        $query = $this->db->select('id')
+            ->from($this->_table)
+            ->where('id', $user_id)
+            ->where('newpass_key', $key)
+            ->where('newpass_time >', date('Y-m-d H:i:s'))
+            ->get();
+        return $query->num_rows() > 0;
+    }
+
+    function set_password_with_key($user_id, $key, $password) {
+        $this->db->set('password', $password)
+            ->set('newpass', NULL)
+            ->set('newpass_key', NULL)
+            ->set('newpass_time', NULL)
+            ->where('id', $user_id)
+            ->where('newpass_key', $key)
+            ->update($this->_table);
+        return $this->db->affected_rows() > 0;
+    }
+
     function clear_newpass($user_id) {
         $data = array(
             'newpass' => NULL,
