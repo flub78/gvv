@@ -123,6 +123,9 @@ class Gestion_roles extends CI_Controller {
                 foreach ($sections as $section) {
                     if ($action === 'grant') {
                         $this->gvv_authorization->grant_role($user_id, $role_id, $section['id'], $current_user_id, NULL);
+                        if ($role['nom'] === 'user') {
+                            $this->_ensure_compte_client($target_username, $section['id'], $section['nom']);
+                        }
                         log_message('info', "gestion_roles: $current_username a attribué le rôle '{$role['nom']}' à $target_username (section {$section['nom']})");
                     } else {
                         $this->gvv_authorization->revoke_role($user_id, $role_id, $section['id'], $current_user_id);
@@ -137,6 +140,9 @@ class Gestion_roles extends CI_Controller {
                 if ($action === 'grant') {
                     $result = $this->gvv_authorization->grant_role($user_id, $role_id, $section_id, $current_user_id, NULL);
                     if ($result === 'EXISTS') $result = TRUE;
+                    if ($role['nom'] === 'user') {
+                        $this->_ensure_compte_client($target_username, $section_id, $section_nom);
+                    }
                     log_message('info', "gestion_roles: $current_username a attribué le rôle '{$role['nom']}' à $target_username (section $section_nom)");
                 } else {
                     $result = $this->gvv_authorization->revoke_role($user_id, $role_id, $section_id, $current_user_id);
@@ -156,5 +162,33 @@ class Gestion_roles extends CI_Controller {
         }));
 
         echo json_encode(array('success' => (bool)$result, 'roles' => $roles));
+    }
+
+    private function _ensure_compte_client($target_username, $section_id, $section_nom) {
+        $membre = $this->db->select('mnom, mprenom')
+            ->from('membres')
+            ->where('mlogin', $target_username)
+            ->get()->row_array();
+        if (!$membre) {
+            log_message('error', "gestion_roles/_ensure_compte_client: membre $target_username introuvable");
+            return;
+        }
+        $this->load->model('comptes_model');
+        $nom_complet = trim($membre['mnom'] . ' ' . $membre['mprenom']);
+        if (!$this->comptes_model->get_by_pilote_codec($target_username, 411, $section_id)) {
+            $cpt = array(
+                'nom'        => $nom_complet,
+                'pilote'     => $target_username,
+                'desc'       => "Compte client 411 $section_nom $nom_complet",
+                'codec'      => 411,
+                'actif'      => 1,
+                'debit'      => 0.0,
+                'credit'     => 0.0,
+                'club'       => $section_id,
+                'saisie_par' => $this->dx_auth->get_username()
+            );
+            $this->comptes_model->create($cpt);
+            log_message('info', "gestion_roles: compte 411 créé pour $target_username dans la section $section_nom");
+        }
     }
 }
