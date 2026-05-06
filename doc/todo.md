@@ -65,7 +65,7 @@
 
 * [] Configuration de la facturation
 
-* [] Automatiser le déploiement pour héberger des clubs multiple dans des sou-domaines.
+* [] Automatiser le déploiement pour héberger des clubs multiple dans des sous-domaines.
 
 ## Dette technique
 
