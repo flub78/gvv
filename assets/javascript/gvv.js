@@ -454,3 +454,15 @@ function goto(pilote) {
     }
 }
 
+
+function togglePassword(inputId, btn) {
+    var inp = document.getElementById(inputId);
+    var icon = btn.querySelector('i');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        inp.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}

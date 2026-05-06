@@ -20,13 +20,19 @@ $this->lang->load('auth');
 
 <div class="mb-3">
     <label class="form-label" for="new_password"><?php echo $this->lang->line('auth_new_password'); ?></label>
-    <?php echo form_password(['name' => 'new_password', 'id' => 'new_password', 'class' => 'form-control', 'value' => '']); ?>
+    <div class="input-group">
+        <?php echo form_password(['name' => 'new_password', 'id' => 'new_password', 'class' => 'form-control', 'value' => '']); ?>
+        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+    </div>
     <?php echo form_error('new_password', '<div class="text-danger">', '</div>'); ?>
 </div>
 
 <div class="mb-3">
     <label class="form-label" for="confirm_new_password"><?php echo $this->lang->line('auth_confirm_password'); ?></label>
-    <?php echo form_password(['name' => 'confirm_new_password', 'id' => 'confirm_new_password', 'class' => 'form-control', 'value' => '']); ?>
+    <div class="input-group">
+        <?php echo form_password(['name' => 'confirm_new_password', 'id' => 'confirm_new_password', 'class' => 'form-control', 'value' => '']); ?>
+        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_new_password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+    </div>
     <?php echo form_error('confirm_new_password', '<div class="text-danger">', '</div>'); ?>
 </div>
 

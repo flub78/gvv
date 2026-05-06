@@ -74,7 +74,10 @@ if ($locked) {
 
 	<dt><?php echo form_label($this->lang->line("auth_password"), $password['id']); ?></dt>
 	<dd>
-		<?php echo form_password($password) ?>
+		<div class="input-group" style="width:fit-content;">
+			<?php echo form_password($password) ?>
+			<button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassword('password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+		</div>
 		<?php echo form_error($password['name']); ?>
 	</dd>
 

@@ -44,19 +44,28 @@ if ($duplicate) {
 <dl>
 	<dt><?php echo form_label($this->lang->line("auth_previous_password"), $old_password['id']); ?></dt>
 	<dd>
-		<?php echo form_password($old_password); ?>
+		<div class="input-group" style="width:fit-content;">
+			<?php echo form_password($old_password); ?>
+			<button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassword('old_password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+		</div>
 		<?php echo form_error($old_password['name']); ?>
 	</dd>
 
 	<dt><?php echo form_label($this->lang->line("auth_new_password"), $new_password['id']); ?></dt>
 	<dd>
-		<?php echo form_password($new_password); ?>
+		<div class="input-group" style="width:fit-content;">
+			<?php echo form_password($new_password); ?>
+			<button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassword('new_password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+		</div>
 		<?php echo form_error($new_password['name']); ?>
 	</dd>
 
 	<dt><?php echo form_label($this->lang->line("auth_confirm_password"), $confirm_new_password['id']); ?></dt>
 	<dd>
-		<?php echo form_password($confirm_new_password); ?>
+		<div class="input-group" style="width:fit-content;">
+			<?php echo form_password($confirm_new_password); ?>
+			<button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassword('confirm_new_password', this)" tabindex="-1"><i class="fas fa-eye"></i></button>
+		</div>
 		<?php echo form_error($confirm_new_password['name']); ?>
 	</dd>
 
