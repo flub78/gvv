@@ -46,6 +46,14 @@
             </select>
         </div>
         <div class="col-6 col-md-2">
+            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_type') ?></label>
+            <select name="type" class="form-select form-select-sm">
+                <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
+                <option value="paiement_generique" <?= $filters['type'] === 'paiement_generique' ? 'selected' : '' ?>>
+                    <?= $this->lang->line('gvv_liste_type_paiement_generique') ?></option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
             <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_section') ?></label>
             <select name="club" class="form-select form-select-sm">
                 <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
@@ -55,7 +63,7 @@
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-6 col-md-2 d-flex gap-1">
+        <div class="col-12 col-md-2 d-flex gap-1 align-items-end">
             <button type="submit" class="btn btn-primary btn-sm"><?= $this->lang->line('gvv_liste_filter_apply') ?></button>
             <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-outline-secondary btn-sm"><?= $this->lang->line('gvv_liste_filter_reset') ?></a>
         </div>
@@ -110,9 +118,13 @@ foreach ($sections as $s) {
 <div class="table-responsive">
 <table class="table table-sm table-hover table-bordered">
     <thead class="table-dark">
+        <?php $show_description = !empty($filters['type']); ?>
         <tr>
             <th><?= $this->lang->line('gvv_pel_col_date') ?></th>
             <th><?= $this->lang->line('gvv_liste_col_pilote') ?></th>
+            <?php if ($show_description): ?>
+            <th><?= $this->lang->line('gvv_liste_col_description') ?></th>
+            <?php endif; ?>
             <th class="text-end"><?= $this->lang->line('gvv_pel_col_montant') ?></th>
             <th class="text-end"><?= $this->lang->line('gvv_liste_col_commission') ?></th>
             <th><?= $this->lang->line('gvv_pel_col_plateforme') ?></th>
@@ -144,9 +156,16 @@ foreach ($sections as $s) {
         $cls  = isset($badge_class[$tx['statut']]) ? $badge_class[$tx['statut']] : 'bg-secondary';
         $lbl  = isset($statut_key[$tx['statut']])  ? $this->lang->line($statut_key[$tx['statut']]) : $tx['statut'];
         ?>
+        <?php
+        $meta_row = !empty($tx['metadata']) ? json_decode($tx['metadata'], true) : array();
+        $description_row = isset($meta_row['description']) ? $meta_row['description'] : '';
+        ?>
         <tr>
             <td class="text-nowrap"><?= htmlspecialchars($tx['date_demande']) ?></td>
             <td><?= htmlspecialchars($pilot) ?></td>
+            <?php if ($show_description): ?>
+            <td><?= htmlspecialchars($description_row) ?></td>
+            <?php endif; ?>
             <td class="text-end text-nowrap"><?= euros((float)$tx['montant']) ?></td>
             <td class="text-end text-nowrap"><?= euros((float)$tx['commission']) ?></td>
             <td><?= htmlspecialchars($tx['plateforme']) ?></td>

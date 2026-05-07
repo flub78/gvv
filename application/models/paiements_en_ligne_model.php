@@ -276,6 +276,9 @@ class Paiements_en_ligne_model extends CI_Model {
         if (!empty($filters['plateforme'])) {
             $this->db->where('p.plateforme', $filters['plateforme']);
         }
+        if (!empty($filters['type'])) {
+            $this->db->where("JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.type'))", $filters['type']);
+        }
         if (!empty($filters['date_from'])) {
             $this->db->where('p.date_demande >=', $filters['date_from']);
         }
@@ -748,6 +751,10 @@ class Paiements_en_ligne_model extends CI_Model {
                 return $this->_ecriture_decouverte(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
+            case 'paiement_generique':
+                return $this->_ecriture_paiement_generique(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
             default:
                 return array('ok' => false, 'error' => 'Type de paiement inconnu : ' . $type);
         }
@@ -844,6 +851,32 @@ class Paiements_en_ligne_model extends CI_Model {
         );
         if ($id === false) {
             return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture decouverte');
+        }
+        return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /** paiement_generique : débit 467, crédit compte destination — libellé = description saisie */
+    private function _ecriture_paiement_generique($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+
+        if (empty($meta['compte_destination_id'])) {
+            return array('ok' => false, 'error' => 'compte_destination_id absent des metadata pour type=paiement_generique');
+        }
+        $CI    = get_instance();
+        $cdest = $CI->comptes_model->get_by_id('id', (int) $meta['compte_destination_id']);
+        if (!$cdest) {
+            return array('ok' => false, 'error' => 'Compte destination introuvable id=' . $meta['compte_destination_id']);
+        }
+
+        $id = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cdest['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id === false) {
+            return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture paiement_generique');
         }
         return array('ok' => true, 'ecriture_id' => $id);
     }

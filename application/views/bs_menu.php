@@ -189,6 +189,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
 
                     <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/liste") ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_liste_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/genere_bar_qrcode") ?>"><i class="fas fa-qrcode text-primary"></i> <?= translation("gvv_bar_qrcode_menu") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/paiement_generique") ?>"><i class="fas fa-qrcode text-warning"></i> <?= translation("gvv_paiement_generique_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-chart-line text-success"></i> <?= translation("welcome_global_financial_report") ?></a></li>
                     <?php if ($this->config->item('gestion_tickets')) : ?>
                       <li><a class="dropdown-item" href="<?= controller_url("tickets/page") ?>"><i class="fas fa-ticket-alt text-info"></i> <?= translation("gvv_menu_reports_tickets_usage") ?></a></li>

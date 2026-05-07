@@ -1149,6 +1149,291 @@ class Paiements_en_ligne extends MY_Controller {
     }
 
     // =========================================================================
+    // Paiement générique par QR code — trésorier
+    // =========================================================================
+
+    /**
+     * Formulaire de création d'un paiement générique (trésorier).
+     *
+     * GET  : affiche le formulaire (montant, description, compte, email payeur)
+     * POST : valide, crée la transaction pending, redirige vers paiement_generique_checkout
+     *
+     * Accès : trésorier, bureau, admin + HelloAsso activé pour la section
+     */
+    public function paiement_generique() {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $section = $this->_require_active_section();
+        if (!$section) return;
+
+        $club_id = (int) $section['id'];
+
+        $enabled = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $club_id);
+        if ($enabled !== '1') {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_helloasso_off'));
+            redirect('paiements_en_ligne/liste');
+            return;
+        }
+
+        $montant_min = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_min', $club_id) ?: 1);
+        $montant_max = (float) ($this->paiements_en_ligne_model->get_config('helloasso', 'montant_max', $club_id) ?: 500);
+
+        if ($this->input->post('button') === 'valider') {
+            $this->_process_paiement_generique($section, $club_id, $montant_min, $montant_max);
+            return;
+        }
+
+        $data = array(
+            'section'               => $section,
+            'montant'               => '',
+            'description'           => '',
+            'compte_destination_id' => '',
+            'payer_email'           => '',
+            'montant_min'           => $montant_min,
+            'montant_max'           => $montant_max,
+            'compte_selector'       => $this->comptes_model->selector_with_null(array(), TRUE),
+            'error'                 => $this->session->flashdata('error'),
+            'errors'                => array(),
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_paiement_generique_form', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Traite le POST du formulaire paiement générique :
+     * validation, création transaction pending, redirection vers checkout (étape 3).
+     */
+    private function _process_paiement_generique($section, $club_id, $montant_min, $montant_max) {
+        $montant     = (float) str_replace(',', '.', $this->input->post('montant') ?: '0');
+        $description = trim($this->input->post('description') ?: '');
+        $compte_id   = (int) $this->input->post('compte_destination_id');
+        $payer_email = trim($this->input->post('payer_email') ?: '');
+
+        $errors = array();
+
+        $errors_montant = $this->paiements_en_ligne_model->validate_demande_montant($montant, $montant_max, $montant_min);
+        if (!empty($errors_montant)) {
+            $errors[] = sprintf($this->lang->line('gvv_paiement_generique_error_montant'),
+                number_format($montant_min, 2, ',', ' '),
+                number_format($montant_max, 2, ',', ' '));
+        }
+
+        if ($description === '' || strlen($description) > 255) {
+            $errors[] = $this->lang->line('gvv_paiement_generique_error_description');
+        }
+
+        if ($compte_id <= 0) {
+            $errors[] = $this->lang->line('gvv_paiement_generique_error_compte');
+        }
+
+        if ($payer_email !== '' && !filter_var($payer_email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = $this->lang->line('gvv_paiement_generique_error_email');
+        }
+
+        if (!empty($errors)) {
+            $data = array(
+                'section'               => $section,
+                'montant'               => $montant ?: '',
+                'description'           => $description,
+                'compte_destination_id' => $compte_id,
+                'payer_email'           => $payer_email,
+                'montant_min'           => $montant_min,
+                'montant_max'           => $montant_max,
+                'compte_selector'       => $this->comptes_model->selector_with_null(array(), TRUE),
+                'error'                 => '',
+                'errors'                => $errors,
+            );
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('paiements_en_ligne/bs_paiement_generique_form', $data);
+            $this->load->view('bs_footer');
+            return;
+        }
+
+        // Récupérer le libellé du compte pour les métadonnées (affichage QR et listing)
+        $compte = $this->db
+            ->select('codec, nom')
+            ->from('comptes')
+            ->where('id', $compte_id)
+            ->get()->row_array();
+        $compte_nom = $compte ? ($compte['codec'] . ' — ' . $compte['nom']) : '';
+
+        $mlogin  = $this->dx_auth->get_username();
+        $user_id = (int) $this->dx_auth->get_user_id();
+        $txid    = 'gen-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
+
+        $meta = array(
+            'type'                   => 'paiement_generique',
+            'description'            => $description,
+            'compte_destination_id'  => $compte_id,
+            'compte_destination_nom' => $compte_nom,
+            'payer_email'            => $payer_email,
+            'gvv_transaction_id'     => $txid,
+        );
+
+        $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
+            'user_id'        => $user_id,
+            'montant'        => $montant,
+            'plateforme'     => 'helloasso',
+            'club'           => $club_id,
+            'transaction_id' => $txid,
+            'metadata'       => json_encode($meta),
+            'created_by'     => $mlogin,
+        ));
+
+        if (!$tx_id) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_checkout'));
+            redirect('paiements_en_ligne/paiement_generique');
+            return;
+        }
+
+        redirect('paiements_en_ligne/paiement_generique_checkout/' . $txid);
+    }
+
+    /**
+     * Crée le checkout HelloAsso pour un paiement générique et affiche le QR code.
+     *
+     * Si le checkout a déjà été créé (checkout_url présent dans les métadonnées),
+     * affiche directement la page QR sans appeler HelloAsso de nouveau.
+     *
+     * Accès : trésorier, bureau, admin
+     */
+    public function paiement_generique_checkout($txid = '') {
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
+            $this->dx_auth->deny_access();
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+        if (!$tx) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_checkout'));
+            redirect('paiements_en_ligne/paiement_generique');
+            return;
+        }
+
+        $meta    = json_decode($tx['metadata'], true) ?: array();
+        $club_id = (int) $tx['club'];
+
+        if ($tx['statut'] === 'completed') {
+            redirect('paiements_en_ligne/liste');
+            return;
+        }
+
+        // Créer le checkout HelloAsso si pas encore fait
+        if (empty($meta['checkout_url'])) {
+            $description = isset($meta['description']) ? (string) $meta['description'] : '';
+            $payer_email = isset($meta['payer_email'])  ? (string) $meta['payer_email']  : '';
+
+            $checkout = $this->helloasso->create_checkout($club_id, array(
+                'amount'      => (float) $tx['montant'],
+                'item_name'   => $description,
+                'payer_email' => $payer_email,
+                'return_url'  => site_url('paiements_en_ligne/paiement_generique_confirmation/' . $txid),
+                'back_url'    => site_url('paiements_en_ligne/paiement_generique_checkout/' . $txid),
+                'error_url'   => site_url('paiements_en_ligne/paiement_generique_checkout/' . $txid),
+                'metadata'    => $meta,
+            ));
+
+            if (!$checkout['success']) {
+                $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+                $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_checkout'));
+                redirect('paiements_en_ligne/paiement_generique');
+                return;
+            }
+
+            if (!empty($checkout['session_id'])) {
+                $this->paiements_en_ligne_model->attach_checkout_info(
+                    $txid,
+                    $checkout['session_id'],
+                    isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+                );
+            }
+
+            // Recharger les métadonnées avec checkout_url
+            $tx_updated = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+            if ($tx_updated) {
+                $meta = json_decode($tx_updated['metadata'], true) ?: $meta;
+            }
+        }
+
+        $checkout_url = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        $data = array(
+            'transaction'    => $tx,
+            'meta'           => $meta,
+            'transaction_id' => $txid,
+            'checkout_url'   => $checkout_url,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_paiement_generique_qr', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Image QR PNG encodant l'URL HelloAsso d'un paiement générique.
+     * Accès : authentifié (image embarquée dans la page de checkout).
+     */
+    public function paiement_generique_qr_image($txid = '') {
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+        if (!$tx) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        $meta = json_decode($tx['metadata'], true) ?: array();
+        $url  = isset($meta['checkout_url']) ? $meta['checkout_url'] : '';
+
+        if (empty($url)) {
+            $this->output->set_status_header(404);
+            return;
+        }
+
+        include_once(APPPATH . '/third_party/phpqrcode/qrlib.php');
+        header('Content-Type: image/png');
+        QRcode::png($url, false, QR_ECLEVEL_M, 6, 2);
+        exit;
+    }
+
+    /**
+     * Page de confirmation affichée quand HelloAsso redirige après paiement.
+     * L'écriture comptable est créée par le webhook — cette page informe seulement.
+     *
+     * Accès : authentifié
+     */
+    public function paiement_generique_confirmation($txid = '') {
+        if (!$this->dx_auth->is_logged_in()) {
+            redirect('auth/login');
+            return;
+        }
+
+        $tx = $this->paiements_en_ligne_model->get_by_transaction_id($txid);
+        $meta = $tx ? (json_decode($tx['metadata'], true) ?: array()) : array();
+
+        $data = array(
+            'transaction'    => $tx,
+            'meta'           => $meta,
+            'transaction_id' => $txid,
+        );
+
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu', $data);
+        $this->load->view('bs_banner', $data);
+        $this->load->view('paiements_en_ligne/bs_paiement_generique_confirmation', $data);
+        $this->load->view('bs_footer');
+    }
+
+    // =========================================================================
     // EF4 — Liste des paiements pour le trésorier
     // =========================================================================
 
@@ -1171,11 +1456,13 @@ class Paiements_en_ligne extends MY_Controller {
         $date_to    = $this->input->get('date_to')    ?: date('Y-m-d');
         $statut     = $this->input->get('statut')     ?: '';
         $plateforme = $this->input->get('plateforme') ?: '';
+        $type       = $this->input->get('type')       ?: '';
         $club_filter= (int) $this->input->get('club');
 
         $filters = array('date_from' => $date_from, 'date_to' => $date_to);
         if ($statut)      $filters['statut']     = $statut;
         if ($plateforme)  $filters['plateforme'] = $plateforme;
+        if ($type)        $filters['type']       = $type;
         if ($club_filter) $filters['club']       = $club_filter;
 
         $transactions = $this->paiements_en_ligne_model->get_transactions_with_user($filters);
@@ -1201,6 +1488,7 @@ class Paiements_en_ligne extends MY_Controller {
                 'date_to'    => $date_to,
                 'statut'     => $statut,
                 'plateforme' => $plateforme,
+                'type'       => $type,
                 'club'       => $club_filter,
             ),
         );
