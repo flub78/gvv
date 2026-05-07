@@ -954,11 +954,11 @@ class DX_Auth {
             if ($query = $this->ci->users->get_login($login) and $query->num_rows() == 1) {
                 $row = $query->row();
 
-                if (! $row->newpass_key) {
-                    // Aucune demande en cours : créer la clé et envoyer l'email
+                if (! $row->newpass_key || strtotime($row->newpass_time) < time()) {
+                    // Aucune demande en cours, ou clé expirée : générer une nouvelle clé
                     $result = $this->_send_reset_email($row);
                 } else {
-                    // Demande déjà en cours : calculer l'ancienneté
+                    // Clé encore valide : calculer l'ancienneté de la demande
                     $expire      = (int)$this->ci->config->item('DX_forgot_password_expire');
                     $request_ts  = strtotime($row->newpass_time) - $expire;
                     $seconds_ago = time() - $request_ts;

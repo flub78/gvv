@@ -233,7 +233,7 @@ class Users extends Common_Model {
         $data = array(
             'newpass' => $pass,
             'newpass_key' => $key,
-            'newpass_time' => date('Y-m-d h:i:s', time() + $this->config->item('DX_forgot_password_expire'))
+            'newpass_time' => date('Y-m-d H:i:s', time() + $this->config->item('DX_forgot_password_expire'))
         );
         return $this->set_user($user_id, $data);
     }
