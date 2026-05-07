@@ -1629,7 +1629,8 @@ abstract class Metadata {
         $may_be_null = $this->field_attr($table, $field, 'Null');
         $required = "";
 
-        if ($this->autogen_key($table, $field) != $field) {
+        $extra = $this->field_attr($table, $field, 'Extra');
+        if ($this->autogen_key($table, $field) != $field && $extra != 'auto_increment') {
             if ($may_be_null == "NO") {
                 $required = "required|";
             }

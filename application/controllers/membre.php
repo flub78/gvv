@@ -93,6 +93,17 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Hook activé après la mise à jour : synchronise memail → users.email
+     */
+    function post_update($data = array()) {
+        parent::post_update($data);
+        if (!empty($data['memail']) && !empty($data['mlogin'])) {
+            $this->db->where('username', $data['mlogin'])
+                     ->update('users', array('email' => $data['memail']));
+        }
+    }
+
+    /**
      * Hook activé avant la mise à jour
      */
     function pre_update($id, &$data = array()) {
