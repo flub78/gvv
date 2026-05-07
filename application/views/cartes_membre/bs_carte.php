@@ -25,7 +25,7 @@ $this->load->view('bs_banner');
                 <div class="row g-3">
                     <div class="col-md-5">
                         <label class="form-label"><?= $this->lang->line('gvv_cartes_membre_carte_member') ?></label>
-                        <select name="mlogin" id="sel_mlogin" class="form-select" required>
+                        <select name="mlogin" id="sel_mlogin" class="form-select big_select" required>
                             <option value=""><?= $this->lang->line('gvv_cartes_membre_carte_member_select') ?></option>
                             <?php foreach ($membres as $m): ?>
                             <option value="<?= htmlspecialchars($m['mlogin']) ?>">
