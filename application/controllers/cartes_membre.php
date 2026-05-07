@@ -142,10 +142,28 @@ class Cartes_membre extends CI_Controller {
 
         $year = (int)($this->input->get('year') ?: $this->input->post('year') ?: date('Y'));
 
+        // Filtre et option année précédente : POST quand le formulaire est soumis, GET sinon.
+        // Le checkbox n'envoie rien quand décoché, donc on distingue POST vs GET pour
+        // pouvoir lire l'absence du checkbox comme "décoché" dans un contexte POST.
+        $is_post = ($this->input->post('year') !== null || $this->input->post('generate') !== null);
+        if ($is_post) {
+            $filtre           = $this->input->post('filtre') ?: 'cotisation';
+            $annee_precedente = (bool)$this->input->post('annee_precedente');
+        } else {
+            $filtre           = $this->input->get('filtre') ?: 'cotisation';
+            $annee_precedente = (bool)$this->input->get('annee_precedente');
+        }
+
         if ($this->input->post('generate')) {
             $selected = $this->input->post('membres') ?: array();
             if (empty($selected)) {
-                $all = $this->cartes_membre_model->get_membres_actifs_annee($year);
+                if ($filtre === 'tous') {
+                    $all = $this->cartes_membre_model->get_all_membres_actifs();
+                } elseif ($annee_precedente) {
+                    $all = $this->cartes_membre_model->get_membres_actifs_deux_annees($year);
+                } else {
+                    $all = $this->cartes_membre_model->get_membres_actifs_annee($year);
+                }
                 $selected = array_column($all, 'mlogin');
             }
             $this->session->set_userdata('cartes_lot_membres', $selected);
@@ -154,18 +172,40 @@ class Cartes_membre extends CI_Controller {
             return;
         }
 
-        $membres = $this->cartes_membre_model->get_membres_actifs_annee($year);
+        if ($filtre === 'tous') {
+            $membres = $this->cartes_membre_model->get_all_membres_actifs();
+        } elseif ($annee_precedente) {
+            $membres = $this->cartes_membre_model->get_membres_actifs_deux_annees($year);
+        } else {
+            $membres = $this->cartes_membre_model->get_membres_actifs_annee($year);
+        }
 
         $year_selector = array();
         for ($y = (int)date('Y') + 1; $y >= 2010; $y--) {
             $year_selector[$y] = $y;
         }
 
+        // Persistance des coches : on mémorise quels membres étaient sélectionnés et quels
+        // membres étaient dans la liste précédente, pour restaurer l'état après rechargement.
+        // Un membre non présent dans membres_prev (nouveauté de la liste) est coché par défaut.
+        if ($is_post) {
+            $membres_selected = array_flip($this->input->post('membres') ?: array());
+            $membres_prev     = array_flip($this->input->post('membres_prev') ?: array());
+        } else {
+            $membres_selected = array();
+            $membres_prev     = array();
+        }
+
         $data = array(
-            'controller' => $this->controller,
-            'year'          => $year,
-            'year_selector' => $year_selector,
-            'membres'       => $membres,
+            'controller'       => $this->controller,
+            'year'             => $year,
+            'year_selector'    => $year_selector,
+            'membres'          => $membres,
+            'all_membres'      => $this->cartes_membre_model->get_all_membres_actifs(),
+            'filtre'           => $filtre,
+            'annee_precedente' => $annee_precedente,
+            'membres_selected' => $membres_selected,
+            'membres_prev'     => $membres_prev,
         );
 
         load_last_view('cartes_membre/bs_lot', $data);

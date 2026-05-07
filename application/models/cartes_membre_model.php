@@ -76,6 +76,26 @@ class Cartes_membre_model extends CI_Model {
     }
 
     /**
+     * Retourne les membres actifs ayant une cotisation pour l'année donnée ou l'année précédente.
+     *
+     * @param int $year
+     * @return array
+     */
+    public function get_membres_actifs_deux_annees($year) {
+        $y  = (int)$year;
+        $y1 = $y - 1;
+        return $this->db
+            ->select('m.mlogin, m.mnom, m.mprenom, m.mnumero, m.photo')
+            ->from('membres m')
+            ->join('licences l', "l.pilote = m.mlogin AND l.type = 0 AND (l.year = $y OR l.year = $y1)", 'inner')
+            ->where('m.actif', 1)
+            ->group_by('m.mlogin')
+            ->order_by('m.mnom')
+            ->order_by('m.mprenom')
+            ->get()->result_array();
+    }
+
+    /**
      * Retourne les données d'un membre même sans cotisation (usage admin).
      *
      * @param string $mlogin

@@ -200,7 +200,7 @@ class Cartes_membre_pdf extends TCPDF {
         foreach ($cards as $i => $card) {
             if ($i >= self::CARDS_PER_PAGE) break;
             list($x, $y) = $this->card_position($i);
-            $this->render_recto($card, $layout, $fond, $x, $y);
+            $this->render_recto($card, $layout, $fond, $x - 3.0, $y - 1.0);
         }
     }
 
@@ -241,7 +241,7 @@ class Cartes_membre_pdf extends TCPDF {
         $mirrored = $this->mirror_for_duplex($cards);
         foreach ($mirrored as $i => $card) {
             list($x, $y) = $this->card_position($i);
-            $this->render_verso($card, $layout, $fond, $x, $y);
+            $this->render_verso($card, $layout, $fond, $x - 1.0, $y - 1.0);
         }
     }
 
@@ -271,8 +271,8 @@ class Cartes_membre_pdf extends TCPDF {
      * @param string|null $fond_verso
      */
     public function generate_individuelle(array $data, array $layout, $fond_recto, $fond_verso) {
-        // Position fixe sur A4: 11 mm du bord gauche, 228 mm du haut, sans écart.
-        $cx = 11.0;
+        // Position fixe sur A4: 2 mm du bord gauche, 228 mm du haut, sans écart.
+        $cx = 2.0;
         $cy = 228.0;
 
         $this->AddPage();
