@@ -696,7 +696,7 @@ class Membres_model extends Common_Model {
      * @return mixed Insert id or primary key fallback from Common_Model::create
      */
     public function create($data) {
-        if (!isset($data['mnumero']) || $data['mnumero'] === '' || $data['mnumero'] === NULL) {
+        if (empty($data['mnumero'])) {
             $row = $this->db->select('COUNT(*) AS cnt')->from($this->table)->get()->row_array();
             $count = isset($row['cnt']) ? (int)$row['cnt'] : 0;
             $data['mnumero'] = $count + 1;
