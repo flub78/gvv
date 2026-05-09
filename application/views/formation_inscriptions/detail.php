@@ -478,7 +478,7 @@ function get_statut_badge($statut) {
                                         $cats = array_map('trim', explode(',', $seance['categorie_seance'] ?? ''));
                                         $is_solo = in_array('Solo supervisé', $cats);
                                         ?>
-                                        <?php if ($seance['_kind'] === 'theorique'): ?>
+                                        <?php if ($seance['_kind'] === 'theorique' || $seance['_kind'] === 'theorique_seul'): ?>
                                             <span class="badge bg-success">
                                                 <i class="fas fa-chalkboard" aria-hidden="true"></i> Cours sol
                                             </span>
@@ -496,6 +496,8 @@ function get_statut_badge($statut) {
                                     <td>
                                         <?php if ($seance['_kind'] === 'theorique'): ?>
                                             <?= htmlspecialchars($seance['type_nom'] ?? '-') ?>
+                                        <?php elseif ($seance['_kind'] === 'theorique_seul'): ?>
+                                            <?= htmlspecialchars($seance['categorie_seance'] ?? '-') ?>
                                         <?php else: ?>
                                             <?= htmlspecialchars($seance['machine_modele'] ?? '-') ?>
                                         <?php endif; ?>

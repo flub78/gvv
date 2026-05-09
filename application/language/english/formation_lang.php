@@ -157,6 +157,9 @@ $lang['formation_seances_empty'] = 'No sessions recorded.';
 $lang['formation_seances_back'] = 'Back to Sessions';
 $lang['formation_seances_back_to_formation'] = 'Back to Training';
 
+$lang['formation_seance_theorique_seul'] = 'Theory session only (no flight)';
+$lang['formation_seance_theorique_seul_badge'] = 'Theory only';
+
 // Form elements
 $lang['formation_form_required'] = 'Required fields';
 $lang['formation_form_optional'] = 'Optional fields';
@@ -216,7 +219,7 @@ $lang['formation_type_seance_created']            = 'Session type created succes
 $lang['formation_type_seance_updated']            = 'Session type updated successfully.';
 $lang['formation_type_seance_deleted']            = 'Session type deleted.';
 $lang['formation_type_seance_deactivated']        = 'Session type deactivated.';
-$lang['formation_type_seance_in_use']             = 'This type is used by existing sessions and cannot be deleted. You can deactivate it instead.';
+$lang['formation_type_seance_in_use']             = 'The type "%s" is used by existing sessions and cannot be deleted. You can deactivate it instead.';
 $lang['formation_type_seance_no_periodicite']     = 'No constraint';
 $lang['formation_type_seance_periodicite_jours']  = '%d d';
 

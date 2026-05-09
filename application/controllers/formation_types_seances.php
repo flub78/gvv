@@ -187,8 +187,12 @@ class Formation_types_seances extends CI_Controller {
             redirect('formation_types_seances');
         }
 
+        $type = $this->formation_type_seance_model->get_by_id('id', $id);
+        $type_nom = isset($type['nom']) ? $type['nom'] : ('#' . $id);
+        $type_nom = htmlspecialchars($type_nom, ENT_QUOTES, 'UTF-8');
+
         if ($this->formation_type_seance_model->is_in_use($id)) {
-            $this->session->set_flashdata('error', $this->lang->line('formation_type_seance_in_use'));
+            $this->session->set_flashdata('error', sprintf($this->lang->line('formation_type_seance_in_use'), $type_nom));
             redirect('formation_types_seances');
             return;
         }

@@ -147,7 +147,8 @@ class Formation_seances extends CI_Controller {
             'programme_id' => $inscription ? $inscription['programme_id'] : '',
             'instructeur_id' => '',
             'machine_id' => '',
-            'categorie_seance' => $is_libre ? '' : 'Formation'
+            'categorie_seance' => $is_libre ? '' : 'Formation',
+            'seance_theorique' => 0
         );
 
         // Repopulate from POST data after validation failure
@@ -162,6 +163,7 @@ class Formation_seances extends CI_Controller {
             $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
             $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
             $data['seance']['inscription_id'] = $this->input->post('inscription_id') ?: $data['seance']['inscription_id'];
+            $data['seance']['seance_theorique'] = $this->input->post('seance_theorique') ? 1 : 0;
             // Handle multiple categories from checkboxes
             $categories = $this->input->post('categories_seance');
             if (!empty($categories) && is_array($categories)) {
@@ -196,12 +198,17 @@ class Formation_seances extends CI_Controller {
         // Determine mode
         $is_libre = ($this->input->post('mode_seance') === 'libre');
 
+        $seance_theorique = (bool) $this->input->post('seance_theorique');
+
         // Common validation rules
         $this->form_validation->set_rules('date_seance', $this->lang->line('formation_seance_date'), 'required');
         $this->form_validation->set_rules('instructeur_id', $this->lang->line('formation_seance_instructeur'), 'required');
-        $this->form_validation->set_rules('machine_id', $this->lang->line('formation_seance_machine'), 'required');
-        $this->form_validation->set_rules('duree', $this->lang->line('formation_seance_duree'), 'required');
-        $this->form_validation->set_rules('nb_atterrissages', $this->lang->line('formation_seance_nb_atterrissages'), 'required|integer|greater_than[0]');
+
+        if (!$seance_theorique) {
+            $this->form_validation->set_rules('machine_id', $this->lang->line('formation_seance_machine'), 'required');
+            $this->form_validation->set_rules('duree', $this->lang->line('formation_seance_duree'), 'required');
+            $this->form_validation->set_rules('nb_atterrissages', $this->lang->line('formation_seance_nb_atterrissages'), 'required|integer|greater_than[0]');
+        }
 
         if ($is_libre) {
             $this->form_validation->set_rules('pilote_id', $this->lang->line('formation_seance_pilote'), 'required');
@@ -290,7 +297,8 @@ class Formation_seances extends CI_Controller {
             'programme_id' => $this->input->post('programme_id') ?: ($inscription ? $inscription['programme_id'] : ''),
             'instructeur_id' => $this->input->post('instructeur_id') ?: '',
             'machine_id' => $this->input->post('machine_id') ?: '',
-            'categorie_seance' => ''
+            'categorie_seance' => '',
+            'seance_theorique' => $this->input->post('seance_theorique') ? 1 : 0
         );
 
         // Handle multiple categories from checkboxes
@@ -355,6 +363,7 @@ class Formation_seances extends CI_Controller {
             $data['seance']['machine_id'] = $this->input->post('machine_id') ?: $data['seance']['machine_id'];
             $data['seance']['pilote_id'] = $this->input->post('pilote_id') ?: $data['seance']['pilote_id'];
             $data['seance']['programme_id'] = $this->input->post('programme_id') ?: $data['seance']['programme_id'];
+            $data['seance']['seance_theorique'] = $this->input->post('seance_theorique') ? 1 : 0;
             // Handle multiple categories from checkboxes
             $categories = $this->input->post('categories_seance');
             if (!empty($categories) && is_array($categories)) {
@@ -388,13 +397,17 @@ class Formation_seances extends CI_Controller {
         }
 
         $is_libre = ($this->input->post('mode_seance') === 'libre');
+        $seance_theorique = (bool) $this->input->post('seance_theorique');
 
         // Common validation rules
         $this->form_validation->set_rules('date_seance', $this->lang->line('formation_seance_date'), 'required');
         $this->form_validation->set_rules('instructeur_id', $this->lang->line('formation_seance_instructeur'), 'required');
-        $this->form_validation->set_rules('machine_id', $this->lang->line('formation_seance_machine'), 'required');
-        $this->form_validation->set_rules('duree', $this->lang->line('formation_seance_duree'), 'required');
-        $this->form_validation->set_rules('nb_atterrissages', $this->lang->line('formation_seance_nb_atterrissages'), 'required|integer|greater_than[0]');
+
+        if (!$seance_theorique) {
+            $this->form_validation->set_rules('machine_id', $this->lang->line('formation_seance_machine'), 'required');
+            $this->form_validation->set_rules('duree', $this->lang->line('formation_seance_duree'), 'required');
+            $this->form_validation->set_rules('nb_atterrissages', $this->lang->line('formation_seance_nb_atterrissages'), 'required|integer|greater_than[0]');
+        }
 
         if ($is_libre) {
             $this->form_validation->set_rules('pilote_id', $this->lang->line('formation_seance_pilote'), 'required');
@@ -703,6 +716,8 @@ class Formation_seances extends CI_Controller {
      * @return array|false Seance data or false on validation failure
      */
     private function _build_seance_data($is_libre) {
+        $seance_theorique = (bool) $this->input->post('seance_theorique');
+
         // Collect meteo
         $meteo = array();
         foreach ($this->meteo_options as $option) {
@@ -712,9 +727,12 @@ class Formation_seances extends CI_Controller {
         }
 
         // Convert duration from HH:MM to TIME format
-        $duree = $this->input->post('duree');
-        if (strpos($duree, ':') !== false && substr_count($duree, ':') == 1) {
-            $duree .= ':00'; // Add seconds
+        $duree = null;
+        if (!$seance_theorique) {
+            $duree = $this->input->post('duree');
+            if ($duree && strpos($duree, ':') !== false && substr_count($duree, ':') == 1) {
+                $duree .= ':00';
+            }
         }
 
         // Handle multiple categories from checkboxes
@@ -724,16 +742,20 @@ class Formation_seances extends CI_Controller {
             $categorie_seance = implode(', ', $categories);
         }
 
+        $machine_id = $seance_theorique ? null : $this->input->post('machine_id');
+        $nb_atterrissages = $seance_theorique ? null : (int) $this->input->post('nb_atterrissages');
+
         $seance_data = array(
             'date_seance' => $this->input->post('date_seance'),
             'instructeur_id' => $this->input->post('instructeur_id'),
-            'machine_id' => $this->input->post('machine_id'),
+            'machine_id' => $machine_id,
             'duree' => $duree,
-            'nb_atterrissages' => (int) $this->input->post('nb_atterrissages'),
+            'nb_atterrissages' => $nb_atterrissages,
             'meteo' => json_encode($meteo),
             'commentaires' => $this->input->post('commentaires'),
             'prochaines_lecons' => $this->input->post('prochaines_lecons'),
-            'categorie_seance' => $categorie_seance
+            'categorie_seance' => $categorie_seance,
+            'seance_theorique' => $seance_theorique ? 1 : 0
         );
 
         if ($is_libre) {

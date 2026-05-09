@@ -187,6 +187,22 @@ if (!empty($existing_evaluations)) {
                         </div>
                     </div>
 
+                    <!-- Séance théorique uniquement -->
+                    <?php $is_theorique = !empty($seance['seance_theorique']); ?>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="seance_theorique"
+                                       name="seance_theorique" value="1"
+                                       <?= $is_theorique ? 'checked' : '' ?>>
+                                <label class="form-check-label fw-semibold" for="seance_theorique">
+                                    <i class="fas fa-chalkboard" aria-hidden="true"></i>
+                                    <?= $this->lang->line("formation_seance_theorique_seul") ?>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Common fields -->
                     <div class="row g-3 mb-3">
                         <div class="col-6 col-sm-4 col-md-2">
@@ -214,12 +230,12 @@ if (!empty($existing_evaluations)) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-6 col-sm-4 col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2 field-vol">
                             <label for="machine_id" class="form-label">
                                 <?= $this->lang->line("formation_seance_machine") ?>
-                                <span class="text-danger">*</span>
+                                <span class="text-danger required-star">*</span>
                             </label>
-                            <select class="form-select" id="machine_id" name="machine_id" required>
+                            <select class="form-select" id="machine_id" name="machine_id" <?= $is_theorique ? '' : 'required' ?>>
                                 <option value="">-- Aéronef --</option>
                                 <?php foreach ($machines as $id => $nom): ?>
                                     <?php if ($id): ?>
@@ -231,25 +247,25 @@ if (!empty($existing_evaluations)) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-6 col-sm-4 col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2 field-vol">
                             <label for="duree" class="form-label">
                                 <?= $this->lang->line("formation_seance_duree") ?>
-                                <span class="text-danger">*</span>
+                                <span class="text-danger required-star">*</span>
                             </label>
                             <input type="text" class="form-control" id="duree" name="duree"
                                    placeholder="HH:MM"
                                    value="<?= set_value('duree', isset($seance['duree']) ? substr($seance['duree'], 0, 5) : '') ?>"
-                                   required pattern="[0-9]{1,2}:[0-9]{2}">
+                                   <?= $is_theorique ? '' : 'required' ?> pattern="[0-9]{1,2}:[0-9]{2}">
                             <div class="form-text"><?= $this->lang->line("formation_seance_duree_help") ?></div>
                         </div>
-                        <div class="col-6 col-sm-4 col-md-2">
+                        <div class="col-6 col-sm-4 col-md-2 field-vol">
                             <label for="nb_atterrissages" class="form-label">
                                 <?= $this->lang->line("formation_seance_nb_atterrissages") ?>
-                                <span class="text-danger">*</span>
+                                <span class="text-danger required-star">*</span>
                             </label>
                             <input type="number" class="form-control" id="nb_atterrissages" name="nb_atterrissages"
                                    min="1" value="<?= set_value('nb_atterrissages', $seance['nb_atterrissages'] ?? 1) ?>"
-                                   required>
+                                   <?= $is_theorique ? '' : 'required' ?>>
                         </div>
                     </div>
 
@@ -491,6 +507,25 @@ $(document).ready(function() {
     // Initialize Bootstrap tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(el) { return new bootstrap.Tooltip(el); });
+
+    // Toggle vol fields based on "séance théorique" checkbox
+    function toggleVolFields() {
+        var isTheorie = $('#seance_theorique').is(':checked');
+        $('.field-vol').each(function() {
+            var $inputs = $(this).find('input, select');
+            if (isTheorie) {
+                $(this).css('opacity', '0.4');
+                $inputs.prop('required', false);
+                $(this).find('.required-star').hide();
+            } else {
+                $(this).css('opacity', '1');
+                $inputs.prop('required', true);
+                $(this).find('.required-star').show();
+            }
+        });
+    }
+    $('#seance_theorique').on('change', toggleVolFields);
+    toggleVolFields();
 
     // Load inscriptions when pilot is selected (inscription mode)
     $('#insc_pilote_id').on('change', function() {

@@ -73,6 +73,12 @@ $niveau_labels = array(
             <?php else: ?>
                 <span class="badge bg-primary fs-6 border border-white"><?= $this->lang->line("formation_seance_type_formation") ?></span>
             <?php endif; ?>
+            <?php if (!empty($seance['seance_theorique'])): ?>
+                <span class="badge bg-info fs-6">
+                    <i class="fas fa-chalkboard" aria-hidden="true"></i>
+                    <?= $this->lang->line("formation_seance_theorique_seul_badge") ?>
+                </span>
+            <?php endif; ?>
         </div>
         <div class="card-body">
             <div class="row">

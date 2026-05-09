@@ -338,7 +338,7 @@ class Formation_inscriptions extends CI_Controller {
 
         // Tag each session with its kind and merge
         foreach ($seances_vol as &$s) {
-            $s['_kind'] = 'vol';
+            $s['_kind'] = !empty($s['seance_theorique']) ? 'theorique_seul' : 'vol';
         }
         foreach ($seances_theoriques as &$s) {
             $s['_kind'] = 'theorique';

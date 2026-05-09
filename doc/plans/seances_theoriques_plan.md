@@ -254,8 +254,8 @@ ORDER BY jours_ecoules DESC
 #### 3.5 Vues Rapport Annuel et Conformité
 
 **Rapport annuel** : deux onglets Bootstrap.
-1. **Par instructeur** : Instructeur, Séances vol, Heures vol, Séances sol, Heures sol, Élèves distincts.
-2. **Par programme** : Programme, Inscriptions actives, Séances vol, Séances sol, Total heures.
+1. **Par instructeur** : Instructeur, Séances vol, Heures vol, Séances collectives, Heures sol, Élèves distincts.
+2. **Par programme** : Programme, Inscriptions actives, Séances vol, Séances collectives, Total heures.
 
 **Rapport de conformité** : un bloc par type de séance périodique.
 - En-tête : nom du type, périodicité cible.

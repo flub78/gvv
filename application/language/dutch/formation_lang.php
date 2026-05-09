@@ -157,6 +157,9 @@ $lang['formation_seances_empty'] = 'Geen sessies geregistreerd.';
 $lang['formation_seances_back'] = 'Terug naar Sessies';
 $lang['formation_seances_back_to_formation'] = 'Terug naar Opleiding';
 
+$lang['formation_seance_theorique_seul'] = 'Alleen theoretische sessie (geen vlucht)';
+$lang['formation_seance_theorique_seul_badge'] = 'Alleen theorie';
+
 // Form elements
 $lang['formation_form_required'] = 'Verplichte velden';
 $lang['formation_form_optional'] = 'Optionele velden';
@@ -216,7 +219,7 @@ $lang['formation_type_seance_created']            = 'Sessietype succesvol aangem
 $lang['formation_type_seance_updated']            = 'Sessietype succesvol bijgewerkt.';
 $lang['formation_type_seance_deleted']            = 'Sessietype verwijderd.';
 $lang['formation_type_seance_deactivated']        = 'Sessietype gedeactiveerd.';
-$lang['formation_type_seance_in_use']             = 'Dit type wordt gebruikt door bestaande sessies en kan niet worden verwijderd. U kunt het deactiveren.';
+$lang['formation_type_seance_in_use']             = 'Het type "%s" wordt gebruikt door bestaande sessies en kan niet worden verwijderd. U kunt het deactiveren.';
 $lang['formation_type_seance_no_periodicite']     = 'Geen beperking';
 $lang['formation_type_seance_periodicite_jours']  = '%d d';
 
