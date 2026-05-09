@@ -143,6 +143,7 @@ $lang['gvv_cotisation_solde_label']         = "Solde disponible sur votre compte
 $lang['gvv_cotisation_error_produit']       = "Produit de cotisation invalide ou non disponible.";
 $lang['gvv_cotisation_error_already_paid']  = "Vous avez déjà réglé votre cotisation pour l'année %d.";
 $lang['gvv_cotisation_success']             = "Cotisation %d enregistrée avec succès. Votre compte a été débité.";
+$lang['gvv_bar_error_solde_insuffisant']    = "Votre solde est insuffisant pour payer votre cotisation, veuillez l'approvisionner.";
 
 // Bon decouverte via lien / QR public (UC4)
 $lang['gvv_decouverte_menu']                        = "Bon découverte (paiement carte)";

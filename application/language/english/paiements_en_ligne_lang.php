@@ -208,6 +208,7 @@ $lang['gvv_cotisation_solde_label']         = "Available balance on your account
 $lang['gvv_cotisation_error_produit']       = "Invalid or unavailable membership product.";
 $lang['gvv_cotisation_error_already_paid']  = "You have already paid your membership for %d.";
 $lang['gvv_cotisation_success']             = "Membership %d successfully registered. Your account has been debited.";
+$lang['gvv_bar_error_solde_insuffisant']    = "Your balance is insufficient to pay your membership fee, please top up your account.";
 
 // Discovery voucher via public link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discovery voucher (card payment)";

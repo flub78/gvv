@@ -208,6 +208,7 @@ $lang['gvv_cotisation_solde_label']         = "Beschikbaar saldo op uw rekening"
 $lang['gvv_cotisation_error_produit']       = "Ongeldig of niet beschikbaar lidmaatschapsproduct.";
 $lang['gvv_cotisation_error_already_paid']  = "U heeft uw lidmaatschap voor %d al betaald.";
 $lang['gvv_cotisation_success']             = "Lidmaatschap %d succesvol geregistreerd. Uw rekening is gedebiteerd.";
+$lang['gvv_bar_error_solde_insuffisant']    = "Uw saldo is onvoldoende om uw lidmaatschap te betalen, gelieve uw rekening aan te vullen.";
 
 // Discoveriebon via publieke link / QR (UC4)
 $lang['gvv_decouverte_menu']                        = "Discoveriebon (kaartbetaling)";
