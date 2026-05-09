@@ -173,4 +173,9 @@
 * [x] Simplifier le workflow de vente de vol de découverte
 * [x] Simplifier le workflow des briefings passagers avec le QRCode 
 * [x] On perd l'occasion sur les vols de découverte
-* [ ] Droits partiels d'affectation de rôles pour le CA.
+* [x] Droits partiels d'affectation de rôles pour le CA.
+
+* [x] Quand on saisie un vol planeur en DC, puis qu'on utilise créer et continuer, et qu'on essaye de saisir un vol monoplace, la checkbox DC est masquée mais toujours active et on se retrouve avec un vol monoplace en DC. Il faut désactiver la checkbox DC quand on passe en monoplace.
+
+
+* [x] Ajouter un bouton "Aujourd'hui" a coté des datepicker de saisie des vols.

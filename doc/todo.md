@@ -8,11 +8,9 @@
 
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
 
-* [] Quand on saisie un vol planeur en DC, puis qu'on utilise créer et continuer, et qu'on essaye de saisir un vol monoplace, la checkbox DC est masquée mais toujours active et on se retrouve avec un vol monoplace en DC. Il faut désactiver la checkbox DC quand on passe en monoplace.
   
 ## Reste à faire
 
-* [] Ajouter un bouton "Aujourd'hui" a coté des datepicker de saisie des vols.
 
 * [] Test approfondi gestion des vols avion et ULM.
   

@@ -127,11 +127,12 @@ function update_machine() {
 
 			if (planeur.biplace > 1) {
 				$('#DC').show();
-				$('#DC').prop( "checked", false );
+				$('#vpdc').prop('checked', false);
 				$("#passager").show();
 				// $('.VI').show();
 			} else {
 				$('#DC').hide();
+				$('#vpdc').prop('checked', false);
 				$("#instruction").hide();
 				$("#passager").hide();
 				// $('.VI').hide();
