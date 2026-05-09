@@ -82,10 +82,10 @@ foreach ($participants_data as $p) {
         <!-- Instructeur -->
         <div class="mb-3 row">
             <label for="instructeur_id" class="col-sm-3 col-form-label">
-                <?= $this->lang->line('formation_seance_instructeur') ?> <span class="text-danger">*</span>
+                <?= $this->lang->line('formation_seance_instructeur') ?>
             </label>
             <div class="col-sm-4">
-                <select class="form-select" id="instructeur_id" name="instructeur_id" required>
+                <select class="form-select" id="instructeur_id" name="instructeur_id">
                     <option value="">-- Choisir --</option>
                     <?php foreach ($instructeurs as $id => $nom): ?>
                         <?php if ($id): ?>

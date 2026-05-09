@@ -117,7 +117,6 @@ class Formation_seances_theoriques extends CI_Controller {
     public function store() {
         $this->form_validation->set_rules('date_seance',     'Date',         'required');
         $this->form_validation->set_rules('type_seance_id',  'Type de séance','required|integer');
-        $this->form_validation->set_rules('instructeur_id',  'Instructeur',   'required');
 
         if ($this->form_validation->run() === FALSE) {
             $data = $this->_prepare_form_data(
@@ -160,10 +159,15 @@ class Formation_seances_theoriques extends CI_Controller {
             $this->session->set_flashdata('success', $this->lang->line('formation_seance_theorique_create_success'));
             redirect('formation_seances_theoriques/detail/' . $seance_id);
         } else {
+            $error_msg = $this->lang->line('formation_seance_theorique_create_error');
+            $db_error = $this->db->_error_message();
+            if (!empty($db_error)) {
+                $error_msg .= '<br><strong>Détail :</strong> ' . htmlspecialchars($db_error);
+            }
             $data = $this->_prepare_form_data(
                 $this->_collect_post(),
                 'create',
-                $this->lang->line('formation_seance_theorique_create_error')
+                $error_msg
             );
             $this->load->view('formation_seances_theoriques/form', $data);
         }
@@ -190,7 +194,6 @@ class Formation_seances_theoriques extends CI_Controller {
     public function update($id) {
         $this->form_validation->set_rules('date_seance',    'Date',          'required');
         $this->form_validation->set_rules('type_seance_id', 'Type de séance','required|integer');
-        $this->form_validation->set_rules('instructeur_id', 'Instructeur',   'required');
 
         if ($this->form_validation->run() === FALSE) {
             $seance = $this->input->post();
@@ -222,8 +225,13 @@ class Formation_seances_theoriques extends CI_Controller {
             $this->session->set_flashdata('success', $this->lang->line('formation_seance_theorique_update_success'));
             redirect('formation_seances_theoriques/detail/' . $id);
         } else {
+            $error_msg = $this->lang->line('formation_seance_theorique_update_error');
+            $db_error = $this->db->_error_message();
+            if (!empty($db_error)) {
+                $error_msg .= '<br><strong>Détail :</strong> ' . htmlspecialchars($db_error);
+            }
             $seance = array_merge($seance_data, array('id' => (int)$id));
-            $data = $this->_prepare_form_data($seance, 'edit', $this->lang->line('formation_seance_theorique_update_error'));
+            $data = $this->_prepare_form_data($seance, 'edit', $error_msg);
             $data['participants_data'] = array();
             $this->load->view('formation_seances_theoriques/form', $data);
         }
@@ -418,13 +426,14 @@ class Formation_seances_theoriques extends CI_Controller {
     }
 
     private function _collect_seance_data() {
-        $programme_id = $this->input->post('programme_id');
-        $duree        = $this->input->post('duree');
+        $programme_id   = $this->input->post('programme_id');
+        $duree          = $this->input->post('duree');
+        $instructeur_id = $this->input->post('instructeur_id');
 
         return array(
             'date_seance'    => $this->input->post('date_seance'),
             'type_seance_id' => (int)$this->input->post('type_seance_id'),
-            'instructeur_id' => $this->input->post('instructeur_id'),
+            'instructeur_id' => !empty($instructeur_id) ? $instructeur_id : null,
             'programme_id'   => !empty($programme_id)  ? (int)$programme_id  : null,
             'lieu'           => $this->input->post('lieu') ?: null,
             'duree'          => !empty($duree)           ? $duree              : null,
