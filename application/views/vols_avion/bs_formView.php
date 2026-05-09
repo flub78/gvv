@@ -51,11 +51,15 @@ if (isset($kid) && isset($$kid)) {
 ?>
 
 <!-- Ligne 1 : Date, Immat, Pilote, DC, Instructeur -->
-<div class="d-md-flex flex-row align-items-start gap-3 mb-3">
+<div class="d-md-flex flex-row align-items-end gap-3 mb-3">
 
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vadate") ?></div>
-        <div><?= $this->gvvmetadata->input_field("volsa", "vadate", $vadate) ?></div>
+        <div class="d-flex gap-1 align-items-center">
+            <?= $this->gvvmetadata->input_field("volsa", "vadate", $vadate) ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                    onclick="$('#vadate').datepicker('setDate', new Date())"><?= $this->lang->line('gvv_btn_today') ?></button>
+        </div>
     </div>
 
     <div class="d-flex flex-column mb-2">

@@ -761,3 +761,4 @@ $lang['gvv_btn_gerer_roles']     = "Rollen beheren";
 $lang['gvv_menu_gestion_roles']  = "Rollenbeheer";
 $lang['gvv_gestion_roles_select_hint'] = "Selecteer een gebruiker om zijn rollen te beheren.";
 $lang['gvv_role_saved']                = "Wijziging opgeslagen.";
+$lang['gvv_btn_today']                 = "Vandaag";

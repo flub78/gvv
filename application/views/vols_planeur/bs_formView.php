@@ -56,11 +56,15 @@ $altitude = ($remorque_100eme) ? $this->lang->line("gvv_vols_planeur_label_centi
 $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
 
 ?>
-<div class="d-md-flex flex-row mb-2">
+<div class="d-md-flex flex-row align-items-end mb-2">
     <!-- Date, immat-->
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_volsp_field_vpdate") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsp", 'vpdate', $vpdate) ?>
+        <div class="d-flex gap-1 align-items-center">
+            <?= $this->gvvmetadata->input_field("volsp", 'vpdate', $vpdate) ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                    onclick="$('#vpdate').datepicker('setDate', new Date())"><?= $this->lang->line('gvv_btn_today') ?></button>
+        </div>
     </div>
 
     <div class="me-3 mb-2">

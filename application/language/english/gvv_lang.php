@@ -761,3 +761,4 @@ $lang['gvv_btn_gerer_roles']     = "Manage roles";
 $lang['gvv_menu_gestion_roles']  = "Role management";
 $lang['gvv_gestion_roles_select_hint'] = "Select a user to manage their roles.";
 $lang['gvv_role_saved']                = "Change saved.";
+$lang['gvv_btn_today']                 = "Today";
