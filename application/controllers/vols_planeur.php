@@ -174,7 +174,7 @@ class Vols_planeur extends Gvv_Controller {
                 'actif' => 1
         )));
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
-        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->qualif_selector('mlogin', ITP | IVV));
+        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->inst_selector());
         $this->gvvmetadata->set_selector('rem_selector', $rem_selector);
         $this->gvvmetadata->set_selector('pilrem_selector', $this->membres_model->qualif_selector('mlogin', REMORQUEUR));
         $this->gvvmetadata->set_selector('treuillard_selector', $this->membres_model->qualif_selector('mlogin', TREUILLARD));
@@ -275,7 +275,7 @@ class Vols_planeur extends Gvv_Controller {
                 'actif' => 1
         ));
         $this->gvvmetadata->set_selector('machine_selector', $machine_selector);
-        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->qualif_selector('mlogin', ITP | IVV));
+        $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->inst_selector());
 
         $rem_selector = $this->avions_model->selector_with_null(array (
                 "macrem" => 1,
