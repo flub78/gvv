@@ -138,6 +138,27 @@ $this->load->view('bs_banner');
 
     </div>
 
+    <!-- Documents / Pièces jointes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-paperclip" aria-hidden="true"></i>
+                        <?= $this->lang->line('formation_attachment_section_title') ?>
+                    </span>
+                    <span class="badge bg-secondary"><?= count($attachments) ?></span>
+                </div>
+                <div class="card-body">
+                    <?php $this->load->view('formation_seances_theoriques/attachments_section', [
+                        'attachments' => $attachments,
+                        'seance_id'   => $seance['id'],
+                        'can_edit'    => $can_edit,
+                    ]); ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 <?php $this->load->view('bs_footer'); ?>

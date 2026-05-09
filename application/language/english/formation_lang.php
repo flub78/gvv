@@ -383,5 +383,27 @@ $lang['formation_progression_nb_seances_sujet']   = 'Sessions';
 $lang['formation_progression_derniere_eval']      = 'Last evaluation';
 $lang['formation_progression_historique']         = 'History';
 
+// Attachments for theoretical sessions
+$lang['formation_attachment_section_title']           = 'Documents';
+$lang['formation_attachment_none']                    = 'No document attached.';
+$lang['formation_attachment_description']             = 'Description';
+$lang['formation_attachment_file']                    = 'File';
+$lang['formation_attachment_actions']                 = 'Actions';
+$lang['formation_attachment_add']                     = 'Add a document';
+$lang['formation_attachment_edit']                    = 'Edit';
+$lang['formation_attachment_delete']                  = 'Delete';
+$lang['formation_attachment_save']                    = 'Save';
+$lang['formation_attachment_cancel']                  = 'Cancel';
+$lang['formation_attachment_current']                 = 'Current file';
+$lang['formation_attachment_description_placeholder'] = 'E.g. : Course materials, exercises…';
+$lang['formation_attachment_file_required']           = 'Please select a file.';
+$lang['formation_attachment_confirm_delete']          = 'Are you sure you want to delete this document?';
+$lang['formation_attachment_created']                 = 'Document added successfully.';
+$lang['formation_attachment_updated']                 = 'Description updated.';
+$lang['formation_attachment_deleted']                 = 'Document deleted.';
+$lang['formation_attachment_error_upload']            = 'Error while uploading the file.';
+$lang['formation_attachment_error_update']            = 'Error while updating.';
+$lang['formation_attachment_error_delete']            = 'Error while deleting.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/english/formation_lang.php */

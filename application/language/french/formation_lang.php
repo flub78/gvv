@@ -393,5 +393,27 @@ $lang['formation_rapports_conformite_aucun_type']      = 'Aucun type de séance 
 $lang['formation_rapports_conformite_export_csv']      = 'Exporter CSV';
 $lang['formation_rapports_conformite_non_conformes']   = 'pilote(s) non conforme(s)';
 
+// Pièces jointes aux séances théoriques
+$lang['formation_attachment_section_title']           = 'Documents';
+$lang['formation_attachment_none']                    = 'Aucun document attaché.';
+$lang['formation_attachment_description']             = 'Description';
+$lang['formation_attachment_file']                    = 'Fichier';
+$lang['formation_attachment_actions']                 = 'Actions';
+$lang['formation_attachment_add']                     = 'Ajouter un document';
+$lang['formation_attachment_edit']                    = 'Modifier';
+$lang['formation_attachment_delete']                  = 'Supprimer';
+$lang['formation_attachment_save']                    = 'Enregistrer';
+$lang['formation_attachment_cancel']                  = 'Annuler';
+$lang['formation_attachment_current']                 = 'Fichier actuel';
+$lang['formation_attachment_description_placeholder'] = 'Ex : Support de cours, exercices…';
+$lang['formation_attachment_file_required']           = 'Veuillez sélectionner un fichier.';
+$lang['formation_attachment_confirm_delete']          = 'Êtes-vous sûr de vouloir supprimer ce document ?';
+$lang['formation_attachment_created']                 = 'Document ajouté avec succès.';
+$lang['formation_attachment_updated']                 = 'Description mise à jour.';
+$lang['formation_attachment_deleted']                 = 'Document supprimé.';
+$lang['formation_attachment_error_upload']            = 'Erreur lors de l\'envoi du fichier.';
+$lang['formation_attachment_error_update']            = 'Erreur lors de la mise à jour.';
+$lang['formation_attachment_error_delete']            = 'Erreur lors de la suppression.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/french/formation_lang.php */

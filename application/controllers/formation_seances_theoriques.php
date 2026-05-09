@@ -269,11 +269,27 @@ class Formation_seances_theoriques extends CI_Controller {
             $type = $this->formation_type_seance_model->get_by_id('id', $seance['type_seance_id']);
         }
 
+        $this->load->model('attachments_model');
+        $raw_attachments = $this->db
+            ->where('referenced_table', 'formation_seances')
+            ->where('referenced_id', (int)$id)
+            ->order_by('id', 'desc')
+            ->get('attachments')
+            ->result_array();
+
+        foreach ($raw_attachments as &$att) {
+            $att['file_url'] = $this->_formation_attachment_url($att['file']);
+        }
+
+        $this->load->library('formation_access');
+
         $data = array(
             'controller'   => 'formation_seances_theoriques',
             'seance'       => $seance,
             'participants' => $participants,
             'type'         => $type,
+            'attachments'  => $raw_attachments,
+            'can_edit'     => $this->formation_access->can_manage_seances(),
         );
 
         $this->load->view('formation_seances_theoriques/detail', $data);
@@ -332,6 +348,182 @@ class Formation_seances_theoriques extends CI_Controller {
 
         header('Content-Type: application/json');
         echo json_encode($result);
+    }
+
+    // -----------------------------------------------------------------------
+    // AJAX — Pièces jointes
+    // -----------------------------------------------------------------------
+
+    /**
+     * POST : upload d'un fichier attaché à une séance théorique.
+     * Retourne JSON {success, attachment_id, description, file_name, file_url}.
+     */
+    public function ajax_upload_attachment($seance_id) {
+        header('Content-Type: application/json');
+
+        $this->load->library('formation_access');
+        if (!$this->formation_access->can_manage_seances()) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
+
+        $seance = $this->formation_seance_model->get((int)$seance_id);
+        if (empty($seance)) {
+            echo json_encode(['success' => false, 'error' => 'Séance introuvable']);
+            return;
+        }
+
+        if (empty($_FILES['file']['name'])) {
+            echo json_encode(['success' => false, 'error' => 'Fichier requis']);
+            return;
+        }
+
+        $year    = date('Y');
+        $dirname = './uploads/formation/' . $year . '/';
+        if (!file_exists($dirname)) {
+            mkdir($dirname, 0777, true);
+            chmod($dirname, 0777);
+        }
+
+        $storage_file        = rand(100000, 999999) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $_FILES['file']['name']);
+        $config['upload_path']   = $dirname;
+        $config['allowed_types'] = '*';
+        $config['max_size']      = '20000';
+        $config['file_name']     = $storage_file;
+
+        $this->load->library('upload', $config);
+        if (!$this->upload->do_upload('file')) {
+            echo json_encode(['success' => false, 'error' => $this->upload->display_errors('', '')]);
+            return;
+        }
+
+        $upload_data = $this->upload->data();
+        $file_path   = $this->_formation_relative_path($upload_data['full_path']);
+
+        $this->load->library('file_compressor');
+        $compression = $this->file_compressor->compress($file_path);
+        if ($compression['success']) {
+            $file_path = $compression['compressed_path'];
+        }
+
+        $description = $this->input->post('description') ?: '';
+        $insert_data = [
+            'referenced_table' => 'formation_seances',
+            'referenced_id'    => (int)$seance_id,
+            'user_id'          => $this->dx_auth->get_username(),
+            'description'      => $description,
+            'file'             => $file_path,
+            'club'             => $this->membres_model->section_id(),
+        ];
+
+        $this->load->model('attachments_model');
+        $this->db->insert('attachments', $insert_data);
+        $attachment_id = $this->db->insert_id();
+
+        if (!$attachment_id) {
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+            echo json_encode(['success' => false, 'error' => 'Erreur insertion base de données']);
+            return;
+        }
+
+        echo json_encode([
+            'success'       => true,
+            'attachment_id' => $attachment_id,
+            'description'   => $description,
+            'file_name'     => basename($file_path),
+            'file_url'      => $this->_formation_attachment_url($file_path),
+        ]);
+    }
+
+    /**
+     * GET : retourne le HTML de la liste des pièces jointes d'une séance.
+     */
+    public function ajax_get_attachments($seance_id) {
+        $this->load->model('attachments_model');
+
+        $attachments = $this->db
+            ->where('referenced_table', 'formation_seances')
+            ->where('referenced_id', (int)$seance_id)
+            ->order_by('id', 'desc')
+            ->get('attachments')
+            ->result_array();
+
+        foreach ($attachments as &$att) {
+            $att['file_url'] = $this->_formation_attachment_url($att['file']);
+        }
+
+        $this->load->library('formation_access');
+        $can_edit = $this->formation_access->can_manage_seances();
+
+        $data = [
+            'attachments' => $attachments,
+            'seance_id'   => (int)$seance_id,
+            'can_edit'    => $can_edit,
+        ];
+
+        echo $this->load->view('formation_seances_theoriques/attachments_section', $data, true);
+    }
+
+    /**
+     * POST : met à jour la description d'une pièce jointe.
+     * Retourne JSON {success}.
+     */
+    public function ajax_update_attachment($attachment_id) {
+        header('Content-Type: application/json');
+
+        $this->load->library('formation_access');
+        if (!$this->formation_access->can_manage_seances()) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
+
+        $attachment = $this->db->where('id', (int)$attachment_id)
+            ->where('referenced_table', 'formation_seances')
+            ->get('attachments')->row_array();
+
+        if (!$attachment) {
+            echo json_encode(['success' => false, 'error' => 'Pièce jointe introuvable']);
+            return;
+        }
+
+        $description = $this->input->post('description') ?: '';
+        $this->db->where('id', (int)$attachment_id)
+                 ->update('attachments', ['description' => $description]);
+
+        echo json_encode(['success' => true, 'description' => $description]);
+    }
+
+    /**
+     * POST : supprime une pièce jointe (fichier + enregistrement).
+     * Retourne JSON {success}.
+     */
+    public function ajax_delete_attachment($attachment_id) {
+        header('Content-Type: application/json');
+
+        $this->load->library('formation_access');
+        if (!$this->formation_access->can_manage_seances()) {
+            echo json_encode(['success' => false, 'error' => 'Accès non autorisé']);
+            return;
+        }
+
+        $attachment = $this->db->where('id', (int)$attachment_id)
+            ->where('referenced_table', 'formation_seances')
+            ->get('attachments')->row_array();
+
+        if (!$attachment) {
+            echo json_encode(['success' => false, 'error' => 'Pièce jointe introuvable']);
+            return;
+        }
+
+        if (!empty($attachment['file']) && file_exists($attachment['file'])) {
+            unlink($attachment['file']);
+        }
+
+        $this->db->where('id', (int)$attachment_id)->delete('attachments');
+
+        echo json_encode(['success' => true]);
     }
 
     // -----------------------------------------------------------------------
@@ -410,6 +602,24 @@ class Formation_seances_theoriques extends CI_Controller {
             'membres'          => $membres,
             'participants_data' => array(),
         );
+    }
+
+    private function _formation_relative_path($abs_path) {
+        $doc_root = realpath('./');
+        if ($doc_root && strpos($abs_path, $doc_root) === 0) {
+            return '.' . substr($abs_path, strlen($doc_root));
+        }
+        return $abs_path;
+    }
+
+    private function _formation_attachment_url($file_path) {
+        if (isset($file_path[0]) && $file_path[0] === '/') {
+            $doc_root = realpath('./');
+            if ($doc_root && strpos($file_path, $doc_root) === 0) {
+                $file_path = '.' . substr($file_path, strlen($doc_root));
+            }
+        }
+        return base_url() . ltrim($file_path, './');
     }
 
     private function _collect_post() {

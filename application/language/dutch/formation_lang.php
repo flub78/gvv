@@ -383,5 +383,27 @@ $lang['formation_progression_nb_seances_sujet']   = 'Sessies';
 $lang['formation_progression_derniere_eval']      = 'Laatste beoordeling';
 $lang['formation_progression_historique']         = 'Geschiedenis';
 
+// Bijlagen bij theoretische sessies
+$lang['formation_attachment_section_title']           = 'Documenten';
+$lang['formation_attachment_none']                    = 'Geen document bijgevoegd.';
+$lang['formation_attachment_description']             = 'Beschrijving';
+$lang['formation_attachment_file']                    = 'Bestand';
+$lang['formation_attachment_actions']                 = 'Acties';
+$lang['formation_attachment_add']                     = 'Document toevoegen';
+$lang['formation_attachment_edit']                    = 'Bewerken';
+$lang['formation_attachment_delete']                  = 'Verwijderen';
+$lang['formation_attachment_save']                    = 'Opslaan';
+$lang['formation_attachment_cancel']                  = 'Annuleren';
+$lang['formation_attachment_current']                 = 'Huidig bestand';
+$lang['formation_attachment_description_placeholder'] = 'Bijv. : Cursusmateriaal, oefeningen…';
+$lang['formation_attachment_file_required']           = 'Selecteer een bestand.';
+$lang['formation_attachment_confirm_delete']          = 'Weet u zeker dat u dit document wilt verwijderen?';
+$lang['formation_attachment_created']                 = 'Document succesvol toegevoegd.';
+$lang['formation_attachment_updated']                 = 'Beschrijving bijgewerkt.';
+$lang['formation_attachment_deleted']                 = 'Document verwijderd.';
+$lang['formation_attachment_error_upload']            = 'Fout bij het uploaden van het bestand.';
+$lang['formation_attachment_error_update']            = 'Fout bij het bijwerken.';
+$lang['formation_attachment_error_delete']            = 'Fout bij het verwijderen.';
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/dutch/formation_lang.php */

@@ -103,6 +103,136 @@ test.describe('Formation – Séances théoriques', () => {
 
 });
 
+test.describe('Formation – Pièces jointes aux séances théoriques', () => {
+
+    const path = require('path');
+    const TEST_FILE = path.resolve(__dirname, '../../test-data/test_cours.txt');
+
+    // Helper: find the first existing seance theorique ID from the list page
+    async function getFirstSeanceId(page) {
+        await page.goto('/index.php/formation_seances_theoriques');
+        const detailLink = page.locator('a[href*="/formation_seances_theoriques/detail/"]').first();
+        await expect(detailLink).toBeVisible();
+        const href = await detailLink.getAttribute('href');
+        const match = href.match(/\/detail\/(\d+)/);
+        return match ? match[1] : null;
+    }
+
+    test('Peut attacher un document à une séance théorique', async ({ page }) => {
+        await login(page, INSTRUCTOR_USER);
+
+        const seanceId = await getFirstSeanceId(page);
+        expect(seanceId).not.toBeNull();
+
+        await page.goto(`/index.php/formation_seances_theoriques/detail/${seanceId}`);
+        await expect(page).not.toHaveURL(/login/);
+
+        // Section Documents must be present
+        const section = page.locator('#formationAttachments');
+        await expect(section).toBeVisible();
+
+        // Open upload form
+        await page.click('#showUploadForm');
+        await expect(page.locator('#uploadFormCard')).toBeVisible();
+
+        // Fill description
+        await page.fill('#newAttachmentDescription', 'Support de cours E2E test');
+
+        // Upload file
+        const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            page.click('#newAttachmentFile'),
+        ]);
+        await fileChooser.setFiles(TEST_FILE);
+
+        // Submit
+        await page.click('#saveNewAttachment');
+
+        // Row must appear in the table
+        await expect(page.locator('#attachmentsTable')).toBeVisible({ timeout: 5000 });
+        const tableText = await page.locator('#attachmentsTable').textContent();
+        expect(tableText).toContain('Support de cours E2E test');
+    });
+
+    test('Peut supprimer un document d\'une séance théorique', async ({ page }) => {
+        await login(page, INSTRUCTOR_USER);
+
+        const seanceId = await getFirstSeanceId(page);
+        expect(seanceId).not.toBeNull();
+
+        await page.goto(`/index.php/formation_seances_theoriques/detail/${seanceId}`);
+
+        // Upload a document first so there is something to delete
+        await page.click('#showUploadForm');
+        await page.fill('#newAttachmentDescription', 'Doc à supprimer');
+
+        const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            page.click('#newAttachmentFile'),
+        ]);
+        await fileChooser.setFiles(TEST_FILE);
+        await page.click('#saveNewAttachment');
+        await expect(page.locator('#attachmentsTable')).toBeVisible({ timeout: 5000 });
+
+        // Click the delete button on the first row, accept the confirm dialog
+        page.once('dialog', dialog => dialog.accept());
+        await page.locator('.delete-attachment-btn').first().click();
+
+        // After deletion the table disappears (or "Aucun document" appears) if it was the only row
+        // Either way, the row with "Doc à supprimer" must be gone
+        await page.waitForTimeout(600); // let the fade-out complete
+        const bodyText = await page.locator('#formationAttachments').textContent();
+        expect(bodyText).not.toContain('Doc à supprimer');
+    });
+
+    test('La création sans instructeur fonctionne', async ({ page }) => {
+        await login(page, INSTRUCTOR_USER);
+
+        await page.goto('/index.php/formation_seances_theoriques/create');
+        await expect(page).not.toHaveURL(/login/);
+
+        // Fill required fields — leave instructor empty
+        await page.fill('input[name="date_seance"]', new Date().toISOString().slice(0, 10));
+
+        // Select a type_seance_id (first available option)
+        const typeSelect = page.locator('select[name="type_seance_id"]');
+        await expect(typeSelect).toBeVisible();
+        const options = await typeSelect.locator('option').all();
+        const firstNonEmpty = options.find(async o => (await o.getAttribute('value')) !== '');
+        if (firstNonEmpty) {
+            const val = await (await typeSelect.locator('option').nth(1)).getAttribute('value');
+            await typeSelect.selectOption(val);
+        }
+
+        // Add at least one participant via the hidden input
+        // Use the AJAX endpoint to confirm it works, then inject a participant
+        await page.evaluate(() => {
+            const list = document.getElementById('participants-list');
+            if (!list) return;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'participants[]';
+            input.value = 'abraracourcix';
+            list.appendChild(input);
+        });
+
+        await page.click('button[type="submit"]');
+
+        // Should redirect to detail page (not stay on form with error)
+        await page.waitForLoadState('networkidle');
+        const url = page.url();
+        expect(url).toMatch(/formation_seances_theoriques\/detail\//);
+
+        // Clean up: delete the created seance
+        const match = url.match(/\/detail\/(\d+)/);
+        if (match) {
+            page.once('dialog', d => d.accept());
+            await page.goto(`/index.php/formation_seances_theoriques/delete/${match[1]}`);
+        }
+    });
+
+});
+
 test.describe('Formation – Rapports annuels (Phase 3)', () => {
 
     test('Le rapport annuel consolidé est accessible', async ({ page }) => {
