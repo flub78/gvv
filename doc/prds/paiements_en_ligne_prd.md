@@ -199,7 +199,7 @@ Elle saisit elle-même le montant et la description et effectue le paiement.
 Un pilote connecté souhaite renouveler sa cotisation annuelle du club directement depuis GVV, sans attendre une intervention du trésorier. Le règlement se fait par débit de son compte pilote (411).
 
 **Flux :**
-1. Le pilote accède à "Mon Compte" → "Payer ma cotisation"
+1. Le pilote accède à "Mon Compte" → "Prendre ma cotisation"
 2. Le système affiche les **produits de cotisation** disponibles configurés par le club et son **solde disponible**
 3. Il sélectionne le produit voulu et confirme
 4. Le système vérifie :
@@ -481,7 +481,7 @@ Un pilote connecté dispose d'un solde positif sur son compte pilote et souhaite
 **Critères d'Acceptation :**
 - CA6.1 : Une sous-section "Mes paiements" apparaît dans "Mon espace personnel" du tableau de bord **uniquement si au moins une section du pilote a les paiements en ligne activés** (`paiements_en_ligne_config.enabled = '1'`)
 - CA6.2 : Cartes affichées conditionnellement :
-  - **"Payer ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
+  - **"Prendre ma cotisation"** : toujours présente si la section paiement est active (redirige vers `paiements_en_ligne/cotisation`)
   - **"Payer mes notes de bar [section]"** : présente uniquement si `has_bar = true` pour la section (redirige directement vers `paiements_en_ligne/bar_debit_solde`)
   - **"Approvisionner mon compte [nom section] (CB)"** : une carte par section avec paiements activés (redirige vers `paiements_en_ligne/demande`)
 - CA6.3 : Aucune carte paiement n'apparaît si aucune section n'a les paiements activés

@@ -294,7 +294,7 @@ $this->lang->load('tableaux_de_bord');
                 </div>
 
                 <?php if (!empty($show_pay_cotisation_card)): ?>
-                <!-- Payer ma cotisation -->
+                <!-- Prendre ma cotisation -->
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
                         <i class="fas fa-id-card text-primary"></i>

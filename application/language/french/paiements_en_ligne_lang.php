@@ -115,7 +115,7 @@ $lang['gvv_button_cancel']                  = "Annuler";
 
 // Dashboard — section Mes paiements
 $lang['gvv_dashboard_payments_title']       = "Mes paiements";
-$lang['gvv_dashboard_pay_cotisation']       = "Payer ma cotisation";
+$lang['gvv_dashboard_pay_cotisation']       = "Prendre ma cotisation";
 $lang['gvv_dashboard_pay_cotisation_sub']   = "Renouvellement en ligne";
 $lang['gvv_dashboard_pay_section_active']   = "Section active : %s";
 $lang['gvv_dashboard_pay_section_required'] = "Choisissez une section active";
@@ -134,7 +134,7 @@ $lang['gvv_bar_hub_carte_sub']              = "Payer par carte bancaire via Hell
 $lang['gvv_bar_hub_back']                   = "Retour";
 
 // Cotisation en ligne — pilote (UC3, débit de solde)
-$lang['gvv_cotisation_form_title']          = "Payer ma cotisation";
+$lang['gvv_cotisation_form_title']          = "Prendre ma cotisation";
 $lang['gvv_cotisation_form_intro']          = "Sélectionnez votre cotisation. Le montant sera débité de votre compte pilote.";
 $lang['gvv_cotisation_form_no_produits']    = "Aucune cotisation disponible pour cette section. Contactez votre trésorier.";
 $lang['gvv_cotisation_form_choose']         = "Choisissez votre cotisation";

@@ -14,7 +14,7 @@
 
 * [] Test approfondi gestion des vols avion et ULM.
   
-* [] Génération des certificats de formation
+* [] Génération des certificats de formation et de pilotes VD.
   
 * [] Ajout de vrais export excel en sus des csv.
 

@@ -194,7 +194,7 @@ class Welcome extends Gvv_Controller {
             foreach ($data['user_accounts'] as $account) {
                 $section_id = (int) $account['club'];
                 $section_row = $this->db->where('id', $section_id)->get('sections')->row_array();
-                $has_bar            = !empty($section_row['has_bar']);
+                $has_bar            = !empty($section_row['has_bar']) && !empty($section_row['bar_account_id']);
                 $enabled            = $this->paiements_en_ligne_model->get_config('helloasso', 'enabled', $section_id) === '1';
                 $has_approvisio_par_cb = !empty($section_row['has_approvisio_par_cb']) && $enabled;
                 if ($has_bar || $has_approvisio_par_cb) {
@@ -212,7 +212,7 @@ class Welcome extends Gvv_Controller {
             }
         }
 
-        // Carte "Payer ma cotisation" : visible si la section active possède
+        // Carte "Prendre ma cotisation" : visible si la section active possède
         // au moins un produit de cotisation valide (indépendant de HelloAsso).
         $data['show_pay_cotisation_card'] = false;
         if ($active_section_id > 0) {

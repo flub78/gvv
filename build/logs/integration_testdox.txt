@@ -111,7 +111,7 @@ Briefing Signature
 
 Cartes Member Model
  [x] Get membre returns null for unknown login
- [ ] Get membre returns array for existing login
+ [x] Get membre returns array for existing login
  [x] Get years with cotisation returns array
  [x] Get years with cotisation returned in descending order
  [x] Get membres actifs annee returns array
@@ -185,6 +185,15 @@ Form Elements Integration
  [x] Dropdown field function
  [x] Helper with database integration
 
+Formation Seance Attachments
+ [x] Upload directory exists and is writable
+ [x] Annual subdirectory can be created
+ [x] Attachment insert and retrieve
+ [x] Get attachments by seance id
+ [x] Delete attachment removes record and file
+ [x] Attachment references valid seance
+ [x] Non existent seance id can be detected
+
 Gvvmetadata
  [x] Tables list returns multiple tables
  [x] Each table has primary key
@@ -243,6 +252,17 @@ Log Helper Integration
  [x] Gvv info empty message
  [x] Gvv info with newlines
  [x] Sequential logging
+
+Membre Admin Authorization
+ [x] Constructor requires club admin for delete
+ [x] Constructor requires ca for create and form validation
+ [x] Form validation legacy check is gated by old auth flag
+ [x] Pre update strips identity fields for non club admin
+ [x] Form static element sets has admin rights flag
+ [x] View renders identity fields conditionally
+ [x] Pre update preserves identity fields for club admin
+ [x] Pre update strips identity fields for ca user
+ [x] Club admin role exists in database
 
 My Html Helper Integration
  [x] P basic

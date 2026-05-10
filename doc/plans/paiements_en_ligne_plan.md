@@ -274,7 +274,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - La sous-section n'apparaît que si au moins une section du pilote a `paiements_en_ligne_config.enabled = '1'`
 - Carte "Payer mes notes de bar" : visible si `has_bar = true` ET paiements activés pour la section — redirige directement vers `bar_debit_solde`
 - Carte "Approvisionner mon compte [section] (CB)" : une par section avec paiements activés
-- Carte "Payer ma cotisation" : visible dès qu'une section a les paiements activés
+- Carte "Prendre ma cotisation" : visible dès qu'une section a les paiements activés
 
 **Validation :** ✅ Complète
 - ✅ Implémenté : contrôleur `welcome::index`, vue `bs_dashboard.php`
@@ -412,7 +412,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 **Prérequis :** Le trésorier marque un ou plusieurs tarifs comme "produit de cotisation" via le flag `is_cotisation` dans la gestion des tarifs.
 
 **Flux :**
-1. Pilote accède à "Mon Compte" → "Payer ma cotisation"
+1. Pilote accède à "Mon Compte" → "Prendre ma cotisation"
 2. Affichage des tarifs marqués `is_cotisation=1` et valides à la date du jour, avec le solde disponible
 3. Sélection + confirmation
 4. Vérification : solde ≥ montant (sinon refus), pas de doublon pour l'année (sinon refus)
@@ -583,7 +583,7 @@ Les tests signalés **`[SKIP SI SANDBOX]`** dans ce plan sont concernés par cet
 - Après : visible si `has_bar OR has_vd_par_cb OR has_approvisio_par_cb` sur au moins une section du pilote
 - Carte "Provisionner mon compte" : visible si `has_approvisio_par_cb`
 - Carte "Payer mes notes de bar" : visible si `has_bar` (inchangé)
-- Carte "Payer ma cotisation" : visible si `enabled` (les crédentiels sont là — cette carte ne dépend pas des flags fonctionnels)
+- Carte "Prendre ma cotisation" : visible si `enabled` (les crédentiels sont là — cette carte ne dépend pas des flags fonctionnels)
 
 **Validation :**
 - Playwright : dashboard pilote d'une section `has_vd_par_cb = 1, has_approvisio_par_cb = 0` → carte VD absente du dashboard (VD se passe depuis vols_decouverte/create), carte provisionnement absente
