@@ -53,7 +53,6 @@ class MembreMnumeroModelTest extends TransactionalTestCase
             'msexe'     => 'M',
             'mniveaux'  => 0,
             'macces'    => 0,
-            'club'      => 0,
             'ext'       => 0,
             'actif'     => 1,
             'categorie' => '0',
