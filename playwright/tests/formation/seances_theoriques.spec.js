@@ -162,7 +162,7 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
 
         await page.goto(`/index.php/formation_seances_theoriques/detail/${seanceId}`);
 
-        // Upload a document first so there is something to delete
+        // Upload a document and capture the attachment ID from the AJAX response
         await page.click('#showUploadForm');
         await page.fill('#newAttachmentDescription', 'Doc à supprimer');
 
@@ -171,18 +171,31 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
             page.click('#newAttachmentFile'),
         ]);
         await fileChooser.setFiles(TEST_FILE);
-        await page.click('#saveNewAttachment');
-        await expect(page.locator('#attachmentsTable')).toBeVisible({ timeout: 5000 });
 
-        // Click the delete button on the first row, accept the confirm dialog
+        const [uploadResponse] = await Promise.all([
+            page.waitForResponse(resp => resp.url().includes('ajax_upload_attachment'), { timeout: 8000 }),
+            page.click('#saveNewAttachment'),
+        ]);
+        const uploadJson = await uploadResponse.json();
+        expect(uploadJson.success).toBe(true);
+        const attachmentId = uploadJson.attachment_id;
+
+        // Target the specific row by its attachment ID (immune to leftover rows from previous runs)
+        const targetRow = page.locator(`#attachmentsTable tbody tr[data-attachment-id="${attachmentId}"]`);
+        await expect(targetRow).toBeVisible({ timeout: 5000 });
+
+        // Delete and verify via AJAX response
         page.once('dialog', dialog => dialog.accept());
-        await page.locator('.delete-attachment-btn').first().click();
+        const [deleteResponse] = await Promise.all([
+            page.waitForResponse(resp => resp.url().includes('ajax_delete_attachment'), { timeout: 8000 }),
+            targetRow.locator('.delete-attachment-btn').click(),
+        ]);
 
-        // After deletion the table disappears (or "Aucun document" appears) if it was the only row
-        // Either way, the row with "Doc à supprimer" must be gone
-        await page.waitForTimeout(600); // let the fade-out complete
-        const bodyText = await page.locator('#formationAttachments').textContent();
-        expect(bodyText).not.toContain('Doc à supprimer');
+        const json = await deleteResponse.json();
+        expect(json.success).toBe(true);
+
+        // The specific row must disappear from DOM
+        await expect(targetRow).not.toBeVisible({ timeout: 3000 });
     });
 
     test('La création sans instructeur fonctionne', async ({ page }) => {

@@ -28,7 +28,7 @@ const PLANEUR = '1';
 const ULM = '2';
 const AVION = '3';
 const GENERAL = '4';
-const ALL = '5';
+const ALL = '0';
 
 /**
  * Helper function to get total count from DataTables or visible rows

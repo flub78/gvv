@@ -11,6 +11,7 @@
   
 ## Reste à faire
 
+* [] Ajuster les marges des cartes de membre
 
 * [] Test approfondi gestion des vols avion et ULM.
   
@@ -20,12 +21,7 @@
 
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
-* [] Accepter les paiements en centimes. ou pas ?
-
-* [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
-
-* [] Facture automatique de hangar
-     
+* [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.     
   
 * [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
@@ -44,6 +40,8 @@
 * [] Ajout d'un calendrier des échéances
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
+
+* [] Facture automatique de hangar
 
 * [] Informer le trésorier des renouvellement de cotisation par email
 
