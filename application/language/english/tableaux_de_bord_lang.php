@@ -226,3 +226,7 @@ $lang['db_desc_my_member_card']  = "Download my card";
 // Open a training
 $lang['db_card_open_training']   = "Open a training";
 $lang['db_desc_new_inscription'] = "New enrollment";
+
+// Member merge
+$lang['db_card_fusion_membres'] = "Merge members";
+$lang['db_desc_fusion_membres'] = "Merge two duplicate member accounts";

@@ -1451,6 +1451,15 @@ $this->lang->load('tableaux_de_bord');
                     </div>
                 </div>
 
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger">
+                        <i class="fas fa-code-branch text-danger"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_fusion_membres') ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line('db_desc_fusion_membres') ?></div>
+                        <a href="<?= controller_url('membres_fusion') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+                    </div>
+                </div>
+
                 <!-- Cohérence de la Base de Données -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-database"></i> <?= $this->lang->line('db_sub_db_consistency') ?></h6>

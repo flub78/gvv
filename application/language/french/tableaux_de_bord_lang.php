@@ -226,3 +226,7 @@ $lang['db_desc_my_member_card']  = "Télécharger ma carte";
 // Ouvrir une formation
 $lang['db_card_open_training']   = "Ouvrir une formation";
 $lang['db_desc_new_inscription'] = "Nouvelle inscription";
+
+// Fusion de membres
+$lang['db_card_fusion_membres'] = "Fusion membres";
+$lang['db_desc_fusion_membres'] = "Fusionner deux comptes membres en doublon";

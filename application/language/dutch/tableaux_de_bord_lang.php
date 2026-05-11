@@ -226,3 +226,7 @@ $lang['db_desc_my_member_card']  = "Mijn pas downloaden";
 // Opleiding openen
 $lang['db_card_open_training']   = "Opleiding openen";
 $lang['db_desc_new_inscription'] = "Nieuwe inschrijving";
+
+// Leden samenvoegen
+$lang['db_card_fusion_membres'] = "Leden samenvoegen";
+$lang['db_desc_fusion_membres'] = "Twee dubbele ledenaccounts samenvoegen";
