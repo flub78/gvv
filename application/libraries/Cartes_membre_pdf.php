@@ -271,8 +271,8 @@ class Cartes_membre_pdf extends TCPDF {
      * @param string|null $fond_verso
      */
     public function generate_individuelle(array $data, array $layout, $fond_recto, $fond_verso) {
-        // Position fixe sur A4: 2 mm du bord gauche, 228 mm du haut, sans écart.
-        $cx = 2.0;
+        // Position fixe sur A4: 19 mm du bord gauche, 228 mm du haut, sans écart.
+        $cx = 19.0;
         $cy = 228.0;
 
         $this->AddPage();
