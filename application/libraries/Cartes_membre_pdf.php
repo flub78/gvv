@@ -110,6 +110,69 @@ class Cartes_membre_pdf extends TCPDF {
     }
 
     /**
+     * Affiche une photo en la recadrant centrée si son ratio ne correspond pas
+     * au cadre cible. Supprime une demi-bande de chaque côté (gauche+droite si
+     * trop large, haut+bas si trop haute).
+     *
+     * @param string $photo_path  Chemin absolu vers le fichier image
+     * @param float  $ox          Position X cible (mm)
+     * @param float  $oy          Position Y cible (mm)
+     * @param float  $target_w    Largeur cible (mm)
+     * @param float  $target_h    Hauteur cible (mm)
+     * @param int    $dpi
+     */
+    private function render_photo_cropped($photo_path, $ox, $oy, $target_w, $target_h, $dpi = 150) {
+        $info = @getimagesize($photo_path);
+        if (!$info) {
+            $this->Image($photo_path, $ox, $oy, $target_w, $target_h, '', '', '', false, $dpi, '', false, false, 0);
+            return;
+        }
+
+        $img_w     = $info[0];
+        $img_h     = $info[1];
+        $src_ratio = $img_w / $img_h;
+        $dst_ratio = $target_w / $target_h;
+
+        if (abs($src_ratio - $dst_ratio) < 0.02) {
+            $this->Image($photo_path, $ox, $oy, $target_w, $target_h, '', '', '', false, $dpi, '', false, false, 0);
+            return;
+        }
+
+        switch ($info[2]) {
+            case IMAGETYPE_JPEG: $src = imagecreatefromjpeg($photo_path); break;
+            case IMAGETYPE_PNG:  $src = imagecreatefrompng($photo_path);  break;
+            default:
+                $this->Image($photo_path, $ox, $oy, $target_w, $target_h, '', '', '', false, $dpi, '', false, false, 0);
+                return;
+        }
+
+        if ($src_ratio > $dst_ratio) {
+            // Trop large : supprimer une demi-bande à gauche et à droite
+            $crop_h = $img_h;
+            $crop_w = (int)round($img_h * $dst_ratio);
+            $crop_x = (int)round(($img_w - $crop_w) / 2);
+            $crop_y = 0;
+        } else {
+            // Trop haute : supprimer une demi-bande en haut et en bas
+            $crop_w = $img_w;
+            $crop_h = (int)round($img_w / $dst_ratio);
+            $crop_x = 0;
+            $crop_y = (int)round(($img_h - $crop_h) / 2);
+        }
+
+        $dst = imagecreatetruecolor($crop_w, $crop_h);
+        imagecopy($dst, $src, 0, 0, $crop_x, $crop_y, $crop_w, $crop_h);
+        imagedestroy($src);
+
+        ob_start();
+        imagejpeg($dst, null, 92);
+        $img_data = ob_get_clean();
+        imagedestroy($dst);
+
+        $this->Image('@' . $img_data, $ox, $oy, $target_w, $target_h, 'JPEG', '', '', false, $dpi, '', false, false, 0);
+    }
+
+    /**
      * Dessine une face (recto ou verso) d'une carte à la position absolue donnée.
      *
      * @param array       $face_layout  Entrée 'recto' ou 'verso' du layout JSON décodé
@@ -136,7 +199,7 @@ class Cartes_membre_pdf extends TCPDF {
         // Photo
         if (!empty($face_layout['photo']['enabled']) && !empty($data['photo_path']) && file_exists($data['photo_path'])) {
             $p = $face_layout['photo'];
-            $this->Image($data['photo_path'], $ox + $p['x'], $oy + $p['y'], $p['w'], $p['h'], '', '', '', false, 150, '', false, false, 0);
+            $this->render_photo_cropped($data['photo_path'], $ox + $p['x'], $oy + $p['y'], $p['w'], $p['h']);
         }
     }
 
@@ -200,7 +263,7 @@ class Cartes_membre_pdf extends TCPDF {
         foreach ($cards as $i => $card) {
             if ($i >= self::CARDS_PER_PAGE) break;
             list($x, $y) = $this->card_position($i);
-            $this->render_recto($card, $layout, $fond, $x - 3.0, $y - 1.0);
+            $this->render_recto($card, $layout, $fond, $x - 2.0, $y);
         }
     }
 
@@ -241,7 +304,7 @@ class Cartes_membre_pdf extends TCPDF {
         $mirrored = $this->mirror_for_duplex($cards);
         foreach ($mirrored as $i => $card) {
             list($x, $y) = $this->card_position($i);
-            $this->render_verso($card, $layout, $fond, $x - 1.0, $y - 1.0);
+            $this->render_verso($card, $layout, $fond, $x - 3.0, $y);
         }
     }
 
@@ -271,8 +334,8 @@ class Cartes_membre_pdf extends TCPDF {
      * @param string|null $fond_verso
      */
     public function generate_individuelle(array $data, array $layout, $fond_recto, $fond_verso) {
-        // Position fixe sur A4: 19 mm du bord gauche, 228 mm du haut, sans écart.
-        $cx = 19.0;
+        // Position fixe sur A4: 18 mm du bord gauche, 228 mm du haut, sans écart.
+        $cx = 18.0;
         $cy = 228.0;
 
         $this->AddPage();

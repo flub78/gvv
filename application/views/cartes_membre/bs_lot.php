@@ -208,9 +208,10 @@ document.getElementById('btn-add-membre').addEventListener('click', function() {
     var m = allMembres[login];
     if (!m) return;
 
-    // Déjà dans la table → flash la ligne et décocher/cocher
+    // Déjà dans la table → cocher, flash la ligne et scroller
     var existing = document.querySelector('input[name="membres[]"][value="' + CSS.escape(login) + '"]');
     if (existing) {
+        existing.checked = true;
         var row = existing.closest('tr');
         row.classList.add('table-warning');
         row.scrollIntoView({behavior: 'smooth', block: 'center'});
