@@ -54,9 +54,26 @@ class Users extends Common_Model {
     }
 
     function get_login($login) {
+        $t = $this->_table;
+
+        // 1. Recherche prioritaire par membres.memail (adresse à jour, source fiable).
+        //    INNER JOIN : seuls les utilisateurs ayant une fiche membre sont concernés,
+        //    ce qui évite les faux positifs des comptes de test sans fiche membre.
+        $sql_membre = "SELECT u.*, m.memail AS email
+                       FROM $t u
+                       INNER JOIN membres m ON m.mlogin = u.username
+                       WHERE m.memail = ?
+                       LIMIT 2";
+        $query = $this->db->query($sql_membre, [$login]);
+        if ($query->num_rows() == 1) {
+            return $query;
+        }
+
+        // 2. Fallback : recherche classique par username ou users.email
+        //    (couvre les admins sans fiche membre et la connexion par login).
         $this->db->where('username', $login);
         $this->db->or_where('email', $login);
-        return $this->db->get($this->_table);
+        return $this->db->get($t);
     }
 
     function check_ban($user_id) {
