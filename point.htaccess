@@ -1,8 +1,22 @@
+# GVV — Configuration Apache
+# Copiez ce fichier en .htaccess à la racine de l'application GVV.
+# Ces directives fonctionnent indépendamment du domaine et du sous-dossier
+# dans lequel GVV est déployé.
+#
+# Note : les directives php_value ne sont actives qu'avec Apache + mod_php.
+# Avec PHP-FPM, configurez ces valeurs dans le pool php-fpm.conf.
+
+# Limites pour les opérations de sauvegarde et restauration
+php_value memory_limit 1024M
+php_value max_execution_time 300
+php_value upload_max_filesize 1024M
+php_value post_max_size 1024M
 
 RewriteEngine On
-RewriteBase /citemplate/
+
+# Le répertoire tests/ existe sur disque ; cette règle force son routage
+# vers le contrôleur CI plutôt que vers la liste du répertoire.
+RewriteCond %{REQUEST_URI} /tests(/.*)?$ [OR]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /gvv_dev/index.php/$1 [L]
-
-
+RewriteRule ^(.*)$ index.php/$1 [L]

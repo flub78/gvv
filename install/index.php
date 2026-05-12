@@ -302,6 +302,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     cfg_write($f, 'index_page', '');
                     cfg_write($f, 'uri_protocol', 'REQUEST_URI');
                     cfg_write($f, 'language', $language);
+                    // Copie point.htaccess → .htaccess si point.htaccess existe
+                    $src_ht  = ROOT . '/point.htaccess';
+                    $dest_ht = ROOT . '/.htaccess';
+                    if (file_exists($src_ht)) {
+                        if (!copy($src_ht, $dest_ht)) {
+                            $notices[] = 'Impossible de créer <code>.htaccess</code> automatiquement — copiez manuellement <code>point.htaccess</code>.';
+                        }
+                    }
                     $step = 4;
                 }
                 break;
@@ -741,6 +749,40 @@ body { background: #f0f4f8; }
       <?php endforeach; ?>
     </select>
   </div>
+
+  <?php
+  $htaccess_src  = ROOT . '/point.htaccess';
+  $htaccess_dest = ROOT . '/.htaccess';
+  $htaccess_content = file_exists($htaccess_src) ? file_get_contents($htaccess_src) : '';
+  $htaccess_exists  = file_exists($htaccess_dest);
+  ?>
+
+  <div class="mt-4 mb-3">
+    <h6 class="fw-semibold mb-1"><i class="fas fa-file-code text-primary me-2"></i>Réécriture d'URL — <code>.htaccess</code></h6>
+    <p class="text-muted small mb-2">
+      Le fichier <code>index_page</code> est mis à vide pour activer les URL propres.
+      <code>point.htaccess</code> sera recopié automatiquement en <code>.htaccess</code> à la validation.
+      <?= $htaccess_exists
+          ? 'Un fichier <code>.htaccess</code> existe déjà et sera écrasé.'
+          : 'Aucun <code>.htaccess</code> détecté — il sera créé.' ?>
+    </p>
+    <div class="position-relative">
+      <pre id="htaccess-content" class="bg-dark text-light rounded p-3 small mb-1" style="white-space:pre-wrap;max-height:220px;overflow-y:auto"><?= h($htaccess_content) ?></pre>
+      <button type="button" onclick="copyHtaccess()" class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2" id="copy-btn">
+        <i class="fas fa-copy me-1"></i>Copier
+      </button>
+    </div>
+  </div>
+  <script>
+  function copyHtaccess() {
+    var text = document.getElementById('htaccess-content').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.getElementById('copy-btn');
+      btn.innerHTML = '<i class="fas fa-check me-1"></i>Copié !';
+      setTimeout(function(){ btn.innerHTML = '<i class="fas fa-copy me-1"></i>Copier'; }, 2000);
+    });
+  }
+  </script>
 
   <div class="d-flex justify-content-between mt-4">
     <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">

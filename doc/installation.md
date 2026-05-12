@@ -33,7 +33,7 @@ Certaines étapes se font avec l'interface graphique d'Hestia.
 
 Hestia Control Panel allows you to change the PHP version used by the domain.
 
-** By default, the latest version of PHP will be used. To change the PHP version, go to the WEB section - click the Edit domain icon - click the Additional options button - select the desired version in the Backend PHP-FPM template field - click the Save button. **
+**By default, the latest version of PHP will be used. To change the PHP version, go to the WEB section - click the Edit domain icon - click the Additional options button - select the desired version in the Backend PHP-FPM template field - click the Save button.**
 
 ### Configurer le serveur WEB, Apache ou Nginx, 
 
