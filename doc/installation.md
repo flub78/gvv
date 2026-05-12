@@ -48,30 +48,98 @@ Installez MySql et créez une base de données.
 
 Notez que pour les utilisateurs de Hestia Control Panel, il est possible de réaliser ces étapes directement depuis l'interface web.
 
+![Création de la base sous Hestia Control Panel](./images/hestia_database.png)
+
+Une fois la base crée elle pourra être accédée avec les identifiants que vous avez choisi.
+
+```https://hcp.mondomaine/phpmyadmin/```
+
+### Configurer l'accès ssh
+
+Vous en aurez besoin pour télécharger GVV et configurer les fichiers de configuration, et surtout pour faire les mise à jour de GVV.
+
+    * Créer les fichier nécessaires dans ~/.ssh
+    * Ajouter votre clé publique dans ~/.ssh/authorized_keys
+    * Configurer les droits d'accès sur les fichiers et répertoires ~/.ssh
+    * Ajouter un shell dans /etc/passwd pour votre utilisateur, par exemple /bin/bash
+   
+Editer /etc/ssh/sshd_config
+
+```
+                # override default of no subsystems
+                Subsystem sftp internal-sftp
+
+                # Example of overriding settings on a per-user basis
+                #Match User anoncvs
+                #       X11Forwarding no
+                #       AllowTcpForwarding no
+                #       PermitTTY no
+                #       ForceCommand cvs server
+
+
+                # Hestia SFTP Chroot
+                Match User sftp_dummy99,admin,planeur
+                    ChrootDirectory /srv/jail/%u
+                    X11Forwarding no
+                    AllowTCPForwarding no
+                    ForceCommand internal-sftp -d /home/%u
+
+                Match User frederic,aeroclub
+                    ForceCommand none
+                    PermitTTY yes
+                    AllowTcpForwarding yes
+```
+
+```
+systemctl reload sshd
+```
+
+
 ### Téléchargez GVV
 
 Connectez vous à votre serveur avec SSH et allez dans le répertoire web. Dans mon cas ~/web/gvvg.flub78.net.
 
 Donnez les droits d'écriture sur le répertoire.
 
-git clone https://github.com/flub78/gvv.git
+git clone https://github.com/flub78/gvv.git public_html
 
-Renommez le répertoire gvv en public_html
-
-Vérifiez l'accès https://gvvg.flub78.net/install/
-
-![Image fenetre installation](./images/installation1.png)
-
-
-### Vérifiez la base de données
+### Créez la base de données
 
 ![Créez une base de données](./images/new_database.png)
 
-    cp database.example.php database.php
+### Lancer le programme d'installation
 
-    vi database.php
+```
+https://gvvg.flub78.net/install/
+```
 
-Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
+#### Étape 1 — Prérequis
+
+![Etape 1](./images/install_1.png)
+
+#### Étape 2 — Configuration de la base de données
+
+![Etape 2](./images/install_2.png)
+
+#### Étape 3 — URL de l'application
+
+![Etape 3](./images/install_3.png)
+
+#### Étape 6 — Fonctionnalités
+
+![Etape 6](./images/install_6.png)
+
+#### Étape 8 — Initialisation de la base de données
+
+![Etape 8](./images/install_8.png)
+
+#### Étape 9 — Répertoires & droits
+
+![Etape 9](./images/install_9.png)
+
+#### Étape 10 — Installation terminée
+
+![Etape 10](./images/install_10.png)
 
 ### Étapes additionnelles
 
@@ -94,6 +162,7 @@ Il faut changer, le nom de la base, l'utilisateur et le mot de passe.
 Dans le fichier config.php, mettre à jour:
 
 * base_url
+* index_php (si vous voulez supprimer index.php de l'url)
 * google_account
   
 Dans le fichier club.php, mettre à jour ce qui vous intéresse. Notez que le les paramètres de config club peuvent également être modifiés dans l'application.
