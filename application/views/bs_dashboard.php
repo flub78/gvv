@@ -665,10 +665,10 @@ $this->lang->load('tableaux_de_bord');
 
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center">
-                        <i class="fas fa-credit-card text-warning"></i>
+                        <i class="fas fa-credit-card text-primary"></i>
                         <div class="card-title"><?= $this->lang->line('gvv_paiement_generique_menu') ?></div>
                         <div class="card-text text-muted">HelloAsso</div>
-                        <a href="<?= controller_url('paiements_en_ligne/paiement_generique') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
+                        <a href="<?= controller_url('paiements_en_ligne/paiement_generique') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
                     </div>
                 </div>
 

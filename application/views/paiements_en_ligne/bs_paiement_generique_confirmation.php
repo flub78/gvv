@@ -9,7 +9,7 @@
 <div id="body" class="body container-fluid">
 
 <div class="alert alert-success mt-3" style="max-width: 560px;">
-    <h4 class="alert-heading"><i class="fas fa-check-circle"></i> <?= $this->lang->line('gvv_decouverte_payment_pending') ?></h4>
+    <h4 class="alert-heading"><i class="fas fa-check-circle"></i> <?= $this->lang->line('gvv_paiement_generique_confirmed') ?></h4>
     <?php if (!empty($meta['description'])): ?>
         <hr>
         <p class="mb-0"><?= htmlspecialchars($meta['description']) ?></p>

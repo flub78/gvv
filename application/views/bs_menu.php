@@ -385,7 +385,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
               <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><i class="fas fa-file-invoice text-info"></i> <?= translation("gvv_menu_entries_pilot_billing") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/saisie_cotisation") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_membership_fee") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><i class="fas fa-receipt text-success"></i> <?= translation("gvv_menu_entries_supplier_credit") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/paiement_generique") ?>"><i class="fas fa-credit-card text-warning"></i> <?= translation("gvv_paiement_generique_menu") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/paiement_generique") ?>"><i class="fas fa-credit-card text-primary"></i> <?= translation("gvv_paiement_generique_menu") ?></a></li>
 
               <li>
                 <hr class="dropdown-divider">

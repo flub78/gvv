@@ -289,6 +289,7 @@ $lang['gvv_paiement_generique_qr_new']                = "Nieuwe betaling";
 $lang['gvv_paiement_generique_cancel']                = "Dit verzoek annuleren";
 $lang['gvv_paiement_generique_cancel_confirm']        = "Dit betalingsverzoek annuleren?";
 $lang['gvv_paiement_generique_cancel_success']        = "Betalingsverzoek geannuleerd.";
+$lang['gvv_paiement_generique_confirmed']             = "Betaling geregistreerd.";
 $lang['gvv_paiement_generique_confirm_email_subject'] = "Betaling ontvangen: %s";
 $lang['gvv_paiement_generique_confirm_email_body']    = "Een generieke betaling is ontvangen via HelloAsso.\n\nBeschrijving: %s\nBedrag: %s €\nDatum: %s\n\nDe boekhoudkundige inschrijving is automatisch aangemaakt.";
 // Kolommen en filters van de lijst

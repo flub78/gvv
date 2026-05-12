@@ -287,6 +287,7 @@ $lang['gvv_paiement_generique_qr_new']                = "Nouveau paiement";
 $lang['gvv_paiement_generique_cancel']                = "Annuler cette demande";
 $lang['gvv_paiement_generique_cancel_confirm']        = "Annuler cette demande de paiement ?";
 $lang['gvv_paiement_generique_cancel_success']        = "Demande de paiement annulée.";
+$lang['gvv_paiement_generique_confirmed']             = "Paiement enregistré.";
 $lang['gvv_paiement_generique_confirm_email_subject'] = "Paiement reçu : %s";
 $lang['gvv_paiement_generique_confirm_email_body']    = "Un paiement générique a été reçu via HelloAsso.\n\nDescription : %s\nMontant : %s €\nDate : %s\n\nL'écriture comptable a été créée automatiquement.";
 // Colonnes et filtres du listing
