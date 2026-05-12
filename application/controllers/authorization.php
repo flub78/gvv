@@ -112,9 +112,9 @@ class Authorization extends CI_Controller {
         $data['recent_audits'] = $this->authorization_model->get_audit_log(array(), 10);
 
         // Check if new system is enabled
-        $this->config->load('gvv_config', TRUE);
+        $this->config->load('gvv_config', TRUE, TRUE);
         $config = $this->config->item('gvv_config');
-        $data['new_system_enabled'] = isset($config['use_new_authorization']) ? $config['use_new_authorization'] : FALSE;
+        $data['new_system_enabled'] = isset($config['use_new_authorization']) ? $config['use_new_authorization'] : TRUE;
 
         load_last_view('authorization/dashboard', $data);
     }

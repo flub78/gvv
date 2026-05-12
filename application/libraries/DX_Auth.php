@@ -423,8 +423,9 @@ class DX_Auth {
         // Auto-detect new-auth users who arrive via controllers that don't extend Gvv_Controller
         // (e.g. CI_Controller subclasses like FFVV, Adherents_report)
         if (!$this->skip_uri_check && $this->is_logged_in()) {
-            $this->ci->config->load('gvv_config', TRUE);
+            $this->ci->config->load('gvv_config', TRUE, TRUE);
             $use_new = $this->ci->config->item('use_new_authorization', 'gvv_config');
+            if ($use_new === FALSE || $use_new === NULL) $use_new = TRUE;
             if (!$use_new) {
                 try {
                     $username = $this->get_username();

@@ -35,9 +35,9 @@ class Gvv_Authorization
         $this->CI->load->model('authorization_model');
 
         // Load feature flag from config
-        $this->CI->config->load('gvv_config', TRUE);
+        $this->CI->config->load('gvv_config', TRUE, TRUE);
         $config = $this->CI->config->item('gvv_config');
-        $this->use_new_system = isset($config['use_new_authorization']) ? $config['use_new_authorization'] : FALSE;
+        $this->use_new_system = isset($config['use_new_authorization']) ? $config['use_new_authorization'] : TRUE;
 
         log_message('debug', 'Gvv_Authorization library initialized (new_system=' . ($this->use_new_system ? 'true' : 'false') . ')');
     }
