@@ -103,7 +103,7 @@
 
     <div class="d-flex gap-2 mt-3">
         <button type="submit" name="button" value="valider" class="btn btn-primary">
-            <i class="fas fa-qrcode"></i> <?= $this->lang->line('gvv_paiement_generique_btn_create') ?>
+            <i class="fas fa-credit-card"></i> <?= $this->lang->line('gvv_paiement_generique_btn_create') ?>
         </button>
         <a href="<?= site_url('paiements_en_ligne/liste') ?>" class="btn btn-secondary">
             <?= $this->lang->line('gvv_button_cancel') ?>

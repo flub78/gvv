@@ -264,6 +264,22 @@ Membre Admin Authorization
  [x] Pre update strips identity fields for ca user
  [x] Club admin role exists in database
 
+Membres Fusion
+ [x] Analyse rapport comptes et soldes
+ [x] Fusion fiche membre
+ [x] Fusion conserve destination
+ [x] Exhaustivite aucune reference source apres
+ [x] Conservation soldes compte 411 sans conflit
+ [x] Merge comptes 411 meme section
+ [x] Invariant nombre ecritures total
+ [x] Conflits unicite formation seances participants
+ [x] Atomicite fusion rollback sur erreur
+ [x] Membre payeur propagation
+ [x] Reaffectation events
+ [x] Acces restreint dev user structure
+ [x] Dashboard contient carte fusion
+ [x] Analyse membres vierges
+
 My Html Helper Integration
  [x] P basic
  [x] P with attributes

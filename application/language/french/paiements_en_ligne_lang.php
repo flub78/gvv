@@ -260,14 +260,14 @@ $lang['gvv_decouverte_already_paid']        = "Ce bon a déjà été payé.";
 
 // Paiement générique par QR code (trésorier)
 $lang['gvv_paiement_generique_menu']                  = "Paiement générique";
-$lang['gvv_paiement_generique_title']                 = "Créer un paiement par QR code";
-$lang['gvv_paiement_generique_intro']                 = "Générez un lien de paiement HelloAsso pour n'importe quel encaissement. L'écriture comptable sera créée automatiquement à réception du paiement.";
+$lang['gvv_paiement_generique_title']                 = "Paiement par carte";
+$lang['gvv_paiement_generique_intro']                 = "Créez un paiement HelloAsso par carte bancaire. L'écriture comptable sera créée automatiquement à réception du paiement.";
 $lang['gvv_paiement_generique_field_montant']         = "Montant (€)";
 $lang['gvv_paiement_generique_field_description']     = "Description";
 $lang['gvv_paiement_generique_field_description_help']= "Libellé repris dans l'écriture comptable et dans le listing. Max 255 caractères.";
 $lang['gvv_paiement_generique_field_compte']          = "Compte comptable à créditer";
 $lang['gvv_paiement_generique_field_email']           = "Email du payeur (optionnel)";
-$lang['gvv_paiement_generique_btn_create']            = "Générer le lien de paiement";
+$lang['gvv_paiement_generique_btn_create']            = "Approvisionner par carte";
 $lang['gvv_paiement_generique_error_montant']         = "Le montant est obligatoire et doit être compris entre %s € et %s €.";
 $lang['gvv_paiement_generique_error_description']     = "La description est obligatoire (max 255 caractères).";
 $lang['gvv_paiement_generique_error_compte']          = "Veuillez sélectionner un compte comptable.";

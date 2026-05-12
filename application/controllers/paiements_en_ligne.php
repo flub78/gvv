@@ -1295,7 +1295,40 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
-        redirect('paiements_en_ligne/paiement_generique_checkout/' . $txid);
+        // Créer le checkout HelloAsso et rediriger directement
+        $checkout = $this->helloasso->create_checkout($club_id, array(
+            'amount'      => $montant,
+            'item_name'   => $description,
+            'payer_email' => $payer_email,
+            'return_url'  => site_url('paiements_en_ligne/paiement_generique_confirmation/' . $txid),
+            'back_url'    => site_url('paiements_en_ligne/paiement_generique'),
+            'error_url'   => site_url('paiements_en_ligne/paiement_generique'),
+            'metadata'    => $meta,
+        ));
+
+        if (!$checkout['success']) {
+            $this->paiements_en_ligne_model->update_transaction_status($txid, 'failed');
+            $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_checkout'));
+            redirect('paiements_en_ligne/paiement_generique');
+            return;
+        }
+
+        if (!empty($checkout['session_id'])) {
+            $this->paiements_en_ligne_model->attach_checkout_info(
+                $txid,
+                $checkout['session_id'],
+                isset($checkout['redirect_url']) ? $checkout['redirect_url'] : null
+            );
+        }
+
+        $checkout_url = isset($checkout['redirect_url']) ? $checkout['redirect_url'] : '';
+        if (empty($checkout_url)) {
+            $this->session->set_flashdata('error', $this->lang->line('gvv_paiement_generique_error_checkout'));
+            redirect('paiements_en_ligne/paiement_generique');
+            return;
+        }
+
+        redirect($checkout_url);
     }
 
     /**

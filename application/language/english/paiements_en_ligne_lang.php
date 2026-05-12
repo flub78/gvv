@@ -262,14 +262,14 @@ $lang['gvv_decouverte_email_subject']               = "Discovery voucher confirm
 
 // Generic QR code payment (treasurer)
 $lang['gvv_paiement_generique_menu']                  = "Generic payment";
-$lang['gvv_paiement_generique_title']                 = "Create a QR code payment";
-$lang['gvv_paiement_generique_intro']                 = "Generate a HelloAsso payment link for any collection. The accounting entry will be created automatically upon receipt of payment.";
+$lang['gvv_paiement_generique_title']                 = "Card payment";
+$lang['gvv_paiement_generique_intro']                 = "Create a HelloAsso card payment. The accounting entry will be created automatically upon receipt of payment.";
 $lang['gvv_paiement_generique_field_montant']         = "Amount (€)";
 $lang['gvv_paiement_generique_field_description']     = "Description";
 $lang['gvv_paiement_generique_field_description_help']= "Label used in the accounting entry and in the listing. Max 255 characters.";
 $lang['gvv_paiement_generique_field_compte']          = "Account to credit";
 $lang['gvv_paiement_generique_field_email']           = "Payer email (optional)";
-$lang['gvv_paiement_generique_btn_create']            = "Generate payment link";
+$lang['gvv_paiement_generique_btn_create']            = "Pay by card";
 $lang['gvv_paiement_generique_error_montant']         = "Amount is required and must be between %s € and %s €.";
 $lang['gvv_paiement_generique_error_description']     = "Description is required (max 255 characters).";
 $lang['gvv_paiement_generique_error_compte']          = "Please select an accounting account.";

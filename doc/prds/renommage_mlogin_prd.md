@@ -28,6 +28,7 @@ L'utilisateur choisit :
 Le nouvel identifiant doit être validé avant soumission :
 - Non vide.
 - Ne contient que des caractères alphanumériques, tirets et underscores.
+- pas uniquement des nombres.
 - N'existe pas déjà dans la table `membres` ni dans la table `dx_auth` des utilisateurs.
 
 ### Analyse préalable (rapport de prévisualisation)

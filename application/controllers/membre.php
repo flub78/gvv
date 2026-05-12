@@ -1130,6 +1130,131 @@ class Membre extends Gvv_Controller {
         redirect($this->controller . "/page");
     }
 
+
+    /**
+     * Check if current user is a dev_user
+     * @return bool
+     */
+    private function _is_dev_user() {
+        $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+        return in_array($this->dx_auth->get_username(), $dev_users);
+    }
+
+    /**
+     * Rename member login (mlogin) - restricted to dev_users only
+     * Handles 3-step workflow: selection -> preview -> confirmation
+     */
+    public function renommer() {
+        // Check dev_user authorization
+        if (!$this->_is_dev_user()) {
+            show_error('Accès réservé aux utilisateurs développeurs.', 403);
+            return;
+        }
+
+        $this->load->model('membres_model');
+        $this->lang->load('gvv');
+
+        // Step 1: Display selection form (GET)
+        if ($this->input->server('REQUEST_METHOD') === 'GET') {
+            $data['title'] = 'Renommer un membre';
+            $data['membres_selector'] = $this->membres_model->get_selector();
+            
+            $this->load->view('header', $data);
+            $this->load->view('membres/renommer_form', $data);
+            $this->load->view('footer');
+            return;
+        }
+
+        // Step 2 or 3: POST handling
+        $step = $this->input->post('step');
+
+        if ($step === 'preview') {
+            // Step 2: Preview impact
+            $old_mlogin = $this->input->post('old_mlogin');
+            $new_mlogin = trim($this->input->post('new_mlogin'));
+
+            // Validate inputs
+            if (empty($old_mlogin) || empty($new_mlogin)) {
+                $this->session->set_flashdata('error', 'Veuillez sélectionner un membre et saisir un nouvel identifiant.');
+                redirect('membre/renommer');
+                return;
+            }
+
+            // Validate new mlogin format and uniqueness
+            $validation = $this->membres_model->validate_new_mlogin($new_mlogin, $old_mlogin);
+            if (!$validation['valid']) {
+                $this->session->set_flashdata('error', implode('<br>', $validation['errors']));
+                redirect('membre/renommer');
+                return;
+            }
+
+            // Generate preview
+            $preview = $this->membres_model->preview_rename($old_mlogin, $new_mlogin);
+            
+            if (isset($preview['error'])) {
+                $this->session->set_flashdata('error', $preview['error']);
+                redirect('membre/renommer');
+                return;
+            }
+
+            // Display preview
+            $data['title'] = 'Prévisualisation du renommage';
+            $data['preview'] = $preview;
+            
+            $this->load->view('header', $data);
+            $this->load->view('membres/renommer_preview', $data);
+            $this->load->view('footer');
+            return;
+        }
+
+        if ($step === 'execute') {
+            // Step 3: Execute rename
+            $old_mlogin = $this->input->post('old_mlogin');
+            $new_mlogin = trim($this->input->post('new_mlogin'));
+
+            // Validate inputs again (security)
+            if (empty($old_mlogin) || empty($new_mlogin)) {
+                $this->session->set_flashdata('error', 'Données invalides.');
+                redirect('membre/renommer');
+                return;
+            }
+
+            // Validate new mlogin again (security)
+            $validation = $this->membres_model->validate_new_mlogin($new_mlogin, $old_mlogin);
+            if (!$validation['valid']) {
+                $this->session->set_flashdata('error', implode('<br>', $validation['errors']));
+                redirect('membre/renommer');
+                return;
+            }
+
+            // Execute atomic rename
+            $performed_by = $this->dx_auth->get_username();
+            $result = $this->membres_model->execute_rename($old_mlogin, $new_mlogin, $performed_by);
+
+            // Display result
+            $data['title'] = 'Résultat du renommage';
+            $data['result'] = $result;
+            $data['old_mlogin'] = $old_mlogin;
+            $data['new_mlogin'] = $new_mlogin;
+            $data['performed_by'] = $performed_by;
+            
+            // Set flash message
+            if ($result['success']) {
+                $this->session->set_flashdata('success', $result['message']);
+            } else {
+                $this->session->set_flashdata('error', $result['message']);
+            }
+
+            $this->load->view('header', $data);
+            $this->load->view('membres/renommer_result', $data);
+            $this->load->view('footer');
+            return;
+        }
+
+        // Invalid step
+        show_error('Étape invalide.', 400);
+    }
+
     /**
      * Synchronise les noms des comptes 411 avec les membres anonymisés
      * Corrige les incohérences après anonymisation

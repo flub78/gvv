@@ -463,6 +463,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
               <li><a class="dropdown-item" href="https://legacy.datatables.net/api.html"><i class="fas fa-file-alt text-info"></i> Datatable 1.9.4</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('oneshot') ?>"><i class="fas fa-bolt text-danger"></i> Opérations One-Shot</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="<?= controller_url('membres_fusion') ?>"><i class="fas fa-code-branch text-danger"></i> Fusion de membres</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('membre/renommer') ?>"><i class="fas fa-edit text-warning"></i> Renommer un membre</a></li>
             </ul>
           </li>
         <?php endif; ?>

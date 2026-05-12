@@ -743,6 +743,262 @@ class Membres_model extends Common_Model {
 
         return parent::create($data);
     }
+
+    /**
+     * Tables referencing mlogin as foreign key
+     * Format: table_name => [column1, column2, ...]
+     */
+    const REFERENCING_TABLES = [
+        'events' => ['emlogin'],
+        'volsa' => ['vapilid', 'vainst'],
+        'volsp' => ['vppilid', 'vpinst', 'pilote_remorqueur'],
+        'tickets' => ['pilote'],
+        'achats' => ['pilote'],
+        'pompes' => ['ppilid'],
+        'calendar' => ['mlogin'],
+        'reservations' => ['pilot_member_id', 'instructor_member_id'],
+        'formation_seances' => ['pilote_id', 'instructeur_id'],
+        'formation_autorisations_solo' => ['eleve_id', 'instructeur_id'],
+        'formation_seances_theoriques' => ['membre'],
+        'acceptance_records' => ['user_login', 'linked_pilot_login'],
+        'acceptance_items' => ['created_by'],
+        'archived_documents' => ['membre'],
+        'email_list_members' => ['membre_id'],
+        'paiements_en_ligne' => ['membre_login'],
+        'dx_auth_users' => ['username']
+    ];
+
+    /**
+     * Validate a new mlogin value
+     *
+     * @param string $new_mlogin New login to validate
+     * @param string $old_mlogin Current login (to exclude from uniqueness check)
+     * @return array ['valid' => bool, 'errors' => array of error messages]
+     */
+    public function validate_new_mlogin($new_mlogin, $old_mlogin) {
+        $errors = [];
+
+        // Check not empty
+        if (empty($new_mlogin)) {
+            $errors[] = "Le nouvel identifiant ne peut pas être vide.";
+        }
+
+        // Check format: only alphanumeric, dash, underscore
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $new_mlogin)) {
+            $errors[] = "L'identifiant ne peut contenir que des lettres, chiffres, tirets et underscores.";
+        }
+
+        // Check not purely numeric
+        if (is_numeric($new_mlogin)) {
+            $errors[] = "L'identifiant ne peut pas être uniquement numérique.";
+        }
+
+        // Check uniqueness in membres table
+        if ($new_mlogin !== $old_mlogin) {
+            $count = $this->db->where('mlogin', $new_mlogin)->count_all_results('membres');
+            if ($count > 0) {
+                $errors[] = "Cet identifiant existe déjà dans la table membres.";
+            }
+        }
+
+        // Check uniqueness in dx_auth_users table
+        if ($new_mlogin !== $old_mlogin) {
+            $count = $this->db->where('username', $new_mlogin)->count_all_results('users');
+            if ($count > 0) {
+                $errors[] = "Cet identifiant existe déjà dans la table des utilisateurs (dx_auth).";
+            }
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors
+        ];
+    }
+
+    /**
+     * Preview the impact of renaming a member login
+     *
+     * @param string $old_mlogin Current login
+     * @param string $new_mlogin New login
+     * @return array Impact details including member info, affected tables, sample records
+     */
+    public function preview_rename($old_mlogin, $new_mlogin) {
+        $preview = [
+            'old_mlogin' => $old_mlogin,
+            'new_mlogin' => $new_mlogin,
+            'member_info' => null,
+            'dx_auth_exists' => false,
+            'affected_tables' => [],
+            'sample_records' => [],
+            'total_records' => 0
+        ];
+
+        // Get member information
+        $member = $this->get_by_id('mlogin', $old_mlogin);
+        if (!$member) {
+            $preview['error'] = "Membre introuvable: $old_mlogin";
+            return $preview;
+        }
+        $preview['member_info'] = $member;
+
+        // Check for dx_auth account
+        $dx_auth_count = $this->db->where('username', $old_mlogin)->count_all_results('users');
+        $preview['dx_auth_exists'] = ($dx_auth_count > 0);
+
+        // Count affected records in each referencing table
+        foreach (self::REFERENCING_TABLES as $table => $columns) {
+            foreach ($columns as $column) {
+                $this->db->where($column, $old_mlogin);
+                $count = $this->db->count_all_results($table);
+                
+                if ($count > 0) {
+                    $preview['affected_tables'][] = [
+                        'table' => $table,
+                        'column' => $column,
+                        'count' => $count
+                    ];
+                    $preview['total_records'] += $count;
+                }
+            }
+        }
+
+        // Get sample significant records
+        // Recent flights (planeur)
+        $volsp = $this->db->select('vpdate, vpdecol, vpatterr, vptype')
+            ->from('volsp')
+            ->where_in('vppilid', $old_mlogin)
+            ->or_where('vpinst', $old_mlogin)
+            ->or_where('pilote_remorqueur', $old_mlogin)
+            ->order_by('vpdate', 'DESC')
+            ->limit(3)
+            ->get()
+            ->result_array();
+        
+        if (!empty($volsp)) {
+            $preview['sample_records']['vols_planeur'] = $volsp;
+        }
+
+        // Recent flights (avion)
+        $volsa = $this->db->select('vadate, vadecol, vaatterr')
+            ->from('volsa')
+            ->where_in('vapilid', $old_mlogin)
+            ->or_where('vainst', $old_mlogin)
+            ->order_by('vadate', 'DESC')
+            ->limit(3)
+            ->get()
+            ->result_array();
+        
+        if (!empty($volsa)) {
+            $preview['sample_records']['vols_avion'] = $volsa;
+        }
+
+        // Recent tickets
+        $tickets = $this->db->select('tdate, tprix, tcommentaire')
+            ->from('tickets')
+            ->where('pilote', $old_mlogin)
+            ->order_by('tdate', 'DESC')
+            ->limit(3)
+            ->get()
+            ->result_array();
+        
+        if (!empty($tickets)) {
+            $preview['sample_records']['tickets'] = $tickets;
+        }
+
+        return $preview;
+    }
+
+    /**
+     * Execute atomic rename of member login across all referencing tables
+     *
+     * @param string $old_mlogin Current login
+     * @param string $new_mlogin New login
+     * @param string $performed_by Username of dev_user performing the operation
+     * @return array ['success' => bool, 'message' => string, 'stats' => array]
+     */
+    public function execute_rename($old_mlogin, $new_mlogin, $performed_by) {
+        $stats = [];
+        $total_updated = 0;
+
+        // Start transaction
+        $this->db->trans_start();
+
+        try {
+            // Update all referencing tables FIRST (before primary key change)
+            foreach (self::REFERENCING_TABLES as $table => $columns) {
+                foreach ($columns as $column) {
+                    // Check if records exist before updating
+                    $count = $this->db->where($column, $old_mlogin)->count_all_results($table);
+                    
+                    if ($count > 0) {
+                        // Perform update
+                        $this->db->where($column, $old_mlogin);
+                        $this->db->update($table, [$column => $new_mlogin]);
+                        
+                        $affected = $this->db->affected_rows();
+                        $stats[$table][$column] = $affected;
+                        $total_updated += $affected;
+                    }
+                }
+            }
+
+            // Update primary key in membres table LAST
+            $this->db->where('mlogin', $old_mlogin);
+            $this->db->update('membres', ['mlogin' => $new_mlogin]);
+            
+            $membres_affected = $this->db->affected_rows();
+            $stats['membres']['mlogin'] = $membres_affected;
+            $total_updated += $membres_affected;
+
+            // Complete transaction
+            $this->db->trans_complete();
+
+            // Check transaction status
+            if ($this->db->trans_status() === FALSE) {
+                // Transaction failed, rollback occurred
+                log_message('error', "RENAME_MEMBER: Transaction failed for {$old_mlogin} -> {$new_mlogin}");
+                
+                return [
+                    'success' => false,
+                    'message' => "Erreur lors du renommage : la transaction a échoué. Aucune modification n'a été appliquée.",
+                    'stats' => []
+                ];
+            }
+
+            // Transaction successful - log the operation
+            $log_data = [
+                'user' => $performed_by,
+                'old_mlogin' => $old_mlogin,
+                'new_mlogin' => $new_mlogin,
+                'tables_updated' => $stats,
+                'total_records' => $total_updated,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+            
+            log_message('info', 'RENAME_MEMBER: ' . json_encode($log_data));
+
+            return [
+                'success' => true,
+                'message' => "Renommage réussi : $total_updated enregistrements mis à jour.",
+                'stats' => $stats,
+                'total_updated' => $total_updated
+            ];
+
+        } catch (Exception $e) {
+            // Exception caught - ensure transaction is rolled back
+            if ($this->db->trans_status() !== FALSE) {
+                $this->db->trans_rollback();
+            }
+            
+            log_message('error', "RENAME_MEMBER: Exception during rename {$old_mlogin} -> {$new_mlogin}: " . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'message' => "Erreur lors du renommage : " . $e->getMessage(),
+                'stats' => []
+            ];
+        }
+    }
 }
 
 /* End of file membres_model.php */

@@ -262,14 +262,14 @@ $lang['gvv_decouverte_email_subject']               = "Discoveriebon bevestigd";
 
 // Generieke QR-codebetaling (penningmeester)
 $lang['gvv_paiement_generique_menu']                  = "Generieke betaling";
-$lang['gvv_paiement_generique_title']                 = "QR-codebetaling aanmaken";
-$lang['gvv_paiement_generique_intro']                 = "Genereer een HelloAsso-betaallink voor elke inning. De boekhoudkundige inschrijving wordt automatisch aangemaakt bij ontvangst van de betaling.";
+$lang['gvv_paiement_generique_title']                 = "Betaling per kaart";
+$lang['gvv_paiement_generique_intro']                 = "Maak een HelloAsso-kaartbetaling aan. De boekhoudkundige inschrijving wordt automatisch aangemaakt bij ontvangst van de betaling.";
 $lang['gvv_paiement_generique_field_montant']         = "Bedrag (€)";
 $lang['gvv_paiement_generique_field_description']     = "Beschrijving";
 $lang['gvv_paiement_generique_field_description_help']= "Label gebruikt in de boeking en in de lijst. Max 255 tekens.";
 $lang['gvv_paiement_generique_field_compte']          = "Te crediteren rekening";
 $lang['gvv_paiement_generique_field_email']           = "E-mail betaler (optioneel)";
-$lang['gvv_paiement_generique_btn_create']            = "Betaallink aanmaken";
+$lang['gvv_paiement_generique_btn_create']            = "Betalen per kaart";
 $lang['gvv_paiement_generique_error_montant']         = "Bedrag is verplicht en moet tussen %s € en %s € liggen.";
 $lang['gvv_paiement_generique_error_description']     = "Beschrijving is verplicht (max 255 tekens).";
 $lang['gvv_paiement_generique_error_compte']          = "Selecteer een boekhoudrekening.";
