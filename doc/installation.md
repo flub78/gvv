@@ -143,8 +143,6 @@ https://gvvg.flub78.net/install/
 
 ### Étapes additionnelles
 
-* Créez le répertoire de journaux application/logs
-
 * Vérifiez la quantité de mémoire disponible pour l'application. La librairie zip utilisée pour les sauvegardes et restauration à besoin de beaucoup de mémoire.
 
 > J'ai résolu mon problème de sauvegarde de la base de donnée qui me retournait systématiquement une erreur 500.
@@ -153,21 +151,6 @@ https://gvvg.flub78.net/install/
 > Ça risque d'arriver à tout le monde au fur et à mesure du temps...
 
 ### Configuration
-
-> [!WARNING]
-> GVV est fourni avec un ensemble de fichiers de configuration dans `application/config` avec des noms du type `*.example.php` (par exemple `database.example.php`).
-> Ces fichiers contiennent des valeurs spécifiques au déploiement (base de données, URL, paramètres locaux, etc.) et ne peuvent donc pas être fournis prêts à l'emploi par GVV.
-> Vous devez créer une version sans `.example` pour chaque fichier nécessaire (par exemple `database.php`), puis l'adapter à votre machine et à votre environnement de déploiement.
-
-Dans le fichier config.php, mettre à jour:
-
-* base_url
-* index_php (si vous voulez supprimer index.php de l'url)
-* google_account
-  
-Dans le fichier club.php, mettre à jour ce qui vous intéresse. Notez que le les paramètres de config club peuvent également être modifiés dans l'application.
-
-Un fois terminé, vous pouvez vous connecter comme testuser ou testadmin avec le mot de passe: password.
 
 ![Login](./images/login.png)
 

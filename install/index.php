@@ -168,6 +168,14 @@ function pre_read_bool(string $basename, string $key, bool $default = false): bo
 // Fonctions utilitaires — système
 // ═══════════════════════════════════════════════════════════
 
+function dx_hash_password(string $password): string {
+    $majorsalt = '';
+    for ($i = 0; $i < strlen($password); $i++)
+        $majorsalt .= md5($password[$i]);
+    $salt = '$1$' . substr(md5(uniqid((string)mt_rand(), true)), 0, 8) . '$';
+    return crypt(md5($majorsalt), $salt);
+}
+
 function test_db(string $h, string $u, string $p, string $d): array {
     $c = @mysqli_connect($h, $u, $p, $d);
     if (!$c) return ['ok' => false, 'error' => mysqli_connect_error()];
@@ -389,23 +397,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $notices[] = "$cnt tables détectées — base déjà initialisée, aucune action.";
                         $step = 9;
                     } else {
-                        if ($force && $cnt > 0) {
-                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
-                            $t = mysqli_query($conn, 'SHOW TABLES');
-                            while ($row = mysqli_fetch_row($t))
-                                mysqli_query($conn, "DROP TABLE IF EXISTS `{$row[0]}`");
-                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
-                        }
-                        $sql_file = isset($_POST['use_test_db'])
-                            ? INSTALL_DIR . '/dusk_tests.sql'
-                            : INSTALL_DIR . '/gvv_init.sql';
-                        $errs = mysql_import_file($sql_file, $conn);
-                        if (empty($errs)) {
-                            $notices[] = 'Base initialisée avec succès.';
-                            $step = 9;
-                        } else {
-                            foreach (array_slice($errs, 0, 8) as $e)
-                                $errors[] = htmlspecialchars($e);
+                        // Validation des champs admin avant import
+                        $adm_user  = trim($_POST['adm_username'] ?? '');
+                        $adm_email = trim($_POST['adm_email']    ?? '');
+                        $adm_pass  = $_POST['adm_password']      ?? '';
+                        $adm_pass2 = $_POST['adm_password2']     ?? '';
+
+                        if (!$adm_user)  $errors[] = 'L\'identifiant administrateur est requis.';
+                        if (!$adm_email) $errors[] = 'L\'email administrateur est requis.';
+                        if (!$adm_pass)  $errors[] = 'Le mot de passe administrateur est requis.';
+                        if ($adm_pass && $adm_pass !== $adm_pass2)
+                            $errors[] = 'Les mots de passe ne correspondent pas.';
+                        if (strlen($adm_pass) < 8)
+                            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+
+                        if (empty($errors)) {
+                            if ($force && $cnt > 0) {
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
+                                $t = mysqli_query($conn, 'SHOW TABLES');
+                                while ($row = mysqli_fetch_row($t))
+                                    mysqli_query($conn, "DROP TABLE IF EXISTS `{$row[0]}`");
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
+                            }
+                            $sql_file = isset($_POST['use_test_db'])
+                                ? INSTALL_DIR . '/dusk_tests.sql'
+                                : INSTALL_DIR . '/gvv_init.sql';
+                            $errs = mysql_import_file($sql_file, $conn);
+                            if (empty($errs)) {
+                                $notices[] = 'Base initialisée avec succès.';
+                                // Suppression des utilisateurs de test
+                                $test_users = ['testadmin','testuser','testplanchiste',
+                                               'asterix','abraracourcix','panoramix','goudurix'];
+                                $in = implode(',', array_map(
+                                    fn($u) => "'" . mysqli_real_escape_string($conn, $u) . "'",
+                                    $test_users));
+                                mysqli_query($conn, "DELETE FROM membres WHERE mlogin IN ($in)");
+                                mysqli_query($conn, "DELETE FROM users   WHERE username IN ($in)");
+                                // Insertion de l'administrateur dans users (role_id=2)
+                                $hashed = dx_hash_password($adm_pass);
+                                $now    = date('Y-m-d H:i:s');
+                                $u_esc  = mysqli_real_escape_string($conn, $adm_user);
+                                $h_esc  = mysqli_real_escape_string($conn, $hashed);
+                                $e_esc  = mysqli_real_escape_string($conn, $adm_email);
+                                mysqli_query($conn,
+                                    "INSERT INTO users (role_id, username, password, email, last_ip, last_login, created)
+                                     VALUES (2, '$u_esc', '$h_esc', '$e_esc', '127.0.0.1', '$now', '$now')");
+                                $notices[] = "Administrateur <strong>" . htmlspecialchars($adm_user) . "</strong> créé.";
+                                $step = 9;
+                            } else {
+                                foreach (array_slice($errs, 0, 8) as $e)
+                                    $errors[] = htmlspecialchars($e);
+                            }
                         }
                     }
                     mysqli_close($conn);
@@ -1001,14 +1043,42 @@ body { background: #f0f4f8; }
   </div>
   <?php endif; ?>
 
-  <div class="form-check mb-3">
+  <div class="form-check mb-4">
     <input class="form-check-input" type="checkbox" name="use_test_db" id="use_test_db">
     <label class="form-check-label" for="use_test_db">
       Utiliser la base de test (<code>dusk_tests.sql</code>) à la place de la base vide
     </label>
   </div>
 
-  <div class="d-flex justify-content-between mt-4">
+  <?php if ($cnt9 < 22): ?>
+  <div id="admin-section" class="border rounded p-3 mb-4 bg-light">
+    <h6 class="fw-bold mb-3"><i class="fas fa-user-shield text-primary me-2"></i>Compte administrateur</h6>
+    <p class="text-muted small mb-3">
+      Les utilisateurs de test seront supprimés. Créez ici le premier compte administrateur.
+    </p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Identifiant <span class="text-danger">*</span></label>
+        <input type="text" name="adm_username" class="form-control" value="<?= h($_POST['adm_username'] ?? '') ?>" required autocomplete="off">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+        <input type="email" name="adm_email" class="form-control" value="<?= h($_POST['adm_email'] ?? '') ?>" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Mot de passe <span class="text-danger">*</span></label>
+        <input type="password" name="adm_password" class="form-control" autocomplete="new-password" required minlength="8">
+        <div class="form-text">8 caractères minimum.</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Confirmer le mot de passe <span class="text-danger">*</span></label>
+        <input type="password" name="adm_password2" class="form-control" autocomplete="new-password" required minlength="8">
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <div class="d-flex justify-content-between mt-2">
     <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">
       <i class="fas fa-arrow-left me-1"></i>Précédent
     </button>
