@@ -127,6 +127,19 @@ function cfg_write(string $file, string $key, string $value): bool {
     return file_put_contents($file, $out) !== false;
 }
 
+/** Écrit / remplace un entier dans un fichier de config PHP */
+function cfg_write_int(string $file, string $key, int $value): bool {
+    if (!file_exists($file)) return false;
+    $c   = file_get_contents($file);
+    $new = "\$config['" . $key . "'] = " . $value . ";";
+    $pat = '/^\$config\[\'' . preg_quote($key, '/') . '\'\]\s*=\s*'
+         . "(?:'(?:[^'\\\\]|\\\\.)*'|\"(?:[^\"\\\\]|\\\\.)*\"|[^;]*)"
+         . ';/m';
+    $out = preg_replace($pat, $new, $c, 1, $n);
+    if ($n === 0) $out = rtrim($c) . "\n" . $new . "\n";
+    return file_put_contents($file, $out) !== false;
+}
+
 /** Écrit / remplace un booléen dans un fichier de config PHP */
 function cfg_write_bool(string $file, string $key, bool $value): bool {
     if (!file_exists($file)) return false;
@@ -350,6 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $f = CFG_DIR . '/dx_auth.php';
                 cfg_write($f, 'DX_website_name',   trim($_POST['dx_website'] ?? ''));
                 cfg_write($f, 'DX_webmaster_email', trim($_POST['dx_email']   ?? ''));
+                cfg_write_int($f, 'DX_max_login_attempts', 15);
                 $step = 6;
                 break;
 
@@ -393,25 +407,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $cnt = (int)(mysqli_fetch_assoc($res)['cnt'] ?? 0);
                     $force = isset($_POST['force_reinit']);
 
-                    if ($cnt >= 22 && !$force) {
-                        $notices[] = "$cnt tables détectées — base déjà initialisée, aucune action.";
-                        $step = 9;
-                    } else {
-                        // Validation des champs admin avant import
-                        $adm_user  = trim($_POST['adm_username'] ?? '');
-                        $adm_email = trim($_POST['adm_email']    ?? '');
-                        $adm_pass  = $_POST['adm_password']      ?? '';
-                        $adm_pass2 = $_POST['adm_password2']     ?? '';
+                    // Validate admin credentials (always required)
+                    $adm_user  = trim($_POST['adm_username'] ?? '');
+                    $adm_email = trim($_POST['adm_email']    ?? '');
+                    $adm_pass  = $_POST['adm_password']      ?? '';
+                    $adm_pass2 = $_POST['adm_password2']     ?? '';
 
-                        if (!$adm_user)  $errors[] = 'L\'identifiant administrateur est requis.';
-                        if (!$adm_email) $errors[] = 'L\'email administrateur est requis.';
-                        if (!$adm_pass)  $errors[] = 'Le mot de passe administrateur est requis.';
-                        if ($adm_pass && $adm_pass !== $adm_pass2)
-                            $errors[] = 'Les mots de passe ne correspondent pas.';
-                        if (strlen($adm_pass) < 8)
-                            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+                    if (!$adm_user)  $errors[] = 'L\'identifiant administrateur est requis.';
+                    if (!$adm_email) $errors[] = 'L\'email administrateur est requis.';
+                    if (!$adm_pass)  $errors[] = 'Le mot de passe administrateur est requis.';
+                    if ($adm_pass && $adm_pass !== $adm_pass2)
+                        $errors[] = 'Les mots de passe ne correspondent pas.';
+                    if ($adm_pass && strlen($adm_pass) < 8)
+                        $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
 
-                        if (empty($errors)) {
+                    if (empty($errors)) {
+                        // SQL import only when tables are missing or force reinit requested
+                        if ($cnt < 22 || $force) {
                             if ($force && $cnt > 0) {
                                 mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
                                 $t = mysqli_query($conn, 'SHOW TABLES');
@@ -423,30 +435,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 ? INSTALL_DIR . '/dusk_tests.sql'
                                 : INSTALL_DIR . '/gvv_init.sql';
                             $errs = mysql_import_file($sql_file, $conn);
-                            if (empty($errs)) {
+                            if (!empty($errs)) {
+                                foreach (array_slice($errs, 0, 8) as $e)
+                                    $errors[] = htmlspecialchars($e);
+                            } else {
                                 $notices[] = 'Base initialisée avec succès.';
-                                // Suppression des utilisateurs de test
+                                // Remove test accounts — disable FK checks so dependent rows
+                                // (user_roles_per_section etc.) don't block the DELETE
                                 $test_users = ['testadmin','testuser','testplanchiste',
                                                'asterix','abraracourcix','panoramix','goudurix'];
                                 $in = implode(',', array_map(
                                     fn($u) => "'" . mysqli_real_escape_string($conn, $u) . "'",
                                     $test_users));
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
                                 mysqli_query($conn, "DELETE FROM membres WHERE mlogin IN ($in)");
                                 mysqli_query($conn, "DELETE FROM users   WHERE username IN ($in)");
-                                // Insertion de l'administrateur dans users (role_id=2)
-                                $hashed = dx_hash_password($adm_pass);
-                                $now    = date('Y-m-d H:i:s');
-                                $u_esc  = mysqli_real_escape_string($conn, $adm_user);
-                                $h_esc  = mysqli_real_escape_string($conn, $hashed);
-                                $e_esc  = mysqli_real_escape_string($conn, $adm_email);
-                                mysqli_query($conn,
-                                    "INSERT INTO users (role_id, username, password, email, last_ip, last_login, created)
-                                     VALUES (2, '$u_esc', '$h_esc', '$e_esc', '127.0.0.1', '$now', '$now')");
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
+                            }
+                        } else {
+                            $notices[] = "$cnt tables détectées — base conservée.";
+                        }
+
+                        if (empty($errors)) {
+                            // Insert admin user — disable FK checks so any pre-existing row
+                            // with the same username (e.g. leftover test data) can be removed
+                            $hashed = dx_hash_password($adm_pass);
+                            $now    = date('Y-m-d H:i:s');
+                            $u_esc  = mysqli_real_escape_string($conn, $adm_user);
+                            $h_esc  = mysqli_real_escape_string($conn, $hashed);
+                            $e_esc  = mysqli_real_escape_string($conn, $adm_email);
+                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
+                            mysqli_query($conn, "DELETE FROM users WHERE username = '$u_esc'");
+                            $ok = mysqli_query($conn,
+                                "INSERT INTO users (role_id, username, password, email, last_ip, last_login, created)
+                                 VALUES (2, '$u_esc', '$h_esc', '$e_esc', '127.0.0.1', '$now', '$now')");
+                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
+                            if ($ok) {
                                 $notices[] = "Administrateur <strong>" . htmlspecialchars($adm_user) . "</strong> créé.";
                                 $step = 9;
                             } else {
-                                foreach (array_slice($errs, 0, 8) as $e)
-                                    $errors[] = htmlspecialchars($e);
+                                $errors[] = "Erreur lors de la création de l'administrateur : " . mysqli_error($conn);
                             }
                         }
                     }
