@@ -259,7 +259,7 @@ $lang['gvv_decouverte_payment_pending']     = "Paiement enregistré — le bon s
 $lang['gvv_decouverte_already_paid']        = "Ce bon a déjà été payé.";
 
 // Paiement générique par QR code (trésorier)
-$lang['gvv_paiement_generique_menu']                  = "Paiement générique";
+$lang['gvv_paiement_generique_menu']                  = "Paiement HelloAsso";
 $lang['gvv_paiement_generique_title']                 = "Paiement par carte";
 $lang['gvv_paiement_generique_intro']                 = "Créez un paiement HelloAsso par carte bancaire. L'écriture comptable sera créée automatiquement à réception du paiement.";
 $lang['gvv_paiement_generique_field_montant']         = "Montant (€)";

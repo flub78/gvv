@@ -654,14 +654,6 @@ $this->lang->load('tableaux_de_bord');
                         <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_consulter') ?></a>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-                    <div class="sub-card text-center">
-                        <i class="fas fa-qrcode text-warning"></i>
-                        <div class="card-title"><?= $this->lang->line('gvv_paiement_generique_menu') ?></div>
-                        <div class="card-text text-muted">HelloAsso</div>
-                        <a href="<?= controller_url('paiements_en_ligne/paiement_generique') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_generer') ?></a>
-                    </div>
-                </div>
                 <?php endif; ?>
 
                 <?php if (has_role('tresorier')) : ?>
@@ -669,6 +661,15 @@ $this->lang->load('tableaux_de_bord');
                 <!-- Ecritures Menu -->
                 <div class="col-12 mt-3">
                     <h6 class="text-muted mb-2"><i class="fas fa-pen"></i> <?= $this->lang->line('db_sub_entries') ?></h6>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center">
+                        <i class="fas fa-credit-card text-warning"></i>
+                        <div class="card-title"><?= $this->lang->line('gvv_paiement_generique_menu') ?></div>
+                        <div class="card-text text-muted">HelloAsso</div>
+                        <a href="<?= controller_url('paiements_en_ligne/paiement_generique') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
+                    </div>
                 </div>
 
                 <!-- Income entries -->

@@ -261,7 +261,7 @@ $lang['gvv_decouverte_public_confirm_intro']        = "Your discovery voucher pa
 $lang['gvv_decouverte_email_subject']               = "Discovery voucher confirmed";
 
 // Generic QR code payment (treasurer)
-$lang['gvv_paiement_generique_menu']                  = "Generic payment";
+$lang['gvv_paiement_generique_menu']                  = "HelloAsso payment";
 $lang['gvv_paiement_generique_title']                 = "Card payment";
 $lang['gvv_paiement_generique_intro']                 = "Create a HelloAsso card payment. The accounting entry will be created automatically upon receipt of payment.";
 $lang['gvv_paiement_generique_field_montant']         = "Amount (€)";

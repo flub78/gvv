@@ -261,7 +261,7 @@ $lang['gvv_decouverte_public_confirm_intro']        = "Uw betaling voor de disco
 $lang['gvv_decouverte_email_subject']               = "Discoveriebon bevestigd";
 
 // Generieke QR-codebetaling (penningmeester)
-$lang['gvv_paiement_generique_menu']                  = "Generieke betaling";
+$lang['gvv_paiement_generique_menu']                  = "HelloAsso betaling";
 $lang['gvv_paiement_generique_title']                 = "Betaling per kaart";
 $lang['gvv_paiement_generique_intro']                 = "Maak een HelloAsso-kaartbetaling aan. De boekhoudkundige inschrijving wordt automatisch aangemaakt bij ontvangst van de betaling.";
 $lang['gvv_paiement_generique_field_montant']         = "Bedrag (€)";
