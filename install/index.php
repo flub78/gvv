@@ -1050,7 +1050,6 @@ body { background: #f0f4f8; }
     </label>
   </div>
 
-  <?php if ($cnt9 < 22): ?>
   <div id="admin-section" class="border rounded p-3 mb-4 bg-light">
     <h6 class="fw-bold mb-3"><i class="fas fa-user-shield text-primary me-2"></i>Compte administrateur</h6>
     <p class="text-muted small mb-3">
@@ -1076,7 +1075,6 @@ body { background: #f0f4f8; }
       </div>
     </div>
   </div>
-  <?php endif; ?>
 
   <div class="d-flex justify-content-between mt-2">
     <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">
