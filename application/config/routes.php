@@ -49,6 +49,8 @@ $route['briefing_sign/send_link/(:any)'] = 'briefing_sign/send_link/$1';
 $route['briefing_sign/submit/(:any)'] = 'briefing_sign/submit/$1';
 $route['briefing_sign/(:any)']        = 'briefing_sign/index/$1';
 
+$route['membres/renommer'] = 'membre/renommer';
+
 $route['default_controller'] = "welcome";
 $route['404_override'] = '';
 

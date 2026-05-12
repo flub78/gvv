@@ -197,11 +197,11 @@
    - Lien : `membres/renommer`
 
 **Validation** :
-- [ ] Carte visible uniquement pour `dev_users`
-- [ ] Clic redirige vers formulaire de renommage
-- [ ] Carte absente du dashboard pour utilisateurs normaux
+- [x] Carte visible uniquement pour `dev_users`
+- [x] Clic redirige vers formulaire de renommage
+- [x] Carte absente du dashboard pour utilisateurs normaux
 
-**Statut** : ✅ Terminé
+**Statut** : ✅ Terminé — Carte ajoutée à `application/views/bs_dashboard.php` dans la section "Outils de Développement"
 
 ---
 

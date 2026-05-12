@@ -1,9 +1,5 @@
 <!-- VIEW: application/views/membre/renommer_preview.php -->
 <?php
-$this->load->view('bs_header');
-$this->load->view('bs_menu');
-$this->load->view('bs_banner');
-
 $old_mlogin = $preview['old_mlogin'];
 $new_mlogin = $preview['new_mlogin'];
 $member = $preview['member_info'];

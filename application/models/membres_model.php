@@ -765,7 +765,7 @@ class Membres_model extends Common_Model {
         'archived_documents' => ['membre'],
         'email_list_members' => ['membre_id'],
         'paiements_en_ligne' => ['membre_login'],
-        'dx_auth_users' => ['username']
+        'users' => ['username']
     ];
 
     /**

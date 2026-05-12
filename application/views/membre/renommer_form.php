@@ -1,10 +1,4 @@
 <!-- VIEW: application/views/membre/renommer_form.php -->
-<?php
-$this->load->view('bs_header');
-$this->load->view('bs_menu');
-$this->load->view('bs_banner');
-?>
-
 <div id="body" class="body container-fluid py-3">
 
     <div class="row mb-3">

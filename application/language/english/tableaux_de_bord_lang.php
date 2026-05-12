@@ -230,3 +230,7 @@ $lang['db_desc_new_inscription'] = "New enrollment";
 // Member merge
 $lang['db_card_fusion_membres'] = "Merge members";
 $lang['db_desc_fusion_membres'] = "Merge two duplicate member accounts";
+
+// Rename a member
+$lang['db_card_rename_member'] = "Rename a member";
+$lang['db_desc_rename_member'] = "Modify the identifier (mlogin) of an existing member";

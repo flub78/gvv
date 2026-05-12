@@ -1158,10 +1158,12 @@ class Membre extends Gvv_Controller {
         if ($this->input->server('REQUEST_METHOD') === 'GET') {
             $data['title'] = 'Renommer un membre';
             $data['membres_selector'] = $this->membres_model->get_selector();
-            
-            $this->load->view('header', $data);
-            $this->load->view('membres/renommer_form', $data);
-            $this->load->view('footer');
+
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('membre/renommer_form', $data);
+            $this->load->view('bs_footer');
             return;
         }
 
@@ -1200,10 +1202,12 @@ class Membre extends Gvv_Controller {
             // Display preview
             $data['title'] = 'Prévisualisation du renommage';
             $data['preview'] = $preview;
-            
-            $this->load->view('header', $data);
-            $this->load->view('membres/renommer_preview', $data);
-            $this->load->view('footer');
+
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('membre/renommer_preview', $data);
+            $this->load->view('bs_footer');
             return;
         }
 
@@ -1245,9 +1249,11 @@ class Membre extends Gvv_Controller {
                 $this->session->set_flashdata('error', $result['message']);
             }
 
-            $this->load->view('header', $data);
-            $this->load->view('membres/renommer_result', $data);
-            $this->load->view('footer');
+            $this->load->view('bs_header', $data);
+            $this->load->view('bs_menu', $data);
+            $this->load->view('bs_banner', $data);
+            $this->load->view('membre/renommer_result', $data);
+            $this->load->view('bs_footer');
             return;
         }
 
