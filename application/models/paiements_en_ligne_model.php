@@ -755,6 +755,10 @@ class Paiements_en_ligne_model extends CI_Model {
                 return $this->_ecriture_paiement_generique(
                     $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
 
+            case 'cotisation_tresorier':
+                return $this->_ecriture_cotisation_tresorier(
+                    $transaction, $meta, $club_id, $montant, $description, $num_cheque, $date);
+
             default:
                 return array('ok' => false, 'error' => 'Type de paiement inconnu : ' . $type);
         }
@@ -879,6 +883,50 @@ class Paiements_en_ligne_model extends CI_Model {
             return array('ok' => false, 'error' => 'Erreur DB lors de la création de l\'écriture paiement_generique');
         }
         return array('ok' => true, 'ecriture_id' => $id);
+    }
+
+    /**
+     * cotisation_tresorier : deux écritures atomiques
+     *  1. débit 467 (passage) → crédit 411 (pilote)   — provisionnement HelloAsso
+     *  2. débit 411 (pilote)  → crédit compte_cotisation — règlement cotisation
+     * Le solde net du pilote reste inchangé.
+     */
+    private function _ecriture_cotisation_tresorier($tx, $meta, $club_id, $montant, $desc, $cheque, $date)
+    {
+        $cp = $this->_get_compte_passage($club_id);
+        if (!$cp) {
+            return array('ok' => false, 'error' => 'Compte de passage (467) introuvable pour club=' . $club_id);
+        }
+        $cpilote = $this->_get_compte_pilote($tx, $club_id);
+        if (!$cpilote) {
+            return array('ok' => false, 'error' => 'Compte pilote (411) introuvable pour user_id=' . $tx['user_id']);
+        }
+        if (empty($meta['compte_cotisation_id'])) {
+            return array('ok' => false, 'error' => 'compte_cotisation_id absent des metadata pour type=cotisation_tresorier');
+        }
+        $CI   = get_instance();
+        $ccot = $CI->comptes_model->get_by_id('id', (int) $meta['compte_cotisation_id']);
+        if (!$ccot) {
+            return array('ok' => false, 'error' => 'Compte cotisation introuvable id=' . $meta['compte_cotisation_id']);
+        }
+
+        // Écriture 1 : provisionnement (467 → 411)
+        $id1 = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cp['id'], $cpilote['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id1 === false) {
+            return array('ok' => false, 'error' => 'Erreur DB écriture provisionnement (cotisation_tresorier)');
+        }
+
+        // Écriture 2 : règlement cotisation (411 → compte_cotisation)
+        $id2 = $CI->ecritures_model->create_ecriture(
+            $this->_ecriture_data($cpilote['id'], $ccot['id'], $montant, $desc, $cheque, $date, $club_id)
+        );
+        if ($id2 === false) {
+            return array('ok' => false, 'error' => 'Erreur DB écriture cotisation (cotisation_tresorier)');
+        }
+
+        return array('ok' => true, 'ecriture_id' => $id1);
     }
 
     // ── Helpers lookup comptes ────────────────────────────────────────────────

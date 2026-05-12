@@ -150,7 +150,13 @@ https://gvvg.flub78.net/install/
 > Je pense que le module zip n'avait pas assez de mémoire disponible à la vue des données à compresser.
 > Ça risque d'arriver à tout le monde au fur et à mesure du temps...
 
-### Configuration
+#### Configuration des emails
+
+#### Configuration de la tache cron pour les sauvegardes automatiques
+
+#### Configuration de HelloAsso
+
+### Premiers pas
 
 ![Login](./images/login.png)
 

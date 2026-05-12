@@ -52,7 +52,9 @@ class RealDatabase {
     private $transaction_started = false;
     public $_trans_depth = 0;  // Public property for CodeIgniter compatibility
     public $_trans_status = TRUE;  // Transaction status flag
-    
+    private $savepoint_counter = 0;
+    private $savepoint_stack = [];  // Stack of savepoint names for nested transactions
+
     public $conn_id;
     
     public function __construct($config) {
@@ -93,60 +95,78 @@ class RealDatabase {
     }
 
     public function trans_start() {
-        // Mimic CodeIgniter's nested transaction handling
         if ($this->_trans_depth > 0) {
+            // Nested: create a MySQL savepoint so rollback can undo just this level
+            $sp = 'sp_' . (++$this->savepoint_counter);
+            $this->connection->query('SAVEPOINT ' . $sp);
+            $this->savepoint_stack[] = $sp;
             $this->_trans_depth++;
             return true;
         }
-        
+
         $this->connection->autocommit(FALSE);
         $this->connection->query('START TRANSACTION');
         $this->transaction_started = true;
         $this->_trans_depth = 1;
         $this->_trans_status = TRUE;
+        $this->savepoint_stack = [];
         return true;
     }
-    
+
     public function trans_status() {
-        // Return the transaction status flag
         return $this->_trans_status;
     }
-    
+
     public function trans_rollback() {
-        // When in nested transaction, just mark as failed
-        if ($this->_trans_depth > 0) {
-            $this->_trans_status = FALSE;
+        if (!empty($this->savepoint_stack)) {
+            // Rollback to the innermost savepoint (undo nested transaction)
+            $sp = array_pop($this->savepoint_stack);
+            $this->connection->query('ROLLBACK TO SAVEPOINT ' . $sp);
+            $this->_trans_depth--;
             return TRUE;
         }
-        
+
         if ($this->transaction_started) {
             $this->connection->rollback();
             $this->connection->autocommit(TRUE);
             $this->transaction_started = false;
+            $this->_trans_depth = 0;
         }
         return true;
     }
-    
+
     public function trans_complete() {
-        // Check if transaction was marked as failed BEFORE checking depth
+        if (!empty($this->savepoint_stack)) {
+            $sp = array_pop($this->savepoint_stack);
+            if ($this->_trans_status === FALSE) {
+                // Nested transaction failed: rollback to savepoint
+                $this->connection->query('ROLLBACK TO SAVEPOINT ' . $sp);
+                $this->_trans_depth--;
+                $this->_trans_status = TRUE;
+                return FALSE;
+            }
+            // Nested transaction succeeded: release savepoint
+            $this->connection->query('RELEASE SAVEPOINT ' . $sp);
+            $this->_trans_depth--;
+            return true;
+        }
+
         if ($this->_trans_status === FALSE) {
-            // Rollback even in nested transaction
             if ($this->transaction_started) {
                 $this->connection->rollback();
                 $this->connection->autocommit(TRUE);
                 $this->transaction_started = false;
             }
             $this->_trans_depth = 0;
-            $this->_trans_status = TRUE;  // Reset for next transaction
+            $this->_trans_status = TRUE;
             return FALSE;
         }
-        
-        // Mimic CodeIgniter's nested transaction handling
+
         if ($this->_trans_depth > 1) {
             $this->_trans_depth--;
             return true;
         }
-        
+
         if ($this->transaction_started) {
             $this->connection->commit();
             $this->connection->autocommit(TRUE);
@@ -197,10 +217,15 @@ class RealDatabase {
         return $this->last_executed_query ?? '';
     }
     
+    public function simple_query($sql) {
+        $result = $this->connection->query($sql);
+        return $result;
+    }
+
     public function _error_number() {
         return $this->connection->errno;
     }
-    
+
     public function _error_message() {
         return $this->connection->error;
     }
@@ -584,6 +609,13 @@ class RealDatabase {
 
     public function table_exists($table_name) {
         $sql = "SELECT COUNT(*) AS cnt FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->escape_str($table_name) . "'";
+        $result = $this->query($sql);
+        $row = $result->row_array();
+        return $row['cnt'] > 0;
+    }
+
+    public function field_exists($field_name, $table_name) {
+        $sql = "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->escape_str($table_name) . "' AND COLUMN_NAME = '" . $this->escape_str($field_name) . "'";
         $result = $this->query($sql);
         $row = $result->row_array();
         return $row['cnt'] > 0;

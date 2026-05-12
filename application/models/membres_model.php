@@ -903,7 +903,7 @@ class Membres_model extends Common_Model {
         // Sample significant records (only if tables exist)
         if ($this->db->table_exists('volsp')) {
             $q = $this->db->query(
-                "SELECT vpdate, vpdecol, vpatterr, vptype FROM volsp
+                "SELECT vpdate, vplieudeco, vplieuatt, vpmacid FROM volsp
                  WHERE vppilid = ? OR vpinst = ? OR pilote_remorqueur = ?
                  ORDER BY vpdate DESC LIMIT 3",
                 [$old_mlogin, $old_mlogin, $old_mlogin]
@@ -915,7 +915,7 @@ class Membres_model extends Common_Model {
 
         if ($this->db->table_exists('volsa')) {
             $q = $this->db->query(
-                "SELECT vadate, vadecol, vaatterr FROM volsa
+                "SELECT vadate, valieudeco, valieuatt FROM volsa
                  WHERE vapilid = ? OR vainst = ?
                  ORDER BY vadate DESC LIMIT 3",
                 [$old_mlogin, $old_mlogin]
@@ -927,8 +927,8 @@ class Membres_model extends Common_Model {
 
         if ($this->db->table_exists('tickets')) {
             $q = $this->db->query(
-                "SELECT tdate, tprix, tcommentaire FROM tickets
-                 WHERE pilote = ? ORDER BY tdate DESC LIMIT 3",
+                "SELECT date, quantite, description FROM tickets
+                 WHERE pilote = ? ORDER BY date DESC LIMIT 3",
                 [$old_mlogin]
             );
             if ($q && $q->num_rows() > 0) {

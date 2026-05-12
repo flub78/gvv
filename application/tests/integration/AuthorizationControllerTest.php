@@ -35,10 +35,9 @@ class AuthorizationControllerTest extends TestCase
     public function testUserRolesViewDataStructure()
     {
         // Get all users with their roles (simulating controller logic)
-        $this->CI->db->select('u.id, u.username, u.email, m.mnom, m.mprenom, m.club as section_id, s.nom as section_name');
+        $this->CI->db->select('u.id, u.username, u.email, m.mnom, m.mprenom');
         $this->CI->db->from('users u');
         $this->CI->db->join('membres m', 'u.username = m.mlogin', 'left');
-        $this->CI->db->join('sections s', 'm.club = s.id', 'left');
         $this->CI->db->order_by('u.username', 'ASC');
         $this->CI->db->limit(1);
         $query = $this->CI->db->get();
@@ -52,7 +51,6 @@ class AuthorizationControllerTest extends TestCase
         // Verify user structure (without loading model)
         $this->assertArrayHasKey('id', $user);
         $this->assertArrayHasKey('username', $user);
-        $this->assertArrayHasKey('section_id', $user);
         $this->assertNotNull($user['id']);
         $this->assertNotEmpty($user['username']);
     }
@@ -110,9 +108,8 @@ class AuthorizationControllerTest extends TestCase
     public function testUserRolesEncoding()
     {
         // Get a test user
-        $this->CI->db->select('u.id, u.username, m.club as section_id');
+        $this->CI->db->select('u.id, u.username');
         $this->CI->db->from('users u');
-        $this->CI->db->join('membres m', 'u.username = m.mlogin', 'left');
         $this->CI->db->limit(1);
         $query = $this->CI->db->get();
         $user = $query->row_array();

@@ -129,10 +129,9 @@ class Authorization extends CI_Controller {
         $data['message'] = $message;
 
         // Get all users with their roles
-        $this->db->select('u.id, u.username, u.email, m.mnom, m.mprenom, m.club as section_id, s.nom as section_name');
+        $this->db->select('u.id, u.username, u.email, m.mnom, m.mprenom');
         $this->db->from('users u');
         $this->db->join('membres m', 'u.username = m.mlogin', 'left');
-        $this->db->join('sections s', 'm.club = s.id', 'left');
         $this->db->order_by('u.username', 'ASC');
         $query = $this->db->get();
         $users = $query->result_array();

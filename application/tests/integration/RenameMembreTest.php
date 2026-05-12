@@ -65,12 +65,15 @@ class RenameMembreTest extends TransactionalTestCase
     private function _create_vol_planeur(string $pilot_login, array $overrides = []): int
     {
         $defaults = [
-            'vppilid' => $pilot_login,
-            'vpdate' => date('Y-m-d'),
-            'vpdecol' => '10:00',
-            'vpatterr' => '11:00',
-            'vptype' => 'local',
-            'vpplaneur' => 'F-XXXX',
+            'vppilid'     => $pilot_login,
+            'vpdate'      => date('Y-m-d'),
+            'vpmacid'     => 'F-XXXX',
+            'vpcdeb'      => 10.00,
+            'vpcfin'      => 11.00,
+            'vpduree'     => 60,
+            'vpdc'        => 0,
+            'vpcategorie' => 0,
+            'vpticcolle'  => 0,
         ];
         $data = array_merge($defaults, $overrides);
         $this->CI->db->insert('volsp', $data);
@@ -83,10 +86,13 @@ class RenameMembreTest extends TransactionalTestCase
     private function _create_ticket(string $pilot_login, array $overrides = []): int
     {
         $defaults = [
-            'pilote' => $pilot_login,
-            'tdate' => date('Y-m-d'),
-            'tprix' => 50.00,
-            'tcommentaire' => 'Test ticket',
+            'pilote'      => $pilot_login,
+            'date'        => date('Y-m-d'),
+            'quantite'    => 50.00,
+            'description' => 'Test ticket',
+            'saisie_par'  => 'phpunit',
+            'club'        => 1,
+            'type'        => 0,
         ];
         $data = array_merge($defaults, $overrides);
         $this->CI->db->insert('tickets', $data);
@@ -98,17 +104,15 @@ class RenameMembreTest extends TransactionalTestCase
      */
     private function _create_dx_auth_user(string $username, string $password = 'password'): int
     {
-        $salt = bin2hex(random_bytes(8));
-        $pwd_hash = hash('sha256', $salt . $password);
-
         $this->CI->db->insert('users', [
-            'username' => $username,
-            'password' => $pwd_hash,
-            'email' => $username . '@test.invalid',
-            'salt' => $salt,
-            'activated' => 1,
-            'banned' => 0,
-            'role_id' => 2, // User role
+            'username'   => $username,
+            'password'   => substr(md5($password), 0, 34),
+            'email'      => $username . '@test.invalid',
+            'role_id'    => 2,
+            'banned'     => 0,
+            'last_ip'    => '127.0.0.1',
+            'last_login' => '0000-00-00 00:00:00',
+            'created'    => date('Y-m-d H:i:s'),
         ]);
         return (int) $this->CI->db->insert_id();
     }
@@ -328,11 +332,11 @@ class RenameMembreTest extends TransactionalTestCase
 
         $this->_create_vol_planeur($old_login, [
             'vpdate' => '2025-01-15',
-            'vpdecol' => '14:30',
+            'vpobs'  => 'test-obs',
         ]);
 
         $ticket_prix = 123.45;
-        $this->_create_ticket($old_login, ['tprix' => $ticket_prix]);
+        $this->_create_ticket($old_login, ['quantite' => $ticket_prix]);
 
         $new_login = $this->_unique_login('renamed');
         $result = $this->model->execute_rename($old_login, $new_login, 'test_user');
@@ -348,10 +352,10 @@ class RenameMembreTest extends TransactionalTestCase
         // Verify vol data unchanged (except mlogin reference)
         $vol = $this->CI->db->where('vppilid', $new_login)->get('volsp')->row_array();
         $this->assertEquals('2025-01-15', $vol['vpdate']);
-        $this->assertEquals('14:30', $vol['vpdecol']);
+        $this->assertEquals('test-obs', $vol['vpobs']);
 
-        // Verify ticket price unchanged
+        // Verify ticket quantity unchanged
         $ticket = $this->CI->db->where('pilote', $new_login)->get('tickets')->row_array();
-        $this->assertEquals($ticket_prix, (float)$ticket['tprix']);
+        $this->assertEquals($ticket_prix, (float)$ticket['quantite']);
     }
 }

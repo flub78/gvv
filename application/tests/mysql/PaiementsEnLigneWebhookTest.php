@@ -38,8 +38,8 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // Fixtures stables (section 4, asterix)
     protected static $club_id     = 4;
-    protected static $user_id     = 429;   // asterix
-    protected static $compte_pilote_id = 1457; // 411 asterix club=4
+    protected static $user_id     = 372;   // asterix
+    protected static $compte_pilote_id = 1472; // 411 asterix club=4
     protected static $bar_account_id   = 763;  // 707 "Recettes du bar" club=4
     protected static $compte_passage_id; // premier 467 dans club=4, déterminé en setUp
 
@@ -64,7 +64,7 @@ class PaiementsEnLigneWebhookTest extends TestCase
         // Vérifier compte pilote d'asterix dans club=4
         $cp = self::$CI->db->where('id', self::$compte_pilote_id)->get('comptes')->row_array();
         if (!$cp || (int) $cp['club'] !== self::$club_id) {
-            self::markTestSkipped('Compte pilote asterix (id=1457) introuvable dans club=4');
+            self::markTestSkipped('Compte pilote asterix (id=1472) introuvable dans club=4');
         }
 
         // Vérifier compte bar dans club=4
