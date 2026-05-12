@@ -154,9 +154,9 @@ class Auth extends CI_Controller {
                 $val->run() and
                 $this->dx_auth->login($val->set_value('username'), $val->set_value('password'), $val->set_value('remember'))
             ) {
-                // Login success
-                // Redirect to homepage
-                gvv_info("Login: " . $val->set_value('username'));
+                // Login success — resolve actual username (input may have been an email)
+                $logged_username = $this->dx_auth->get_username();
+                gvv_info("Login: " . $logged_username);
 
                 // set some session defaults
 
@@ -185,7 +185,7 @@ class Auth extends CI_Controller {
                 
                 if ($val->set_value('remember')) {
                     // Use PHP setcookie directly to ensure cookies are set before redirect
-                    setcookie('gvv_remembered_username', $val->set_value('username'), time() + $cookie_expire, '/');
+                    setcookie('gvv_remembered_username', $logged_username, time() + $cookie_expire, '/');
                     
                     if ($this->input->post('section')) {
                         setcookie('gvv_remembered_section', $this->input->post('section'), time() + $cookie_expire, '/');
