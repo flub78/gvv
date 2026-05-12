@@ -88,8 +88,9 @@ class MY_Controller extends CI_Controller
         }
 
         // Load config to check global authorization flag
-        $this->config->load('gvv_config', TRUE);
+        $this->config->load('gvv_config', TRUE, TRUE);
         $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
+        if ($use_new_authorization === FALSE || $use_new_authorization === NULL) $use_new_authorization = TRUE;
 
         // Priority 1: Check if user is in per-user migration table
         if (!$use_new_authorization) {
