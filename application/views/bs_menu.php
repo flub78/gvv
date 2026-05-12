@@ -465,7 +465,7 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
               <li><a class="dropdown-item" href="<?= controller_url('oneshot') ?>"><i class="fas fa-bolt text-danger"></i> Opérations One-Shot</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="<?= controller_url('membres_fusion') ?>"><i class="fas fa-code-branch text-danger"></i> Fusion de membres</a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('membre/renommer') ?>"><i class="fas fa-edit text-warning"></i> Renommer un membre</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('membre/renommer') ?>"><i class="fas fa-edit text-warning"></i> Renommer un utilisateur</a></li>
             </ul>
           </li>
         <?php endif; ?>

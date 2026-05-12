@@ -820,7 +820,7 @@ $lang['gvv_fusion_error_invalid']     = "Paramètres invalides.";
 $lang['gvv_fusion_error_access']      = "Accès réservé aux utilisateurs de développement.";
 
 // Renommage de membre (mlogin)
-$lang['gvv_rename_title']              = "Renommer un membre";
+$lang['gvv_rename_title']              = "Renommer un utilisateur";
 $lang['gvv_rename_intro']              = "Modifier l'identifiant (mlogin) d'un membre existant. Le changement sera propagé dans toute la base de données.";
 $lang['gvv_rename_info']               = "Cette fonctionnalité permet de corriger des identifiants mal saisis (ex: identifiants purement numériques, fautes d'orthographe). Le changement sera propagé de manière atomique dans toutes les tables de la base de données.";
 $lang['gvv_rename_select_title']       = "Sélection du membre à renommer";

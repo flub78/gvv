@@ -4,9 +4,9 @@
     <div class="row mb-3">
         <div class="col-12">
             <h4><i class="fas fa-edit text-warning"></i>
-                Renommer un membre
+                Renommer un utilisateur
             </h4>
-            <p class="text-muted">Modifier l'identifiant (mlogin) d'un membre existant. Le changement sera propagé dans toute la base de données.</p>
+            <p class="text-muted">Modifier l'identifiant (login) d'un utilisateur. Le changement sera propagé dans toute la base de données.</p>
         </div>
     </div>
 
@@ -27,13 +27,13 @@
     <div class="card border-warning">
         <div class="card-header bg-warning text-dark">
             <i class="fas fa-info-circle"></i>
-            Sélection du membre à renommer
+            Sélection de l'utilisateur à renommer
         </div>
         <div class="card-body">
             <div class="alert alert-info">
                 <i class="fas fa-lightbulb"></i>
                 <strong>Information :</strong> Cette fonctionnalité permet de corriger des identifiants mal saisis (ex: identifiants purement numériques, fautes d'orthographe).
-                Le changement sera propagé de manière atomique dans toutes les tables de la base de données.
+                Le changement est propagé de manière atomique dans toutes les tables de la base de données.
             </div>
 
             <form method="post" action="<?= controller_url('membre/renommer') ?>" id="rename-form">
@@ -43,7 +43,7 @@
                     <div class="col-md-5">
                         <label class="form-label fw-bold">
                             <i class="fas fa-user"></i>
-                            Membre à renommer
+                            Utilisateur à renommer
                         </label>
                         <select name="old_mlogin" class="form-select big_select" required>
                             <option value="">-- Sélectionner un membre --</option>

@@ -13,10 +13,10 @@ $total_updated = isset($result['total_updated']) ? $result['total_updated'] : 0;
             <h4>
                 <?php if ($success): ?>
                     <i class="fas fa-check-circle text-success"></i>
-                    Renommage réussi
+                    Renommage d'utilisateur réussi
                 <?php else: ?>
                     <i class="fas fa-exclamation-triangle text-danger"></i>
-                    Erreur lors du renommage
+                    Erreur lors du renommage d'utilisateur
                 <?php endif; ?>
             </h4>
         </div>
@@ -122,7 +122,7 @@ $total_updated = isset($result['total_updated']) ? $result['total_updated'] : 0;
             Que faire maintenant ?
         </div>
         <div class="card-body">
-            <p>L'identifiant du membre a été modifié avec succès. Vous pouvez maintenant :</p>
+            <p>L'identifiant de l'utilisateur a été modifié avec succès. Vous pouvez maintenant :</p>
             <div class="d-flex gap-2">
                 <a href="<?= controller_url('membre/edit/' . $new_mlogin) ?>" class="btn btn-primary">
                     <i class="fas fa-user-edit"></i>
@@ -134,7 +134,7 @@ $total_updated = isset($result['total_updated']) ? $result['total_updated'] : 0;
                 </a>
                 <a href="<?= controller_url('membre/renommer') ?>" class="btn btn-warning">
                     <i class="fas fa-edit"></i>
-                    Renommer un autre membre
+                    Renommer un autre utilisateur
                 </a>
                 <a href="<?= controller_url('welcome') ?>" class="btn btn-secondary">
                     <i class="fas fa-home"></i>
@@ -153,6 +153,7 @@ $total_updated = isset($result['total_updated']) ? $result['total_updated'] : 0;
         </div>
         <div class="card-body">
             <p>Le renommage n'a pas pu être effectué. Aucune modification n'a été apportée à la base de données (transaction annulée).</p>
+
             <div class="d-flex gap-2">
                 <a href="<?= controller_url('membre/renommer') ?>" class="btn btn-warning">
                     <i class="fas fa-redo"></i>

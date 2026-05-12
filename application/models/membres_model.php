@@ -715,6 +715,33 @@ class Membres_model extends Common_Model {
     }
 
     /**
+     * Selector for the rename-user admin feature.
+     * Returns all users from the `users` table regardless of section,
+     * with name from the membres table when available.
+     *
+     * @return array [username => 'Nom Prénom (username)']
+     */
+    public function get_users_selector() {
+        $sql = "SELECT u.username, m.mnom, m.mprenom
+                FROM users u
+                LEFT JOIN membres m ON m.mlogin = u.username
+                ORDER BY COALESCE(m.mnom, u.username) ASC, m.mprenom ASC";
+        $query = $this->db->query($sql);
+
+        $selector = array('' => '');
+        foreach ($query->result_array() as $row) {
+            $username = $row['username'];
+            if ($row['mnom'] !== null) {
+                $label = trim($row['mnom'] . ' ' . $row['mprenom']) . ' (' . $username . ')';
+            } else {
+                $label = $username;
+            }
+            $selector[$username] = $label;
+        }
+        return $selector;
+    }
+
+    /**
      * Get a selector array for instructors only
      * Alias for inst_selector() for consistency with other models
      *
@@ -749,23 +776,29 @@ class Membres_model extends Common_Model {
      * Format: table_name => [column1, column2, ...]
      */
     const REFERENCING_TABLES = [
-        'events' => ['emlogin'],
-        'volsa' => ['vapilid', 'vainst'],
-        'volsp' => ['vppilid', 'vpinst', 'pilote_remorqueur'],
-        'tickets' => ['pilote'],
-        'achats' => ['pilote'],
-        'pompes' => ['ppilid'],
-        'calendar' => ['mlogin'],
-        'reservations' => ['pilot_member_id', 'instructor_member_id'],
-        'formation_seances' => ['pilote_id', 'instructeur_id'],
-        'formation_autorisations_solo' => ['eleve_id', 'instructeur_id'],
+        // Logical references (no DB-level FK)
+        'events'                       => ['emlogin'],
+        'volsa'                        => ['vapilid', 'vainst'],
+        'volsp'                        => ['vppilid', 'vpinst', 'pilote_remorqueur'],
+        'tickets'                      => ['pilote'],
+        'achats'                       => ['pilote'],
+        'pompes'                       => ['ppilid'],
+        'calendar'                     => ['mlogin'],
+        'reservations'                 => ['pilot_member_id', 'instructor_member_id'],
         'formation_seances_theoriques' => ['membre'],
-        'acceptance_records' => ['user_login', 'linked_pilot_login'],
-        'acceptance_items' => ['created_by'],
-        'archived_documents' => ['membre'],
-        'email_list_members' => ['membre_id'],
-        'paiements_en_ligne' => ['membre_login'],
-        'users' => ['username']
+        'acceptance_items'             => ['created_by'],
+        'paiements_en_ligne'           => ['membre_login'],
+        'users'                        => ['username'],
+        // FK CASCADE — must update manually when FK checks are disabled
+        'formation_seances'            => ['pilote_id', 'instructeur_id'],
+        'formation_autorisations_solo' => ['eleve_id', 'instructeur_id'],
+        'formation_inscriptions'       => ['pilote_id', 'instructeur_referent_id'],
+        'formation_seances_participants' => ['pilote_id'],
+        'acceptance_records'           => ['user_login', 'linked_pilot_login', 'linked_by'],
+        'archived_documents'           => ['pilot_login'],
+        // FK RESTRICT — must update before membres.mlogin (handled via FK_CHECKS=0)
+        'membres'                      => ['membre_payeur'],
+        'email_list_members'           => ['membre_id'],
     ];
 
     /**
@@ -842,15 +875,20 @@ class Membres_model extends Common_Model {
         $preview['member_info'] = $member;
 
         // Check for dx_auth account
-        $dx_auth_count = $this->db->where('username', $old_mlogin)->count_all_results('users');
-        $preview['dx_auth_exists'] = ($dx_auth_count > 0);
+        $q = $this->db->query("SELECT COUNT(*) AS cnt FROM `users` WHERE `username` = ?", [$old_mlogin]);
+        $preview['dx_auth_exists'] = ($q && (int)$q->row()->cnt > 0);
 
         // Count affected records in each referencing table
         foreach (self::REFERENCING_TABLES as $table => $columns) {
+            if (!$this->db->table_exists($table)) continue;
             foreach ($columns as $column) {
-                $this->db->where($column, $old_mlogin);
-                $count = $this->db->count_all_results($table);
-                
+                if (!$this->db->field_exists($column, $table)) continue;
+                $q = $this->db->query(
+                    "SELECT COUNT(*) AS cnt FROM `{$table}` WHERE `{$column}` = ?",
+                    [$old_mlogin]
+                );
+                if (!$q) continue;
+                $count = (int) $q->row()->cnt;
                 if ($count > 0) {
                     $preview['affected_tables'][] = [
                         'table' => $table,
@@ -862,47 +900,40 @@ class Membres_model extends Common_Model {
             }
         }
 
-        // Get sample significant records
-        // Recent flights (planeur)
-        $volsp = $this->db->select('vpdate, vpdecol, vpatterr, vptype')
-            ->from('volsp')
-            ->where_in('vppilid', $old_mlogin)
-            ->or_where('vpinst', $old_mlogin)
-            ->or_where('pilote_remorqueur', $old_mlogin)
-            ->order_by('vpdate', 'DESC')
-            ->limit(3)
-            ->get()
-            ->result_array();
-        
-        if (!empty($volsp)) {
-            $preview['sample_records']['vols_planeur'] = $volsp;
+        // Sample significant records (only if tables exist)
+        if ($this->db->table_exists('volsp')) {
+            $q = $this->db->query(
+                "SELECT vpdate, vpdecol, vpatterr, vptype FROM volsp
+                 WHERE vppilid = ? OR vpinst = ? OR pilote_remorqueur = ?
+                 ORDER BY vpdate DESC LIMIT 3",
+                [$old_mlogin, $old_mlogin, $old_mlogin]
+            );
+            if ($q && $q->num_rows() > 0) {
+                $preview['sample_records']['vols_planeur'] = $q->result_array();
+            }
         }
 
-        // Recent flights (avion)
-        $volsa = $this->db->select('vadate, vadecol, vaatterr')
-            ->from('volsa')
-            ->where_in('vapilid', $old_mlogin)
-            ->or_where('vainst', $old_mlogin)
-            ->order_by('vadate', 'DESC')
-            ->limit(3)
-            ->get()
-            ->result_array();
-        
-        if (!empty($volsa)) {
-            $preview['sample_records']['vols_avion'] = $volsa;
+        if ($this->db->table_exists('volsa')) {
+            $q = $this->db->query(
+                "SELECT vadate, vadecol, vaatterr FROM volsa
+                 WHERE vapilid = ? OR vainst = ?
+                 ORDER BY vadate DESC LIMIT 3",
+                [$old_mlogin, $old_mlogin]
+            );
+            if ($q && $q->num_rows() > 0) {
+                $preview['sample_records']['vols_avion'] = $q->result_array();
+            }
         }
 
-        // Recent tickets
-        $tickets = $this->db->select('tdate, tprix, tcommentaire')
-            ->from('tickets')
-            ->where('pilote', $old_mlogin)
-            ->order_by('tdate', 'DESC')
-            ->limit(3)
-            ->get()
-            ->result_array();
-        
-        if (!empty($tickets)) {
-            $preview['sample_records']['tickets'] = $tickets;
+        if ($this->db->table_exists('tickets')) {
+            $q = $this->db->query(
+                "SELECT tdate, tprix, tcommentaire FROM tickets
+                 WHERE pilote = ? ORDER BY tdate DESC LIMIT 3",
+                [$old_mlogin]
+            );
+            if ($q && $q->num_rows() > 0) {
+                $preview['sample_records']['tickets'] = $q->result_array();
+            }
         }
 
         return $preview;
@@ -924,31 +955,46 @@ class Membres_model extends Common_Model {
         $this->db->trans_start();
 
         try {
+            // Disable FK checks so RESTRICT constraints don't block the rename
+            // and CASCADE columns don't double-update (we handle all tables manually)
+            $this->db->simple_query('SET FOREIGN_KEY_CHECKS=0');
+
             // Update all referencing tables FIRST (before primary key change)
             foreach (self::REFERENCING_TABLES as $table => $columns) {
+                if ($table === 'membres') continue; // handled separately below
+                if (!$this->db->table_exists($table)) continue;
                 foreach ($columns as $column) {
-                    // Check if records exist before updating
-                    $count = $this->db->where($column, $old_mlogin)->count_all_results($table);
-                    
-                    if ($count > 0) {
-                        // Perform update
-                        $this->db->where($column, $old_mlogin);
-                        $this->db->update($table, [$column => $new_mlogin]);
-                        
-                        $affected = $this->db->affected_rows();
+                    if (!$this->db->field_exists($column, $table)) continue;
+                    $this->db->where($column, $old_mlogin);
+                    $this->db->update($table, [$column => $new_mlogin]);
+                    $affected = $this->db->affected_rows();
+                    if ($affected > 0) {
                         $stats[$table][$column] = $affected;
                         $total_updated += $affected;
                     }
                 }
             }
 
+            // Update self-referential column membre_payeur (if column exists)
+            if ($this->db->field_exists('membre_payeur', 'membres')) {
+                $this->db->where('membre_payeur', $old_mlogin);
+                $this->db->update('membres', ['membre_payeur' => $new_mlogin]);
+                $affected = $this->db->affected_rows();
+                if ($affected > 0) {
+                    $stats['membres']['membre_payeur'] = $affected;
+                    $total_updated += $affected;
+                }
+            }
+
             // Update primary key in membres table LAST
             $this->db->where('mlogin', $old_mlogin);
             $this->db->update('membres', ['mlogin' => $new_mlogin]);
-            
             $membres_affected = $this->db->affected_rows();
             $stats['membres']['mlogin'] = $membres_affected;
             $total_updated += $membres_affected;
+
+            // Re-enable FK checks
+            $this->db->simple_query('SET FOREIGN_KEY_CHECKS=1');
 
             // Complete transaction
             $this->db->trans_complete();

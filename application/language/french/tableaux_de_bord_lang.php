@@ -232,5 +232,5 @@ $lang['db_card_fusion_membres'] = "Fusion membres";
 $lang['db_desc_fusion_membres'] = "Fusionner deux comptes membres en doublon";
 
 // Renommer un membre
-$lang['db_card_rename_member'] = "Renommer un membre";
+$lang['db_card_rename_member'] = "Renommer un utilisateur";
 $lang['db_desc_rename_member'] = "Modifier l'identifiant (mlogin) d'un membre existant";

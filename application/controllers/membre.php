@@ -1156,8 +1156,8 @@ class Membre extends Gvv_Controller {
 
         // Step 1: Display selection form (GET)
         if ($this->input->server('REQUEST_METHOD') === 'GET') {
-            $data['title'] = 'Renommer un membre';
-            $data['membres_selector'] = $this->membres_model->get_selector();
+            $data['title'] = 'Renommer un utilisateur';
+            $data['membres_selector'] = $this->membres_model->get_users_selector();
 
             $this->load->view('bs_header', $data);
             $this->load->view('bs_menu', $data);
@@ -1200,7 +1200,7 @@ class Membre extends Gvv_Controller {
             }
 
             // Display preview
-            $data['title'] = 'Prévisualisation du renommage';
+            $data['title'] = 'Prévisualisation du renommage d\'utilisateur';
             $data['preview'] = $preview;
 
             $this->load->view('bs_header', $data);
@@ -1236,7 +1236,7 @@ class Membre extends Gvv_Controller {
             $result = $this->membres_model->execute_rename($old_mlogin, $new_mlogin, $performed_by);
 
             // Display result
-            $data['title'] = 'Résultat du renommage';
+            $data['title'] = 'Résultat du renommage d\'utilisateur';
             $data['result'] = $result;
             $data['old_mlogin'] = $old_mlogin;
             $data['new_mlogin'] = $new_mlogin;

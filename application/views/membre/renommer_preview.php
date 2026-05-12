@@ -14,7 +14,7 @@ $sample_records = $preview['sample_records'];
     <div class="row mb-3">
         <div class="col-12">
             <h4><i class="fas fa-search text-warning"></i>
-                Prévisualisation du renommage
+                Prévisualisation du renommage d'utilisateur
             </h4>
             <p class="text-muted">Vérifiez attentivement les informations ci-dessous avant de confirmer l'opération.</p>
         </div>
@@ -51,7 +51,7 @@ $sample_records = $preview['sample_records'];
     <div class="card mb-3">
         <div class="card-header">
             <i class="fas fa-id-card"></i>
-            Informations du membre concerné
+            Informations de l'utilisateur concerné
         </div>
         <div class="card-body">
             <div class="row">
@@ -241,7 +241,7 @@ $sample_records = $preview['sample_records'];
                 <input type="hidden" name="step" value="execute">
                 <input type="hidden" name="old_mlogin" value="<?= htmlspecialchars($old_mlogin) ?>">
                 <input type="hidden" name="new_mlogin" value="<?= htmlspecialchars($new_mlogin) ?>">
-                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('Êtes-vous ABSOLUMENT certain de vouloir effectuer ce renommage ?\n\nAncien identifiant : <?= htmlspecialchars($old_mlogin) ?>\nNouvel identifiant : <?= htmlspecialchars($new_mlogin) ?>\n\nCette action est IRRÉVERSIBLE.');">
+                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('Êtes-vous ABSOLUMENT certain de vouloir renommer cet utilisateur ?\n\nAncien identifiant : <?= htmlspecialchars($old_mlogin) ?>\nNouvel identifiant : <?= htmlspecialchars($new_mlogin) ?>\n\nCette action est IRRÉVERSIBLE.');">
                     <i class="fas fa-check-circle"></i>
                     Confirmer le renommage
                 </button>
