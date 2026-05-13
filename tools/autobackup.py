@@ -119,7 +119,8 @@ for file in files:
     
     since = age - age_previous
     if (since < limit * 0.95):
-        msg = 'age=' + str(age)
+        msg = current_time.strftime("%H:%M:%S %d/%m/%Y")
+        msg += ' age=' + str(age)
         msg += " " + str(since) + " since previous"
         msg += " deleting " + file + "\n"
         log(msg)
