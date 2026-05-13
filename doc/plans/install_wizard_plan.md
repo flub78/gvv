@@ -19,8 +19,8 @@ Un seul fichier `install/index.php` (PHP pur, sans CodeIgniter).
 | 4 | Informations du club | `club.php` |
 | 5 | Authentification | `dx_auth.php` |
 | 6 | Fonctionnalités | `program.php` |
-| 7 | HelloAsso (optionnel) | `helloasso_crypto.php` |
-| 8 | Google (optionnel) | `google.php` |
+| 7 | Google (optionnel) | `google.php` |
+| 8 | Email Brevo (optionnel) | `email.php` |
 | 9 | Initialisation de la base | `gvv_init.sql` |
 | 10 | Répertoires & droits | — |
 | 11 | Terminé | — |
@@ -63,15 +63,15 @@ Champs : `program_title`, checkboxes pour les feature flags (`gestion_tickets`, 
 Pré-rempli depuis `program.php` si existant  
 Validation → copie/met à jour `program.php`
 
-### Étape 7 — HelloAsso (optionnel)
-Champ : `helloasso_crypto_key`  
-Bouton "Passer cette étape"  
-Validation → copie/met à jour `helloasso_crypto.php`
-
-### Étape 8 — Google (optionnel)
+### Étape 7 — Google (optionnel)
 Champs : `client_id`, `client_secret`, `api_key`  
 Bouton "Passer cette étape"  
 Validation → copie/met à jour `google.php`
+
+### Étape 8 — Email Brevo (optionnel)
+Champs : `smtp_user`, `smtp_pass`  
+Bouton "Passer cette étape" — à utiliser sur hébergement mutualisé (qui utilise `mail()` PHP)  
+Validation → copie `email.example.php` → `email.php`, injecte les identifiants SMTP Brevo
 
 ### Étape 9 — Initialisation de la base
 - Connexion avec les params de l'étape 2
@@ -131,8 +131,8 @@ Les blocs complexes (arrays, auto-detect base_url) sont remplacés par des valeu
 - [x] Étape 4 : Club
 - [x] Étape 5 : Auth
 - [x] Étape 6 : Fonctionnalités
-- [x] Étape 7 : HelloAsso
-- [x] Étape 8 : Google
+- [x] Étape 7 : Google
+- [x] Étape 8 : Email Brevo
 - [x] Étape 9 : Base de données init
 - [x] Étape 10 : Répertoires
 - [x] Étape 11 : Terminé

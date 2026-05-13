@@ -191,3 +191,121 @@ Do not modify helper code to switch between rewrite and non-rewrite deployments.
 
 The URL mode must be controlled by Apache configuration and `config.php`, not by changing application source code.
 
+## Domain-to-domain redirection with `.htaccess`
+
+Use this when you want all traffic from one domain (source) to be redirected to another domain (target).
+
+Example:
+- source: `old-domain.example`
+- target: `new-domain.example`
+
+### Prerequisites: checks before enabling the redirect
+
+1. Both domains resolve in DNS:
+
+```bash
+dig +short old-domain.example
+dig +short new-domain.example
+```
+
+2. Apache serves the source domain and you can identify its vhost:
+
+```bash
+apache2ctl -S
+```
+
+3. `.htaccess` is allowed on the source vhost:
+
+```apache
+<Directory /path/to/source-web-root>
+    AllowOverride All
+</Directory>
+```
+
+4. Rewrite module is enabled:
+
+```bash
+apache2ctl -M | grep rewrite
+```
+
+Expected output contains `rewrite_module`.
+
+5. TLS/SSL is valid for domains that redirect on HTTPS.
+
+6. Existing `.htaccess` is backed up before changes.
+
+### `.htaccess` rules to add (source domain)
+
+In the source web root (same directory as the source domain `index.php`), add:
+
+```apache
+RewriteEngine On
+
+# Keep Let's Encrypt HTTP challenge reachable (optional but recommended)
+RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+
+# Redirect source domain to target domain and keep path + query string
+RewriteCond %{HTTP_HOST} ^(www\.)?old-domain\.example$ [NC]
+RewriteRule ^ https://new-domain.example%{REQUEST_URI} [R=301,L,NE,QSA]
+```
+
+What this does:
+- `R=301`: permanent redirect (SEO/browser cache friendly).
+- `%{REQUEST_URI}`: keeps `/path/subpath`.
+- `QSA`: preserves query string.
+- `NE`: avoids unwanted URL escaping.
+
+If you want a temporary redirect during testing, use `R=302` instead of `R=301`.
+
+### Verification after deployment
+
+1. Config syntax:
+
+```bash
+sudo apache2ctl configtest
+```
+
+2. Reload Apache:
+
+```bash
+sudo systemctl reload apache2
+```
+
+3. Check HTTP response:
+
+```bash
+curl -I http://old-domain.example/some/path?x=1
+curl -I https://old-domain.example/some/path?x=1
+```
+
+Expected:
+- status `301` (or `302` if configured)
+- `Location: https://new-domain.example/some/path?x=1`
+
+4. Browser check:
+- open a few URLs on the source domain
+- confirm no redirect loop
+- confirm destination pages load correctly
+
+### Can we comment rules to disable the redirect?
+
+Yes. In `.htaccess`, prefix the redirect lines with `#`.
+
+Example (redirect disabled):
+
+```apache
+RewriteEngine On
+
+# RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+# RewriteCond %{HTTP_HOST} ^(www\.)?old-domain\.example$ [NC]
+# RewriteRule ^ https://new-domain.example%{REQUEST_URI} [R=301,L,NE,QSA]
+```
+
+After commenting/uncommenting rules:
+
+```bash
+sudo systemctl reload apache2
+```
+
+Note: if you tested with `301`, browsers may cache aggressively. Use a private window or clear cache when validating changes.
+

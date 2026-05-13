@@ -129,15 +129,33 @@ https://gvvg.flub78.net/install/
 
 ![Etape 6](./images/install_6.png)
 
-#### Étape 8 — Initialisation de la base de données
+#### Étape 7 — Google (optionnel)
+
+Synchronisation du calendrier Google. Peut être passée si non utilisé.
+
+#### Étape 8 — Email Brevo (optionnel)
+
+Configuration SMTP pour l'envoi d'emails via [Brevo](https://www.brevo.com/).
+
+> **Sur un hébergement mutualisé** (OVH, Infomaniak, o2switch…), cette étape peut être **passée** : le serveur mutualisé configure lui-même la fonction PHP `mail()` et les emails partent sans configuration SMTP supplémentaire.
+>
+> Utilisez Brevo uniquement sur un VPS ou serveur dédié où le port 587 est ouvert.
+
+Si vous configurez Brevo :
+1. Créez un compte sur [brevo.com](https://www.brevo.com/)
+2. Dans le tableau de bord Brevo : **SMTP & API → Identifiants SMTP**
+3. Notez l'**identifiant SMTP** (format `xxxxxxxx@smtp-brevo.com`) et générez une **clé SMTP** (commence par `xsmtpsib-`)
+4. Saisissez ces deux valeurs dans le formulaire — le reste (hôte, port, chiffrement) est pré-configuré
+
+#### Étape 9 — Initialisation de la base de données
 
 ![Etape 8](./images/install_8.png)
 
-#### Étape 9 — Répertoires & droits
+#### Étape 10 — Répertoires & droits
 
 ![Etape 9](./images/install_9.png)
 
-#### Étape 10 — Installation terminée
+#### Étape 11 — Installation terminée
 
 ![Etape 10](./images/install_10.png)
 
@@ -152,7 +170,182 @@ https://gvvg.flub78.net/install/
 
 #### Configuration des emails
 
+La configuration email est prise en charge par l'étape 8 de l'assistant d'installation.
+Si vous avez passé cette étape ou souhaitez la modifier manuellement, créez ou éditez `application/config/email.php` à partir du modèle `email.example.php` :
+
+
 #### Configuration de la tache cron pour les sauvegardes automatiques
+
+L'objectif est d'automatiser une sauvegarde quotidienne de la base (et optionnellement des médias) sans passer par l'interface web.
+
+1. Créez un script shell dédié sur le serveur, par exemple `/usr/local/bin/gvv_backup.sh` :
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# === Paramètres à adapter ===
+DB_HOST="127.0.0.1"
+DB_NAME="gvv"
+DB_USER="gvv_user"
+DB_PASS="change_me"
+BACKUP_DIR="/home/www/gvv/backups"
+WEBROOT="/home/www/gvv"
+
+DATE="$(date +%Y%m%d_%H%M%S)"
+FILE_PREFIX="${DB_NAME}_backup_${DATE}"
+SQL_FILE="${BACKUP_DIR}/${FILE_PREFIX}.sql"
+ZIP_FILE="${BACKUP_DIR}/${FILE_PREFIX}.zip"
+MEDIA_FILE="${BACKUP_DIR}/uploads_${DATE}.tar.gz"
+
+mkdir -p "${BACKUP_DIR}"
+
+# Sauvegarde SQL
+/usr/bin/mysqldump \
+    --host="${DB_HOST}" \
+    --user="${DB_USER}" \
+    --password="${DB_PASS}" \
+    --single-transaction \
+    --routines \
+    --triggers \
+    "${DB_NAME}" > "${SQL_FILE}"
+
+# Compression SQL
+/usr/bin/zip -j "${ZIP_FILE}" "${SQL_FILE}"
+rm -f "${SQL_FILE}"
+
+# Sauvegarde des médias (optionnel mais recommandé)
+/usr/bin/tar \
+    --exclude='restore' \
+    --exclude='attachments_backup' \
+    -czf "${MEDIA_FILE}" \
+    -C "${WEBROOT}" uploads
+
+# Rétention: conserve 30 jours
+/usr/bin/find "${BACKUP_DIR}" -type f -name '*.zip' -mtime +30 -delete
+/usr/bin/find "${BACKUP_DIR}" -type f -name '*.tar.gz' -mtime +30 -delete
+```
+
+2. Donnez les droits d'exécution :
+
+```bash
+sudo chmod 750 /usr/local/bin/gvv_backup.sh
+```
+
+3. Testez le script manuellement avant de planifier :
+
+```bash
+sudo /usr/local/bin/gvv_backup.sh
+ls -lh /home/www/gvv/backups
+```
+
+4. Éditez la crontab de l'utilisateur qui exécute le serveur web (ou d'un utilisateur technique dédié) :
+
+```bash
+crontab -e
+```
+
+5. Ajoutez une exécution quotidienne (exemple 02:15) avec journal dédié :
+
+```cron
+15 2 * * * /usr/local/bin/gvv_backup.sh >> /var/log/gvv-backup.log 2>&1
+```
+
+6. Vérifiez que le service cron est actif :
+
+```bash
+sudo systemctl status cron
+```
+
+> Recommandation sécurité : évitez de laisser le mot de passe MySQL en clair dans un script. En production, préférez un fichier de credentials MySQL (`~/.my.cnf`) lisible uniquement par l'utilisateur d'exécution.
+
+
+#### Vérification du bon fonctionnement
+
+Après configuration, validez les points suivants :
+
+1. La tâche est bien enregistrée :
+
+```bash
+crontab -l
+```
+
+2. Le log se met à jour à l'heure prévue :
+
+```bash
+tail -n 50 /var/log/gvv-backup.log
+```
+
+3. De nouveaux fichiers apparaissent dans le répertoire de sauvegarde :
+
+```bash
+ls -ltr /home/www/gvv/backups | tail -n 10
+```
+
+4. L'archive SQL est lisible :
+
+```bash
+unzip -l /home/www/gvv/backups/<fichier>.zip
+```
+
+5. La sauvegarde média est lisible :
+
+```bash
+tar -tzf /home/www/gvv/backups/<fichier>.tar.gz | head -n 20
+```
+
+6. (Recommandé) Faites un test de restauration sur une base de test au moins une fois :
+
+```bash
+unzip -p /home/www/gvv/backups/<fichier>.zip | mysql -u <user> -p <base_test>
+```
+
+
+#### Troubleshooting (cron et sauvegardes)
+
+Symptôme: aucun nouveau fichier dans `backups`.
+Cause probable: la crontab n'est pas installée pour le bon utilisateur, ou cron n'est pas démarré.
+Vérifications:
+
+```bash
+crontab -l
+sudo systemctl status cron
+```
+
+Symptôme: `mysqldump: command not found`.
+Cause probable: chemin binaire différent selon la distribution.
+Correctif:
+
+```bash
+which mysqldump
+```
+
+Puis remplacez `/usr/bin/mysqldump` dans le script par le chemin trouvé.
+
+Symptôme: `Access denied for user` lors du dump.
+Cause probable: identifiants MySQL incorrects ou droits insuffisants.
+Correctif: testez la connexion avec les mêmes identifiants et accordez les droits `SELECT`, `LOCK TABLES`, `SHOW VIEW`, `TRIGGER` selon votre configuration.
+
+Symptôme: le job cron tourne manuellement mais échoue en automatique.
+Cause probable: variables d'environnement minimales dans cron (PATH, droits, répertoire courant).
+Correctif: utilisez des chemins absolus (comme dans l'exemple), et journalisez `stdout/stderr` dans `/var/log/gvv-backup.log`.
+
+Symptôme: erreurs `No space left on device` ou backups incomplètes.
+Cause probable: disque plein ou rétention absente.
+Correctif:
+
+```bash
+df -h
+du -sh /home/www/gvv/backups
+```
+
+Activez la rotation/rétention (exemple fourni: suppression au-delà de 30 jours).
+
+Symptôme: erreur 500 lors d'une sauvegarde via l'interface web.
+Cause probable: mémoire PHP insuffisante pour la compression.
+Correctif: augmentez `memory_limit` dans `/etc/php/7.4/apache2/php.ini` (exemple courant: `256M`) puis redémarrez Apache.
+
+
 
 #### Configuration de HelloAsso
 

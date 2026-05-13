@@ -249,14 +249,15 @@ $STEPS = [
     5  => ['icon' => 'fa-lock',          'label' => 'Authentification'],
     6  => ['icon' => 'fa-sliders',       'label' => 'Fonctionnalités'],
     7  => ['icon' => 'fab fa-google',    'label' => 'Google'],
-    8  => ['icon' => 'fa-table',         'label' => 'Base — init'],
-    9  => ['icon' => 'fa-folder',        'label' => 'Répertoires'],
-    10 => ['icon' => 'fa-flag-checkered','label' => 'Terminé'],
+    8  => ['icon' => 'fa-envelope',      'label' => 'Email (Brevo)'],
+    9  => ['icon' => 'fa-table',         'label' => 'Base — init'],
+    10 => ['icon' => 'fa-folder',        'label' => 'Répertoires'],
+    11 => ['icon' => 'fa-flag-checkered','label' => 'Terminé'],
 ];
 
 $step = isset($_SESSION['install']['step']) ? (int)$_SESSION['install']['step'] : 1;
 if (isset($_GET['step'])) $step = (int)$_GET['step'];
-$step = max(1, min(10, $step));
+$step = max(1, min(11, $step));
 
 $errors  = [];
 $notices = [];
@@ -394,8 +395,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $step = 8;
                 break;
 
-            // ── Étape 8 : Initialisation de la base
+            // ── Étape 8 : Email Brevo (optionnel)
             case 8:
+                if (!isset($_POST['skip'])) {
+                    ensure_example('email');
+                    $f = CFG_DIR . '/email.php';
+                    cfg_write($f, 'smtp_user', trim($_POST['brevo_smtp_user'] ?? ''));
+                    cfg_write($f, 'smtp_pass', trim($_POST['brevo_smtp_pass'] ?? ''));
+                }
+                $step = 9;
+                break;
+
+            // ── Étape 9 : Initialisation de la base (ancien cas 8)
+            case 9:
                 $db = db_from_session();
                 $conn = @mysqli_connect($db['host'], $db['user'], $db['pass'], $db['name']);
                 if (!$conn) {
@@ -406,24 +418,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         . mysqli_real_escape_string($conn, $db['name']) . "'");
                     $cnt = (int)(mysqli_fetch_assoc($res)['cnt'] ?? 0);
                     $force = isset($_POST['force_reinit']);
+                    $needs_init = $cnt < 22 || $force;
 
-                    // Validate admin credentials (always required)
-                    $adm_user  = trim($_POST['adm_username'] ?? '');
-                    $adm_email = trim($_POST['adm_email']    ?? '');
-                    $adm_pass  = $_POST['adm_password']      ?? '';
-                    $adm_pass2 = $_POST['adm_password2']     ?? '';
+                    // Validate admin credentials only when (re)initialising the database
+                    if ($needs_init) {
+                        $adm_user  = trim($_POST['adm_username'] ?? '');
+                        $adm_email = trim($_POST['adm_email']    ?? '');
+                        $adm_pass  = $_POST['adm_password']      ?? '';
+                        $adm_pass2 = $_POST['adm_password2']     ?? '';
 
-                    if (!$adm_user)  $errors[] = 'L\'identifiant administrateur est requis.';
-                    if (!$adm_email) $errors[] = 'L\'email administrateur est requis.';
-                    if (!$adm_pass)  $errors[] = 'Le mot de passe administrateur est requis.';
-                    if ($adm_pass && $adm_pass !== $adm_pass2)
-                        $errors[] = 'Les mots de passe ne correspondent pas.';
-                    if ($adm_pass && strlen($adm_pass) < 8)
-                        $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+                        if (!$adm_user)  $errors[] = 'L\'identifiant administrateur est requis.';
+                        if (!$adm_email) $errors[] = 'L\'email administrateur est requis.';
+                        if (!$adm_pass)  $errors[] = 'Le mot de passe administrateur est requis.';
+                        if ($adm_pass && $adm_pass !== $adm_pass2)
+                            $errors[] = 'Les mots de passe ne correspondent pas.';
+                        if ($adm_pass && strlen($adm_pass) < 8)
+                            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+                    }
 
                     if (empty($errors)) {
-                        // SQL import only when tables are missing or force reinit requested
-                        if ($cnt < 22 || $force) {
+                        if ($needs_init) {
                             if ($force && $cnt > 0) {
                                 mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
                                 $t = mysqli_query($conn, 'SHOW TABLES');
@@ -440,8 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $errors[] = htmlspecialchars($e);
                             } else {
                                 $notices[] = 'Base initialisée avec succès.';
-                                // Remove test accounts — disable FK checks so dependent rows
-                                // (user_roles_per_section etc.) don't block the DELETE
+                                // Remove test accounts
                                 $test_users = ['testadmin','testuser','testplanchiste',
                                                'asterix','abraracourcix','panoramix','goudurix'];
                                 $in = implode(',', array_map(
@@ -452,38 +465,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 mysqli_query($conn, "DELETE FROM users   WHERE username IN ($in)");
                                 mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
                             }
+
+                            if (empty($errors)) {
+                                $hashed = dx_hash_password($adm_pass);
+                                $now    = date('Y-m-d H:i:s');
+                                $u_esc  = mysqli_real_escape_string($conn, $adm_user);
+                                $h_esc  = mysqli_real_escape_string($conn, $hashed);
+                                $e_esc  = mysqli_real_escape_string($conn, $adm_email);
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
+                                mysqli_query($conn, "DELETE FROM users WHERE username = '$u_esc'");
+                                $ok = mysqli_query($conn,
+                                    "INSERT INTO users (role_id, username, password, email, last_ip, last_login, created)
+                                     VALUES (2, '$u_esc', '$h_esc', '$e_esc', '127.0.0.1', '$now', '$now')");
+                                mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
+                                if ($ok) {
+                                    $notices[] = "Administrateur <strong>" . htmlspecialchars($adm_user) . "</strong> créé.";
+                                    $step = 10;
+                                } else {
+                                    $errors[] = "Erreur lors de la création de l'administrateur : " . mysqli_error($conn);
+                                }
+                            }
                         } else {
                             $notices[] = "$cnt tables détectées — base conservée.";
-                        }
-
-                        if (empty($errors)) {
-                            // Insert admin user — disable FK checks so any pre-existing row
-                            // with the same username (e.g. leftover test data) can be removed
-                            $hashed = dx_hash_password($adm_pass);
-                            $now    = date('Y-m-d H:i:s');
-                            $u_esc  = mysqli_real_escape_string($conn, $adm_user);
-                            $h_esc  = mysqli_real_escape_string($conn, $hashed);
-                            $e_esc  = mysqli_real_escape_string($conn, $adm_email);
-                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=0');
-                            mysqli_query($conn, "DELETE FROM users WHERE username = '$u_esc'");
-                            $ok = mysqli_query($conn,
-                                "INSERT INTO users (role_id, username, password, email, last_ip, last_login, created)
-                                 VALUES (2, '$u_esc', '$h_esc', '$e_esc', '127.0.0.1', '$now', '$now')");
-                            mysqli_query($conn, 'SET FOREIGN_KEY_CHECKS=1');
-                            if ($ok) {
-                                $notices[] = "Administrateur <strong>" . htmlspecialchars($adm_user) . "</strong> créé.";
-                                $step = 9;
-                            } else {
-                                $errors[] = "Erreur lors de la création de l'administrateur : " . mysqli_error($conn);
-                            }
+                            $step = 10;
                         }
                     }
                     mysqli_close($conn);
                 }
                 break;
 
-            // ── Étape 9 : Répertoires
-            case 9:
+            // ── Étape 10 : Répertoires
+            case 10:
                 $dirs = [
                     ROOT . '/uploads',
                     ROOT . '/uploads/restore',
@@ -495,12 +507,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ROOT . '/assets/images',
                     ROOT . '/application/logs',
                     ROOT . '/captcha',
+                    ROOT . '/backups',
                 ];
                 foreach ($dirs as $d) {
                     ensure_dir($d, 0775);
                     @chmod($d, 0775);
                 }
-                $step = 10;
+                $step = 11;
                 break;
         }
     }
@@ -572,6 +585,12 @@ $d_google = [
     'api_key'       => pre_read('google','api_key',''),
 ];
 
+$email_prod = CFG_DIR . '/email.php';
+$d_brevo = [
+    'smtp_user' => file_exists($email_prod) ? (cfg_read($email_prod, 'smtp_user', '') ?? '') : '',
+    'smtp_pass' => file_exists($email_prod) ? (cfg_read($email_prod, 'smtp_pass', '') ?? '') : '',
+];
+
 // ── Prérequis (calculés pour l'affichage étape 1)
 $php_ok     = version_compare(PHP_VERSION, '7.4.0', '>=');
 $ext_ok     = array_map(fn($e) => extension_loaded($e),
@@ -592,6 +611,7 @@ $required_dirs = [
     ROOT.'/assets/images'            => 'assets/images/',
     ROOT.'/application/logs'         => 'application/logs/',
     ROOT.'/captcha'                  => 'captcha/',
+    ROOT.'/backups'                  => 'backups/',
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -1035,7 +1055,75 @@ body { background: #f0f4f8; }
 
   <?php break;
   // ════════════════════════════════════════════════════════
-  case 8: // Init base
+  case 8: // Email Brevo (optionnel)
+  // ════════════════════════════════════════════════════════
+  ?>
+  <h2 class="step-title mb-1"><i class="fas fa-envelope text-primary me-2"></i>Configuration email — Brevo</h2>
+  <div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Étape optionnelle.</strong> Sur un <strong>hébergement mutualisé</strong> (OVH, Infomaniak, o2switch…),
+    les emails sont envoyés via la fonction PHP <code>mail()</code> sans configuration SMTP supplémentaire.
+    Utilisez Brevo uniquement sur un VPS ou serveur dédié où les ports SMTP sont ouverts.
+  </div>
+  <p class="text-muted mb-3">Configure <code>application/config/email.php</code> pour l'envoi SMTP via Brevo.</p>
+
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Identifiant SMTP Brevo</label>
+    <input type="email" name="brevo_smtp_user" class="form-control font-monospace"
+           value="<?= h($d_brevo['smtp_user']) ?>"
+           placeholder="xxxxxxxx@smtp-brevo.com">
+    <div class="form-text">L'identifiant SMTP Brevo se trouve dans votre tableau de bord Brevo → SMTP &amp; API → Identifiants SMTP.</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Clé SMTP Brevo</label>
+    <div class="input-group">
+      <input type="password" name="brevo_smtp_pass" id="brevo_pass" class="form-control font-monospace"
+             value="<?= h($d_brevo['smtp_pass']) ?>"
+             placeholder="xsmtpsib-…">
+      <button type="button" class="btn btn-outline-secondary" onclick="toggleBrevoPass()">
+        <i class="fas fa-eye" id="brevo-eye"></i>
+      </button>
+    </div>
+    <div class="form-text">La clé SMTP (commence par <code>xsmtpsib-</code>) est disponible dans le même tableau de bord.</div>
+  </div>
+
+  <div class="card bg-light border-0 mb-3">
+    <div class="card-body small">
+      <strong><i class="fas fa-cog me-1 text-secondary"></i>Paramètres SMTP pré-configurés (Brevo standard) :</strong>
+      <ul class="mb-0 mt-2">
+        <li>Hôte : <code>smtp-relay.brevo.com</code></li>
+        <li>Port : <code>587</code> (STARTTLS)</li>
+        <li>Chiffrement : <code>TLS</code></li>
+      </ul>
+      <div class="mt-2 text-muted">Ces valeurs sont copiées depuis <code>email.example.php</code> et peuvent être ajustées manuellement ensuite.</div>
+    </div>
+  </div>
+
+  <script>
+  function toggleBrevoPass(){
+    var i=document.getElementById('brevo_pass'),e=document.getElementById('brevo-eye');
+    i.type=i.type==='password'?'text':'password';
+    e.className=i.type==='password'?'fas fa-eye':'fas fa-eye-slash';
+  }
+  </script>
+
+  <div class="d-flex justify-content-between mt-4">
+    <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Précédent
+    </button>
+    <div>
+      <button type="submit" name="skip" value="1" class="btn btn-outline-secondary me-2">
+        Passer <i class="fas fa-forward ms-1"></i>
+      </button>
+      <button type="submit" name="action" value="next" class="btn btn-primary">
+        Enregistrer &amp; continuer <i class="fas fa-arrow-right ms-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <?php break;
+  // ════════════════════════════════════════════════════════
+  case 9: // Init base
   // ════════════════════════════════════════════════════════
   $db9 = db_from_session();
   $conn9 = @mysqli_connect($db9['host'], $db9['user'], $db9['pass'], $db9['name']);
@@ -1078,31 +1166,51 @@ body { background: #f0f4f8; }
     </label>
   </div>
 
-  <div id="admin-section" class="border rounded p-3 mb-4 bg-light">
+  <?php $admin_required = $cnt9 < 22; ?>
+  <div id="admin-section" class="border rounded p-3 mb-4 bg-light<?= $admin_required ? '' : ' d-none' ?>">
     <h6 class="fw-bold mb-3"><i class="fas fa-user-shield text-primary me-2"></i>Compte administrateur</h6>
     <p class="text-muted small mb-3">
       Les utilisateurs de test seront supprimés. Créez ici le premier compte administrateur.
     </p>
     <div class="row g-3">
       <div class="col-md-6">
-        <label class="form-label fw-semibold">Identifiant <span class="text-danger">*</span></label>
-        <input type="text" name="adm_username" class="form-control" value="<?= h($_POST['adm_username'] ?? '') ?>" required autocomplete="off">
+        <label class="form-label fw-semibold">Identifiant <?= $admin_required ? '<span class="text-danger">*</span>' : '' ?></label>
+        <input type="text" name="adm_username" id="adm_username" class="form-control"
+               value="<?= h($_POST['adm_username'] ?? '') ?>"
+               <?= $admin_required ? 'required' : '' ?> autocomplete="off">
       </div>
       <div class="col-md-6">
-        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-        <input type="email" name="adm_email" class="form-control" value="<?= h($_POST['adm_email'] ?? '') ?>" required>
+        <label class="form-label fw-semibold">Email <?= $admin_required ? '<span class="text-danger">*</span>' : '' ?></label>
+        <input type="email" name="adm_email" id="adm_email" class="form-control"
+               value="<?= h($_POST['adm_email'] ?? '') ?>"
+               <?= $admin_required ? 'required' : '' ?>>
       </div>
       <div class="col-md-6">
-        <label class="form-label fw-semibold">Mot de passe <span class="text-danger">*</span></label>
-        <input type="password" name="adm_password" class="form-control" autocomplete="new-password" required minlength="8">
+        <label class="form-label fw-semibold">Mot de passe <?= $admin_required ? '<span class="text-danger">*</span>' : '' ?></label>
+        <input type="password" name="adm_password" id="adm_password" class="form-control"
+               autocomplete="new-password" <?= $admin_required ? 'required' : '' ?> minlength="8">
         <div class="form-text">8 caractères minimum.</div>
       </div>
       <div class="col-md-6">
-        <label class="form-label fw-semibold">Confirmer le mot de passe <span class="text-danger">*</span></label>
-        <input type="password" name="adm_password2" class="form-control" autocomplete="new-password" required minlength="8">
+        <label class="form-label fw-semibold">Confirmer le mot de passe <?= $admin_required ? '<span class="text-danger">*</span>' : '' ?></label>
+        <input type="password" name="adm_password2" id="adm_password2" class="form-control"
+               autocomplete="new-password" <?= $admin_required ? 'required' : '' ?> minlength="8">
       </div>
     </div>
   </div>
+  <?php if ($cnt9 >= 22): ?>
+  <script>
+  document.getElementById('force_reinit').addEventListener('change', function() {
+    var sec = document.getElementById('admin-section');
+    var req = this.checked;
+    sec.classList.toggle('d-none', !req);
+    ['adm_username','adm_email','adm_password','adm_password2'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) req ? el.setAttribute('required','') : el.removeAttribute('required');
+    });
+  });
+  </script>
+  <?php endif; ?>
 
   <div class="d-flex justify-content-between mt-2">
     <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">
@@ -1116,7 +1224,7 @@ body { background: #f0f4f8; }
 
   <?php break;
   // ════════════════════════════════════════════════════════
-  case 9: // Répertoires
+  case 10: // Répertoires
   // ════════════════════════════════════════════════════════
   ?>
   <h2 class="step-title mb-1"><i class="fas fa-folder text-primary me-2"></i>Répertoires &amp; droits</h2>
@@ -1164,11 +1272,11 @@ body { background: #f0f4f8; }
 
   <?php break;
   // ════════════════════════════════════════════════════════
-  case 10: // Terminé
+  case 11: // Terminé
   // ════════════════════════════════════════════════════════
   $app_url = pre_read('config','base_url', detect_base_url());
   $files_created = [];
-  foreach (['database','config','club','dx_auth','program','google'] as $b) {
+  foreach (['database','config','club','dx_auth','program','google','email'] as $b) {
       if (file_exists(CFG_DIR . '/' . $b . '.php'))
           $files_created[] = 'application/config/' . $b . '.php';
   }
