@@ -234,3 +234,9 @@ $lang['db_desc_fusion_membres'] = "Merge two duplicate member accounts";
 // Rename a member
 $lang['db_card_rename_member'] = "Rename a member";
 $lang['db_desc_rename_member'] = "Modify the identifier (mlogin) of an existing member";
+
+// Site access lock
+$lang['db_card_lock_access']     = "Site access";
+$lang['db_desc_lock_access']     = "Member access control";
+$lang['db_lock_status_open']     = "Open";
+$lang['db_lock_status_locked']   = "Locked";

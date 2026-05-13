@@ -2990,4 +2990,40 @@ SQL;
         $this->load->view('admin/bs_test_email', $data);
         $this->load->view('bs_footer');
     }
+
+    /**
+     * AJAX: Toggle $config['locked'] in program.php
+     */
+    public function ajax_toggle_locked() {
+        header('Content-Type: application/json');
+
+        $config_file = APPPATH . 'config/program.php';
+        $content = file_get_contents($config_file);
+
+        if ($content === false) {
+            echo json_encode(array('success' => false, 'message' => 'Impossible de lire le fichier de configuration'));
+            return;
+        }
+
+        $current = $this->config->item('locked');
+        $new_value = $current ? 'FALSE' : 'TRUE';
+
+        $new_content = preg_replace(
+            "/(\\\$config\['locked'\]\s*=\s*)(TRUE|FALSE)(;)/i",
+            '${1}' . $new_value . '${3}',
+            $content
+        );
+
+        if ($new_content === null || $new_content === $content) {
+            echo json_encode(array('success' => false, 'message' => 'Paramètre locked introuvable dans le fichier de configuration'));
+            return;
+        }
+
+        if (file_put_contents($config_file, $new_content) === false) {
+            echo json_encode(array('success' => false, 'message' => 'Impossible d\'écrire dans le fichier de configuration'));
+            return;
+        }
+
+        echo json_encode(array('success' => true, 'locked' => !$current));
+    }
 }

@@ -234,3 +234,9 @@ $lang['db_desc_fusion_membres'] = "Twee dubbele ledenaccounts samenvoegen";
 // Een lid hernoemen
 $lang['db_card_rename_member'] = "Een lid hernoemen";
 $lang['db_desc_rename_member'] = "De identifier (mlogin) van een bestaand lid wijzigen";
+
+// Sitetoegang vergrendeling
+$lang['db_card_lock_access']     = "Sitetoegang";
+$lang['db_desc_lock_access']     = "Toegangscontrole leden";
+$lang['db_lock_status_open']     = "Open";
+$lang['db_lock_status_locked']   = "Vergrendeld";

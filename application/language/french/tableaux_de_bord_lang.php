@@ -217,6 +217,12 @@ $lang['db_title_freeze_date_edit'] = "Modification de la date de gel";
 $lang['db_confirm_dev_env'] = "Êtes-vous sûr d'être sur un environnement de développement ?";
 $lang['db_card_pilot_payment'] = "Approvisionnement pilote";
 
+// Verrou d'accès site
+$lang['db_card_lock_access']     = "Accès site";
+$lang['db_desc_lock_access']     = "Contrôle d'accès des membres";
+$lang['db_lock_status_open']     = "Ouvert";
+$lang['db_lock_status_locked']   = "Verrouillé";
+
 // Cartes de membre
 $lang['db_card_member_cards']    = "Cartes de membre";
 $lang['db_desc_member_cards']    = "Générer les cartes en lot";

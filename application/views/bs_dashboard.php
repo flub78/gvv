@@ -1252,6 +1252,23 @@ $this->lang->load('tableaux_de_bord');
                     <h6 class="text-muted mb-2"><i class="fas fa-sliders-h"></i> <?= $this->lang->line('db_sub_config_section') ?></h6>
                 </div>
 
+                <!-- Verrou d'accès site -->
+                <?php $is_locked = $this->config->item('locked') === TRUE; ?>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-danger" id="lock-access-card">
+                        <i class="fas fa-<?= $is_locked ? 'lock' : 'lock-open' ?> <?= $is_locked ? 'text-danger' : 'text-success' ?>" id="lock-access-icon" style="font-size:1.5rem;"></i>
+                        <div class="card-title"><?= $this->lang->line('db_card_lock_access') ?></div>
+                        <div class="card-text text-muted mb-1"><?= $this->lang->line('db_desc_lock_access') ?></div>
+                        <div class="form-check form-switch d-flex justify-content-center" style="margin:0.6rem 0;">
+                            <input class="form-check-input" type="checkbox" role="switch" id="toggle-locked"
+                                <?= $is_locked ? 'checked' : '' ?>
+                                style="width:3.5em;height:1.75em;cursor:pointer;background-color:<?= $is_locked ? '#dc3545' : '#198754' ?>;border-color:<?= $is_locked ? '#dc3545' : '#198754' ?>;">
+                        </div>
+                        <div id="lock-status-text" class="fw-bold <?= $is_locked ? 'text-danger' : 'text-success' ?>"><?= $this->lang->line($is_locked ? 'db_lock_status_locked' : 'db_lock_status_open') ?></div>
+                        <div id="lock-feedback" style="min-height:1rem;font-size:0.75rem;" class="text-danger mt-1"></div>
+                    </div>
+                </div>
+
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">
                     <div class="sub-card text-center border-danger">
                         <i class="fas fa-users text-primary"></i>
@@ -1782,6 +1799,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 link.attr('target', '_blank');
                 link.attr('rel', 'noopener noreferrer');
             }
+        });
+    }
+
+    // Lock access toggle
+    const toggleLocked = document.getElementById('toggle-locked');
+    if (toggleLocked) {
+        toggleLocked.addEventListener('change', function() {
+            const checked = this.checked;
+            toggleLocked.disabled = true;
+
+            fetch('<?= controller_url('admin/ajax_toggle_locked') ?>', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    const locked = data.locked;
+                    const icon = document.getElementById('lock-access-icon');
+                    const status = document.getElementById('lock-status-text');
+                    const color = locked ? '#dc3545' : '#198754';
+                    if (icon) {
+                        icon.className = 'fas fa-' + (locked ? 'lock text-danger' : 'lock-open text-success');
+                        icon.style.fontSize = '1.5rem';
+                    }
+                    if (status) {
+                        status.textContent = locked ? '<?= $this->lang->line('db_lock_status_locked') ?>' : '<?= $this->lang->line('db_lock_status_open') ?>';
+                        status.className = 'fw-bold ' + (locked ? 'text-danger' : 'text-success');
+                    }
+                    toggleLocked.style.backgroundColor = color;
+                    toggleLocked.style.borderColor = color;
+                } else {
+                    toggleLocked.checked = !checked;
+                    const fb = document.getElementById('lock-feedback');
+                    if (fb) fb.textContent = data.message || 'Erreur';
+                }
+            })
+            .catch(function() {
+                toggleLocked.checked = !checked;
+                const fb = document.getElementById('lock-feedback');
+                if (fb) fb.textContent = 'Erreur de communication';
+            })
+            .finally(function() {
+                toggleLocked.disabled = false;
+            });
         });
     }
 });
