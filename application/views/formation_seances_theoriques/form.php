@@ -62,7 +62,7 @@ foreach ($participants_data as $p) {
         <!-- Type de séance -->
         <div class="mb-3 row">
             <label for="type_seance_id" class="col-sm-3 col-form-label">
-                <?= $this->lang->line('formation_type_seance_nom') ?> <span class="text-danger">*</span>
+                <?= $this->lang->line('formation_seance_type') ?> <span class="text-danger">*</span>
             </label>
             <div class="col-sm-4">
                 <select class="form-select" id="type_seance_id" name="type_seance_id" required>

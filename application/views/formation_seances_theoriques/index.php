@@ -134,9 +134,10 @@ $this->load->view('bs_banner');
                         <thead>
                             <tr>
                                 <th><?= $this->lang->line('formation_seance_date') ?></th>
-                                <th><?= $this->lang->line('formation_type_seance_nom') ?></th>
+                                <th><?= $this->lang->line('formation_seance_type') ?></th>
                                 <th><?= $this->lang->line('formation_seance_instructeur') ?></th>
                                 <th><?= $this->lang->line('formation_seance_programme') ?></th>
+                                <th><?= $this->lang->line('formation_seance_commentaires') ?></th>
                                 <th><?= $this->lang->line('formation_seance_lieu') ?></th>
                                 <th><?= $this->lang->line('formation_seance_duree_cours') ?></th>
                                 <th><?= $this->lang->line('formation_seance_nb_participants') ?></th>
@@ -147,11 +148,12 @@ $this->load->view('bs_banner');
                             <?php foreach ($seances as $s): ?>
                                 <tr>
                                     <td><?= date('d/m/Y', strtotime($s['date_seance'])) ?></td>
-                                    <td><?= htmlspecialchars($s['type_seance'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($s['type_seance_nom'] ?? '') ?></td>
                                     <td><?= htmlspecialchars(
                                         trim(($s['instructeur_prenom'] ?? '') . ' ' . ($s['instructeur_nom'] ?? ''))
                                     ) ?></td>
                                     <td><?= htmlspecialchars($s['programme_titre'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars(mb_strimwidth($s['commentaires'] ?? '', 0, 80, '…')) ?></td>
                                     <td><?= htmlspecialchars($s['lieu'] ?? '') ?></td>
                                     <td><?= !empty($s['duree']) ? substr($s['duree'], 0, 5) : '—' ?></td>
                                     <td>

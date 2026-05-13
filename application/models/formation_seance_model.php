@@ -277,7 +277,7 @@ class Formation_seance_model extends Common_Model {
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
             COALESCE(mp.mpmodele, ma.macmodele) as machine_modele,
             CASE WHEN s.inscription_id IS NULL THEN "Libre" ELSE "Formation" END as type_seance,
-            ts.nature as nature_seance,
+            ts.nom as type_seance_nom, ts.nature as nature_seance,
             COUNT(DISTINCT part.id) as nb_participants', FALSE)
             ->from($this->table . ' s')
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
