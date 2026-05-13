@@ -16,7 +16,8 @@ import calendar
 import MySQLdb    # apt-get install python-mysqldb
 
 # configuration
-backup_dir = os.environ.get('BACKUP_DIR', os.environ['HOME'] + '/workspace/gvv2/backups/')
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+backup_dir = os.environ.get('BACKUP_DIR', os.path.join(_script_dir, '..', 'backups') + os.sep)
 database = os.environ.get('DB_NAME', 'ci3')
 user = os.environ.get('DB_USER', 'ci3')
 password = os.environ.get('DB_PASSWORD', 'ci3')
@@ -26,10 +27,7 @@ host = os.environ.get('DB_HOST', 'localhost')
 logfile = backup_dir + 'logfile.txt'
 
 # Vérifie l'existance du répertoire et crée le s'il le faut
-try:
-    os.stat(backup_dir)
-except:
-    os.mkdir(backup_dir)
+os.makedirs(backup_dir, exist_ok=True)
 
 # version de la base de donnees
 # A supprimer pour utilisation non OCdeIgniter
