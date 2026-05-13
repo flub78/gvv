@@ -66,3 +66,17 @@ $lang['gvv_admin_test_db_desc'] = "Maak een geanonimiseerde en versleutelde data
 $lang['gvv_admin_test_db_success'] = "Testdatabase succesvol gegenereerd";
 $lang['gvv_admin_test_db_error'] = "Fout bij het genereren van de testdatabase";
 
+// Verbonden gebruikers
+$lang['admin_connected_users_title']       = "Verbonden gebruikers";
+$lang['admin_connected_users_window']      = "Actieve sessies in de laatste %d minuten";
+$lang['admin_connected_users_none']        = "Momenteel geen verbonden gebruikers.";
+$lang['admin_connected_users_active']      = "verbonden gebruiker(s)";
+$lang['admin_connected_col_user']          = "Gebruiker";
+$lang['admin_connected_col_role']          = "Rol";
+$lang['admin_connected_col_ip']            = "IP-adres";
+$lang['admin_connected_col_last_activity'] = "Laatste activiteit";
+$lang['admin_connected_col_browser']       = "Browser";
+$lang['admin_connected_just_now']          = "Zojuist";
+$lang['admin_connected_minutes_ago']       = "%d min geleden";
+$lang['gvv_back']                          = "Terug";
+

@@ -66,3 +66,17 @@ $lang['gvv_admin_test_db_desc'] = "Créer une base de données anonymisée et ch
 $lang['gvv_admin_test_db_success'] = "Base de test générée avec succès";
 $lang['gvv_admin_test_db_error'] = "Erreur lors de la génération de la base de test";
 
+// Utilisateurs connectés
+$lang['admin_connected_users_title']       = "Utilisateurs connectés";
+$lang['admin_connected_users_window']      = "Sessions actives dans les %d dernières minutes";
+$lang['admin_connected_users_none']        = "Aucun utilisateur connecté en ce moment.";
+$lang['admin_connected_users_active']      = "utilisateur(s) connecté(s)";
+$lang['admin_connected_col_user']          = "Utilisateur";
+$lang['admin_connected_col_role']          = "Rôle";
+$lang['admin_connected_col_ip']            = "Adresse IP";
+$lang['admin_connected_col_last_activity'] = "Dernière activité";
+$lang['admin_connected_col_browser']       = "Navigateur";
+$lang['admin_connected_just_now']          = "À l'instant";
+$lang['admin_connected_minutes_ago']       = "il y a %d min";
+$lang['gvv_back']                          = "Retour";
+

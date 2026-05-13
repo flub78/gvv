@@ -65,3 +65,17 @@ $lang['gvv_admin_test_db_title'] = "Generate test database";
 $lang['gvv_admin_test_db_desc'] = "Create an anonymized, encrypted database dump for CI/CD tests";
 $lang['gvv_admin_test_db_success'] = "Test database generated successfully";
 $lang['gvv_admin_test_db_error'] = "Error while generating the test database";
+
+// Connected users
+$lang['admin_connected_users_title']       = "Connected users";
+$lang['admin_connected_users_window']      = "Active sessions in the last %d minutes";
+$lang['admin_connected_users_none']        = "No users connected at this time.";
+$lang['admin_connected_users_active']      = "connected user(s)";
+$lang['admin_connected_col_user']          = "User";
+$lang['admin_connected_col_role']          = "Role";
+$lang['admin_connected_col_ip']            = "IP address";
+$lang['admin_connected_col_last_activity'] = "Last activity";
+$lang['admin_connected_col_browser']       = "Browser";
+$lang['admin_connected_just_now']          = "Just now";
+$lang['admin_connected_minutes_ago']       = "%d min ago";
+$lang['gvv_back']                          = "Back";

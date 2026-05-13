@@ -2992,6 +2992,38 @@ SQL;
     }
 
     /**
+     * Liste des utilisateurs actuellement connectés
+     */
+    public function connected_users() {
+        $expiration = 4 * 3600;
+        $since = time() - $expiration;
+
+        $query = $this->db
+            ->where('last_activity >', $since)
+            ->order_by('last_activity', 'DESC')
+            ->get('ci_sessions');
+
+        $users = array();
+        foreach ($query->result_array() as $row) {
+            $session_data = @unserialize($row['user_data']);
+            if (!is_array($session_data)) continue;
+            if (empty($session_data['DX_logged_in'])) continue;
+
+            $users[] = array(
+                'username'      => isset($session_data['DX_username']) ? $session_data['DX_username'] : '?',
+                'role'          => isset($session_data['DX_role_name']) ? $session_data['DX_role_name'] : '?',
+                'ip_address'    => $row['ip_address'],
+                'last_activity' => $row['last_activity'],
+                'user_agent'    => $row['user_agent'],
+            );
+        }
+
+        $data['connected_users'] = $users;
+        $data['sess_expiration']  = $expiration;
+        load_last_view('admin/connected_users', $data);
+    }
+
+    /**
      * AJAX: Toggle $config['locked'] in program.php
      */
     public function ajax_toggle_locked() {
