@@ -86,3 +86,9 @@ form select {
 code {
     color: #212529; /* Bootstrap's default body text color */
 }
+
+.navbar-brand.btn-outline-light:hover,
+.navbar-brand.btn-outline-light:focus {
+    background-color: #666;
+    color: #fff;
+}

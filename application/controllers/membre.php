@@ -381,9 +381,9 @@ class Membre extends Gvv_Controller {
         }
 
         // Non-CA users cannot edit member records
-        if (!$this->use_new_auth && !$this->dx_auth->is_role($this->modification_level, true, true)) {
+        // Same logic applies for both auth systems: redirect own record to ma_fiche, deny access to others
+        if (!$this->has_modification_rights()) {
             if ($action != VISUALISATION) {
-                // Redirect own record to read-only view; deny access to other records
                 if ($id == $this->dx_auth->get_username()) {
                     redirect('membre/ma_fiche');
                     return;

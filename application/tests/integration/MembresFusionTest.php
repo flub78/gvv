@@ -502,8 +502,8 @@ class MembresFusionTest extends TransactionalTestCase
 
     public function testDashboardContientCarteFusion()
     {
-        $dashboard_file = APPPATH . 'views/bs_dashboard.php';
-        $this->assertFileExists($dashboard_file, 'La vue dashboard doit exister');
+        $dashboard_file = APPPATH . 'views/bs_sub_dashboard.php';
+        $this->assertFileExists($dashboard_file, 'La vue sub-dashboard doit exister');
 
         $source = file_get_contents($dashboard_file);
 

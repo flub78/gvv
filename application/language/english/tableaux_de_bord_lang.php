@@ -3,6 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 // ─── Action buttons ───────────────────────────────────────────────────────────
 $lang['db_btn_voir']        = "View";
+$lang['db_btn_retour']      = "Back to dashboard";
 $lang['db_btn_acceder']     = "Open";
 $lang['db_btn_modifier']    = "Edit";
 $lang['db_btn_consulter']   = "View";

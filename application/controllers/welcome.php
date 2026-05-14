@@ -70,6 +70,28 @@ class Welcome extends Gvv_Controller {
      * Page d'accueil - Dashboard principal
      */
     public function index() {
+        $data = $this->_prepare_dashboard_data();
+        $this->push_return_url("welcome dashboard");
+        load_last_view('dashboard', $data);
+    }
+
+    /**
+     * Sub-dashboard for a single section
+     */
+    public function section($name = 'user') {
+        $allowed = array('user', 'flights', 'treasurer', 'formation', 'maintenance', 'admin_club', 'admin_sys', 'dev');
+        if (!in_array($name, $allowed)) {
+            redirect('welcome');
+        }
+        $data = $this->_prepare_dashboard_data();
+        $data['dashboard_section'] = $name;
+        load_last_view('sub_dashboard', $data);
+    }
+
+    /**
+     * Prépare les données communes au dashboard principal et aux sous-dashboards
+     */
+    private function _prepare_dashboard_data() {
         $data = array();
 
         // Get current username
@@ -272,8 +294,7 @@ class Welcome extends Gvv_Controller {
             $data['mod'] = $this->config->item('mod');
         }
 
-        $this->push_return_url("welcome dashboard");
-        load_last_view('dashboard', $data);
+        return $data;
     }
 
     /*
