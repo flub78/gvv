@@ -48,6 +48,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     padding: 0.75rem;
     transition: all 0.2s ease;
     height: 100%;
+    background-color: #fff;
 }
 
 .sub-card:hover {
