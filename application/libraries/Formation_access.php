@@ -94,7 +94,24 @@ class Formation_access {
             return false;
         }
 
-        // Check mniveaux bit flags for instructor roles
+        // Admin bypasses instructor check
+        if ($this->CI->dx_auth->is_admin()) {
+            return true;
+        }
+
+        // New authorization system: check user_roles_per_section
+        $uses_new_auth = $this->CI->session->userdata('use_new_auth')
+            || (method_exists($this->CI, 'uses_new_auth') && $this->CI->uses_new_auth());
+
+        if ($uses_new_auth) {
+            $this->CI->load->library('Gvv_Authorization');
+            $user_id = $this->CI->dx_auth->get_user_id();
+            $raw_section_id = $this->CI->session->userdata('section');
+            $section_id = $raw_section_id ? (int)$raw_section_id : NULL;
+            return $this->CI->gvv_authorization->has_role($user_id, 'instructeur', $section_id);
+        }
+
+        // Legacy system: check mniveaux bit flags
         // ITP (32768), IVV (65536), FI_AVION (131072), FE_AVION (262144)
         $instructeur_flags = 32768 + 65536 + 131072 + 262144;
 
