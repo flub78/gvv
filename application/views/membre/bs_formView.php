@@ -161,6 +161,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                         <?php if ($has_admin_rights || $action == CREATION): ?>
                             <?php echo $this->gvvmetadata->input_field("membres", 'mprenom', $mprenom); ?>
                         <?php else: ?>
+                            <input type="hidden" name="mprenom" value="<?php echo htmlspecialchars($mprenom); ?>">
                             <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars($mprenom); ?></p>
                         <?php endif; ?>
                     </div>
@@ -169,6 +170,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                         <?php if ($has_admin_rights || $action == CREATION): ?>
                             <?php echo $this->gvvmetadata->input_field("membres", 'mnom', $mnom); ?>
                         <?php else: ?>
+                            <input type="hidden" name="mnom" value="<?php echo htmlspecialchars($mnom); ?>">
                             <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars($mnom); ?></p>
                         <?php endif; ?>
                     </div>
@@ -251,7 +253,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <div class="d-flex flex-wrap gap-3">
                     <div class="flex-fill" style="min-width: 150px;">
                         <label for="mdaten" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mdaten"); ?></label>
-                        <?php if ($has_admin_rights || $action == CREATION): ?>
+                        <?php if ($has_birthdate_rights || $action == CREATION): ?>
                             <?php echo $this->gvvmetadata->input_field("membres", 'mdaten', $mdaten); ?>
                         <?php else: ?>
                             <p class="form-control-plaintext bg-white border rounded px-2"><?php echo htmlspecialchars(date_db2ht($mdaten)); ?></p>

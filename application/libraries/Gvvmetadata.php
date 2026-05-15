@@ -342,6 +342,7 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['nom_prenom']['Type'] = 'varchar';
                 $this->field['membres']['memail']['Subtype'] = 'email';
                 $this->field['membres']['memail']['Null'] = 'NO';
+                $this->field['membres']['memail']['NullOnEdit'] = 'YES';
                 $this->field['membres']['memailparent']['Subtype'] = 'email';
                 $this->field['membres']['photo']['Subtype'] = 'upload_image';
                 $this->field['membres']['photo_with_badges']['Type'] = 'varchar';

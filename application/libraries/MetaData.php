@@ -611,7 +611,7 @@ abstract class Metadata {
 
                 $align = $this->field_align($table, $field);
 
-                $res .= "\t\t<td $align>";
+                $res .= "\t\t<td $align data-field=\"$field\">";
                 $value = isset($row[$field]) ? $row[$field] : '';
                 $res .= $this->array_field($table, $field, $value, $row, $mode, $elt_id);
                 $res .= "</td>\n";
@@ -1632,7 +1632,12 @@ abstract class Metadata {
         $extra = $this->field_attr($table, $field, 'Extra');
         if ($this->autogen_key($table, $field) != $field && $extra != 'auto_increment') {
             if ($may_be_null == "NO") {
-                $required = "required|";
+                $null_on_edit = $this->field_attr($table, $field, 'NullOnEdit');
+                if ($action != CREATION && $null_on_edit == 'YES') {
+                    // required only on creation for this field
+                } else {
+                    $required = "required|";
+                }
             }
         }
 

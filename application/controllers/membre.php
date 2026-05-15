@@ -111,9 +111,12 @@ class Membre extends Gvv_Controller {
         if (isset($data['compte']) && $data['compte'] === '') {
             $data['compte'] = 0;
         }
-        // In new auth, only club-admin may change identity fields
+        // In new auth, only club-admin may change name fields; ca may also change birthdate
         if ($this->use_new_auth && !$this->user_has_role('club-admin')) {
-            unset($data['mnom'], $data['mprenom'], $data['mdaten']);
+            unset($data['mnom'], $data['mprenom']);
+        }
+        if ($this->use_new_auth && !$this->user_has_role('ca')) {
+            unset($data['mdaten']);
         }
     }
 
@@ -538,8 +541,9 @@ class Membre extends Gvv_Controller {
         // Utilisé seulement pour les certificats
         $this->data['has_modification_rights'] = $this->dx_auth->is_role('ca', true, true);
         parent::form_static_element($action);
-        // In new auth, only club-admin may edit identity fields (name, firstname, birthdate)
+        // In new auth, only club-admin may edit identity fields (name, firstname); ca may also edit birthdate
         $this->data['has_admin_rights'] = !$this->use_new_auth || $this->user_has_role('club-admin');
+        $this->data['has_birthdate_rights'] = !$this->use_new_auth || $this->user_has_role('ca');
         $this->load->model('comptes_model');
         if ($this->dx_auth->is_role('ca', true, true)) {
             $this->data['pilote_selector'] = $this->membres_model->selector();

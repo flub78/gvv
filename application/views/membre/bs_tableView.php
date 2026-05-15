@@ -192,50 +192,15 @@ if ($this->session->flashdata('error')) {
                     var href = $editLink.attr('href');
                     var mlogin = href.split('/').pop();
 
-                    // Find the actif column (last column before action buttons, or by checking for icon/empty cell)
-                    // The actif field is in the fields array: 'photo_with_badges', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif'
-                    // So actif is at position 10 (0-indexed), but we need to account for action columns
-                    var $cells = $row.find('td');
-                    var $actifCell = null;
+                    // Find the actif column by its data-field attribute (set by MetaData table renderer)
+                    var $actifCell = $row.find('td[data-field="actif"]');
+                    if (!$actifCell.length) return;
+                    if ($actifCell.find('.actif-checkbox').length) return; // Already has checkbox
 
-                    // Find the cell with tick.png, cross.png, fa-check, fa-times, OR an empty cell that could be actif
-                    $cells.each(function() {
-                        var $cell = $(this);
-                        if ($cell.find('.actif-checkbox').length) return; // Already has checkbox
+                    var isActif = $actifCell.text().trim() !== '';
 
-                        var $imgIcon = $cell.find('img.icon[src*="tick.png"], img.icon[src*="cross.png"]');
-                        var $faIcon = $cell.find('i.fa-check, i.fa-times');
-
-                        // Check if this cell has an icon OR is empty/whitespace (inactive members)
-                        if ($imgIcon.length || $faIcon.length) {
-                            $actifCell = $cell;
-                            return false; // break
-                        } else if ($cell.text().trim() === '' && $cell.find('a').length === 0) {
-                            // Empty cell without links - could be actif column for inactive member
-                            // Check if it's aligned right (actif column has align="right")
-                            if ($cell.attr('align') === 'right') {
-                                $actifCell = $cell;
-                                return false; // break
-                            }
-                        }
-                    });
-
-                    if ($actifCell) {
-                        var $imgIcon = $actifCell.find('img.icon');
-                        var $faIcon = $actifCell.find('i.fa-check, i.fa-times');
-
-                        // Determine if active (default to false if no icon)
-                        var isActif = false;
-                        if ($imgIcon.length) {
-                            isActif = $imgIcon.attr('src').indexOf('tick.png') > -1;
-                        } else if ($faIcon.length) {
-                            isActif = $faIcon.hasClass('fa-check');
-                        }
-                        // If no icon found, isActif stays false (inactive member)
-
-                        var $checkbox = $('<input type="checkbox" class="actif-checkbox form-check-input" data-mlogin="' + mlogin + '" ' + (isActif ? 'checked' : '') + '>');
-                        $actifCell.html($checkbox);
-                    }
+                    var $checkbox = $('<input type="checkbox" class="actif-checkbox form-check-input" data-mlogin="' + mlogin + '" ' + (isActif ? 'checked' : '') + '>');
+                    $actifCell.html($checkbox);
                 });
             }
 
