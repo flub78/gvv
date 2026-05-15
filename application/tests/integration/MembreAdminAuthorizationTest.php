@@ -7,7 +7,8 @@ require_once(__DIR__ . '/TransactionalTestCase.php');
  *
  * Rules under new auth:
  * - delete requires club-admin
- * - modifying mnom, mprenom, mdaten requires club-admin
+ * - modifying mnom, mprenom requires club-admin
+ * - modifying mdaten requires ca (club-admin also allowed as superadmin)
  * - all other member edits require ca
  *
  * Static checks verify the code structure; integration checks verify runtime behavior.
@@ -51,14 +52,25 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         );
     }
 
-    public function testPreUpdateStripsIdentityFieldsForNonClubAdmin()
+    public function testPreUpdateStripsNameFieldsForNonClubAdmin()
     {
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
         $this->assertRegExp(
-            "/if \(\\\$this->use_new_auth && !\\\$this->user_has_role\('club-admin'\)\) \{\\s*unset\(\\\$data\['mnom'\], \\\$data\['mprenom'\], \\\$data\['mdaten'\]\);/",
+            "/if \(\\\$this->use_new_auth && !\\\$this->user_has_role\('club-admin'\)\) \{\\s*unset\(\\\$data\['mnom'\], \\\$data\['mprenom'\]\);/",
             $source,
-            "pre_update() must strip mnom/mprenom/mdaten when new auth is active and user is not club-admin"
+            "pre_update() must strip mnom/mprenom when new auth is active and user is not club-admin"
+        );
+    }
+
+    public function testPreUpdateStripsBirthdateForNonCa()
+    {
+        $source = file_get_contents(APPPATH . 'controllers/membre.php');
+
+        $this->assertRegExp(
+            "/if \(\\\$this->use_new_auth && !\\\$this->user_has_role\('ca'\)\) \{\\s*unset\(\\\$data\['mdaten'\]\);/",
+            $source,
+            "pre_update() must strip mdaten when new auth is active and user is not ca"
         );
     }
 
@@ -125,9 +137,9 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
     }
 
     /**
-     * Simulate pre_update behaviour: without club-admin, identity fields are stripped.
+     * Simulate pre_update behaviour: ca user (not club-admin) — mnom/mprenom stripped, mdaten preserved.
      */
-    public function testPreUpdateStripsIdentityFieldsForCaUser()
+    public function testPreUpdateStripsNameFieldsForCaUser()
     {
         $CI =& get_instance();
         $CI->load->library('Gvv_Authorization');
@@ -142,19 +154,26 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         $has_club_admin = $CI->gvv_authorization->has_role((int) $user->id, 'club-admin', NULL);
         $this->assertFalse($has_club_admin, 'abraracourcix must NOT have club-admin role');
 
+        $has_ca = $CI->gvv_authorization->has_role((int) $user->id, 'ca', NULL);
+        $this->assertTrue($has_ca, 'abraracourcix must have ca role');
+
         // Build data as pre_update would receive it
         $data = ['mnom' => 'Abraracourcix', 'mprenom' => 'Le Chef', 'mdaten' => '1970-05-15', 'memail' => 'a@test.fr'];
 
-        // Simulate the new-auth + non-club-admin path
+        // Simulate new-auth + ca (not club-admin): mnom/mprenom stripped, mdaten preserved
         $is_new_auth = true;
         $is_club_admin = false;
+        $is_ca = true;
         if ($is_new_auth && !$is_club_admin) {
-            unset($data['mnom'], $data['mprenom'], $data['mdaten']);
+            unset($data['mnom'], $data['mprenom']);
+        }
+        if ($is_new_auth && !$is_ca) {
+            unset($data['mdaten']);
         }
 
         $this->assertArrayNotHasKey('mnom', $data, 'mnom must be stripped for non-club-admin');
         $this->assertArrayNotHasKey('mprenom', $data, 'mprenom must be stripped for non-club-admin');
-        $this->assertArrayNotHasKey('mdaten', $data, 'mdaten must be stripped for non-club-admin');
+        $this->assertArrayHasKey('mdaten', $data, 'mdaten must be preserved for ca user');
         $this->assertArrayHasKey('memail', $data, 'non-identity fields must be preserved');
     }
 
