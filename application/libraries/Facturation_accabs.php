@@ -61,7 +61,7 @@ class Facturation_accabs extends Facturation {
         $m25ans = $this->CI->membres_model->moins_25ans($pilote, $date);
         $this->CI->load->model("tarifs_model");
 
-        if ($vi == 3) {
+        if ($vi == CONCOURS) {
             // concours
             $produit = "Remorqué concours";
 

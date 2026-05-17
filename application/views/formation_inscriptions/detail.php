@@ -273,31 +273,51 @@ function get_statut_badge($statut) {
             </div>
 
             <!-- Répartition des niveaux -->
+            <?php
+            $sujets_par_niveau = ['-' => [], 'A' => [], 'R' => [], 'Q' => []];
+            if (!empty($lecons)) {
+                foreach ($lecons as $lecon) {
+                    foreach ($lecon['sujets'] as $sujet) {
+                        $n = $sujet['dernier_niveau'] ?? '-';
+                        if (!array_key_exists($n, $sujets_par_niveau)) $n = '-';
+                        $sujets_par_niveau[$n][] = [
+                            'lecon'  => 'Leçon ' . $lecon['numero'] . ' : ' . htmlspecialchars($lecon['titre']),
+                            'numero' => $sujet['numero'],
+                            'titre'  => htmlspecialchars($sujet['titre']),
+                        ];
+                    }
+                }
+            }
+            ?>
             <?php if (!empty($stats)): ?>
             <div class="row text-center">
                 <div class="col-3">
-                    <div class="border rounded p-2">
+                    <div class="border rounded p-2" style="cursor:pointer"
+                         onclick="showNiveauModal('-', '<?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?>')">
                         <span class="badge bg-secondary mb-2">-</span>
                         <div><strong><?= $stats['nb_sujets_non_abordes'] ?></strong></div>
                         <small><?= $this->lang->line("formation_evaluation_niveau_non_aborde") ?></small>
                     </div>
                 </div>
                 <div class="col-3">
-                    <div class="border rounded p-2">
+                    <div class="border rounded p-2" style="cursor:pointer"
+                         onclick="showNiveauModal('A', '<?= $this->lang->line("formation_evaluation_niveau_aborde") ?>')">
                         <span class="badge bg-info mb-2">A</span>
                         <div><strong><?= $stats['nb_sujets_abordes'] ?></strong></div>
                         <small><?= $this->lang->line("formation_evaluation_niveau_aborde") ?></small>
                     </div>
                 </div>
                 <div class="col-3">
-                    <div class="border rounded p-2">
+                    <div class="border rounded p-2" style="cursor:pointer"
+                         onclick="showNiveauModal('R', '<?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?>')">
                         <span class="badge bg-warning mb-2">R</span>
                         <div><strong><?= $stats['nb_sujets_a_revoir'] ?></strong></div>
                         <small><?= $this->lang->line("formation_evaluation_niveau_a_revoir") ?></small>
                     </div>
                 </div>
                 <div class="col-3">
-                    <div class="border rounded p-2">
+                    <div class="border rounded p-2" style="cursor:pointer"
+                         onclick="showNiveauModal('Q', '<?= $this->lang->line("formation_evaluation_niveau_acquis") ?>')">
                         <span class="badge bg-success mb-2">Q</span>
                         <div><strong><?= $stats['nb_sujets_acquis'] ?></strong></div>
                         <small><?= $this->lang->line("formation_evaluation_niveau_acquis") ?></small>
@@ -589,5 +609,48 @@ function get_statut_badge($statut) {
         </div><!-- #collapseAutorisations -->
     </div>
 </div>
+
+<!-- Modal liste des sujets par niveau -->
+<div class="modal fade" id="niveauModal" tabindex="-1" aria-labelledby="niveauModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="niveauModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="niveauModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+var sujetsByNiveau = <?= json_encode($sujets_par_niveau) ?>;
+
+function showNiveauModal(niveau, label) {
+    var sujets = sujetsByNiveau[niveau] || [];
+    document.getElementById('niveauModalLabel').textContent = label + ' (' + sujets.length + ')';
+
+    var html;
+    if (sujets.length === 0) {
+        html = '<p class="text-muted mb-0">Aucun sujet dans cette catégorie.</p>';
+    } else {
+        html = '<ul class="list-group list-group-flush">';
+        for (var i = 0; i < sujets.length; i++) {
+            var s = sujets[i];
+            html += '<li class="list-group-item">'
+                  + '<small class="text-muted">' + s.lecon + '</small><br>'
+                  + esc(s.numero + '. ' + s.titre)
+                  + '</li>';
+        }
+        html += '</ul>';
+    }
+    document.getElementById('niveauModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('niveauModal')).show();
+}
+
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+</script>
 
 <?php $this->load->view('bs_footer'); ?>
