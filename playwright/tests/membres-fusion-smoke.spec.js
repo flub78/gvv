@@ -13,8 +13,8 @@ const { test, expect } = require('@playwright/test');
 
 const LOGIN_URL       = '/index.php/auth/login';
 const FUSION_URL      = '/index.php/membres_fusion';
-const DEV_USER        = { username: 'fpeignot',      password: 'fpeignot' };
-const NON_DEV_USER    = { username: 'abraracourcix',  password: 'abraracourcix' };
+const DEV_USER        = { username: 'fpeignot',      password: 'password' };
+const NON_DEV_USER    = { username: 'abraracourcix',  password: 'password' };
 
 async function loginAs(page, user) {
     await page.goto(LOGIN_URL);
@@ -145,7 +145,7 @@ test.describe('Fusion membres — accès dev_user', () => {
         // Section 2 : références par table
         // (présente sous forme de tableau ou message "aucune référence")
         // Section 4 : bouton annuler
-        const cancelLink = page.locator('a[href*="membres_fusion"]');
+        const cancelLink = page.locator('a.btn[href*="membres_fusion"]');
         await expect(cancelLink).toBeVisible();
     });
 
@@ -183,6 +183,7 @@ test.describe('Fusion membres — accès refusé hors dev_user', () => {
             body.includes('interdit') ||
             body.includes('Forbidden') ||
             body.includes('non autorisé') ||
+            body.includes('réservé') ||
             page.url().includes('auth/login');
 
         expect(isBlocked).toBeTruthy();

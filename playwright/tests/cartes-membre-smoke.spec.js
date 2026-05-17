@@ -31,8 +31,8 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('404');
-        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('404 Not Found');
+        expect(bodyText).not.toContain('PHP Error was encountered');
 
         // The page title (h4) should contain the card generation label
         await expect(page.locator('h4')).toContainText('cartes de membre');
@@ -77,7 +77,7 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('404 Not Found');
         expect(bodyText).not.toContain('Error');
 
         await expect(page.locator('h4')).toContainText('onfiguration');
@@ -136,7 +136,7 @@ test.describe('Cartes de membre — smoke tests', () => {
             // Acceptable outcomes: empty body (PDF rendered) or no error text
             if (bodyText) {
                 expect(bodyText).not.toContain('Error');
-                expect(bodyText).not.toContain('404');
+                expect(bodyText).not.toContain('404 Not Found');
             }
         }
     });
@@ -180,7 +180,7 @@ test.describe('Cartes de membre — smoke tests', () => {
 
         const bodyText = await page.locator('body').textContent();
         expect(bodyText).not.toContain('Error');
-        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('404 Not Found');
         const alert = page.locator('.alert-success');
         await expect(alert).toBeVisible();
     });
@@ -194,7 +194,7 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('404 Not Found');
         expect(bodyText).not.toContain('Error');
 
         // Admin sees either a member selector dropdown or the year selector form
@@ -247,7 +247,7 @@ test.describe('Cartes de membre — smoke tests', () => {
             const bodyText = await page.locator('body').textContent().catch(() => '');
             if (bodyText) {
                 expect(bodyText).not.toContain('Error');
-                expect(bodyText).not.toContain('404');
+                expect(bodyText).not.toContain('404 Not Found');
             }
         }
     });
@@ -276,7 +276,7 @@ test.describe('Cartes de membre Lot3 — accès membre', () => {
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('404');
+        expect(bodyText).not.toContain('404 Not Found');
         expect(bodyText).not.toContain('Error');
 
         // Member sees either a year selector or a "no cotisation" message

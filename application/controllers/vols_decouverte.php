@@ -599,6 +599,9 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['has_modification_rights'] = $this->has_full_vd_rights();
         $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
 
+        $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
+        $this->gvvmetadata->set_selector('product_selector', $product_selector);
+
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
     }
 
@@ -980,7 +983,11 @@ EOD;
      */
     function pre_flight($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
-        $this->edit($id);
+        $this->edit($id, false);
+        $product = $this->data['product'] ?? '';
+        $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
+        $this->data['description'] = (!empty($tarif['description'])) ? $tarif['description'] : $product;
+        load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
     /**
@@ -988,7 +995,11 @@ EOD;
      */
     function done($obfuscated_id) {
         $id = reverseTransform($obfuscated_id);
-        $this->edit($id);
+        $this->edit($id, false);
+        $product = $this->data['product'] ?? '';
+        $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
+        $this->data['description'] = (!empty($tarif['description'])) ? $tarif['description'] : $product;
+        load_last_view($this->form_view, $this->data, $this->unit_test);
     }
 
     /**

@@ -14,8 +14,8 @@ const { test, expect } = require('@playwright/test');
 
 const LOGIN_URL       = '/index.php/auth/login';
 const RENAME_URL      = '/index.php/membre/renommer';
-const DEV_USER        = { username: 'fpeignot',      password: 'fpeignot' };
-const NON_DEV_USER    = { username: 'abraracourcix',  password: 'abraracourcix' };
+const DEV_USER        = { username: 'fpeignot',      password: 'password' };
+const NON_DEV_USER    = { username: 'abraracourcix',  password: 'password' };
 
 async function loginAs(page, user) {
     await page.goto(LOGIN_URL);
