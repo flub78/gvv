@@ -51,7 +51,7 @@ $lang['reservations_error_prefix'] = "Fout";
 $lang['reservations_error_invalid_datetime'] = "Ongeldige datum of tijd";
 $lang['reservations_error_not_authorized'] = "U bent niet bevoegd om deze reservering te wijzigen";
 $lang['reservations_error_no_cotisation'] = "U heeft geen geldige lidmaatschapsbijdrage voor dit jaar";
-$lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Geschatte kosten van reserveringen op dit vliegtuig: %s";
+$lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Geschatte totale kosten van uw reserveringen: %s";
 $lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages

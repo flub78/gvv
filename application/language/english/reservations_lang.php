@@ -51,7 +51,7 @@ $lang['reservations_error_prefix'] = "Error";
 $lang['reservations_error_invalid_datetime'] = "Invalid date or time";
 $lang['reservations_error_not_authorized'] = "You are not authorized to modify this reservation";
 $lang['reservations_error_no_cotisation'] = "You do not have a valid membership subscription for this year";
-$lang['reservations_error_insufficient_balance'] = "Insufficient balance (%s). Estimated cost of reservations on this aircraft: %s";
+$lang['reservations_error_insufficient_balance'] = "Insufficient balance (%s). Estimated total cost of your reservations: %s";
 $lang['reservations_confirm_delete'] = "Are you sure you want to delete this reservation?";
 
 // Success messages

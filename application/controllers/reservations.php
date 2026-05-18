@@ -852,25 +852,42 @@ class Reservations extends MY_Controller {
         $dt_end   = new DateTime($end_datetime);
         $new_hours = ($dt_end->getTimestamp() - $dt_start->getTimestamp()) / 3600.0;
 
-        // Existing future reservations for this pilot on this aircraft
+        // Existing future reservations for this pilot across ALL aircraft
         $now = date('Y-m-d H:i:s');
         $existing = $this->db
-            ->select('start_datetime, end_datetime')
+            ->select('aircraft_id, start_datetime, end_datetime')
             ->from('reservations')
             ->where('pilot_member_id', $username)
-            ->where('aircraft_id', $aircraft_id)
             ->where('start_datetime >', $now)
             ->where_in('status', array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage'))
             ->get()->result_array();
 
-        $existing_hours = 0.0;
+        // Sum costs per aircraft (each has its own tarif)
+        $existing_cost = 0.0;
+        $rate_cache = array(); // aircraft_id => hourly_rate
         foreach ($existing as $res) {
-            $s = new DateTime($res['start_datetime']);
-            $e = new DateTime($res['end_datetime']);
-            $existing_hours += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0;
+            $res_id = $res['aircraft_id'];
+            if (!array_key_exists($res_id, $rate_cache)) {
+                $res_aircraft = $this->db->get_where('machinesa', array('macimmat' => $res_id))->row_array();
+                if (!$res_aircraft) {
+                    $rate_cache[$res_id] = 0.0;
+                } else {
+                    $res_is_owner = (!empty($res_aircraft['proprio']) && $res_aircraft['proprio'] === $username);
+                    $res_price_ref = ($res_is_owner && !empty($res_aircraft['maprixproprio']))
+                        ? $res_aircraft['maprixproprio']
+                        : $res_aircraft['maprix'];
+                    $rate_cache[$res_id] = $this->_get_tarif_price($res_price_ref, substr($res['start_datetime'], 0, 10));
+                }
+            }
+            $res_rate = $rate_cache[$res_id];
+            if ($res_rate > 0.0) {
+                $s = new DateTime($res['start_datetime']);
+                $e = new DateTime($res['end_datetime']);
+                $existing_cost += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0 * $res_rate;
+            }
         }
 
-        $total_cost = ($existing_hours + $new_hours) * $hourly_rate;
+        $total_cost = $existing_cost + $new_hours * $hourly_rate;
 
         // Add double-command surcharge for this reservation if instructor present
         if (!empty($instructor_member_id)) {

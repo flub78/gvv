@@ -214,24 +214,44 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
             return ['ok' => true];
         }
 
-        // 3. Existing future reservations
+        // 3. Existing future reservations — all aircraft (matching controller logic)
         $now = date('Y-m-d H:i:s');
         $existing = $this->CI->db
-            ->select('start_datetime, end_datetime')->from('reservations')
+            ->select('aircraft_id, start_datetime, end_datetime')->from('reservations')
             ->where('pilot_member_id', $this->pilot)
-            ->where('aircraft_id', $this->aircraft_id)
             ->where('start_datetime >', $now)
             ->where('status', 'reservation')
             ->get()->result_array();
 
-        $existing_hours = 0.0;
+        $existing_cost = 0.0;
+        $rate_cache = [];
         foreach ($existing as $r) {
-            $s = new DateTime($r['start_datetime']);
-            $e = new DateTime($r['end_datetime']);
-            $existing_hours += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0;
+            $res_id = $r['aircraft_id'];
+            if (!array_key_exists($res_id, $rate_cache)) {
+                $res_a = $this->CI->db->get_where('machinesa', ['macimmat' => $res_id])->row_array();
+                if (!$res_a) {
+                    $rate_cache[$res_id] = 0.0;
+                } else {
+                    $res_is_owner = !empty($res_a['proprio']) && $res_a['proprio'] === $this->pilot;
+                    $res_ref = ($res_is_owner && !empty($res_a['maprixproprio']))
+                        ? $res_a['maprixproprio'] : $res_a['maprix'];
+                    $res_tarif = $this->CI->db
+                        ->select('prix')->from('tarifs')
+                        ->where('reference', $res_ref)
+                        ->where('date <=', substr($r['start_datetime'], 0, 10))
+                        ->where('club', $this->section_id)
+                        ->order_by('date', 'desc')->limit(1)->get()->row_array();
+                    $rate_cache[$res_id] = $res_tarif ? (float)$res_tarif['prix'] : 0.0;
+                }
+            }
+            if ($rate_cache[$res_id] > 0.0) {
+                $s = new DateTime($r['start_datetime']);
+                $e = new DateTime($r['end_datetime']);
+                $existing_cost += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0 * $rate_cache[$res_id];
+            }
         }
 
-        $total_cost = ($existing_hours + $new_hours) * $hourly_rate;
+        $total_cost = $existing_cost + $new_hours * $hourly_rate;
 
         // 4. DC cost
         if ($with_instructor) {

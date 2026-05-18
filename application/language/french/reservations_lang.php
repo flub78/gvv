@@ -51,7 +51,7 @@ $lang['reservations_error_prefix'] = "Erreur";
 $lang['reservations_error_invalid_datetime'] = "Date ou heure invalide";
 $lang['reservations_error_not_authorized'] = "Vous n'êtes pas autorisé à modifier cette réservation";
 $lang['reservations_error_no_cotisation'] = "Vous n'avez pas de cotisation valide pour cette année";
-$lang['reservations_error_insufficient_balance'] = "Solde insuffisant (%s). Coût estimé des réservations sur cet appareil : %s";
+$lang['reservations_error_insufficient_balance'] = "Solde insuffisant (%s). Coût total estimé de vos réservations : %s";
 $lang['reservations_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cette réservation ?";
 
 // Success messages

@@ -1,12 +1,12 @@
 /**
  * Régression : alodigeois pouvait réserver en ULM malgré un solde insuffisant
  *
- * Cause : deux bugs dans _check_pilot_balance() :
- *   1. membres.compte = 0 pour alodigeois → empty(0) = true → check ignoré
+ * Bugs corrigés dans _check_pilot_balance() :
+ *   1. membres.compte = 0 → empty(0) = true → check ignoré
  *   2. condition (is_auto_planchiste || is_proprio) excluait les membres ordinaires
- *
- * Ce test soumet directement update_reservation via la session du pilote
- * et vérifie que le serveur refuse avec une erreur de solde.
+ *   3. Seules les réservations sur l'appareil en cours étaient comptées →
+ *      deux réservations courtes sur deux appareils différents passaient chacune
+ *      le check individuellement alors que leur coût cumulé dépasse le solde.
  *
  * Usage :
  *   cd playwright && npx playwright test tests/reservations-balance-block.spec.js --reporter=line
@@ -18,100 +18,171 @@ const LoginPage = require('./helpers/LoginPage');
 const ULM_SECTION = '2';
 const TIMELINE_URL = '/index.php/reservations/timeline';
 
-// Appareil ULM avec tarif connu (heure_nynja, 96€/h)
-const AIRCRAFT = 'F-JTVA';
+const AIRCRAFT_A = 'F-JTVA';  // heure_nynja 108€/h
+const AIRCRAFT_B = 'F-JHRV';  // heure_ctl  126€/h
+// 0.5h A = 54€, 0.5h B = 63€, total = 117€ > solde 76,60€
 
-test.describe.serial('Blocage solde insuffisant — alodigeois ULM', () => {
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+async function getBaseUrl(browser) {
+    const page = await browser.newPage();
+    const lp = new LoginPage(page);
+    await lp.open();
+    await lp.login('alodigeois', 'password', ULM_SECTION);
+    await lp.verifyLoggedIn();
+    await page.goto(TIMELINE_URL);
+    await page.waitForLoadState('networkidle');
+    const url = await page.evaluate(() => CONFIG.baseUrl);
+    await page.close();
+    return url;
+}
+
+async function deleteReservation(browser, baseUrl, id) {
+    const page = await browser.newPage();
+    const lp = new LoginPage(page);
+    await lp.open();
+    await lp.login('panoramix', 'password', ULM_SECTION);
+    await lp.verifyLoggedIn();
+    await page.goto(TIMELINE_URL);
+    await page.waitForLoadState('networkidle');
+    await page.request.post(baseUrl + '/reservations/delete', {
+        form: { reservation_id: String(id) }
+    });
+    await page.close();
+}
+
+// ─── Scénario 1 : réservation 1h sur un seul appareil ───────────────────────
+
+test.describe.serial('Blocage solde insuffisant — réservation 1h', () => {
 
     let baseUrl;
     let createdId = null;
 
-    // Récupère baseUrl en se connectant une fois
-    test.beforeAll(async ({ browser }) => {
-        const page = await browser.newPage();
-        const lp = new LoginPage(page);
-        await lp.open();
-        await lp.login('alodigeois', 'password', ULM_SECTION);
-        await lp.verifyLoggedIn();
-        await page.goto(TIMELINE_URL);
-        await page.waitForLoadState('networkidle');
-        baseUrl = await page.evaluate(() => CONFIG.baseUrl);
-        await page.close();
-    });
-
+    test.beforeAll(async ({ browser }) => { baseUrl = await getBaseUrl(browser); });
     test.afterAll(async ({ browser }) => {
-        // Nettoyage : supprime la réservation si elle a été créée (ne devrait pas l'être)
-        if (!createdId) return;
-        const page = await browser.newPage();
-        const lp = new LoginPage(page);
-        await lp.open();
-        await lp.login('panoramix', 'password', ULM_SECTION);
-        await lp.verifyLoggedIn();
-        await page.goto(TIMELINE_URL);
-        await page.waitForLoadState('networkidle');
-        const bu = await page.evaluate(() => CONFIG.baseUrl);
-        await page.request.post(bu + '/reservations/delete', {
-            form: { reservation_id: String(createdId) }
-        });
-        await page.close();
+        if (createdId) await deleteReservation(browser, baseUrl, createdId);
     });
 
-    test('alodigeois a un solde insuffisant et des réservations existantes', async ({ page }) => {
-        // Vérifie les pré-conditions en base : alodigeois doit avoir au moins une réservation future
-        // et un solde connu. Ce test documente l'état attendu du jeu de données.
+    test('la timeline ULM est accessible', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login('alodigeois', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
         await page.goto(TIMELINE_URL);
         await page.waitForLoadState('networkidle');
-
-        // La timeline doit se charger sans erreur
         await expect(page.locator('.timeline-container')).toBeVisible();
         console.log('✓ alodigeois peut accéder à la timeline ULM');
     });
 
-    test('update_reservation doit retourner une erreur de solde insuffisant', async ({ page }) => {
+    test('1h sur F-JTVA (108€) doit être refusée — solde 76,60€', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
         await lp.login('alodigeois', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
 
-        // Date future pour éviter les conflits avec les réservations existantes
         const future = new Date();
-        future.setDate(future.getDate() + 7);
+        future.setDate(future.getDate() + 14);
         const dateStr = future.toISOString().slice(0, 10);
 
-        // Appel direct à l'API update_reservation (comme le fait le navigateur via AJAX)
         const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
             form: {
                 reservation_id: '',
-                aircraft_id: AIRCRAFT,
+                aircraft_id: AIRCRAFT_A,
                 pilot_member_id: 'alodigeois',
                 start_datetime: dateStr + ' 10:00:00',
                 end_datetime: dateStr + ' 11:00:00',
                 instructor_member_id: '',
-                notes: 'PW test solde insuffisant',
+                notes: 'PW test solde 1h',
                 status: 'reservation',
             }
         });
 
-        const text = await resp.text();
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            throw new Error('Réponse non JSON : ' + text.slice(0, 300));
-        }
-
-        if (data.success && data.reservation_id) {
-            createdId = data.reservation_id; // pour nettoyage
-        }
-
-        // La réservation doit être REFUSÉE
+        const data = JSON.parse(await resp.text());
+        if (data.success && data.reservation_id) createdId = data.reservation_id;
         expect(data.success).toBe(false);
-        expect(data.error).toBeDefined();
         expect(data.error).toMatch(/[Ss]olde|[Ii]nsuffisant|[Bb]alance/);
-        console.log('✓ Réservation refusée. Message :', data.error);
+        console.log('✓ 1h refusée. Message :', data.error);
+    });
+});
+
+// ─── Scénario 2 : deux réservations 0h30 sur deux appareils différents ───────
+//
+// Bug corrigé : l'ancienne logique mono-appareil ne comptait que les
+// réservations sur l'appareil en cours. Résultat : deux réservations
+// courtes sur deux appareils différents passaient chacune le check
+// (54€ < 76,60€ et 63€ < 76,60€) alors que le coût cumulé (117€) dépasse
+// largement le solde. La nouvelle logique somme les coûts sur tous les
+// appareils.
+
+test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () => {
+
+    let baseUrl;
+    let firstId = null;
+
+    test.beforeAll(async ({ browser }) => { baseUrl = await getBaseUrl(browser); });
+    test.afterAll(async ({ browser }) => {
+        if (firstId) await deleteReservation(browser, baseUrl, firstId);
+    });
+
+    test('0h30 sur F-JTVA (54€) doit être acceptée — solde 76,60€', async ({ page }) => {
+        const lp = new LoginPage(page);
+        await lp.open();
+        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.verifyLoggedIn();
+
+        const future = new Date();
+        future.setDate(future.getDate() + 14);
+        const dateStr = future.toISOString().slice(0, 10);
+
+        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+            form: {
+                reservation_id: '',
+                aircraft_id: AIRCRAFT_A,
+                pilot_member_id: 'alodigeois',
+                start_datetime: dateStr + ' 10:00:00',
+                end_datetime: dateStr + ' 10:30:00',
+                instructor_member_id: '',
+                notes: 'PW test multi-appareil 1re',
+                status: 'reservation',
+            }
+        });
+
+        const data = JSON.parse(await resp.text());
+        if (data.success && data.reservation_id) firstId = data.reservation_id;
+        expect(data.success).toBe(true);
+        console.log('✓ 1re réservation (0h30 F-JTVA) acceptée. id =', firstId);
+    });
+
+    test('0h30 sur F-JHRV doit être refusée — coût cumulé 117€ > 76,60€', async ({ page }) => {
+        const lp = new LoginPage(page);
+        await lp.open();
+        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.verifyLoggedIn();
+
+        const future = new Date();
+        future.setDate(future.getDate() + 14);
+        const dateStr = future.toISOString().slice(0, 10);
+
+        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+            form: {
+                reservation_id: '',
+                aircraft_id: AIRCRAFT_B,
+                pilot_member_id: 'alodigeois',
+                start_datetime: dateStr + ' 11:00:00',
+                end_datetime: dateStr + ' 11:30:00',
+                instructor_member_id: '',
+                notes: 'PW test multi-appareil 2e',
+                status: 'reservation',
+            }
+        });
+
+        const data = JSON.parse(await resp.text());
+        if (data.success && data.reservation_id) {
+            // Nettoyage si le test échoue (le check n'a pas bloqué)
+            await deleteReservation(page.context().browser(), baseUrl, data.reservation_id);
+        }
+        expect(data.success).toBe(false);
+        expect(data.error).toMatch(/[Ss]olde|[Ii]nsuffisant|[Bb]alance/);
+        console.log('✓ 2e réservation (0h30 F-JHRV) refusée. Message :', data.error);
     });
 });
