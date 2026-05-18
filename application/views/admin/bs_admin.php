@@ -89,11 +89,11 @@ $this->lang->load('admin');
         </div>
     </div>
 
-    <!-- Administration Système Section -->
+    <!-- Supervision du serveur Section -->
     <div class="card section-card admin">
         <div class="card-header bg-success bg-opacity-10">
             <h5 class="mb-0">
-                <i class="fas fa-cogs text-success"></i>
+                <i class="fas fa-server text-success"></i>
                 <?= $this->lang->line("gvv_admin_title_admin") ?>
             </h5>
         </div>
@@ -115,6 +115,16 @@ $this->lang->load('admin');
                         <div class="card-title"><?= $this->lang->line("gvv_admin_menu_logs") ?></div>
                         <div class="card-text text-muted"><?= $this->lang->line("gvv_admin_menu_logs_desc") ?></div>
                         <a href="<?= controller_url('admin/logs') ?>" class="btn btn-secondary btn-sm">
+                            <?= $this->lang->line("gvv_admin_menu_open") ?>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="sub-card text-center border-info">
+                        <i class="fas fa-server text-info"></i>
+                        <div class="card-title"><?= $this->lang->line("gvv_admin_menu_sysres") ?></div>
+                        <div class="card-text text-muted"><?= $this->lang->line("gvv_admin_menu_sysres_desc") ?></div>
+                        <a href="<?= controller_url('admin/system_resources') ?>" class="btn btn-info btn-sm">
                             <?= $this->lang->line("gvv_admin_menu_open") ?>
                         </a>
                     </div>

@@ -8,7 +8,7 @@
 
 $lang['gvv_admin_title'] = "WEB site and program administration";
 $lang['gvv_admin_title_config'] = "Configuration";
-$lang['gvv_admin_title_admin'] = "Administration";
+$lang['gvv_admin_title_admin'] = "Server monitoring";
 $lang['gvv_admin_title_rights'] = "Rights management";
 $lang['gvv_admin_title_tests'] = "Tests";
 $lang['gvv_admin_title_restore'] = "Database restore";
@@ -38,6 +38,18 @@ $lang['gvv_admin_menu_open'] = "Open";
 
 $lang['gvv_admin_menu_logs'] = "Log files";
 $lang['gvv_admin_menu_logs_desc'] = "View and download logs";
+
+$lang['gvv_admin_menu_sysres']      = "System resources";
+$lang['gvv_admin_menu_sysres_desc'] = "Disk, CPU, memory, network";
+
+$lang['gvv_sysres_title']   = "System resources";
+$lang['gvv_sysres_disk']    = "Disk space";
+$lang['gvv_sysres_cpu']     = "CPU load";
+$lang['gvv_sysres_memory']  = "System memory";
+$lang['gvv_sysres_network'] = "Network";
+$lang['gvv_sysres_php']     = "PHP & Server";
+$lang['gvv_sysres_uptime']  = "Uptime";
+$lang['gvv_sysres_backup']  = "Last automatic backup";
 $lang['gvv_logs_title'] = "Log files";
 $lang['gvv_logs_col_file'] = "File";
 $lang['gvv_logs_col_date'] = "Date";

@@ -1208,7 +1208,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         <?php endif; ?>
 
         <div class="col-12 mt-3">
-            <h6 class="text-muted mb-2"><i class="fas fa-file-alt"></i> <?= $this->lang->line('db_sub_logs') ?></h6>
+            <h6 class="text-muted mb-2"><i class="fas fa-server"></i> <?= $this->lang->line('db_sub_supervision') ?></h6>
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1217,6 +1217,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= $this->lang->line('db_card_logs') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_logs') ?></div>
                 <a href="<?= controller_url('admin/logs') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-danger">
+                <i class="fas fa-server text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_sysres') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_sysres') ?></div>
+                <a href="<?= controller_url('admin/system_resources') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
         <?php endif; // $is_admin ?>

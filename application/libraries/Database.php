@@ -300,9 +300,74 @@ class Database {
 		chdir($original_dir);
 		$this->CI->load->helper('download');
 		$this->stream_file_download($dirname . $final_filename, $final_filename);
-		
+
 		// Clean up the backup file after download
 		unlink($dirname . $final_filename);
+	}
+
+	/**
+	 * Sauvegarde la base de données sur le serveur (sans téléchargement).
+	 * Retourne le chemin du fichier créé, ou lève une exception en cas d'erreur.
+	 *
+	 * @return string Chemin absolu du fichier de sauvegarde créé
+	 */
+	public function backup_to_server() {
+		if (PHP_OS == "WINNT") {
+			$mysqldump = 'c:\xampp_php8\mysql\bin\mysqldump.exe';
+		} else {
+			$mysqldump = '/usr/bin/mysqldump';
+		}
+
+		if (!file_exists($mysqldump)) {
+			throw new Exception("mysqldump $mysqldump not found");
+		}
+
+		$dirname = getcwd() . "/backups/";
+		if (!file_exists($dirname)) {
+			mkdir($dirname, 0777, true);
+		}
+
+		date_default_timezone_set('Europe/Paris');
+		$nom_club  = $this->CI->config->item('nom_club');
+		$clubid    = strtolower(str_replace(' ', '_', $nom_club));
+		$dt        = date("Ymd_His");
+
+		$this->CI->db->select_max('version');
+		$query     = $this->CI->db->get('migrations');
+		$row       = $query->row();
+		$migration = $row ? $row->version : 0;
+		$database  = $this->CI->db->database;
+
+		$base_name = $database . "_backup_" . $clubid . "_" . $dt . "_migration_" . $migration;
+		$base_name = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $base_name);
+		$filename  = $base_name . ".sql";
+		$zipname   = $base_name . ".zip";
+
+		$db_user     = $this->CI->db->username;
+		$db_password = $this->CI->db->password;
+		$db_host     = $this->CI->db->hostname;
+
+		$original_dir = getcwd();
+		chdir($dirname);
+
+		$cmd = "$mysqldump --user=$db_user --password=$db_password --host=$db_host $database > $filename";
+		exec($cmd, $output, $returnVar);
+		if ($returnVar != 0 || !file_exists($filename)) {
+			chdir($original_dir);
+			throw new Exception("mysqldump failed (code $returnVar)");
+		}
+
+		$cmd = "zip $zipname $filename";
+		exec($cmd, $output, $returnVar);
+		unlink($filename);
+		if ($returnVar != 0 || !file_exists($zipname)) {
+			chdir($original_dir);
+			throw new Exception("zip failed (code $returnVar)");
+		}
+
+		chdir($original_dir);
+		gvv_info("backup_to_server: created " . $dirname . $zipname);
+		return $dirname . $zipname;
 	}
 
 	/*

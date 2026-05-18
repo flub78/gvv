@@ -2992,6 +2992,114 @@ SQL;
     }
 
     /**
+     * Sauvegarde la base de données sur le serveur (sans téléchargement).
+     * Utilisé par le bouton "Sauvegarder maintenant" de la page ressources système.
+     */
+    public function backup_server() {
+        try {
+            $filepath = $this->database->backup_to_server();
+            $filename = basename($filepath);
+            $this->session->set_flashdata('sysres_success', "Sauvegarde créée : <strong>" . htmlspecialchars($filename) . "</strong>");
+        } catch (Exception $e) {
+            $this->session->set_flashdata('sysres_error', "Échec de la sauvegarde : " . htmlspecialchars($e->getMessage()));
+        }
+        redirect('admin/system_resources');
+    }
+
+    /**
+     * Affiche les ressources système du serveur (disque, CPU, mémoire, réseau, dernière sauvegarde).
+     */
+    public function system_resources() {
+        $data = [];
+
+        // Espace disque
+        $disk_path = getcwd();
+        $disk_free  = disk_free_space($disk_path);
+        $disk_total = disk_total_space($disk_path);
+        $disk_used  = $disk_total - $disk_free;
+        $data['disk'] = [
+            'total' => $disk_total,
+            'used'  => $disk_used,
+            'free'  => $disk_free,
+            'pct'   => $disk_total > 0 ? round($disk_used / $disk_total * 100, 1) : 0,
+        ];
+
+        // Charge CPU
+        $data['load'] = function_exists('sys_getloadavg') ? sys_getloadavg() : null;
+
+        // Mémoire système depuis /proc/meminfo (Linux)
+        $data['memory'] = [];
+        if (is_readable('/proc/meminfo')) {
+            $meminfo = file_get_contents('/proc/meminfo');
+            preg_match('/MemTotal:\s+(\d+)/', $meminfo, $m);
+            $mem_total = isset($m[1]) ? (int)$m[1] * 1024 : 0;
+            preg_match('/MemAvailable:\s+(\d+)/', $meminfo, $m);
+            $mem_avail = isset($m[1]) ? (int)$m[1] * 1024 : 0;
+            $mem_used  = $mem_total - $mem_avail;
+            $data['memory'] = [
+                'total'     => $mem_total,
+                'used'      => $mem_used,
+                'available' => $mem_avail,
+                'pct'       => $mem_total > 0 ? round($mem_used / $mem_total * 100, 1) : 0,
+            ];
+        }
+
+        // Interfaces réseau depuis /proc/net/dev (Linux)
+        $data['network'] = [];
+        if (is_readable('/proc/net/dev')) {
+            foreach (file('/proc/net/dev') as $line) {
+                $line = trim($line);
+                if (strpos($line, ':') === false) continue;
+                list($iface, $stats) = explode(':', $line, 2);
+                $iface = trim($iface);
+                if ($iface === 'lo') continue;
+                $v = preg_split('/\s+/', trim($stats));
+                $data['network'][$iface] = [
+                    'rx_bytes'  => isset($v[0]) ? (int)$v[0] : 0,
+                    'tx_bytes'  => isset($v[8]) ? (int)$v[8] : 0,
+                    'rx_errors' => isset($v[2]) ? (int)$v[2] : 0,
+                    'tx_errors' => isset($v[10]) ? (int)$v[10] : 0,
+                ];
+            }
+        }
+
+        // Durée de fonctionnement depuis /proc/uptime (Linux)
+        $data['uptime'] = null;
+        if (is_readable('/proc/uptime')) {
+            $sec   = (int)explode(' ', file_get_contents('/proc/uptime'))[0];
+            $data['uptime'] = [
+                'days'    => floor($sec / 86400),
+                'hours'   => floor(($sec % 86400) / 3600),
+                'minutes' => floor(($sec % 3600) / 60),
+                'seconds' => $sec,
+            ];
+        }
+
+        // Informations PHP
+        $data['php'] = [
+            'version'       => PHP_VERSION,
+            'os'            => php_uname(),
+            'memory_limit'  => ini_get('memory_limit'),
+            'memory_usage'  => memory_get_usage(true),
+            'peak_usage'    => memory_get_peak_usage(true),
+            'max_exec_time' => ini_get('max_execution_time'),
+            'upload_max'    => ini_get('upload_max_filesize'),
+        ];
+
+        // Dernière sauvegarde automatique
+        $data['last_backup'] = null;
+        $backupdir = getcwd() . '/backups/';
+        if (is_dir($backupdir)) {
+            $files = glob($backupdir . '*.{zip,sql.gz,tar.gz}', GLOB_BRACE);
+            if ($files) {
+                $data['last_backup'] = max(array_map('filemtime', $files));
+            }
+        }
+
+        load_last_view('admin/bs_system_resources', $data);
+    }
+
+    /**
      * Liste des utilisateurs actuellement connectés
      */
     public function connected_users() {

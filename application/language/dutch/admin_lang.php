@@ -8,7 +8,7 @@
 
 $lang['gvv_admin_title'] = "Administratie site en programma";
 $lang['gvv_admin_title_config'] = "Configuratie";
-$lang['gvv_admin_title_admin'] = "Administratie";
+$lang['gvv_admin_title_admin'] = "Serverbewaking";
 $lang['gvv_admin_title_rights'] = "Beheer gebruikersrechten";
 $lang['gvv_admin_title_tests'] = "Testen";
 $lang['gvv_admin_title_restore'] = "Terugzetten database";
@@ -38,6 +38,18 @@ $lang['gvv_admin_menu_open'] = "Openen";
 
 $lang['gvv_admin_menu_logs'] = "Logbestanden";
 $lang['gvv_admin_menu_logs_desc'] = "Logbestanden bekijken en downloaden";
+
+$lang['gvv_admin_menu_sysres']      = "Systeembronnen";
+$lang['gvv_admin_menu_sysres_desc'] = "Schijf, CPU, geheugen, netwerk";
+
+$lang['gvv_sysres_title']   = "Systeembronnen";
+$lang['gvv_sysres_disk']    = "Schijfruimte";
+$lang['gvv_sysres_cpu']     = "CPU-belasting";
+$lang['gvv_sysres_memory']  = "Systeemgeheugen";
+$lang['gvv_sysres_network'] = "Netwerk";
+$lang['gvv_sysres_php']     = "PHP & Server";
+$lang['gvv_sysres_uptime']  = "Beschikbaarheid";
+$lang['gvv_sysres_backup']  = "Laatste automatische back-up";
 $lang['gvv_logs_title'] = "Logbestanden";
 $lang['gvv_logs_col_file'] = "Bestand";
 $lang['gvv_logs_col_date'] = "Datum";

@@ -8,7 +8,7 @@
 
 $lang['gvv_admin_title'] = "Administration du site et du programme";
 $lang['gvv_admin_title_config'] = "Configuration";
-$lang['gvv_admin_title_admin'] = "Administration";
+$lang['gvv_admin_title_admin'] = "Supervision du serveur";
 $lang['gvv_admin_title_rights'] = "Gestion des droits";
 $lang['gvv_admin_title_tests'] = "Tests";
 $lang['gvv_admin_title_restore'] = "Restauration des données";
@@ -38,6 +38,18 @@ $lang['gvv_admin_menu_open'] = "Ouvrir";
 
 $lang['gvv_admin_menu_logs'] = "Fichiers journaux";
 $lang['gvv_admin_menu_logs_desc'] = "Consulter et télécharger les logs";
+
+$lang['gvv_admin_menu_sysres']      = "Ressources système";
+$lang['gvv_admin_menu_sysres_desc'] = "Disque, CPU, mémoire, réseau";
+
+$lang['gvv_sysres_title']   = "Ressources système";
+$lang['gvv_sysres_disk']    = "Espace disque";
+$lang['gvv_sysres_cpu']     = "Charge CPU";
+$lang['gvv_sysres_memory']  = "Mémoire système";
+$lang['gvv_sysres_network'] = "Réseau";
+$lang['gvv_sysres_php']     = "PHP & Serveur";
+$lang['gvv_sysres_uptime']  = "Disponibilité";
+$lang['gvv_sysres_backup']  = "Dernière sauvegarde automatique";
 $lang['gvv_logs_title'] = "Fichiers journaux";
 $lang['gvv_logs_col_file'] = "Fichier";
 $lang['gvv_logs_col_date'] = "Date";
