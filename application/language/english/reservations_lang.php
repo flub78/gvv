@@ -15,7 +15,7 @@ $lang['reservations_form_start_time'] = "Start Time";
 $lang['reservations_form_end_time'] = "End Time";
 $lang['reservations_form_purpose'] = "Purpose";
 $lang['reservations_form_notes'] = "Notes";
-$lang['reservations_form_status'] = "Status";
+$lang['reservations_form_status'] = "Reservation type";
 
 // Select options
 $lang['reservations_select_aircraft'] = "-- Select Aircraft --";
@@ -26,6 +26,10 @@ $lang['reservations_select_instructor_none'] = "-- None --";
 $lang['reservations_status_reservation'] = "Reservation";
 $lang['reservations_status_maintenance'] = "Maintenance";
 $lang['reservations_status_unavailable'] = "Unavailable";
+$lang['reservations_status_vol_local'] = "Local flight";
+$lang['reservations_status_navigation'] = "Navigation";
+$lang['reservations_status_vld'] = "Long-distance flight";
+$lang['reservations_status_convoyage'] = "Ferry flight";
 
 // Modal titles
 $lang['reservations_modal_new'] = "New Reservation";
@@ -45,6 +49,9 @@ $lang['reservations_error_saving'] = "Error while saving";
 $lang['reservations_error_deleting'] = "Error while deleting";
 $lang['reservations_error_prefix'] = "Error";
 $lang['reservations_error_invalid_datetime'] = "Invalid date or time";
+$lang['reservations_error_not_authorized'] = "You are not authorized to modify this reservation";
+$lang['reservations_error_no_cotisation'] = "You do not have a valid membership subscription for this year";
+$lang['reservations_error_insufficient_balance'] = "Insufficient balance (%s). Estimated cost of reservations on this aircraft: %s";
 $lang['reservations_confirm_delete'] = "Are you sure you want to delete this reservation?";
 
 // Success messages

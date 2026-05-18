@@ -177,5 +177,8 @@
 
 * [x] Quand on saisie un vol planeur en DC, puis qu'on utilise créer et continuer, et qu'on essaye de saisir un vol monoplace, la checkbox DC est masquée mais toujours active et on se retrouve avec un vol monoplace en DC. Il faut désactiver la checkbox DC quand on passe en monoplace.
 
-
 * [x] Ajouter un bouton "Aujourd'hui" a coté des datepicker de saisie des vols.
+
+* [x] Ajuster les marges des cartes de membre
+
+* [x] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.

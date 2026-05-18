@@ -277,7 +277,31 @@ $this->load->view('bs_banner');
             border-color: #a71d2a;
             color: white;
         }
-        
+
+        .reservation-event.vol_local {
+            background-color: #20C997;
+            border-color: #199d76;
+            color: white;
+        }
+
+        .reservation-event.navigation {
+            background-color: #0D6EFD;
+            border-color: #0a58ca;
+            color: white;
+        }
+
+        .reservation-event.vld {
+            background-color: #6F42C1;
+            border-color: #59339d;
+            color: white;
+        }
+
+        .reservation-event.convoyage {
+            background-color: #FFC107;
+            border-color: #d39e00;
+            color: #333;
+        }
+
         .reservation-event.dragging {
             opacity: 0.7;
             z-index: 100;
@@ -322,7 +346,27 @@ $this->load->view('bs_banner');
             background-color: #DC3545;
             color: white;
         }
-        
+
+        .status-badge.vol_local {
+            background-color: #20C997;
+            color: white;
+        }
+
+        .status-badge.navigation {
+            background-color: #0D6EFD;
+            color: white;
+        }
+
+        .status-badge.vld {
+            background-color: #6F42C1;
+            color: white;
+        }
+
+        .status-badge.convoyage {
+            background-color: #FFC107;
+            color: #333;
+        }
+
         /* Now indicator */
         .now-indicator {
             position: absolute;
@@ -466,7 +510,10 @@ $this->load->view('bs_banner');
             pixelsPerHour: 60,
             slotWidthPx: 60,
             startHour: 6,  // Timeline starts at 6:00
-            timelineIncrement: <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>  // Minutes
+            timelineIncrement: <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>,  // Minutes
+            currentUser: '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
+            canEditOthers: <?php echo $can_edit_others ? 'true' : 'false'; ?>,
+            isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>
         };
         
         // State
@@ -671,18 +718,31 @@ $this->load->view('bs_banner');
             eventEl.textContent = event.title;
             eventEl.title = event.title;
             
+            // Determine if current user can edit this event
+            const pilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
+            const canEditEvent = CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser);
+
             // Add resize handle
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
-            resizeHandle.style.cssText = 'position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: rgba(0,0,0,0.1);';
+            if (canEditEvent) {
+                resizeHandle.style.cssText = 'position: absolute; right: 0; top: 0; bottom: 0; width: 8px; cursor: ew-resize; background: rgba(0,0,0,0.1);';
+            } else {
+                resizeHandle.style.cssText = 'display: none;';
+            }
             eventEl.appendChild(resizeHandle);
-            
+
+            // Adjust cursor based on edit permission
+            if (!canEditEvent) {
+                eventEl.style.cursor = 'pointer';
+            }
+
             // Add event handlers
             let clickStartX = 0;
             eventEl.addEventListener('mousedown', (e) => {
                 clickStartX = e.clientX;
             });
-            
+
             eventEl.addEventListener('click', (e) => {
                 if (e.target.classList.contains('resize-handle')) return;
                 // Check if this was actually a drag (moved > 5px)
@@ -694,19 +754,21 @@ $this->load->view('bs_banner');
                 e.stopPropagation();
                 handleEventClick(event);
             });
-            
-            eventEl.addEventListener('mousedown', (e) => {
-                if (e.button === 0 && !e.target.classList.contains('resize-handle')) {
-                    startDragging(e, event, eventEl, 'move');
-                }
-            });
-            
-            resizeHandle.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    e.stopPropagation();
-                    startDragging(e, event, eventEl, 'resize');
-                }
-            });
+
+            if (canEditEvent) {
+                eventEl.addEventListener('mousedown', (e) => {
+                    if (e.button === 0 && !e.target.classList.contains('resize-handle')) {
+                        startDragging(e, event, eventEl, 'move');
+                    }
+                });
+
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) {
+                        e.stopPropagation();
+                        startDragging(e, event, eventEl, 'resize');
+                    }
+                });
+            }
             
             // Show tooltip on hover
             eventEl.addEventListener('mouseenter', (e) => {
@@ -1099,7 +1161,8 @@ $this->load->view('bs_banner');
                 title: 'New Reservation',
                 extendedProps: {
                     aircraft_id: resourceId,
-                    pilot_member_id: null,
+                    // auto_planchiste can only book for themselves
+                    pilot_member_id: (CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) ? CONFIG.currentUser : null,
                     instructor_member_id: null,
                     notes: '',
                     status: 'reservation'
@@ -1149,6 +1212,11 @@ $this->load->view('bs_banner');
                 // Set title based on create vs edit mode
                 const isCreate = (event.id === null || event.id === undefined);
                 titleEl.textContent = isCreate ? TRANSLATIONS.modal_new : TRANSLATIONS.modal_edit;
+
+                // Determine edit permissions for this event
+                const eventPilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
+                const isEventOwner = CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser);
+                const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
                 
                 // Extract and safely prepare data
                 // Handle different date formats from FullCalendar
@@ -1199,7 +1267,9 @@ $this->load->view('bs_banner');
                 aircraftSelect += '</select>';
 
                 // Build pilot select (OPTIONS.pilots is an associative array: id => label)
-                let pilotSelect = '<select class="form-control big_select" id="eventPilot">';
+                // auto_planchiste: locked to self
+                const pilotDisabled = lockPilotToSelf ? 'disabled' : '';
+                let pilotSelect = `<select class="form-control big_select" id="eventPilot" ${pilotDisabled}>`;
                 pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
                 if (OPTIONS.pilots) {
                     for (const [id, label] of Object.entries(OPTIONS.pilots)) {
@@ -1220,11 +1290,14 @@ $this->load->view('bs_banner');
                 }
                 instructorSelect += '</select>';
                 
+                // Disable all fields if read-only (auto_planchiste viewing another's reservation)
+                const readOnlyAttr = isEventOwner ? '' : 'disabled';
+
                 // Build main form HTML
                 const formHtml = `<form id="eventEditForm">
                     <div class="mb-3">
                         <label for="eventAircraft" class="form-label"><strong>${TRANSLATIONS.form_aircraft}:</strong></label>
-                        ${aircraftSelect}
+                        ${aircraftSelect.replace('<select ', `<select ${readOnlyAttr} `)}
                     </div>
 
                     <div class="mb-3">
@@ -1234,29 +1307,33 @@ $this->load->view('bs_banner');
 
                     <div class="mb-3">
                         <label for="eventInstructor" class="form-label"><strong>${TRANSLATIONS.form_instructor}:</strong> <span class="text-muted">${TRANSLATIONS.form_instructor_optional}</span></label>
-                        ${instructorSelect}
+                        ${instructorSelect.replace('<select ', `<select ${readOnlyAttr} `)}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="eventStart" class="form-label"><strong>${TRANSLATIONS.form_start_time}:</strong></label>
-                            <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}">
+                            <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}" ${readOnlyAttr}>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="eventEnd" class="form-label"><strong>${TRANSLATIONS.form_end_time}:</strong></label>
-                            <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
+                            <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}" ${readOnlyAttr}>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
-                        <textarea class="form-control" id="eventNotes" rows="2">${notes}</textarea>
+                        <textarea class="form-control" id="eventNotes" rows="2" ${readOnlyAttr}>${notes}</textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
-                        <select class="form-control" id="eventStatus">
+                        <select class="form-control" id="eventStatus" ${readOnlyAttr}>
                             <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
+                            <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
+                            <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
+                            <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
+                            <option value="convoyage" ${status === 'convoyage' ? 'selected' : ''}>${TRANSLATIONS.status_convoyage}</option>
                             <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
                             <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
                         </select>
@@ -1267,20 +1344,32 @@ $this->load->view('bs_banner');
 
                 // Update footer with buttons
                 const saveButtonText = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
-                const deleteButtonHtml = isCreate ? '' : `<button type="button" class="btn btn-danger" id="deleteEventBtn">${TRANSLATIONS.btn_delete}</button>`;
-                footerEl.innerHTML = `${deleteButtonHtml}
-                    <div class="flex-grow-1"></div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>
-                    <button type="button" class="btn btn-primary" id="saveEventBtn">${saveButtonText}</button>`;
+                let footerHtml = '';
+                if (isEventOwner) {
+                    const deleteButtonHtml = isCreate ? '' : `<button type="button" class="btn btn-danger" id="deleteEventBtn">${TRANSLATIONS.btn_delete}</button>`;
+                    footerHtml = `${deleteButtonHtml}
+                        <div class="flex-grow-1"></div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>
+                        <button type="button" class="btn btn-primary" id="saveEventBtn">${saveButtonText}</button>`;
+                } else {
+                    // Read-only for auto_planchiste viewing another's reservation
+                    footerHtml = `<div class="flex-grow-1"></div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${TRANSLATIONS.btn_cancel}</button>`;
+                }
+                footerEl.innerHTML = footerHtml;
 
-                // Attach event listener for save button
-                document.getElementById('saveEventBtn').addEventListener('click', function() {
-                    saveEventChanges(event);
-                });
+                // Attach event listener for save button (only if user can edit)
+                const saveBtn = document.getElementById('saveEventBtn');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', function() {
+                        saveEventChanges(event);
+                    });
+                }
 
-                // Attach event listener for delete button (if editing)
-                if (!isCreate) {
-                    document.getElementById('deleteEventBtn').addEventListener('click', function() {
+                // Attach event listener for delete button (if editing and user can edit)
+                const deleteBtn = document.getElementById('deleteEventBtn');
+                if (!isCreate && deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
                         deleteEventReservation(event);
                     });
                 }
@@ -1321,8 +1410,9 @@ $this->load->view('bs_banner');
                 alert(TRANSLATIONS.error_no_aircraft);
                 return;
             }
-            // Pilot is required only for regular reservations, not for maintenance/unavailable
-            if (!pilotId && status === 'reservation') {
+            // Pilot required for all flight types; not required for maintenance/unavailable
+            const pilotRequiredStatuses = ['reservation', 'vol_local', 'navigation', 'vld', 'convoyage'];
+            if (!pilotId && pilotRequiredStatuses.includes(status)) {
                 alert(TRANSLATIONS.error_no_pilot);
                 return;
             }

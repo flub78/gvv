@@ -276,9 +276,10 @@ class Reservations_model extends Common_Model {
             return 0;
         }
 
-        // Pilot is required only for regular reservations
+        // Pilot is required for all flight types; optional only for maintenance and unavailable
         $status = isset($data['status']) ? $data['status'] : 'reservation';
-        if ($status === 'reservation' && (empty($data['pilot_member_id']) || !isset($data['pilot_member_id']))) {
+        $pilot_required = array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage');
+        if (in_array($status, $pilot_required) && (empty($data['pilot_member_id']) || !isset($data['pilot_member_id']))) {
             gvv_error("Reservations_model::create_reservation - pilot_member_id required for reservations");
             return 0;
         }
@@ -335,7 +336,11 @@ class Reservations_model extends Common_Model {
         $colors = array(
             'reservation' => '#28A745',   // Green
             'maintenance' => '#FD7E14',   // Orange
-            'unavailable' => '#DC3545'    // Red
+            'unavailable' => '#DC3545',   // Red
+            'vol_local'   => '#20C997',   // Teal
+            'navigation'  => '#0D6EFD',   // Blue
+            'vld'         => '#6F42C1',   // Purple
+            'convoyage'   => '#FFC107',   // Amber
         );
 
         return isset($colors[$status]) ? $colors[$status] : '#28A745'; // Default green
@@ -453,8 +458,17 @@ class Reservations_model extends Common_Model {
             return $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Indisponible';
         }
 
-        // Build title: "HH:MM-HH:MM IMMAT Pilot" (for regular reservations)
-        $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' ' . $pilot_name;
+        // For specific flight types, prefix the type name
+        $type_labels = array(
+            'vol_local'  => 'Vol local',
+            'navigation' => 'Navigation',
+            'vld'        => 'VLD',
+            'convoyage'  => 'Convoyage',
+        );
+        $type_prefix = isset($type_labels[$status]) ? $type_labels[$status] . ' ' : '';
+
+        // Build title: "HH:MM-HH:MM IMMAT [Type] Pilot"
+        $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' ' . $type_prefix . $pilot_name;
 
         // Add instructor if present
         if (!empty($instructor_name)) {

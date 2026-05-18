@@ -77,6 +77,10 @@ class Reservations extends MY_Controller {
             'status_reservation' => $this->lang->line('reservations_status_reservation'),
             'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
             'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
+            'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
+            'status_navigation' => $this->lang->line('reservations_status_navigation'),
+            'status_vld' => $this->lang->line('reservations_status_vld'),
+            'status_convoyage' => $this->lang->line('reservations_status_convoyage'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -173,6 +177,9 @@ class Reservations extends MY_Controller {
         // Get instructors options - only instructors with role in active section
         $instructors_options = $this->membres_model->inst_selector(0, true);
 
+        // User context for access control
+        list($current_username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
+
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
         $date_formatted = $date_obj->format('l, d F Y');
@@ -193,6 +200,10 @@ class Reservations extends MY_Controller {
             'status_reservation' => $this->lang->line('reservations_status_reservation'),
             'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
             'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
+            'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
+            'status_navigation' => $this->lang->line('reservations_status_navigation'),
+            'status_vld' => $this->lang->line('reservations_status_vld'),
+            'status_convoyage' => $this->lang->line('reservations_status_convoyage'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -221,7 +232,10 @@ class Reservations extends MY_Controller {
             'pilots_options' => $pilots_options,
             'instructors_options' => $instructors_options,
             'aircraft_label' => $aircraft_label,
-            'translations' => $translations
+            'translations' => $translations,
+            'current_username' => $current_username,
+            'can_edit_others' => $can_edit_others,
+            'is_auto_planchiste' => $is_auto_planchiste
         );
         
         load_last_view('reservations/timeline', $data);
@@ -354,6 +368,15 @@ class Reservations extends MY_Controller {
             $reservation = $this->db->get_where('reservations', array('id' => $event_id))->row_array();
             if (!$reservation) {
                 throw new Exception('Reservation not found');
+            }
+
+            // Access control for auto_planchiste
+            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste) = $this->_reservation_permissions();
+            if ($drop_is_auto_planchiste && !$drop_can_edit_others) {
+                if ($reservation['pilot_member_id'] !== $drop_username) {
+                    $this->lang->load('reservations');
+                    throw new Exception($this->lang->line('reservations_error_not_authorized'));
+                }
             }
 
             // Determine the aircraft_id for conflict check
@@ -533,8 +556,9 @@ class Reservations extends MY_Controller {
                 throw new Exception('Aircraft ID is required');
             }
 
-            // Pilot is required for 'reservation' status, optional for 'maintenance' and 'unavailable'
-            if (!$pilot_member_id && $status === 'reservation') {
+            // Pilot is required for all flight types; optional only for 'maintenance' and 'unavailable'
+            $pilot_required_statuses = array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage');
+            if (!$pilot_member_id && in_array($status, $pilot_required_statuses)) {
                 throw new Exception('Pilot member ID is required for reservations');
             }
 
@@ -555,10 +579,50 @@ class Reservations extends MY_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
 
-            $username = $this->dx_auth->get_username();
+            list($username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
 
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
+
+            // Access control for auto_planchiste
+            if ($is_auto_planchiste && !$can_edit_others) {
+                if ($is_create) {
+                    // Force pilot to current user
+                    $pilot_member_id = $username;
+                    // Require a valid cotisation for the reservation year
+                    $this->lang->load('reservations');
+                    $reservation_year = (int) substr($start_datetime, 0, 4);
+                    $this->load->model('licences_model');
+                    if (!$this->licences_model->check_cotisation_exists($username, $reservation_year)) {
+                        throw new Exception($this->lang->line('reservations_error_no_cotisation'));
+                    }
+                } else {
+                    // Only allow editing own reservations
+                    $this->lang->load('reservations');
+                    $existing = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
+                    if (!$existing || $existing['pilot_member_id'] !== $username) {
+                        throw new Exception($this->lang->line('reservations_error_not_authorized'));
+                    }
+                    // Keep pilot as current user (cannot change pilot on own reservation)
+                    $pilot_member_id = $username;
+                }
+            }
+
+            // Balance check: applies to all non-privileged members (not admin/instructeur)
+            // This includes auto_planchiste, regular members, and aircraft owners.
+            if (!$can_edit_others && $is_create) {
+                $this->lang->load('reservations');
+                $balance_check = $this->_check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id);
+                if (!$balance_check['ok']) {
+                    $balance_str = number_format($balance_check['balance'], 2, ',', ' ') . ' €';
+                    $cost_str    = number_format($balance_check['cost'],    2, ',', ' ') . ' €';
+                    throw new Exception(sprintf(
+                        $this->lang->line('reservations_error_insufficient_balance'),
+                        $balance_str,
+                        $cost_str
+                    ));
+                }
+            }
 
             // Check for conflicts (aircraft, pilot, instructor)
             $conflict_check = $this->reservations_model->check_reservation_conflicts(
@@ -666,7 +730,17 @@ class Reservations extends MY_Controller {
             }
             
             $this->load->model('reservations_model');
-            
+
+            // Access control for auto_planchiste
+            list($del_username, $del_can_edit_others, $del_is_auto_planchiste) = $this->_reservation_permissions();
+            if ($del_is_auto_planchiste && !$del_can_edit_others) {
+                $this->lang->load('reservations');
+                $del_reservation = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
+                if (!$del_reservation || $del_reservation['pilot_member_id'] !== $del_username) {
+                    throw new Exception($this->lang->line('reservations_error_not_authorized'));
+                }
+            }
+
             // Delete the reservation
             $success = $this->reservations_model->delete_reservation($reservation_id);
             
@@ -718,6 +792,133 @@ class Reservations extends MY_Controller {
             gvv_error("Error in get_options: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));
         }
+    }
+
+    /**
+     * Look up the prix (float) for a tarif reference on a given date within the current section.
+     * Returns 0.0 if the reference is empty or not found.
+     */
+    private function _get_tarif_price($reference, $date) {
+        if (empty($reference)) return 0.0;
+        $section_id = $this->session->userdata('section');
+        $result = $this->db
+            ->select('prix')
+            ->from('tarifs')
+            ->where('reference', $reference)
+            ->where('date <=', $date)
+            ->where('club', $section_id)
+            ->order_by('date', 'desc')
+            ->limit(1)
+            ->get();
+        if ($result && $result->num_rows() > 0) {
+            return (float) $result->row()->prix;
+        }
+        return 0.0;
+    }
+
+    /**
+     * Check whether a pilot has enough balance to cover the cost of:
+     *   - existing future reservations on the given aircraft
+     *   - the new reservation being created
+     * If the pilot is the aircraft's owner (proprio), uses maprixproprio rate.
+     * Returns array('ok' => bool, 'balance' => float, 'cost' => float).
+     * Returns ok=true when no relevant pricing data is available (fail-open).
+     */
+    private function _check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id) {
+        // Get aircraft info
+        $aircraft = $this->db->get_where('machinesa', array('macimmat' => $aircraft_id))->row_array();
+        if (!$aircraft) {
+            return array('ok' => true);
+        }
+
+        // Determine price reference: owner rate or regular rate
+        $is_owner = (!empty($aircraft['proprio']) && $aircraft['proprio'] === $username);
+        if ($is_owner && !empty($aircraft['maprixproprio'])) {
+            $price_ref = $aircraft['maprixproprio'];
+        } else {
+            $price_ref = $aircraft['maprix'];
+        }
+
+        $date = substr($start_datetime, 0, 10);
+        $hourly_rate = $this->_get_tarif_price($price_ref, $date);
+
+        // No price defined: allow reservation
+        if ($hourly_rate <= 0.0) {
+            return array('ok' => true);
+        }
+
+        // New reservation duration in hours
+        $dt_start = new DateTime($start_datetime);
+        $dt_end   = new DateTime($end_datetime);
+        $new_hours = ($dt_end->getTimestamp() - $dt_start->getTimestamp()) / 3600.0;
+
+        // Existing future reservations for this pilot on this aircraft
+        $now = date('Y-m-d H:i:s');
+        $existing = $this->db
+            ->select('start_datetime, end_datetime')
+            ->from('reservations')
+            ->where('pilot_member_id', $username)
+            ->where('aircraft_id', $aircraft_id)
+            ->where('start_datetime >', $now)
+            ->where_in('status', array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage'))
+            ->get()->result_array();
+
+        $existing_hours = 0.0;
+        foreach ($existing as $res) {
+            $s = new DateTime($res['start_datetime']);
+            $e = new DateTime($res['end_datetime']);
+            $existing_hours += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0;
+        }
+
+        $total_cost = ($existing_hours + $new_hours) * $hourly_rate;
+
+        // Add double-command surcharge for this reservation if instructor present
+        if (!empty($instructor_member_id)) {
+            $dc_rate = $this->_get_tarif_price($aircraft['maprixdc'], $date);
+            $total_cost += $new_hours * $dc_rate;
+        }
+
+        // Find the pilot's 411 account in the aircraft's section
+        // (membres.compte can be 0/null for legacy data, so we look up comptes directly)
+        $section_id = !empty($aircraft['club']) ? (int) $aircraft['club'] : 0;
+        $compte = $this->db->get_where('comptes', array(
+            'pilote' => $username,
+            'codec'  => '411',
+            'club'   => $section_id,
+            'actif'  => 1,
+            'masked' => 0,
+        ))->row_array();
+        if (empty($compte)) {
+            return array('ok' => true); // No account for this section, skip check
+        }
+
+        $this->load->helper('validation');
+        $this->load->model('ecritures_model');
+        $balance = (float) $this->ecritures_model->solde_compte($compte['id']);
+
+        if ($balance >= $total_cost) {
+            return array('ok' => true);
+        }
+
+        return array('ok' => false, 'balance' => $balance, 'cost' => $total_cost);
+    }
+
+    /**
+     * Return reservation permission context for the current user.
+     * Returns array($username, $can_edit_others, $is_auto_planchiste)
+     */
+    private function _reservation_permissions() {
+        $username = $this->dx_auth->get_username();
+        if ($this->use_new_auth) {
+            $section_id = $this->session->userdata('section');
+            $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
+            $can_edit_others = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL)
+                            || $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
+        } else {
+            $is_auto_planchiste = false;
+            $can_edit_others = true;
+        }
+        return array($username, $can_edit_others, $is_auto_planchiste);
     }
 
 }

@@ -15,7 +15,7 @@ $lang['reservations_form_start_time'] = "Heure de début";
 $lang['reservations_form_end_time'] = "Heure de fin";
 $lang['reservations_form_purpose'] = "Objet";
 $lang['reservations_form_notes'] = "Notes";
-$lang['reservations_form_status'] = "Statut";
+$lang['reservations_form_status'] = "Type de réservation";
 
 // Select options
 $lang['reservations_select_aircraft'] = "-- Sélectionner un avion --";
@@ -26,6 +26,10 @@ $lang['reservations_select_instructor_none'] = "-- Aucun --";
 $lang['reservations_status_reservation'] = "Réservation";
 $lang['reservations_status_maintenance'] = "Maintenance";
 $lang['reservations_status_unavailable'] = "Indisponible";
+$lang['reservations_status_vol_local'] = "Vol local";
+$lang['reservations_status_navigation'] = "Navigation";
+$lang['reservations_status_vld'] = "VLD";
+$lang['reservations_status_convoyage'] = "Convoyage";
 
 // Modal titles
 $lang['reservations_modal_new'] = "Nouvelle Réservation";
@@ -45,6 +49,9 @@ $lang['reservations_error_saving'] = "Erreur lors de la sauvegarde";
 $lang['reservations_error_deleting'] = "Erreur lors de la suppression";
 $lang['reservations_error_prefix'] = "Erreur";
 $lang['reservations_error_invalid_datetime'] = "Date ou heure invalide";
+$lang['reservations_error_not_authorized'] = "Vous n'êtes pas autorisé à modifier cette réservation";
+$lang['reservations_error_no_cotisation'] = "Vous n'avez pas de cotisation valide pour cette année";
+$lang['reservations_error_insufficient_balance'] = "Solde insuffisant (%s). Coût estimé des réservations sur cet appareil : %s";
 $lang['reservations_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cette réservation ?";
 
 // Success messages

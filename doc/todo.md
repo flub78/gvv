@@ -1,21 +1,14 @@
 # Liste des choses à faire
 
-
 ## Bugs
-
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
 * [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
-
   
 ## Reste à faire
 
-* [x] Ajuster les marges des cartes de membre
-
 * [] Test approfondi gestion des vols avion et ULM.
-
-* [] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [] Forcer la saisie d'un numéro de vol de découverte pour les vols de découverte.
 
@@ -30,7 +23,6 @@
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.     
-  
 
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
@@ -47,8 +39,6 @@
 * [] Informer le trésorier des renouvellement de cotisation par email
 
 * [] Support des messages du jour, qui pourront inclure les alarmes.
-
-* [] Interdire les réservations sans cotisation et sans argent sur le compte.
 
 * [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 

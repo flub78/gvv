@@ -15,7 +15,7 @@ $lang['reservations_form_start_time'] = "Starttijd";
 $lang['reservations_form_end_time'] = "Eindtijd";
 $lang['reservations_form_purpose'] = "Doel";
 $lang['reservations_form_notes'] = "Notities";
-$lang['reservations_form_status'] = "Status";
+$lang['reservations_form_status'] = "Type reservering";
 
 // Select options
 $lang['reservations_select_aircraft'] = "-- Selecteer vliegtuig --";
@@ -26,6 +26,10 @@ $lang['reservations_select_instructor_none'] = "-- Geen --";
 $lang['reservations_status_reservation'] = "Reservering";
 $lang['reservations_status_maintenance'] = "Onderhoud";
 $lang['reservations_status_unavailable'] = "Niet beschikbaar";
+$lang['reservations_status_vol_local'] = "Lokale vlucht";
+$lang['reservations_status_navigation'] = "Navigatie";
+$lang['reservations_status_vld'] = "Langeafstandsvlucht";
+$lang['reservations_status_convoyage'] = "Overbrengingsvlucht";
 
 // Modal titles
 $lang['reservations_modal_new'] = "Nieuwe Reservering";
@@ -45,6 +49,9 @@ $lang['reservations_error_saving'] = "Fout bij opslaan";
 $lang['reservations_error_deleting'] = "Fout bij verwijderen";
 $lang['reservations_error_prefix'] = "Fout";
 $lang['reservations_error_invalid_datetime'] = "Ongeldige datum of tijd";
+$lang['reservations_error_not_authorized'] = "U bent niet bevoegd om deze reservering te wijzigen";
+$lang['reservations_error_no_cotisation'] = "U heeft geen geldige lidmaatschapsbijdrage voor dit jaar";
+$lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Geschatte kosten van reserveringen op dit vliegtuig: %s";
 $lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages
