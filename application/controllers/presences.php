@@ -62,6 +62,7 @@ class Presences extends MY_Controller {
             'form_comment' => $this->lang->line('presences_form_comment'),
             'form_start_date' => $this->lang->line('presences_form_start_date'),
             'form_end_date' => $this->lang->line('presences_form_end_date'),
+            'form_color' => $this->lang->line('presences_form_color'),
             'form_status' => $this->lang->line('presences_form_status'),
             'select_pilot' => $this->lang->line('presences_select_pilot'),
             'select_role' => $this->lang->line('presences_select_role'),
@@ -143,6 +144,11 @@ class Presences extends MY_Controller {
             $commentaire = $this->input->post('commentaire');
             $start_date = $this->input->post('start_date');
             $end_date = $this->input->post('end_date');
+            $color = $this->input->post('color');
+            // Validate color format (hex #RRGGBB or empty)
+            if ($color && !preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+                $color = null;
+            }
 
             // Validate authorization
             if (!$this->can_create($mlogin)) {
@@ -185,6 +191,7 @@ class Presences extends MY_Controller {
                 'mlogin' => $mlogin,
                 'role' => $role ? $role : '',
                 'commentaire' => $commentaire ? $commentaire : ' ',
+                'color' => $color ? $color : null,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'status' => 'confirmed', // Always confirmed
@@ -261,6 +268,10 @@ class Presences extends MY_Controller {
             $commentaire = $this->input->post('commentaire');
             $start_date = $this->input->post('start_date');
             $end_date = $this->input->post('end_date');
+            $color = $this->input->post('color');
+            if ($color && !preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+                $color = null;
+            }
 
             // Validate required fields
             if (empty($mlogin)) {
@@ -293,6 +304,7 @@ class Presences extends MY_Controller {
                 'mlogin' => $mlogin,
                 'role' => $role ? $role : '',
                 'commentaire' => $commentaire ? $commentaire : ' ',
+                'color' => $color ? $color : null,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'status' => 'confirmed', // Always confirmed

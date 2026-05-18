@@ -100,6 +100,26 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     const CURRENT_USER = '<?php echo $current_user; ?>';
     const IS_CA = <?php echo $is_ca ? 'true' : 'false'; ?>;
 
+    // Default colors per role key (covers French and English role keys)
+    const ROLE_COLORS = {
+        '':                      '#3788d8',
+        'Absent':                '#6c757d',
+        'Inst':                  '#0d6efd',
+        'Rem':                   '#fd7e14',
+        'Entretien':             '#ffc107',
+        'Maintenance':           '#ffc107',
+        'Elève':                 '#198754',
+        'Student':               '#198754',
+        'Elève campagne':        '#20c997',
+        'Cross country student': '#20c997',
+        'Solo':                  '#6f42c1',
+        'Circuit':               '#e83e8c',
+        'Cross country':         '#e83e8c',
+        'Simu':                  '#0dcaf0',
+        'Cours':                 '#dc3545',
+        'Ground':                '#dc3545'
+    };
+
     let currentEditingEvent = null;
 
     /**
@@ -171,6 +191,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const mlogin = props.mlogin || CURRENT_USER;
             const role = props.role || '';
             const commentaire = props.commentaire || '';
+            const color = props.color || ROLE_COLORS[role] || '#3788d8';
 
             // Build pilot select
             let pilotSelect = '<select class="form-control" id="eventPilot">';
@@ -218,12 +239,33 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 </div>
 
                 <div class="mb-3">
+                    <label for="eventColor" class="form-label"><strong>${TRANSLATIONS.form_color}:</strong></label>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="color" class="form-control form-control-color" id="eventColor" value="${escapeHtml(color)}" style="width:60px;height:38px;padding:2px;">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="resetColorBtn">&#x21BA; défaut</button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
                     <label for="eventComment" class="form-label"><strong>${TRANSLATIONS.form_comment}:</strong></label>
                     <textarea class="form-control" id="eventComment" rows="2">${escapeHtml(commentaire)}</textarea>
                 </div>
             </form>`;
 
             bodyEl.innerHTML = formHtml;
+
+            // Auto-update color when role changes
+            document.getElementById('eventRole').addEventListener('change', function() {
+                const newRole = this.value;
+                document.getElementById('eventColor').value = ROLE_COLORS[newRole] || '#3788d8';
+            });
+
+            // Reset color to role default
+            document.getElementById('resetColorBtn').addEventListener('click', function() {
+                const currentRole = document.getElementById('eventRole').value;
+                document.getElementById('eventColor').value = ROLE_COLORS[currentRole] || '#3788d8';
+            });
+
             modal.show();
         } catch (error) {
             console.error('Error in displayEventModal:', error);
@@ -240,6 +282,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         const commentaire = document.getElementById('eventComment').value;
         const startDate = document.getElementById('eventStartDate').value;
         const endDate = document.getElementById('eventEndDate').value;
+        const color = document.getElementById('eventColor').value;
 
         // Validation
         if (!mlogin) {
@@ -264,7 +307,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                          '&role=' + encodeURIComponent(role) +
                          '&commentaire=' + encodeURIComponent(commentaire) +
                          '&start_date=' + encodeURIComponent(startDate) +
-                         '&end_date=' + encodeURIComponent(endDate);
+                         '&end_date=' + encodeURIComponent(endDate) +
+                         '&color=' + encodeURIComponent(color);
 
         if (!isCreate) {
             requestBody = 'id=' + currentEditingEvent.id + '&' + requestBody;

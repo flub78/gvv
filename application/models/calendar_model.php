@@ -33,7 +33,7 @@ class Calendar_model extends Common_Model {
      */
     public function get_events($start_date = null, $end_date = null) {
         $this->db->select(
-            'c.id, c.mlogin, c.role, c.commentaire, c.start_datetime, c.end_datetime, ' .
+            'c.id, c.mlogin, c.role, c.commentaire, c.color, c.start_datetime, c.end_datetime, ' .
             'c.full_day, c.status, c.created_by, c.updated_by, ' .
             'm.mprenom, m.mnom'
         )
@@ -277,19 +277,22 @@ class Calendar_model extends Common_Model {
                 $end = $event['end_datetime'];
             }
 
+            $event_color = !empty($event['color']) ? $event['color'] : $this->get_status_color($event['status']);
+
             $formatted_event = array(
                 'id' => $event['id'],
                 'title' => $title,
                 'start' => $start,
                 'end' => $end,
                 'allDay' => $is_all_day,
-                'backgroundColor' => $this->get_status_color($event['status']),
-                'borderColor' => $this->get_status_color($event['status']),
+                'backgroundColor' => $event_color,
+                'borderColor' => $event_color,
                 'extendedProps' => array(
                     'mlogin' => $event['mlogin'],
                     'pilot_name' => $pilot_name,
                     'role' => $event['role'] ?? '',
                     'commentaire' => $event['commentaire'] ?? '',
+                    'color' => $event['color'] ?? '',
                     'status' => $event['status'],
                     'full_day' => $is_all_day,
                     'created_by' => $event['created_by'] ?? '',

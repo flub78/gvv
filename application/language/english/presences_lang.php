@@ -32,6 +32,7 @@ $lang['presences_form_role'] = 'Role';
 $lang['presences_form_comment'] = 'Comment';
 $lang['presences_form_start_date'] = 'Start Date';
 $lang['presences_form_end_date'] = 'End Date';
+$lang['presences_form_color'] = 'Color';
 
 // Select options
 $lang['presences_select_pilot'] = '-- Select a pilot --';
