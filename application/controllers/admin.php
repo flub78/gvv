@@ -251,24 +251,225 @@ class Admin extends CI_Controller {
      * cela. C'est sûrement une faille de sécurité potentielle ???
      */
     public function restore() {
+        $this->load->helper('crypto');
         $dir = getcwd() . '/backups/';
-        $files = glob($dir . '*.{zip,sql.gz}', GLOB_BRACE); // get all file names
+        $all_files = glob($dir . '*.*', GLOB_BRACE);
         $backups = array();
-        foreach ($files as $file) {
-            $name = basename($file);
-            $url = base_url() . 'backups/' . $name;
-            $anchor = anchor($url, $name);
-            $backups[] = $anchor;
+        $now = time();
+
+        if ($all_files) {
+            foreach ($all_files as $file) {
+                if (!is_file($file)) continue;
+                $name = basename($file);
+                $name_lower = strtolower($name);
+                // Determine type
+                if (strpos($name_lower, '.tar.gz') !== false || substr($name_lower, -4) === '.tgz' || substr($name_lower, -4) === '.tar') {
+                    $type = 'media';
+                } elseif (preg_match('/\.(enc\.)?(zip|sql\.gz)$/i', $name_lower)) {
+                    $type = 'db';
+                } else {
+                    continue; // skip unknown files
+                }
+                $mtime = filemtime($file);
+                $age_s = $now - $mtime;
+                if ($age_s < 3600) {
+                    $age = round($age_s / 60) . ' min';
+                } elseif ($age_s < 86400) {
+                    $age = round($age_s / 3600) . ' h';
+                } elseif ($age_s < 86400 * 30) {
+                    $age = round($age_s / 86400) . ' j';
+                } elseif ($age_s < 86400 * 365) {
+                    $age = round($age_s / (86400 * 30)) . ' mois';
+                } else {
+                    $age = round($age_s / (86400 * 365)) . ' an(s)';
+                }
+                $size = filesize($file);
+                if ($size < 1024) {
+                    $size_str = $size . ' o';
+                } elseif ($size < 1024 * 1024) {
+                    $size_str = round($size / 1024, 1) . ' Ko';
+                } else {
+                    $size_str = round($size / (1024 * 1024), 1) . ' Mo';
+                }
+                $backups[] = array(
+                    'name'      => $name,
+                    'date'      => date('d/m/Y H:i', $mtime),
+                    'mtime'     => $mtime,
+                    'age'       => $age,
+                    'size'      => $size_str,
+                    'type'      => $type,
+                    'encrypted' => is_encrypted_backup($name),
+                );
+            }
+            usort($backups, function($a, $b) { return $b['mtime'] - $a['mtime']; });
         }
 
-        $error = array(
-            'error' => '',
-            'erase_db' => 1
+        $data = array(
+            'error'    => '',
+            'erase_db' => 1,
+            'backups'  => $backups,
         );
-        if (count($files)) {
-            $error['backups'] = $backups;
+        load_last_view('admin/restore_form', $data);
+    }
+
+    /**
+     * Supprime un fichier de sauvegarde du répertoire backups/
+     */
+    public function delete_backup($filename = '') {
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $filename)) {
+            show_error('Nom de fichier invalide');
+            return;
         }
-        load_last_view('admin/restore_form', $error);
+        $dir = realpath(getcwd() . '/backups/');
+        $filepath = $dir . '/' . $filename;
+        $real = realpath($filepath);
+        if (!$real || strpos($real, $dir) !== 0 || !is_file($real)) {
+            show_error('Fichier de sauvegarde introuvable');
+            return;
+        }
+        unlink($real);
+        redirect('admin/restore');
+    }
+
+    /**
+     * Restaure la base depuis un fichier existant dans backups/
+     */
+    public function restore_from_backup($filename = '') {
+        $this->load->helper('crypto');
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $filename)) {
+            show_error('Nom de fichier invalide');
+            return;
+        }
+        $dir = realpath(getcwd() . '/backups/');
+        $filepath = $dir . '/' . $filename;
+        $real = realpath($filepath);
+        if (!$real || strpos($real, $dir) !== 0 || !is_file($real)) {
+            show_error('Fichier de sauvegarde introuvable');
+            return;
+        }
+
+        $upload_path = './uploads/restore/';
+        if (!file_exists($upload_path)) {
+            mkdir($upload_path, 0755, true);
+        }
+        foreach (glob($upload_path . '*') as $f) {
+            if (is_file($f)) unlink($f);
+        }
+
+        $dest = $upload_path . $filename;
+        copy($real, $dest);
+
+        $passphrase = $this->input->post('passphrase');
+
+        if (is_encrypted_backup($filename)) {
+            $decrypted = $upload_path . get_decrypted_filename($filename);
+            if (decrypt_file($dest, $decrypted, $passphrase)) {
+                unlink($dest);
+                $dest = $decrypted;
+                $filename = get_decrypted_filename($filename);
+            } else {
+                $error = array('error' => 'Erreur lors du déchiffrement. Vérifiez la passphrase.', 'erase_db' => 1);
+                load_last_view('admin/restore_form', $error);
+                return;
+            }
+        }
+
+        $this->load->library('unzip');
+        $this->unzip->extract($dest, $upload_path);
+
+        $sqlfiles = glob($upload_path . '*.sql');
+        if (empty($sqlfiles)) {
+            show_error('Aucun fichier SQL trouvé dans la sauvegarde');
+            return;
+        }
+        $sql = file_get_contents($sqlfiles[0]);
+        unlink($sqlfiles[0]);
+
+        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+        $this->database->drop_all();
+        $this->database->sql($sql);
+        $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+
+        $data = array('file_name' => $filename);
+        load_last_view('admin/restore_success', $data);
+    }
+
+    /**
+     * Restaure les médias depuis un fichier existant dans backups/
+     */
+    public function restore_media_from_backup($filename = '') {
+        $this->load->helper('crypto');
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $filename)) {
+            show_error('Nom de fichier invalide');
+            return;
+        }
+        $dir = realpath(getcwd() . '/backups/');
+        $filepath = $dir . '/' . $filename;
+        $real = realpath($filepath);
+        if (!$real || strpos($real, $dir) !== 0 || !is_file($real)) {
+            show_error('Fichier de sauvegarde introuvable');
+            return;
+        }
+
+        $upload_path = './uploads/restore/';
+        if (!file_exists($upload_path)) {
+            mkdir($upload_path, 0755, true);
+        }
+        foreach (glob($upload_path . '*') as $f) {
+            if (is_file($f)) unlink($f);
+        }
+
+        $dest = $upload_path . $filename;
+        copy($real, $dest);
+
+        $passphrase = $this->input->post('passphrase');
+
+        if (is_encrypted_backup($filename)) {
+            $decrypted = $upload_path . get_decrypted_filename($filename);
+            if (decrypt_file($dest, $decrypted, $passphrase)) {
+                unlink($dest);
+                $dest = $decrypted;
+                $filename = get_decrypted_filename($filename);
+            } else {
+                $error = array('error' => 'Erreur lors du déchiffrement. Vérifiez la passphrase.', 'erase_db' => 1);
+                load_last_view('admin/restore_form', $error);
+                return;
+            }
+        }
+
+        $merge_media = $this->input->post('merge_media');
+        if (!$merge_media) {
+            $uploads_path = './uploads/';
+            $existing_files = glob($uploads_path . '*');
+            foreach ($existing_files as $existing_file) {
+                if (basename($existing_file) !== 'restore') {
+                    if (is_dir($existing_file)) {
+                        $this->remove_directory($existing_file);
+                    } else {
+                        unlink($existing_file);
+                    }
+                }
+            }
+        }
+
+        $abs_uploads = realpath('./uploads/');
+        $abs_dest = realpath($dest);
+        $name_lower = strtolower($filename);
+        if (strpos($name_lower, '.tar.gz') !== false || substr($name_lower, -4) === '.tgz') {
+            $options = '-xzf';
+        } else {
+            $options = '-xf';
+        }
+        $command = "cd " . escapeshellarg($abs_uploads) . " && tar --overwrite --no-same-owner --no-same-permissions $options " . escapeshellarg($abs_dest) . " 2>&1";
+        exec($command, $output, $return_code);
+
+        if ($return_code === 0) {
+            $data = array('file_name' => $filename, 'restore_type' => 'media');
+            load_last_view('admin/restore_success', $data);
+        } else {
+            $error = array('error' => 'Erreur lors de la restauration des médias: ' . implode("\n", $output), 'erase_db' => 1);
+            load_last_view('admin/restore_form', $error);
+        }
     }
 
     /**

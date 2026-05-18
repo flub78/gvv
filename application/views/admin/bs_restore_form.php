@@ -15,8 +15,6 @@
 //
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-//    base restauration view
 
 $this->load->view('bs_header');
 $this->load->view('bs_menu');
@@ -33,11 +31,41 @@ if (!empty($error)) {
     echo '<div class="alert alert-danger">' . $error . '</div>';
 }
 
-// Display available backups
-if (isset($backups)) {
-    echo heading("Sauvegardes de base de données disponibles", 4);
-    echo ul($backups);
-    echo br();
+// Display available backups as a table
+if (!empty($backups)) {
+    echo '<h4>Sauvegardes disponibles</h4>';
+    echo '<div class="table-responsive mb-4">';
+    echo '<table class="table table-striped table-hover table-sm align-middle">';
+    echo '<thead class="table-dark"><tr>';
+    echo '<th>Nom</th><th>Date</th><th>Âge</th><th>Taille</th><th>Type</th><th>Actions</th>';
+    echo '</tr></thead><tbody>';
+    foreach ($backups as $b) {
+        $type_label = $b['type'] === 'media' ? '<span class="badge bg-info">Médias</span>' : '<span class="badge bg-primary">Base de données</span>';
+        if ($b['encrypted']) {
+            $type_label .= ' <span class="badge bg-warning text-dark">Chiffré</span>';
+        }
+        echo '<tr>';
+        echo '<td class="text-break">' . htmlspecialchars($b['name']) . '</td>';
+        echo '<td class="text-nowrap">' . $b['date'] . '</td>';
+        echo '<td class="text-nowrap">' . $b['age'] . '</td>';
+        echo '<td class="text-nowrap">' . $b['size'] . '</td>';
+        echo '<td>' . $type_label . '</td>';
+        echo '<td class="text-nowrap">';
+        echo '<button class="btn btn-sm btn-success me-1 btn-restore" '
+            . 'data-filename="' . htmlspecialchars($b['name'], ENT_QUOTES) . '" '
+            . 'data-type="' . $b['type'] . '" '
+            . 'data-encrypted="' . ($b['encrypted'] ? '1' : '0') . '" '
+            . 'data-bs-toggle="modal" data-bs-target="#restoreModal">'
+            . '<i class="fas fa-undo"></i> Restaurer</button>';
+        echo '<button class="btn btn-sm btn-danger btn-delete" '
+            . 'data-filename="' . htmlspecialchars($b['name'], ENT_QUOTES) . '" '
+            . 'data-bs-toggle="modal" data-bs-target="#deleteModal">'
+            . '<i class="fas fa-trash"></i> Supprimer</button>';
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table>';
+    echo '</div>';
 }
 
 echo '<div class="row">';
@@ -114,23 +142,20 @@ echo '<input type="password" class="form-control" name="passphrase" id="passphra
 echo '<div class="form-text">Requis uniquement pour les fichiers chiffrés (.enc.tar.gz). Si vide, la passphrase configurée sera utilisée.</div>';
 echo '</div>';
 
-// Add JavaScript for client-side file size validation
 echo '<script>
 document.getElementById("userfile_media").addEventListener("change", function() {
     const file = this.files[0];
     if (file) {
-        const maxSize = ' . (int)(ini_get('upload_max_filesize')) * 1024 * 1024 . '; // Convert to bytes
-        const fileSize = file.size;
-        
-        if (fileSize > maxSize) {
-            alert("Attention: Le fichier sélectionné (" + (fileSize / (1024*1024)).toFixed(1) + " MB) dépasse la taille maximum autorisée par le serveur (' . ini_get('upload_max_filesize') . ').\n\nVeuillez contacter l\'administrateur pour augmenter les limites du serveur ou utilisez un fichier plus petit.");
+        const maxSize = ' . (int)(ini_get('upload_max_filesize')) * 1024 * 1024 . ';
+        if (file.size > maxSize) {
+            alert("Attention: Le fichier sélectionné (" + (file.size / (1024*1024)).toFixed(1) + " MB) dépasse la taille maximum autorisée par le serveur (' . ini_get('upload_max_filesize') . ').\n\nVeuillez contacter l\'administrateur pour augmenter les limites du serveur ou utilisez un fichier plus petit.");
             this.value = "";
         }
     }
 });
 </script>';
 
-$checked_merge = isset($merge_media) && $merge_media ? ' checked="checked" ' : ' checked="checked" '; // Default to merge
+$checked_merge = ' checked="checked" ';
 
 echo '<div class="mb-3">';
 echo '<div class="form-check">';
@@ -151,3 +176,106 @@ echo '</div>';
 echo '</div>';
 
 echo '</div>'; // End row
+
+// ---- Modal: Supprimer une sauvegarde ----
+echo '
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel"><i class="fas fa-trash"></i> Confirmer la suppression</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">Cette action est irréversible. Le fichier sera définitivement supprimé.</div>
+        <p>Fichier : <strong id="delete-filename-display"></strong></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <a id="delete-confirm-link" href="#" class="btn btn-danger"><i class="fas fa-trash"></i> Supprimer</a>
+      </div>
+    </div>
+  </div>
+</div>';
+
+// ---- Modal: Restaurer une sauvegarde ----
+echo '
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="restoreModalLabel"><i class="fas fa-undo"></i> Confirmer la restauration</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <form id="restore-form" method="post" action="">
+        <div class="modal-body">
+          <div class="alert alert-warning">
+            <strong>Attention :</strong> cette opération remplacera les données actuelles par celles de la sauvegarde.
+          </div>
+          <p>Fichier : <strong id="restore-filename-display"></strong></p>
+          <div id="passphrase-section" class="mb-3" style="display:none">
+            <label for="modal-passphrase" class="form-label">Passphrase (fichier chiffré)</label>
+            <input type="password" class="form-control" name="passphrase" id="modal-passphrase" placeholder="Laisser vide pour utiliser la passphrase par défaut" />
+          </div>
+          <div id="erase-section" class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" name="erase_db" id="modal-erase-db" value="1" checked />
+            <label class="form-check-label" for="modal-erase-db">Écraser la base de données existante</label>
+          </div>
+          <div id="merge-section" class="mb-3" style="display:none">
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="merge_media" id="modal-merge-yes" value="1" checked />
+              <label class="form-check-label" for="modal-merge-yes">Fusion avec les fichiers existants (recommandé)</label>
+            </div>
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="merge_media" id="modal-merge-no" value="0" />
+              <label class="form-check-label" for="modal-merge-no">Remplacement complet</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-undo"></i> Restaurer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>';
+
+$restore_db_url    = controller_url('admin/restore_from_backup');
+$restore_media_url = controller_url('admin/restore_media_from_backup');
+$delete_url        = controller_url('admin/delete_backup');
+
+echo '<script>
+(function() {
+    var restoreDbBase    = ' . json_encode($restore_db_url) . ';
+    var restoreMediaBase = ' . json_encode($restore_media_url) . ';
+    var deleteBase       = ' . json_encode($delete_url) . ';
+
+    document.querySelectorAll(".btn-delete").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            var filename = this.dataset.filename;
+            document.getElementById("delete-filename-display").textContent = filename;
+            document.getElementById("delete-confirm-link").href = deleteBase + "/" + encodeURIComponent(filename);
+        });
+    });
+
+    document.querySelectorAll(".btn-restore").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            var filename  = this.dataset.filename;
+            var type      = this.dataset.type;
+            var encrypted = this.dataset.encrypted === "1";
+
+            document.getElementById("restore-filename-display").textContent = filename;
+
+            var base = type === "media" ? restoreMediaBase : restoreDbBase;
+            document.getElementById("restore-form").action = base + "/" + encodeURIComponent(filename);
+
+            document.getElementById("passphrase-section").style.display = encrypted ? "block" : "none";
+            document.getElementById("erase-section").style.display      = type === "db" ? "block" : "none";
+            document.getElementById("merge-section").style.display      = type === "media" ? "block" : "none";
+        });
+    });
+})();
+</script>';
+
+echo '</div>'; // End body
