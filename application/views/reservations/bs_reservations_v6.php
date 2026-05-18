@@ -129,6 +129,11 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
 
     const TRANSLATIONS = <?php echo json_encode($translations); ?>;
     const BASE_URL = '<?php echo site_url(); ?>';
+    const CONFIG = {
+        currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
+        canEditOthers:     <?php echo $can_edit_others     ? 'true' : 'false'; ?>,
+        isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>
+    };
 
     let currentEditingEvent = null;
 
@@ -197,7 +202,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
 
             const props = (event && event.extendedProps) ? event.extendedProps : {};
             const aircraftId = props.aircraft_id || props.aircraft || '';
-            const pilotId = props.pilot_member_id || '';
+            const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
+            // auto_planchiste creating a new event: force pilot to self
+            const pilotId = props.pilot_member_id || (lockPilotToSelf ? CONFIG.currentUser : '');
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
             const status = props.status || 'reservation';
@@ -213,8 +220,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             }
             aircraftSelect += '</select>';
 
-            // Build pilot select
-            let pilotSelect = '<select class="form-control big_select" id="eventPilot">';
+            // Build pilot select — disabled and locked to self for auto_planchiste
+            const pilotDisabled = lockPilotToSelf ? 'disabled' : '';
+            let pilotSelect = `<select class="form-control big_select" id="eventPilot" ${pilotDisabled}>`;
             pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
             if (OPTIONS.pilots) {
                 for (const [id, label] of Object.entries(OPTIONS.pilots)) {

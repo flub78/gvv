@@ -98,13 +98,18 @@ class Reservations extends MY_Controller {
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
+        list($current_username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
+
         $data = array(
             'timeline_increment' => $this->config->item('timeline_increment'),
             'aircraft_list' => $aircraft_list,
             'pilots_list' => $pilots_list,
             'instructors_list' => $instructors_list,
             'aircraft_label' => $aircraft_label,
-            'translations' => $translations
+            'translations' => $translations,
+            'current_username' => $current_username,
+            'can_edit_others' => $can_edit_others,
+            'is_auto_planchiste' => $is_auto_planchiste
         );
         load_last_view('reservations/reservations_v6', $data);
     }

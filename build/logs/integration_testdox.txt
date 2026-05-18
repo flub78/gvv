@@ -257,11 +257,12 @@ Membre Admin Authorization
  [x] Constructor requires club admin for delete
  [x] Constructor requires ca for create and form validation
  [x] Form validation legacy check is gated by old auth flag
- [x] Pre update strips identity fields for non club admin
+ [x] Pre update strips name fields for non club admin
+ [x] Pre update strips birthdate for non ca
  [x] Form static element sets has admin rights flag
  [x] View renders identity fields conditionally
  [x] Pre update preserves identity fields for club admin
- [x] Pre update strips identity fields for ca user
+ [x] Pre update strips name fields for ca user
  [x] Club admin role exists in database
 
 Membres Fusion
@@ -396,6 +397,21 @@ Ran Mode
  [ ] Ecriture avec compte 102 non compensee
  [ ] Saisir ecriture retrospective avec compte 102
  [ ] Ecriture avec compte 102 modifie solde sans erreur
+
+Rename Membre
+ [x] Validate new mlogin empty
+ [x] Validate new mlogin purely numeric
+ [x] Validate new mlogin invalid characters
+ [x] Validate new mlogin already exists
+ [x] Validate new mlogin valid
+ [x] Preview rename member not found
+ [x] Preview rename shows affected tables
+ [x] Preview rename detects dx auth account
+ [x] Execute rename success
+ [x] Execute rename updates dx auth
+ [x] Execute rename exhaustive
+ [x] Execute rename atomicity on error
+ [x] Execute rename preserves business data
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
