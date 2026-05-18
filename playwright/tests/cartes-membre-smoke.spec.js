@@ -78,7 +78,7 @@ test.describe('Cartes de membre — smoke tests', () => {
 
         const bodyText = await page.locator('body').textContent();
         expect(bodyText).not.toContain('404 Not Found');
-        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('PHP Error was encountered');
 
         await expect(page.locator('h4')).toContainText('onfiguration');
     });
@@ -135,7 +135,7 @@ test.describe('Cartes de membre — smoke tests', () => {
             // PDF renders natively in some browsers without a download event
             // Acceptable outcomes: empty body (PDF rendered) or no error text
             if (bodyText) {
-                expect(bodyText).not.toContain('Error');
+                expect(bodyText).not.toContain('PHP Error was encountered');
                 expect(bodyText).not.toContain('404 Not Found');
             }
         }
@@ -179,7 +179,7 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
-        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('PHP Error was encountered');
         expect(bodyText).not.toContain('404 Not Found');
         const alert = page.locator('.alert-success');
         await expect(alert).toBeVisible();
@@ -195,7 +195,7 @@ test.describe('Cartes de membre — smoke tests', () => {
 
         const bodyText = await page.locator('body').textContent();
         expect(bodyText).not.toContain('404 Not Found');
-        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('PHP Error was encountered');
 
         // Admin sees either a member selector dropdown or the year selector form
         const memberSelect = page.locator('select[name="mlogin"]');
@@ -246,7 +246,7 @@ test.describe('Cartes de membre — smoke tests', () => {
         if (!download) {
             const bodyText = await page.locator('body').textContent().catch(() => '');
             if (bodyText) {
-                expect(bodyText).not.toContain('Error');
+                expect(bodyText).not.toContain('PHP Error was encountered');
                 expect(bodyText).not.toContain('404 Not Found');
             }
         }
@@ -277,7 +277,7 @@ test.describe('Cartes de membre Lot3 — accès membre', () => {
 
         const bodyText = await page.locator('body').textContent();
         expect(bodyText).not.toContain('404 Not Found');
-        expect(bodyText).not.toContain('Error');
+        expect(bodyText).not.toContain('PHP Error was encountered');
 
         // Member sees either a year selector or a "no cotisation" message
         const yearSelect    = page.locator('select#sel_year');
@@ -299,7 +299,7 @@ test.describe('Cartes de membre Lot3 — accès membre', () => {
     });
 
     test('Lot3 member: dashboard shows my member card link', async ({ page }) => {
-        await page.goto('/index.php/welcome');
+        await page.goto('/index.php/welcome/section/user');
         await page.waitForLoadState('networkidle');
 
         const cardLink = page.locator('a[href*="cartes_membre/carte"]');

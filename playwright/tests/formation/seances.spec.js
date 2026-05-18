@@ -368,8 +368,8 @@ test.describe('Formation Seances Workflow', () => {
     const evalSelects = page.locator('.eval-niveau');
     const evalCount = await evalSelects.count();
     if (evalCount > 0) {
-      // Set first subject as "Aborde"
-      await evalSelects.first().selectOption('A');
+      // Set first subject as "Aborde" — force because evaluation selects may be inside a collapsed accordion
+      await evalSelects.first().selectOption('A', { force: true });
       console.log(`Set evaluation for first subject (${evalCount} subjects available)`);
     }
 

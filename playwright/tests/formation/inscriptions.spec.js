@@ -158,15 +158,10 @@ test.describe('Formation Inscriptions Workflow', () => {
       }
     }
 
-    // Navigate to the dashboard and open the creation form from the Formation section
-    await page.goto(DASHBOARD_URL);
+    // Navigate to the formation section of the dashboard
+    await page.goto('/index.php/welcome/section/formation');
     await page.waitForLoadState('networkidle');
     await closeMessageDuJour(page);
-
-    const formationSection = page.locator('#collapseFormation');
-    if (!(await formationSection.isVisible().catch(() => false))) {
-      await page.click('button[aria-controls="collapseFormation"]');
-    }
 
     // Click the dashboard action that opens a new inscription
     const openInscriptionLink = page.locator('a[href*="/formation_inscriptions/ouvrir"]').first();
