@@ -89,6 +89,8 @@ class Reservations extends MY_Controller {
             'btn_delete' => $this->lang->line('reservations_btn_delete'),
             'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
             'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
+            'error_invalid_datetime' => $this->lang->line('reservations_error_invalid_datetime'),
+            'error_end_before_start' => $this->lang->line('reservations_error_end_before_start'),
             'error_unknown' => $this->lang->line('reservations_error_unknown'),
             'error_saving' => $this->lang->line('reservations_error_saving'),
             'error_deleting' => $this->lang->line('reservations_error_deleting'),
@@ -217,6 +219,8 @@ class Reservations extends MY_Controller {
             'btn_delete' => $this->lang->line('reservations_btn_delete'),
             'error_no_aircraft' => $this->lang->line('reservations_error_no_aircraft'),
             'error_no_pilot' => $this->lang->line('reservations_error_no_pilot'),
+            'error_invalid_datetime' => $this->lang->line('reservations_error_invalid_datetime'),
+            'error_end_before_start' => $this->lang->line('reservations_error_end_before_start'),
             'error_unknown' => $this->lang->line('reservations_error_unknown'),
             'error_saving' => $this->lang->line('reservations_error_saving'),
             'error_deleting' => $this->lang->line('reservations_error_deleting'),
@@ -362,6 +366,11 @@ class Reservations extends MY_Controller {
                 throw new Exception($this->lang->line('reservations_error_invalid_datetime'));
             }
 
+            // Validate that end is strictly after start
+            if ($end_datetime <= $start_datetime) {
+                throw new Exception($this->lang->line('reservations_error_end_before_start'));
+            }
+
             // Apply timeline increment constraint
             $increment = $this->config->item('timeline_increment');
             if ($increment && is_numeric($increment) && $increment > 0) {
@@ -381,6 +390,27 @@ class Reservations extends MY_Controller {
                 if ($reservation['pilot_member_id'] !== $drop_username) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_not_authorized'));
+                }
+            }
+
+            // Balance check on drag/resize: exclude current reservation to avoid double-counting
+            if (!$drop_can_edit_others) {
+                $balance_check = $this->_check_pilot_balance(
+                    $drop_username,
+                    $reservation['aircraft_id'],
+                    $start_datetime,
+                    $end_datetime,
+                    $reservation['instructor_member_id'],
+                    $event_id
+                );
+                if (!$balance_check['ok']) {
+                    $balance_str = number_format($balance_check['balance'], 2, ',', ' ') . ' €';
+                    $cost_str    = number_format($balance_check['cost'],    2, ',', ' ') . ' €';
+                    throw new Exception(sprintf(
+                        $this->lang->line('reservations_error_insufficient_balance'),
+                        $balance_str,
+                        $cost_str
+                    ));
                 }
             }
 
@@ -538,6 +568,7 @@ class Reservations extends MY_Controller {
         try {
             $this->load->model('reservations_model');
             $this->load->config('program');
+            $this->lang->load('reservations');
 
             $reservation_id = isset($_POST['reservation_id']) ? $_POST['reservation_id'] : null;
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
@@ -561,6 +592,13 @@ class Reservations extends MY_Controller {
                 throw new Exception('Aircraft ID is required');
             }
 
+            // maintenance and unavailable must not have a pilot
+            $no_pilot_statuses = array('maintenance', 'unavailable');
+            if (in_array($status, $no_pilot_statuses)) {
+                $pilot_member_id = null;
+                $instructor_member_id = null;
+            }
+
             // Pilot is required for all flight types; optional only for 'maintenance' and 'unavailable'
             $pilot_required_statuses = array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage');
             if (!$pilot_member_id && in_array($status, $pilot_required_statuses)) {
@@ -577,6 +615,11 @@ class Reservations extends MY_Controller {
                 throw new Exception('Invalid datetime format');
             }
 
+            // Validate that end is strictly after start
+            if ($end_datetime <= $start_datetime) {
+                throw new Exception($this->lang->line('reservations_error_end_before_start'));
+            }
+
             // Apply timeline increment constraint
             $increment = $this->config->item('timeline_increment');
             if ($increment && is_numeric($increment) && $increment > 0) {
@@ -591,6 +634,10 @@ class Reservations extends MY_Controller {
 
             // Access control for auto_planchiste
             if ($is_auto_planchiste && !$can_edit_others) {
+                // maintenance and unavailable are restricted to privileged users
+                if (in_array($status, array('maintenance', 'unavailable'))) {
+                    throw new Exception($this->lang->line('reservations_error_not_authorized'));
+                }
                 if ($is_create) {
                     // Force pilot to current user
                     $pilot_member_id = $username;
@@ -614,10 +661,11 @@ class Reservations extends MY_Controller {
             }
 
             // Balance check: applies to all non-privileged members (not admin/instructeur)
-            // This includes auto_planchiste, regular members, and aircraft owners.
-            if (!$can_edit_others && $is_create) {
+            // On update, exclude the reservation being modified to avoid double-counting.
+            if (!$can_edit_others) {
                 $this->lang->load('reservations');
-                $balance_check = $this->_check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id);
+                $exclude_id = $is_create ? null : $reservation_id;
+                $balance_check = $this->_check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id, $exclude_id);
                 if (!$balance_check['ok']) {
                     $balance_str = number_format($balance_check['balance'], 2, ',', ' ') . ' €';
                     $cost_str    = number_format($balance_check['cost'],    2, ',', ' ') . ' €';
@@ -829,7 +877,7 @@ class Reservations extends MY_Controller {
      * Returns array('ok' => bool, 'balance' => float, 'cost' => float).
      * Returns ok=true when no relevant pricing data is available (fail-open).
      */
-    private function _check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id) {
+    private function _check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id, $exclude_reservation_id = null) {
         // Get aircraft info
         $aircraft = $this->db->get_where('machinesa', array('macimmat' => $aircraft_id))->row_array();
         if (!$aircraft) {
@@ -858,14 +906,18 @@ class Reservations extends MY_Controller {
         $new_hours = ($dt_end->getTimestamp() - $dt_start->getTimestamp()) / 3600.0;
 
         // Existing future reservations for this pilot across ALL aircraft
+        // Exclude the reservation being modified (on update) to avoid double-counting.
         $now = date('Y-m-d H:i:s');
-        $existing = $this->db
+        $this->db
             ->select('aircraft_id, start_datetime, end_datetime')
             ->from('reservations')
             ->where('pilot_member_id', $username)
             ->where('start_datetime >', $now)
-            ->where_in('status', array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage'))
-            ->get()->result_array();
+            ->where_in('status', array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage'));
+        if ($exclude_reservation_id !== null) {
+            $this->db->where('id !=', $exclude_reservation_id);
+        }
+        $existing = $this->db->get()->result_array();
 
         // Sum costs per aircraft (each has its own tarif)
         $existing_cost = 0.0;

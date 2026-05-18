@@ -61,6 +61,7 @@ class Avion extends Gvv_Controller {
         }
 
         $this->load->model('tarifs_model');
+        $this->load->model('membres_model');
         $this->lang->load('avion');
     }
 
@@ -72,6 +73,7 @@ class Avion extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
         $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector(array(), "asc", 'nom'));
+        $this->gvvmetadata->set_selector('owner_selector', $this->membres_model->selector_with_null(array()));
     }
 
     /**

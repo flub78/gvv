@@ -28,8 +28,6 @@
 
 * [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
-* [] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
-
 * [] Ajout d'un calendrier des échéances
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)

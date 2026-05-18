@@ -182,3 +182,5 @@
 * [x] Ajuster les marges des cartes de membre
 
 * [x] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
+
+* [x] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.

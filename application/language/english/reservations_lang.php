@@ -49,6 +49,7 @@ $lang['reservations_error_saving'] = "Error while saving";
 $lang['reservations_error_deleting'] = "Error while deleting";
 $lang['reservations_error_prefix'] = "Error";
 $lang['reservations_error_invalid_datetime'] = "Invalid date or time";
+$lang['reservations_error_end_before_start'] = "End time must be after start time";
 $lang['reservations_error_not_authorized'] = "You are not authorized to modify this reservation";
 $lang['reservations_error_no_cotisation'] = "You do not have a valid membership subscription for this year";
 $lang['reservations_error_insufficient_balance'] = "Insufficient balance (%s). Estimated total cost of your reservations: %s";

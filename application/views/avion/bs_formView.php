@@ -63,6 +63,7 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'maprix' => $maprix,
     'maprixdc' => $maprixdc,
     'maprixproprio' => $maprixproprio,
+    'proprio' => isset($proprio) ? $proprio : null,
     'horametre_mode' => $current_horametre_mode,
     'actif' => $actif,
     'fabrication' => $fabrication,

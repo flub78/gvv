@@ -936,6 +936,18 @@ $this->load->view('bs_banner');
                     // Update the event object to reflect new times
                     event.start = newStart;
                     event.end = newEnd;
+                    // Update tooltip and visible label with new times (format: "HH:MM-HH:MM ...")
+                    const newStartFormatted = formatTime(newStart);
+                    const newEndFormatted = formatTime(newEnd);
+                    const newTitle = eventEl.title.replace(/^\d{2}:\d{2}-\d{2}:\d{2}/, newStartFormatted + '-' + newEndFormatted);
+                    eventEl.title = newTitle;
+                    event.title = newTitle;
+                    for (const node of eventEl.childNodes) {
+                        if (node.nodeType === Node.TEXT_NODE) {
+                            node.textContent = newTitle;
+                            break;
+                        }
+                    }
                     // DO NOT reload - keep the visual changes
                 } else {
                     console.error('Server returned error:', data.error);
@@ -1334,8 +1346,10 @@ $this->load->view('bs_banner');
                             <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
                             <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
                             <option value="convoyage" ${status === 'convoyage' ? 'selected' : ''}>${TRANSLATIONS.status_convoyage}</option>
+                            ${(!CONFIG.isAutoPlanchiste || CONFIG.canEditOthers) ? `
                             <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
                             <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
+                            ` : ''}
                         </select>
                     </div>
                 </form>`;
@@ -1385,6 +1399,24 @@ $this->load->view('bs_banner');
                     dropdownParent: $('#eventModal')
                 });
 
+                // Show/hide pilot and instructor based on status
+                const noPilotStatuses = ['maintenance', 'unavailable'];
+                function updatePilotVisibility(statusVal) {
+                    const hide = noPilotStatuses.includes(statusVal);
+                    const pilotRow = document.getElementById('eventPilot').closest('.mb-3');
+                    const instructorRow = document.getElementById('eventInstructor').closest('.mb-3');
+                    pilotRow.style.display = hide ? 'none' : '';
+                    instructorRow.style.display = hide ? 'none' : '';
+                    if (hide) {
+                        $('#eventPilot').val(null).trigger('change');
+                        $('#eventInstructor').val(null).trigger('change');
+                    }
+                }
+                document.getElementById('eventStatus').addEventListener('change', function() {
+                    updatePilotVisibility(this.value);
+                });
+                updatePilotVisibility(document.getElementById('eventStatus').value);
+
                 console.log('Modal shown');
                 
             } catch (error) {
@@ -1408,6 +1440,14 @@ $this->load->view('bs_banner');
             // Validation
             if (!aircraftId) {
                 alert(TRANSLATIONS.error_no_aircraft);
+                return;
+            }
+            if (!startStr || !endStr || startStr === ':00' || endStr === ':00') {
+                alert(TRANSLATIONS.error_invalid_datetime || 'Start and end times are required');
+                return;
+            }
+            if (endStr <= startStr) {
+                alert(TRANSLATIONS.error_end_before_start || 'End time must be after start time');
                 return;
             }
             // Pilot required for all flight types; not required for maintenance/unavailable

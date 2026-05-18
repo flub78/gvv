@@ -280,8 +280,14 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus">
                         <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
+                        <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
+                        <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
+                        <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
+                        <option value="convoyage" ${status === 'convoyage' ? 'selected' : ''}>${TRANSLATIONS.status_convoyage}</option>
+                        ${(!CONFIG.isAutoPlanchiste || CONFIG.canEditOthers) ? `
                         <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
                         <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
+                        ` : ''}
                     </select>
                 </div>
             </form>`;
@@ -296,6 +302,25 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 allowClear: true,
                 dropdownParent: $('#eventModal')
             });
+
+            // Show/hide pilot and instructor based on status
+            const noPilotStatuses = ['maintenance', 'unavailable'];
+            function updatePilotVisibility(statusVal) {
+                const hide = noPilotStatuses.includes(statusVal);
+                const pilotRow = document.getElementById('eventPilot').closest('.mb-3');
+                const instructorRow = document.getElementById('eventInstructor').closest('.mb-3');
+                pilotRow.style.display = hide ? 'none' : '';
+                instructorRow.style.display = hide ? 'none' : '';
+                if (hide) {
+                    $('#eventPilot').val(null).trigger('change');
+                    $('#eventInstructor').val(null).trigger('change');
+                }
+            }
+            document.getElementById('eventStatus').addEventListener('change', function() {
+                updatePilotVisibility(this.value);
+            });
+            updatePilotVisibility(document.getElementById('eventStatus').value);
+
         } catch (error) {
             console.error('Error in displayEventModal:', error);
             alert('Error displaying reservation form: ' + error.message);
@@ -319,8 +344,17 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             alert(TRANSLATIONS.error_no_aircraft);
             return;
         }
-        // Pilot is required only for regular reservations, not for maintenance/unavailable
-        if (!pilotId && status === 'reservation') {
+        if (!startStr || !endStr) {
+            alert(TRANSLATIONS.error_invalid_datetime || 'Start and end times are required');
+            return;
+        }
+        if (endStr <= startStr) {
+            alert(TRANSLATIONS.error_end_before_start || 'End time must be after start time');
+            return;
+        }
+        // Pilot required for all flight types; not required for maintenance/unavailable
+        const pilotRequiredStatuses = ['reservation', 'vol_local', 'navigation', 'vld', 'convoyage'];
+        if (!pilotId && pilotRequiredStatuses.includes(status)) {
             alert(TRANSLATIONS.error_no_pilot);
             return;
         }
@@ -598,6 +632,15 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                         alert(TRANSLATIONS.error_prefix + ': ' + (data.error || TRANSLATIONS.error_unknown));
                         // Revert the change
                         info.revert();
+                    } else {
+                        // Update event title with new times (format: "HH:MM-HH:MM ...")
+                        const start = info.event.start;
+                        const end = info.event.end || new Date(start.getTime() + 3600000);
+                        const pad = n => String(n).padStart(2, '0');
+                        const newTimePrefix = pad(start.getHours()) + ':' + pad(start.getMinutes()) +
+                                              '-' + pad(end.getHours()) + ':' + pad(end.getMinutes());
+                        const newTitle = info.event.title.replace(/^\d{2}:\d{2}-\d{2}:\d{2}/, newTimePrefix);
+                        info.event.setProp('title', newTitle);
                     }
                 })
                 .catch(error => {
@@ -606,6 +649,12 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     // Revert the change
                     info.revert();
                 });
+            },
+            eventDidMount: function(info) {
+                info.el.title = info.event.title;
+            },
+            eventMouseEnter: function(info) {
+                info.el.title = info.event.title;
             },
             viewDidMount: function(info) {
                 // Save view preference to localStorage

@@ -322,6 +322,10 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['maprixproprio']['Subtype'] = 'selector';
                 $this->field['machinesa']['maprixproprio']['Selector'] = 'produit_selector';
 
+                $this->field['machinesa']['proprio']['Name'] = 'Propriétaire';
+                $this->field['machinesa']['proprio']['Subtype'] = 'selector';
+                $this->field['machinesa']['proprio']['Selector'] = 'owner_selector';
+
                 $this->field['machinesa']['prix']['Name'] = 'Prix';
 
                 /*
