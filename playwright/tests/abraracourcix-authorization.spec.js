@@ -52,6 +52,12 @@ async function loginAndGoto(page, route, section) {
     await loginPage.login(ABRARACOURCIX.username, ABRARACOURCIX.password, section || ABRARACOURCIX.section);
     await loginPage.goto(route);
     await page.waitForLoadState('domcontentloaded');
+    // Close "Message du jour" modal if it re-appears after navigating to welcome
+    const modalOkButton = page.locator('button:has-text("OK")');
+    if (await modalOkButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await modalOkButton.click();
+        await page.waitForTimeout(300);
+    }
 }
 
 /**
