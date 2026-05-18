@@ -222,6 +222,8 @@ $config['ran_mode_enabled'] = false;  // Désactivé pour tests
 
 $config['passphrase'] = "Il était une fois...";
 
+$config['timeline_increment'] = "15";
+
 
 /* End of file program.php */
 /* Location: .application/config/program.php */
