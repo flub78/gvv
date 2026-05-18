@@ -187,22 +187,25 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
     //
     // Abraracourcix a le rôle 'instructeur' en section avion (section_id=3)
     // via user_roles_per_section (nouveau système d'auth).
-    // La section Formation/Instruction doit être visible sur le dashboard
-    // et les routes associées doivent être accessibles.
-    //
-    // FAILING: le dashboard utilise $this->dx_auth->is_role('ca') (legacy)
-    // au lieu du nouveau système, donc $is_ca est false et la section
-    // Formation n'est pas affichée même pour les instructeurs avion.
+    // La carte Formation doit être visible sur le dashboard (nouvelle navigation
+    // par tuiles) et les routes associées doivent être accessibles.
     // ============================================================
     test.describe('Instruction section (role: instructeur en section avion)', () => {
 
-        test('dashboard section avion - section Formation visible pour instructeur avion', async ({ page }) => {
+        test('dashboard section avion - carte Formation visible pour instructeur avion', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '3'); // section 3 = avion
-            const content = await page.content();
-            expect(
-                content,
-                'La section Formation doit être visible sur le dashboard en section avion pour un instructeur'
-            ).toContain('collapseFormation');
+            const formationTile = page.locator('a.section-tile.formation');
+            await expect(
+                formationTile,
+                'La carte Formation doit être visible sur le dashboard en section avion pour un instructeur'
+            ).toBeVisible();
+        });
+
+        test('dashboard section avion - clic sur la carte Formation', async ({ page }) => {
+            await loginAndGoto(page, 'welcome', '3');
+            await page.locator('a.section-tile.formation').click();
+            await page.waitForLoadState('domcontentloaded');
+            await expectAccessGranted(page, 'welcome/section/formation');
         });
 
         test('formation_inscriptions - gestion des inscriptions (instructeur avion)', async ({ page }) => {
