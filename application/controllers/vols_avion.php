@@ -173,8 +173,68 @@ class Vols_avion extends Gvv_Controller {
         $this->data['horametres_last'] = $this->gvv_model->latest_horametre_per_machine();
         $this->data['remorqueurs'] = $this->avions_model->remorqueurs_list();
 
+        // Catégories de vol filtrées selon le rôle
+        $allowed = $this->get_allowed_categories();
+        $this->gvvmetadata->field['volsa']['vacategorie']['Enumerate'] = $allowed;
+
+        // Données JS pour le filtrage dynamique (machine → proprio, remorqueur)
+        $is_privileged = $this->user_has_role('club-admin') || $this->user_has_role('ca')
+                      || $this->user_has_role('bureau')     || $this->user_has_role('admin')
+                      || $this->user_has_role('planchiste') || $this->user_has_role('instructeur');
+        $this->data['proprio_machines']  = $is_privileged ? array() : $this->get_proprio_machines();
+        $this->data['is_privileged_user'] = $is_privileged;
+
         // ici la $this->data['vaduree'] contient la valuer en 1/100 eme
         // var_dump($this->data); exit;
+    }
+
+    /**
+     * Retourne la liste filtrée des catégories de vol accessibles à l'utilisateur connecté.
+     * - planchiste / club-admin / ca / bureau : toutes les catégories
+     * - instructeur : Standard, VD, Essai, Propriétaire, PO, BIA
+     * - pilote_vd   : Standard, VD, PO, BIA
+     * - pilote_rem  : Standard, Remorquage (JS contrôle la visibilité selon la machine)
+     * - proprio     : Standard + Propriétaire (JS contrôle selon la machine)
+     * - auto_planchiste seul : Standard uniquement
+     */
+    public function get_allowed_categories() {
+        $all = $this->config->item('categories_vol_avion');
+
+        $is_admin = $this->user_has_role('club-admin') || $this->user_has_role('ca')
+                 || $this->user_has_role('bureau')     || $this->user_has_role('admin');
+        $username    = $this->dx_auth->get_username();
+        $owns_machine = !$is_admin && !$this->user_has_role('instructeur')
+                     && !$this->user_has_role('planchiste')
+                     && $this->db->where('proprio', $username)->from('machinesa')
+                            ->count_all_results() > 0;
+
+        $this->load->helper('vols_avion_categories');
+        return compute_vols_avion_categories($all, array(
+            'admin'           => $is_admin,
+            'planchiste'      => $this->user_has_role('planchiste'),
+            'instructeur'     => $this->user_has_role('instructeur'),
+            'pilote_vd'       => $this->user_has_role('pilote_vd'),
+            'pilote_rem'      => $this->user_has_role('pilote_rem'),
+            'auto_planchiste' => $this->user_has_role('auto_planchiste'),
+            'owns_machine'    => $owns_machine,
+        ));
+    }
+
+    /**
+     * Retourne les machines dont l'utilisateur connecté est propriétaire.
+     * @return array [macimmat => true]
+     */
+    public function get_proprio_machines() {
+        $username = $this->dx_auth->get_username();
+        if (!$username) return array();
+        $this->db->select('macimmat')->from('machinesa')
+            ->where('proprio', $username)->where('actif', 1);
+        $rows = $this->db->get()->result_array();
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['macimmat']] = true;
+        }
+        return $result;
     }
 
     /*
@@ -263,6 +323,16 @@ class Vols_avion extends Gvv_Controller {
      * et vérifie la non-superposition des horamètres.
      */
     public function formValidation($action, $return_on_success = false) {
+        // Vérifier que la catégorie soumise est dans la liste autorisée
+        $submitted_cat = $this->input->post('vacategorie');
+        if ($submitted_cat !== false) {
+            $allowed = $this->get_allowed_categories();
+            if (!array_key_exists((int)$submitted_cat, $allowed)) {
+                $this->form_validation->set_rules('vacategorie', 'vacategorie',
+                    'callback_valid_categorie_access');
+            }
+        }
+
         if ($this->input->post('vacategorie') == 1) {
             $this->rules['vanumvi'] = isset($this->rules['vanumvi'])
                 ? $this->rules['vanumvi'] . '|required'
@@ -325,6 +395,16 @@ class Vols_avion extends Gvv_Controller {
             return false;
         }
 
+        return true;
+    }
+
+    public function valid_categorie_access($value) {
+        $allowed = $this->get_allowed_categories();
+        if (!array_key_exists((int)$value, $allowed)) {
+            $this->form_validation->set_message('valid_categorie_access',
+                $this->lang->line('gvv_vols_avion_error_categorie_access'));
+            return false;
+        }
         return true;
     }
 

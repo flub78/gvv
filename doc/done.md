@@ -184,3 +184,5 @@
 * [x] Interdire les réservations pour les gens qui ne sont pas à jour de leurs cotisations et qui n'ont pas le crédit suffisant sur leur compte.
 
 * [x] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
+
+* [x] Forcer la saisie d'un numéro de vol de découverte pour les vols de découverte.

@@ -28,6 +28,7 @@
 var currentHoraMode = 0;
 var currentMachineXhr = null;
 var $detachedRemorquageOpt = null;
+var $detachedProprioOpt    = null;
 
 /**
  * Construit le widget de saisie d'horamètre
@@ -212,8 +213,10 @@ function update_machine() {
 
 	  update_hora_format(machine);
 
-	  var isRemorqueur = machine && typeof remorqueurs_data !== 'undefined' && remorqueurs_data.hasOwnProperty(machine);
 	  var optChanged = false;
+
+	  // --- Remorquage (valeur 3) : visible seulement si machine remorqueur ---
+	  var isRemorqueur = machine && typeof remorqueurs_data !== 'undefined' && remorqueurs_data.hasOwnProperty(machine);
 	  if (isRemorqueur) {
 	      if ($detachedRemorquageOpt && $('#vacategorie option[value="3"]').length === 0) {
 	          $('#vacategorie').append($detachedRemorquageOpt);
@@ -221,16 +224,41 @@ function update_machine() {
 	          optChanged = true;
 	      }
 	  } else {
-	      var $opt = $('#vacategorie option[value="3"]');
-	      if ($opt.length > 0) {
+	      var $optRem = $('#vacategorie option[value="3"]');
+	      if ($optRem.length > 0) {
 	          if ($('#vacategorie').val() == '3') {
 	              $('#vacategorie').val('');
 	              update_vd_required();
 	          }
-	          $detachedRemorquageOpt = $opt.detach();
+	          $detachedRemorquageOpt = $optRem.detach();
 	          optChanged = true;
 	      }
 	  }
+
+	  // --- Vol propriétaire (valeur 4) : visible seulement si machine appartient à l'utilisateur ---
+	  // (uniquement si l'utilisateur n'est pas privilegié ; les instructeurs/admins voient toujours l'option)
+	  if (typeof is_privileged_user !== 'undefined' && !is_privileged_user
+	          && typeof proprio_machines_data !== 'undefined') {
+	      var isProprio = machine && proprio_machines_data.hasOwnProperty(machine);
+	      if (isProprio) {
+	          if ($detachedProprioOpt && $('#vacategorie option[value="4"]').length === 0) {
+	              $('#vacategorie').append($detachedProprioOpt);
+	              $detachedProprioOpt = null;
+	              optChanged = true;
+	          }
+	      } else {
+	          var $optProp = $('#vacategorie option[value="4"]');
+	          if ($optProp.length > 0) {
+	              if ($('#vacategorie').val() == '4') {
+	                  $('#vacategorie').val('');
+	                  update_vd_required();
+	              }
+	              $detachedProprioOpt = $optProp.detach();
+	              optChanged = true;
+	          }
+	      }
+	  }
+
 	  if (optChanged && typeof $.fn.select2 !== 'undefined') {
 	      var currentVal = $('#vacategorie').val();
 	      try { $('#vacategorie').select2('destroy'); } catch(e) {}
@@ -239,7 +267,7 @@ function update_machine() {
 	          width: '300px',
 	          allowClear: true
 	      });
-	      if (currentVal && currentVal !== '3') {
+	      if (currentVal && currentVal !== '3' && currentVal !== '4') {
 	          $('#vacategorie').val(currentVal).trigger('change.select2');
 	      }
 	  }

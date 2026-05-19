@@ -53,6 +53,7 @@ $lang['gvv_vols_avion_tip_billing'] = "Factureringsparameters worden gedefinieer
 $lang['gvv_vols_avion_error_horametre_overlap'] = "Hobbs-meterstanden overlappen met een bestaande vlucht op hetzelfde vliegtuig.";
 $lang['gvv_vols_avion_error_horametre_prev'] = "De begintachometerstand is lager dan de eindstand van de vorige vlucht op dit toestel.";
 $lang['gvv_vols_avion_error_horametre_next'] = "De eindtachometerstand is hoger dan de beginstand van de volgende vlucht op dit toestel.";
+$lang['gvv_vols_avion_error_categorie_access'] = "Dit vluchttype is niet toegankelijk met uw rol of voor dit toestel.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";

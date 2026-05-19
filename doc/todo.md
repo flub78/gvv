@@ -8,9 +8,7 @@
   
 ## Reste à faire
 
-* [] Test approfondi gestion des vols avion et ULM.
-
-* [] Forcer la saisie d'un numéro de vol de découverte pour les vols de découverte.
+* [x] Test approfondi gestion des vols avion et ULM.
 
 * [] Les briefings passagers doivent mettre à jour la date des vols de découverte.Vérifier.
 

@@ -300,5 +300,7 @@ var horametres_modes_data = <?= json_encode($horametres_mode ? $horametres_mode 
 var horametres_last_data  = <?= json_encode(!empty($horametres_last) ? $horametres_last : (object)array()) ?>;
 var initial_horametre_mode = <?= isset($initial_horametre_mode) ? (int)$initial_horametre_mode : 0 ?>;
 var is_new_vol = <?= !empty($is_new_vol) ? 'true' : 'false' ?>;
-var remorqueurs_data = <?= json_encode(!empty($remorqueurs) ? $remorqueurs : (object)array()) ?>;
+var remorqueurs_data      = <?= json_encode(!empty($remorqueurs) ? $remorqueurs : (object)array()) ?>;
+var proprio_machines_data = <?= json_encode(!empty($proprio_machines) ? $proprio_machines : (object)array()) ?>;
+var is_privileged_user    = <?= !empty($is_privileged_user) ? 'true' : 'false' ?>;
 </script>
