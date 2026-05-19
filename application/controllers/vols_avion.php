@@ -278,7 +278,6 @@ class Vols_avion extends Gvv_Controller {
         $flight_exist = (count($latestf) > 0);
 
         if ($flight_exist) {
-            $this->data['vadate'] = $latestf[0]['vadate'];
             $this->data['vapilid'] = $latestf[0]['vapilid'];
             $this->data['vamacid'] = $latestf[0]['vamacid'];
         }

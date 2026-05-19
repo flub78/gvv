@@ -55,10 +55,8 @@ if (isset($kid) && isset($$kid)) {
 
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vadate") ?></div>
-        <div class="d-flex gap-1 align-items-center">
+        <div>
             <?= $this->gvvmetadata->input_field("volsa", "vadate", $vadate) ?>
-            <button type="button" class="btn btn-sm btn-outline-secondary"
-                    onclick="$('#vadate').datepicker('setDate', new Date())"><?= $this->lang->line('gvv_btn_today') ?></button>
         </div>
     </div>
 
