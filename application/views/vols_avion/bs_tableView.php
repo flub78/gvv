@@ -210,7 +210,6 @@ echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
 
 
 echo br();
-echo p($this->lang->line("gvv_vols_avion_tip_unit"));
 
 $bar = array(
     array('label' => "Excel", 'url' => "$controller/csv/$year"),
