@@ -245,6 +245,20 @@ if (! function_exists('decimal_to_time')) {
     }
 }
 
+if (! function_exists('centieme_to_hhmm')) {
+    /**
+     * Convertit une valeur en centièmes d'heure (HH.CC) en HH:MM
+     * Ex: 1.20 → "01:12",  14.70 → "14:42",  0.40 → "00:24"
+     */
+    function centieme_to_hhmm($value) {
+        if (!is_numeric($value) || $value === '' || $value === null) return '0:00';
+        $hours   = floor($value);
+        $minutes = round(($value - $hours) * 60);
+        if ($minutes >= 60) { $hours++; $minutes -= 60; }
+        return sprintf("%d:%02d", $hours, $minutes);
+    }
+}
+
 
 if (! function_exists('euro')) {
     /**

@@ -1185,6 +1185,9 @@ abstract class Metadata {
 
         } elseif ('minute' == $subtype) {
             return minute_to_time($value);
+        } elseif ('centieme' == $subtype) {
+            if ($mode == 'csv') return $value;
+            return centieme_to_hhmm($value);
         } elseif ('time' == $subtype) {
             return decimal_to_time($value);
         } elseif ('enumerate' == $subtype) {

@@ -135,23 +135,23 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
         <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
             <div class="accordion-body">
                 <div class="d-md-flex flex-row">
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . $count ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_hours") . " = "   . $total ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_junior") . " = "  . $m25ans ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . $count_m25ans ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . $remorquage ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . $count_remorquage ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . (int)$count ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_hours") . " = "   . centieme_to_hhmm($total) ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_junior") . " = "  . centieme_to_hhmm($m25ans) ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . (int)$count_m25ans ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . centieme_to_hhmm($remorquage) ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . (int)$count_remorquage ?></div>
                 </div>
 
                 <div class="d-md-flex flex-row">
                     <?php if ($by_pilote) : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_captain") . " = " . $cdb ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . $inst ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . centieme_to_hhmm($dc) ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_captain") . " = " . centieme_to_hhmm($cdb) ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . centieme_to_hhmm($inst) ?></div>
                     <?php else : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . $dc ?></div>
+                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . centieme_to_hhmm($dc) ?></div>
                     <?php endif; ?>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " .  $count_dc  ?></div>
+                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " . (int)$count_dc ?></div>
                 </div>
             </div>
         </div>
