@@ -1175,6 +1175,8 @@ class GVVMetadata extends Metadata {
                 $this->alias_table["vue_vols_decouverte"] = "vols_decouverte";
 
                 $this->field['vols_decouverte']['cancelled']['Subtype'] = 'checkbox';
+                $this->field['vols_decouverte']['beneficiaire']['Null'] = 'NO';
+                $this->field['vols_decouverte']['beneficiaire_email']['Null'] = 'NO';
                 $this->field['vols_decouverte']['beneficiaire_email']['Subtype'] = 'email';
 
                 $this->field['vols_decouverte']['date_validite']['Type'] = 'date';

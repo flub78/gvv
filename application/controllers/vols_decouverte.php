@@ -211,7 +211,11 @@ class Vols_decouverte extends Gvv_Controller {
             $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_beneficiaire'), $form_input);
             return;
         }
-        if (!empty($beneficiaire_email) && !filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
+        if (empty($beneficiaire_email)) {
+            $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_email'), $form_input);
+            return;
+        }
+        if (!filter_var($beneficiaire_email, FILTER_VALIDATE_EMAIL)) {
             $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_email'), $form_input);
             return;
         }

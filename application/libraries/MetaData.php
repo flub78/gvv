@@ -224,17 +224,40 @@ abstract class Metadata {
         $this->resolve($table, $field);
 
         $key = "gvv_" . $table . "_field_" . $field;
-        // echo "$key" . br();
         if ($this->CI->lang->line($key)) {
-            return $this->CI->lang->line($key);
+            $label = $this->CI->lang->line($key);
+        } elseif (isset($this->field[$table][$field]['Comment'])) {
+            $label = $this->field[$table][$field]['Comment'];
+            if (!$label) $label = ucwords($field);
+        } else {
+            $label = $this->field_name($table, $field);
         }
 
-        if (isset($this->field[$table][$field]['Comment'])) {
-            $fln = $this->field[$table][$field]['Comment'];
-            if (!$fln) $fln = ucwords($field);
-            return $fln;
+        if ($this->is_required($table, $field)) {
+            $label .= ' <span class="text-danger" aria-hidden="true">*</span>';
         }
-        return $this->field_name($table, $field);
+        return $label;
+    }
+
+    /**
+     * Returns true if the field is required (not nullable, not auto_increment)
+     *
+     * @param string $table Table name
+     * @param string $field Field name
+     * @return bool
+     */
+    function is_required($table, $field) {
+        $this->resolve($table, $field);
+        $key = $this->table_key($table);
+        $extra = $this->field_attr($table, $field, 'Extra');
+        if ($field == $key && $extra == 'auto_increment') {
+            return false;
+        }
+        $subtype = $this->field_subtype($table, $field);
+        if ($subtype == 'minute' || $subtype == 'centieme') {
+            return true;
+        }
+        return $this->field_attr($table, $field, 'Null') === 'NO';
     }
 
     /**
@@ -1688,7 +1711,7 @@ abstract class Metadata {
             if (isset($ext_rules[$field])) {
                 $rules .= "|" . $ext_rules[$field];
             }
-            $name = $this->field_long_name($table, $field);
+            $name = strip_tags($this->field_long_name($table, $field));
             // echo "rule $field, $name, $rules" . br();
             $this->CI->form_validation->set_rules($field, $name, $rules);
         }
@@ -2106,7 +2129,7 @@ abstract class Metadata {
         $res .= form_error('club') . "\n";
         $res .= "<table>\n";
         foreach ($fields as $field => $init) {
-            $label = $this->field_long_name($table, $field) . ":";
+            $label = $this->field_long_name($table, $field);
             $field_value = $this->input_field($table, $field, $init);
             $res .= "<tr>";
             $res .= "\t<td align=\"right\">" . "$label</td>";
@@ -2130,7 +2153,7 @@ abstract class Metadata {
         $res .= form_error('club') . "\n";
         $res .= '<div class="d-flex flex-wrap">';
         foreach ($fields as $field => $init) {
-            $label = $this->field_long_name($table, $field) . ":";
+            $label = $this->field_long_name($table, $field);
             $field_value = $this->input_field($table, $field, $init);
             $res .= '<div class="form-floating mb-2 border">';
             $res .= $label;
