@@ -268,6 +268,7 @@ function update_hora_format(machine) {
 	var selected_machine = machine || $("#vamacid").val();
 	if (!selected_machine) {
 		$("#hora_format").text('');
+		buildHoraWidgets(0);
 		return;
 	}
 	var mode = 0;
@@ -279,7 +280,6 @@ function update_hora_format(machine) {
 	var unit = mode_to_unit(mode);
 	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
 	$("#hora_format").text(label);
-	buildHoraWidgets(mode);
 
 	if (typeof is_new_vol !== 'undefined' && is_new_vol) {
 		var lastHora = (typeof horametres_last_data !== 'undefined' &&
@@ -287,9 +287,8 @@ function update_hora_format(machine) {
 		               ? horametres_last_data[selected_machine] : 0;
 		$("#debut").val(lastHora);
 		$("#fin").val(lastHora);
-		buildHoraWidget('debut_widget', 'debut', mode);
-		buildHoraWidget('fin_widget',   'fin',   mode);
 	}
+	buildHoraWidgets(mode);
 }
 
 //Le code JQuery n'est actif et testable qu'avec un accès internet

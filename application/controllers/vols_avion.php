@@ -137,7 +137,7 @@ class Vols_avion extends Gvv_Controller {
         }
 
         // Avec les méta-données
-        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector(array(
+        $this->gvvmetadata->set_selector('machine_selector', $this->avions_model->selector_with_null(array(
             'actif' => 1
         )));
         $this->gvvmetadata->set_selector('pilote_selector', $pilote_selector);
@@ -271,16 +271,6 @@ class Vols_avion extends Gvv_Controller {
         $this->data['vaid'] = 0;
         $this->data['vadate'] = date("Y-m-d");
 
-        $year = $this->session->userdata('year');
-        $latestf = $this->gvv_model->latest_flight(array(
-            'year(vadate)' => $year
-        ));
-        $flight_exist = (count($latestf) > 0);
-
-        if ($flight_exist) {
-            $this->data['vapilid'] = $latestf[0]['vapilid'];
-            $this->data['vamacid'] = $latestf[0]['vamacid'];
-        }
 
         // et affiche le formulaire
         load_last_view('vols_avion/formView', $this->data);

@@ -55,6 +55,8 @@
 
 * [] Automatiser le déploiement pour héberger des clubs multiple dans des sous-domaines.
 
+* [] il faudrait afficher un asterix rouge à côté des champs obligatoires dans les formulaires.
+
 ## Dette technique
 
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
