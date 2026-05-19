@@ -24,6 +24,16 @@ function Autotab(id, longueur, texte) {
 	}
 }
 
+function format_duration_hhmm(value) {
+	var hours = Math.floor(value);
+	var minutes = Math.round((value - hours) * 60);
+	if (minutes >= 60) {
+		hours += 1;
+		minutes -= 60;
+	}
+	return ("0" + hours).slice(-2) + ":" + ("0" + minutes).slice(-2);
+}
+
 /*
  * Calcul de la durée en 1/100 eme horamètre <FORM name="saisie" <INPUT
  * name="deb" type="text" size="5" maxlength="8" value="" onChange="calcul()">
@@ -45,8 +55,12 @@ function calcul() {
 		}
 		var resultat = Math.round((parseFloat(vfin) - parseFloat(vdeb)) * 100) / 100;
 		if (resultat > 0) {
-			window.document.saisie.vaduree.value = resultat;
-			document.getElementById("vaduree").innerHTML = resultat;
+			var duree = format_duration_hhmm(resultat);
+			window.document.saisie.vaduree.value = duree;
+			var vadureeField = document.getElementById("vaduree");
+			if (vadureeField) {
+				vadureeField.value = duree;
+			}
 		} else {
 			alert("La durée est nulle ou négative");
 		}

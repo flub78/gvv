@@ -50,6 +50,10 @@ $lang['gvv_vols_avion_tooltip_conso'] = "Klik hier om het verbruik te verbergen/
 
 $lang['gvv_vols_avion_tip_billing'] = "Factureringsparameters worden gedefinieerd in de tariefconfiguratie.";
 
+$lang['gvv_vols_avion_error_horametre_overlap'] = "Hobbs-meterstanden overlappen met een bestaande vlucht op hetzelfde vliegtuig.";
+$lang['gvv_vols_avion_error_horametre_prev'] = "De begintachometerstand is lager dan de eindstand van de vorige vlucht op dit toestel.";
+$lang['gvv_vols_avion_error_horametre_next'] = "De eindtachometerstand is hoger dan de beginstand van de volgende vlucht op dit toestel.";
+
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";
 $lang['gvv_vols_avion_tab_yearly_flights'] = "Vluchten per jaar";

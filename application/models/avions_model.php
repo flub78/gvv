@@ -126,6 +126,24 @@ class Avions_model extends Common_Model {
     }
 
     /**
+     * Retourne la liste des immatriculations des avions remorqueurs actifs.
+     * @return array [macimmat => true]
+     */
+    public function remorqueurs_list() {
+        $this->db->select('macimmat')->from('machinesa')
+            ->where('macrem', 1)->where('actif', 1);
+        if ($this->section) {
+            $this->db->where('club', $this->section_id);
+        }
+        $rows = $this->db->get()->result_array();
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['macimmat']] = true;
+        }
+        return $result;
+    }
+
+    /**
      * Ajoute un élément
      *
      * @param $data hash

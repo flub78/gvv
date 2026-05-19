@@ -176,29 +176,23 @@ if (count($conso) > 1 && (!$by_pilote)) {
 
 // -----------------------------------------------------------------------------------------
 // Liste des vols
-if ($this->dx_auth->is_role('planchiste') || $auto_planchiste) {
+if ($has_modification_rights) {
     $classes = "datatable_style datedtable table table-striped";
 } else {
     $classes = "datatable_style datedtable_ro table table-striped";
 }
 
-$mode = (($has_modification_rights || $auto_planchiste) && (TRUE)) ? "rw" : "ro";
+$mode = $has_modification_rights ? "rw" : "ro";
 $actions = ($mode == "rw") ? array('edit', 'delete') : [];
-$fields =
-    $attrs = array(
-        'controller' => $controller,
-        'actions' => $actions,
-        'mode' => $mode,
-        'class' => $classes,
-        //        'fields' => array('vadate', 'vapilid', 'vainst', 'vamacid', 'vacdeb', 'vacfin'),
-    );
-if ($auto_planchiste) {
-    $attrs['autoplanchiste'] = $default_user;
-    $attrs['autoplanchiste_id'] = 'vapilid';
-}
+$attrs = array(
+    'controller' => $controller,
+    'actions' => $actions,
+    'mode' => $mode,
+    'class' => $classes,
+);
 
 // Create button above the table (only for planchiste role)
-if ($has_modification_rights || $auto_planchiste) {
+if ($has_modification_rights) {
     echo '<div class="mb-3">'
         . '<a href="' . site_url('vols_avion/create') . '" class="btn btn-sm btn-success">'
         . '<i class="fas fa-plus" aria-hidden="true"></i> '

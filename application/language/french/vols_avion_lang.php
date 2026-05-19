@@ -50,6 +50,10 @@ $lang['gvv_vols_avion_tooltip_conso'] = "Cliquez pour afficher/masquer les conso
 
 $lang['gvv_vols_avion_tip_billing'] = "Les paramètres de facturation sont définis dans la configuration des tarifs.";
 
+$lang['gvv_vols_avion_error_horametre_overlap'] = "Les horamètres se superposent avec un vol existant sur la même machine.";
+$lang['gvv_vols_avion_error_horametre_prev'] = "L'horamètre de début est inférieur à l'horamètre de fin du vol précédent sur cette machine.";
+$lang['gvv_vols_avion_error_horametre_next'] = "L'horamètre de fin est supérieur à l'horamètre de début du vol suivant sur cette machine.";
+
 $lang['gvv_vols_avion_tab_per_glider'] = "Par machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Heures par an";
 $lang['gvv_vols_avion_tab_yearly_flights'] = "Vols par an";

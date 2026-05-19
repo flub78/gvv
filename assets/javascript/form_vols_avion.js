@@ -27,6 +27,7 @@
 //   h_100      - libellé "heures.centième" localisé
 var currentHoraMode = 0;
 var currentMachineXhr = null;
+var $detachedRemorquageOpt = null;
 
 /**
  * Construit le widget de saisie d'horamètre
@@ -211,6 +212,38 @@ function update_machine() {
 
 	  update_hora_format(machine);
 
+	  var isRemorqueur = machine && typeof remorqueurs_data !== 'undefined' && remorqueurs_data.hasOwnProperty(machine);
+	  var optChanged = false;
+	  if (isRemorqueur) {
+	      if ($detachedRemorquageOpt && $('#vacategorie option[value="3"]').length === 0) {
+	          $('#vacategorie').append($detachedRemorquageOpt);
+	          $detachedRemorquageOpt = null;
+	          optChanged = true;
+	      }
+	  } else {
+	      var $opt = $('#vacategorie option[value="3"]');
+	      if ($opt.length > 0) {
+	          if ($('#vacategorie').val() == '3') {
+	              $('#vacategorie').val('');
+	              update_vd_required();
+	          }
+	          $detachedRemorquageOpt = $opt.detach();
+	          optChanged = true;
+	      }
+	  }
+	  if (optChanged && typeof $.fn.select2 !== 'undefined') {
+	      var currentVal = $('#vacategorie').val();
+	      try { $('#vacategorie').select2('destroy'); } catch(e) {}
+	      $('#vacategorie').select2({
+	          placeholder: 'Filtre...',
+	          width: '300px',
+	          allowClear: true
+	      });
+	      if (currentVal && currentVal !== '3') {
+	          $('#vacategorie').val(currentVal).trigger('change.select2');
+	      }
+	  }
+
 	  if (currentMachineXhr) {
 	      currentMachineXhr.abort();
 	      currentMachineXhr = null;
@@ -301,11 +334,35 @@ $(document).ready(function(){
 	$("#vave").change(show_payeur);
 	$("#vavi").change(show_payeur);
 	show_payeur();
-	
+
 	$("#debut, #fin").on('change', updateDuree);
 
 	$("#vamacid").change(update_machine);
-	update_machine();
+	setTimeout(update_machine, 0);
+
+	$("#vacategorie").change(update_vd_required);
+	update_vd_required();
+
+	$("form[name='saisie']").on('submit', function(e) {
+		if ($("#vacategorie").val() == '1' && $.trim($("#vanumvi").val()) === '') {
+			e.preventDefault();
+			$("#vanumvi").focus();
+		}
+	});
 
 });
+
+function update_vd_required() {
+	var isVD = $("#vacategorie").val() == '1';
+	var $label = $("label[for='vanumvi'], .vanumvi-label");
+	var $asterisk = $("#vanumvi-required");
+	if (isVD) {
+		if (!$asterisk.length) {
+			$("#vanumvi").closest(".d-flex.flex-column").find(".small.mb-1")
+				.append(' <span id="vanumvi-required" class="text-danger" aria-hidden="true">*</span>');
+		}
+	} else {
+		$asterisk.remove();
+	}
+}
 

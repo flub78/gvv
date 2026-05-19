@@ -50,6 +50,10 @@ $lang['gvv_vols_avion_tooltip_conso'] = "Click to hide/display the fuel consumpt
 
 $lang['gvv_vols_avion_tip_billing'] = "Billing parameters are defined in the rates configuration.";
 
+$lang['gvv_vols_avion_error_horametre_overlap'] = "Hobbs meter values overlap with an existing flight on the same aircraft.";
+$lang['gvv_vols_avion_error_horametre_prev'] = "The start Hobbs meter is lower than the end Hobbs meter of the previous flight on this aircraft.";
+$lang['gvv_vols_avion_error_horametre_next'] = "The end Hobbs meter is higher than the start Hobbs meter of the next flight on this aircraft.";
+
 $lang['gvv_vols_avion_tab_per_glider'] = "Per machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Hours per year";
 $lang['gvv_vols_avion_tab_yearly_flights'] = "Flights per year";

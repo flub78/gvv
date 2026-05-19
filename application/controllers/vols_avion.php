@@ -171,6 +171,7 @@ class Vols_avion extends Gvv_Controller {
             'actif' => 1
         ), false);
         $this->data['horametres_last'] = $this->gvv_model->latest_horametre_per_machine();
+        $this->data['remorqueurs'] = $this->avions_model->remorqueurs_list();
 
         // ici la $this->data['vaduree'] contient la valuer en 1/100 eme
         // var_dump($this->data); exit;
@@ -255,6 +256,76 @@ class Vols_avion extends Gvv_Controller {
         }
 
         return $processed_data;
+    }
+
+    /**
+     * Rend vanumvi obligatoire quand le type est VD (vacategorie = 1)
+     * et vérifie la non-superposition des horamètres.
+     */
+    public function formValidation($action, $return_on_success = false) {
+        if ($this->input->post('vacategorie') == 1) {
+            $this->rules['vanumvi'] = isset($this->rules['vanumvi'])
+                ? $this->rules['vanumvi'] . '|required'
+                : 'required';
+        }
+        $vacdeb = $this->input->post('vacdeb');
+        $vacfin = $this->input->post('vacfin');
+        if (is_numeric($vacdeb) && is_numeric($vacfin) && floatval($vacdeb) > 0 && floatval($vacfin) > 0) {
+            $this->rules['vacfin'] = isset($this->rules['vacfin'])
+                ? $this->rules['vacfin'] . '|callback_valid_horametre_range'
+                : 'callback_valid_horametre_range';
+        }
+        return parent::formValidation($action, $return_on_success);
+    }
+
+    /**
+     * Callback CI : vérifie la cohérence de l'horamètre par rapport aux vols
+     * adjacents sur la même machine.
+     * - Le vol immédiatement précédant (plus grand vacdeb < vacdeb courant)
+     *   doit avoir vacfin <= vacdeb courant.
+     * - Le vol immédiatement suivant (plus petit vacdeb > vacdeb courant)
+     *   doit avoir vacdeb >= vacfin courant.
+     * Permet la re-saisie de vols oubliés entre des vols existants.
+     */
+    public function valid_horametre_range($vacfin) {
+        $vacdeb  = floatval($this->input->post('vacdeb'));
+        $vacfin  = floatval($vacfin);
+        $vamacid = $this->input->post('vamacid');
+        $vaid    = intval($this->input->post('vaid'));
+
+        // Vol immédiatement précédant : plus grand vacdeb < vacdeb courant
+        $this->db->select('vacdeb, vacfin')
+            ->from('volsa')
+            ->where('vamacid', $vamacid)
+            ->where('vacdeb <', $vacdeb);
+        if ($vaid > 0) {
+            $this->db->where('vaid !=', $vaid);
+        }
+        $prev = $this->db->order_by('vacdeb', 'DESC')->limit(1)->get()->row_array();
+
+        if ($prev && floatval($prev['vacfin']) > $vacdeb) {
+            $this->form_validation->set_message('valid_horametre_range',
+                $this->lang->line('gvv_vols_avion_error_horametre_prev'));
+            return false;
+        }
+
+        // Vol immédiatement suivant : plus petit vacdeb > vacdeb courant
+        $this->db->select('vacdeb, vacfin')
+            ->from('volsa')
+            ->where('vamacid', $vamacid)
+            ->where('vacdeb >', $vacdeb);
+        if ($vaid > 0) {
+            $this->db->where('vaid !=', $vaid);
+        }
+        $next = $this->db->order_by('vacdeb', 'ASC')->limit(1)->get()->row_array();
+
+        if ($next && floatval($next['vacdeb']) < $vacfin) {
+            $this->form_validation->set_message('valid_horametre_range',
+                $this->lang->line('gvv_vols_avion_error_horametre_next'));
+            return false;
+        }
+
+        return true;
     }
 
     /**
