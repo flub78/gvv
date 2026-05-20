@@ -81,7 +81,7 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     $container.html(
         '<div class="d-flex align-items-center gap-1">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_minus">−</button>' +
-        '<input type="number" id="' + intInputId + '" class="form-control" style="width:80px" min="0" value="' + intPart + '">' +
+        '<input type="number" id="' + intInputId + '" class="form-control" style="width:120px" min="0" value="' + intPart + '">' +
         '<button type="button" class="btn btn-outline-secondary" id="' + hiddenId + '_plus">+</button>' +
         decHtml +
         '</div>');

@@ -36,7 +36,9 @@ if (!function_exists('css_url')) {
 
 if (!function_exists('js_url')) {
     function js_url($nom) {
-        return base_url() . 'assets/javascript/' . $nom . '.js';
+        $path = FCPATH . 'assets/javascript/' . $nom . '.js';
+        $version = file_exists($path) ? filemtime($path) : '1';
+        return base_url() . 'assets/javascript/' . $nom . '.js?v=' . $version;
     }
 }
 
