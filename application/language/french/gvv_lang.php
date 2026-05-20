@@ -423,7 +423,7 @@ $lang['gvv_age_select'] = array(0 => 'Tous', 1 => '-25', 2 => '+25');
 $lang['gvv_owner_select'] = array(0 => 'Tous', 1 => 'Club', 2 => 'Privé', 3 => 'Ext');
 $lang['gvv_launch_select'] = array(0 => 'Tous', 1 => 'Treuil', 2 => 'Automome', 3 => 'Remorqué', 4 => 'Extérieur');
 
-$lang['gvv_copyright'] = "Copyright (&#169;) 2025 Philippe Boissel et Frédéric Peignot, GPL V3.0";
+$lang['gvv_copyright'] = "Copyright (&#169;) 2026 Philippe Boissel et Frédéric Peignot, GPL V3.0";
 $lang['gvv_generated'] = "Page générée en {elapsed_time} secondes";
 
 # termes généraux qu'on retrouve partout

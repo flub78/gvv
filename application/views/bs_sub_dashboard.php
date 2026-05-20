@@ -97,7 +97,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
          Section Utilisateur
          ================================================================ -->
     <div class="row g-2">
-        <?php if ($show_calendar && $show_presences): ?>
+        <?php if ($show_calendar && $show_presences && $show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-calendar-alt text-primary"></i>
@@ -958,6 +958,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
+        <?php if ($show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-plane text-info"></i>
@@ -966,7 +967,9 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('planeur/page') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($show_avions): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-plane-departure text-warning"></i>
@@ -975,7 +978,9 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('avion/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-certificate text-warning"></i>
@@ -984,6 +989,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <h5 class="mt-4 mb-3"><?= $this->lang->line('db_h5_member_management') ?></h5>
