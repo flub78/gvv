@@ -22,6 +22,7 @@ $lang['gvv_config_field_gcalendar_url'] = "Google calendar URL";
 $lang['gvv_config_field_planche_auto'] = "Automatic flights log URL";
 $lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_mod'] = "Message of the day";
+$lang['gvv_config_maintenance_message'] = "Maintenance message";
 $lang['gvv_no_more_mod'] = "Do not display this message again";
 
 $lang['gvv_config_ffvv_id'] = "FFVV login ID";

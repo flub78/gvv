@@ -73,14 +73,6 @@ class Config extends CI_Controller {
                     'rules' => 'trim'
             ),
 
-            'theme' => array (
-                    'label' => 'Thème graphique'
-            ),
-
-            'palette' => array (
-                    'label' => 'Palette de couleurs'
-            ),
-
             'club' => array (
                     'label' => 'Type de facturation'
             ),
@@ -119,6 +111,11 @@ class Config extends CI_Controller {
 						'gesasso' => array (
                     'label' => 'Export vers Gesasso',
                     'rules' => ''
+            ),
+
+            'maintenance_message' => array (
+                    'label' => 'Message de maintenance',
+                    'rules' => 'trim'
             )
     );
 
@@ -147,49 +144,8 @@ class Config extends CI_Controller {
 
         $this->config->load('club');
         $this->load->helper('file');
-        $this->load->helper('directory');
         $this->load->helper('validation_helper');
 
-        $themes_dir = directory_map("./themes");
-        foreach ( $themes_dir as $key => $values ) {
-            $options [$key] = $key;
-        }
-        $this->fields ['theme'] ['options'] = $options;
-    }
-
-    private function color_list() {
-        $color_list = array (
-                'base',
-                'black-tie',
-                'blitzer',
-                'cupertino',
-                'dark-hive',
-                'dot-luv',
-                'eggplant',
-                'excite-bike',
-                'flick',
-                'hot-sneaks',
-                'humanity',
-                'le-frog',
-                'mint-choc',
-                'overcast',
-                'pepper-grinder',
-                'redmond',
-                'smoothness',
-                'south-street',
-                'start',
-                'sunny',
-                'swanky-purse',
-                'trontastic',
-                'ui-darkness',
-                'ui-lightness',
-                'vader'
-        );
-        $colors = array ();
-        foreach ( $color_list as $color ) {
-            $colors [$color] = $color;
-        }
-        return $colors;
     }
 
     /**
@@ -209,7 +165,6 @@ class Config extends CI_Controller {
         
         $this->load->model('tarifs_model');
 
-        $data ['colors'] = $this->color_list();
         $data['product_selector'] = $this->tarifs_model->selector();
         load_last_view('configView', $data);
     }
@@ -268,7 +223,6 @@ class Config extends CI_Controller {
         $data ['fields'] = $this->fields;
         $data ['controller'] = 'config';
         $data ['action'] = "modification";
-        $data ['colors'] = $this->color_list();
         load_last_view('configView', $data);
     }
 

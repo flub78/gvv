@@ -23,6 +23,7 @@ $lang['gvv_config_field_gcalendar_url'] = "URL Google calendar";
 $lang['gvv_config_field_planche_auto'] = "URL automatische plank";
 $lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_mod'] = "Message du jour";
+$lang['gvv_config_maintenance_message'] = "Onderhoudsbericht";
 $lang['gvv_no_more_mod'] = "Ne plus afficher ce message";
 
 

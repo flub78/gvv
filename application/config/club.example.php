@@ -27,6 +27,7 @@ $config['ffvv_id'] = "";
 $config['ffvv_pwd'] = "";
 $config['ffvv_product'] = "Cotisation membre volant -25 ans";
 $config['gesasso'] = "1";
+$config['maintenance_message'] = "";
 
 /* End of file club.php */
 /* Location: .application/config/club.php */

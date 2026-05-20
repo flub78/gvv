@@ -61,8 +61,11 @@ if ($error_code === 'no_user_role') {
 
 <?php
 if ($locked) {
-	echo p($this->lang->line("auth_locked"), 'class="error"');
-	echo p($this->lang->line("auth_come_back"));
+	$msg = (isset($maintenance_message) && $maintenance_message) ? $maintenance_message : $this->lang->line("auth_locked");
+	echo p($msg, 'class="error"');
+	if (!isset($maintenance_message) || !$maintenance_message) {
+		echo p($this->lang->line("auth_come_back"));
+	}
 }
 ?>
 <dl>

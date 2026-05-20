@@ -23,6 +23,7 @@ $lang['gvv_config_field_gcalendar_url'] = "URL Google calendar";
 $lang['gvv_config_field_planche_auto'] = "URL Planche Automatique";
 $lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_mod'] = "Message du jour";
+$lang['gvv_config_maintenance_message'] = "Message de maintenance";
 $lang['gvv_config_ffvv_id'] = "Identifiant de connexion FFVV";
 $lang['gvv_config_ffvv_pwd'] = "Mot de passe de connexion FFVV";
 $lang['gvv_config_ffvv_product'] = "Produit de facturation des licences FFVV";

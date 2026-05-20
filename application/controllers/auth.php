@@ -230,6 +230,9 @@ class Auth extends CI_Controller {
 
                     $this->load->config('program');
                     $data['locked'] = $this->config->item('locked');
+                    $this->config->load('club', FALSE, TRUE);
+                    $maintenance_message = $this->config->item('maintenance_message');
+                    $data['maintenance_message'] = ($maintenance_message) ? $maintenance_message : '';
 
                     // Load login page view
                     load_last_view($this->dx_auth->login_view, $data);
