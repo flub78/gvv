@@ -1,5 +1,8 @@
 /**
- * Régression : alodigeois pouvait réserver en ULM malgré un solde insuffisant
+ * Régression : blocage réservation ULM quand le solde est insuffisant
+ *
+ * Utilisateur de test : assurancetourix (solde 76,60 € en section ULM)
+ * Créé par create_test_users.sh / admin._create_test_gaulois_users()
  *
  * Bugs corrigés dans _check_pilot_balance() :
  *   1. membres.compte = 0 → empty(0) = true → check ignoré
@@ -28,7 +31,7 @@ async function getBaseUrl(browser) {
     const page = await browser.newPage();
     const lp = new LoginPage(page);
     await lp.open();
-    await lp.login('alodigeois', 'password', ULM_SECTION);
+    await lp.login('assurancetourix', 'password', ULM_SECTION);
     await lp.verifyLoggedIn();
     await page.goto(TIMELINE_URL);
     await page.waitForLoadState('networkidle');
@@ -66,18 +69,18 @@ test.describe.serial('Blocage solde insuffisant — réservation 1h', () => {
     test('la timeline ULM est accessible', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
-        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.login('assurancetourix', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
         await page.goto(TIMELINE_URL);
         await page.waitForLoadState('networkidle');
         await expect(page.locator('.timeline-container')).toBeVisible();
-        console.log('✓ alodigeois peut accéder à la timeline ULM');
+        console.log('✓ assurancetourix peut accéder à la timeline ULM');
     });
 
     test('1h sur F-JTVA (108€) doit être refusée — solde 76,60€', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
-        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.login('assurancetourix', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
 
         const future = new Date();
@@ -88,7 +91,7 @@ test.describe.serial('Blocage solde insuffisant — réservation 1h', () => {
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_A,
-                pilot_member_id: 'alodigeois',
+                pilot_member_id: 'assurancetourix',
                 start_datetime: dateStr + ' 10:00:00',
                 end_datetime: dateStr + ' 11:00:00',
                 instructor_member_id: '',
@@ -127,7 +130,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
     test('0h30 sur F-JTVA (54€) doit être acceptée — solde 76,60€', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
-        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.login('assurancetourix', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
 
         const future = new Date();
@@ -138,7 +141,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_A,
-                pilot_member_id: 'alodigeois',
+                pilot_member_id: 'assurancetourix',
                 start_datetime: dateStr + ' 10:00:00',
                 end_datetime: dateStr + ' 10:30:00',
                 instructor_member_id: '',
@@ -156,7 +159,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
     test('0h30 sur F-JHRV doit être refusée — coût cumulé 117€ > 76,60€', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
-        await lp.login('alodigeois', 'password', ULM_SECTION);
+        await lp.login('assurancetourix', 'password', ULM_SECTION);
         await lp.verifyLoggedIn();
 
         const future = new Date();
@@ -167,7 +170,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_B,
-                pilot_member_id: 'alodigeois',
+                pilot_member_id: 'assurancetourix',
                 start_datetime: dateStr + ' 11:00:00',
                 end_datetime: dateStr + ' 11:30:00',
                 instructor_member_id: '',

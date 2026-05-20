@@ -129,8 +129,8 @@ create_legacy_user() {
     if [ "$role_id" -ne 2 ]; then
         local nom=$(echo "$username" | sed 's/.*/\u&/')
         mysql_exec -e "
-            INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, club, ext, actif, username, categorie)
-            VALUES ('$username', '$nom', 'Test', '$email', '1 rue de Test', 75000, 'Paris', 'France', 'M', 0, 0, 0, 0, 1, '$username', '0');
+            INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
+            VALUES ('$username', '$nom', 'Test', '$email', '1 rue de Test', 75000, 'Paris', 'France', 'M', 0, 0, 0, 1, '$username', '0');
         "
 
         # 3. Create 411 account in default section
@@ -225,10 +225,10 @@ create_gaulois_user() {
     "
     local user_id=$(mysql_query "SELECT id FROM users WHERE username='$username'")
 
-    # 2. Create membre entry
+    # 2. Create membre entry (no 'club' column — removed in migration)
     mysql_exec -e "
-        INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, club, ext, actif, username, categorie)
-        VALUES ('$username', '$nom', '$prenom', '$email', '$adresse', 22000, 'Village gaulois', 'France', 'M', $roles_bits, 0, 0, 0, 1, '$username', '0');
+        INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
+        VALUES ('$username', '$nom', '$prenom', '$email', '$adresse', 22000, 'Village gaulois', 'France', 'M', $roles_bits, 0, 0, 1, '$username', '0');
     "
 
     # 3. Create 411 accounts and roles for each section
@@ -338,6 +338,35 @@ declare -A SECTION_ROLES_MAP=(
 declare -a CA_SECTIONS=()
 create_gaulois_user "goudurix" "Goudurix" "Le Gaulois" "goudurix@gmail.com" "3 rue du Menhir" $BIT_TRESORIER 0
 
+# --- Assurancetourix ---
+# Sections: ULM, Général — role: user only
+# Initial balance: 76.60 € in ULM section (for balance-check regression tests)
+#   0.5h F-JTVA (108 €/h) = 54 € ≤ 76.60 € → accepted
+#   0.5h F-JHRV (126 €/h) = 63 € ≤ 76.60 € → accepted individually
+#   54 + 63 = 117 € > 76.60 € → refused (multi-aircraft cumulative check)
+#   1h  F-JTVA = 108 € > 76.60 € → refused
+declare -a USER_SECTIONS=($ULM_SECTION $GENERAL_SECTION)
+declare -A SECTION_ROLES_MAP=()
+declare -a CA_SECTIONS=()
+create_gaulois_user "assurancetourix" "Assurancetourix" "Le Gaulois" "assurancetourix@village-gaulois.fr" "5 rue de la potion magique" 0 0
+
+# Set opening balance of 76.60 € for the ULM 411 account via an ecritures entry
+COMPTE_AT=$(mysql_query "SELECT id FROM comptes WHERE pilote='assurancetourix' AND codec=411 AND club=$ULM_SECTION LIMIT 1")
+COMPTE_512=$(mysql_query "SELECT id FROM comptes WHERE codec=512 AND club=$ULM_SECTION LIMIT 1")
+TODAY=$(date '+%Y-%m-%d')
+YEAR=$(date '+%Y')
+if [ -n "$COMPTE_AT" ] && [ -n "$COMPTE_512" ]; then
+    mysql_exec -e "
+        INSERT INTO ecritures (annee_exercise, date_creation, date_op, compte1, compte2, montant,
+                               description, type, saisie_par, gel, club, categorie, created_by, created_at)
+        VALUES ($YEAR, '$TODAY', '$TODAY', $COMPTE_512, $COMPTE_AT, 76.60,
+                'Solde initial test regression solde', 1, 'testadmin', 0, $ULM_SECTION, 0, 'testadmin', NOW());
+    "
+    echo "  assurancetourix: balance 76.60 € set in ULM section"
+else
+    echo "  WARNING: could not set assurancetourix balance (compte_411=$COMPTE_AT, compte_512=$COMPTE_512)"
+fi
+
 # --- Panoramix (admin - club-admin in all sections) ---
 echo -n "  panoramix... "
 delete_user "panoramix"
@@ -347,8 +376,8 @@ mysql_exec -e "
 "
 PANORAMIX_USER_ID=$(mysql_query "SELECT id FROM users WHERE username='panoramix'")
 mysql_exec -e "
-    INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, club, ext, actif, username, categorie)
-    VALUES ('panoramix', 'Panoramix', 'Le Gaulois', 'panoramix@gmail.com', '1 rue du Menhir', 22000, 'Village gaulois', 'France', 'M', 0, 0, 0, 0, 1, 'panoramix', '0');
+    INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
+    VALUES ('panoramix', 'Panoramix', 'Le Gaulois', 'panoramix@gmail.com', '1 rue du Menhir', 22000, 'Village gaulois', 'France', 'M', 0, 0, 0, 1, 'panoramix', '0');
 "
 # Grant user + club-admin roles in all sections
 for section_id in $(mysql_query "SELECT id FROM sections ORDER BY id"); do
@@ -380,11 +409,12 @@ echo "  - testbureau     (role: bureau)"
 echo "  - testtresorier  (role: tresorier)"
 echo ""
 echo "Gaulois users (new authorization system):"
-echo "  - asterix        (sections: planeur, general)"
-echo "  - obelix         (planeur: planchiste + mecano, ULM: auto_planchiste, general: user)"
-echo "  - abraracourcix  (planeur, avion, ULM, general + CA + instructeur)"
-echo "  - goudurix       (avion: auto_planchiste + tresorier, general: user)"
-echo "  - panoramix      (admin - no sections)"
+echo "  - asterix          (sections: planeur, general)"
+echo "  - obelix           (planeur: planchiste + mecano, ULM: auto_planchiste, general: user)"
+echo "  - abraracourcix    (planeur, avion, ULM, general + CA + instructeur)"
+echo "  - goudurix         (avion: auto_planchiste + tresorier, general: user)"
+echo "  - panoramix        (admin - club-admin in all sections)"
+echo "  - assurancetourix  (ULM + general, user role, balance 76.60 € — regression test)"
 
 echo ""
 echo "========================================="
@@ -441,6 +471,7 @@ test_login "obelix"
 test_login "abraracourcix"
 test_login "goudurix"
 test_login "panoramix"
+test_login "assurancetourix"
 
 echo ""
 echo "========================================="

@@ -2082,7 +2082,7 @@ class Admin extends CI_Controller {
             
             if ($gaulois_created > 0) {
                 $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'OK',
-                    'details' => "$gaulois_created utilisateurs créés (asterix, obelix, abraracourcix, goudurix, panoramix)");
+                    'details' => "$gaulois_created utilisateurs créés (asterix, obelix, abraracourcix, goudurix, assurancetourix, panoramix)");
             } else if (!empty($gaulois_result['errors'])) {
                 $results[] = array('step' => 'Utilisateurs Gaulois', 'status' => 'WARNING', 
                     'details' => 'Erreurs: ' . implode('; ', $gaulois_result['errors']));
@@ -2729,6 +2729,28 @@ SQL;
                 )
             ),
             array(
+                'username' => 'assurancetourix',
+                'nom' => 'Assurancetourix',
+                'prenom' => 'Le Gaulois',
+                'email' => 'assurancetourix@village-gaulois.fr',
+                'adresse' => '5 rue de la potion magique',
+                'cp' => 22000,
+                'ville' => 'Village gaulois',
+                // ULM + Général, user role only
+                // Balance 76.60 € in ULM: regression test for balance-block on reservations
+                //   0.5h F-JTVA (108 €/h) = 54 € ≤ 76.60 € → accepted
+                //   0.5h F-JHRV (126 €/h) = 63 € ≤ 76.60 € → accepted individually
+                //   54 + 63 = 117 € > 76.60 € → refused (cumulative multi-aircraft check)
+                //   1h  F-JTVA = 108 € > 76.60 € → refused
+                'sections' => array($ulm_section, $general_section),
+                'roles_bits' => 0,
+                'is_admin' => 0,
+                'initial_balance' => array(
+                    'section' => $ulm_section,
+                    'amount'  => 76.60,
+                )
+            ),
+            array(
                 'username' => 'panoramix',
                 'nom' => 'Panoramix',
                 'prenom' => 'Le Gaulois',
@@ -2788,7 +2810,7 @@ SQL;
                 $this->db->insert('users', $user_insert);
                 $user_id = $this->db->insert_id();
                 
-                // 2. Create membre entry
+                // 2. Create membre entry ('club' column was removed in a migration — omit it)
                 $membre_insert = array(
                     'mlogin' => $username,
                     'mnom' => $user_data['nom'],
@@ -2801,7 +2823,6 @@ SQL;
                     'msexe' => 'M',
                     'mniveaux' => $user_data['roles_bits'],
                     'macces' => 0,
-                    'club' => 0,
                     'ext' => 0,
                     'actif' => 1,
                     'username' => $username,
@@ -2833,6 +2854,41 @@ SQL;
                     }
                 }
                 
+                // 3b. Set opening balance if specified (via ecritures entry)
+                if (isset($user_data['initial_balance'])) {
+                    $bal           = $user_data['initial_balance'];
+                    $compte_411    = $this->db->where('pilote', $username)
+                                              ->where('codec',  411)
+                                              ->where('club',   $bal['section'])
+                                              ->limit(1)->get('comptes')->row();
+                    $compte_512    = $this->db->select('id')
+                                              ->where('codec', 512)
+                                              ->where('club',  $bal['section'])
+                                              ->limit(1)->get('comptes')->row();
+                    if ($compte_411 && $compte_512) {
+                        $this->db->insert('ecritures', array(
+                            'annee_exercise' => (int) date('Y'),
+                            'date_creation'  => date('Y-m-d'),
+                            'date_op'        => date('Y-m-d'),
+                            'compte1'        => $compte_512->id,
+                            'compte2'        => $compte_411->id,
+                            'montant'        => $bal['amount'],
+                            'description'    => 'Solde initial test regression solde',
+                            'type'           => 1,
+                            'saisie_par'     => 'admin',
+                            'gel'            => 0,
+                            'club'           => $bal['section'],
+                            'categorie'      => 0,
+                            'created_by'     => 'admin',
+                            'created_at'     => date('Y-m-d H:i:s'),
+                        ));
+                    } else {
+                        log_message('warning', "Could not set initial balance for {$username}: "
+                            . "compte_411=" . ($compte_411 ? $compte_411->id : 'null')
+                            . " compte_512=" . ($compte_512 ? $compte_512->id : 'null'));
+                    }
+                }
+
                 // 4. Create user roles per section
                 foreach ($user_data['sections'] as $section_id) {
                     $section_roles = array();
