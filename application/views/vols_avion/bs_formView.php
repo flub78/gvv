@@ -136,6 +136,7 @@ if (isset($kid) && isset($$kid)) {
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vanumvi") ?></div>
         <div><?= $this->gvvmetadata->input_field("volsa", "vanumvi", $vanumvi) ?></div>
+        <div class="text-danger small mt-1" id="vanumvi_error" style="display:none"></div>
     </div>
 
     <div class="d-flex flex-column mb-2">
@@ -297,6 +298,7 @@ form[name="saisie"] .select2-container .select2-selection--single .select2-selec
 <script type="text/javascript" src="<?php echo js_url('form_vols_avion'); ?>"></script>
 <script>
 var horametres_modes_data = <?= json_encode($horametres_mode ? $horametres_mode : (object)array()) ?>;
+var vanumvi_required_msg = <?= json_encode($this->lang->line('gvv_vols_avion_error_vanumvi_required')) ?>;
 var horametres_last_data  = <?= json_encode(!empty($horametres_last) ? $horametres_last : (object)array()) ?>;
 var initial_horametre_mode = <?= isset($initial_horametre_mode) ? (int)$initial_horametre_mode : 0 ?>;
 var is_new_vol = <?= !empty($is_new_vol) ? 'true' : 'false' ?>;

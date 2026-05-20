@@ -54,6 +54,7 @@ $lang['gvv_vols_avion_error_horametre_overlap'] = "Les horamètres se superposen
 $lang['gvv_vols_avion_error_horametre_prev'] = "L'horamètre de début est inférieur à l'horamètre de fin du vol précédent sur cette machine.";
 $lang['gvv_vols_avion_error_horametre_next'] = "L'horamètre de fin est supérieur à l'horamètre de début du vol suivant sur cette machine.";
 $lang['gvv_vols_avion_error_categorie_access'] = "Ce type de vol n'est pas accessible avec votre rôle ou pour cette machine.";
+$lang['gvv_vols_avion_error_vanumvi_required'] = "Le numéro de vol de découverte est obligatoire.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Par machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Heures par an";

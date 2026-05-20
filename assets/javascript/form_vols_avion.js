@@ -374,7 +374,17 @@ $(document).ready(function(){
 	$("form[name='saisie']").on('submit', function(e) {
 		if ($("#vacategorie").val() == '1' && $.trim($("#vanumvi").val()) === '') {
 			e.preventDefault();
+			var msg = (typeof vanumvi_required_msg !== 'undefined') ? vanumvi_required_msg : 'Le numéro de vol de découverte est obligatoire.';
+			$("#vanumvi_error").text(msg).show();
 			$("#vanumvi").focus();
+		} else {
+			$("#vanumvi_error").hide();
+		}
+	});
+
+	$("#vanumvi").on('input change', function() {
+		if ($.trim($(this).val()) !== '') {
+			$("#vanumvi_error").hide();
 		}
 	});
 
@@ -391,6 +401,7 @@ function update_vd_required() {
 		}
 	} else {
 		$asterisk.remove();
+		$("#vanumvi_error").hide();
 	}
 }
 

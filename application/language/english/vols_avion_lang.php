@@ -54,6 +54,7 @@ $lang['gvv_vols_avion_error_horametre_overlap'] = "Hobbs meter values overlap wi
 $lang['gvv_vols_avion_error_horametre_prev'] = "The start Hobbs meter is lower than the end Hobbs meter of the previous flight on this aircraft.";
 $lang['gvv_vols_avion_error_horametre_next'] = "The end Hobbs meter is higher than the start Hobbs meter of the next flight on this aircraft.";
 $lang['gvv_vols_avion_error_categorie_access'] = "This flight type is not accessible with your role or for this aircraft.";
+$lang['gvv_vols_avion_error_vanumvi_required'] = "The discovery flight number is required.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Hours per year";

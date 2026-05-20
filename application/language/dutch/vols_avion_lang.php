@@ -54,6 +54,7 @@ $lang['gvv_vols_avion_error_horametre_overlap'] = "Hobbs-meterstanden overlappen
 $lang['gvv_vols_avion_error_horametre_prev'] = "De begintachometerstand is lager dan de eindstand van de vorige vlucht op dit toestel.";
 $lang['gvv_vols_avion_error_horametre_next'] = "De eindtachometerstand is hoger dan de beginstand van de volgende vlucht op dit toestel.";
 $lang['gvv_vols_avion_error_categorie_access'] = "Dit vluchttype is niet toegankelijk met uw rol of voor dit toestel.";
+$lang['gvv_vols_avion_error_vanumvi_required'] = "Het ontdekkingsvluchtnummer is verplicht.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";
