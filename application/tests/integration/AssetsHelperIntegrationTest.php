@@ -58,10 +58,11 @@ class AssetsHelperIntegrationTest extends TestCase
     public function testJsUrlFunctionIntegration()
     {
         $javascript_url = js_url("menu");
-        $expected = base_url() . "assets/javascript/menu.js";
-        
-        $this->assertEquals($expected, $javascript_url, "JavaScript URL should be correctly generated");
-        $this->assertStringEndsWith('.js', $javascript_url, "JS URL should end with .js");
+        $expected_base = base_url() . "assets/javascript/menu.js";
+
+        // URL includes a cache-busting version parameter (e.g. menu.js?v=12345)
+        $this->assertStringStartsWith($expected_base, $javascript_url, "JavaScript URL should start with the expected path");
+        $this->assertRegExp('/\.js(\?v=\d+)?$/', $javascript_url, "JS URL should end with .js optionally followed by ?v=<timestamp>");
         $this->assertStringContainsString('assets/javascript/', $javascript_url, "JS URL should contain assets/javascript path");
     }
 

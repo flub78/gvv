@@ -85,7 +85,8 @@ class AssetsHelperTest extends TestCase
         $this->assertIsString($url);
         $this->assertStringContainsString('javascript', $url);
         $this->assertStringContainsString('script.js', $url);
-        $this->assertStringEndsWith('.js', $url);
+        // URL may include cache-busting version parameter (e.g. script.js?v=12345)
+        $this->assertRegExp('/\.js(\?v=\d+)?$/', $url);
     }
 
     /**
@@ -188,7 +189,8 @@ class AssetsHelperTest extends TestCase
 
         foreach ($urls as $url) {
             $this->assertIsString($url);
-            $this->assertStringEndsWith('.js', $url);
+            // URL may include cache-busting version parameter (e.g. script.js?v=12345)
+            $this->assertRegExp('/\.js(\?v=\d+)?$/', $url);
         }
 
         $this->assertStringContainsString('jquery.js', $urls[0]);
