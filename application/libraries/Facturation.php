@@ -324,6 +324,10 @@ class Facturation {
         // Le vol est-il gratuit ?
         $free = FALSE;
 
+        // Le vol bénéficie-t-il du demi-tarif convoyage ?
+        // Le demi-tarif s'applique uniquement sur le vol principal (pas sur le supplément DC).
+        $convoyage = FALSE;
+
         if ($vol['vacategorie'] == VI) {
             $desc .= " " . $this->CI->lang->line("facturation_vi"); // est-ce un vol d'initiation ?
             $free = TRUE;
@@ -343,6 +347,10 @@ class Facturation {
             // Vol porte ouverte
             $desc .= " PO";
             $free = TRUE;
+        } elseif ($vol['vacategorie'] == CONVOYAGE) {
+            // Vol de convoyage : demi-tarif sur le vol principal uniquement
+            $desc .= " Convoyage";
+            $convoyage = TRUE;
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol
@@ -358,11 +366,23 @@ class Facturation {
             }
         }
 
+        // Calcul de la quantité facturée pour le vol principal :
+        // - Gratuit si vol de découverte / essai / remorquage / BIA / PO
+        // - Demi-durée si convoyage
+        // - Durée complète sinon
+        if ($free) {
+            $quantite_vol = 0;
+        } elseif ($convoyage) {
+            $quantite_vol = $duree / 2;
+        } else {
+            $quantite_vol = $duree;
+        }
+
         // On génère une nouvelle ligne de facturation
         $this->nouvel_achat_partage(array(
             'date' => $date,
             'produit' => $produit_hdv,
-            'quantite' => ($free) ? 0 : $duree,
+            'quantite' => $quantite_vol,
             'description' => $desc,
             'pilote' => $pilote,
             'machine' => $machine,
@@ -370,7 +390,8 @@ class Facturation {
         ), $pilote, $payeur, $pourcentage);
 
         if ($dc_a_facturer) {
-            // Si il y a un surcout pour la double commande
+            // Si il y a un surcout pour la double commande, il est toujours au tarif plein
+            // (pas de réduction convoyage sur le supplément DC)
             $this->nouvel_achat(array(
                 'date' => $date,
                 'produit' => $machine_info['maprixdc'],
