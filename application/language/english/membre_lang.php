@@ -52,6 +52,7 @@ $lang['gvv_membres_field_memail'] = "Email";
 $lang['gvv_membres_field_memailparent'] = "Parent's email";
 $lang['gvv_membres_field_m25ans'] = "-25 year";
 $lang['gvv_membres_field_actif'] = "Active";
+$lang['gvv_membres_field_exemption_solde'] = "Balance check exempt";
 $lang['gvv_membres_field_categorie'] = "Category";
 $lang['gvv_membres_field_gender'] = "Gender";
 $lang['gvv_membres_field_inst_glider'] = "Glider instructor";

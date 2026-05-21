@@ -257,7 +257,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 ?>
             </div>
 
-            <!-- Active Status -->
+            <!-- Active Status & Exemption solde -->
             <div class="col-md-6">
                 <label class="form-label d-block"><?php echo $this->lang->line("gvv_membres_field_actif"); ?></label>
                 <div class="form-check">
@@ -266,6 +266,16 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                         <?php echo $this->lang->line("gvv_membres_field_actif"); ?>
                     </label>
                 </div>
+                <?php if ($has_modification_rights): ?>
+                <div class="form-check mt-1">
+                    <?php echo form_checkbox(array('name' => 'exemption_solde', 'class' => 'form-check-input', 'id' => 'exemption_solde', 'value' => 1, 'checked' => (!empty($exemption_solde)))); ?>
+                    <label class="form-check-label" for="exemption_solde" title="Ce pilote peut réserver un appareil même si son solde est insuffisant">
+                        <?php echo $this->lang->line("gvv_membres_field_exemption_solde"); ?>
+                    </label>
+                </div>
+                <?php else: ?>
+                    <?php echo form_hidden('exemption_solde', !empty($exemption_solde) ? 1 : 0); ?>
+                <?php endif; ?>
             </div>
 
             <!-- Federation License -->

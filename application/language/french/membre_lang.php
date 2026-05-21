@@ -54,6 +54,7 @@ $lang['gvv_membres_field_memail'] = "Courriel";
 $lang['gvv_membres_field_memailparent'] = "Courriel des parents";
 $lang['gvv_membres_field_m25ans'] = "-25 ans";
 $lang['gvv_membres_field_actif'] = "Actif";
+$lang['gvv_membres_field_exemption_solde'] = "Exempté du contrôle de solde";
 $lang['gvv_membres_field_categorie'] = "Categorie";
 $lang['gvv_membres_field_gender'] = "Genre";
 $lang['gvv_membres_field_inst_glider'] = "Instructeur responsable";

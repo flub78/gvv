@@ -878,6 +878,18 @@ class Reservations extends MY_Controller {
      * Returns ok=true when no relevant pricing data is available (fail-open).
      */
     private function _check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id, $exclude_reservation_id = null) {
+        // Check global config flag: if disabled, all balance checks are skipped
+        $this->load->config('program');
+        if (!$this->config->item('reservation_balance_check')) {
+            return array('ok' => true);
+        }
+
+        // Check per-pilot exemption in membres table
+        $membre = $this->db->select('exemption_solde')->get_where('membres', array('mlogin' => $username))->row_array();
+        if (!empty($membre['exemption_solde'])) {
+            return array('ok' => true);
+        }
+
         // Get aircraft info
         $aircraft = $this->db->get_where('machinesa', array('macimmat' => $aircraft_id))->row_array();
         if (!$aircraft) {

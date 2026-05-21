@@ -343,6 +343,8 @@ class GVVMetadata extends Metadata {
                 $this->field['membres']['m25ans']['Subtype'] = 'boolean';
                 $this->field['membres']['ext']['Subtype'] = 'boolean';
                 $this->field['membres']['actif']['Subtype'] = 'boolean';
+                $this->field['membres']['exemption_solde']['Subtype'] = 'boolean';
+                $this->field['membres']['exemption_solde']['Name'] = 'Exemption solde réservations';
                 $this->field['membres']['nom_prenom']['Type'] = 'varchar';
                 $this->field['membres']['memail']['Subtype'] = 'email';
                 $this->field['membres']['memail']['Null'] = 'NO';

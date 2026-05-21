@@ -55,6 +55,7 @@ $lang['gvv_membres_field_memail'] = "E-mailadres";
 $lang['gvv_membres_field_memailparent'] = "E-mailadres ouders";
 $lang['gvv_membres_field_m25ans'] = "-25 jaar";
 $lang['gvv_membres_field_actif'] = "Actief";
+$lang['gvv_membres_field_exemption_solde'] = "Vrijgesteld van saldocontrole";
 $lang['gvv_membres_field_categorie'] = "Categorie";
 $lang['gvv_membres_field_gender'] = "Geslacht";
 $lang['gvv_membres_field_inst_glider'] = "Instructeur zweefvliegen";
