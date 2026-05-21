@@ -162,11 +162,17 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
                     <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
+                    <?php if ($section && !empty($section['gestion_planeurs'])) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><i class="fas fa-chart-bar text-primary"></i> <?= translation("welcome_reports_title") ?></a></li>
+                    <?php if (has_role('club-admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url('procedures') ?>"><i class="fas fa-book text-primary"></i> Procédures</a></li>
+                    <?php endif; ?>
+                    <?php if ($section && !empty($section['gestion_planeurs'])) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("event/page") ?>"><i class="fas fa-certificate text-warning"></i> <?= translation("welcome_certificates") ?></a></li>
-                    <?php if ($this->config->item('gestion_documentaire')) : ?>
+                    <?php endif; ?>
+                    <?php if (has_role('club-admin') && $this->config->item('gestion_documentaire')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("document_types/page") ?>"><i class="fas fa-file-alt text-info"></i> <?= translation("document_types_title") ?></a></li>
                     <?php endif; ?>
                   </ul>
