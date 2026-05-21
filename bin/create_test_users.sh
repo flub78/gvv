@@ -339,14 +339,16 @@ declare -a CA_SECTIONS=()
 create_gaulois_user "goudurix" "Goudurix" "Le Gaulois" "goudurix@gmail.com" "3 rue du Menhir" $BIT_TRESORIER 0
 
 # --- Assurancetourix ---
-# Sections: ULM, Général — role: user only
+# Sections: ULM, Général — role: auto_planchiste (ULM), user (Général)
 # Initial balance: 76.60 € in ULM section (for balance-check regression tests)
 #   0.5h F-JTVA (108 €/h) = 54 € ≤ 76.60 € → accepted
 #   0.5h F-JHRV (126 €/h) = 63 € ≤ 76.60 € → accepted individually
 #   54 + 63 = 117 € > 76.60 € → refused (multi-aircraft cumulative check)
 #   1h  F-JTVA = 108 € > 76.60 € → refused
 declare -a USER_SECTIONS=($ULM_SECTION $GENERAL_SECTION)
-declare -A SECTION_ROLES_MAP=()
+declare -A SECTION_ROLES_MAP=(
+    ["section_${ULM_SECTION}"]="$TR_AUTO_PLANCHISTE"
+)
 declare -a CA_SECTIONS=()
 create_gaulois_user "assurancetourix" "Assurancetourix" "Le Gaulois" "assurancetourix@village-gaulois.fr" "5 rue de la potion magique" 0 0
 
@@ -366,6 +368,13 @@ if [ -n "$COMPTE_AT" ] && [ -n "$COMPTE_512" ]; then
 else
     echo "  WARNING: could not set assurancetourix balance (compte_411=$COMPTE_AT, compte_512=$COMPTE_512)"
 fi
+
+# Add cotisation for current year (required by auto_planchiste reservation check)
+mysql_exec -e "
+    INSERT IGNORE INTO licences (pilote, type, year, date, comment)
+    VALUES ('assurancetourix', 0, $YEAR, '$TODAY', 'Cotisation test regression solde');
+"
+echo "  assurancetourix: cotisation $YEAR added"
 
 # --- Panoramix (admin - club-admin in all sections) ---
 echo -n "  panoramix... "

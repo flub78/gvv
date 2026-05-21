@@ -513,7 +513,8 @@ $this->load->view('bs_banner');
             timelineIncrement: <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>,  // Minutes
             currentUser: '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
             canEditOthers: <?php echo $can_edit_others ? 'true' : 'false'; ?>,
-            isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>
+            isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>,
+            canBook: <?php echo $can_book ? 'true' : 'false'; ?>
         };
         
         // State
@@ -720,7 +721,7 @@ $this->load->view('bs_banner');
             
             // Determine if current user can edit this event
             const pilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-            const canEditEvent = CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser);
+            const canEditEvent = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser));
 
             // Add resize handle
             const resizeHandle = document.createElement('div');
@@ -978,6 +979,9 @@ $this->load->view('bs_banner');
         function startSlotSelection(e, slotEl) {
             e.preventDefault();
 
+            // Read-only members cannot create reservations
+            if (!CONFIG.canBook) return;
+
             // Don't start selection if already dragging an event
             if (state.isDragging) return;
 
@@ -1104,6 +1108,9 @@ $this->load->view('bs_banner');
          * Handle empty slot click (single click, no drag)
          */
         function handleSlotClick(slotEl) {
+            // Read-only members cannot create reservations
+            if (!CONFIG.canBook) return;
+
             const hour = parseInt(slotEl.getAttribute('data-hour'));
             const resourceId = slotEl.getAttribute('data-resource-id');
             const clickedTime = String(hour).padStart(2, '0') + ':00:00';
@@ -1227,7 +1234,7 @@ $this->load->view('bs_banner');
 
                 // Determine edit permissions for this event
                 const eventPilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-                const isEventOwner = CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser);
+                const isEventOwner = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser));
                 const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
                 
                 // Extract and safely prepare data

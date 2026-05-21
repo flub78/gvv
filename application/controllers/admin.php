@@ -2736,7 +2736,7 @@ SQL;
                 'adresse' => '5 rue de la potion magique',
                 'cp' => 22000,
                 'ville' => 'Village gaulois',
-                // ULM + Général, user role only
+                // ULM + Général, auto_planchiste in ULM
                 // Balance 76.60 € in ULM: regression test for balance-block on reservations
                 //   0.5h F-JTVA (108 €/h) = 54 € ≤ 76.60 € → accepted
                 //   0.5h F-JHRV (126 €/h) = 63 € ≤ 76.60 € → accepted individually
@@ -2745,10 +2745,14 @@ SQL;
                 'sections' => array($ulm_section, $general_section),
                 'roles_bits' => 0,
                 'is_admin' => 0,
+                'section_roles' => array(
+                    $ulm_section => array('auto_planchiste'),
+                ),
                 'initial_balance' => array(
                     'section' => $ulm_section,
                     'amount'  => 76.60,
-                )
+                ),
+                'add_cotisation' => true,
             ),
             array(
                 'username' => 'panoramix',
@@ -2961,6 +2965,25 @@ SQL;
                     'notes' => 'Gaulois test user - created by generate_test_database'
                 );
                 $this->db->insert('use_new_authorization', $auth_insert);
+
+                // 7. Add cotisation for current year if specified
+                // (required by auto_planchiste reservation check)
+                if (!empty($user_data['add_cotisation'])) {
+                    $current_year = (int) date('Y');
+                    $existing_cot = $this->db->where('pilote', $username)
+                                             ->where('type', 0)
+                                             ->where('year', $current_year)
+                                             ->get('licences');
+                    if ($existing_cot->num_rows() === 0) {
+                        $this->db->insert('licences', array(
+                            'pilote'  => $username,
+                            'type'    => 0,
+                            'year'    => $current_year,
+                            'date'    => date('Y-m-d'),
+                            'comment' => 'Cotisation test regression solde',
+                        ));
+                    }
+                }
 
                 $result['created']++;
                 

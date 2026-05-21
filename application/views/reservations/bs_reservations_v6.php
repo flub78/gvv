@@ -132,7 +132,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     const CONFIG = {
         currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
         canEditOthers:     <?php echo $can_edit_others     ? 'true' : 'false'; ?>,
-        isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>
+        isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>,
+        canBook:           <?php echo $can_book            ? 'true' : 'false'; ?>
     };
 
     let currentEditingEvent = null;
@@ -164,13 +165,19 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             saveBtn.textContent = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
             cancelBtn.textContent = TRANSLATIONS.btn_cancel;
 
-            // Show/hide delete button based on mode
-            if (deleteBtn) {
-                if (isCreate) {
-                    deleteBtn.style.display = 'none';
-                } else {
-                    deleteBtn.style.display = 'inline-block';
-                    deleteBtn.textContent = TRANSLATIONS.btn_delete;
+            // Show/hide save/delete buttons based on booking rights
+            if (readOnly) {
+                saveBtn.style.display = 'none';
+                if (deleteBtn) deleteBtn.style.display = 'none';
+            } else {
+                saveBtn.style.display = '';
+                if (deleteBtn) {
+                    if (isCreate) {
+                        deleteBtn.style.display = 'none';
+                    } else {
+                        deleteBtn.style.display = 'inline-block';
+                        deleteBtn.textContent = TRANSLATIONS.btn_delete;
+                    }
                 }
             }
 
@@ -205,12 +212,16 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
             // auto_planchiste creating a new event: force pilot to self
             const pilotId = props.pilot_member_id || (lockPilotToSelf ? CONFIG.currentUser : '');
+            // Members without booking rights are always read-only
+            const readOnly = !CONFIG.canBook;
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
             const status = props.status || 'reservation';
 
+            const roAttr = readOnly ? 'disabled' : '';
+
             // Build aircraft select
-            let aircraftSelect = '<select class="form-control" id="eventAircraft">';
+            let aircraftSelect = `<select class="form-control" id="eventAircraft" ${roAttr}>`;
             aircraftSelect += `<option value="">${TRANSLATIONS.select_aircraft}</option>`;
             if (OPTIONS.aircraft) {
                 for (const [id, label] of Object.entries(OPTIONS.aircraft)) {
@@ -220,8 +231,8 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             }
             aircraftSelect += '</select>';
 
-            // Build pilot select — disabled and locked to self for auto_planchiste
-            const pilotDisabled = lockPilotToSelf ? 'disabled' : '';
+            // Build pilot select — disabled for read-only or locked to self for auto_planchiste
+            const pilotDisabled = (readOnly || lockPilotToSelf) ? 'disabled' : '';
             let pilotSelect = `<select class="form-control big_select" id="eventPilot" ${pilotDisabled}>`;
             pilotSelect += `<option value="">${TRANSLATIONS.select_pilot}</option>`;
             if (OPTIONS.pilots) {
@@ -233,7 +244,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             pilotSelect += '</select>';
 
             // Build instructor select
-            let instructorSelect = '<select class="form-control big_select" id="eventInstructor">';
+            let instructorSelect = `<select class="form-control big_select" id="eventInstructor" ${roAttr}>`;
             instructorSelect += `<option value="">${TRANSLATIONS.select_instructor_none}</option>`;
             if (OPTIONS.instructors) {
                 for (const [id, label] of Object.entries(OPTIONS.instructors)) {
@@ -263,22 +274,22 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="eventStart" class="form-label"><strong>${TRANSLATIONS.form_start_time}:</strong></label>
-                        <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}">
+                        <input type="datetime-local" class="form-control" id="eventStart" value="${startStr}" ${roAttr}>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="eventEnd" class="form-label"><strong>${TRANSLATIONS.form_end_time}:</strong></label>
-                        <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}">
+                        <input type="datetime-local" class="form-control" id="eventEnd" value="${endStr}" ${roAttr}>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="eventNotes" class="form-label"><strong>${TRANSLATIONS.form_notes}:</strong></label>
-                    <textarea class="form-control" id="eventNotes" rows="2">${escapeHtml(notes)}</textarea>
+                    <textarea class="form-control" id="eventNotes" rows="2" ${roAttr}>${escapeHtml(notes)}</textarea>
                 </div>
 
                 <div class="mb-3">
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
-                    <select class="form-control" id="eventStatus">
+                    <select class="form-control" id="eventStatus" ${roAttr}>
                         <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
                         <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
                         <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>

@@ -100,7 +100,7 @@ class Reservations extends MY_Controller {
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
-        list($current_username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book) = $this->_reservation_permissions();
 
         $data = array(
             'timeline_increment' => $this->config->item('timeline_increment'),
@@ -111,7 +111,8 @@ class Reservations extends MY_Controller {
             'translations' => $translations,
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
-            'is_auto_planchiste' => $is_auto_planchiste
+            'is_auto_planchiste' => $is_auto_planchiste,
+            'can_book' => $can_book
         );
         load_last_view('reservations/reservations_v6', $data);
     }
@@ -185,7 +186,7 @@ class Reservations extends MY_Controller {
         $instructors_options = $this->membres_model->inst_selector(0, true);
 
         // User context for access control
-        list($current_username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book) = $this->_reservation_permissions();
 
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
@@ -244,9 +245,10 @@ class Reservations extends MY_Controller {
             'translations' => $translations,
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
-            'is_auto_planchiste' => $is_auto_planchiste
+            'is_auto_planchiste' => $is_auto_planchiste,
+            'can_book' => $can_book
         );
-        
+
         load_last_view('reservations/timeline', $data);
     }
 
@@ -384,8 +386,15 @@ class Reservations extends MY_Controller {
                 throw new Exception('Reservation not found');
             }
 
-            // Access control for auto_planchiste
-            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt) = $this->_reservation_permissions();
+            // Access control
+            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt, $drop_can_book) = $this->_reservation_permissions();
+
+            // Read-only members cannot create or modify reservations
+            if (!$drop_can_book) {
+                $this->lang->load('reservations');
+                throw new Exception($this->lang->line('reservations_error_not_authorized'));
+            }
+
             if ($drop_is_auto_planchiste && !$drop_can_edit_others) {
                 if ($reservation['pilot_member_id'] !== $drop_username) {
                     $this->lang->load('reservations');
@@ -627,7 +636,13 @@ class Reservations extends MY_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
 
-            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt) = $this->_reservation_permissions();
+            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book) = $this->_reservation_permissions();
+
+            // Read-only members cannot create or modify reservations
+            if (!$can_book) {
+                $this->lang->load('reservations');
+                throw new Exception($this->lang->line('reservations_error_not_authorized'));
+            }
 
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
@@ -784,8 +799,15 @@ class Reservations extends MY_Controller {
             
             $this->load->model('reservations_model');
 
-            // Access control for auto_planchiste
-            list($del_username, $del_can_edit_others, $del_is_auto_planchiste) = $this->_reservation_permissions();
+            // Access control
+            list($del_username, $del_can_edit_others, $del_is_auto_planchiste, , $del_can_book) = $this->_reservation_permissions();
+
+            // Read-only members cannot delete reservations
+            if (!$del_can_book) {
+                $this->lang->load('reservations');
+                throw new Exception($this->lang->line('reservations_error_not_authorized'));
+            }
+
             if ($del_is_auto_planchiste && !$del_can_edit_others) {
                 $this->lang->load('reservations');
                 $del_reservation = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
@@ -991,26 +1013,30 @@ class Reservations extends MY_Controller {
 
     /**
      * Return reservation permission context for the current user.
-     * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt)
+     * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book)
      *
-     * $can_edit_others  — may create/edit/delete reservations for other pilots (admin, instructeur)
-     * $balance_exempt   — exempt from balance check: admin, instructeur AND pilote_vd
+     * $can_edit_others  — may create/edit/delete reservations for other pilots (club-admin, instructeur)
+     * $balance_exempt   — exempt from balance check: club-admin, instructeur, pilote_vd
+     * $can_book         — may create/modify/delete any reservation (auto_planchiste, pilote_vd, instructeur, club-admin)
+     *                     Members without any of these roles are read-only: they can view but not act.
      */
     private function _reservation_permissions() {
         $username = $this->dx_auth->get_username();
         if ($this->use_new_auth) {
-            $section_id = $this->session->userdata('section');
+            $section_id         = $this->session->userdata('section');
             $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
-            $can_edit_others = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL)
-                            || $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
-            $balance_exempt  = $can_edit_others
-                            || $this->gvv_authorization->has_role($this->user_id, 'pilote_vd', $section_id);
+            $is_pilote_vd       = $this->gvv_authorization->has_role($this->user_id, 'pilote_vd',       $section_id);
+            $can_edit_others    = $this->gvv_authorization->has_role($this->user_id, 'club-admin',      NULL)
+                                || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id);
+            $balance_exempt     = $can_edit_others || $is_pilote_vd;
+            $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd;
         } else {
             $is_auto_planchiste = false;
-            $can_edit_others = true;
-            $balance_exempt  = true;
+            $can_edit_others    = true;
+            $balance_exempt     = true;
+            $can_book           = true;
         }
-        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt);
+        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book);
     }
 
 }
