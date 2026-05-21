@@ -229,6 +229,12 @@ class Alarmes extends Gvv_Controller {
      * checks experienc conditions for a user
      */
     function index($mlogin = "") {
+        $section = $this->membres_model->section();
+        if (empty($section) || empty($section['gestion_planeurs'])) {
+            $this->session->set_flashdata('popup', $this->lang->line('not_available_for_this_section'));
+            redirect('welcome');
+        }
+
     	$current_login = $this->dx_auth->get_username();
 
     	if (!$this->dx_auth->is_role('ca', true, true)) {

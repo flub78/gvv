@@ -879,3 +879,5 @@ $lang['gvv_rename_error_invalid_data'] = "Invalid data.";
 $lang['gvv_rename_error_access']       = "Access restricted to development users.";
 $lang['gvv_rename_error_invalid_step'] = "Invalid step.";
 $lang['gvv_rename_success_message']    = "Rename successful: %d records updated.";
+
+$lang['not_available_for_this_section'] = "This feature is not available for this section.";

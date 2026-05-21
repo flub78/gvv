@@ -879,3 +879,5 @@ $lang['gvv_rename_error_invalid_data'] = "Ongeldige gegevens.";
 $lang['gvv_rename_error_access']       = "Toegang beperkt tot ontwikkelingsgebruikers.";
 $lang['gvv_rename_error_invalid_step'] = "Ongeldige stap.";
 $lang['gvv_rename_success_message']    = "Hernoemen geslaagd: %d records bijgewerkt.";
+
+$lang['not_available_for_this_section'] = "Deze functie is niet beschikbaar voor deze sectie.";

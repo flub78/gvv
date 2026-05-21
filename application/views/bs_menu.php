@@ -108,7 +108,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                   <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line text-info"></i> <?= translation("gvv_menu_reports") ?> &raquo;</a>
                 <ul class="submenu dropdown-menu">
 
+                  <?php if ($section && !empty($section['gestion_planeurs'])) : ?>
                   <li><a class="dropdown-item" href="<?= controller_url("alarmes") ?>"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("gvv_menu_validities") ?></a></li>
+                  <?php endif; ?>
                   <?php if ($this->config->item('gestion_documentaire')) : ?>
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/page") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_all_documents") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/pending") ?>"><i class="fas fa-clock text-info"></i> <?= translation("archived_documents_pending_documents") ?></a></li>
@@ -118,8 +120,9 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_financial_reports") ?></a></li>
                   <?php endif; ?>
                   <?php if (has_role('ca')) : ?>
-                    <li><a class="dropdown-item" href="<?= controller_url("reports/page") ?>"><i class="fas fa-file-alt text-primary"></i> <?= translation("gvv_menu_reports_user_reports") ?></a></li>
+                    <?php if ($section && !empty($section['gestion_planeurs'])) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/ffvv") ?>"><i class="fas fa-flag text-primary"></i> <?= translation("gvv_menu_reports_federal_report") ?></a></li>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("adherents_report") ?>"><i class="fas fa-users text-success"></i> <?= translation("gvv_menu_adherents_report") ?></a></li>
                   <?php endif; ?>
                   <?php if (has_role('admin')) : ?>
@@ -146,14 +149,18 @@ if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
               <?php if (has_role('ca')) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cogs text-primary"></i> <?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
+                    <?php if (has_role('club-admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>
                     <?php if ($this->dx_auth->is_admin()): ?>
                     <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
                     <?php endif; ?>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("email_lists_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("gestion_roles") ?>"><i class="fas fa-users-cog text-warning"></i> <?= translation("gvv_menu_gestion_roles") ?></a></li>
+                    <?php if (has_role('club-admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("authorization") ?>"><i class="fas fa-shield-alt text-danger"></i> <?= translation("authorization_title") ?></a></li>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("terrains/page") ?>"><i class="fas fa-road text-success"></i> <?= translation("welcome_airfield_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("historique") ?>"><i class="fas fa-history text-info"></i> <?= translation("welcome_history_title") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("welcome/ca") ?>"><i class="fas fa-chart-bar text-primary"></i> <?= translation("welcome_reports_title") ?></a></li>
