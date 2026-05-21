@@ -385,7 +385,7 @@ class Reservations extends MY_Controller {
             }
 
             // Access control for auto_planchiste
-            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste) = $this->_reservation_permissions();
+            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt) = $this->_reservation_permissions();
             if ($drop_is_auto_planchiste && !$drop_can_edit_others) {
                 if ($reservation['pilot_member_id'] !== $drop_username) {
                     $this->lang->load('reservations');
@@ -394,7 +394,7 @@ class Reservations extends MY_Controller {
             }
 
             // Balance check on drag/resize: exclude current reservation to avoid double-counting
-            if (!$drop_can_edit_others) {
+            if (!$drop_balance_exempt) {
                 $balance_check = $this->_check_pilot_balance(
                     $drop_username,
                     $reservation['aircraft_id'],
@@ -627,7 +627,7 @@ class Reservations extends MY_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
 
-            list($username, $can_edit_others, $is_auto_planchiste) = $this->_reservation_permissions();
+            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt) = $this->_reservation_permissions();
 
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
@@ -660,9 +660,9 @@ class Reservations extends MY_Controller {
                 }
             }
 
-            // Balance check: applies to all non-privileged members (not admin/instructeur)
+            // Balance check: applies to all non-privileged members (not admin/instructeur/pilote_vd)
             // On update, exclude the reservation being modified to avoid double-counting.
-            if (!$can_edit_others) {
+            if (!$balance_exempt) {
                 $this->lang->load('reservations');
                 $exclude_id = $is_create ? null : $reservation_id;
                 $balance_check = $this->_check_pilot_balance($username, $aircraft_id, $start_datetime, $end_datetime, $instructor_member_id, $exclude_id);
@@ -979,7 +979,10 @@ class Reservations extends MY_Controller {
 
     /**
      * Return reservation permission context for the current user.
-     * Returns array($username, $can_edit_others, $is_auto_planchiste)
+     * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt)
+     *
+     * $can_edit_others  — may create/edit/delete reservations for other pilots (admin, instructeur)
+     * $balance_exempt   — exempt from balance check: admin, instructeur AND pilote_vd
      */
     private function _reservation_permissions() {
         $username = $this->dx_auth->get_username();
@@ -988,11 +991,14 @@ class Reservations extends MY_Controller {
             $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
             $can_edit_others = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL)
                             || $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
+            $balance_exempt  = $can_edit_others
+                            || $this->gvv_authorization->has_role($this->user_id, 'pilote_vd', $section_id);
         } else {
             $is_auto_planchiste = false;
             $can_edit_others = true;
+            $balance_exempt  = true;
         }
-        return array($username, $can_edit_others, $is_auto_planchiste);
+        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt);
     }
 
 }
