@@ -26,6 +26,7 @@ class Terrains extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'terrains';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'terrains_model';
     protected $modification_level = 'ca'; // Legacy authorization for non-migrated users
     protected $rules = array ();

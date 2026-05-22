@@ -41,6 +41,13 @@ class Formation_rapports extends CI_Controller
         $this->load->library('formation_progression');
         $this->lang->load('formation');
         $this->lang->load('gvv');
+
+        // Bouton retour → tableau de bord Formation
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/formation',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_training'),
+        ]);
     }
 
     /**

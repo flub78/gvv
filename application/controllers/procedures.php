@@ -34,6 +34,7 @@ include('./application/libraries/Gvv_Controller.php');
  */
 class Procedures extends Gvv_Controller {
     protected $controller = 'procedures';
+    protected $back_dashboard = 'welcome/section/admin_sys';
     protected $model = 'procedures_model';
     protected $modification_level = 'ca'; // Seuls les admins club peuvent modifier
 

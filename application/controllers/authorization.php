@@ -100,6 +100,10 @@ class Authorization extends CI_Controller {
      * Dashboard - Overview of authorization system
      */
     function index() {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => $this->session->userdata('nav_from_url') ?: 'welcome/section/admin_sys', 'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_sys')]);
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_title');
@@ -123,6 +127,10 @@ class Authorization extends CI_Controller {
      * Manage user roles - List all users and their roles
      */
     function user_roles($message = '') {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => 'authorization', 'nav_back_label' => $this->lang->line('authorization_title')]);
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_users');
@@ -340,6 +348,10 @@ class Authorization extends CI_Controller {
      * Manage roles - List all roles
      */
     function roles() {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => 'authorization', 'nav_back_label' => $this->lang->line('authorization_title')]);
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_roles');
@@ -355,6 +367,10 @@ class Authorization extends CI_Controller {
      * Manage role members - show who has a given role and allow add/remove
      */
     function role_members($role_id = NULL) {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => 'authorization/roles', 'nav_back_label' => $this->lang->line('authorization_roles')]);
+
         if (!$role_id) {
             redirect('authorization/roles');
         }
@@ -382,6 +398,10 @@ class Authorization extends CI_Controller {
      * Manage data access rules
      */
     function data_access_rules($types_roles_id = NULL, $message = '') {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => 'authorization/roles', 'nav_back_label' => $this->lang->line('authorization_roles')]);
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_data_access_rules');
@@ -567,6 +587,10 @@ class Authorization extends CI_Controller {
      * View audit log
      */
     function audit_log($page = 0) {
+        // Bouton de retour
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars(['nav_back_url' => 'authorization', 'nav_back_label' => $this->lang->line('authorization_title')]);
+
         $data = array();
         $data['controller'] = $this->controller;
         $data['title'] = $this->lang->line('authorization_audit_log');

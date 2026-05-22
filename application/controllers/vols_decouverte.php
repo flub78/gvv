@@ -36,6 +36,7 @@ class Vols_decouverte extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'vols_decouverte';
+    protected $back_dashboard = 'welcome/section/flights';
     protected $model = 'vols_decouverte_model';
     protected $modification_level = 'gestion_vd';
     protected $rules = array(

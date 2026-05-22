@@ -34,6 +34,7 @@ include('./application/libraries/Gvv_Controller.php');
  */
 class Attachments extends Gvv_Controller {
     protected $controller = 'attachments';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'attachments_model';
     // Custom access control: bureau = read-only, tresorier = read-write
     protected $view_level = 'bureau';        // Minimum role for viewing

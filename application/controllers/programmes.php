@@ -36,6 +36,7 @@ include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
 class Programmes extends Gvv_Controller
 {
     protected $controller = 'programmes';
+    protected $back_dashboard = 'welcome/section/formation';
     protected $model = 'formation_programme_model';
     protected $modification_level = 'admin'; // Legacy authorization
     protected $use_new_auth = TRUE; // Use new authorization system

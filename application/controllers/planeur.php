@@ -33,6 +33,7 @@ include('./application/libraries/Gvv_Controller.php');
  */
 class Planeur extends Gvv_Controller {
     protected $controller = 'planeur';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'planeurs_model';
     protected $kid = 'mpimmat';
     protected $modification_level = 'ca';

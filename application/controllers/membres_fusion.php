@@ -23,6 +23,13 @@ class Membres_fusion extends CI_Controller {
         $this->_check_dev_user();
         $this->load->model('membres_fusion_model');
         $this->lang->load('gvv');
+
+        // Bouton retour → tableau de bord Développement
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/dev',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_dev'),
+        ]);
     }
 
     public function index() {

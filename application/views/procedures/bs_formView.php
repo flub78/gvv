@@ -21,21 +21,6 @@ $form_action = $is_edit ? 'procedures/modifier' : 'procedures/ajout';
         <!-- Header -->
         <div class="row mb-3">
             <div class="col-12">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="<?= site_url('procedures') ?>">Procédures</a>
-                        </li>
-                        <?php if ($is_edit): ?>
-                            <li class="breadcrumb-item">
-                                <a href="<?= site_url("procedures/view/{$id}") ?>"><?= htmlspecialchars($title ?? 'Procédure') ?></a>
-                            </li>
-                            <li class="breadcrumb-item active">Modifier</li>
-                        <?php else: ?>
-                            <li class="breadcrumb-item active">Nouvelle procédure</li>
-                        <?php endif; ?>
-                    </ol>
-                </nav>
                 <h2>
                     <i class="fas fa-<?= $is_edit ? 'edit' : 'plus' ?>"></i>
                     <?= $form_title ?>

@@ -38,6 +38,13 @@ class OpenFlyers extends CI_Controller {
         $this->load->model('ecritures_model');
         $this->load->model('sections_model');
         $this->load->library('openflyers/SoldesParser');
+
+        // Bouton retour → tableau de bord Trésorerie
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/treasurer',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_treasury'),
+        ]);
     }
 
     /**

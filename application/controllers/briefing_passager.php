@@ -16,6 +16,7 @@ include('./application/libraries/Gvv_Controller.php');
 class Briefing_passager extends Gvv_Controller {
 
     protected $controller        = 'briefing_passager';
+    protected $back_dashboard    = 'welcome/section/flights';
     protected $model             = 'archived_documents_model';
     protected $modification_level = 'gestion_vd';
 

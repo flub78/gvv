@@ -31,6 +31,7 @@ class Avion extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'avion';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'avions_model';
     protected $modification_level = 'ca';
     protected $rules = array(

@@ -35,6 +35,7 @@ include('./application/libraries/Gvv_Controller.php');
  */
 class Achats extends Gvv_Controller {
     protected $controller = 'achats';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'achats_model';
     protected $rules = array();
 

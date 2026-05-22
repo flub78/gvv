@@ -26,6 +26,7 @@ include('./application/libraries/Gvv_Controller.php');
 class Document_types extends Gvv_Controller {
 
     protected $controller = 'document_types';
+    protected $back_dashboard = 'welcome/section/admin_sys';
     protected $model = 'document_types_model';
     protected $modification_level = 'ca';
     protected $rules = array(

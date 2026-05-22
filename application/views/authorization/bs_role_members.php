@@ -40,14 +40,6 @@ $section_name = $has_section ? ($section_map[$current_section_id] ?? '') : '';
 ?>
 
 <div id="body" class="body container-fluid">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= site_url('authorization') ?>"><?= $this->lang->line('authorization_title') ?></a></li>
-            <li class="breadcrumb-item"><a href="<?= site_url('authorization/roles') ?>"><?= $this->lang->line('authorization_available_roles') ?></a></li>
-            <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($role_label) ?></li>
-        </ol>
-    </nav>
-
     <h3>
         <?= $this->lang->line('authorization_role_members') ?> : <em><?= htmlspecialchars($role_label) ?></em>
         <?php if ($has_section): ?>

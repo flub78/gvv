@@ -39,6 +39,7 @@ include_once(APPPATH . '/libraries/Gvv_Controller.php');
 class Email_lists extends Gvv_Controller
 {
     protected $controller = 'email_lists';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'email_lists_model';
     protected $modification_level = 'secretaire'; // Legacy authorization for non-migrated users
     protected $use_new_auth = FALSE; // Use legacy authorization system

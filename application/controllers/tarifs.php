@@ -23,6 +23,7 @@
 include('./application/libraries/Gvv_Controller.php');
 class Tarifs extends Gvv_Controller {
     protected $controller = 'tarifs';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'tarifs_model';
     protected $rules = array();
 

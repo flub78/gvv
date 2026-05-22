@@ -43,6 +43,13 @@ class Rapprochements extends CI_Controller {
         $this->load->model('associations_releve_model');
 
         $this->load->library('rapprochements/Reconciliator');
+
+        // Bouton retour → tableau de bord Trésorerie
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/treasurer',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_treasury'),
+        ]);
     }
 
     /**

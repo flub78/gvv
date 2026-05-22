@@ -63,6 +63,7 @@ include ('./application/libraries/Gvv_Controller.php');
  */
 class Tickets extends Gvv_Controller {
     protected $controller = 'tickets';
+    protected $back_dashboard = 'welcome/section/user';
     protected $model = 'tickets_model';
     protected $modification_level = 'ca';
 

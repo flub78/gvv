@@ -28,14 +28,6 @@ $this->load->view('bs_banner');
 ?>
 
 <div id="body" class="body container-fluid">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= site_url('authorization') ?>">Authorization</a></li>
-            <li class="breadcrumb-item"><a href="<?= site_url('authorization/roles') ?>">Roles</a></li>
-            <li class="breadcrumb-item active" aria-current="page"><?= $title ?></li>
-        </ol>
-    </nav>
-
     <h3><?= $title ?></h3>
 
     <?php if (!empty($message)): ?>

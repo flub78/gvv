@@ -28,13 +28,6 @@ $this->load->view('bs_banner');
 ?>
 
 <div id="body" class="body container-fluid">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?= site_url('authorization') ?>"><?= $this->lang->line('authorization_title') ?></a></li>
-            <li class="breadcrumb-item active" aria-current="page"><?= $this->lang->line('authorization_audit_log') ?></li>
-        </ol>
-    </nav>
-
     <h3><?= $title ?></h3>
 
     <!-- Filters Card -->

@@ -36,6 +36,7 @@ include_once('application/libraries/Gvv_Controller.php');
 
 class Comptes extends Gvv_Controller {
     protected $controller = 'comptes';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'comptes_model';
     protected $modification_level = 'tresorier';
 

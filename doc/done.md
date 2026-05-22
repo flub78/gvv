@@ -186,3 +186,7 @@
 * [x] Ajout des types vol de découverte et vol propriétaire dans les réservations. et types VLD.
 
 * [x] Forcer la saisie d'un numéro de vol de découverte pour les vols de découverte.
+
+* [x] Test approfondi gestion des vols avion et ULM.
+
+* [x] il faudrait afficher un asterix rouge à côté des champs obligatoires dans les formulaires.

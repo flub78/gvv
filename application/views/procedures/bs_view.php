@@ -17,14 +17,6 @@ $this->lang->load('procedures');
         <!-- Header avec titre et actions -->
         <div class="row mb-3">
             <div class="col-md-8">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="<?= site_url('procedures') ?>">Procédures</a>
-                        </li>
-                        <li class="breadcrumb-item active"><?= htmlspecialchars($procedure['title']) ?></li>
-                    </ol>
-                </nav>
                 <h2>
                     <i class="fas fa-book-open"></i>
                     <?= htmlspecialchars($procedure['title']) ?>

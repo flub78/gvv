@@ -38,7 +38,7 @@
 
     <li><a class="dropdown-item" href="https://www.ffvp.fr/" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe text-primary"></i> <?= translation("FFVP") ?></a></li>
     <li><a class="dropdown-item" href="https://www.ffvp.fr/les-rex" target="_blank" rel="noopener noreferrer"><i class="fas fa-exclamation-triangle text-warning"></i> <?= translation("Retours d'expérience") ?></a></li>
-    <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer"><i class="fas fa-cloud-sun text-info"></i> <?= translation("Prévisions vol à voile") ?></a></li>
+    <li><a class="dropdown-item" href="https://aviation.meteo.fr/login.php" target="_blank" rel="noopener noreferrer"><i class="fas fa-cloud-sun text-info"></i> <?= translation("AEROWEB") ?></a></li>
     <?php if (has_role('ca')) : ?>
       <li><a class="dropdown-item" href="https://heva.ffvp.fr/guard/login" target="_blank" rel="noopener noreferrer"><i class="fas fa-id-card text-success"></i> <?= translation("Licences assurance") ?></a></li>
     <?php endif; ?>

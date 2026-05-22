@@ -417,6 +417,13 @@ class Auth extends CI_Controller {
     }
 
     function change_password($duplicate = "") {
+        // Bouton retour → Mon espace personnel
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/user',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_personal'),
+        ]);
+
         // Check if user logged in or not
         if ($this->dx_auth->is_logged_in()) {
             $val = $this->form_validation;

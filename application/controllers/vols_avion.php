@@ -40,6 +40,7 @@ class Vols_avion extends Gvv_Controller {
     const HORAMETRE_DIXIEME = 2;
 
     protected $controller = 'vols_avion';
+    protected $back_dashboard = 'welcome/section/flights';
     protected $model = 'vols_avion_model';
     protected $kid = 'vaid';
     protected $modification_level = 'planchiste';

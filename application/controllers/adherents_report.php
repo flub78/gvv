@@ -42,6 +42,13 @@ class Adherents_report extends CI_Controller {
 
         $this->load->model('adherents_report_model');
         $this->lang->load('gvv');
+
+        // Bouton retour → tableau de bord Administration du club
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/admin_club',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_club'),
+        ]);
     }
 
     /**

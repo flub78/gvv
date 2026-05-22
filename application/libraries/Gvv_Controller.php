@@ -52,6 +52,12 @@ class Gvv_Controller extends MY_Controller {
     protected $data = array();
 
     /**
+     * URL du tableau de bord parent (ex: 'welcome/section/flights').
+     * Si défini, active le bouton de retour automatique dans bs_banner.
+     */
+    protected $back_dashboard = null;
+
+    /**
      * Constructeur
      */
     function __construct() {
@@ -105,6 +111,34 @@ class Gvv_Controller extends MY_Controller {
         }
         // On a besoin du clotures_model pour connaitre les dates de gel
         $this->load->model('clotures_model');
+
+        // Bouton de retour vers le tableau de bord parent
+        if ($this->back_dashboard) {
+            $this->set_nav_back($this->back_dashboard);
+        }
+    }
+
+    /**
+     * Injecte les variables nav_back_url / nav_back_label dans toutes les vues
+     * suivantes, permettant à bs_banner.php d'afficher le bouton de retour.
+     *
+     * @param string $url       URL relative CI (ex: 'welcome/section/flights')
+     * @param string $label_key Clé de langue dans tableaux_de_bord (défaut: db_btn_retour)
+     */
+    protected function set_nav_back($url, $label_key = 'db_btn_retour') {
+        $this->lang->load('tableaux_de_bord');
+        // Pour les retours vers un tableau de bord de section, utiliser la session si disponible
+        if (strpos($url, 'welcome/section/') !== false) {
+            $session_url = $this->session->userdata('nav_from_url');
+            if ($session_url) {
+                $label = $this->session->userdata('nav_from_label') ?: ($this->lang->line($label_key) ?: 'Retour');
+                $this->load->vars(['nav_back_url' => $session_url, 'nav_back_label' => $label]);
+                return;
+            }
+        }
+        $label = $this->lang->line($label_key);
+        if (!$label) $label = 'Retour';
+        $this->load->vars(['nav_back_url' => $url, 'nav_back_label' => $label]);
     }
 
     /**
@@ -214,6 +248,11 @@ class Gvv_Controller extends MY_Controller {
 
         $this->form_static_element(CREATION);
 
+        // Bouton retour → liste
+        if ($this->back_dashboard) {
+            $this->set_nav_back($this->controller . '/page', 'db_btn_retour_liste');
+        }
+
         if (! isset($no_view_loading)) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
         } else {
@@ -272,6 +311,12 @@ class Gvv_Controller extends MY_Controller {
         $this->data['original_' . $this->kid] = $id;
         $this->data[$this->kid] = $id;
         $this->data['kid'] = $this->kid;
+
+        // Bouton retour → liste
+        if ($this->back_dashboard) {
+            $this->set_nav_back($this->controller . '/page', 'db_btn_retour_liste');
+        }
+
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
         }

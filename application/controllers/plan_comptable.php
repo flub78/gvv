@@ -25,6 +25,7 @@ include('./application/libraries/Gvv_Controller.php');
 class Plan_Comptable extends Gvv_Controller {
 
     protected $controller = 'plan_comptable';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'plan_comptable_model';
     protected $kid = 'pcode';
 

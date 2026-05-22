@@ -34,6 +34,7 @@
 include('./application/libraries/Gvv_Controller.php');
 class Compta extends Gvv_Controller {
     protected $controller = 'compta';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'ecritures_model';
     protected $modification_level = 'tresorier';
     protected $rules = ['club' => "callback_section_selected"];
@@ -80,6 +81,9 @@ class Compta extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
+        // Bouton retour → journal
+        $this->set_nav_back($this->controller . '/page', 'db_btn_retour_liste');
+
         // Any tresorier (in any section) can access this page for reading.
         // Section-scoped modification rights are checked below per entry.
         if (!$this->has_modification_rights()) {

@@ -42,6 +42,13 @@ class Formation_types_seances extends CI_Controller {
         if (!$is_admin) {
             show_error($this->lang->line('formation_acces_refuse'), 403);
         }
+
+        // Bouton retour → tableau de bord Administration système
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/admin_sys',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_sys'),
+        ]);
     }
 
     /**

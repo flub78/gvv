@@ -32,6 +32,7 @@ include ('./application/libraries/Gvv_Controller.php');
  */
 class Event extends Gvv_Controller {
     protected $controller = 'event';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'event_model';
     protected $kid = 'id';
     protected $modification_level = 'ca'; // no edit delete buttons on list

@@ -46,6 +46,13 @@ class Migration extends CI_Controller {
         $this->load->helper('file');
         $this->load->library('migration');
         $this->config->load('migration');
+
+        // Bouton retour → tableau de bord Administration système
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/admin_sys',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_sys'),
+        ]);
     }
 
     /**

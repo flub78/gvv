@@ -37,6 +37,7 @@ include('./application/libraries/Gvv_Controller.php');
  */
 class Sections extends Gvv_Controller {
     protected $controller = 'sections';
+    protected $back_dashboard = 'welcome/section/admin_sys';
     protected $model = 'sections_model';
 
     protected $rules = array();

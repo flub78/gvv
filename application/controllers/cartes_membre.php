@@ -29,6 +29,13 @@ class Cartes_membre extends CI_Controller {
 
         $this->load->model('cartes_membre_model');
         $this->lang->load('gvv');
+
+        // Bouton retour par défaut → Administration du club (sauf carte individuelle)
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/admin_club',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_club'),
+        ]);
     }
 
     /** Redirige vers l'écran de sélection du lot. */
@@ -49,6 +56,12 @@ class Cartes_membre extends CI_Controller {
      * @param int|null    $year    Année de la carte.
      */
     public function carte($mlogin = null, $year = null) {
+        // La carte individuelle est accessible depuis Mon espace personnel
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/user',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_personal'),
+        ]);
+
         $current_user = $this->dx_auth->get_username();
         $is_admin     = $this->dx_auth->is_admin();
 

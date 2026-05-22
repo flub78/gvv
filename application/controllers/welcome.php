@@ -83,6 +83,23 @@ class Welcome extends Gvv_Controller {
         if (!in_array($name, $allowed)) {
             redirect('welcome');
         }
+
+        // Mémoriser ce tableau de bord comme point de retour pour les pages de niveau inférieur
+        $this->lang->load('tableaux_de_bord');
+        $section_label_keys = array(
+            'user'        => 'db_section_personal',
+            'flights'     => 'db_section_flights',
+            'treasurer'   => 'db_section_treasury',
+            'formation'   => 'db_section_training',
+            'maintenance' => 'db_section_maintenance',
+            'admin_club'  => 'db_section_admin_club',
+            'admin_sys'   => 'db_section_admin_sys',
+            'dev'         => 'db_section_dev',
+        );
+        $label_key = isset($section_label_keys[$name]) ? $section_label_keys[$name] : 'db_btn_retour';
+        $this->session->set_userdata('nav_from_url',   'welcome/section/' . $name);
+        $this->session->set_userdata('nav_from_label', $this->lang->line($label_key));
+
         $data = $this->_prepare_dashboard_data();
         $data['dashboard_section'] = $name;
         load_last_view('sub_dashboard', $data);

@@ -40,6 +40,13 @@ class Formation_progressions extends CI_Controller
         $this->load->library('formation_progression');
         $this->lang->load('formation');
         $this->lang->load('gvv');
+
+        // Bouton retour par défaut → Formation (sauf mes_formations)
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/formation',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_training'),
+        ]);
     }
 
     /**
@@ -67,6 +74,12 @@ class Formation_progressions extends CI_Controller
     public function mes_formations()
     {
         log_message('debug', 'FORMATION_PROGRESSIONS: mes_formations() called');
+
+        // Vue pilote : retour vers Mon espace personnel
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/user',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_personal'),
+        ]);
 
         // Récupérer le pilote connecté
         $pilote_id = $this->dx_auth->get_username();

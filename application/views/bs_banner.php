@@ -17,6 +17,14 @@ if ($banner_color === '') {
     <div id="header_right"></div>
 </header>
 
+<?php if (isset($nav_back_url) && $nav_back_url): ?>
+<div class="container-fluid px-3 pt-2 pb-0">
+    <a href="<?= controller_url($nav_back_url) ?>" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i><?= htmlspecialchars($nav_back_label ?? 'Retour') ?>
+    </a>
+</div>
+<?php endif; ?>
+
 <?php if ($ran_mode_active): ?>
 <div class="container-fluid p-2 bg-danger text-white text-center" style="position: sticky; top: 0; z-index: 1030; border-bottom: 3px solid #8b0000; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
     <strong style="font-size: 1.1em;">

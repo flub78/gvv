@@ -31,6 +31,7 @@ include ('./application/libraries/Gvv_Controller.php');
  */
 class Vols_planeur extends Gvv_Controller {
     protected $controller = 'vols_planeur';
+    protected $back_dashboard = 'welcome/section/flights';
     protected $model = 'vols_planeur_model';
     protected $kid = 'vpid';
     protected $modification_level = 'planchiste';

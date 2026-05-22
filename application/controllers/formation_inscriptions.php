@@ -44,8 +44,15 @@ class Formation_inscriptions extends CI_Controller {
         if (!$this->dx_auth->is_logged_in()) {
             redirect('auth/login');
         }
+
+        // Bouton retour → tableau de bord Formation
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/formation',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_training'),
+        ]);
     }
-    
+
     /**
      * Liste de toutes les inscriptions
      */

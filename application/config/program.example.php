@@ -226,6 +226,8 @@ $config['passphrase'] = "Il était une fois...";
 
 $config['timeline_increment'] = "15";
 
+$config['reservation_balance_check'] = TRUE;
+
 
 /* End of file program.php */
 /* Location: .application/config/program.php */

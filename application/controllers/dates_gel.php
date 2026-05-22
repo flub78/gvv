@@ -14,6 +14,7 @@ include('./application/libraries/Gvv_Controller.php');
 class Dates_gel extends Gvv_Controller {
 
     protected $controller = 'dates_gel';
+    protected $back_dashboard = 'welcome/section/dev';
     protected $model = 'clotures_model';
     protected $modification_level = 'admin';
     protected $rules = array();

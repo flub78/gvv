@@ -33,6 +33,7 @@ Requests::register_autoloader();
  */
 class Membre extends Gvv_Controller {
     protected $controller = 'membre';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'membres_model';
     protected $kid = 'mlogin';
     protected $modification_level = 'ca'; // no edit delete buttons on list

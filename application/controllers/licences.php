@@ -27,6 +27,7 @@ class Licences extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'licences';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'licences_model';
     protected $modification_level = 'ca'; // Legacy authorization for non-migrated users
     protected $use_new_auth = FALSE; // Use legacy authorization system

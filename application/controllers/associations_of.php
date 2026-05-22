@@ -26,6 +26,7 @@ class Associations_OF extends Gvv_Controller {
 
     // Tout le travail est fait par le parent
     protected $controller = 'associations_of';
+    protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'associations_of_model';
     protected $modification_level = 'ca';
     protected $rules = array();

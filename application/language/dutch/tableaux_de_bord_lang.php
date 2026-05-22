@@ -3,7 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 // ─── Actieknoppen ─────────────────────────────────────────────────────────────
 $lang['db_btn_voir']        = "Bekijken";
-$lang['db_btn_retour']      = "Terug naar dashboard";
+$lang['db_btn_retour']      = "Terug naar begin";
+$lang['db_btn_retour_liste'] = "Terug naar lijst";
 $lang['db_btn_acceder']     = "Openen";
 $lang['db_btn_modifier']    = "Wijzigen";
 $lang['db_btn_consulter']   = "Raadplegen";
