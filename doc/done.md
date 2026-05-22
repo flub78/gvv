@@ -192,3 +192,5 @@
 * [x] il faudrait afficher un asterix rouge à côté des champs obligatoires dans les formulaires.
 
 * [x] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
+
+* [x] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance

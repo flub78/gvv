@@ -8,8 +8,6 @@
 
 * [] Les briefings passagers doivent mettre à jour la date des vols de découverte.Vérifier.
 
-* [] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
-   
 * [] Génération des certificats de formation et de pilotes VD.
   
 * [] Ajout de vrais export excel en sus des csv.
