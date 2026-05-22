@@ -190,3 +190,5 @@
 * [x] Test approfondi gestion des vols avion et ULM.
 
 * [x] il faudrait afficher un asterix rouge à côté des champs obligatoires dans les formulaires.
+
+* [x] Quand une opération pointe sur un compte masqué, il faut montrer le compte.

@@ -212,11 +212,16 @@ class Compta extends Gvv_Controller {
         $this->data['emploi_selection'] = $this->emploi_selection;
         $this->data['resource_selection'] = $this->resource_selection;
 
-        // Use stored account filters to preserve selection restrictions during validation errors
+        // Use stored account filters to preserve selection restrictions during validation errors.
+        // When editing an existing entry, force-include the current compte1/compte2 even if they
+        // are masked, so the user can still see which accounts are referenced.
+        $current_compte1 = isset($this->data['compte1']) ? $this->data['compte1'] : null;
+        $current_compte2 = isset($this->data['compte2']) ? $this->data['compte2'] : null;
+
         $this->gvvmetadata->set_selector('compte1_selector',
-            $this->comptes_model->selector_with_null($this->emploi_selection, TRUE));
+            $this->comptes_model->selector_with_null_force_include($this->emploi_selection, TRUE, $current_compte1));
         $this->gvvmetadata->set_selector('compte2_selector',
-            $this->comptes_model->selector_with_null($this->resource_selection, TRUE));
+            $this->comptes_model->selector_with_null_force_include($this->resource_selection, TRUE, $current_compte2));
 
         $this->data['date_creation'] = date("d/m/Y");
 

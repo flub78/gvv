@@ -4,8 +4,6 @@
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
-* [] Quand une opération pointe sur un compte masqué, il faut montrer le compte.
-  
 ## Reste à faire
 
 * [] Les briefings passagers doivent mettre à jour la date des vols de découverte.Vérifier.

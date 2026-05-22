@@ -1318,6 +1318,42 @@ class Comptes_model extends Common_Model {
     }
 
     /**
+     * Variante de selector_with_null qui inclut un compte spécifique même s'il est masqué.
+     *
+     * Utilisé lors de l'édition d'une écriture existante : si l'écriture référence un compte
+     * masqué, ce compte doit quand même apparaître dans la liste déroulante du formulaire
+     * pour que l'utilisateur puisse voir et corriger la saisie.
+     *
+     * @param array $where           Conditions WHERE supplémentaires
+     * @param bool  $filter_section  Filtrer par section active
+     * @param int|null $force_id     ID du compte à inclure même s'il est masqué (null = comportement normal)
+     * @return array Sélecteur avec option vide, sans comptes masqués, sauf $force_id
+     */
+    public function selector_with_null_force_include($where = array(), $filter_section = FALSE, $force_id = null) {
+        // Construit le sélecteur normal (comptes non masqués uniquement)
+        $where['masked'] = 0;
+        $allkeys = parent::selector($where, 'asc', $filter_section);
+
+        // Si un ID est forcé et qu'il n'est pas déjà dans la liste (compte masqué), on l'ajoute
+        if ($force_id && !isset($allkeys[$force_id])) {
+            $account = $this->db->select('id, nom, codec')->from('comptes')
+                ->where('id', $force_id)->get()->row_array();
+            if ($account) {
+                // Ajoute le libellé du compte masqué avec une mention visuelle
+                $allkeys[$account['id']] = $this->image($account['id']) . ' [masqué]';
+                natcasesort($allkeys);
+            }
+        }
+
+        // Ajoute l'entrée vide en première position
+        $result = array('' => '');
+        foreach ($allkeys as $key => $value) {
+            $result[$key] = $value;
+        }
+        return $result;
+    }
+
+    /**
      * Retourne un sélecteur de comptes pilotes (411) avec pilote associé
      *
      * @param bool $filter_section Filter by section
