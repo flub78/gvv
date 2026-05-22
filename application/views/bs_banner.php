@@ -18,7 +18,7 @@ if ($banner_color === '') {
 </header>
 
 <?php if (isset($nav_back_url) && $nav_back_url): ?>
-<div class="container-fluid px-3 pt-2 pb-0">
+<div class="container-fluid px-3 pt-2 pb-3">
     <a href="<?= controller_url($nav_back_url) ?>" class="btn btn-outline-secondary btn-sm">
         <i class="fas fa-arrow-left me-1"></i><?= htmlspecialchars($nav_back_label ?? 'Retour') ?>
     </a>

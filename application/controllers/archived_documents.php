@@ -63,6 +63,13 @@ class Archived_documents extends Gvv_Controller {
         $this->load->model('configuration_model');
 
         $this->table_view = $this->controller . '/documentsListView';
+
+        // Bouton retour → espace personnel utilisateur
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/user',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_personal'),
+        ]);
     }
 
     /**

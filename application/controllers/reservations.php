@@ -34,6 +34,13 @@ class Reservations extends MY_Controller {
         if (! getenv('TEST') && ! $this->dx_auth->is_logged_in()) {
             redirect("auth/login");
         }
+
+        // Bouton retour → tableau de bord Vols
+        $this->lang->load('tableaux_de_bord');
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/flights',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_flights'),
+        ]);
     }
 
     /**

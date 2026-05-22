@@ -23,6 +23,7 @@
     font-weight: bold;
     font-size: 1.1em;
     color: #d4dbcf;
+    background-color: rgb(5, 136, 5);
 }
 
 .first_row .DataTables_sort_wrapper {

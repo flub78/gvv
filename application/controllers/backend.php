@@ -25,6 +25,7 @@ include ('./application/libraries/Gvv_Controller.php');
 class Backend extends GVV_Controller {
     protected $controller = 'backend';
     protected $model = 'dx_auth/users';
+    protected $back_dashboard = 'welcome/section/admin_sys';
     function __construct() {
         parent::__construct();
 

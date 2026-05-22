@@ -29,6 +29,7 @@ class Configuration extends Gvv_Controller {
     protected $controller = 'configuration';
     protected $model = 'configuration_model';
     protected $modification_level = 'club-admin';
+    protected $back_dashboard = 'welcome/section/admin_club';
     protected $rules = array();
 
     /**

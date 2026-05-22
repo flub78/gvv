@@ -145,7 +145,7 @@ if ($banner_color === '') {
             "bSort": false,
             "bInfo": false,
             "bAutoWidth": true,
-            "bJQueryUI": true,
+            "bJQueryUI": false,
         });
 
         $('.searchable_nosort_datatable').dataTable({

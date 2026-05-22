@@ -455,12 +455,15 @@ class Paiements_en_ligne extends MY_Controller {
             return;
         }
 
+        $this->lang->load('tableaux_de_bord');
         $data = array(
-            'section'     => $section,
-            'montant'     => '',
-            'montant_min' => $montant_min,
-            'montant_max' => $montant_max,
-            'error'       => $this->session->flashdata('error'),
+            'section'        => $section,
+            'montant'        => '',
+            'montant_min'    => $montant_min,
+            'montant_max'    => $montant_max,
+            'error'          => $this->session->flashdata('error'),
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/user',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_personal'),
         );
         $this->load->view('bs_header', $data);
         $this->load->view('bs_menu', $data);
