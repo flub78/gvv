@@ -194,6 +194,7 @@ class Welcome extends Gvv_Controller {
             $data['is_mecano'] = $this->gvv_authorization->has_role($this->user_id, 'mecano', $section_id);
             $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
             $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
+            $data['is_pilote_rem'] = $this->gvv_authorization->has_role($this->user_id, 'pilote_rem', $section_id);
             $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
             $data['is_admin'] = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL);
             // Formation visibility: CA anywhere grants cross-section read access to formations.
@@ -210,6 +211,7 @@ class Welcome extends Gvv_Controller {
             $data['is_mecano'] = false;
             $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
             $data['is_auto_planchiste'] = false;
+            $data['is_pilote_rem'] = false; // pilote_rem est un rôle du nouveau système d'autorisation uniquement
             $data['can_view_formation'] = $data['is_ca'] || $data['is_admin'];
             $data['is_treasurer_in_section'] = $data['is_treasurer'];
         }

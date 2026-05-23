@@ -16,7 +16,11 @@
  */
 
 $this->load->view('bs_header');
-$this->load->view('bs_menu', array('is_planchiste' => $is_planchiste, 'is_auto_planchiste' => $is_auto_planchiste));
+$this->load->view('bs_menu', array(
+    'is_planchiste'      => $is_planchiste,
+    'is_auto_planchiste' => $is_auto_planchiste,
+    'is_pilote_rem'      => isset($is_pilote_rem) ? $is_pilote_rem : false,
+));
 $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
@@ -353,7 +357,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
-        <?php if ($is_planchiste || $is_auto_planchiste) : ?>
+        <?php if ($is_planchiste || $is_auto_planchiste || (isset($is_pilote_rem) && $is_pilote_rem && $show_planeurs)) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-plus text-success"></i>

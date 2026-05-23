@@ -93,6 +93,47 @@ class Vols_avion extends Gvv_Controller {
     }
 
     /**
+     * Retourne true si la section courante gère des planeurs (gestion_planeurs = 1).
+     * Les vols avions dans ces sections sont des remorqueurs.
+     */
+    private function is_glider_section() {
+        $section = $this->gvv_model->section();
+        return !empty($section['gestion_planeurs']);
+    }
+
+    /**
+     * Retourne true si l'utilisateur a le droit d'écriture complet sur les vols avion.
+     * - planchiste : toujours
+     * - pilote_rem : uniquement dans les sections gérant des planeurs
+     */
+    private function can_write_airplane_flights() {
+        if ($this->user_has_role('planchiste')) {
+            return true;
+        }
+        if ($this->user_has_role('pilote_rem') && $this->is_glider_section()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Surcharge de has_modification_rights() pour inclure pilote_rem dans les sections planeurs.
+     *
+     * @param int|null $section_id Non utilisé (hérité), la section est déduite du modèle.
+     * @return bool
+     */
+    protected function has_modification_rights($section_id = NULL) {
+        if ($this->dx_auth->is_admin()) {
+            return TRUE;
+        }
+        // Honore le mécanisme de bypass pour auto_planchiste (modification_level temporairement vidé)
+        if (!isset($this->modification_level) || $this->modification_level === '') {
+            return TRUE;
+        }
+        return $this->can_write_airplane_flights();
+    }
+
+    /**
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::form_static_element()
@@ -125,7 +166,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['partage'] = $this->config->item('partage');
 
         $this->data['default_user'] = $this->membres_model->default_id();
-        if (! $this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
+        if (! $this->can_write_airplane_flights() && $this->user_has_role('auto_planchiste')) {
             $this->data['auto_planchiste'] = true;
             $this->data['payeur_non_pilote'] = false;
             $this->data['partage'] = false;
@@ -179,9 +220,11 @@ class Vols_avion extends Gvv_Controller {
         $this->gvvmetadata->field['volsa']['vacategorie']['Enumerate'] = $allowed;
 
         // Données JS pour le filtrage dynamique (machine → proprio, remorqueur)
-        $is_privileged = $this->user_has_role('club-admin') || $this->user_has_role('ca')
+        // pilote_rem dans les sections planeurs voit toutes les machines (comme planchiste)
+        $is_privileged = $this->can_write_airplane_flights()
+                      || $this->user_has_role('club-admin') || $this->user_has_role('ca')
                       || $this->user_has_role('bureau')     || $this->user_has_role('admin')
-                      || $this->user_has_role('planchiste') || $this->user_has_role('instructeur');
+                      || $this->user_has_role('instructeur');
         $this->data['proprio_machines']  = $is_privileged ? array() : $this->get_proprio_machines();
         $this->data['is_privileged_user'] = $is_privileged;
 
@@ -298,7 +341,8 @@ class Vols_avion extends Gvv_Controller {
         }
         
         // Server-side enforcement: auto_planchiste can only create flights for themselves
-        if (!$this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
+        // (pilote_rem avec droits complets est exclu de cette restriction)
+        if (!$this->can_write_airplane_flights() && $this->user_has_role('auto_planchiste')) {
             $processed_data['vapilid'] = $this->dx_auth->get_username();
         }
 
@@ -415,7 +459,7 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::create()
      */
     function create() {
-        if (! $this->user_has_role('planchiste') && ! $this->user_has_role('auto_planchiste')) {
+        if (! $this->can_write_airplane_flights() && ! $this->user_has_role('auto_planchiste')) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -434,8 +478,8 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = '', $load_view = true, $action = MODIFICATION) {
-        // planchiste: full access; auto_planchiste: edit own flights; others: view own flights only
-        $is_planchiste = $this->user_has_role('planchiste');
+        // planchiste / pilote_rem (section planeurs): full access; auto_planchiste: edit own flights; others: view own flights only
+        $is_planchiste = $this->can_write_airplane_flights();
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
         $bypass_modification_level = FALSE;
         if (! $is_planchiste) {
@@ -504,7 +548,7 @@ class Vols_avion extends Gvv_Controller {
      * Supprime un élèment
      */
     function delete($id) {
-        if (! $this->user_has_role('planchiste')) {
+        if (! $this->can_write_airplane_flights()) {
             if ($this->user_has_role('auto_planchiste')) {
                 $flight = $this->gvv_model->get_by_id($this->kid, $id);
                 $mlogin = $this->dx_auth->get_username();
@@ -710,10 +754,10 @@ class Vols_avion extends Gvv_Controller {
             $this->data['inst'] = 0;
             $this->data['cdb'] = 0;
         }
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
 
         $this->data['default_user'] = $this->membres_model->default_id();
-        if (! $this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
+        if (! $this->can_write_airplane_flights() && $this->user_has_role('auto_planchiste')) {
             $this->data['auto_planchiste'] = true;
             $this->data['payeur_non_pilote'] = false;
             $this->data['partage'] = false;

@@ -31,12 +31,12 @@
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
 
-* [] Facture automatique de hangar
-
 * [] Informer le trésorier des renouvellement de cotisation par email
   
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
-  
+
+* [] Facture automatique de hangar
+
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
