@@ -493,6 +493,30 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
+     * Creates a passenger briefing document and sets date_vol on the VLD to today
+     * when date_vol is NULL. Does not override a date_vol already set.
+     *
+     * Use this method instead of create_document() when recording a passenger briefing
+     * (UC1 upload or UC2 digital signature) so that the flight date is automatically
+     * stamped from the briefing creation date.
+     *
+     * @param array $data Document data (must include vld_id)
+     * @return int|false New document ID or false on failure
+     */
+    public function create_briefing_and_update_date_vol($data) {
+        $doc_id = $this->create_document($data);
+
+        if ($doc_id && !empty($data['vld_id'])) {
+            // Set date_vol to today only when it is not yet defined on the VLD
+            $this->db->where('id', (int)$data['vld_id'])
+                     ->where('date_vol IS NULL', null, false)
+                     ->update('vols_decouverte', array('date_vol' => date('Y-m-d')));
+        }
+
+        return $doc_id;
+    }
+
+    /**
      * Updates meta fields of an existing document (label, description, dates, file).
      * Does not create a new version.
      * @param int   $id   Document ID

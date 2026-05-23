@@ -6,34 +6,34 @@
 
 ## Reste à faire
 
-* [] Les briefings passagers doivent mettre à jour la date des vols de découverte.Vérifier.
+* [] Corriger les tests playwrights
 
+* [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
+
+* [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
+  - à vérifier aussi sur les vols avions
+ 
+* [] Support des messages du jour, qui pourront inclure les alarmes.
+
+* [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
+
+* [] Ajout d'un calendrier des échéances
+ 
 * [] Génération des certificats de formation et de pilotes VD.
-  
+     
 * [] Ajout de vrais export excel en sus des csv.
 
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
-* [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.     
-
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
-* [ ] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
-
-* [] Ajout d'un calendrier des échéances
+* [] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
 
 * [] Facture automatique de hangar
 
 * [] Informer le trésorier des renouvellement de cotisation par email
-
-* [] Support des messages du jour, qui pourront inclure les alarmes.
-
-* [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
-
-* [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
-  - à vérifier aussi sur les vols avions
   
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   

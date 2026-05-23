@@ -268,7 +268,7 @@ class Briefing_passager extends Gvv_Controller {
             'validation_status' => 'approved',
         );
 
-        $doc_id = $this->archived_documents_model->create_document($doc_data);
+        $doc_id = $this->archived_documents_model->create_briefing_and_update_date_vol($doc_data);
 
         if ($doc_id) {
             redirect('briefing_passager/view/' . $doc_id);

@@ -201,7 +201,7 @@ class Briefing_sign extends CI_Controller {
                 if ($existing) {
                     $this->archived_documents_model->update_document($existing['id'], array('is_current_version' => 0));
                 }
-                $this->archived_documents_model->create_document(array(
+                $this->archived_documents_model->create_briefing_and_update_date_vol(array(
                     'document_type_id'  => $doc_type['id'],
                     'vld_id'            => $vld_id,
                     'section_id'        => $vld['club'],
