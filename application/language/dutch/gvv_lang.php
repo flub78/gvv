@@ -685,6 +685,9 @@ $lang['gvv_no_file_selected'] = 'Geen bestand geselecteerd';
 $lang['gvv_nb_personnes_max'] = 'Max passagiers';
 
 // Ledenpassen
+$lang['gvv_cartes_membre_generation_title']  = 'Ledenpassen genereren';
+$lang['gvv_cartes_membre_tab_lot']           = 'In bulk';
+$lang['gvv_cartes_membre_tab_individuelle']  = 'Individueel';
 $lang['gvv_cartes_membre_lot_title']    = 'Ledenpassen batch genereren';
 $lang['gvv_cartes_membre_config_title'] = 'Configuratie ledenpassen';
 $lang['gvv_cartes_membre_config']       = 'Configuratie';

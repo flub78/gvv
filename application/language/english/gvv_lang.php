@@ -685,6 +685,9 @@ $lang['gvv_no_file_selected'] = 'No file selected';
 $lang['gvv_nb_personnes_max'] = 'Max passengers';
 
 // Member cards
+$lang['gvv_cartes_membre_generation_title']  = 'Member card generation';
+$lang['gvv_cartes_membre_tab_lot']           = 'Batch';
+$lang['gvv_cartes_membre_tab_individuelle']  = 'Individual';
 $lang['gvv_cartes_membre_lot_title']    = 'Member card batch generation';
 $lang['gvv_cartes_membre_config_title'] = 'Member card configuration';
 $lang['gvv_cartes_membre_config']       = 'Configuration';

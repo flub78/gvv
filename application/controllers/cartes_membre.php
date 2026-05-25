@@ -38,9 +38,9 @@ class Cartes_membre extends CI_Controller {
         ]);
     }
 
-    /** Redirige vers l'écran de sélection du lot. */
+    /** Redirige vers la page de génération (onglets lot + individuelle). */
     public function index() {
-        redirect(controller_url('cartes_membre/lot'));
+        redirect(controller_url('cartes_membre/generation'));
     }
 
     /**
@@ -144,16 +144,25 @@ class Cartes_membre extends CI_Controller {
     }
 
     /**
-     * Écran de sélection du lot.
-     * GET  : affiche le formulaire (année + liste membres).
-     * POST : valide et redirige vers lot_pdf (members en session).
+     * Page de génération des cartes de membre — deux onglets :
+     *   - "En lot"        : sélection d'un lot de membres et génération PDF groupé.
+     *   - "Individuelle"  : génération de la carte d'un membre unique (admin).
+     *
+     * GET  : affiche la page avec l'onglet actif indiqué par ?tab=lot|individuelle.
+     * POST : traite la soumission du formulaire lot et redirige vers lot_pdf.
      */
-    public function lot() {
+    public function generation() {
         if (!$this->dx_auth->is_admin()) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
         $year = (int)($this->input->get('year') ?: $this->input->post('year') ?: date('Y'));
+
+        // Onglet actif (persisté dans l'URL via GET ?tab=...)
+        $active_tab = $this->input->get('tab') ?: 'lot';
+        if (!in_array($active_tab, array('lot', 'individuelle'))) {
+            $active_tab = 'lot';
+        }
 
         // Filtre et option année précédente : POST quand le formulaire est soumis, GET sinon.
         // Le checkbox n'envoie rien quand décoché, donc on distingue POST vs GET pour
@@ -209,19 +218,22 @@ class Cartes_membre extends CI_Controller {
             $membres_prev     = array();
         }
 
+        $all_membres = $this->cartes_membre_model->get_all_membres_actifs();
+
         $data = array(
             'controller'       => $this->controller,
+            'active_tab'       => $active_tab,
             'year'             => $year,
             'year_selector'    => $year_selector,
             'membres'          => $membres,
-            'all_membres'      => $this->cartes_membre_model->get_all_membres_actifs(),
+            'all_membres'      => $all_membres,
             'filtre'           => $filtre,
             'annee_precedente' => $annee_precedente,
             'membres_selected' => $membres_selected,
             'membres_prev'     => $membres_prev,
         );
 
-        load_last_view('cartes_membre/bs_lot', $data);
+        load_last_view('cartes_membre/bs_generation', $data);
     }
 
     /**
@@ -237,7 +249,7 @@ class Cartes_membre extends CI_Controller {
         $year     = (int)($this->session->userdata('cartes_lot_year') ?: date('Y'));
 
         if (empty($selected)) {
-            redirect(controller_url('cartes_membre/lot'));
+            redirect(controller_url('cartes_membre/generation'));
             return;
         }
 
@@ -259,7 +271,7 @@ class Cartes_membre extends CI_Controller {
         }
 
         if (empty($membres)) {
-            redirect(controller_url('cartes_membre/lot'));
+            redirect(controller_url('cartes_membre/generation'));
             return;
         }
 

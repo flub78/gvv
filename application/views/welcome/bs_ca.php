@@ -54,7 +54,7 @@ echo ul($list, $attributes);
 
 echo heading("gvv_menu_cartes_membre", 4);
 $list_cartes = array(
-	anchor(controller_url('cartes_membre/lot'), $this->lang->line("gvv_cartes_membre_lot_title"), array("class" => "jbutton")),
+	anchor(controller_url('cartes_membre/generation'), $this->lang->line("gvv_cartes_membre_generation_title"), array("class" => "jbutton")),
 	anchor(controller_url('cartes_membre/config'), $this->lang->line("gvv_cartes_membre_config_title"), array("class" => "jbutton")),
 );
 echo ul($list_cartes, $attributes);

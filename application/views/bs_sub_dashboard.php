@@ -1049,7 +1049,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <i class="fas fa-id-badge text-primary"></i>
                 <div class="card-title"><?= $this->lang->line('db_card_member_cards') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_member_cards') ?></div>
-                <a href="<?= controller_url('cartes_membre/lot') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                <a href="<?= controller_url('cartes_membre/generation') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
         <?php endif; ?>

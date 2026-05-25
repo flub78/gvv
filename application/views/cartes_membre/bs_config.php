@@ -29,8 +29,8 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
     <div class="row mb-3">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h4><i class="fas fa-cog text-secondary"></i> <?= $this->lang->line('gvv_cartes_membre_config_title') ?></h4>
-            <a href="<?= controller_url('cartes_membre/lot') ?>?year=<?= $year ?>" class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-id-card"></i> <?= $this->lang->line('gvv_cartes_membre_lot_title') ?>
+            <a href="<?= controller_url('cartes_membre/generation') ?>?year=<?= $year ?>" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-id-card"></i> <?= $this->lang->line('gvv_cartes_membre_generation_title') ?>
             </a>
         </div>
     </div>
