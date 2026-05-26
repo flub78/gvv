@@ -5,7 +5,7 @@ const { test, expect } = require('@playwright/test');
  * Smoke tests — Impression des cartes de membre (Lot 1)
  *
  * Vérifie :
- * - Accès à la page de sélection du lot (cartes_membre/lot)
+ * - Accès à la page de génération (cartes_membre/generation)
  * - Présence du formulaire de sélection membres
  * - Accès à la page de configuration des fonds (cartes_membre/config)
  * - Redirection vers login pour les non-connectés
@@ -27,7 +27,7 @@ test.describe('Cartes de membre — smoke tests', () => {
     });
 
     test('should access lot selection page', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
         const bodyText = await page.locator('body').textContent();
@@ -39,14 +39,15 @@ test.describe('Cartes de membre — smoke tests', () => {
     });
 
     test('should display year selector on lot page', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
-        await expect(page.locator('select[name="year"]')).toBeVisible();
+        // Scope to the "En lot" tab panel — the page has two year selectors (lot + individuelle)
+        await expect(page.locator('#tab-lot select[name="year"]')).toBeVisible();
     });
 
     test('should display generate button when members exist', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
         // Either the generate button or the "no members" alert should be present
@@ -60,7 +61,7 @@ test.describe('Cartes de membre — smoke tests', () => {
     });
 
     test('should display member table with checkboxes when members exist', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
         const tableExists = await page.locator('table').count() > 0;
@@ -98,14 +99,14 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.waitForLoadState('networkidle');
 
         // Use the btn class to target only the page-body link, not the nav dropdown item
-        const lotLink = page.locator('a.btn[href*="cartes_membre/lot"]');
+        const lotLink = page.locator('a.btn[href*="cartes_membre/generation"]');
         await expect(lotLink).toBeVisible();
     });
 
     test('should redirect unauthenticated users to login', async ({ page: anonPage }) => {
         // Use a fresh context with no session
         await anonPage.context().clearCookies();
-        await anonPage.goto('/index.php/cartes_membre/lot');
+        await anonPage.goto('/index.php/cartes_membre/generation');
         await anonPage.waitForLoadState('networkidle');
 
         const url = anonPage.url();
@@ -113,7 +114,7 @@ test.describe('Cartes de membre — smoke tests', () => {
     });
 
     test('should generate PDF for batch via POST', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
         // Only run if there are members to generate cards for
@@ -288,7 +289,7 @@ test.describe('Cartes de membre Lot3 — accès membre', () => {
     });
 
     test('Lot3 member: should not be able to access admin lot page', async ({ page }) => {
-        await page.goto('/index.php/cartes_membre/lot');
+        await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
         // Should be denied or redirected (not show the lot form)
@@ -302,7 +303,8 @@ test.describe('Cartes de membre Lot3 — accès membre', () => {
         await page.goto('/index.php/welcome/section/user');
         await page.waitForLoadState('networkidle');
 
-        const cardLink = page.locator('a[href*="cartes_membre/carte"]');
+        // Use btn class to target the page-body link, not the nav dropdown item
+        const cardLink = page.locator('a.btn[href*="cartes_membre/carte"]');
         await expect(cardLink).toBeVisible();
     });
 });
