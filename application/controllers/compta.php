@@ -1952,6 +1952,8 @@ class Compta extends Gvv_Controller {
         } else if ($compte == $info_pilote['compte']) {
         } else if ($cross_section_tresorier) {
             // Tresorier in any section — read-only access allowed when feature flag is active
+        } else if ($this->use_new_auth && $this->allow_roles(['ca'], NULL)) {
+            // CA members (globally) — read-only access allowed
         } else {
             $this->dx_auth->deny_access();
         }
@@ -2038,7 +2040,9 @@ class Compta extends Gvv_Controller {
             $cross_section_ok = $this->use_new_auth
                 && $this->config->item('tresorers_can_access_others_sections')
                 && $this->has_modification_rights(NULL);
-            if ($cross_section_ok) {
+            // CA members can view any account journal (read-only) — same access level as comptes/balance.
+            $is_global_ca = $this->use_new_auth && $this->allow_roles(['ca'], NULL);
+            if ($cross_section_ok || $is_global_ca) {
                 // read-only access granted, no deny
             } else {
                 $owner = $this->comptes_model->user($compte);
@@ -2124,6 +2128,11 @@ class Compta extends Gvv_Controller {
             $authorized = true;
         } else if ($compte == $info_pilote['compte']) {
             $authorized = true;
+        }
+
+        // CA members (globally) can view any account journal — read-only, same as comptes/balance.
+        if (!$authorized && $this->use_new_auth) {
+            $authorized = $this->allow_roles(['ca'], NULL);
         }
 
         if (!$authorized) {

@@ -75,7 +75,7 @@ if (empty($associations)) {
 }
 
 echo '<div class="mb-3">';
-echo '<a href="' . controller_url('admin/page') . '" class="btn btn-secondary">Retour à l\'administration</a>';
+echo '<a href="' . controller_url('welcome/section/dev') . '" class="btn btn-secondary">Retour</a>';
 echo '</div>';
 
 echo '</div>';

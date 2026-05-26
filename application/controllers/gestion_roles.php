@@ -27,12 +27,24 @@ class Gestion_roles extends CI_Controller {
             $this->dx_auth->check_login();
         }
 
-        if (!has_role('ca')) {
+        // Load early for the global CA check below
+        $this->load->library('Gvv_Authorization');
+
+        // For new-auth users, check CA globally (any section) so this matches
+        // how the menu link is shown via has_role('ca') from Gvv_Controller
+        // (which also uses a global NULL-section check).
+        // For legacy users, fall back to the session-scoped has_role() call.
+        $use_new_auth = $this->session->userdata('use_new_auth');
+        if ($use_new_auth) {
+            $user_id = $this->dx_auth->get_user_id();
+            if (!$this->gvv_authorization->has_role($user_id, 'ca', NULL)) {
+                $this->dx_auth->deny_access();
+            }
+        } elseif (!has_role('ca')) {
             $this->dx_auth->deny_access();
         }
 
         $this->load->model('authorization_model');
-        $this->load->library('Gvv_Authorization');
 
         // Bouton retour → tableau de bord Administration du club
         $this->lang->load('tableaux_de_bord');

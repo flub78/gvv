@@ -35,7 +35,9 @@ class Dbchecks extends Gvv_Controller {
     }
 
     function index() {
-        $dt = $this->gvv_model->unreferenced_accounts();
+        // Only tresorier/admin may edit or delete accounting entries.
+        $can_modify = has_role('tresorier') || has_role('club-admin');
+        $dt = $this->gvv_model->unreferenced_accounts($can_modify);
         $data['wrong_lines'] = $dt['lines'];
         $data['wrong_accounts'] = $dt['accounts'];
         $data['wrong_purchases'] = $dt['bad_purchase_lines'];

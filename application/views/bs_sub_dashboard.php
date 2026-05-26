@@ -435,6 +435,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             <h6 class="text-muted mb-2"><i class="fas fa-calculator"></i> <?= $this->lang->line('db_sub_accounting') ?></h6>
         </div>
 
+        <?php if (has_role('tresorier') || has_role('ca') || has_global_role('tresorier')) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-university text-primary"></i>
@@ -443,6 +444,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('comptes/balance/512?start_expanded=true') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <?php if (has_role('club-admin') || has_role('tresorier') || ($this->config->item('tresorers_can_access_others_sections') && $is_treasurer)) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -953,6 +955,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if (has_role('ca')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-road text-success"></i>
@@ -961,6 +964,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('terrains/page') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <?php if ($show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1007,6 +1011,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
+        <?php if (has_role('ca')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-users-cog text-danger"></i>
@@ -1033,6 +1038,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('email_lists') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
@@ -1298,6 +1304,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             <h6 class="text-muted mb-2"><i class="fas fa-vial"></i> <?= $this->lang->line('db_sub_tests') ?></h6>
         </div>
 
+        <?php if ($is_admin): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-warning">
                 <i class="fas fa-info-circle text-primary"></i>
@@ -1315,7 +1322,9 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('login_as') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if (has_role('club-admin')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-purple" style="border-left: 3px solid #6f42c1;">
                 <i class="fas fa-user-cog" style="color:#6f42c1;"></i>
@@ -1324,6 +1333,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('authorization/new_auth_users') ?>" class="btn btn-sm" style="background-color:#6f42c1;color:#fff;"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-info">
@@ -1334,6 +1344,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
+        <?php if ($is_admin): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-warning">
                 <i class="fas fa-paper-plane text-warning"></i>
@@ -1342,7 +1353,9 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/test_email') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($is_admin): ?>
         <div class="col-12 mt-3">
             <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> <?= $this->lang->line('db_sub_dev_tools') ?></h6>
         </div>
@@ -1383,6 +1396,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_generer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-danger">
