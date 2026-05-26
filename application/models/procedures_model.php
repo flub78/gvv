@@ -293,6 +293,8 @@ class Procedures_model extends Common_Model {
         if (!is_dir($dir_path)) {
             return false;
         }
+        // S'assurer que le répertoire est accessible en écriture avant de supprimer son contenu
+        chmod($dir_path, 0775);
         $files = array_diff(scandir($dir_path), array('.', '..'));
         foreach ($files as $file) {
             $path = $dir_path . DIRECTORY_SEPARATOR . $file;

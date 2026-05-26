@@ -211,7 +211,7 @@ class File_manager {
      */
     public function ensure_directory_exists($directory_path) {
         if (!is_dir($directory_path)) {
-            return mkdir($directory_path, 0755, true);
+            return mkdir($directory_path, 0775, true);
         }
         return true;
     }

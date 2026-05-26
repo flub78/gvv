@@ -143,7 +143,9 @@ class Procedures extends Gvv_Controller {
         
         // Vérifier les permissions de modification
         $data['can_edit'] = $this->dx_auth->is_role('ca') || $this->dx_auth->is_role('admin');
-        
+
+        $this->set_nav_back('procedures', 'db_btn_retour_liste');
+
         load_last_view('procedures/view', $data);
     }
 
