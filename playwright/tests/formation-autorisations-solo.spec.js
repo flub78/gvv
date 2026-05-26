@@ -5,6 +5,8 @@
  *   - Feature flag gestion_formations must be enabled
  *   - abraracourcix user must exist with instructor rights (BIT_FI_AVION set in mniveaux)
  *     See bin/create_test_users.sh
+ *   - abraracourcix has instructor role only in section Avion (id=3)
+ *     The test must switch to the Avion section before accessing instructor-only pages.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -22,6 +24,16 @@ async function login(page, user) {
     await page.waitForLoadState('networkidle');
 }
 
+/**
+ * Switch the active section to Avion (id=3).
+ * abraracourcix has instructor rights only in that section.
+ */
+async function switchToAvionSection(page) {
+    await page.request.post('/index.php/user_roles_per_section/set_section', {
+        form: { section: '3', current_url: '/index.php/welcome' }
+    });
+}
+
 async function logout(page) {
     await page.goto('/auth/logout');
     await page.waitForLoadState('networkidle');
@@ -31,9 +43,10 @@ test.describe('Formation Autorisations Solo', () => {
 
     test('instructor can access autorisations solo list', async ({ page }) => {
         await login(page, INSTRUCTOR_USER);
+        await switchToAvionSection(page);
 
         // Navigate to autorisations solo
-        await page.goto('/formation_autorisations_solo');
+        await page.goto('/index.php/formation_autorisations_solo');
         await page.waitForLoadState('networkidle');
 
         // Check page loaded correctly
@@ -47,9 +60,10 @@ test.describe('Formation Autorisations Solo', () => {
 
     test('instructor can access create form', async ({ page }) => {
         await login(page, INSTRUCTOR_USER);
+        await switchToAvionSection(page);
 
         // Navigate to create form
-        await page.goto('/formation_autorisations_solo/create');
+        await page.goto('/index.php/formation_autorisations_solo/create');
         await page.waitForLoadState('networkidle');
 
         // Check form elements are present
