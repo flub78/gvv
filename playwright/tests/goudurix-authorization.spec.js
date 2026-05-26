@@ -166,8 +166,8 @@ test.describe('Goudurix Authorization - New Auth System', () => {
         test('accounting nav menu visible when logged in with section Général (4)', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '4');
             const content = await page.content();
-            // The Comptabilité nav item must appear regardless of current section
-            expect(content, 'Expected accounting nav menu for tresorier in section 4').toContain('Comptabilit');
+            // The "Compta" nav item (gvv_menu_accounting) must appear for tresorier regardless of section
+            expect(content, 'Expected accounting nav menu for tresorier in section 4').toContain('Compta');
         });
     });
 
