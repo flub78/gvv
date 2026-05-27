@@ -37,7 +37,9 @@ class Gestion_roles extends CI_Controller {
         $use_new_auth = $this->session->userdata('use_new_auth');
         if ($use_new_auth) {
             $user_id = $this->dx_auth->get_user_id();
-            if (!$this->gvv_authorization->has_role($user_id, 'ca', NULL)) {
+            // club-admin is a super-role that includes all CA privileges
+            if (!$this->gvv_authorization->has_role($user_id, 'ca', NULL)
+                && !$this->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
                 $this->dx_auth->deny_access();
             }
         } elseif (!has_role('ca')) {
