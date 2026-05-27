@@ -196,3 +196,5 @@
 * [x] Ajout des contrôle de compétence des pilotes VLD et REP dans les types de séance
 
 * [x] Les briefings passagers doivent mettre à jour la date des vols de découverte. ✓ Implémenté via `create_briefing_and_update_date_vol()` dans `archived_documents_model.php`. Test: `BriefingDateVolUpdateTest`.
+
+* [x] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc

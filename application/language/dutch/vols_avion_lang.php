@@ -55,6 +55,10 @@ $lang['gvv_vols_avion_error_horametre_prev'] = "De begintachometerstand is lager
 $lang['gvv_vols_avion_error_horametre_next'] = "De eindtachometerstand is hoger dan de beginstand van de volgende vlucht op dit toestel.";
 $lang['gvv_vols_avion_error_categorie_access'] = "Dit vluchttype is niet toegankelijk met uw rol of voor dit toestel.";
 $lang['gvv_vols_avion_error_vanumvi_required'] = "Het ontdekkingsvluchtnummer is verplicht.";
+$lang['gvv_vols_avion_error_pilote_au_sol'] = "De piloot vliegt al op dit tijdstip (tijdslotconflict).";
+$lang['gvv_vols_avion_error_instructeur_au_sol'] = "De instructeur vliegt al op dit tijdstip (tijdslotconflict).";
+$lang['gvv_vols_avion_error_machine_au_sol'] = "Het vliegtuig vliegt al op dit tijdstip (tijdslotconflict).";
+$lang['gvv_vols_avion_error_vol_trop_long'] = "De vluchtduur overschrijdt 8 uur.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";

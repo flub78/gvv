@@ -390,6 +390,35 @@ class Vols_avion extends Gvv_Controller {
                 ? $this->rules['vacfin'] . '|callback_valid_horametre_range'
                 : 'callback_valid_horametre_range';
         }
+
+        // Vérifications de conflits (pilote/instructeur/machine déjà en vol) si les heures sont renseignées
+        $vahdeb = floatval($this->input->post('vahdeb'));
+        $vahfin = floatval($this->input->post('vahfin'));
+        if ($vahdeb > 0 && $vahfin > 0) {
+            $this->rules['vapilid'] = isset($this->rules['vapilid'])
+                ? $this->rules['vapilid'] . '|callback_pilote_au_sol'
+                : 'callback_pilote_au_sol';
+
+            $vainst = $this->input->post('vainst');
+            if (!empty($vainst)) {
+                $this->rules['vainst'] = isset($this->rules['vainst'])
+                    ? $this->rules['vainst'] . '|callback_instructeur_au_sol'
+                    : 'callback_instructeur_au_sol';
+            }
+
+            $this->rules['vamacid'] = isset($this->rules['vamacid'])
+                ? $this->rules['vamacid'] . '|callback_machine_au_sol'
+                : 'callback_machine_au_sol';
+        }
+
+        // Vérification durée maximale 8 heures
+        $vaduree = floatval($this->input->post('vaduree'));
+        if ($vaduree > 0) {
+            $this->rules['vaduree'] = isset($this->rules['vaduree'])
+                ? $this->rules['vaduree'] . '|callback_valid_vol_duration'
+                : 'callback_valid_vol_duration';
+        }
+
         return parent::formValidation($action, $return_on_success);
     }
 
@@ -448,6 +477,95 @@ class Vols_avion extends Gvv_Controller {
         if (!array_key_exists((int)$value, $allowed)) {
             $this->form_validation->set_message('valid_categorie_access',
                 $this->lang->line('gvv_vols_avion_error_categorie_access'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Callback CI : vérifie que le pilote n'est pas déjà en vol à ce moment.
+     */
+    public function pilote_au_sol($vapilid) {
+        $vadate = date_ht2db($this->input->post('vadate'));
+        $vahdeb = floatval($this->input->post('vahdeb'));
+        $vahfin = floatval($this->input->post('vahfin'));
+        $vaid   = intval($this->input->post('vaid'));
+
+        if (!$vapilid || !$vahdeb || !$vahfin) {
+            return true;
+        }
+
+        if ($this->gvv_model->is_person_in_flight($vapilid, $vadate, $vahdeb, $vahfin, $vaid)) {
+            $this->form_validation->set_message('pilote_au_sol',
+                $this->lang->line('gvv_vols_avion_error_pilote_au_sol'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Callback CI : vérifie que l'instructeur n'est pas déjà en vol à ce moment.
+     */
+    public function instructeur_au_sol($vainst) {
+        if (empty($vainst)) {
+            return true;
+        }
+
+        $vadate = date_ht2db($this->input->post('vadate'));
+        $vahdeb = floatval($this->input->post('vahdeb'));
+        $vahfin = floatval($this->input->post('vahfin'));
+        $vaid   = intval($this->input->post('vaid'));
+
+        if (!$vahdeb || !$vahfin) {
+            return true;
+        }
+
+        if ($this->gvv_model->is_person_in_flight($vainst, $vadate, $vahdeb, $vahfin, $vaid)) {
+            $this->form_validation->set_message('instructeur_au_sol',
+                $this->lang->line('gvv_vols_avion_error_instructeur_au_sol'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Callback CI : vérifie que la machine n'est pas déjà en vol à ce moment.
+     */
+    public function machine_au_sol($vamacid) {
+        if (empty($vamacid)) {
+            return true;
+        }
+
+        $vadate = date_ht2db($this->input->post('vadate'));
+        $vahdeb = floatval($this->input->post('vahdeb'));
+        $vahfin = floatval($this->input->post('vahfin'));
+        $vaid   = intval($this->input->post('vaid'));
+
+        if (!$vahdeb || !$vahfin) {
+            return true;
+        }
+
+        if ($this->gvv_model->is_machine_in_flight($vamacid, $vadate, $vahdeb, $vahfin, $vaid)) {
+            $this->form_validation->set_message('machine_au_sol',
+                $this->lang->line('gvv_vols_avion_error_machine_au_sol'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Callback CI : vérifie que la durée du vol ne dépasse pas 8 heures.
+     * vaduree est en centièmes d'heure (8.0 = 8h00).
+     */
+    public function valid_vol_duration($vaduree) {
+        $duration = floatval($vaduree);
+        if ($duration <= 0) {
+            return true;
+        }
+
+        if ($duration > 8.0) {
+            $this->form_validation->set_message('valid_vol_duration',
+                $this->lang->line('gvv_vols_avion_error_vol_trop_long'));
             return false;
         }
         return true;

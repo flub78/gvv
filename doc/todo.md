@@ -8,8 +8,6 @@
 
 * [] Corriger les tests playwrights
 
-* [] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
-
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
  

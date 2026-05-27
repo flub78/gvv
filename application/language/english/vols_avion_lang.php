@@ -55,6 +55,10 @@ $lang['gvv_vols_avion_error_horametre_prev'] = "The start Hobbs meter is lower t
 $lang['gvv_vols_avion_error_horametre_next'] = "The end Hobbs meter is higher than the start Hobbs meter of the next flight on this aircraft.";
 $lang['gvv_vols_avion_error_categorie_access'] = "This flight type is not accessible with your role or for this aircraft.";
 $lang['gvv_vols_avion_error_vanumvi_required'] = "The discovery flight number is required.";
+$lang['gvv_vols_avion_error_pilote_au_sol'] = "The pilot is already flying at that time (time slot conflict).";
+$lang['gvv_vols_avion_error_instructeur_au_sol'] = "The instructor is already flying at that time (time slot conflict).";
+$lang['gvv_vols_avion_error_machine_au_sol'] = "The aircraft is already flying at that time (time slot conflict).";
+$lang['gvv_vols_avion_error_vol_trop_long'] = "The flight duration exceeds 8 hours.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Hours per year";

@@ -55,6 +55,10 @@ $lang['gvv_vols_avion_error_horametre_prev'] = "L'horamètre de début est infé
 $lang['gvv_vols_avion_error_horametre_next'] = "L'horamètre de fin est supérieur à l'horamètre de début du vol suivant sur cette machine.";
 $lang['gvv_vols_avion_error_categorie_access'] = "Ce type de vol n'est pas accessible avec votre rôle ou pour cette machine.";
 $lang['gvv_vols_avion_error_vanumvi_required'] = "Le numéro de vol de découverte est obligatoire.";
+$lang['gvv_vols_avion_error_pilote_au_sol'] = "Le pilote est déjà en vol à ce moment (conflit de créneau horaire).";
+$lang['gvv_vols_avion_error_instructeur_au_sol'] = "L'instructeur est déjà en vol à ce moment (conflit de créneau horaire).";
+$lang['gvv_vols_avion_error_machine_au_sol'] = "L'avion est déjà en vol à ce moment (conflit de créneau horaire).";
+$lang['gvv_vols_avion_error_vol_trop_long'] = "La durée du vol dépasse 8 heures.";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Par machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Heures par an";

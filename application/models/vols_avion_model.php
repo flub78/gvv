@@ -583,6 +583,89 @@ class Vols_avion_model extends Common_Model {
         return $json;
     }
 
+    /**
+     * Vérifie si un membre (pilote ou instructeur) est déjà en vol
+     * sur un créneau donné. Renvoie true si un conflit existe.
+     *
+     * @param string $login   Login du membre à vérifier
+     * @param string $date    Date du vol (format Y-m-d)
+     * @param float  $hdeb    Heure de début (HH.MM ou centième)
+     * @param float  $hfin    Heure de fin   (HH.MM ou centième)
+     * @param int    $exclude_vaid  Vol à exclure (0 = aucun, pour les modifications)
+     * @return bool true si le membre est déjà en vol
+     */
+    public function is_person_in_flight($login, $date, $hdeb, $hfin, $exclude_vaid = 0)
+    {
+        if (!$login || !floatval($hdeb) || !floatval($hfin)) {
+            return false;
+        }
+
+        $hdeb = floatval($hdeb);
+        $hfin = floatval($hfin);
+
+        $sql = "SELECT COUNT(*) as cnt FROM volsa
+                WHERE vadate = ?
+                  AND (vapilid = ? OR (vainst = ? AND vainst != ''))
+                  AND vahdeb < ? AND vahfin > ? AND vahdeb > 0 AND vahfin > 0";
+        $params = array($date, $login, $login, $hfin, $hdeb);
+
+        if ($exclude_vaid > 0) {
+            $sql .= " AND vaid != ?";
+            $params[] = $exclude_vaid;
+        }
+
+        if ($this->section) {
+            $sql .= " AND club = ?";
+            $params[] = $this->section_id;
+        }
+
+        $result = $this->db->query($sql, $params);
+        if (!$result) return false;
+        $row = $result->row();
+        return intval($row->cnt) > 0;
+    }
+
+    /**
+     * Vérifie si une machine est déjà en vol sur un créneau donné.
+     * Renvoie true si un conflit existe.
+     *
+     * @param string $macimmat  Immatriculation de la machine
+     * @param string $date      Date du vol (format Y-m-d)
+     * @param float  $hdeb      Heure de début (HH.MM ou centième)
+     * @param float  $hfin      Heure de fin   (HH.MM ou centième)
+     * @param int    $exclude_vaid  Vol à exclure (0 = aucun, pour les modifications)
+     * @return bool true si la machine est déjà en vol
+     */
+    public function is_machine_in_flight($macimmat, $date, $hdeb, $hfin, $exclude_vaid = 0)
+    {
+        if (!$macimmat || !floatval($hdeb) || !floatval($hfin)) {
+            return false;
+        }
+
+        $hdeb = floatval($hdeb);
+        $hfin = floatval($hfin);
+
+        $sql = "SELECT COUNT(*) as cnt FROM volsa
+                WHERE vamacid = ? AND vadate = ?
+                  AND vahdeb < ? AND vahfin > ? AND vahdeb > 0 AND vahfin > 0";
+        $params = array($macimmat, $date, $hfin, $hdeb);
+
+        if ($exclude_vaid > 0) {
+            $sql .= " AND vaid != ?";
+            $params[] = $exclude_vaid;
+        }
+
+        if ($this->section) {
+            $sql .= " AND club = ?";
+            $params[] = $this->section_id;
+        }
+
+        $result = $this->db->query($sql, $params);
+        if (!$result) return false;
+        $row = $result->row();
+        return intval($row->cnt) > 0;
+    }
+
     /*
      * Retourne les vols
      */
