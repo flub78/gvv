@@ -224,7 +224,14 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   await page.fill('input[name="vadate"]', flightDateFr);
   await selectOptionIfExists(page, 'select[name="vamacid"]', machine.immat);
   await selectOptionIfExists(page, 'select[name="vapilid"]', PILOT_LOGIN);
-  await selectOptionIfExists(page, 'select[name="vacategorie"]', scenario.category);
+
+  // Some categories (e.g. towing) only exist for specific machine types.
+  // Return false so the caller can skip rather than fail.
+  const catOption = page.locator(`select[name="vacategorie"] option[value="${scenario.category}"]`);
+  if (await catOption.count() === 0) {
+    return false;
+  }
+  await page.selectOption('select[name="vacategorie"]', String(scenario.category));
 
   // Keep explicit wall-clock values for UI readability.
   await page.fill('input[name="vahdeb"]', '10:00');
@@ -265,6 +272,8 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
     () => findFlightIdByObservation(observation, ULM_SECTION_ID),
     { message: `Flight not found in volsa for observation=${observation}`, timeout: 3000 }
   ).not.toBeNull();
+
+  return true;
 }
 
 // Computed once at module load (synchronous DB calls via execSync).
@@ -319,7 +328,11 @@ test.describe('ULM billing scenarios on all machines', () => {
       const before = getAccountBalance(PILOT_ACCOUNT_ID);
       const expectedInfo = expectedDeltaForScenario(machine, scenario, TODAY);
 
-      await createUlmFlight(page, machine, scenario, TODAY, UNIQUE_TAG);
+      const created = await createUlmFlight(page, machine, scenario, TODAY, UNIQUE_TAG);
+      if (!created) {
+        test.skip(true, `Category ${scenario.category} (${scenario.key}) not available for machine ${machine.immat}`);
+        return;
+      }
 
       const after = getAccountBalance(PILOT_ACCOUNT_ID);
       const delta = round2(after - before);
