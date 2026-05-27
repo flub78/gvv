@@ -116,7 +116,8 @@ function getAccountBalance(accountId) {
 
 function getUlmMachines(sectionId) {
   const rows = mysqlRows(
-    `SELECT macimmat, maprix, IFNULL(maprixdc, ''), IFNULL(maprixproprio, ''), maprive
+    `SELECT macimmat, maprix, IFNULL(maprixdc, ''), IFNULL(maprixproprio, ''), maprive,
+            IFNULL(horametre_mode, 0)
      FROM machinesa
      WHERE actif = 1 AND club = ${sectionId}
      ORDER BY macimmat`
@@ -127,8 +128,41 @@ function getUlmMachines(sectionId) {
     hourlyRef: r[1],
     dcRef: r[2],
     ownerRef: r[3],
-    privateFlag: Number.parseInt(r[4], 10) || 0
+    privateFlag: Number.parseInt(r[4], 10) || 0,
+    horametreMode: Number.parseInt(r[5], 10) || 0
   }));
+}
+
+/**
+ * Compute the vacdeb value to submit in the flight form for a given machine.
+ *
+ * The DB always stores horametres in centièmes (hundredths of hours).
+ * The form JS widget corrupts the hidden input when horametre_mode=1 (minutes)
+ * because it clamps the decimal part to 59 max, resetting values like .80 to .00.
+ * To avoid this, we bypass the form's pre-filled value and compute the correct
+ * form-format vacdeb from the DB directly.
+ *
+ * mode 0 (centième, default): submitted as-is, stored as-is.
+ * mode 1 (minutes): the form submits hours.MM (MM = 00–59);
+ *   the server converts to centièmes via to_hundredth(): hours + MM/60.
+ *   To recover MM from a centièmes value: MM = round(centièmes × 60 / 100).
+ * mode 2 (dixième): submitted as-is, stored as-is.
+ */
+function getFormVacdeb(machine, sectionId) {
+  const rows = mysqlRows(
+    `SELECT IFNULL(MAX(vacfin), 0) FROM volsa WHERE vamacid = '${escapeSqlString(machine.immat)}' AND club = ${sectionId}`
+  );
+  const lastVacfinCentiemes = toNumber(rows.length > 0 ? rows[0][0] : '0');
+
+  if (machine.horametreMode === 1) {
+    // Convert centièmes → minutes for the form's hours.MM format
+    const hours = Math.floor(lastVacfinCentiemes);
+    const centiemes = Math.round((lastVacfinCentiemes - hours) * 100);
+    const minutes = Math.round(centiemes * 60 / 100);
+    return round2(hours + minutes / 100);
+  }
+
+  return lastVacfinCentiemes;
 }
 
 function getTariffPrice(reference, date, sectionId) {
@@ -238,8 +272,11 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   await page.fill('input[name="vahfin"]', '11:00');
   await page.fill('input[name="vaatt"]', '1');
 
-  const vacdebRaw = await page.locator('input[name="vacdeb"]').inputValue();
-  const vacdeb = toNumber(vacdebRaw);
+  // Read the starting horametre from the DB rather than from the hidden input.
+  // The JS widget for horametre_mode=1 (minutes) clamps decimal parts > 59 to 0,
+  // corrupting the hidden input when the DB value has centièmes > 59 (e.g., 1774.80).
+  // getFormVacdeb() queries the DB directly and converts to the form's expected format.
+  const vacdeb = getFormVacdeb(machine, ULM_SECTION_ID);
   const vacfin = round2(vacdeb + 1);
 
   await page.evaluate((args) => {
@@ -255,6 +292,15 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   });
 
   await setCheckbox(page, 'input[type="checkbox"][name="vadc"], #vadc', !!scenario.instruction);
+
+  // vanumvi (discovery flight number) is required for category 1 (Vol de découverte).
+  // It is a free-text field — fill with a unique test identifier so JS/server validation pass.
+  if (scenario.category === 1) {
+    const vanumviInput = page.locator('input[name="vanumvi"]');
+    if (await vanumviInput.count() > 0) {
+      await vanumviInput.fill(`VD-${machine.immat}`);
+    }
+  }
 
   const observation = `PW_ULM_BILLING_${uniqueTag}_${machine.immat}_${scenario.key}`;
   await page.fill('textarea[name="vaobs"], input[name="vaobs"]', observation);
