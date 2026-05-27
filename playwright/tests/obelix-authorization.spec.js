@@ -234,7 +234,7 @@ test.describe('Obelix Authorization - New Auth System', () => {
             expect(
                 content,
                 'Section Maintenance doit être visible sur le dashboard en section planeur pour un mecano'
-            ).toContain('collapseMaintenance');
+            ).toContain('section/maintenance');
         });
     });
 

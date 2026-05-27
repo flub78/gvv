@@ -298,7 +298,7 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
             expect(
                 content,
                 'Section Maintenance ne doit PAS être visible : abraracourcix n\'est pas mecano'
-            ).not.toContain('collapseMaintenance');
+            ).not.toContain('section/maintenance');
         });
     });
 
