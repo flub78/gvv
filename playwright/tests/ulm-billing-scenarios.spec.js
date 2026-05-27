@@ -369,12 +369,21 @@ test.describe('ULM billing scenarios on all machines', () => {
     await context.close();
   });
 
-  for (const { machine, scenario } of COMBINATIONS) {
+  // Each combination uses a distinct date (TODAY + index) so that the pilot
+  // is never double-booked on the same day, which would be rejected by the
+  // pilote_au_sol / machine_au_sol server-side validation added in 2026-05.
+  COMBINATIONS.forEach(({ machine, scenario }, combinationIndex) => {
+    const testDate = (() => {
+      const d = new Date(TODAY);
+      d.setUTCDate(d.getUTCDate() + combinationIndex);
+      return d.toISOString().slice(0, 10);
+    })();
+
     test(`machine=${machine.immat} scenario=${scenario.key}`, async ({ page }) => {
       const before = getAccountBalance(PILOT_ACCOUNT_ID);
-      const expectedInfo = expectedDeltaForScenario(machine, scenario, TODAY);
+      const expectedInfo = expectedDeltaForScenario(machine, scenario, testDate);
 
-      const created = await createUlmFlight(page, machine, scenario, TODAY, UNIQUE_TAG);
+      const created = await createUlmFlight(page, machine, scenario, testDate, UNIQUE_TAG);
       if (!created) {
         test.skip(true, `Category ${scenario.category} (${scenario.key}) not available for machine ${machine.immat}`);
         return;
@@ -399,5 +408,5 @@ test.describe('ULM billing scenarios on all machines', () => {
         ].join(' | ')
       ).toBe(expectedInfo.expected);
     });
-  }
+  });
 });

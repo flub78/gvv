@@ -358,6 +358,12 @@ class Vols_avion extends Gvv_Controller {
             $fin = $this->horametre_to_decimal_hours($processed_data['vacfin'], $mode);
             $duree = intval(($fin - $debut) * 1000) / 1000;
             $processed_data['vaduree'] = $duree;
+            // Store vacdeb/vacfin in centièmes (DB convention), rounded to 2dp to match
+            // decimal(8,2) precision and avoid float errors from to_hundredth().
+            // For mode=0 and mode=2, horametre_to_decimal_hours() returns the value as-is,
+            // so this assignment is a no-op for those modes.
+            $processed_data['vacdeb'] = round($debut, 2);
+            $processed_data['vacfin'] = round($fin, 2);
         }
 
         return $processed_data;
@@ -432,10 +438,16 @@ class Vols_avion extends Gvv_Controller {
      * Permet la re-saisie de vols oubliés entre des vols existants.
      */
     public function valid_horametre_range($vacfin) {
-        $vacdeb  = floatval($this->input->post('vacdeb'));
-        $vacfin  = floatval($vacfin);
         $vamacid = $this->input->post('vamacid');
         $vaid    = intval($this->input->post('vaid'));
+
+        // Convertir les valeurs soumises en centièmes d'heure (comme form2database le fait),
+        // afin de comparer avec les valeurs stockées en centièmes dans la base.
+        // Arrondir à 2 décimales (précision de la colonne decimal(8,2)) pour éviter les
+        // erreurs de virgule flottante dans to_hundredth() (ex: 1776.4999... au lieu de 1776.80).
+        $mode    = $this->get_horametre_mode($vamacid);
+        $vacdeb  = round($this->horametre_to_decimal_hours(floatval($this->input->post('vacdeb')), $mode), 2);
+        $vacfin  = round($this->horametre_to_decimal_hours(floatval($vacfin), $mode), 2);
 
         // Vol immédiatement précédant : plus grand vacdeb < vacdeb courant
         $this->db->select('vacdeb, vacfin')
