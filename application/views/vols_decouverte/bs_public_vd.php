@@ -309,14 +309,25 @@ if (!empty($errors) && is_array($errors)) {
 
         <!-- Poids cumulé -->
         <div class="mb-3">
-          <label class="form-label" for="poids_passagers">
-            <?= $this->lang->line('gvv_vd_public_poids') ?>
+          <label class="form-label fw-semibold" for="poids_passagers">
+            <?= $this->lang->line('gvv_vd_public_poids') ?> <span class="text-danger">*</span>
           </label>
           <div class="input-group" style="max-width:160px;">
-            <input type="number" name="poids_passagers" id="poids_passagers" class="form-control"
-                   value="<?= $fv('poids', '0') ?>" min="0" step="1">
+            <input type="number" name="poids_passagers" id="poids_passagers"
+                   class="form-control<?= !empty($errors['poids_passagers']) ? ' is-invalid' : '' ?>"
+                   value="<?= $fv('poids', '') ?>" min="1" step="1"
+                   <?= ($poids_max > 0) ? 'max="' . (int)$poids_max . '"' : '' ?>
+                   required>
             <span class="input-group-text">kg</span>
           </div>
+          <?php if ($poids_max > 0): ?>
+            <div class="form-text text-muted">
+              <?= sprintf($this->lang->line('gvv_vd_public_poids_max_hint'), $poids_max) ?>
+            </div>
+          <?php endif; ?>
+          <?php if (!empty($errors['poids_passagers'])): ?>
+            <div class="text-danger small mt-1"><?= htmlspecialchars($errors['poids_passagers']) ?></div>
+          <?php endif; ?>
         </div>
 
         <!-- Nombre de passagers (masqué si nb_personnes_max = 1) -->

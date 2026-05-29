@@ -1317,6 +1317,12 @@ EOD;
         if (empty($urgence)) {
             $errors['urgence'] = $this->lang->line('gvv_vd_public_error_urgence');
         }
+        $poids_max = $section_row ? $this->_get_poids_max($section_row) : 0;
+        if ($poids <= 0) {
+            $errors['poids_passagers'] = $this->lang->line('gvv_vd_public_error_poids');
+        } elseif ($poids_max > 0 && $poids > $poids_max) {
+            $errors['poids_passagers'] = sprintf($this->lang->line('gvv_vd_public_error_poids_max'), $poids_max);
+        }
 
         // Chargement du produit
         $produit = null;
@@ -1491,6 +1497,7 @@ EOD;
         $contact_email     = (string) ($this->configuration_model->get_param('vd.email.sender_email') ?: '');
         $contact_signature = (string) ($this->configuration_model->get_param('vd.email.sender_signature') ?: '');
         $is_logged_in      = (bool) $this->dx_auth->is_logged_in();
+        $poids_max         = $section_row ? $this->_get_poids_max($section_row) : 0;
 
         $data = array(
             'section_id'           => $section_id,
@@ -1509,6 +1516,7 @@ EOD;
             'is_logged_in'         => $is_logged_in,
             'flash_success'        => $this->session->flashdata('success'),
             'flash_error'          => $this->session->flashdata('error'),
+            'poids_max'            => $poids_max,
         );
 
         $this->load->view('bs_header', $data);
@@ -1518,5 +1526,32 @@ EOD;
         $this->load->view('bs_banner');
         $this->load->view('vols_decouverte/bs_public_vd', $data);
         $this->load->view('bs_footer');
+    }
+
+    /**
+     * Détermine le type d'activité d'une section VD à partir de son nom.
+     * Retourne 'planeur', 'avion' ou 'ulm'.
+     */
+    private function _get_section_type($section_row) {
+        $nom = strtolower(trim((string) (isset($section_row['nom']) ? $section_row['nom'] : '')));
+        if (strpos($nom, 'planeur') !== false) return 'planeur';
+        if (strpos($nom, 'avion')   !== false) return 'avion';
+        if (strpos($nom, 'ulm')     !== false) return 'ulm';
+        return 'planeur';
+    }
+
+    /**
+     * Retourne le poids maximum autorisé pour une section VD.
+     * Valeurs par défaut : planeur=100, avion=180, ulm=90.
+     * Surchargeables via les clés de configuration vd.{type}.poids_max.
+     */
+    private function _get_poids_max($section_row) {
+        $defaults = array('planeur' => 100, 'avion' => 180, 'ulm' => 90);
+        $type = $this->_get_section_type($section_row);
+        $configured = $this->configuration_model->get_param('vd.' . $type . '.poids_max');
+        if ($configured !== null && (int) $configured > 0) {
+            return (int) $configured;
+        }
+        return $defaults[$type];
     }
 }
