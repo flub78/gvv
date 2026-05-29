@@ -1,23 +1,17 @@
 <svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fond carré arrondi -->
   <rect x="0" y="0" width="256" height="256" rx="46" fill="#0d47a1"/>
-
-  <!-- Fuselage -->
-  <ellipse cx="128" cy="104" rx="7" ry="60" fill="#e3f2fd"/>
-
-  <!-- Aile gauche pleine, saumon arrondi -->
-  <path d="M121,90 Q67,90 23,134 Q21,137 23,140 Q26,141 28,139 Q72,107 121,100 Z" fill="#90caf9"/>
-
-  <!-- Aile droite pleine, saumon arrondi -->
-  <path d="M135,90 Q189,90 233,134 Q235,137 233,140 Q230,141 228,139 Q184,107 135,100 Z" fill="#90caf9"/>
-
-  <!-- Empennage horizontal gauche arrondi -->
-  <path d="M121,155 Q100,152 86,166 Q88,171 91,169 Q104,159 121,159 Z" fill="#64b5f6"/>
-  <!-- Empennage horizontal droit arrondi -->
-  <path d="M135,155 Q156,152 170,166 Q168,171 165,169 Q152,159 135,159 Z" fill="#64b5f6"/>
-  <!-- Empennage vertical -->
-  <ellipse cx="128" cy="160" rx="4" ry="9" fill="#bbdefb"/>
-
-  <!-- Texte GVV -->
-  <text x="128" y="240" text-anchor="middle" font-size="72" font-weight="700" fill="#ffffff" font-family="Arial, sans-serif" letter-spacing="0">GVV</text>
+  <!-- Fuselage blanc -->
+  <ellipse cx="128" cy="74" rx="6" ry="38" fill="#ffffff"/>
+  <!-- Aile gauche -->
+  <path d="M122,61 Q86,61 51,93 Q49,97 52,99 Q55,100 58,98 Q91,72 122,69 Z" fill="#ffffff"/>
+  <!-- Aile droite -->
+  <path d="M134,61 Q170,61 205,93 Q207,97 204,99 Q201,100 198,98 Q165,72 134,69 Z" fill="#ffffff"/>
+  <!-- Empennage gauche -->
+  <path d="M122,100 Q102,96 89,112 Q92,117 95,115 Q107,103 122,105 Z" fill="#e3f2fd"/>
+  <!-- Empennage droit -->
+  <path d="M134,100 Q154,96 167,112 Q164,117 161,115 Q149,103 134,105 Z" fill="#e3f2fd"/>
+  <!-- Dérive verticale -->
+  <ellipse cx="128" cy="107" rx="4" ry="8" fill="#e3f2fd"/>
+  <!-- GVV jaune -->
+  <text x="128" y="228" text-anchor="middle" font-size="104" font-weight="900" fill="#ffd600" font-family="Arial, sans-serif" letter-spacing="-3">GVV</text>
 </svg>
