@@ -52,7 +52,11 @@
 
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('408316024a')));
 
-	echo html_link(array('rel' => "icon", 'type' => "image/png", 'href' => base_url() . "favicon.png"));
+	echo html_link(array('rel' => "manifest", 'href' => base_url() . "manifest.json"));
+	echo html_link(array('rel' => "icon", 'type' => "image/x-icon", 'href' => base_url() . "favicon.ico"));
+	echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "32x32", 'href' => base_url() . "assets/images/gvv_icon_32.png"));
+	echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "16x16", 'href' => base_url() . "assets/images/gvv_icon_16.png"));
+	echo html_link(array('rel' => "apple-touch-icon", 'sizes' => "192x192", 'href' => base_url() . "assets/images/gvv_icon_192.png"));
 
 	// CSS
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/datatable_jui.css'));
