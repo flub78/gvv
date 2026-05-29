@@ -49,17 +49,7 @@ if ($banner_color === '') {
             yearRange: "1930:2030"
         });
 
-        // Re-apply saved search after state restoration: DataTables restores the
-        // search string visually but doesn't re-filter when the page data is fresh.
-        $(document).on('init.dt', function(e, settings) {
-            var api = new $.fn.dataTable.Api(settings);
-            var search = api.search();
-            if (search) {
-                api.search(search).draw(false);
-            }
-        });
-
-        $('.datatable').dataTable({
+$('.datatable').dataTable({
             "bFilter": true,
             "bPaginate": true,
             "iDisplayLength": 100,
