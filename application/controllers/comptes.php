@@ -59,9 +59,9 @@ class Comptes extends Gvv_Controller {
         parent::__construct();
 
         // Authorization: Code-based (v2.0) - only for migrated users
-        // CA members can view (read-only); tresorier can also modify
+        // CA and bureau can view (read-only); tresorier can also modify
         if ($this->use_new_auth) {
-            $this->require_roles(['tresorier', 'ca']);
+            $this->require_roles(['tresorier', 'ca', 'bureau']);
         }
 
         $this->load->model('plan_comptable_model');

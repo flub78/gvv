@@ -435,7 +435,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             <h6 class="text-muted mb-2"><i class="fas fa-calculator"></i> <?= $this->lang->line('db_sub_accounting') ?></h6>
         </div>
 
-        <?php if (has_role('tresorier') || has_role('ca') || has_global_role('tresorier')) : ?>
+        <?php if (has_role('tresorier') || has_role('ca') || has_role('bureau') || has_global_role('tresorier')) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-university text-primary"></i>
@@ -446,7 +446,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
-        <?php if (has_role('club-admin') || has_role('tresorier') || ($this->config->item('tresorers_can_access_others_sections') && $is_treasurer)) : ?>
+        <?php if (has_role('bureau') || has_role('club-admin') || has_role('tresorier') || ($this->config->item('tresorers_can_access_others_sections') && $is_treasurer)) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-book text-primary"></i>
@@ -466,7 +466,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
-        <?php if (has_role('ca')) : ?>
+        <?php if (has_role('ca') || has_role('bureau')) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-user-check text-success"></i>

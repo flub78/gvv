@@ -129,7 +129,7 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         <?php endif; ?>
 
         <!-- Trésorerie -->
-        <?php if ($is_admin || ($this->config->item('tresorers_can_access_others_sections') ? $is_treasurer : $is_treasurer_in_section)): ?>
+        <?php if ($is_admin || $is_bureau || ($this->config->item('tresorers_can_access_others_sections') ? $is_treasurer : $is_treasurer_in_section)): ?>
         <div class="col-6 col-md-4 col-lg-3">
             <a class="section-tile treasurer" href="<?= controller_url('welcome/section/treasurer') ?>">
                 <i class="fas fa-euro-sign text-warning"></i>

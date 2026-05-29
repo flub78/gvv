@@ -61,7 +61,7 @@ class Compta extends Gvv_Controller {
         if ($this->use_new_auth) {
             $method = $this->router->fetch_method();
             if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
-                $this->require_roles(['tresorier']);
+                $this->require_roles(['tresorier', 'bureau']);
             }
         }
 
