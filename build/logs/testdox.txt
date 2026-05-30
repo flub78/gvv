@@ -192,6 +192,19 @@ Validation Helper
  [x] Date db 2 ht edge cases
  [x] Date ht 2 db edge cases
 
+Vols Avion Categories
+ [x] No roles gets empty list
+ [x] Auto planchiste only standard
+ [x] Instructeur categories
+ [x] Admin gets all categories
+ [x] Planchiste gets all categories
+ [x] Pilote rem categories
+ [x] Pilote vd categories
+ [x] Proprietaire machine categories
+ [x] Owns machine without auto planchiste no standard
+ [x] Pilote vd and pilote rem
+ [x] Result keys are sorted
+
 Wsse Helper
  [x] Wsse helper functions exist
  [x] Wsse header short format

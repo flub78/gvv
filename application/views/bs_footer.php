@@ -54,14 +54,15 @@ $('.datatable').dataTable({
             "bPaginate": true,
             "iDisplayLength": 100,
             "bStateSave": true,
-            "fnStateSaveCallback": function(oSettings, sValue) {
+            "fnStateSave": function(oSettings, oState) {
                 try {
-                    localStorage.setItem('DT_' + oSettings.sInstance, sValue);
+                    localStorage.setItem('DT_' + oSettings.sInstance, JSON.stringify(oState));
                 } catch(e) {}
             },
-            "fnStateLoadCallback": function(oSettings) {
+            "fnStateLoad": function(oSettings) {
                 try {
-                    return localStorage.getItem('DT_' + oSettings.sInstance);
+                    var data = localStorage.getItem('DT_' + oSettings.sInstance);
+                    return data ? JSON.parse(data) : null;
                 } catch(e) {
                     return null;
                 }

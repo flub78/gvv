@@ -109,6 +109,15 @@
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
+	<!-- Re-apply saved search after state restoration (DataTables 1.9.4 compatible).
+	     Must run outside $(document).ready so the default is set before any table initializes. -->
+	<script type="text/javascript">
+		$.fn.dataTable.defaults.fnInitComplete = function(oSettings) {
+			var sSearch = oSettings.oPreviousSearch && oSettings.oPreviousSearch.sSearch;
+			if (sSearch) { this.fnFilter(sSearch); }
+		};
+	</script>
+
 	<!-- Version locale -->
 
 	<!-- Global function for highlighting search terms in DataTables -->
