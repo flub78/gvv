@@ -47,11 +47,17 @@ Pipeline principal :
 ### 1. Gestion des formulaires
 
 - Entites : `forms`, `form_pages`, `form_fields`
-- `forms` : table racine d'un formulaire, avec ses metadonnees globales, son statut et son identifiant public.
+- `forms` : table racine d'un formulaire, avec ses metadonnees globales, son statut, son identifiant public, et un rattachement optionnel a une section.
 - `form_pages` : pages ordonnees rattachees a un formulaire, chacune portant un contenu HTML ou texte et un numero de page.
 - `form_fields` : champs elementaires d'une page, relies a un formulaire et a une page, avec leur type, regles et attributs de rendu.
 - Capacites : CRUD, activation/desactivation, duplication
 - Edition de pages : inline + import/export texte/HTML
+
+Regles de filtrage section (listing admin) :
+
+- sans section active : afficher tous les formulaires, avec la section de rattachement visible dans la liste ;
+- avec section active : afficher les formulaires de la section active + les formulaires globaux (sans section) ;
+- ne pas afficher les formulaires des autres sections quand une section active est selectionnee.
 
 ### 2. Rendu et validation publique
 

@@ -30,7 +30,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 ### Lot 1 — Socle formulaires autonome
 
 - [x] Migration de début de lot : créer `116_forms_core.php` avec les tables minimales du socle :
-  - `forms` (métadonnées, statut, slug/lien public, css_scope)
+  - `forms` (métadonnées, statut, slug/lien public, css_scope, rattachement section optionnel)
   - `form_pages` (pages HTML ordonnées)
   - `form_fields` (définition des champs et validations)
   - `form_submissions` (soumissions)
@@ -43,6 +43,10 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Compléter les modèles du socle (`form_fields_model.php`, `form_submissions_model.php`).
 - [ ] Compléter le CRUD admin : modifier, supprimer, dupliquer.
 - [x] Implémenter le premier slice CRUD admin : lister, créer, publier.
+- [ ] Adapter le modèle `forms` pour le rattachement section optionnel (section ou global).
+- [ ] Implémenter les règles de listing section :
+  - sans section active : tous les formulaires + affichage de la section de rattachement,
+  - avec section active : formulaires de la section active + formulaires globaux.
 - [ ] Créer le contrôleur public pour affichage multi-pages et soumission anonyme.
 - [ ] Implémenter moteur de rendu HTML et validation serveur centralisée.
 - [ ] Ajouter l'édition des pages puis l'import/export de page texte/HTML.

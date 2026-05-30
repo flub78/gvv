@@ -16,13 +16,18 @@ class Forms_model extends CI_Model {
     }
 
     public function create_form(array $data) {
-        if (empty($data['club']) || empty($data['code']) || empty($data['title'])) {
+        if (empty($data['code']) || empty($data['title'])) {
             return false;
         }
 
         $now = date('Y-m-d H:i:s');
+        $club = null;
+        if (array_key_exists('club', $data) && $data['club'] !== '' && $data['club'] !== null) {
+            $club = (int) $data['club'];
+        }
+
         $row = array(
-            'club'        => (int) $data['club'],
+            'club'        => $club,
             'code'        => $data['code'],
             'title'       => $data['title'],
             'description' => isset($data['description']) ? $data['description'] : null,
@@ -62,19 +67,28 @@ class Forms_model extends CI_Model {
     }
 
     public function list_forms(array $filters = array()) {
+        $this->db->select('forms.*, sections.nom as section_name');
         $this->db->from($this->table);
+        $this->db->join('sections', 'forms.club = sections.id', 'left');
+
+        if (isset($filters['section_context'])) {
+            $section_context = (int) $filters['section_context'];
+            if ($section_context > 0) {
+                $this->db->where('(forms.club = ' . $section_context . ' OR forms.club IS NULL)', null, false);
+            }
+        }
 
         if (!empty($filters['club'])) {
-            $this->db->where('club', (int) $filters['club']);
+            $this->db->where('forms.club', (int) $filters['club']);
         }
         if (!empty($filters['status'])) {
-            $this->db->where('status', $filters['status']);
+            $this->db->where('forms.status', $filters['status']);
         }
         if (!empty($filters['code'])) {
-            $this->db->where('code', $filters['code']);
+            $this->db->where('forms.code', $filters['code']);
         }
 
-        $this->db->order_by('updated_at', 'DESC');
+        $this->db->order_by('forms.updated_at', 'DESC');
         return $this->db->get()->result_array();
     }
 

@@ -23,6 +23,7 @@
                         <tr>
                             <th>Code</th>
                             <th>Titre</th>
+                            <th>Section</th>
                             <th>Statut</th>
                             <th>Lien public</th>
                             <th class="text-end">Actions</th>
@@ -31,13 +32,18 @@
                     <tbody>
                         <?php if (empty($forms)): ?>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">Aucun formulaire pour la section active.</td>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <?= ($section_id > 0) ? 'Aucun formulaire pour la section active (et aucun formulaire global).' : 'Aucun formulaire.' ?>
+                                </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($forms as $form): ?>
                                 <tr>
                                     <td><code><?= html_escape($form['code']) ?></code></td>
                                     <td><?= html_escape($form['title']) ?></td>
+                                    <td>
+                                        <?= !empty($form['section_name']) ? html_escape($form['section_name']) : '<span class="text-muted">Global</span>' ?>
+                                    </td>
                                     <td>
                                         <span class="badge bg-<?= $form['status'] === 'published' ? 'success' : ($form['status'] === 'archived' ? 'secondary' : 'warning text-dark') ?>">
                                             <?= html_escape($form['status']) ?>

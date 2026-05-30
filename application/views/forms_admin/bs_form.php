@@ -11,6 +11,18 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <form method="post" action="<?= site_url('forms_admin/store') ?>">
+                <?php if (!empty($section_id) && (int) $section_id > 0): ?>
+                    <div class="alert alert-info">
+                        Section active : <strong><?= (int) $section_id ?></strong>
+                        <br>
+                        Cochez "Formulaire global" pour creer un formulaire visible dans toutes les sections.
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-secondary">
+                        Aucune section active : le formulaire sera cree comme <strong>global</strong>.
+                    </div>
+                <?php endif; ?>
+
                 <div class="mb-3">
                     <label class="form-label" for="code">Code</label>
                     <input class="form-control" id="code" name="code" type="text" maxlength="50" required value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>">
@@ -36,6 +48,19 @@
                         <label class="form-label" for="css_scope">CSS scope</label>
                         <input class="form-control" id="css_scope" name="css_scope" type="text" maxlength="100" value="<?= html_escape(isset($form['css_scope']) ? $form['css_scope'] : '') ?>">
                     </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="is_global"
+                        name="is_global"
+                        value="1"
+                        <?= !empty($form['is_global']) ? 'checked' : '' ?>
+                        <?= (!empty($section_id) && (int) $section_id <= 0) ? 'checked disabled' : '' ?>
+                    >
+                    <label class="form-check-label" for="is_global">Formulaire global (non rattache a une section)</label>
                 </div>
 
                 <div class="d-flex gap-2">

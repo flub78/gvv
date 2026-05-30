@@ -43,10 +43,9 @@ class Forms_admin extends CI_Controller {
 
     public function index() {
         $section_id = (int) $this->session->userdata('section');
-        $filters = array();
-        if ($section_id > 0) {
-            $filters['club'] = $section_id;
-        }
+        $filters = array(
+            'section_context' => $section_id,
+        );
 
         $data = array(
             'controller' => $this->controller,
@@ -60,6 +59,7 @@ class Forms_admin extends CI_Controller {
     }
 
     public function create() {
+        $section_id = (int) $this->session->userdata('section');
         $data = array(
             'controller' => $this->controller,
             'form'       => array(
@@ -68,7 +68,9 @@ class Forms_admin extends CI_Controller {
                 'description' => '',
                 'public_slug' => '',
                 'css_scope'   => '',
+                'is_global'   => ($section_id <= 0) ? 1 : 0,
             ),
+            'section_id' => $section_id,
             'error'      => '',
         );
 
@@ -77,11 +79,6 @@ class Forms_admin extends CI_Controller {
 
     public function store() {
         $section_id = (int) $this->session->userdata('section');
-        if ($section_id <= 0) {
-            $this->session->set_flashdata('forms_error', 'Selectionnez une section active avant de creer un formulaire.');
-            redirect('forms_admin');
-            return;
-        }
 
         $this->form_validation->set_rules('code', 'Code', 'required|max_length[50]|alpha_dash');
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
@@ -92,14 +89,18 @@ class Forms_admin extends CI_Controller {
             $data = array(
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
+                'section_id' => $section_id,
                 'error'      => validation_errors(),
             );
             load_last_view('forms_admin/bs_form', $data);
             return;
         }
 
+        $is_global = (int) $this->input->post('is_global');
+        $club = ($section_id > 0 && !$is_global) ? $section_id : null;
+
         $id = $this->forms_model->create_form(array(
-            'club'        => $section_id,
+            'club'        => $club,
             'code'        => trim($this->input->post('code')),
             'title'       => trim($this->input->post('title')),
             'description' => trim($this->input->post('description')),
@@ -112,6 +113,7 @@ class Forms_admin extends CI_Controller {
             $data = array(
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
+                'section_id' => $section_id,
                 'error'      => 'Impossible de creer le formulaire.',
             );
             load_last_view('forms_admin/bs_form', $data);

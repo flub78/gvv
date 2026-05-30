@@ -91,6 +91,16 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 1. CRUD complet des formulaires en interface admin.
 2. Chaque formulaire possède un identifiant stable, un statut, et un lien public.
 3. Suppression logique recommandée (désactivation) pour préserver l'historique.
+4. Un formulaire peut être rattaché à une section ou être global (sans section).
+
+### EF1-bis : Visibilité des formulaires par section active
+
+1. Sans section active, la liste admin affiche tous les formulaires.
+2. Dans ce mode global, la liste affiche explicitement la section de rattachement de chaque formulaire (ou "Global" si non rattaché).
+3. Avec une section active, la liste admin affiche :
+	- les formulaires rattachés à la section active ;
+	- les formulaires globaux (sans section).
+4. Les formulaires rattachés à une autre section ne sont pas affichés quand une section active est sélectionnée.
 
 ### EF2 : Structure des pages
 
