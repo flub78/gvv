@@ -107,5 +107,11 @@ $lang['archived_documents_email_sent'] = 'Email sent successfully';
 $lang['archived_documents_email_error'] = 'Error sending email';
 $lang['archived_documents_email_access_denied'] = 'Access denied';
 
+$lang['archived_documents_year_view']           = "Year";
+$lang['archived_documents_calendar_title']      = "Deadlines Calendar";
+$lang['archived_documents_legend_expired']      = "Expired";
+$lang['archived_documents_legend_expiring_soon']= "Expiring soon";
+$lang['archived_documents_legend_active']       = "Active";
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/english/archived_documents_lang.php */

@@ -800,6 +800,43 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
+     * Returns approved current documents that have a valid_until date, for calendar display.
+     * @param string|null $start Filter: valid_until >= $start (YYYY-MM-DD)
+     * @param string|null $end   Filter: valid_until <= $end   (YYYY-MM-DD)
+     * @return array
+     */
+    public function get_documents_for_calendar($start = null, $end = null)
+    {
+        $this->db->select(
+            'archived_documents.id,
+             archived_documents.valid_until,
+             archived_documents.description,
+             archived_documents.original_filename,
+             archived_documents.validation_status,
+             document_types.name as type_name,
+             document_types.alert_days_before,
+             membres.mnom as pilot_nom,
+             membres.mprenom as pilot_prenom,
+             sections.nom as section_name'
+        );
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
+        $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
+        $this->db->where('archived_documents.is_current_version', 1);
+        $this->db->where('archived_documents.valid_until IS NOT NULL', null, false);
+        $this->db->where('archived_documents.validation_status', 'approved');
+        if ($start !== null) {
+            $this->db->where('archived_documents.valid_until >=', $start);
+        }
+        if ($end !== null) {
+            $this->db->where('archived_documents.valid_until <=', $end);
+        }
+        $this->db->order_by('archived_documents.valid_until', 'asc');
+        return $this->db->get()->result_array();
+    }
+
+    /**
      * Returns the active consignes_securite document for a section, or NULL.
      * @param int $section_id Section ID
      * @return array|null

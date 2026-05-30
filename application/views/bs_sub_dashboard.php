@@ -1074,6 +1074,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-calendar-alt text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_deadlines_calendar') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_deadlines_calendar') ?></div>
+                <a href="<?= controller_url('deadlines_calendar') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center" style="opacity: 0.5;">
                 <i class="fas fa-stamp text-secondary"></i>
                 <div class="card-title text-muted"><?= $this->lang->line('db_card_doc_approval') ?></div>

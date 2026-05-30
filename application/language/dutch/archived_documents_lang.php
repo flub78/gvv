@@ -107,5 +107,11 @@ $lang['archived_documents_email_sent'] = 'E-mail succesvol verzonden';
 $lang['archived_documents_email_error'] = 'Fout bij verzenden van e-mail';
 $lang['archived_documents_email_access_denied'] = 'Toegang geweigerd';
 
+$lang['archived_documents_year_view']           = "Jaar";
+$lang['archived_documents_calendar_title']      = "Vervaldagenkalender";
+$lang['archived_documents_legend_expired']      = "Verlopen";
+$lang['archived_documents_legend_expiring_soon']= "Vervalt binnenkort";
+$lang['archived_documents_legend_active']       = "Geldig";
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

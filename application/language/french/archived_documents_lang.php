@@ -107,5 +107,11 @@ $lang['archived_documents_email_sent'] = 'Email envoyé avec succès';
 $lang['archived_documents_email_error'] = 'Erreur lors de l\'envoi de l\'email';
 $lang['archived_documents_email_access_denied'] = 'Accès refusé';
 
+$lang['archived_documents_year_view']           = "Année";
+$lang['archived_documents_calendar_title']      = "Calendrier des échéances";
+$lang['archived_documents_legend_expired']      = "Expiré";
+$lang['archived_documents_legend_expiring_soon']= "Expire bientôt";
+$lang['archived_documents_legend_active']       = "Valide";
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/french/archived_documents_lang.php */

@@ -32,8 +32,6 @@
 * [] Informer le trésorier des renouvellement de cotisation par email
   
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
-  
-* [] Masses maxiamles pour la réservation de VI
 
 * [] Facture automatique de hangar
 
