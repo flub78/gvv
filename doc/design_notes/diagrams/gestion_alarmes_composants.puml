@@ -1,0 +1,73 @@
+@startuml gestion_alarmes_composants
+!theme plain
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+
+title Architecture — Gestion Générique des Alarmes GVV
+
+package "Gestion des Alarmes" {
+
+  package "Agrégateur" #lightblue {
+    component [AlarmAggregator\n(service)] as AGG #lightblue
+    note right of AGG
+      collect(pilot) : AlarmItem[]
+      collect_all() : AlarmItem[]
+      disable(source)
+    end note
+  }
+
+  package "Provider documentaire" #lightgreen {
+    component [DocumentAlarmProvider] as DOC_P #lightgreen
+  }
+
+  package "Provider calculé" #lightyellow {
+    component [ComputedAlarmProvider] as COMP_P #lightyellow
+  }
+}
+
+package "Code existant (non modifié en phase 1)" {
+  component [archived_documents_model] as ARCH_M
+  component [alarmes.php\n(contrôleur)] as ALARM_C
+  component [vols_planeur_model] as VOL_M
+  component [event_model] as EVT_M
+
+  database "archived_documents\ndocument_types" as ARCH_DB
+  database "vols_planeur\nevents" as VOL_DB
+}
+
+package "Consommateurs" {
+  component [Vue alarmes\n(pilote / admin)] as VUE
+  component [Service notification\n(email + bannière UI)] as NOTIF
+}
+
+' Agrégateur → Providers
+AGG --> DOC_P : alarmes documentaires
+AGG --> COMP_P : alarmes calculées
+
+' Providers → Code existant
+DOC_P --> ARCH_M : get_expired,\nget_expiring_soon,\nget_missing
+COMP_P --> VOL_M : experience()
+COMP_P --> EVT_M : medical_validity,\nbpp_date, controle_date
+
+' Code existant → DB
+ARCH_M --> ARCH_DB
+VOL_M --> VOL_DB
+EVT_M --> VOL_DB
+
+' Consommateurs → Agrégateur
+VUE --> AGG
+NOTIF --> AGG
+
+' Relation alarmes.php → ComputedAlarmProvider
+ALARM_C ..> COMP_P : délèguera vers\n(phase 2)
+
+legend right
+  |= Couleur |= État |
+  |<#lightblue>  | Nouveau — agrégateur |
+  |<#lightgreen> | Nouveau — adaptateur documentaire |
+  |<#lightyellow>| Nouveau — adaptateur calculé |
+  | Blanc        | Existant, non modifié en phase 1 |
+endlegend
+
+@enduml
