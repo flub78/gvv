@@ -2,8 +2,11 @@
  * Playwright smoke tests for Deadlines Calendar feature
  *
  * Tests:
- * - Admin can access the calendar page
- * - FullCalendar toolbar and view buttons are rendered
+ * - Landing page is the year view (default)
+ * - Year view shows 12 month cards
+ * - Month title click navigates to month view, back button returns to year view
+ * - Year prev/next navigation works
+ * - Tooltips exist on event dots
  * - JSON events endpoint returns a valid array
  * - Non-admin pilot is redirected away
  *
@@ -14,9 +17,9 @@
 
 const { test, expect } = require('@playwright/test');
 
-const LOGIN_URL     = '/index.php/auth/login';
-const CALENDAR_URL  = '/index.php/deadlines_calendar';
-const EVENTS_URL    = '/index.php/deadlines_calendar/get_events';
+const LOGIN_URL    = '/index.php/auth/login';
+const CALENDAR_URL = '/index.php/deadlines_calendar';
+const EVENTS_URL   = '/index.php/deadlines_calendar/get_events';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const PILOT_USER = { username: 'testuser',  password: 'password' };
@@ -38,98 +41,115 @@ async function checkNoPhpErrors(page) {
   expect(body).not.toContain('An uncaught Exception was encountered');
 }
 
+async function openCalendar(page) {
+  await page.goto(CALENDAR_URL);
+  await page.waitForLoadState('networkidle');
+}
+
 test.describe('Deadlines Calendar Smoke Tests', () => {
 
-  test('admin can access the deadlines calendar page', async ({ page }) => {
+  test('landing page is the year view by default', async ({ page }) => {
     await login(page, ADMIN_USER);
-
-    await page.goto(CALENDAR_URL);
-    await page.waitForLoadState('networkidle');
-
+    await openCalendar(page);
     await checkNoPhpErrors(page);
 
-    // FullCalendar adds the .fc class to the #calendar element itself
+    // Year view must be visible, FullCalendar hidden
+    await expect(page.locator('#year-view')).toBeVisible();
+    await expect(page.locator('#calendar')).toBeHidden();
+
+    // 12 month cards
+    await expect(page.locator('.year-month-card')).toHaveCount(12);
+
+    // Year title is a 4-digit number
+    const title = await page.locator('#year-view-title').textContent();
+    expect(title).toMatch(/^\d{4}$/);
+  });
+
+  test('year view prev/next year navigation works', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await openCalendar(page);
+
+    const titleBefore = await page.locator('#year-view-title').textContent();
+    await page.locator('#year-prev-btn').click();
+    await page.waitForTimeout(600);
+    const titleAfter = await page.locator('#year-view-title').textContent();
+    expect(parseInt(titleAfter)).toBe(parseInt(titleBefore) - 1);
+
+    await page.locator('#year-next-btn').click();
+    await page.waitForTimeout(600);
+    const titleRestored = await page.locator('#year-view-title').textContent();
+    expect(titleRestored).toBe(titleBefore);
+  });
+
+  test('clicking month title switches to FullCalendar month view', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await openCalendar(page);
+
+    // Click the first month title
+    await page.locator('.year-month-title').first().click();
+    await page.waitForLoadState('networkidle');
+
+    // Year view hidden, FullCalendar visible
+    await expect(page.locator('#year-view')).toBeHidden();
     await expect(page.locator('#calendar')).toBeVisible();
     await expect(page.locator('.fc-toolbar')).toBeVisible();
+
+    // Back-to-year button must appear
+    await expect(page.locator('#back-to-year-bar')).toBeVisible();
   });
 
-  test('calendar toolbar with navigation buttons is rendered', async ({ page }) => {
+  test('back-to-year button returns to year view from month view', async ({ page }) => {
     await login(page, ADMIN_USER);
+    await openCalendar(page);
 
-    await page.goto(CALENDAR_URL);
+    // Navigate to month view
+    await page.locator('.year-month-title').first().click();
     await page.waitForLoadState('networkidle');
+    await expect(page.locator('#back-to-year-bar')).toBeVisible();
 
-    await expect(page.locator('.fc-toolbar')).toBeVisible();
+    // Click back button
+    await page.locator('#back-to-year-bar button').click();
+    await page.waitForTimeout(600);
+
+    // Back to year view
+    await expect(page.locator('#year-view')).toBeVisible();
+    await expect(page.locator('#calendar')).toBeHidden();
+    await expect(page.locator('#back-to-year-bar')).toBeHidden();
+  });
+
+  test('FullCalendar toolbar has translated view buttons, no year button', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await openCalendar(page);
+
+    await page.evaluate(() => yearMonthClick(new Date().getFullYear(), 0));
+    await page.waitForTimeout(300);
+
     await expect(page.locator('.fc-prev-button')).toBeVisible();
     await expect(page.locator('.fc-next-button')).toBeVisible();
-    await expect(page.locator('.fc-today-button')).toBeVisible();
-  });
-
-  test('calendar view buttons are present', async ({ page }) => {
-    await login(page, ADMIN_USER);
-
-    await page.goto(CALENDAR_URL);
-    await page.waitForLoadState('networkidle');
-
     await expect(page.locator('.fc-dayGridMonth-button')).toBeVisible();
     await expect(page.locator('.fc-listMonth-button')).toBeVisible();
+
+    // Year button must NOT be in the toolbar
+    await expect(page.locator('.fc-yearView-button')).toHaveCount(0);
+
+    // Buttons must have translated text (not English defaults)
+    const monthBtn = page.locator('.fc-dayGridMonth-button');
+    const btnText = await monthBtn.textContent();
+    expect(btnText).not.toBe('month');
   });
 
   test('get_events endpoint returns a JSON array', async ({ page }) => {
     await login(page, ADMIN_USER);
-
     const response = await page.request.get(EVENTS_URL);
     expect(response.status()).toBe(200);
-
-    const body = await response.text();
-    let json;
-    try {
-      json = JSON.parse(body);
-    } catch (e) {
-      throw new Error('get_events did not return valid JSON: ' + body.substring(0, 200));
-    }
+    const json = JSON.parse(await response.text());
     expect(Array.isArray(json)).toBeTruthy();
-  });
-
-  test('year view button is present and toggles year grid', async ({ page }) => {
-    await login(page, ADMIN_USER);
-
-    await page.goto(CALENDAR_URL);
-    await page.waitForLoadState('networkidle');
-
-    // The custom year view button must appear in the toolbar
-    await expect(page.locator('.fc-yearView-button')).toBeVisible();
-
-    // Click it
-    await page.locator('.fc-yearView-button').click();
-    await page.waitForLoadState('networkidle');
-
-    // FullCalendar calendar div should be hidden, year view visible
-    await expect(page.locator('#year-view')).toBeVisible();
-    await expect(page.locator('#calendar')).toBeHidden();
-
-    // 12 month cards must be rendered
-    const monthCards = page.locator('.year-month-card');
-    await expect(monthCards).toHaveCount(12);
-
-    // Year title must be a 4-digit year
-    const titleText = await page.locator('#year-view-title').textContent();
-    expect(titleText).toMatch(/^\d{4}$/);
-
-    // prev/next year buttons work
-    await page.locator('#year-prev-btn').click();
-    await page.waitForTimeout(500);
-    const prevYear = parseInt(titleText) - 1;
-    await expect(page.locator('#year-view-title')).toHaveText(String(prevYear));
   });
 
   test('non-admin pilot is redirected away from calendar', async ({ page }) => {
     await login(page, PILOT_USER);
-
     await page.goto(CALENDAR_URL);
     await page.waitForLoadState('networkidle');
-
-    // Should have been redirected — URL must not contain 'deadlines_calendar'
     expect(page.url()).not.toContain('deadlines_calendar');
   });
 

@@ -108,6 +108,11 @@ $lang['archived_documents_email_error'] = 'Fout bij verzenden van e-mail';
 $lang['archived_documents_email_access_denied'] = 'Toegang geweigerd';
 
 $lang['archived_documents_year_view']           = "Jaar";
+$lang['archived_documents_btn_today']           = "Vandaag";
+$lang['archived_documents_btn_month']           = "Maand";
+$lang['archived_documents_btn_week']            = "Week";
+$lang['archived_documents_btn_day']             = "Dag";
+$lang['archived_documents_btn_list']            = "Lijst";
 $lang['archived_documents_calendar_title']      = "Vervaldagenkalender";
 $lang['archived_documents_legend_expired']      = "Verlopen";
 $lang['archived_documents_legend_expiring_soon']= "Vervalt binnenkort";

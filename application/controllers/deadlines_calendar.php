@@ -55,12 +55,21 @@ class Deadlines_calendar extends MY_Controller {
             redirect('archived_documents/page');
         }
 
+        // Let pages opened from the calendar (e.g. archived_documents/view) return here
+        $this->session->set_userdata('nav_from_url',   'deadlines_calendar');
+        $this->session->set_userdata('nav_from_label', $this->lang->line('archived_documents_calendar_title'));
+
         $translations = array(
             'title'            => $this->lang->line('archived_documents_calendar_title'),
             'legend_expired'   => $this->lang->line('archived_documents_legend_expired'),
             'legend_expiring'  => $this->lang->line('archived_documents_legend_expiring_soon'),
             'legend_active'    => $this->lang->line('archived_documents_legend_active'),
             'btn_year_view'    => $this->lang->line('archived_documents_year_view'),
+            'btn_today'        => $this->lang->line('archived_documents_btn_today'),
+            'btn_month'        => $this->lang->line('archived_documents_btn_month'),
+            'btn_week'         => $this->lang->line('archived_documents_btn_week'),
+            'btn_day'          => $this->lang->line('archived_documents_btn_day'),
+            'btn_list'         => $this->lang->line('archived_documents_btn_list'),
         );
 
         $locale_map = array(

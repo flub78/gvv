@@ -108,6 +108,11 @@ $lang['archived_documents_email_error'] = 'Error sending email';
 $lang['archived_documents_email_access_denied'] = 'Access denied';
 
 $lang['archived_documents_year_view']           = "Year";
+$lang['archived_documents_btn_today']           = "Today";
+$lang['archived_documents_btn_month']           = "Month";
+$lang['archived_documents_btn_week']            = "Week";
+$lang['archived_documents_btn_day']             = "Day";
+$lang['archived_documents_btn_list']            = "List";
 $lang['archived_documents_calendar_title']      = "Deadlines Calendar";
 $lang['archived_documents_legend_expired']      = "Expired";
 $lang['archived_documents_legend_expiring_soon']= "Expiring soon";

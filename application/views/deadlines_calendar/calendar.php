@@ -3,7 +3,7 @@
 /**
  * GVV Gestion vol à voile
  * Read-only FullCalendar v6 view for document expiration deadlines.
- * Includes a custom year view (3 rows × 4 months on desktop, responsive).
+ * Default landing: year view (3 rows × 4 months on desktop, responsive).
  */
 
 $this->load->view('bs_header', array('new_layout' => true));
@@ -12,12 +12,12 @@ $this->load->view('bs_banner');
 ?>
 
 <div class="container-fluid p-4">
-    <div class="row mb-3">
+    <div class="row mb-2">
         <div class="col-12">
             <h2><?= htmlspecialchars($translations['title']) ?></h2>
         </div>
     </div>
-    <div class="row mb-2">
+    <div class="row mb-3">
         <div class="col-12">
             <span class="badge me-2" style="background-color:#dc3545"><?= htmlspecialchars($translations['legend_expired']) ?></span>
             <span class="badge me-2" style="background-color:#fd7e14"><?= htmlspecialchars($translations['legend_expiring']) ?></span>
@@ -25,19 +25,26 @@ $this->load->view('bs_banner');
         </div>
     </div>
 
-    <!-- Standard FullCalendar views -->
+    <!-- Back-to-year button – visible only when a FullCalendar view is active -->
+    <div id="back-to-year-bar" class="mb-2" style="display:none">
+        <button class="btn btn-outline-secondary btn-sm" onclick="backToYear()">
+            &#8592; <?= htmlspecialchars($translations['btn_year_view']) ?>
+        </button>
+    </div>
+
+    <!-- Standard FullCalendar views (month / week / day / list) -->
     <div class="row">
         <div class="col-12">
             <div id="calendar"></div>
         </div>
     </div>
 
-    <!-- Custom year view (hidden by default) -->
+    <!-- Custom year view (shown by default) -->
     <div id="year-view" style="display:none">
-        <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
             <button class="btn btn-outline-secondary btn-sm" id="year-prev-btn" onclick="navigateYear(-1)">&#8249;</button>
             <button class="btn btn-outline-secondary btn-sm" id="year-next-btn" onclick="navigateYear(1)">&#8250;</button>
-            <button class="btn btn-outline-secondary btn-sm" id="year-today-btn" onclick="navigateYear(0, true)">Today</button>
+            <button class="btn btn-outline-secondary btn-sm" id="year-today-btn" onclick="navigateYear(0, true)"></button>
             <h5 id="year-view-title" class="mb-0 ms-2"></h5>
         </div>
         <div id="year-view-content">
@@ -61,7 +68,7 @@ $this->load->view('bs_banner');
         font-size: 14px;
     }
 
-    /* ── Year view ──────────────────────────────────────────────── */
+    /* ── Year view layout ──────────────────────────────────────────── */
     .year-month-card {
         border: 1px solid #dee2e6;
         border-radius: 6px;
@@ -75,8 +82,18 @@ $this->load->view('bs_banner');
         text-transform: capitalize;
         font-size: 0.85rem;
         margin-bottom: 0.3rem;
-        color: #212529;
+        color: #0d6efd;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+        transition: background-color 0.15s;
     }
+    .year-month-title:hover {
+        background-color: #e7f0ff;
+        text-decoration: underline;
+    }
+
+    /* ── Day grid ──────────────────────────────────────────────────── */
     .year-day-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -123,6 +140,9 @@ $this->load->view('bs_banner');
         color: #fff;
         font-weight: 700;
     }
+    .year-day.weekend .year-day-num {
+        color: #6c757d;
+    }
     .year-event-dots {
         display: flex;
         gap: 1px;
@@ -131,15 +151,12 @@ $this->load->view('bs_banner');
         margin-top: 1px;
     }
     .year-event-dot {
-        width: 4px;
-        height: 4px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         display: inline-block;
         flex-shrink: 0;
-    }
-    /* Saturday/Sunday subtle tint */
-    .year-day.weekend .year-day-num {
-        color: #6c757d;
+        cursor: pointer;
     }
 </style>
 
@@ -148,42 +165,35 @@ $this->load->view('bs_banner');
     const EVENTS_URL   = '<?php echo site_url('deadlines_calendar/get_events'); ?>';
     const LOCALE       = '<?php echo $fullcalendar_locale; ?>';
 
-    // Maps JS locale code → Intl locale string
     const INTL_LOCALE_MAP = { fr: 'fr-FR', nl: 'nl-NL', en: 'en-US' };
     const intlLocale = INTL_LOCALE_MAP[LOCALE] || 'en-US';
 
     let calendar;
-    let yearViewYear   = new Date().getFullYear();
+    let yearViewYear     = new Date().getFullYear();
     let yearEventsByDate = {};
-    let fcReady = false;   // prevents viewDidMount from hiding year view on initial render
+    let fcReady          = false;
 
-    // ── FullCalendar init ────────────────────────────────────────────────────
+    // ── Init ─────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
-        const savedView  = localStorage.getItem('deadlinesCalendarView') || 'dayGridMonth';
-        const initialView = (savedView === 'yearView') ? 'dayGridMonth' : savedView;
+        const calendarEl  = document.getElementById('calendar');
 
-        // Localise the "Today" button in the year nav bar
-        const todayLabel = new Intl.DateTimeFormat(intlLocale, {}).resolvedOptions
-            ? new FullCalendar.Calendar(document.createElement('div'), { locale: LOCALE }).getOption('buttonText')?.today || 'Today'
-            : 'Today';
-        document.getElementById('year-today-btn').textContent = todayLabel;
+        // Localise the "Today" label in the year nav bar from PHP translations
+        document.getElementById('year-today-btn').textContent = TRANSLATIONS.btn_today;
 
         calendar = new FullCalendar.Calendar(calendarEl, {
             locale: LOCALE,
-            initialView: initialView,
-            customButtons: {
-                yearView: {
-                    text: TRANSLATIONS.btn_year_view,
-                    click: function () {
-                        showYearView(calendar.getDate().getFullYear());
-                    }
-                }
+            initialView: 'dayGridMonth',
+            buttonText: {
+                today: TRANSLATIONS.btn_today,
+                month: TRANSLATIONS.btn_month,
+                week:  TRANSLATIONS.btn_week,
+                day:   TRANSLATIONS.btn_day,
+                list:  TRANSLATIONS.btn_list
             },
             headerToolbar: {
                 left:   'prev,next today',
                 center: 'title',
-                right:  'dayGridMonth,timeGridWeek,timeGridDay,listMonth,yearView'
+                right:  'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
             },
             height: 'auto',
             firstDay: 1,
@@ -203,15 +213,11 @@ $this->load->view('bs_banner');
                     window.location.href = info.event.url;
                 }
             },
-            datesSet: function (info) {
-                if (fcReady) {
-                    localStorage.setItem('deadlinesCalendarView', info.view.type);
-                }
-            },
             viewDidMount: function () {
-                // Any regular FullCalendar view mounting → leave year view
+                // Any regular FullCalendar view → show back-to-year button, hide year view
                 if (fcReady) {
-                    hideYearViewOnly();
+                    showBackToYearBar();
+                    document.getElementById('year-view').style.display  = 'none';
                 }
             }
         });
@@ -219,33 +225,27 @@ $this->load->view('bs_banner');
         calendar.render();
         fcReady = true;
 
-        if (savedView === 'yearView') {
-            showYearView(new Date().getFullYear());
-        }
+        showYearView(new Date().getFullYear());
     });
 
-    // ── Year view orchestration ──────────────────────────────────────────────
+    // ── Year view show / hide ─────────────────────────────────────────────────
     function showYearView(year) {
         yearViewYear = year;
 
-        // Swap visibility
-        document.getElementById('calendar').style.display   = 'none';
-        document.getElementById('year-view').style.display  = '';
+        document.getElementById('calendar').style.display      = 'none';
+        document.getElementById('back-to-year-bar').style.display = 'none';
+        document.getElementById('year-view').style.display     = '';
         document.getElementById('year-view-title').textContent = year;
 
-        // Mark year button active in FullCalendar toolbar
-        setYearBtnActive(true);
-        localStorage.setItem('deadlinesCalendarView', 'yearView');
 
-        // Show spinner while fetching
         document.getElementById('year-view-content').innerHTML =
-            '<div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm" role="status"></div></div>';
+            '<div class="text-center py-4 text-muted">' +
+            '<div class="spinner-border spinner-border-sm" role="status"></div></div>';
 
         fetch(EVENTS_URL + '?start=' + year + '-01-01&end=' + year + '-12-31')
             .then(function (r) { return r.json(); })
             .then(function (events) { renderYearView(year, events); })
-            .catch(function (err) {
-                console.error('Year view fetch error:', err);
+            .catch(function () {
                 document.getElementById('year-view-content').innerHTML =
                     '<div class="alert alert-danger">Erreur lors du chargement des événements.</div>';
             });
@@ -254,30 +254,25 @@ $this->load->view('bs_banner');
     function hideYearViewOnly() {
         document.getElementById('year-view').style.display  = 'none';
         document.getElementById('calendar').style.display   = '';
-        setYearBtnActive(false);
+        showBackToYearBar();
+    }
+
+    function showBackToYearBar() {
+        document.getElementById('back-to-year-bar').style.display = '';
+    }
+
+    function backToYear() {
+        document.getElementById('back-to-year-bar').style.display = 'none';
+        showYearView(calendar.getDate().getFullYear());
     }
 
     function navigateYear(delta, toToday) {
-        if (toToday) {
-            showYearView(new Date().getFullYear());
-        } else {
-            showYearView(yearViewYear + delta);
-        }
+        showYearView(toToday ? new Date().getFullYear() : yearViewYear + delta);
     }
 
-    function setYearBtnActive(active) {
-        var btn = document.querySelector('.fc-yearView-button');
-        if (!btn) return;
-        if (active) {
-            btn.classList.add('fc-button-active');
-        } else {
-            btn.classList.remove('fc-button-active');
-        }
-    }
 
-    // ── Year grid rendering ──────────────────────────────────────────────────
+    // ── Year grid rendering ───────────────────────────────────────────────────
     function renderYearView(year, events) {
-        // Build date → events map
         yearEventsByDate = {};
         events.forEach(function (ev) {
             var date = ev.start;
@@ -285,22 +280,17 @@ $this->load->view('bs_banner');
             yearEventsByDate[date].push(ev);
         });
 
-        var today = new Date();
+        var today    = new Date();
         var todayStr = isoDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
-
-        // Month names (capitalised)
         var monthFmt = new Intl.DateTimeFormat(intlLocale, { month: 'long' });
+        var dayFmt   = new Intl.DateTimeFormat(intlLocale, { weekday: 'short' });
 
-        // Abbreviated day headers (2 chars), Monday-first
-        var dayFmt = new Intl.DateTimeFormat(intlLocale, { weekday: 'short' });
+        // Day-name headers, Monday-first (2000-01-03 = Monday)
         var dayNames = [];
         for (var i = 0; i < 7; i++) {
-            // 2000-01-03 was a Monday
-            var d = new Date(2000, 0, 3 + i);
-            dayNames.push(dayFmt.format(d).slice(0, 2));
+            dayNames.push(dayFmt.format(new Date(2000, 0, 3 + i)).slice(0, 2));
         }
 
-        // Build HTML: Bootstrap row with 12 month cols
         var html = '<div class="row g-3">';
         for (var m = 0; m < 12; m++) {
             html += '<div class="col-12 col-sm-6 col-md-4 col-lg-3">';
@@ -310,17 +300,26 @@ $this->load->view('bs_banner');
         html += '</div>';
 
         document.getElementById('year-view-content').innerHTML = html;
+
+        // Initialise Bootstrap tooltips on event dots
+        document.querySelectorAll('#year-view-content [data-bs-toggle="tooltip"]').forEach(function (el) {
+            bootstrap.Tooltip.getOrCreateInstance(el, { trigger: 'hover focus' });
+        });
     }
 
     function buildMonthHtml(year, month, todayStr, monthFmt, dayNames) {
         var daysInMonth = new Date(year, month + 1, 0).getDate();
-        // Day-of-week of 1st, shifted so Monday = 0
-        var firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+        var firstDow    = (new Date(year, month, 1).getDay() + 6) % 7; // 0=Mon … 6=Sun
+
+        var monthName = capitalize(monthFmt.format(new Date(year, month, 1)));
 
         var html = '<div class="year-month-card">';
-        html += '<div class="year-month-title">' +
-                    capitalize(monthFmt.format(new Date(year, month, 1))) +
-                '</div>';
+
+        // Month title – clicking navigates to dayGridMonth for this month
+        html += '<div class="year-month-title" onclick="yearMonthClick(' + year + ',' + month + ')"' +
+                ' title="' + escHtml(monthName) + '">' +
+                escHtml(monthName) + '</div>';
+
         html += '<div class="year-day-grid">';
 
         // Day-name header row
@@ -337,31 +336,48 @@ $this->load->view('bs_banner');
         for (var day = 1; day <= daysInMonth; day++) {
             var dateStr = isoDate(year, month + 1, day);
             var evs     = yearEventsByDate[dateStr] || [];
-            var dow     = (firstDow + day - 1) % 7; // 0=Mon … 6=Sun
+            var dow     = (firstDow + day - 1) % 7;
             var isToday = (dateStr === todayStr);
 
             var cls = 'year-day';
             if (evs.length > 0) cls += ' has-events';
             if (isToday)        cls += ' today';
-            if (dow >= 5)       cls += ' weekend';  // Sa=5, Su=6
+            if (dow >= 5)       cls += ' weekend';
 
             var onclick = evs.length > 0
-                ? ' onclick="yearDayClick(\'' + dateStr + '\')"'
-                : '';
+                ? ' onclick="yearDayClick(\'' + dateStr + '\')"' : '';
 
-            html += '<div class="' + cls + '"' + onclick + ' title="' + dateStr + '">';
+            html += '<div class="' + cls + '"' + onclick + '>';
             html += '<span class="year-day-num">' + day + '</span>';
 
             if (evs.length > 0) {
                 html += '<div class="year-event-dots">';
-                evs.slice(0, 3).forEach(function (ev) {
-                    html += '<span class="year-event-dot" style="background-color:' +
-                            escHtml(ev.color || '#3788d8') + '"></span>';
+                var shown = evs.slice(0, 3);
+                shown.forEach(function (ev) {
+                    // Build tooltip: title + description
+                    var tip = ev.title;
+                    if (ev.extendedProps && ev.extendedProps.description) {
+                        tip += '&#10;' + ev.extendedProps.description;
+                    }
+
+                    html += '<span class="year-event-dot"' +
+                            ' style="background-color:' + escHtml(ev.color || '#3788d8') + '"' +
+                            ' data-bs-toggle="tooltip"' +
+                            ' data-bs-placement="top"' +
+                            ' title="' + escHtml(ev.title) +
+                            (ev.extendedProps && ev.extendedProps.description
+                                ? ' – ' + escHtml(ev.extendedProps.description) : '') +
+                            '"></span>';
                 });
+                if (evs.length > 3) {
+                    html += '<span class="year-event-dot" style="background-color:#adb5bd"' +
+                            ' data-bs-toggle="tooltip" data-bs-placement="top"' +
+                            ' title="+' + (evs.length - 3) + '"></span>';
+                }
                 html += '</div>';
             }
 
-            html += '</div>';
+            html += '</div>'; // .year-day
         }
 
         html += '</div>'; // .year-day-grid
@@ -369,16 +385,24 @@ $this->load->view('bs_banner');
         return html;
     }
 
-    // ── Day click: navigate FullCalendar to that month ───────────────────────
+    // ── Navigation callbacks ──────────────────────────────────────────────────
+
+    // Click on month title → dayGridMonth for that month
+    function yearMonthClick(year, month) {
+        hideYearViewOnly();
+        calendar.changeView('dayGridMonth', new Date(year, month, 1));
+        // datesSet fires and saves 'dayGridMonth' to localStorage
+    }
+
+    // Click on a day with events → dayGridMonth centred on that date
     function yearDayClick(dateStr) {
         var evs = yearEventsByDate[dateStr] || [];
         if (evs.length === 0) return;
         hideYearViewOnly();
         calendar.changeView('dayGridMonth', dateStr);
-        // datesSet will fire and save 'dayGridMonth' to localStorage
     }
 
-    // ── Utilities ────────────────────────────────────────────────────────────
+    // ── Utilities ─────────────────────────────────────────────────────────────
     function isoDate(y, m, d) {
         return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     }
@@ -392,6 +416,7 @@ $this->load->view('bs_banner');
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 </script>
