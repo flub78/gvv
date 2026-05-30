@@ -36,6 +36,7 @@ class Forms_model extends CI_Model {
                 ? $this->ensure_unique_slug($data['public_slug'])
                 : $this->ensure_unique_slug($data['code']),
             'css_scope'   => isset($data['css_scope']) ? $data['css_scope'] : null,
+            'global_css'  => isset($data['global_css']) ? $data['global_css'] : null,
             'created_at'  => $now,
             'updated_at'  => $now,
             'created_by'  => isset($data['created_by']) ? $data['created_by'] : null,
@@ -103,6 +104,7 @@ class Forms_model extends CI_Model {
             'description' => array_key_exists('description', $data) ? $data['description'] : $current['description'],
             'status'      => isset($data['status']) ? $data['status'] : $current['status'],
             'css_scope'   => array_key_exists('css_scope', $data) ? $data['css_scope'] : $current['css_scope'],
+            'global_css'  => array_key_exists('global_css', $data) ? $data['global_css'] : (isset($current['global_css']) ? $current['global_css'] : null),
             'updated_at'  => date('Y-m-d H:i:s'),
             'updated_by'  => isset($data['updated_by']) ? $data['updated_by'] : null,
         );
@@ -129,6 +131,103 @@ class Forms_model extends CI_Model {
         ));
     }
 
+    public function delete_form($id) {
+        $this->db->where('id', (int) $id)->delete($this->table);
+        return $this->db->affected_rows() > 0;
+    }
+
+    public function duplicate_form($id, $created_by = null) {
+        $source = $this->get_by_id($id);
+        if (!$source) {
+            return false;
+        }
+
+        $new_code = $this->ensure_unique_code($source['code']);
+        $new_slug = $this->ensure_unique_slug($source['public_slug']);
+        $new_title = $source['title'] . ' (copie)';
+
+        $this->db->trans_start();
+
+        $new_form_id = $this->create_form(array(
+            'club'        => array_key_exists('club', $source) ? $source['club'] : null,
+            'code'        => $new_code,
+            'title'       => $new_title,
+            'description' => $source['description'],
+            'status'      => 'draft',
+            'public_slug' => $new_slug,
+            'css_scope'   => $source['css_scope'],
+            'global_css'  => isset($source['global_css']) ? $source['global_css'] : null,
+            'created_by'  => $created_by,
+        ));
+
+        if (!$new_form_id) {
+            $this->db->trans_complete();
+            return false;
+        }
+
+        $page_map = array();
+        $source_pages = $this->db
+            ->where('form_id', (int) $id)
+            ->order_by('page_number', 'ASC')
+            ->get('form_pages')
+            ->result_array();
+
+        $now = date('Y-m-d H:i:s');
+        foreach ($source_pages as $page) {
+            $row = array(
+                'form_id'      => (int) $new_form_id,
+                'page_number'  => (int) $page['page_number'],
+                'title'        => $page['title'],
+                'content_html' => $page['content_html'],
+                'created_at'   => $now,
+                'updated_at'   => $now,
+                'created_by'   => $created_by,
+                'updated_by'   => $created_by,
+            );
+            $this->db->insert('form_pages', $row);
+            $page_map[(int) $page['id']] = (int) $this->db->insert_id();
+        }
+
+        $source_fields = $this->db
+            ->where('form_id', (int) $id)
+            ->order_by('page_id', 'ASC')
+            ->order_by('sort_order', 'ASC')
+            ->order_by('id', 'ASC')
+            ->get('form_fields')
+            ->result_array();
+
+        foreach ($source_fields as $field) {
+            $old_page_id = (int) $field['page_id'];
+            if (!isset($page_map[$old_page_id])) {
+                continue;
+            }
+
+            $row = array(
+                'form_id'          => (int) $new_form_id,
+                'page_id'          => (int) $page_map[$old_page_id],
+                'name'             => $field['name'],
+                'label'            => $field['label'],
+                'field_type'       => $field['field_type'],
+                'is_required'      => (int) $field['is_required'],
+                'sort_order'       => (int) $field['sort_order'],
+                'options_json'     => $field['options_json'],
+                'validation_rules' => $field['validation_rules'],
+                'created_at'       => $now,
+                'updated_at'       => $now,
+                'created_by'       => $created_by,
+                'updated_by'       => $created_by,
+            );
+            $this->db->insert('form_fields', $row);
+        }
+
+        $this->db->trans_complete();
+        if (!$this->db->trans_status()) {
+            return false;
+        }
+
+        return $new_form_id;
+    }
+
     private function ensure_unique_slug($raw_slug, $exclude_id = 0) {
         $slug = strtolower(trim($raw_slug));
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
@@ -149,9 +248,54 @@ class Forms_model extends CI_Model {
         return $candidate;
     }
 
+    private function ensure_unique_code($raw_code, $exclude_id = 0) {
+        $code = strtolower(trim($raw_code));
+        $code = preg_replace('/[^a-z0-9_-]+/', '-', $code);
+        $code = trim($code, '-_');
+
+        if ($code === '') {
+            $code = 'form-copy';
+        }
+
+        $base = $code . '-copy';
+        if (strlen($base) > 50) {
+            $base = substr($base, 0, 50);
+            $base = rtrim($base, '-_');
+        }
+        if ($base === '') {
+            $base = 'form-copy';
+        }
+
+        $candidate = $base;
+        $suffix = 2;
+
+        while ($this->code_exists($candidate, $exclude_id)) {
+            $suffix_text = '-' . $suffix;
+            $head = $base;
+            if (strlen($head . $suffix_text) > 50) {
+                $head = substr($head, 0, 50 - strlen($suffix_text));
+                $head = rtrim($head, '-_');
+            }
+            $candidate = $head . $suffix_text;
+            $suffix += 1;
+        }
+
+        return $candidate;
+    }
+
     private function slug_exists($public_slug, $exclude_id = 0) {
         $this->db->from($this->table);
         $this->db->where('public_slug', $public_slug);
+        if ($exclude_id) {
+            $this->db->where('id !=', (int) $exclude_id);
+        }
+
+        return $this->db->count_all_results() > 0;
+    }
+
+    private function code_exists($code, $exclude_id = 0) {
+        $this->db->from($this->table);
+        $this->db->where('code', $code);
         if ($exclude_id) {
             $this->db->where('id !=', (int) $exclude_id);
         }

@@ -54,6 +54,17 @@ class Form_pages_model extends CI_Model {
             ->result_array();
     }
 
+    public function next_page_number($form_id) {
+        $row = $this->db
+            ->select_max('page_number', 'max_page')
+            ->where('form_id', (int) $form_id)
+            ->get($this->table)
+            ->row_array();
+
+        $max = isset($row['max_page']) ? (int) $row['max_page'] : 0;
+        return $max + 1;
+    }
+
     public function update_page($id, array $data) {
         $current = $this->get_by_id($id);
         if (!$current) {

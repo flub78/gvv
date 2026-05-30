@@ -1,7 +1,14 @@
 <div class="container mt-4">
     <div class="mb-3">
-        <h1 class="h3 mb-1">Nouveau formulaire</h1>
+        <h1 class="h3 mb-1"><?= (isset($form_mode) && $form_mode === 'edit') ? 'Modifier le formulaire' : 'Nouveau formulaire' ?></h1>
         <p class="text-muted mb-0">Creation du conteneur formulaire avant ajout des pages et champs.</p>
+        <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
+            <div class="mt-2">
+                <a class="btn btn-sm btn-outline-dark" href="<?= site_url('forms_admin/pages/' . (int) $form['id']) ?>">Gerer les pages</a>
+                <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>">Voir les reponses</a>
+                <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/css_preview/' . (int) $form['id']) ?>" target="_blank">Preview CSS</a>
+            </div>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($error)): ?>
@@ -10,7 +17,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="post" action="<?= site_url('forms_admin/store') ?>">
+            <form method="post" action="<?= isset($form_action) ? $form_action : site_url('forms_admin/store') ?>">
                 <?php if (!empty($section_id) && (int) $section_id > 0): ?>
                     <div class="alert alert-info">
                         Section active : <strong><?= (int) $section_id ?></strong>
@@ -25,7 +32,7 @@
 
                 <div class="mb-3">
                     <label class="form-label" for="code">Code</label>
-                    <input class="form-control" id="code" name="code" type="text" maxlength="50" required value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>">
+                    <input class="form-control" id="code" name="code" type="text" maxlength="50" <?= (isset($form_mode) && $form_mode === 'edit') ? '' : 'required' ?> value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>" <?= (isset($form_mode) && $form_mode === 'edit') ? 'readonly' : '' ?>>
                     <div class="form-text">Identifiant stable en snake_case ou kebab-case.</div>
                 </div>
 
@@ -50,6 +57,12 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label" for="global_css">CSS global du formulaire</label>
+                    <textarea class="form-control" id="global_css" name="global_css" rows="8" placeholder=".forms-public-root h1 { color: #0d6efd; }"><?= html_escape(isset($form['global_css']) ? $form['global_css'] : '') ?></textarea>
+                    <div class="form-text">Ce CSS est injecte sur le rendu public et dans la preview admin.</div>
+                </div>
+
                 <div class="form-check mb-3">
                     <input
                         class="form-check-input"
@@ -64,7 +77,7 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary" type="submit">Creer</button>
+                    <button class="btn btn-primary" type="submit"><?= isset($submit_label) ? $submit_label : 'Creer' ?></button>
                     <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin') ?>">Annuler</a>
                 </div>
             </form>

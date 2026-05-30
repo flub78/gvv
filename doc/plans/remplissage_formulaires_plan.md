@@ -23,9 +23,30 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 
 - Lot 1 entamé.
 - Migration coeur formulaires créée et appliquée sur la base de test.
+- Migration `117_forms_club_nullable` ajoutée pour autoriser les formulaires globaux (`club` nullable).
+- Migration `118_forms_global_css` ajoutée pour supporter le CSS global formulaire.
 - Schéma SQL vérifié en base pour les 5 tables du socle.
 - Modèles `forms_model.php` et `form_pages_model.php` ajoutés.
+- Modèles `form_fields_model.php` et `form_submissions_model.php` ajoutés.
 - Contrôleur admin minimal créé pour lister, créer et publier un formulaire.
+- CRUD admin étendu avec édition, suppression et duplication.
+- Modèle `forms_model.php` adapté pour gérer section active + formulaires globaux dans le listing.
+- Contrôleur public `forms_public` ajouté avec routes publiques (`forms/{slug}`, `forms/submit/{slug}`) pour affichage multi-pages et soumission anonyme (premier slice).
+- Validation serveur centralisée introduite via la librairie `Forms_validation` et branchée dans `forms_public`.
+- Préparation de rendu HTML centralisée via la librairie `Forms_renderer` (normalisation des champs/options/valeurs pour la vue publique).
+- Gestion admin des pages ajoutée (liste, création, édition, suppression) avec import texte/HTML et export HTML/TXT.
+- CSS global de formulaire ajouté avec preview admin dédiée et application au rendu public.
+- Lot 2 démarré : migration `119_forms_files` ajoutée, stockage métadonnées fichiers dans `form_submission_files`, upload public sécurisé branché.
+- Vue admin des réponses ajoutée (liste + détail), preview inline image/PDF et téléchargement sécurisé des fichiers de soumission.
+
+### Séquencement opérationnel (suite immédiate)
+
+- [x] Étape 1 : ajouter `form_fields_model.php` (CRUD minimal + ordre + validations de base).
+- [x] Étape 2 : ajouter `form_submissions_model.php` (création soumission + stockage valeurs).
+- [x] Étape 3 : compléter `forms_admin` pour édition et suppression (dupliquer ensuite).
+- [x] Étape 4 : créer le contrôleur public de consultation/soumission multi-pages (premier slice).
+- [x] Étape 5 : brancher la validation serveur centralisée (règles par type de champ).
+
 
 ### Lot 1 — Socle formulaires autonome
 
@@ -36,33 +57,33 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
   - `form_submissions` (soumissions)
   - `form_submission_values` (valeurs par champ)
 - [x] Ajouter index, contraintes d'unicité, clés étrangères, mise à jour `application/config/migration.php`.
-- [ ] Écrire test migration up/down.
-- [ ] Vérifier et documenter le scénario install from scratch / upgrade complet.
-- [ ] Créer `form_submissions_model.php`.
+- [x] Vérifier manuellement la disponibilité des tables requises après migration (`forms`, `form_pages`, `form_fields`, `form_submissions`, `form_submission_values`) et le `club` nullable.
+- [ ] Vérifier et documenter le scénario install from scratch / upgrade complet (upgrade validé: table `migrations` présente, version atteinte = `119`, tables formulaires présentes; replay from scratch sur base vide restant à faire).
+- [x] Créer `form_submissions_model.php`.
 - [x] Créer modèles `forms_model.php`, `form_pages_model.php`.
-- [ ] Compléter les modèles du socle (`form_fields_model.php`, `form_submissions_model.php`).
-- [ ] Compléter le CRUD admin : modifier, supprimer, dupliquer.
+- [x] Compléter les modèles du socle (`form_fields_model.php`, `form_submissions_model.php`).
+- [x] Compléter le CRUD admin : modifier, supprimer, dupliquer.
 - [x] Implémenter le premier slice CRUD admin : lister, créer, publier.
-- [ ] Adapter le modèle `forms` pour le rattachement section optionnel (section ou global).
-- [ ] Implémenter les règles de listing section :
+- [x] Adapter le modèle `forms` pour le rattachement section optionnel (section ou global).
+- [x] Implémenter les règles de listing section :
   - sans section active : tous les formulaires + affichage de la section de rattachement,
   - avec section active : formulaires de la section active + formulaires globaux.
-- [ ] Créer le contrôleur public pour affichage multi-pages et soumission anonyme.
-- [ ] Implémenter moteur de rendu HTML et validation serveur centralisée.
-- [ ] Ajouter l'édition des pages puis l'import/export de page texte/HTML.
-- [ ] Ajouter CSS global formulaire et preview admin associée.
+- [x] Créer le contrôleur public pour affichage multi-pages et soumission anonyme (premier slice).
+- [x] Implémenter moteur de rendu HTML et validation serveur centralisée (premier moteur opérationnel: validation centralisée, normalisation de rendu, CSS global appliqué).
+- [x] Ajouter l'édition des pages puis l'import/export de page texte/HTML.
+- [x] Ajouter CSS global formulaire et preview admin associée.
 
 ### Lot 2 — Réponses et fichiers
 
-- [ ] Migration de début de lot : créer `09X_forms_files.php` avec les tables complémentaires :
+- [x] Migration de début de lot : créer `119_forms_files.php` avec les tables complémentaires :
   - `form_submission_files` (fichiers uploadés)
   - colonnes/flags complémentaires de suivi de soumission si nécessaire
-- [ ] Ajouter index, contraintes, mise à jour migration et test up/down.
-- [ ] Étendre les modèles de soumission pour supporter les fichiers.
-- [ ] Implémenter upload de fichiers sur soumission (type, taille, nommage sûr).
-- [ ] Implémenter visualisation admin des réponses et preview image/PDF inline.
-- [ ] Gérer téléchargement sécurisé et politique de rétention initiale.
-- [ ] Ajouter messages de confirmation explicites côté utilisateur.
+- [x] Ajouter index, contraintes, mise à jour migration et test up/down.
+- [x] Étendre les modèles de soumission pour supporter les fichiers.
+- [x] Implémenter upload de fichiers sur soumission (type, taille, nommage sûr).
+- [x] Implémenter visualisation admin des réponses et preview image/PDF inline.
+- [x] Gérer téléchargement sécurisé et politique de rétention initiale.
+- [x] Ajouter messages de confirmation explicites côté utilisateur.
 
 ### Lot 3 — Impression et archivage
 
