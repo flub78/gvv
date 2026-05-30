@@ -19,22 +19,34 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 
 ## Tâches à réaliser
 
+## État d'avancement
+
+- Lot 1 entamé.
+- Migration coeur formulaires créée et appliquée sur la base de test.
+- Schéma SQL vérifié en base pour les 5 tables du socle.
+- Modèles `forms_model.php` et `form_pages_model.php` ajoutés.
+- Contrôleur admin minimal créé pour lister, créer et publier un formulaire.
+
 ### Lot 1 — Socle formulaires autonome
 
-- [ ] Migration de début de lot : créer `09X_forms_core.php` avec les tables minimales du socle :
+- [x] Migration de début de lot : créer `116_forms_core.php` avec les tables minimales du socle :
   - `forms` (métadonnées, statut, slug/lien public, css_scope)
   - `form_pages` (pages HTML ordonnées)
   - `form_fields` (définition des champs et validations)
   - `form_submissions` (soumissions)
   - `form_submission_values` (valeurs par champ)
-- [ ] Ajouter index, contraintes d'unicité, clés étrangères, mise à jour `application/config/migration.php`.
+- [x] Ajouter index, contraintes d'unicité, clés étrangères, mise à jour `application/config/migration.php`.
 - [ ] Écrire test migration up/down.
-- [ ] Créer modèles `forms_model.php`, `form_pages_model.php`, `form_submissions_model.php`.
-- [ ] Implémenter CRUD admin : créer, modifier, supprimer, dupliquer, publier.
-- [ ] Créer contrôleurs/routes admin et public pour affichage multi-pages et soumission anonyme.
+- [ ] Vérifier et documenter le scénario install from scratch / upgrade complet.
+- [ ] Créer `form_submissions_model.php`.
+- [x] Créer modèles `forms_model.php`, `form_pages_model.php`.
+- [ ] Compléter les modèles du socle (`form_fields_model.php`, `form_submissions_model.php`).
+- [ ] Compléter le CRUD admin : modifier, supprimer, dupliquer.
+- [x] Implémenter le premier slice CRUD admin : lister, créer, publier.
+- [ ] Créer le contrôleur public pour affichage multi-pages et soumission anonyme.
 - [ ] Implémenter moteur de rendu HTML et validation serveur centralisée.
-- [ ] Ajouter import/export de page texte/HTML.
-- [ ] Ajouter CSS global formulaire et preview admin.
+- [ ] Ajouter l'édition des pages puis l'import/export de page texte/HTML.
+- [ ] Ajouter CSS global formulaire et preview admin associée.
 
 ### Lot 2 — Réponses et fichiers
 

@@ -1,0 +1,60 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-1">Formulaires</h1>
+            <p class="text-muted mb-0">Socle d'administration minimal du module formulaires.</p>
+        </div>
+        <a class="btn btn-primary" href="<?= site_url('forms_admin/create') ?>">Nouveau formulaire</a>
+    </div>
+
+    <?php if (!empty($success)): ?>
+        <div class="alert alert-success"><?= $success ?></div>
+    <?php endif; ?>
+
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= $error ?></div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Titre</th>
+                            <th>Statut</th>
+                            <th>Lien public</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($forms)): ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Aucun formulaire pour la section active.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($forms as $form): ?>
+                                <tr>
+                                    <td><code><?= html_escape($form['code']) ?></code></td>
+                                    <td><?= html_escape($form['title']) ?></td>
+                                    <td>
+                                        <span class="badge bg-<?= $form['status'] === 'published' ? 'success' : ($form['status'] === 'archived' ? 'secondary' : 'warning text-dark') ?>">
+                                            <?= html_escape($form['status']) ?>
+                                        </span>
+                                    </td>
+                                    <td><code><?= html_escape($form['public_slug']) ?></code></td>
+                                    <td class="text-end">
+                                        <?php if ($form['status'] !== 'published'): ?>
+                                            <a class="btn btn-sm btn-outline-success" href="<?= site_url('forms_admin/publish/' . $form['id']) ?>">Publier</a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

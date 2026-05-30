@@ -1,0 +1,48 @@
+<div class="container mt-4">
+    <div class="mb-3">
+        <h1 class="h3 mb-1">Nouveau formulaire</h1>
+        <p class="text-muted mb-0">Creation du conteneur formulaire avant ajout des pages et champs.</p>
+    </div>
+
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= $error ?></div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" action="<?= site_url('forms_admin/store') ?>">
+                <div class="mb-3">
+                    <label class="form-label" for="code">Code</label>
+                    <input class="form-control" id="code" name="code" type="text" maxlength="50" required value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>">
+                    <div class="form-text">Identifiant stable en snake_case ou kebab-case.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="title">Titre</label>
+                    <input class="form-control" id="title" name="title" type="text" maxlength="255" required value="<?= html_escape(isset($form['title']) ? $form['title'] : '') ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4"><?= html_escape(isset($form['description']) ? $form['description'] : '') ?></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="public_slug">Lien public</label>
+                        <input class="form-control" id="public_slug" name="public_slug" type="text" maxlength="100" value="<?= html_escape(isset($form['public_slug']) ? $form['public_slug'] : '') ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="css_scope">CSS scope</label>
+                        <input class="form-control" id="css_scope" name="css_scope" type="text" maxlength="100" value="<?= html_escape(isset($form['css_scope']) ? $form['css_scope'] : '') ?>">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">Creer</button>
+                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin') ?>">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
