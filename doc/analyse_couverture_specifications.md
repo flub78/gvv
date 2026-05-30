@@ -43,7 +43,7 @@ La documentation du projet est organisée comme suit:
 | 14 | **paiements_en_ligne_prd.md** | Paiements en ligne | ✅ Existant |
 | 15 | **prd_licence_management_fix.md** | Correction gestion licences | ✅ Existant |
 | 16 | **prg_creer_et_continuer.md** | Pattern Post-Redirect-Get | ✅ Existant |
-| 17 | **remplissage_formulaires_pdf_prd.md** | Remplissage de formulaires PDF | ✅ Existant |
+| 17 | **remplissage_formulaires_prd.md** | Remplissage formulaires | ✅ Existant |
 | 18 | **saisie_cotisations_prd.md** | Saisie des cotisations | ✅ Existant |
 | 19 | **suivi_formation_prd.md** | Suivi de formation | ✅ Existant |
 | 20 | **IMPLEMENTATION_SUMMARY.md** | Résumé d'implémentations | 📋 Méta-document |
@@ -73,7 +73,7 @@ La documentation du projet est organisée comme suit:
 | **Saisie cotisations** | - | ✅ saisie_cotisations_prd.md |
 | **Suivi formation** | formation_seances.php, formation_progressions.php, formation_inscriptions.php, formation_rapports.php, acceptance_admin.php, formation_autorisations_solo.php, programmes.php | ✅ suivi_formation_prd.md + doc/users/fr/11_formations.md |
 | **Archivage documentaire** | archived_documents.php | ✅ archivage_documentaire_prd.md |
-| **Remplissage PDF** | - | ✅ remplissage_formulaires_pdf_prd.md |
+| **Remplissage formulaires** | - | ✅ remplissage_formulaires_prd.md |
 
 #### 🟡 Fonctionnalités avec Documentation Alternative (sans PRD dédié)
 

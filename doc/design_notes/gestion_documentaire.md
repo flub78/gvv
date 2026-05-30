@@ -10,7 +10,7 @@ L'objectif est de définir une plateforme documentaire générique composée de 
 
 Documents de référence existants :
 - [archivage_documentaire_prd.md](../prds/archivage_documentaire_prd.md)
-- [remplissage_formulaires_pdf_prd.md](../prds/remplissage_formulaires_pdf_prd.md) / [remplissage_pdf.md](remplissage_pdf.md)
+- [remplissage_formulaires_prd.md](../prds/remplissage_formulaires_prd.md) / [remplissage_formulaires_design.md](remplissage_formulaires_design.md)
 - [approbation_de_documents_prd.md](../prds/approbation_de_documents_prd.md)
 - [briefing_passager_prd.md](../prds/briefing_passager_prd.md)
 
@@ -80,11 +80,11 @@ interface IDocumentArchive {
 
 ---
 
-### Module 2 — Génération de formulaires PDF
+### Module 2 — Remplissage formulaires
 
 **État** : Conçu, partiellement implémenté (PRD + design notes).
 
-**Rôle** : À partir d'un formulaire PDF AcroForm (template) et d'un mapping champ→source, produire un PDF rempli avec des données issues de la base GVV ou saisies à l'exécution.
+**Rôle** : À partir d'un template (notamment issu d'un PDF AcroForm) et d'un mapping champ→source, produire un formulaire rempli et un rendu imprimable PDF avec des données issues de la base GVV ou saisies à l'exécution.
 
 **Workflow interne** :
 1. **Analyse** : extraction automatique des champs du PDF via `bin/pdf_forms.py extract`
@@ -413,7 +413,7 @@ Le tableau suivant montre comment chaque cas d'usage se configure sans nouveau c
 | Responsabilité | Module |
 |----------------|--------|
 | Stocker et versionner des fichiers PDF | Module 1 — Archivage |
-| Remplir un formulaire PDF depuis des données GVV | Module 2 — Générateur |
+| Remplir un formulaire depuis des données GVV | Module 2 — Générateur |
 | Collecter une signature (tactile, upload, clic) | Module 3 — Acceptation |
 | Tracer qui a signé quoi et quand | Module 3 — Acceptation |
 | Orchestrer source → action → archivage | Module 4 — Orchestrateur |
@@ -433,15 +433,15 @@ Le briefing passager existant (`briefing_passager` controller) sera réécrit co
 
 ---
 
-## Guide de création de formulaires PDF
+## Guide de création de templates depuis PDF
 
-Pour créer un formulaire PDF compatible avec le générateur :
+Pour créer un template compatible avec le générateur :
 
 1. **Créer le formulaire dans LibreOffice Writer**
 2. Activer le mode ébauche : Affichage > Barres d'outils > Contrôles de formulaire
 3. Ajouter les champs (texte, case à cocher, liste)
 4. Nommer chaque champ en `snake_case` sans accents (Propriétés du contrôle > Nom)
-5. Exporter : Fichier > Exporter en PDF > cocher "Créer un formulaire PDF"
+5. Exporter : Fichier > Exporter en PDF > cocher "Créer un formulaire"
 6. Vérifier les noms avec `python3 bin/pdf_forms.py extract <fichier.pdf>`
 7. Uploader le template dans GVV et configurer le mapping
 

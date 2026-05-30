@@ -379,7 +379,7 @@ uploads/
 |---------------|-------|-------------|
 | [Signature Pad](https://github.com/nicejqr/jSignature) ou équivalent JS | Signature tactile | Fichier JS dans `assets/js/` |
 | phpqrcode (existant) | Génération QR codes | Déjà en `application/third_party/` |
-| TCPDF (existant) | Génération formulaires PDF | Déjà en `application/third_party/` |
+| TCPDF (existant) | Génération de rendus PDF imprimables | Déjà en `application/third_party/` |
 
 ---
 
