@@ -312,7 +312,7 @@ test('Quota atteint screen shown when quota reached', async ({ page, request: ap
     // This test only runs if section 4 has vd_quota_mensuel configured and reachable
     // We navigate to the public page and check — if quota is not configured the form shows instead
     await page.goto(PUBLIC_VD_URL + '?section=' + TEST_SECTION);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     await checkNoPhpErrors(page);
 
