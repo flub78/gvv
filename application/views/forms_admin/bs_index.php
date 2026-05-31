@@ -50,7 +50,15 @@
                                             <?= html_escape($form['status']) ?>
                                         </span>
                                     </td>
-                                    <td><code><?= html_escape($form['public_slug']) ?></code></td>
+                                    <td>
+                                        <?php if (!empty($form['public_slug'])): ?>
+                                            <?php $public_url = site_url('forms/' . $form['public_slug']); ?>
+                                            <a href="<?= $public_url ?>" target="_blank" class="me-1"><?= html_escape($form['public_slug']) ?></a>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copier le lien" onclick="navigator.clipboard.writeText('<?= $public_url ?>').then(function(){this.innerHTML='&#10003;';var b=this;setTimeout(function(){b.innerHTML='&#128203;';},1500);}.bind(this));" style="font-size:0.8rem;">&#128203;</button>
+                                        <?php else: ?>
+                                            <span class="text-muted">—</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/edit/' . $form['id']) ?>">Modifier</a>
                                         <a class="btn btn-sm btn-outline-dark" href="<?= site_url('forms_admin/pages/' . $form['id']) ?>">Pages</a>

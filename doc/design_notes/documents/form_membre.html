@@ -5,20 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Formulaire membre</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Merriweather:wght@700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
   :root {
-    --fs-blue: #2c4f75;
-    --fs-blue-dark: #1f3a57;
-    --fs-red: #c2552d;
-    --fs-bg: #eef4fa;
+    --fs-blue: #2d465a;
+    --fs-blue-dark: #223748;
+    --fs-red: #a75a1c;
+    --fs-bg: #edf1f4;
     --fs-surface: #ffffff;
-    --fs-border: #c3d0dd;
-    --fs-border-soft: #d9e3ec;
-    --fs-text: #161616;
-    --fs-muted: #38485a;
+    --fs-border: #b8c4cf;
+    --fs-border-soft: #d1dae2;
+    --fs-text: #1b2630;
+    --fs-muted: #43515e;
     --radius: 10px;
-    --shadow: 0 10px 28px rgba(27, 53, 82, 0.12);
+    --shadow: 0 12px 32px rgba(34, 55, 72, 0.16);
+    --grid: rgba(78, 104, 126, 0.11);
+    --ring: rgba(45, 110, 152, 0.2);
   }
 
   *, *::before, *::after {
@@ -33,9 +35,9 @@
     line-height: 1.5;
     color: var(--fs-text);
     background:
-      radial-gradient(950px 520px at 100% -5%, #dce8f5 0%, transparent 60%),
-      radial-gradient(700px 380px at 0% 0%, #e7eff8 0%, transparent 58%),
-      linear-gradient(140deg, #eef4fa 0%, #f6f9fd 55%, #eaf1f8 100%);
+      radial-gradient(900px 480px at 100% -5%, #d9e0e6 0%, transparent 62%),
+      radial-gradient(700px 380px at 0% 0%, #e4eaef 0%, transparent 58%),
+      linear-gradient(140deg, #edf1f4 0%, #f5f7f9 55%, #e8edf1 100%);
     padding: 2rem 1rem;
   }
 
@@ -49,6 +51,20 @@
     padding: 2rem;
     position: relative;
     overflow: hidden;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 100%);
+  }
+
+  .page::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, transparent 0, transparent 23px, var(--grid) 24px),
+      linear-gradient(to bottom, transparent 0, transparent 23px, var(--grid) 24px);
+    background-size: 24px 24px;
+    opacity: 0.18;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.18), transparent 35%);
   }
 
   .page::before {
@@ -58,7 +74,7 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: linear-gradient(90deg, #5f84ad 0%, #2c4f75 50%, #1f3a57 100%);
+    background: linear-gradient(90deg, #4f687d 0%, #2d465a 55%, #223748 100%);
   }
 
   h1 {
@@ -70,25 +86,39 @@
     font-weight: 700;
     color: var(--fs-blue);
     letter-spacing: 0.01em;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .section {
     margin-bottom: 1.2rem;
     padding: 0.95rem 1rem 1rem;
-    border: 1px solid var(--fs-border-soft);
+    border: 1px solid #c9d4dd;
     border-radius: var(--radius);
-    background: #fbfcfe;
+    background: linear-gradient(180deg, #f9fbfc 0%, #f4f7f9 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .section-label {
     margin-bottom: 0.75rem;
     color: var(--fs-blue);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    border-left: 4px solid var(--fs-blue);
+    border-left: 4px solid #3b6f8f;
     padding-left: 10px;
+    font-family: 'IBM Plex Mono', 'Source Sans 3', sans-serif;
+    position: relative;
+  }
+
+  .section-label::after {
+    content: "";
+    position: absolute;
+    left: -4px;
+    bottom: -6px;
+    width: 32px;
+    height: 2px;
+    background: #7f9db6;
   }
 
   .row {
@@ -113,9 +143,12 @@
   label {
     display: block;
     margin-bottom: 0.35rem;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--fs-muted);
+    font-family: 'IBM Plex Mono', 'Source Sans 3', sans-serif;
   }
 
   .form-control,
@@ -123,50 +156,68 @@
     width: 100%;
     min-height: 40px;
     border: 1px solid var(--fs-border);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: 6px;
+    background: #fcfdfe;
     color: var(--fs-text);
     padding: 9px 11px;
     font: inherit;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, transform 0.08s;
   }
 
   .form-control:hover,
   .form-select:hover {
-    border-color: #8ea4ba;
+    border-color: #8f9eac;
+    background: #f9fbfc;
   }
 
   .form-control:focus,
   .form-select:focus {
-    border-color: var(--fs-blue);
-    box-shadow: 0 0 0 3px rgba(44, 79, 117, 0.18);
+    border-color: #2d6e98;
+    box-shadow: 0 0 0 3px var(--ring);
+    background: #ffffff;
+    transform: translateY(-1px);
   }
 
   input[type="file"].form-control {
     padding: 7px;
-    background: #f8fbfe;
+    background: #f4f7fa;
   }
 
   fieldset {
     border: 1px solid var(--fs-border);
     border-radius: var(--radius);
     background: #fff;
+    position: relative;
+  }
+
+  fieldset::before {
+    content: "ADDR";
+    position: absolute;
+    top: -9px;
+    right: 12px;
+    padding: 0 6px;
+    background: #fff;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: #6f8395;
+    font-family: 'IBM Plex Mono', 'Source Sans 3', sans-serif;
   }
 
   legend {
     padding: 0 8px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--fs-blue);
+    font-family: 'IBM Plex Mono', 'Source Sans 3', sans-serif;
   }
 
   .form-text {
     margin-top: 0.35rem;
     font-size: 11px;
-    color: #627688;
+    color: #5f6e7a;
   }
 
   .text-danger {
@@ -179,36 +230,46 @@
     justify-content: center;
     min-height: 40px;
     padding: 0 16px;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid transparent;
     font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.08s;
+    font-family: 'IBM Plex Mono', 'Source Sans 3', sans-serif;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
   }
 
   .btn-primary {
-    background: var(--fs-blue);
+    background: linear-gradient(180deg, #3c5f78 0%, #2d465a 100%);
     color: #fff;
-    border-color: var(--fs-blue);
+    border-color: #2d465a;
   }
 
   .btn-primary:hover {
-    background: var(--fs-blue-dark);
-    border-color: var(--fs-blue-dark);
+    background: linear-gradient(180deg, #344f64 0%, #223748 100%);
+    border-color: #223748;
   }
 
   .btn-secondary {
-    background: #fff;
-    color: var(--fs-blue);
-    border-color: var(--fs-blue);
+    background: #f2f5f7;
+    color: #355166;
+    border-color: #aebdca;
   }
 
   .btn-secondary:hover {
-    background: #ecf2f8;
+    background: #e8edf1;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid #2d6e98;
+    outline-offset: 2px;
   }
 
   @media (max-width: 767px) {

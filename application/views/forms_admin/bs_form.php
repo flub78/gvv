@@ -50,6 +50,13 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="public_slug">Lien public</label>
                         <input class="form-control" id="public_slug" name="public_slug" type="text" maxlength="100" value="<?= html_escape(isset($form['public_slug']) ? $form['public_slug'] : '') ?>">
+                        <?php if (!empty($form['public_slug'])): ?>
+                            <?php $public_url = site_url('forms/' . $form['public_slug']); ?>
+                            <div class="mt-1 d-flex align-items-center gap-2">
+                                <a href="<?= $public_url ?>" target="_blank" class="form-text text-truncate" style="max-width:260px;"><?= $public_url ?></a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Copier le lien" onclick="navigator.clipboard.writeText('<?= $public_url ?>').then(function(){this.innerHTML='&#10003; Copie';var b=this;setTimeout(function(){b.innerHTML='&#128203; Copier';},1500);}.bind(this));">&#128203; Copier</button>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="css_scope">CSS scope</label>
