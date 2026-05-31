@@ -131,7 +131,7 @@ test.describe('Balance Search Bug Fix', () => {
                 continue;
             }
             const containsExpectedWord = filteredTexts.some((text) =>
-                text.toUpperCase().includes(expectedWord)
+                text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().includes(expectedWord)
             );
             expect(containsExpectedWord).toBeTruthy();
             validatedTerms++;
