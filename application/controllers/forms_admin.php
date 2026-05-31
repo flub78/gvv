@@ -346,7 +346,7 @@ class Forms_admin extends CI_Controller {
             'form_id'      => (int) $form['id'],
             'page_number'  => (int) $this->input->post('page_number'),
             'title'        => trim((string) $this->input->post('title')),
-            'content_html' => (string) $this->input->post('content_html'),
+            'content_html' => (string) $this->input->post('content_html', FALSE),
             'created_by'   => $this->dx_auth->get_username(),
         ));
 
@@ -415,7 +415,7 @@ class Forms_admin extends CI_Controller {
         $ok = $this->form_pages_model->update_page((int) $page['id'], array(
             'page_number'  => (int) $this->input->post('page_number'),
             'title'        => trim((string) $this->input->post('title')),
-            'content_html' => (string) $this->input->post('content_html'),
+            'content_html' => (string) $this->input->post('content_html', FALSE),
             'updated_by'   => $this->dx_auth->get_username(),
         ));
 
@@ -467,7 +467,7 @@ class Forms_admin extends CI_Controller {
         }
 
         $format = (string) $this->input->post('import_format');
-        $raw_content = (string) $this->input->post('import_content');
+        $raw_content = (string) $this->input->post('import_content', FALSE);
         $content_html = $format === 'text'
             ? nl2br(html_escape($raw_content))
             : $raw_content;

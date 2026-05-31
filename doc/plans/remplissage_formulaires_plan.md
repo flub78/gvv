@@ -16,6 +16,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - Les workflows GVV pourront consommer des URL publiques de formulaires.
 - L'import PDF -> HTML est "best effort" en V1.
 - La première mise en production vise un socle autonome de formulaires HTML, sans pré-remplissage GVV.
+- Évolution probable: ajouter une surcouche minimale d'orchestration (validation des documents + acceptation/rejet global) au-dessus des formulaires, plutôt qu'un moteur de procédures complet en première intention.
 
 ## Tâches à réaliser
 

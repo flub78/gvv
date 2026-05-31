@@ -16,6 +16,10 @@ Le module doit permettre :
 
 La première livraison doit prioriser un socle de formulaires HTML de type Google Forms, avec support des fichiers et sans pré-remplissage GVV. Le pré-remplissage GVV et l'intégration workflow avancée sont prévus dans un second temps, une fois le socle autonome stabilisé.
 
+### Note d'orientation (évolution probable)
+
+Le module formulaires est considéré comme le socle de collecte et de reprise d'état. Une orchestration légère (états de validation documentaire + décision globale) pourra être ajoutée au-dessus de ce socle pour couvrir les besoins de type "procédure" sans introduire immédiatement un moteur workflow complexe.
+
 ## Objectifs
 
 - Fournir un moteur de formulaires HTML multi-pages administrable dans GVV.

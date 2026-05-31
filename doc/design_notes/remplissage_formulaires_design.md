@@ -19,6 +19,10 @@ Pipeline principal :
 5. Export PDF imprimable (optionnel)
 6. Archivage vers `archived_documents` (optionnel)
 
+## Note d'evolution probable
+
+Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage proches des procedures, l'orientation privilegiee est d'ajouter une orchestration legere (etat de dossier, validation documentaire, decision finale) au-dessus des soumissions de formulaires, sans separer prematurement deux moteurs techniques.
+
 ## Phasage recommande
 
 ### Phase 1 — Socle autonome

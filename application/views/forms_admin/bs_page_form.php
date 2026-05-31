@@ -28,7 +28,7 @@
 
                 <div class="mb-3">
                     <label class="form-label" for="content_html">Contenu HTML</label>
-                    <textarea class="form-control" id="content_html" name="content_html" rows="12"><?= html_escape(isset($page['content_html']) ? $page['content_html'] : '') ?></textarea>
+                    <textarea class="form-control" id="content_html" name="content_html" rows="12"><?= html_escape(html_entity_decode(isset($page['content_html']) ? $page['content_html'] : '', ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?></textarea>
                 </div>
 
                 <div class="d-flex gap-2">

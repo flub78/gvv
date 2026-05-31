@@ -40,7 +40,7 @@
 
             <?php if (!empty($current_page['content_html'])): ?>
                 <div class="mb-4 border rounded p-3 bg-light">
-                    <?= $current_page['content_html'] ?>
+                    <?= html_entity_decode($current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8') ?>
                 </div>
             <?php endif; ?>
 

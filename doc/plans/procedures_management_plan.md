@@ -4,6 +4,8 @@
 
 Développement d'un système CRUD complet pour la gestion des procédures dans GVV, avec support markdown et gestion de fichiers attachés.
 
+> Note d'alignement: l'implementation probable a court terme est une surcouche legere d'orchestration au-dessus du module formulaires (validation des documents et acceptation/rejet global), plutot qu'un moteur de procedures complet des la premiere iteration.
+
 ## Architecture
 
 ### Structure des données

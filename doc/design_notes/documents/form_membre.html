@@ -139,6 +139,16 @@
     .col-md-9 { grid-column: span 9; }
   }
 
+  /* Neutralise les surcharges Bootstrap sur les enfants de .row en contexte grid */
+  .row > * {
+    width: auto;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+    margin-top: 0;
+    flex-shrink: unset;
+  }
+
   .form-label,
   label {
     display: block;
