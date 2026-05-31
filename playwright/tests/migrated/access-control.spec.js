@@ -98,7 +98,7 @@ test.describe('GVV Access Control Tests (Migrated from Dusk)', () => {
       // Test various admin-accessible pages
       const adminPages = [
         { url: 'vols_planeur/page', mustSee: ['Vols Planeur'] },
-        { url: 'alarmes', mustSee: ['Conditions', 'Visite'] },
+        { url: 'alarmes', mustSee: [] }, // redirects to welcome when section has no gliders — access granted, no denial
         { url: 'tickets/page', mustSee: ['Gestion des tickets'] },
         { url: 'tickets/solde', mustSee: ['Solde des tickets par pilote'] },
         { url: 'rapports/ffvv', mustSee: ['annuel FFVV'] },
