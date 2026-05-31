@@ -863,7 +863,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
-        $res = $header;
+        $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
             $title = $attrs['title'];
@@ -946,7 +946,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
-        $res = $header;
+        $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
             $title = $attrs['title'];

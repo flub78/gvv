@@ -57,7 +57,7 @@ if (!function_exists('csv_file')) {
         $filename = strtolower($filename);
         $filename = str_replace(' ', '_', $filename);
 
-        $str = "";
+        $str = "\xEF\xBB\xBF";
         if ($title)
             $str .= $title . ";\n";
         foreach ($data as $row) {
