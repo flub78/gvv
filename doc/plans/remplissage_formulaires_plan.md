@@ -117,6 +117,12 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Gérer champs verrouillés/modifiables après pré-remplissage.
 - [ ] Permettre l'utilisation des liens formulaire dans les workflows GVV.
 - [ ] Définir les paramètres runtime passables au formulaire.
+- [ ] Ajouter la sauvegarde/reprise de saisie multi-session pour les utilisateurs externes (mode brouillon).
+- [ ] Définir un mécanisme de reprise sécurisé (token + contrôle email/PIN) et la politique d'expiration.
+- [ ] Reprendre la navigation sur la dernière étape valide en tenant compte des sections conditionnelles.
+- [ ] Ajouter des règles de visibilité des pages/sections selon les réponses (conditions simples en liste blanche d'opérateurs).
+- [ ] Recalculer la séquence des pages visibles à chaque étape (suivant/précédent/reprise) côté serveur.
+- [ ] Adapter la validation finale aux seules pages/sections effectivement visibles.
 
 ### Lot 6 — Documentation et validation finale
 
@@ -145,7 +151,7 @@ Lots inclus : 4.
 
 ### Phase 3 — Intégration GVV avancée
 
-Objectif : ajouter le pré-remplissage GVV et l'intégration fine dans les workflows.
+Objectif : ajouter le pré-remplissage GVV, la sauvegarde/reprise de saisie multi-session, les pages conditionnelles et l'intégration fine dans les workflows.
 
 Lots inclus : 5.
 

@@ -8,10 +8,6 @@
 
 header {
 
-	background: url(../images/header_left.gif) no-repeat left,
-		url(../images/header_right.gif) no-repeat right,
-		url(../images/header.png);
-
 	height: 75px;
 	margin: 0;
 	padding: 0;
@@ -21,10 +17,6 @@ header {
 @media only screen and (max-width: 576px) {
 
 	/* bootstrap extra small devices */
-	header {
-		background: url(../images/header.png);
-	}
-	
 	body {
 		background-color: lightblue;
 	}
@@ -36,8 +28,7 @@ header h1 {
 
 /* Le pied de page (qui se trouve tout en bas, en général pour les copyrights) */
 footer {
-	background: #000 url(../images/footer.png) left bottom;
-	background-size: cover;
+	background: #000;
 }
 
 footer p {

@@ -54,7 +54,7 @@
                                         <?php if (!empty($form['public_slug'])): ?>
                                             <?php $public_url = site_url('forms/' . $form['public_slug']); ?>
                                             <a href="<?= $public_url ?>" target="_blank" class="me-1"><?= html_escape($form['public_slug']) ?></a>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copier le lien" onclick="navigator.clipboard.writeText('<?= $public_url ?>').then(function(){this.innerHTML='&#10003;';var b=this;setTimeout(function(){b.innerHTML='&#128203;';},1500);}.bind(this));" style="font-size:0.8rem;">&#128203;</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copier le lien" onclick="var url='<?= $public_url ?>',btn=this;if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){btn.innerHTML='&#10003;';setTimeout(function(){btn.innerHTML='&#128203;';},1500);});}else{var t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);btn.innerHTML='&#10003;';setTimeout(function(){btn.innerHTML='&#128203;';},1500);}" style="font-size:0.8rem;">&#128203;</button>
                                         <?php else: ?>
                                             <span class="text-muted">—</span>
                                         <?php endif; ?>

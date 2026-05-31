@@ -20,6 +20,10 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 
 Le module formulaires est considéré comme le socle de collecte et de reprise d'état. Une orchestration légère (états de validation documentaire + décision globale) pourra être ajoutée au-dessus de ce socle pour couvrir les besoins de type "procédure" sans introduire immédiatement un moteur workflow complexe.
 
+Une extension future probable du module consiste à permettre la sauvegarde et la reprise de saisie multi-session pour les utilisateurs externes (brouillon, lien/token de reprise, reprise sur la dernière étape valide).
+
+Une autre extension future probable consiste à gérer des pages/sections conditionnelles selon les réponses déjà fournies (règles de visibilité et navigation conditionnelle).
+
 ## Objectifs
 
 - Fournir un moteur de formulaires HTML multi-pages administrable dans GVV.
@@ -58,6 +62,8 @@ Le module formulaires est considéré comme le socle de collecte et de reprise d
 
 - OCR avancé sur PDF scannés non structurés en V1.
 - Rendu pixel-perfect garanti identique au PDF source importé.
+- Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
+- Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
 
 ## Personae & rôles
 

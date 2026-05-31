@@ -45,6 +45,8 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 - pre-remplissage GVV
 - parametres runtime depuis workflows
 - automatisations liees aux workflows
+- sauvegarde/reprise de saisie multi-session (brouillon, reprise securisee, retour sur la derniere etape valide)
+- pages/sections conditionnelles selon les reponses (regles de visibilite + navigation conditionnelle)
 
 ## Composants
 

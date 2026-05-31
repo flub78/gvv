@@ -54,7 +54,7 @@
                             <?php $public_url = site_url('forms/' . $form['public_slug']); ?>
                             <div class="mt-1 d-flex align-items-center gap-2">
                                 <a href="<?= $public_url ?>" target="_blank" class="form-text text-truncate" style="max-width:260px;"><?= $public_url ?></a>
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Copier le lien" onclick="navigator.clipboard.writeText('<?= $public_url ?>').then(function(){this.innerHTML='&#10003; Copie';var b=this;setTimeout(function(){b.innerHTML='&#128203; Copier';},1500);}.bind(this));">&#128203; Copier</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Copier le lien" onclick="var url='<?= $public_url ?>',btn=this;if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){btn.innerHTML='&#10003; Copie';setTimeout(function(){btn.innerHTML='&#128203; Copier';},1500);});}else{var t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);btn.innerHTML='&#10003; Copie';setTimeout(function(){btn.innerHTML='&#128203; Copier';},1500);}">&#128203; Copier</button>
                             </div>
                         <?php endif; ?>
                     </div>
