@@ -48,16 +48,17 @@ class Forms_admin extends CI_Controller {
 
     public function index() {
         $section_id = (int) $this->session->userdata('section');
-        $filters = array(
-            'section_context' => $section_id,
-        );
+        $forms      = $this->forms_model->list_forms(array('section_context' => $section_id));
+        $form_ids   = array_column($forms, 'id');
+        $counts     = $this->form_submissions_model->count_by_form($form_ids);
 
         $data = array(
-            'controller' => $this->controller,
-            'forms'      => $this->forms_model->list_forms($filters),
-            'section_id' => $section_id,
-            'success'    => $this->session->flashdata('forms_success') ?: '',
-            'error'      => $this->session->flashdata('forms_error') ?: '',
+            'controller'       => $this->controller,
+            'forms'            => $forms,
+            'submission_counts'=> $counts,
+            'section_id'       => $section_id,
+            'success'          => $this->session->flashdata('forms_success') ?: '',
+            'error'            => $this->session->flashdata('forms_error') ?: '',
         );
 
         $this->render_view('forms_admin/bs_index', $data);
@@ -376,7 +377,7 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        $content_html = (string) $this->input->post('content_html', FALSE);
+        $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $extracted    = $this->extract_html_fields($content_html);
         $field_names  = array_column($extracted, 'name');
         $conflict     = $this->validate_html_field_names((int) $form['id'], 0, $field_names);
@@ -467,7 +468,7 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        $content_html = (string) $this->input->post('content_html', FALSE);
+        $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $extracted    = $this->extract_html_fields($content_html);
         $field_names  = array_column($extracted, 'name');
         $conflict     = $this->validate_html_field_names((int) $form['id'], (int) $page['id'], $field_names);
@@ -546,7 +547,7 @@ class Forms_admin extends CI_Controller {
         $raw_content  = (string) $this->input->post('import_content', FALSE);
         $content_html = $format === 'text'
             ? nl2br(html_escape($raw_content))
-            : $raw_content;
+            : html_entity_decode($raw_content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         $extracted   = $this->extract_html_fields($content_html);
         $field_names = array_column($extracted, 'name');
@@ -1014,6 +1015,8 @@ class Forms_admin extends CI_Controller {
                 }
             }
 
+            $gvv_role = trim($node->getAttribute('data-gvv-role'));
+
             $fields[] = array(
                 'name'        => $name,
                 'label'       => $label,
@@ -1021,6 +1024,7 @@ class Forms_admin extends CI_Controller {
                 'is_required' => $node->hasAttribute('required') ? 1 : 0,
                 'sort_order'  => $sort++,
                 'options'     => $options,
+                'gvv_role'    => $gvv_role !== '' ? $gvv_role : null,
             );
         }
 
@@ -1051,27 +1055,65 @@ class Forms_admin extends CI_Controller {
     }
 
     private function sync_fields_from_html($form_id, $page_id, $html, $by = null) {
-        $fields = $this->extract_html_fields($html);
-        $now    = date('Y-m-d H:i:s');
+        $html = html_entity_decode((string) $html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $new_fields = $this->extract_html_fields($html);
+        $now        = date('Y-m-d H:i:s');
 
-        $this->db->where('page_id', (int) $page_id)->delete('form_fields');
+        // Index existing fields by name to preserve IDs (avoid CASCADE on submission values)
+        $existing = $this->db
+            ->where('page_id', (int) $page_id)
+            ->get('form_fields')
+            ->result_array();
+        $existing_by_name = array();
+        foreach ($existing as $row) {
+            $existing_by_name[$row['name']] = $row;
+        }
 
-        foreach ($fields as $field) {
+        $new_names = array_column($new_fields, 'name');
+
+        // Delete fields no longer present in HTML
+        foreach ($existing_by_name as $name => $row) {
+            if (!in_array($name, $new_names, true)) {
+                $this->db->where('id', (int) $row['id'])->delete('form_fields');
+            }
+        }
+
+        // Update or insert
+        foreach ($new_fields as $field) {
             $options_json = !empty($field['options']) ? json_encode($field['options']) : null;
-            $this->db->insert('form_fields', array(
-                'form_id'      => (int) $form_id,
-                'page_id'      => (int) $page_id,
-                'name'         => $field['name'],
-                'label'        => $field['label'],
-                'field_type'   => $field['field_type'],
-                'is_required'  => $field['is_required'],
-                'sort_order'   => $field['sort_order'],
-                'options_json' => $options_json,
-                'created_at'   => $now,
-                'updated_at'   => $now,
-                'created_by'   => $by,
-                'updated_by'   => $by,
-            ));
+            $gvv_role     = isset($field['gvv_role']) ? $field['gvv_role'] : null;
+
+            if (isset($existing_by_name[$field['name']])) {
+                // Update in place — ID preserved, no cascade on submission values
+                $this->db
+                    ->where('id', (int) $existing_by_name[$field['name']]['id'])
+                    ->update('form_fields', array(
+                        'label'        => $field['label'],
+                        'field_type'   => $field['field_type'],
+                        'is_required'  => $field['is_required'],
+                        'sort_order'   => $field['sort_order'],
+                        'options_json' => $options_json,
+                        'gvv_role'     => $gvv_role,
+                        'updated_at'   => $now,
+                        'updated_by'   => $by,
+                    ));
+            } else {
+                $this->db->insert('form_fields', array(
+                    'form_id'      => (int) $form_id,
+                    'page_id'      => (int) $page_id,
+                    'name'         => $field['name'],
+                    'label'        => $field['label'],
+                    'field_type'   => $field['field_type'],
+                    'is_required'  => $field['is_required'],
+                    'sort_order'   => $field['sort_order'],
+                    'options_json' => $options_json,
+                    'gvv_role'     => $gvv_role,
+                    'created_at'   => $now,
+                    'updated_at'   => $now,
+                    'created_by'   => $by,
+                    'updated_by'   => $by,
+                ));
+            }
         }
     }
 

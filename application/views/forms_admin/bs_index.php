@@ -1,5 +1,8 @@
 <div class="container mt-4">
-    <?php $section_id = isset($section_id) ? (int) $section_id : 0; ?>
+    <?php
+        $section_id = isset($section_id) ? (int) $section_id : 0;
+        $submission_counts = isset($submission_counts) ? $submission_counts : array();
+    ?>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h1 class="h3 mb-1">Formulaires</h1>
@@ -62,7 +65,10 @@
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/edit/' . $form['id']) ?>">Modifier</a>
                                         <a class="btn btn-sm btn-outline-dark" href="<?= site_url('forms_admin/pages/' . $form['id']) ?>">Pages</a>
-                                        <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">Reponses</a>
+                                        <?php $cnt = isset($submission_counts[$form['id']]) ? (int) $submission_counts[$form['id']] : 0; ?>
+                                        <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">
+                                            Réponses<?= $cnt > 0 ? ' <span class="badge bg-info text-dark ms-1">' . $cnt . '</span>' : '' ?>
+                                        </a>
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>">Dupliquer</a>
                                         <?php if ($form['status'] !== 'published'): ?>
                                             <a class="btn btn-sm btn-outline-success" href="<?= site_url('forms_admin/publish/' . $form['id']) ?>">Publier</a>

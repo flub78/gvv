@@ -162,11 +162,22 @@ class Forms_public extends CI_Controller {
             }
         }
 
+        $submitter_email = '';
+        $submitter_name  = '';
+        foreach ($fields as $field) {
+            $role = isset($field['gvv_role']) ? (string) $field['gvv_role'] : '';
+            if ($role === 'submitter_email' && $submitter_email === '') {
+                $submitter_email = trim((string) $this->input->post((string) $field['name']));
+            } elseif ($role === 'submitter_name' && $submitter_name === '') {
+                $submitter_name = trim((string) $this->input->post((string) $field['name']));
+            }
+        }
+
         $submission_id = $this->form_submissions_model->create_submission(array(
             'form_id'         => (int) $form['id'],
             'status'          => 'submitted',
-            'submitter_email' => trim((string) $this->input->post('submitter_email')),
-            'submitter_name'  => trim((string) $this->input->post('submitter_name')),
+            'submitter_email' => $submitter_email,
+            'submitter_name'  => $submitter_name,
             'source_ip'       => $this->input->ip_address(),
             'user_agent'      => isset($_SERVER['HTTP_USER_AGENT']) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : null,
             'values'          => $submitted_values,

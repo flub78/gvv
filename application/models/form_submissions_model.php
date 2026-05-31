@@ -76,6 +76,24 @@ class Form_submissions_model extends CI_Model {
         return $row ?: false;
     }
 
+    public function count_by_form(array $form_ids) {
+        if (empty($form_ids)) {
+            return array();
+        }
+        $rows = $this->db
+            ->select('form_id, COUNT(*) as cnt')
+            ->where_in('form_id', $form_ids)
+            ->group_by('form_id')
+            ->get($this->table)
+            ->result_array();
+
+        $counts = array();
+        foreach ($rows as $row) {
+            $counts[(int) $row['form_id']] = (int) $row['cnt'];
+        }
+        return $counts;
+    }
+
     public function get_form_submissions($form_id, $limit = 100, $offset = 0) {
         return $this->db
             ->where('form_id', (int) $form_id)
