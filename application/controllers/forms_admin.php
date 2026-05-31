@@ -20,8 +20,10 @@ class Forms_admin extends CI_Controller {
         $this->load->helper('views');
         $this->load->model('forms_model');
         $this->load->model('form_pages_model');
+        $this->load->model('form_fields_model');
         $this->load->model('form_submissions_model');
         $this->load->library('form_validation');
+        $this->load->library('forms_renderer');
         $this->lang->load('gvv');
 
         if (!$this->dx_auth->is_logged_in()) {
@@ -39,8 +41,8 @@ class Forms_admin extends CI_Controller {
 
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
-            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/admin_sys',
-            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_admin_sys'),
+            'nav_back_url'   => 'forms_admin',
+            'nav_back_label' => 'Liste des formulaires',
         ]);
     }
 
@@ -267,13 +269,45 @@ class Forms_admin extends CI_Controller {
         }
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
-        $first_page = !empty($pages) ? $pages[0] : array('title' => '', 'content_html' => '');
+        $page_count = count($pages);
+
+        $current_page_number = (int) $this->input->get('page');
+        if ($current_page_number <= 0) {
+            $current_page_number = 1;
+        }
+        if ($current_page_number > $page_count && $page_count > 0) {
+            $current_page_number = $page_count;
+        }
+
+        $current_page = null;
+        foreach ($pages as $page) {
+            if ((int) $page['page_number'] === $current_page_number) {
+                $current_page = $page;
+                break;
+            }
+        }
+        if (!$current_page && !empty($pages)) {
+            $current_page = $pages[0];
+            $current_page_number = (int) $current_page['page_number'];
+        }
+
+        $render_fields = array();
+        if ($current_page) {
+            $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
+            $render_fields = $this->forms_renderer->normalize_fields_for_view($fields, array());
+        } else {
+            $fields = array();
+        }
 
         $data = array(
-            'controller' => $this->controller,
-            'form'       => $form,
-            'page'       => $first_page,
-            'pages_count'=> count($pages),
+            'controller'          => $this->controller,
+            'form'                => $form,
+            'pages'               => $pages,
+            'current_page'        => $current_page ?: array('title' => '', 'content_html' => ''),
+            'current_page_number' => $current_page_number,
+            'page_count'          => $page_count,
+            'fields'              => $fields,
+            'render_fields'       => $render_fields,
         );
 
         $this->render_view('forms_admin/bs_css_preview', $data);
@@ -342,19 +376,40 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        $ok = $this->form_pages_model->create_page(array(
+        $content_html = (string) $this->input->post('content_html', FALSE);
+        $extracted    = $this->extract_html_fields($content_html);
+        $field_names  = array_column($extracted, 'name');
+        $conflict     = $this->validate_html_field_names((int) $form['id'], 0, $field_names);
+
+        if ($conflict) {
+            $data = array(
+                'controller'    => $this->controller,
+                'form'          => $form,
+                'page_mode'     => 'create',
+                'form_action'   => site_url('forms_admin/page_store/' . (int) $form['id']),
+                'submit_label'  => 'Ajouter la page',
+                'page'          => $this->input->post(),
+                'error'         => $conflict,
+            );
+            $this->render_view('forms_admin/bs_page_form', $data);
+            return;
+        }
+
+        $page_id = $this->form_pages_model->create_page(array(
             'form_id'      => (int) $form['id'],
             'page_number'  => (int) $this->input->post('page_number'),
             'title'        => trim((string) $this->input->post('title')),
-            'content_html' => (string) $this->input->post('content_html', FALSE),
+            'content_html' => $content_html,
             'created_by'   => $this->dx_auth->get_username(),
         ));
 
-        if (!$ok) {
+        if (!$page_id) {
             $this->session->set_flashdata('forms_error', 'Impossible d\'ajouter la page.');
             redirect('forms_admin/pages/' . (int) $form['id']);
             return;
         }
+
+        $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $this->dx_auth->get_username());
 
         $this->session->set_flashdata('forms_success', 'Page ajoutee.');
         redirect('forms_admin/pages/' . (int) $form['id']);
@@ -412,10 +467,29 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
+        $content_html = (string) $this->input->post('content_html', FALSE);
+        $extracted    = $this->extract_html_fields($content_html);
+        $field_names  = array_column($extracted, 'name');
+        $conflict     = $this->validate_html_field_names((int) $form['id'], (int) $page['id'], $field_names);
+
+        if ($conflict) {
+            $data = array(
+                'controller'    => $this->controller,
+                'form'          => $form,
+                'page_mode'     => 'edit',
+                'form_action'   => site_url('forms_admin/page_update/' . (int) $form['id'] . '/' . (int) $page['id']),
+                'submit_label'  => 'Enregistrer',
+                'page'          => array_merge($page, $this->input->post()),
+                'error'         => $conflict,
+            );
+            $this->render_view('forms_admin/bs_page_form', $data);
+            return;
+        }
+
         $ok = $this->form_pages_model->update_page((int) $page['id'], array(
             'page_number'  => (int) $this->input->post('page_number'),
             'title'        => trim((string) $this->input->post('title')),
-            'content_html' => (string) $this->input->post('content_html', FALSE),
+            'content_html' => $content_html,
             'updated_by'   => $this->dx_auth->get_username(),
         ));
 
@@ -424,6 +498,8 @@ class Forms_admin extends CI_Controller {
             redirect('forms_admin/pages/' . (int) $form['id']);
             return;
         }
+
+        $this->sync_fields_from_html((int) $form['id'], (int) $page['id'], $content_html, $this->dx_auth->get_username());
 
         $this->session->set_flashdata('forms_success', 'Page mise a jour.');
         redirect('forms_admin/pages/' . (int) $form['id']);
@@ -466,13 +542,23 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        $format = (string) $this->input->post('import_format');
-        $raw_content = (string) $this->input->post('import_content', FALSE);
+        $format       = (string) $this->input->post('import_format');
+        $raw_content  = (string) $this->input->post('import_content', FALSE);
         $content_html = $format === 'text'
             ? nl2br(html_escape($raw_content))
             : $raw_content;
 
-        $ok = $this->form_pages_model->create_page(array(
+        $extracted   = $this->extract_html_fields($content_html);
+        $field_names = array_column($extracted, 'name');
+        $conflict    = $this->validate_html_field_names((int) $form['id'], 0, $field_names);
+
+        if ($conflict) {
+            $this->session->set_flashdata('forms_error', $conflict);
+            redirect('forms_admin/pages/' . (int) $form['id']);
+            return;
+        }
+
+        $page_id = $this->form_pages_model->create_page(array(
             'form_id'      => (int) $form['id'],
             'page_number'  => $this->form_pages_model->next_page_number((int) $form['id']),
             'title'        => trim((string) $this->input->post('import_title')),
@@ -480,13 +566,16 @@ class Forms_admin extends CI_Controller {
             'created_by'   => $this->dx_auth->get_username(),
         ));
 
-        if (!$ok) {
+        if (!$page_id) {
             $this->session->set_flashdata('forms_error', 'Impossible d\'importer la page.');
             redirect('forms_admin/pages/' . (int) $form['id']);
             return;
         }
 
-        $this->session->set_flashdata('forms_success', 'Page importee.');
+        $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $this->dx_auth->get_username());
+
+        $count = count($extracted);
+        $this->session->set_flashdata('forms_success', 'Page importee.' . ($count > 0 ? ' ' . $count . ' champ(s) détecté(s).' : ''));
         redirect('forms_admin/pages/' . (int) $form['id']);
     }
 
@@ -560,6 +649,33 @@ class Forms_admin extends CI_Controller {
         $this->render_view('forms_admin/bs_submission', $data);
     }
 
+    public function submission_delete($form_id = 0, $submission_id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/submissions/' . (int) $form_id);
+            return;
+        }
+
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        if ($this->form_submissions_model->delete_submission((int) $submission_id)) {
+            $this->session->set_flashdata('forms_success', 'Réponse #' . (int) $submission_id . ' supprimée.');
+        } else {
+            $this->session->set_flashdata('forms_error', 'Impossible de supprimer cette réponse.');
+        }
+
+        redirect('forms_admin/submissions/' . (int) $form['id']);
+    }
+
     public function submission_file($form_id = 0, $submission_id = 0, $file_id = 0) {
         $form = $this->load_form_or_redirect($form_id);
         if (!$form) {
@@ -612,6 +728,371 @@ class Forms_admin extends CI_Controller {
         }
 
         readfile($resolved);
+    }
+
+    public function fields($form_id = 0, $page_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $data = array(
+            'controller' => $this->controller,
+            'form'       => $form,
+            'page'       => $page,
+            'fields'     => $this->form_fields_model->get_page_fields((int) $page['id']),
+            'success'    => $this->session->flashdata('forms_success') ?: '',
+            'error'      => $this->session->flashdata('forms_error') ?: '',
+        );
+
+        $this->render_view('forms_admin/bs_fields', $data);
+    }
+
+    public function field_create($form_id = 0, $page_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $data = array(
+            'controller'   => $this->controller,
+            'form'         => $form,
+            'page'         => $page,
+            'field_mode'   => 'create',
+            'form_action'  => site_url('forms_admin/field_store/' . (int) $form['id'] . '/' . (int) $page['id']),
+            'submit_label' => 'Ajouter le champ',
+            'field'        => array(
+                'name'         => '',
+                'label'        => '',
+                'field_type'   => 'text',
+                'is_required'  => 0,
+                'sort_order'   => '',
+                'options_text' => '',
+            ),
+            'error' => '',
+        );
+
+        $this->render_view('forms_admin/bs_field_form', $data);
+    }
+
+    public function field_store($form_id = 0, $page_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $this->form_validation->set_rules('label', 'Libellé', 'required|max_length[255]');
+        $this->form_validation->set_rules('name', 'Nom technique', 'required|max_length[100]|alpha_dash');
+        $this->form_validation->set_rules('field_type', 'Type', 'required');
+
+        if ($this->form_validation->run() === FALSE) {
+            $data = array(
+                'controller'   => $this->controller,
+                'form'         => $form,
+                'page'         => $page,
+                'field_mode'   => 'create',
+                'form_action'  => site_url('forms_admin/field_store/' . (int) $form['id'] . '/' . (int) $page['id']),
+                'submit_label' => 'Ajouter le champ',
+                'field'        => array_merge($this->input->post(), array('options_text' => (string) $this->input->post('options_text'))),
+                'error'        => validation_errors(),
+            );
+            $this->render_view('forms_admin/bs_field_form', $data);
+            return;
+        }
+
+        $options_json = $this->options_text_to_json((string) $this->input->post('options_text'));
+
+        $id = $this->form_fields_model->create_field(array(
+            'form_id'          => (int) $form['id'],
+            'page_id'          => (int) $page['id'],
+            'label'            => trim($this->input->post('label')),
+            'name'             => trim($this->input->post('name')),
+            'field_type'       => trim($this->input->post('field_type')),
+            'is_required'      => (int) (bool) $this->input->post('is_required'),
+            'sort_order'       => (int) $this->input->post('sort_order') ?: null,
+            'options_json'     => $options_json,
+            'created_by'       => $this->dx_auth->get_username(),
+        ));
+
+        if (!$id) {
+            $this->session->set_flashdata('forms_error', 'Impossible de créer le champ.');
+        } else {
+            $this->session->set_flashdata('forms_success', 'Champ ajouté.');
+        }
+
+        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+    }
+
+    public function field_edit($form_id = 0, $page_id = 0, $field_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $field = $this->form_fields_model->get_by_id((int) $field_id);
+        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
+            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
+            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+            return;
+        }
+
+        $field['options_text'] = $this->options_json_to_text($field['options_json']);
+
+        $data = array(
+            'controller'   => $this->controller,
+            'form'         => $form,
+            'page'         => $page,
+            'field_mode'   => 'edit',
+            'form_action'  => site_url('forms_admin/field_update/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']),
+            'submit_label' => 'Enregistrer',
+            'field'        => $field,
+            'error'        => '',
+        );
+
+        $this->render_view('forms_admin/bs_field_form', $data);
+    }
+
+    public function field_update($form_id = 0, $page_id = 0, $field_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $field = $this->form_fields_model->get_by_id((int) $field_id);
+        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
+            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
+            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+            return;
+        }
+
+        $this->form_validation->set_rules('label', 'Libellé', 'required|max_length[255]');
+        $this->form_validation->set_rules('name', 'Nom technique', 'required|max_length[100]|alpha_dash');
+        $this->form_validation->set_rules('field_type', 'Type', 'required');
+
+        if ($this->form_validation->run() === FALSE) {
+            $posted = $this->input->post();
+            $posted['options_text'] = (string) $this->input->post('options_text');
+            $posted['id'] = $field['id'];
+            $data = array(
+                'controller'   => $this->controller,
+                'form'         => $form,
+                'page'         => $page,
+                'field_mode'   => 'edit',
+                'form_action'  => site_url('forms_admin/field_update/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']),
+                'submit_label' => 'Enregistrer',
+                'field'        => $posted,
+                'error'        => validation_errors(),
+            );
+            $this->render_view('forms_admin/bs_field_form', $data);
+            return;
+        }
+
+        $options_json = $this->options_text_to_json((string) $this->input->post('options_text'));
+
+        $this->form_fields_model->update_field((int) $field['id'], array(
+            'label'            => trim($this->input->post('label')),
+            'name'             => trim($this->input->post('name')),
+            'field_type'       => trim($this->input->post('field_type')),
+            'is_required'      => (int) (bool) $this->input->post('is_required'),
+            'sort_order'       => (int) $this->input->post('sort_order') ?: $field['sort_order'],
+            'options_json'     => $options_json,
+            'updated_by'       => $this->dx_auth->get_username(),
+        ));
+
+        $this->session->set_flashdata('forms_success', 'Champ mis à jour.');
+        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+    }
+
+    public function field_delete($form_id = 0, $page_id = 0, $field_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+        $page = $this->load_page_for_form_or_redirect($form, $page_id);
+        if (!$page) {
+            return;
+        }
+
+        $field = $this->form_fields_model->get_by_id((int) $field_id);
+        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
+            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
+            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+            return;
+        }
+
+        if ($this->form_fields_model->delete_field((int) $field['id'])) {
+            $this->session->set_flashdata('forms_success', 'Champ supprimé.');
+        } else {
+            $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce champ.');
+        }
+
+        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
+    }
+
+    private function extract_html_fields($html) {
+        if (trim($html) === '') {
+            return array();
+        }
+
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        @$dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        $label_map = array();
+        foreach ($xpath->query('//label[@for]') as $label_node) {
+            $for = trim($label_node->getAttribute('for'));
+            if ($for !== '') {
+                $label_map[$for] = trim(preg_replace('/\s*\*\s*/', '', $label_node->textContent));
+            }
+        }
+
+        $fields = array();
+        $seen = array();
+        $sort = 1;
+        $skip_types = array('hidden', 'submit', 'reset', 'button', 'image');
+
+        foreach ($xpath->query('//input[@name] | //select[@name] | //textarea[@name]') as $node) {
+            $tag  = strtolower($node->tagName);
+            $name = trim($node->getAttribute('name'));
+            if ($name === '') {
+                continue;
+            }
+            if ($tag === 'input' && in_array(strtolower($node->getAttribute('type') ?: 'text'), $skip_types, true)) {
+                continue;
+            }
+            if (isset($seen[$name])) {
+                continue;
+            }
+            $seen[$name] = true;
+
+            if ($tag === 'textarea') {
+                $field_type = 'textarea';
+            } elseif ($tag === 'select') {
+                $field_type = 'select';
+            } else {
+                $type_map = array('email' => 'email', 'date' => 'date', 'number' => 'number',
+                                  'checkbox' => 'checkbox', 'radio' => 'radio', 'file' => 'file');
+                $raw_type = strtolower($node->getAttribute('type') ?: 'text');
+                $field_type = isset($type_map[$raw_type]) ? $type_map[$raw_type] : 'text';
+            }
+
+            $id    = trim($node->getAttribute('id'));
+            $label = ($id !== '' && isset($label_map[$id])) ? $label_map[$id] : '';
+            if ($label === '') {
+                $label = $name;
+            }
+
+            $options = array();
+            if ($tag === 'select') {
+                foreach ($xpath->query('.//option', $node) as $opt) {
+                    if ($opt->getAttribute('value') !== '') {
+                        $options[] = trim($opt->textContent);
+                    }
+                }
+            }
+
+            $fields[] = array(
+                'name'        => $name,
+                'label'       => $label,
+                'field_type'  => $field_type,
+                'is_required' => $node->hasAttribute('required') ? 1 : 0,
+                'sort_order'  => $sort++,
+                'options'     => $options,
+            );
+        }
+
+        return $fields;
+    }
+
+    private function validate_html_field_names($form_id, $exclude_page_id, array $names) {
+        if (empty($names)) {
+            return null;
+        }
+
+        $other = $this->db
+            ->select('ff.name')
+            ->from('form_fields ff')
+            ->join('form_pages fp', 'fp.id = ff.page_id')
+            ->where('fp.form_id', (int) $form_id)
+            ->where('ff.page_id !=', (int) $exclude_page_id)
+            ->get()
+            ->result_array();
+
+        $other_names = array_column($other, 'name');
+        $conflicts   = array_intersect($names, $other_names);
+        if (!empty($conflicts)) {
+            return 'Noms de champs déjà utilisés dans une autre page : ' . implode(', ', $conflicts);
+        }
+
+        return null;
+    }
+
+    private function sync_fields_from_html($form_id, $page_id, $html, $by = null) {
+        $fields = $this->extract_html_fields($html);
+        $now    = date('Y-m-d H:i:s');
+
+        $this->db->where('page_id', (int) $page_id)->delete('form_fields');
+
+        foreach ($fields as $field) {
+            $options_json = !empty($field['options']) ? json_encode($field['options']) : null;
+            $this->db->insert('form_fields', array(
+                'form_id'      => (int) $form_id,
+                'page_id'      => (int) $page_id,
+                'name'         => $field['name'],
+                'label'        => $field['label'],
+                'field_type'   => $field['field_type'],
+                'is_required'  => $field['is_required'],
+                'sort_order'   => $field['sort_order'],
+                'options_json' => $options_json,
+                'created_at'   => $now,
+                'updated_at'   => $now,
+                'created_by'   => $by,
+                'updated_by'   => $by,
+            ));
+        }
+    }
+
+    private function options_text_to_json($text) {
+        $text = trim((string) $text);
+        if ($text === '') {
+            return null;
+        }
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $text)), function ($l) { return $l !== ''; }));
+        return empty($lines) ? null : json_encode($lines);
+    }
+
+    private function options_json_to_text($json) {
+        if (empty($json)) {
+            return '';
+        }
+        $arr = json_decode($json, true);
+        if (!is_array($arr)) {
+            return '';
+        }
+        return implode("\n", $arr);
     }
 
     private function load_form_or_redirect($form_id) {

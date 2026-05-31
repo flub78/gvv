@@ -30,8 +30,6 @@
                     </ul>
                 </div>
             <?php endif; ?>
-
-            <a class="btn btn-outline-primary" href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>">Remplir a nouveau</a>
         </div>
     </div>
 </div>

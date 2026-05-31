@@ -73,6 +73,10 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [x] Implémenter moteur de rendu HTML et validation serveur centralisée (premier moteur opérationnel: validation centralisée, normalisation de rendu, CSS global appliqué).
 - [x] Ajouter l'édition des pages puis l'import/export de page texte/HTML.
 - [x] Ajouter CSS global formulaire et preview admin associée.
+- [x] Auto-synchronisation des `form_fields` depuis le HTML natif (DOMDocument) : parsing à la sauvegarde/import de page, validation unicité des noms inter-pages, blocage en cas de conflit.
+- [x] Soumission publique par nom de champ HTML natif (plus par `field_N`).
+- [x] Rendu public : HTML natif inclus dans le `<form>` GVV, balises `<form>` du HTML stripées.
+- [x] Vue admin des champs (`forms_admin/fields`) : liste read-only des champs auto-détectés, avec lien depuis la vue pages.
 
 ### Lot 2 — Réponses et fichiers
 

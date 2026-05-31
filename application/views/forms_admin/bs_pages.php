@@ -48,6 +48,7 @@
                                     <td class="text-muted"><?= html_escape(mb_substr(trim(strip_tags((string) $page['content_html'])), 0, 120)) ?></td>
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/page_edit/' . (int) $form['id'] . '/' . (int) $page['id']) ?>">Modifier</a>
+                                        <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']) ?>">Champs</a>
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/page_export/' . (int) $form['id'] . '/' . (int) $page['id'] . '/html') ?>">Export HTML</a>
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/page_export/' . (int) $form['id'] . '/' . (int) $page['id'] . '/txt') ?>">Export TXT</a>
                                         <a class="btn btn-sm btn-outline-danger" href="<?= site_url('forms_admin/page_delete/' . (int) $form['id'] . '/' . (int) $page['id']) ?>" onclick="return confirm('Supprimer cette page ?');">Supprimer</a>

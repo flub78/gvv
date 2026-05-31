@@ -231,6 +231,32 @@ class Form_submissions_model extends CI_Model {
         return $row ?: false;
     }
 
+    public function delete_submission($submission_id) {
+        $submission_id = (int) $submission_id;
+        $submission = $this->get_by_id($submission_id);
+        if (!$submission) {
+            return false;
+        }
+
+        $files = $this->db
+            ->where('submission_id', $submission_id)
+            ->get($this->files_table)
+            ->result_array();
+
+        foreach ($files as $file) {
+            $path = FCPATH . ltrim((string) $file['storage_path'], '/');
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+
+        $this->db->where('submission_id', $submission_id)->delete($this->files_table);
+        $this->db->where('submission_id', $submission_id)->delete($this->values_table);
+        $this->db->where('id', $submission_id)->delete($this->table);
+
+        return $this->db->affected_rows() >= 0;
+    }
+
     private function normalize_value($value) {
         if (is_array($value)) {
             return json_encode($value);

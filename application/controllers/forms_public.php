@@ -116,7 +116,7 @@ class Forms_public extends CI_Controller {
         $file_field_keys = array();
 
         foreach ($fields as $field) {
-            $key = 'field_' . (int) $field['id'];
+            $key        = (string) $field['name'];
             $field_type = isset($field['field_type']) ? $field['field_type'] : 'text';
 
             if ($field_type === 'file') {
