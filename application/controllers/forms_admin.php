@@ -176,6 +176,7 @@ class Forms_admin extends CI_Controller {
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
         $this->form_validation->set_rules('global_css', 'CSS global', 'max_length[65535]');
+        $this->form_validation->set_rules('status', 'Statut', 'in_list[draft,published,archived]');
 
         if ($this->form_validation->run() === FALSE) {
             $form = array_merge($current, $this->input->post());
@@ -197,6 +198,10 @@ class Forms_admin extends CI_Controller {
         $is_global = (int) $this->input->post('is_global');
         $club = ($section_id > 0 && !$is_global) ? $section_id : null;
 
+        $new_status = $this->input->post('status');
+        $allowed    = array('draft', 'published', 'archived');
+        $status     = in_array($new_status, $allowed, true) ? $new_status : $current['status'];
+
         $ok = $this->forms_model->update_form($id, array(
             'club'        => $club,
             'title'       => trim($this->input->post('title')),
@@ -204,6 +209,7 @@ class Forms_admin extends CI_Controller {
             'public_slug' => trim($this->input->post('public_slug')),
             'css_scope'   => trim($this->input->post('css_scope')),
             'global_css'  => (string) $this->input->post('global_css'),
+            'status'      => $status,
             'updated_by'  => $this->dx_auth->get_username(),
         ));
 

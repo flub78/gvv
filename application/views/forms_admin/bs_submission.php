@@ -1,3 +1,4 @@
+<?php $this->lang->load('forms'); ?>
 <div class="container mt-4 mb-5">
     <?php
         $form = isset($form) ? $form : array('id' => 0, 'title' => '', 'code' => '');
@@ -8,13 +9,13 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="h3 mb-1">Detail de reponse</h1>
+            <h1 class="h3 mb-1"><?= $this->lang->line('forms_title_submission_detail') ?></h1>
             <p class="text-muted mb-0">
                 <?= html_escape($form['title']) ?> (<?= html_escape($form['code']) ?>)
-                - Soumission #<?= (int) $submission['id'] ?>
+                - <?= $this->lang->line('forms_section_submission') ?><?= (int) $submission['id'] ?>
             </p>
         </div>
-        <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>">Retour reponses</a>
+        <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_submissions') ?></a>
     </div>
 
     <?php if (!empty($error)): ?>
@@ -24,28 +25,28 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4"><strong>UUID:</strong> <code><?= html_escape((string) $submission['submission_uuid']) ?></code></div>
-                <div class="col-md-4"><strong>Statut:</strong> <?= html_escape((string) $submission['status']) ?></div>
-                <div class="col-md-4"><strong>Date:</strong> <?= html_escape((string) $submission['submitted_at']) ?></div>
+                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_uuid') ?>:</strong> <code><?= html_escape((string) $submission['submission_uuid']) ?></code></div>
+                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_status') ?>:</strong> <?= html_escape((string) $submission['status']) ?></div>
+                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_date') ?>:</strong> <?= html_escape((string) $submission['submitted_at']) ?></div>
             </div>
         </div>
     </div>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-header"><strong>Valeurs soumises</strong></div>
+        <div class="card-header"><strong><?= $this->lang->line('forms_section_submitted_values') ?></strong></div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Champ</th>
-                            <th>Type</th>
-                            <th>Valeur</th>
+                            <th><?= $this->lang->line('forms_label_field') ?></th>
+                            <th><?= $this->lang->line('forms_label_type') ?></th>
+                            <th><?= $this->lang->line('forms_label_value') ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($values)): ?>
-                            <tr><td colspan="3" class="text-center text-muted py-3">Aucune valeur.</td></tr>
+                            <tr><td colspan="3" class="text-center text-muted py-3"><?= $this->lang->line('forms_empty_no_values') ?></td></tr>
                         <?php else: ?>
                             <?php foreach ($values as $value): ?>
                                 <tr>
@@ -62,10 +63,10 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header"><strong>Fichiers uploades</strong></div>
+        <div class="card-header"><strong><?= $this->lang->line('forms_section_uploaded_files') ?></strong></div>
         <div class="card-body">
             <?php if (empty($files)): ?>
-                <div class="text-muted">Aucun fichier pour cette soumission.</div>
+                <div class="text-muted"><?= $this->lang->line('forms_empty_no_files') ?></div>
             <?php else: ?>
                 <?php foreach ($files as $file): ?>
                     <?php
@@ -80,9 +81,9 @@
                             <div>
                                 <strong><?= html_escape((string) $file['original_name']) ?></strong>
                                 <div class="text-muted small">
-                                    Champ: <?= html_escape((string) $file['field_label']) ?>
+                                    <?= $this->lang->line('forms_label_field') ?>: <?= html_escape((string) $file['field_label']) ?>
                                     <?php if (!empty($file['size_bytes'])): ?>
-                                        - <?= (int) $file['size_bytes'] ?> octets
+                                        - <?= (int) $file['size_bytes'] ?> <?= $this->lang->line('forms_unit_bytes') ?>
                                     <?php endif; ?>
                                     <?php if ($mime !== ''): ?>
                                         - <?= html_escape($mime) ?>
@@ -90,17 +91,17 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2">
-                                <a class="btn btn-sm btn-outline-secondary" href="<?= $inline_url ?>" target="_blank">Preview</a>
-                                <a class="btn btn-sm btn-outline-primary" href="<?= $download_url ?>">Telecharger</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="<?= $inline_url ?>" target="_blank"><?= $this->lang->line('forms_button_preview') ?></a>
+                                <a class="btn btn-sm btn-outline-primary" href="<?= $download_url ?>"><?= $this->lang->line('forms_button_download') ?></a>
                             </div>
                         </div>
 
                         <?php if ($is_image): ?>
-                            <img src="<?= $inline_url ?>" alt="Apercu" style="max-width: 100%; max-height: 360px;" class="border rounded">
+                            <img src="<?= $inline_url ?>" alt="<?= $this->lang->line('forms_label_preview') ?>" style="max-width: 100%; max-height: 360px;" class="border rounded">
                         <?php elseif ($is_pdf): ?>
                             <iframe src="<?= $inline_url ?>" style="width:100%; height:360px; border:1px solid #dee2e6; border-radius: 0.375rem;"></iframe>
                         <?php else: ?>
-                            <div class="text-muted small">Apercu inline non disponible pour ce type de fichier.</div>
+                            <div class="text-muted small"><?= $this->lang->line('forms_message_no_preview') ?></div>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>

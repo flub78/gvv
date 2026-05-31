@@ -1,3 +1,4 @@
+<?php $this->lang->load('forms'); ?>
 <div class="container mt-4 mb-5">
     <?php
         $form = isset($form) ? $form : array('title' => '', 'description' => '', 'public_slug' => '');
@@ -49,9 +50,9 @@
         <div class="card-body <?= html_escape($scope_class) ?>">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 mb-0">
-                    <?= !empty($current_page['title']) ? html_escape($current_page['title']) : 'Page ' . $current_page_number ?>
+                    <?= !empty($current_page['title']) ? html_escape($current_page['title']) : $this->lang->line('forms_label_page') . ' ' . $current_page_number ?>
                 </h2>
-                <span class="badge bg-secondary">Page <?= $current_page_number ?> / <?= $page_count ?></span>
+                <span class="badge bg-secondary"><?= $this->lang->line('forms_label_page') ?> <?= $current_page_number ?> / <?= $page_count ?></span>
             </div>
 
             <form method="post" enctype="multipart/form-data"
@@ -61,7 +62,7 @@
                 <?php if ($raw_html !== ''): ?>
                     <?= $raw_html ?>
                 <?php else: ?>
-                    <div class="alert alert-warning">Aucun contenu configuré sur cette page.</div>
+                    <div class="alert alert-warning"><?= $this->lang->line('forms_alert_no_content') ?></div>
                 <?php endif; ?>
 
                 <div class="d-flex justify-content-between mt-4">
@@ -69,7 +70,7 @@
                         <?php if ($current_page_number > 1): ?>
                             <a class="btn btn-outline-secondary"
                                href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number - 1 ?>">
-                                Page précédente
+                                <?= $this->lang->line('forms_button_previous_page') ?>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -77,10 +78,10 @@
                         <?php if ($current_page_number < $page_count): ?>
                             <a class="btn btn-primary"
                                href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number + 1 ?>">
-                                Page suivante
+                                <?= $this->lang->line('forms_button_next_page') ?>
                             </a>
                         <?php else: ?>
-                            <button class="btn btn-success" type="submit">Envoyer ma réponse</button>
+                            <button class="btn btn-success" type="submit"><?= $this->lang->line('forms_button_submit') ?></button>
                         <?php endif; ?>
                     </div>
                 </div>
