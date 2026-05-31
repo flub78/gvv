@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autorisation parentale de vol d'enfants mineurs – Aéroclub d'Abbeville</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #f5f3ef;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #d8d4cc;
+    padding: 3rem 3.5rem;
+  }
+
+  /* En-tête */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: start;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #1a3a6b;
+    margin-bottom: 1.5rem;
+  }
+
+  .club-name {
+    font-family: 'Source Serif 4', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a3a6b;
+    line-height: 1.3;
+  }
+
+  .club-sub {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .club-ids {
+    font-size: 10px;
+    color: #888;
+    line-height: 1.8;
+    text-align: right;
+  }
+
+  /* Titre principal */
+  h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: #1a3a6b;
+    letter-spacing: 0.02em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 1.75rem;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #1a3a6b;
+    border-left: 3px solid #1a3a6b;
+    padding-left: 8px;
+    margin-bottom: 12px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .field-row.col2 { grid-template-columns: 1fr 1fr; }
+  .field-row.col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 3px; }
+
+  label {
+    font-size: 11px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  input[type="text"],
+  input[type="date"] {
+    border: none;
+    border-bottom: 1px solid #aaa;
+    padding: 5px 2px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: #1a1a1a;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus {
+    border-bottom-color: #1a3a6b;
+  }
+
+  textarea {
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: #1a1a1a;
+    background: #fafaf8;
+    width: 100%;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: #1a3a6b; }
+
+  /* Bloc texte légal */
+  .legal-block {
+    background: #f5f3ef;
+    border-left: 3px solid #1a3a6b;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Signature */
+  .signature-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+
+  .signature-box {
+    border: 1px solid #ccc;
+    min-height: 90px;
+    padding: 8px;
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+    background: #fafaf8;
+    position: relative;
+  }
+
+  .signature-hint {
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  /* RGPD */
+  .rgpd {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .rgpd strong {
+    font-style: normal;
+    font-weight: 500;
+    color: #666;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* Bouton impression */
+  .print-btn {
+    display: block;
+    margin: 2rem auto 0;
+    padding: 10px 32px;
+    background: #1a3a6b;
+    color: #fff;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  .print-btn:hover { background: #122d58; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { border: none; padding: 1.5cm 2cm; max-width: 100%; }
+    .print-btn { display: none; }
+    input, textarea { border-bottom-color: #999; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="club-name">Aéro-Club d'Abbeville<br>Buigny – Baie de Somme</div>
+      <div class="club-sub">VOL à MOTEUR – VOL à VOILE – ULM<br>D1001 Route de Boulogne – 80132 Buigny-Saint-Maclou<br>Tél : 03 22 24 08 48 – info@aeroclub-abbeville.fr</div>
+    </div>
+    <div class="club-ids">
+      Agréé D.G.A.C. le 25/03/53<br>
+      Agréé F.F.A. n° 179 en 1945<br>
+      Agréé F.F.V.V. n° 098/73<br>
+      FFPLUM n° 80/10 – 05/03/2012<br>
+      Agréé J&amp;S D80 S 99 du 22/06/82<br>
+      SIRET 780 621 686 000 28<br>
+      RNA W801000163<br>
+      DTO n° FR.DTO.0645
+    </div>
+  </div>
+
+  <h1>Autorisation parentale de vol d'enfants mineurs</h1>
+
+  <!-- Représentants légaux -->
+  <div class="section">
+    <div class="section-label">Représentants légaux</div>
+    <div class="field-row">
+      <div class="field">
+        <label for="parents">Nous soussignons (nom et prénom des représentants légaux)</label>
+        <input type="text" id="parents" name="parents">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="adresse">Demeurant à (adresse)</label>
+        <input type="text" id="adresse" name="adresse">
+      </div>
+    </div>
+    <div class="field-row col2">
+      <div class="field">
+        <label for="cp">Code postal</label>
+        <input type="text" id="cp" name="cp">
+      </div>
+      <div class="field">
+        <label for="ville">Ville</label>
+        <input type="text" id="ville" name="ville">
+      </div>
+    </div>
+  </div>
+
+  <!-- Enfant mineur -->
+  <div class="section">
+    <div class="section-label">Enfant mineur</div>
+    <div class="field-row col2">
+      <div class="field">
+        <label for="enfant-nom">Nom</label>
+        <input type="text" id="enfant-nom" name="enfant_nom">
+      </div>
+      <div class="field">
+        <label for="enfant-prenom">Prénom</label>
+        <input type="text" id="enfant-prenom" name="enfant_prenom">
+      </div>
+    </div>
+    <div class="field-row col2">
+      <div class="field">
+        <label for="enfant-ddn">Date de naissance</label>
+        <input type="date" id="enfant-ddn" name="enfant_ddn">
+      </div>
+      <div class="field">
+        <label for="enfant-lieu">Lieu de naissance</label>
+        <input type="text" id="enfant-lieu" name="enfant_lieu">
+      </div>
+    </div>
+  </div>
+
+  <!-- Autorisation -->
+  <div class="section">
+    <div class="section-label">Objet de l'autorisation</div>
+    <div class="legal-block">
+      Déclarons autoriser l'Aéroclub d'Abbeville ou toute autre personne autorisée par ce dernier, dans les conditions notamment de l'arrêté interministériel du 18 août 2016, à faire suivre à notre enfant mineur une formation au pilotage d'avion léger ou ULM en vue de l'obtention d'une licence de base / de pilote privé (LAPL / PPL) ou toute autre qualification additionnelle.<br><br>
+      Par la présente autorisation, nous renonçons à tout recours contre l'aéroclub sauf en cas de faute lourde ou intentionnelle de la part de ce dernier.
+    </div>
+  </div>
+
+  <!-- Lieu, date et signature -->
+  <div class="section">
+    <div class="section-label">Signature</div>
+    <div class="field-row col2" style="margin-bottom:1rem;">
+      <div class="field">
+        <label for="fait-a">Fait à</label>
+        <input type="text" id="fait-a" name="fait_a">
+      </div>
+      <div class="field">
+        <label for="fait-le">Le</label>
+        <input type="date" id="fait-le" name="fait_le">
+      </div>
+    </div>
+
+    <div class="signature-area">
+      <div>
+        <div style="font-size:11px;color:#666;margin-bottom:6px;">Signature du représentant légal 1</div>
+        <div class="signature-box">Bon pour autorisation</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#666;margin-bottom:6px;">Signature du représentant légal 2 (si applicable)</div>
+        <div class="signature-box">Bon pour autorisation</div>
+      </div>
+    </div>
+    <p class="signature-hint">Faire précéder chaque signature de la mention « Bon pour autorisation »</p>
+  </div>
+
+  <!-- RGPD -->
+  <div class="rgpd">
+    <strong>Protection des données personnelles (RGPD)</strong>
+    Conformément au Règlement n°2016/679 dit Règlement Général sur la Protection des Données (RGPD) et la loi dite « Informatique et libertés », les données personnelles recueillies par l'aéroclub sont conservées jusqu'à la réalisation de son objet. Vous disposez notamment d'un droit de rectification de vos données personnelles via l'adresse courriel <a href="mailto:info@aeroclub-abbeville.fr" style="color:#1a3a6b;">info@aeroclub-abbeville.fr</a>.
+  </div>
+
+</div>
+
+<button class="print-btn" onclick="window.print()">Imprimer / Enregistrer en PDF</button>
+
+</body>
+</html>

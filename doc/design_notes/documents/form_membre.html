@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulaire membre</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
+
+  :root {
+    --fs-blue: #2c4f75;
+    --fs-blue-dark: #1f3a57;
+    --fs-red: #c2552d;
+    --fs-bg: #eef4fa;
+    --fs-surface: #ffffff;
+    --fs-border: #c3d0dd;
+    --fs-border-soft: #d9e3ec;
+    --fs-text: #161616;
+    --fs-muted: #38485a;
+    --radius: 10px;
+    --shadow: 0 10px 28px rgba(27, 53, 82, 0.12);
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--fs-text);
+    background:
+      radial-gradient(950px 520px at 100% -5%, #dce8f5 0%, transparent 60%),
+      radial-gradient(700px 380px at 0% 0%, #e7eff8 0%, transparent 58%),
+      linear-gradient(140deg, #eef4fa 0%, #f6f9fd 55%, #eaf1f8 100%);
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--fs-surface);
+    border: 1px solid var(--fs-border-soft);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #5f84ad 0%, #2c4f75 50%, #1f3a57 100%);
+  }
+
+  h1 {
+    margin: 0 0 1.6rem;
+    padding-top: 0.5rem;
+    text-align: center;
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: clamp(1.45rem, 2.3vw, 1.95rem);
+    font-weight: 700;
+    color: var(--fs-blue);
+    letter-spacing: 0.01em;
+  }
+
+  .section {
+    margin-bottom: 1.2rem;
+    padding: 0.95rem 1rem 1rem;
+    border: 1px solid var(--fs-border-soft);
+    border-radius: var(--radius);
+    background: #fbfcfe;
+  }
+
+  .section-label {
+    margin-bottom: 0.75rem;
+    color: var(--fs-blue);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-left: 4px solid var(--fs-blue);
+    padding-left: 10px;
+  }
+
+  .row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .mb-3 { margin-bottom: 0.9rem; }
+  .ms-2 { margin-left: 0.55rem; }
+  .p-3 { padding: 1rem; }
+
+  @media (min-width: 768px) {
+    .row { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .col-md-3 { grid-column: span 3; }
+    .col-md-4 { grid-column: span 4; }
+    .col-md-5 { grid-column: span 5; }
+    .col-md-6 { grid-column: span 6; }
+    .col-md-9 { grid-column: span 9; }
+  }
+
+  .form-label,
+  label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fs-muted);
+  }
+
+  .form-control,
+  .form-select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--fs-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--fs-text);
+    padding: 9px 11px;
+    font: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-control:hover,
+  .form-select:hover {
+    border-color: #8ea4ba;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: var(--fs-blue);
+    box-shadow: 0 0 0 3px rgba(44, 79, 117, 0.18);
+  }
+
+  input[type="file"].form-control {
+    padding: 7px;
+    background: #f8fbfe;
+  }
+
+  fieldset {
+    border: 1px solid var(--fs-border);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+
+  legend {
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fs-blue);
+  }
+
+  .form-text {
+    margin-top: 0.35rem;
+    font-size: 11px;
+    color: #627688;
+  }
+
+  .text-danger {
+    color: var(--fs-red);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--fs-blue);
+    color: #fff;
+    border-color: var(--fs-blue);
+  }
+
+  .btn-primary:hover {
+    background: var(--fs-blue-dark);
+    border-color: var(--fs-blue-dark);
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: var(--fs-blue);
+    border-color: var(--fs-blue);
+  }
+
+  .btn-secondary:hover {
+    background: #ecf2f8;
+  }
+
+  @media (max-width: 767px) {
+    .page {
+      padding: 1.2rem 0.95rem;
+      border-radius: 10px;
+    }
+
+    .section {
+      padding: 0.85rem;
+    }
+
+    .btn {
+      width: 100%;
+      margin: 0 0 0.5rem;
+    }
+
+    .ms-2 {
+      margin-left: 0;
+    }
+  }
+
+  @media print {
+    body {
+      background: #fff;
+      padding: 0;
+    }
+
+    .page {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 1.2cm 1.4cm;
+      max-width: 100%;
+    }
+
+    .page::before {
+      height: 4px;
+    }
+
+    .section {
+      background: #fff;
+      border-color: #cfcfcf;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>Formulaire membre</h1>
+
+  <form method="post" enctype="multipart/form-data">
+
+    <div class="section">
+      <div class="section-label">Identité</div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+        <div class="col-md-6">
+          <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="prenom" name="prenom" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="date_naissance" class="form-label">Date de naissance</label>
+          <input type="date" class="form-control" id="date_naissance" name="date_naissance">
+        </div>
+        <div class="col-md-4">
+          <label for="lieu_naissance" class="form-label">Lieu de naissance</label>
+          <input type="text" class="form-control" id="lieu_naissance" name="lieu_naissance">
+        </div>
+        <div class="col-md-4">
+          <label for="genre" class="form-label">Genre</label>
+          <select class="form-select" id="genre" name="genre">
+            <option value="">-- Choisir --</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+            <option value="A">Autre</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Photo</div>
+      <div class="mb-3">
+        <label for="photo" class="form-label">Photo numérique récente</label>
+        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+        <div class="form-text">Formats acceptés : JPG, PNG. Taille maximale : 2 Mo.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <fieldset class="p-3 mb-3">
+        <legend>Adresse</legend>
+
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label for="adresse_numero" class="form-label">Numéro</label>
+            <input type="text" class="form-control" id="adresse_numero" name="adresse_numero">
+          </div>
+          <div class="col-md-9">
+            <label for="adresse_voie" class="form-label">Voie</label>
+            <input type="text" class="form-control" id="adresse_voie" name="adresse_voie" placeholder="Rue, avenue, boulevard...">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label for="code_postal" class="form-label">Code postal</label>
+            <input type="text" class="form-control" id="code_postal" name="code_postal" maxlength="10">
+          </div>
+          <div class="col-md-5">
+            <label for="ville" class="form-label">Ville</label>
+            <input type="text" class="form-control" id="ville" name="ville">
+          </div>
+          <div class="col-md-4">
+            <label for="pays" class="form-label">Pays</label>
+            <input type="text" class="form-control" id="pays" name="pays" value="France">
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Contact</div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="col-md-6">
+          <label for="telephone" class="form-label">Téléphone</label>
+          <input type="tel" class="form-control" id="telephone" name="telephone" placeholder="+33 6 XX XX XX XX">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <button type="reset" class="btn btn-secondary ms-2">Réinitialiser</button>
+
+  </form>
+</div>
+
+</body>
+</html>
+
