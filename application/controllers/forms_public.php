@@ -266,7 +266,7 @@ class Forms_public extends CI_Controller {
 
             $this->upload->initialize($config);
             if (!$this->upload->do_upload($field_key)) {
-                $errors[] = 'Upload impossible pour le champ fichier: ' . strip_tags($this->upload->display_errors('', ''));
+                $errors[] = html_escape('Upload impossible pour le champ fichier: ' . strip_tags($this->upload->display_errors('', '')));
                 continue;
             }
 

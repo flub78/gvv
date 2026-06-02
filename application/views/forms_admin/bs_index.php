@@ -76,11 +76,17 @@
                                         <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">
                                             <?= $this->lang->line('forms_button_responses') ?><?= $cnt > 0 ? ' <span class="badge bg-info text-dark ms-1">' . $cnt . '</span>' : '' ?>
                                         </a>
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>"><?= $this->lang->line('forms_button_duplicate') ?></a>
+                                        <form method="post" action="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary"><?= $this->lang->line('forms_button_duplicate') ?></button>
+                                        </form>
                                         <?php if ($form['status'] !== 'published'): ?>
-                                            <a class="btn btn-sm btn-outline-success" href="<?= site_url('forms_admin/publish/' . $form['id']) ?>"><?= $this->lang->line('forms_button_publish') ?></a>
+                                            <form method="post" action="<?= site_url('forms_admin/publish/' . $form['id']) ?>" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-success"><?= $this->lang->line('forms_button_publish') ?></button>
+                                            </form>
                                         <?php endif; ?>
-                                        <a class="btn btn-sm btn-outline-danger" href="<?= site_url('forms_admin/delete/' . $form['id']) ?>" onclick="return confirm('<?= $this->lang->line('forms_confirm_delete_form') ?>');"><?= $this->lang->line('forms_button_delete') ?></a>
+                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_form') ?>');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

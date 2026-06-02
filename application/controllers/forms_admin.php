@@ -224,6 +224,10 @@ class Forms_admin extends CI_Controller {
     }
 
     public function delete($id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
         $id = (int) $id;
         if ($id <= 0 || !$this->forms_model->delete_form($id)) {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce formulaire.');
@@ -236,6 +240,10 @@ class Forms_admin extends CI_Controller {
     }
 
     public function duplicate($id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
         $id = (int) $id;
         if ($id <= 0) {
             $this->session->set_flashdata('forms_error', 'Formulaire introuvable.');
@@ -255,6 +263,10 @@ class Forms_admin extends CI_Controller {
     }
 
     public function publish($id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
         $id = (int) $id;
         if ($id <= 0 || !$this->forms_model->publish_form($id, $this->dx_auth->get_username())) {
             $this->session->set_flashdata('forms_error', 'Impossible de publier ce formulaire.');
@@ -513,6 +525,10 @@ class Forms_admin extends CI_Controller {
     }
 
     public function page_delete($form_id = 0, $page_id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
         $form = $this->load_form_or_redirect($form_id);
         if (!$form) {
             return;
@@ -729,7 +745,7 @@ class Forms_admin extends CI_Controller {
               . '}' . "\n"
               . '</style>' . "\n"
               . '<style>' . "\n"
-              . $global_css . "\n"
+              . str_ireplace('</style>', '<\/style>', $global_css) . "\n"
               . '</style>' . "\n"
               . '</head><body>' . "\n"
               . '<div class="gvv-print-toolbar">' . "\n"
@@ -1308,6 +1324,10 @@ class Forms_admin extends CI_Controller {
     }
 
     public function field_delete($form_id = 0, $page_id = 0, $field_id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
         $form = $this->load_form_or_redirect($form_id);
         if (!$form) {
             return;

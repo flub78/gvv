@@ -67,7 +67,9 @@
                                     <td><?= $field['is_required'] ? '<span class="badge bg-danger">' . $this->lang->line('forms_label_yes') . '</span>' : '<span class="text-muted">' . $this->lang->line('forms_label_no') . '</span>' ?></td>
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/field_edit/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
-                                        <a class="btn btn-sm btn-outline-danger" href="<?= site_url('forms_admin/field_delete/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']) ?>" onclick="return confirm('<?= $this->lang->line('forms_confirm_delete_field') ?>');"><?= $this->lang->line('forms_button_delete') ?></a>
+                                        <form method="post" action="<?= site_url('forms_admin/field_delete/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_field') ?>');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

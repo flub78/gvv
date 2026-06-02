@@ -31,7 +31,7 @@
     ?>
     <?php if (!empty($form['global_css'])): ?>
         <style>
-            <?= $form['global_css'] ?>
+            <?= str_ireplace('</style>', '<\/style>', (string) $form['global_css']) ?>
         </style>
     <?php endif; ?>
 
