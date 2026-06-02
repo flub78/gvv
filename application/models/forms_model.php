@@ -100,6 +100,7 @@ class Forms_model extends CI_Model {
         }
 
         $update = array(
+            'club'        => array_key_exists('club', $data) ? $data['club'] : $current['club'],
             'title'       => isset($data['title']) ? $data['title'] : $current['title'],
             'description' => array_key_exists('description', $data) ? $data['description'] : $current['description'],
             'status'      => isset($data['status']) ? $data['status'] : $current['status'],

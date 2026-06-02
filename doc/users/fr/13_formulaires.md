@@ -8,8 +8,9 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 2. [Interface d'administration](#interface-dadministration)
 3. [Types de champs](#types-de-champs)
 4. [Règles CSS](#règles-css)
-5. [Pré-remplissage depuis GVV](#pré-remplissage-depuis-gvv)
-6. [Exemples de formulaires](#exemples-de-formulaires)
+5. [Rôles de champs GVV](#rôles-de-champs-gvv)
+6. [Pré-remplissage depuis GVV](#pré-remplissage-depuis-gvv)
+7. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -323,6 +324,49 @@ Lors de l'import dans GVV :
 1. Copier uniquement le contenu du `<body>` dans le champ `content_html`
 2. Déplacer le CSS dans le champ `global_css` du formulaire, en le scopant avec `.forms-public-root`
 3. Supprimer les `<form>`, les boutons `submit`/`reset` et les `@import` de polices
+
+---
+
+## Rôles de champs GVV
+
+Certains champs HTML peuvent recevoir un **rôle GVV** via l'attribut `data-gvv-role`. GVV utilise la valeur de ces champs à la soumission pour enrichir les métadonnées de la réponse (nom et email du soumettant), visibles dans la liste des réponses admin.
+
+### Rôles disponibles
+
+| Valeur `data-gvv-role` | Effet |
+|---|---|
+| `submitter_name` | La valeur saisie est enregistrée comme **nom du soumettant** |
+| `submitter_email` | La valeur saisie est enregistrée comme **email du soumettant** |
+
+### Déclaration dans le HTML
+
+L'attribut `data-gvv-role` se place directement sur l'élément `<input>` ou `<textarea>` concerné. Il est détecté automatiquement par GVV lors de la sauvegarde du contenu HTML de la page — aucune action supplémentaire dans l'interface admin n'est nécessaire.
+
+```html
+<div class="mb-3">
+  <label class="form-label" for="nom_complet">Votre nom</label>
+  <input type="text" class="form-control" id="nom_complet" name="nom_complet"
+         data-gvv-role="submitter_name">
+</div>
+
+<div class="mb-3">
+  <label class="form-label" for="email">Votre email</label>
+  <input type="email" class="form-control" id="email" name="email"
+         data-gvv-role="submitter_email">
+</div>
+```
+
+### Comportement avec un utilisateur connecté
+
+Quand un utilisateur GVV connecté soumet un formulaire public, GVV complète automatiquement les champs `submitter_name` et `submitter_email` avec ses informations de profil — **même si le formulaire ne contient pas de champs avec ces rôles**.
+
+La priorité est la suivante :
+
+1. Valeur saisie dans un champ `data-gvv-role="submitter_name/email"` (si présent et non vide)
+2. Données du membre connecté (nom complet et email GVV)
+3. Vide (soumission vraiment anonyme, utilisateur non connecté)
+
+Cela permet à l'administrateur d'identifier l'auteur d'une réponse sans que le formulaire ait besoin de demander explicitement le nom ou l'email.
 
 ---
 

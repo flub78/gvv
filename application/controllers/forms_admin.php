@@ -219,7 +219,7 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        $this->session->set_flashdata('forms_success', 'Formulaire mis a jour.');
+        $this->session->set_flashdata('forms_success', 'Formulaire « ' . trim($this->input->post('title')) . ' » mis à jour.');
         redirect('forms_admin');
     }
 

@@ -28,7 +28,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0 datatable" id="dt-forms">
                     <thead>
                         <tr>
                             <th><?= $this->lang->line('forms_label_code') ?></th>

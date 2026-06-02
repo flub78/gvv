@@ -173,6 +173,23 @@ class Forms_public extends CI_Controller {
             }
         }
 
+        if ($this->dx_auth->is_logged_in() && ($submitter_name === '' || $submitter_email === '')) {
+            $mlogin = $this->dx_auth->get_username();
+            $membre = $this->db
+                ->select('mnom, mprenom, memail')
+                ->where('mlogin', $mlogin)
+                ->get('membres')
+                ->row_array();
+            if ($membre) {
+                if ($submitter_name === '') {
+                    $submitter_name = trim($membre['mprenom'] . ' ' . $membre['mnom']);
+                }
+                if ($submitter_email === '') {
+                    $submitter_email = (string) $membre['memail'];
+                }
+            }
+        }
+
         $submission_id = $this->form_submissions_model->create_submission(array(
             'form_id'         => (int) $form['id'],
             'status'          => 'submitted',
