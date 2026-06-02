@@ -77,6 +77,7 @@ $lang['forms_button_download']            = 'Downloaden';
 $lang['forms_button_back_form']           = 'Terug naar formulier';
 $lang['forms_button_back_pages']          = 'Terug naar pagina\'s';
 $lang['forms_button_back_fields']         = 'Terug naar velden';
+$lang['forms_button_pdf']                 = 'PDF genereren';
 $lang['forms_button_back_submissions']    = 'Terug naar reacties';
 $lang['forms_button_back_edit']           = 'Terug naar bewerken';
 $lang['forms_button_previous_page']       = 'Vorige pagina';

@@ -77,6 +77,7 @@ $lang['forms_button_download']            = 'Télécharger';
 $lang['forms_button_back_form']           = 'Retour formulaire';
 $lang['forms_button_back_pages']          = 'Retour pages';
 $lang['forms_button_back_fields']         = 'Retour champs';
+$lang['forms_button_pdf']                 = 'Générer PDF';
 $lang['forms_button_back_submissions']    = 'Retour réponses';
 $lang['forms_button_back_edit']           = 'Retour édition';
 $lang['forms_button_previous_page']       = 'Page précédente';

@@ -24,9 +24,7 @@
   background: var(--afp-paper);
   width: 210mm;
   max-width: 100%;
-  padding: 14mm 16mm;
-  border: var(--afp-border);
-  box-shadow: 4px 4px 0 #7f9ab0, 8px 8px 0 #a8c0d0;
+  padding: 6mm 8mm;
   position: relative;
   font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
   color: var(--afp-ink);
@@ -34,18 +32,6 @@
   box-sizing: border-box;
 }
 
-/* Coins décoratifs */
-.gvv-forms::before,
-.gvv-forms::after {
-  content: '';
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  border-color: var(--afp-accent);
-  border-style: solid;
-}
-.gvv-forms::before { top: 8px;    left: 8px;   border-width: 2px 0 0 2px; }
-.gvv-forms::after  { bottom: 8px; right: 8px;  border-width: 0 2px 2px 0; }
 
 /* -------- Bandeau titre -------- */
 .afp-header {
@@ -270,8 +256,7 @@
 /* -------- Impression -------- */
 @media print {
   .gvv-forms {
-    box-shadow: none;
-    border: 2px solid #000;
     width: 100%;
+    margin: 0;
   }
 }

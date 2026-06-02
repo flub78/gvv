@@ -656,6 +656,383 @@ class Forms_admin extends CI_Controller {
         $this->render_view('forms_admin/bs_submission', $data);
     }
 
+    public function submission_view($form_id = 0, $submission_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            show_404();
+            return;
+        }
+
+        $values_raw = $this->form_submissions_model->get_submission_values((int) $submission['id']);
+        $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
+        $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
+
+        $values_by_name = array();
+        foreach ($values_raw as $v) {
+            $values_by_name[(string) $v['field_name']] = (string) $v['value_text'];
+        }
+        $files_by_name = array();
+        foreach ($files_raw as $f) {
+            $files_by_name[(string) $f['field_name']] = (string) $f['original_name'];
+        }
+
+        $body_parts = array();
+        foreach ($pages as $page) {
+            $raw = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $raw = preg_replace('/<\!DOCTYPE[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<html[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/html>/i', '', $raw);
+            $raw = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $raw);
+            $raw = preg_replace('/<body[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/body>/i', '', $raw);
+            $raw = preg_replace('/<form\b[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/form>/i', '', $raw);
+            $raw = preg_replace('/<button\b[^>]*\btype=["\']?(submit|reset)["\']?[^>]*>.*?<\/button>/is', '', $raw);
+            $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
+            $raw = trim($raw);
+
+            $body_parts[] = $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name);
+        }
+
+        $global_css   = !empty($form['global_css']) ? (string) $form['global_css'] : '';
+        $title_safe   = htmlspecialchars($form['title'] . ' — Réponse #' . (int) $submission['id'], ENT_QUOTES, 'UTF-8');
+        $meta_safe    = htmlspecialchars($form['title'], ENT_QUOTES, 'UTF-8')
+                      . ' — Réponse&nbsp;#' . (int) $submission['id']
+                      . ' — ' . htmlspecialchars((string) $submission['submitted_at'], ENT_QUOTES, 'UTF-8');
+
+        $separator = '<div style="page-break-after:always;"></div>' . "\n";
+        $content   = implode($separator, $body_parts);
+
+        $html = '<!DOCTYPE html>' . "\n"
+              . '<html lang="fr"><head>' . "\n"
+              . '<meta charset="UTF-8">' . "\n"
+              . '<meta name="viewport" content="width=device-width, initial-scale=1.0">' . "\n"
+              . '<title>' . $title_safe . '</title>' . "\n"
+              . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">' . "\n"
+              . '<style>' . "\n"
+              . 'body{background:#e8edf1;padding-top:56px;}' . "\n"
+              . '.gvv-print-toolbar{position:fixed;top:0;left:0;right:0;z-index:9999;'
+              .   'background:#fff;border-bottom:1px solid #dee2e6;padding:8px 16px;'
+              .   'display:flex;align-items:center;gap:12px;box-shadow:0 2px 4px rgba(0,0,0,.08);}' . "\n"
+              . '.gvv-print-toolbar .pt-title{font-size:.9rem;color:#6c757d;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}' . "\n"
+              . '@media print{'
+              .   'body{background:#fff;padding-top:0;}'
+              .   '.gvv-print-toolbar{display:none!important;}'
+              .   '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}'
+              .   '.gvv-forms{border:none!important;box-shadow:none!important;margin:0!important;}'
+              .   '.gvv-forms::before,.gvv-forms::after{display:none!important;}'
+              . '}' . "\n"
+              . '</style>' . "\n"
+              . '<style>' . "\n"
+              . $global_css . "\n"
+              . '</style>' . "\n"
+              . '</head><body>' . "\n"
+              . '<div class="gvv-print-toolbar">' . "\n"
+              . '  <button onclick="window.print()" class="btn btn-sm btn-primary">🖨&nbsp; Imprimer / Enregistrer en PDF</button>' . "\n"
+              . '  <a href="#" onclick="window.close();return false;" class="btn btn-sm btn-outline-secondary">Fermer</a>' . "\n"
+              . '  <span class="pt-title">' . $meta_safe . '</span>' . "\n"
+              . '</div>' . "\n"
+              . '<div style="padding:8px;">' . "\n"
+              . $content . "\n"
+              . '</div>' . "\n"
+              . '</body></html>';
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: text/html; charset=UTF-8');
+        echo $html;
+        exit;
+    }
+
+    public function submission_pdf($form_id = 0, $submission_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $values_raw = $this->form_submissions_model->get_submission_values((int) $submission['id']);
+        $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
+        $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
+
+        $values_by_name = array();
+        foreach ($values_raw as $v) {
+            $values_by_name[(string) $v['field_name']] = (string) $v['value_text'];
+        }
+        $files_by_name = array();
+        foreach ($files_raw as $f) {
+            $files_by_name[(string) $f['field_name']] = (string) $f['original_name'];
+        }
+
+        $css = $this->_make_css_tcpdf_compatible(
+            !empty($form['global_css']) ? (string) $form['global_css'] : ''
+        );
+
+        $body_parts = array();
+        foreach ($pages as $page) {
+            $raw = html_entity_decode(
+                (string) $page['content_html'],
+                ENT_QUOTES | ENT_HTML5,
+                'UTF-8'
+            );
+            $raw = preg_replace('/<\!DOCTYPE[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<html[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/html>/i', '', $raw);
+            $raw = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $raw);
+            $raw = preg_replace('/<body[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/body>/i', '', $raw);
+            $raw = preg_replace('/<form\b[^>]*>/i', '', $raw);
+            $raw = preg_replace('/<\/form>/i', '', $raw);
+            $raw = preg_replace('/<button\b[^>]*\btype=["\']?(submit|reset)["\']?[^>]*>.*?<\/button>/is', '', $raw);
+            $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
+            $raw = trim($raw);
+
+            $body_parts[] = $this->_fill_html_values($raw, $values_by_name, $files_by_name);
+        }
+
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $css . '</style></head><body>'
+              . implode('<p style="page-break-after:always;"></p>', $body_parts)
+              . '</body></html>';
+
+        include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
+
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator($this->config->item('nom_club') ?: 'GVV');
+        $pdf->SetAuthor($this->config->item('nom_club') ?: 'GVV');
+        $pdf->SetTitle($form['title']);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(10, 10, 10);
+        $pdf->SetAutoPageBreak(true, 10);
+        $pdf->AddPage();
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        $safe_title = preg_replace('/[^a-z0-9_\-]/i', '_', $form['title']);
+        $filename   = 'reponse_' . (int) $submission['id'] . '_' . $safe_title . '.pdf';
+        $pdf->Output($filename, 'I');
+        exit;
+    }
+
+    private function _fill_html_values_readonly($html, array $values_by_name, array $files_by_name) {
+        if (trim($html) === '') {
+            return $html;
+        }
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $html . '</body></html>'
+        );
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        foreach (iterator_to_array($xpath->query('//input[@name]')) as $input) {
+            $name      = $input->getAttribute('name');
+            $base_name = rtrim($name, '[]');
+            $type      = strtolower($input->getAttribute('type') ?: 'text');
+
+            if (in_array($type, array('submit', 'reset', 'button', 'hidden'))) {
+                continue;
+            }
+
+            if ($type === 'file') {
+                $display = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
+                $span    = $dom->createElement('span');
+                $span->setAttribute('style', 'font-style:italic; color:#555;');
+                $span->appendChild($dom->createTextNode($display));
+                $input->parentNode->replaceChild($span, $input);
+                continue;
+            }
+
+            if ($type === 'checkbox') {
+                $checked_value = $input->getAttribute('value');
+                $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $is_checked    = ($submitted === $checked_value)
+                              || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
+                if ($is_checked) {
+                    $input->setAttribute('checked', 'checked');
+                } else {
+                    $input->removeAttribute('checked');
+                }
+            } elseif ($type === 'radio') {
+                $radio_value = $input->getAttribute('value');
+                $submitted   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                if ($submitted === $radio_value) {
+                    $input->setAttribute('checked', 'checked');
+                } else {
+                    $input->removeAttribute('checked');
+                }
+            } else {
+                $value = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $input->setAttribute('value', $value);
+            }
+            $input->setAttribute('readonly', 'readonly');
+            $input->setAttribute('tabindex', '-1');
+        }
+
+        foreach (iterator_to_array($xpath->query('//textarea[@name]')) as $textarea) {
+            $name  = $textarea->getAttribute('name');
+            $value = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
+            while ($textarea->firstChild) {
+                $textarea->removeChild($textarea->firstChild);
+            }
+            $textarea->appendChild($dom->createTextNode($value));
+            $textarea->setAttribute('readonly', 'readonly');
+            $textarea->setAttribute('tabindex', '-1');
+        }
+
+        foreach (iterator_to_array($xpath->query('//select[@name]')) as $select) {
+            $name      = $select->getAttribute('name');
+            $submitted = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
+            foreach (iterator_to_array($xpath->query('.//option', $select)) as $option) {
+                $opt_value = $option->hasAttribute('value') ? $option->getAttribute('value') : $option->nodeValue;
+                if ($opt_value === $submitted) {
+                    $option->setAttribute('selected', 'selected');
+                } else {
+                    $option->removeAttribute('selected');
+                }
+            }
+            $select->setAttribute('disabled', 'disabled');
+        }
+
+        $body   = $dom->getElementsByTagName('body')->item(0);
+        $result = '';
+        foreach ($body->childNodes as $child) {
+            $result .= $dom->saveHTML($child);
+        }
+
+        return $result;
+    }
+
+    private function _fill_html_values($html, array $values_by_name, array $files_by_name) {
+        if (trim($html) === '') {
+            return $html;
+        }
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $html . '</body></html>'
+        );
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        $inputs = iterator_to_array($xpath->query('//input[@name]'));
+        foreach ($inputs as $input) {
+            $name      = $input->getAttribute('name');
+            $base_name = rtrim($name, '[]');
+            $type      = strtolower($input->getAttribute('type') ?: 'text');
+
+            if ($type === 'hidden') {
+                continue;
+            }
+
+            if ($type === 'file') {
+                $display = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
+            } elseif ($type === 'checkbox') {
+                $checked_value = $input->getAttribute('value');
+                $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $is_checked    = ($submitted === $checked_value)
+                              || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
+                $display = ($is_checked ? '[x] ' : '[ ] ') . $checked_value;
+            } elseif ($type === 'radio') {
+                $radio_value = $input->getAttribute('value');
+                $submitted   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $display     = ($submitted === $radio_value ? '(o) ' : '( ) ') . $radio_value;
+            } else {
+                $display = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+            }
+
+            $span = $dom->createElement('span');
+            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
+            $span->appendChild($dom->createTextNode($display));
+            $input->parentNode->replaceChild($span, $input);
+        }
+
+        $textareas = iterator_to_array($xpath->query('//textarea[@name]'));
+        foreach ($textareas as $textarea) {
+            $name    = $textarea->getAttribute('name');
+            $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
+            $div     = $dom->createElement('div');
+            $div->setAttribute('style', 'border:1px solid #7f8c8d; padding:4px; min-height:40px; width:100%;');
+            $div->appendChild($dom->createTextNode($display));
+            $textarea->parentNode->replaceChild($div, $textarea);
+        }
+
+        $selects = iterator_to_array($xpath->query('//select[@name]'));
+        foreach ($selects as $select) {
+            $name    = $select->getAttribute('name');
+            $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
+            $span    = $dom->createElement('span');
+            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px;');
+            $span->appendChild($dom->createTextNode($display));
+            $select->parentNode->replaceChild($span, $select);
+        }
+
+        $body   = $dom->getElementsByTagName('body')->item(0);
+        $result = '';
+        foreach ($body->childNodes as $child) {
+            $result .= $dom->saveHTML($child);
+        }
+
+        return $result;
+    }
+
+    private function _make_css_tcpdf_compatible($css) {
+        if (trim($css) === '') {
+            return '';
+        }
+
+        // Remove @import (fonts not available in TCPDF context)
+        $css = preg_replace('/@import\b[^;]+;/i', '', $css);
+
+        // Remove @media blocks
+        $css = preg_replace('/@media\b[^{]*\{(?:[^{}]*|\{[^{}]*\})*\}/is', '', $css);
+
+        // Remove ::before and ::after pseudo-elements
+        $css = preg_replace('/[^{,}]+::(?:before|after)\s*\{[^{}]*\}/i', '', $css);
+
+        // Extract CSS custom property declarations and build a resolution map
+        $vars = array();
+        preg_match_all('/--([a-zA-Z0-9_-]+)\s*:\s*([^;}{]+);/', $css, $matches, PREG_SET_ORDER);
+        foreach ($matches as $m) {
+            $vars['--' . trim($m[1])] = trim($m[2]);
+        }
+
+        // Resolve var() — two passes to handle vars referencing other vars
+        for ($pass = 0; $pass < 2; $pass++) {
+            foreach ($vars as $name => $value) {
+                $css = preg_replace('/var\(\s*' . preg_quote($name, '/') . '\s*\)/', $value, $css);
+            }
+        }
+        $css = preg_replace('/var\([^)]+\)/', 'inherit', $css);
+
+        // Replace flex/grid with block (unsupported by TCPDF)
+        $css = preg_replace('/display\s*:\s*(?:flex|inline-flex|grid)\s*;/i', 'display: block;', $css);
+
+        // Remove unsupported properties
+        $css = preg_replace('/box-shadow\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/transition\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/gap\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/flex(?:-[a-z]+)?\s*:[^;]+;/i', '', $css);
+
+        return $css;
+    }
+
     public function submission_delete($form_id = 0, $submission_id = 0) {
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
             redirect('forms_admin/submissions/' . (int) $form_id);
