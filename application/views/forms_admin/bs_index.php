@@ -69,24 +69,26 @@
                                             <span class="text-muted">—</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="text-end">
+                                    <td>
+                                        <div class="d-flex justify-content-end align-items-center flex-wrap gap-1">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/edit/' . $form['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
                                         <a class="btn btn-sm btn-outline-dark" href="<?= site_url('forms_admin/pages/' . $form['id']) ?>"><?= $this->lang->line('forms_button_pages') ?></a>
                                         <?php $cnt = isset($submission_counts[$form['id']]) ? (int) $submission_counts[$form['id']] : 0; ?>
                                         <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">
                                             <?= $this->lang->line('forms_button_responses') ?><?= $cnt > 0 ? ' <span class="badge bg-info text-dark ms-1">' . $cnt . '</span>' : '' ?>
                                         </a>
-                                        <form method="post" action="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>" class="d-inline">
+                                        <form method="post" action="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>" style="display:contents">
                                             <button type="submit" class="btn btn-sm btn-outline-secondary"><?= $this->lang->line('forms_button_duplicate') ?></button>
                                         </form>
                                         <?php if ($form['status'] !== 'published'): ?>
-                                            <form method="post" action="<?= site_url('forms_admin/publish/' . $form['id']) ?>" class="d-inline">
+                                            <form method="post" action="<?= site_url('forms_admin/publish/' . $form['id']) ?>" style="display:contents">
                                                 <button type="submit" class="btn btn-sm btn-outline-success"><?= $this->lang->line('forms_button_publish') ?></button>
                                             </form>
                                         <?php endif; ?>
-                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_form') ?>');">
+                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_form') ?>');">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
                                         </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
