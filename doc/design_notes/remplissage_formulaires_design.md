@@ -4,26 +4,26 @@ Date : 30 mai 2026
 
 ## Contexte
 
-Le module passe d'une logique centree "template PDF" a une logique "formulaires HTML natifs" avec lien public anonyme, pre-remplissage GVV et archivage documentaire.
+Le module passe d'une logique centrée « template PDF » à une logique « formulaires HTML natifs » avec lien public anonyme, pré-remplissage GVV et archivage documentaire.
 
-La strategie d'implementation privilegie d'abord un socle autonome de formulaires HTML avec gestion des fichiers, puis ajoute dans un second temps le pre-remplissage GVV et l'integration workflow avancee.
+La stratégie d'implémentation privilégie d'abord un socle autonome de formulaires HTML avec gestion des fichiers, puis ajoute dans un second temps le pré-remplissage GVV et l'intégration workflow avancée.
 
 ## Architecture cible
 
 Pipeline principal :
 
-1. Definition formulaire (admin)
+1. Définition formulaire (admin)
 2. Publication lien public
 3. Soumission anonyme utilisateur
-4. Consultation admin des reponses
+4. Consultation admin des réponses
 5. Export PDF imprimable (optionnel)
 6. Archivage vers `archived_documents` (optionnel)
 
-## Note d'evolution probable
+## Note d'évolution probable
 
-Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage proches des procedures, l'orientation privilegiee est d'ajouter une orchestration legere (etat de dossier, validation documentaire, decision finale) au-dessus des soumissions de formulaires, sans separer prematurement deux moteurs techniques.
+Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage proches des procédures, l'orientation privilégiée est d'ajouter une orchestration légère (état de dossier, validation documentaire, décision finale) au-dessus des soumissions de formulaires, sans séparer prématurément deux moteurs techniques.
 
-## Phasage recommande
+## Phasage recommandé
 
 ### Phase 1 — Socle autonome
 
@@ -31,9 +31,9 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 - rendu public multi-pages
 - soumission anonyme
 - support des fichiers
-- consultation admin des reponses
+- consultation admin des réponses
 - export PDF imprimable
-- archivage d'une reponse vers pilote
+- archivage d'une réponse vers pilote
 
 ### Phase 2 — Extensions documentaires
 
@@ -42,56 +42,56 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 
 ### Phase 3 — Extensions GVV
 
-- pre-remplissage GVV
-- parametres runtime depuis workflows
-- automatisations liees aux workflows
-- sauvegarde/reprise de saisie multi-session (brouillon, reprise securisee, retour sur la derniere etape valide)
-- pages/sections conditionnelles selon les reponses (regles de visibilite + navigation conditionnelle)
+- pré-remplissage GVV
+- paramètres runtime depuis workflows
+- automatisations liées aux workflows
+- sauvegarde/reprise de saisie multi-session (brouillon, reprise sécurisée, retour sur la dernière étape valide)
+- pages/sections conditionnelles selon les réponses (règles de visibilité + navigation conditionnelle)
 
 ## Composants
 
 ### 1. Gestion des formulaires
 
-- Entites : `forms`, `form_pages`, `form_fields`
-- `forms` : table racine d'un formulaire, avec ses metadonnees globales, son statut, son identifiant public, et un rattachement optionnel a une section.
-- `form_pages` : pages ordonnees rattachees a un formulaire, chacune portant un contenu HTML ou texte et un numero de page.
-- `form_fields` : champs elementaires d'une page, relies a un formulaire et a une page, avec leur type, regles et attributs de rendu.
-- Capacites : CRUD, activation/desactivation, duplication
-- Edition de pages : inline + import/export texte/HTML
+- Entités : `forms`, `form_pages`, `form_fields`
+- `forms` : table racine d'un formulaire, avec ses métadonnées globales, son statut, son identifiant public, et un rattachement optionnel à une section.
+- `form_pages` : pages ordonnées rattachées à un formulaire, chacune portant un contenu HTML ou texte et un numéro de page.
+- `form_fields` : champs élémentaires d'une page, reliés à un formulaire et à une page, avec leur type, règles et attributs de rendu.
+- Capacités : CRUD, activation/désactivation, duplication
+- Édition de pages : inline + import/export texte/HTML
 
-Regles de filtrage section (listing admin) :
+Règles de filtrage section (listing admin) :
 
 - sans section active : afficher tous les formulaires, avec la section de rattachement visible dans la liste ;
 - avec section active : afficher les formulaires de la section active + les formulaires globaux (sans section) ;
-- ne pas afficher les formulaires des autres sections quand une section active est selectionnee.
+- ne pas afficher les formulaires des autres sections quand une section active est sélectionnée.
 
 ### 2. Rendu et validation publique
 
-- Controleur public dedie
+- Contrôleur public dédié
 - Rendu multi-pages HTML
 - Validation serveur de tous les types
 - Soumission sans authentification GVV
 
-### 3. Reponses et fichiers
+### 3. Réponses et fichiers
 
-- Entites : `form_submissions`, `form_submission_values`, `form_submission_files`
-- `form_submissions` : en-tete d'une reponse recue, rattachee a un formulaire publie et portant les informations de contexte de soumission.
-- `form_submission_values` : valeurs normalisees champ par champ pour une soumission donnee, avec liaison vers le champ source.
-- `form_submission_files` : fichiers attaches a une soumission, references par champ ou par usage metier, avec leurs metadonnees de stockage.
-- Support upload fichiers avec controles
-- Preview admin image/PDF inline
+- Entités : `form_submissions`, `form_submission_values`, `form_submission_files`
+- `form_submissions` : en-tête d'une réponse reçue, rattachée à un formulaire publié et portant les informations de contexte de soumission.
+- `form_submission_values` : valeurs normalisées champ par champ pour une soumission donnée, avec liaison vers le champ source.
+- `form_submission_files` : fichiers attachés à une soumission, référencés par champ ou par usage métier, avec leurs métadonnées de stockage.
+- Support upload fichiers avec contrôles
+- Prévisualisation admin image/PDF inline
 
-### 4. References documentaires
+### 4. Références documentaires
 
-- Entite : `form_document_refs`
-- `form_document_refs` : table de liaison entre un formulaire ou une page et un document archive, utilisee pour reference et afficher le document dans le contexte du formulaire.
-- Insertion d'un document archive dans une page formulaire
-- Rendu dans une boite scrollable (iframe/viewer)
+- Entité : `form_document_refs`
+- `form_document_refs` : table de liaison entre un formulaire ou une page et un document archivé, utilisée pour référence et afficher le document dans le contexte du formulaire.
+- Insertion d'un document archivé dans une page formulaire
+- Rendu dans une boîte déroulante (iframe/viewer)
 
-### 5. Pre-remplissage GVV
+### 5. Pré-remplissage GVV
 
 - Service : `form_prefill_service`
-- Parametres autorises : `pilot_login`, `instructeur_login`, `section_id`, etc.
+- Paramètres autorisés : `pilot_login`, `instructeur_login`, `section_id`, etc.
 - Liste blanche des champs exposables
 - Encodage des champs dynamiques via attributs `data-gvv-*`
 
@@ -109,20 +109,20 @@ Exemple de champ dynamique :
 
 ### 6. Import PDF -> HTML
 
-- Service de conversion best effort
-- Detection des champs du PDF source quand possible
-- Generation d'une page HTML initiale + rapport des champs non convertis
+- Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
+- Détection des champs du PDF source quand possible
+- Génération d'une page HTML initiale + rapport des champs non convertis
 
 ### 7. Export PDF imprimable
 
-- Rendu imprime d'une soumission
-- Generation d'un PDF lisible et telechargeable
+- Rendu imprimé d'une soumission
+- Génération d'un PDF lisible et téléchargeable
 - Utilisable pour archivage documentaire
 
 ### 8. Archivage documentaire
 
 - Entite : `archived_documents`
-- `archived_documents` : table d'archive finale des documents, avec metadonnees de fichier, liens vers pilote/section/type de document et suivi des versions et de la validation.
+- `archived_documents` : table d'archive finale des documents, avec métadonnées de fichier, liens vers pilote/section/type de document et suivi des versions et de la validation.
 - Stockage persistant du fichier produit par export ou transfert depuis une soumission
 - Reference reutilisable dans les ecrans documentaires existants
 
@@ -142,7 +142,7 @@ Exemple de champ dynamique :
 - `get_submission(int $submission_id): array`
 - `list_submissions(int $form_id, array $filters): array`
 
-### Service prefill
+### Service préfill
 
 - `resolve_prefill(array $params, array $field_bindings): array`
 - `validate_allowed_sources(array $bindings): array`
@@ -152,25 +152,25 @@ Exemple de champ dynamique :
 - `render_submission_pdf(int $submission_id): string`
 - `archive_submission(int $submission_id, string $pilot_login): int`
 
-## Securite
+## Sécurité
 
 - Validation serveur stricte de tous les champs
-- Controle MIME/taille sur upload
-- Sanitization HTML des contenus admin importes
+- Contrôle MIME/taille sur upload
+- Désinfection HTML des contenus admin importés
 - Protection CSRF
-- Rate limiting sur soumissions publiques
+- Limitation de débit sur soumissions publiques
 - Logs d'audit admin et soumissions
 
-## Integration workflows GVV
+## Intégration workflows GVV
 
 - Un workflow peut pointer vers un `public_slug`
-- Les parametres runtime du workflow alimentent les params prefill
-- Une etape workflow peut declencher l'archivage d'une reponse
+- Les paramètres runtime du workflow alimentent les params pré-remplissage
+- Une étape workflow peut déclencher l'archivage d'une réponse
 
-## Documentation a produire
+## Documentation à produire
 
 - Exemples de formulaires (inscription, briefing, demande interne)
 - Exemple de CSS global
-- Guide pre-remplissage GVV
-- Guide import PDF -> HTML et limites
+- Guide pré-remplissage GVV
+- Guide import PDF → HTML et limites
 - Guide export PDF imprimable
