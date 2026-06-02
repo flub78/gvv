@@ -39,7 +39,6 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
   - `form_submission_values` (valeurs par champ)
 - [x] Ajouter index, contraintes d'unicité, clés étrangères, mise à jour `application/config/migration.php`.
 - [x] Vérifier manuellement la disponibilité des tables requises après migration (`forms`, `form_pages`, `form_fields`, `form_submissions`, `form_submission_values`) et le `club` nullable.
-- [ ] Vérifier et documenter le scénario install from scratch / upgrade complet (upgrade validé: table `migrations` présente, version atteinte = `119`, tables formulaires présentes; replay from scratch sur base vide restant à faire).
 - [x] Créer `form_submissions_model.php`.
 - [x] Créer modèles `forms_model.php`, `form_pages_model.php`.
 - [x] Compléter les modèles du socle (`form_fields_model.php`, `form_submissions_model.php`).
@@ -86,7 +85,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 
 - [ ] Migration de début de lot : créer `09X_forms_archive.php` pour les besoins de rattachement et ajouter le type de document `formulaire_rempli` si nécessaire.
 - [ ] Ajouter test migration up/down.
-- [ ] Implémenter rendu PDF imprimable d'une réponse.
+- [x] Implémenter rendu PDF imprimable d'une réponse.
 - [ ] Ajouter endpoint admin de génération/téléchargement PDF.
 - [ ] Archiver une réponse et son PDF imprimable dans `archived_documents`.
 - [ ] Associer l'archive à un pilote et journaliser l'opération.
@@ -102,7 +101,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Implémenter le pipeline d'import PDF -> HTML.
 - [ ] Générer un rapport de conversion et prévoir la réédition manuelle post-import.
 
-s### Lot 5 — Pré-remplissage GVV
+### Lot 5 — Pré-remplissage GVV
 
 Syntaxe : attributs `data-gvv-source`, `data-gvv-param`, `data-gvv-lock` sur les éléments HTML.
 Paramètres transmis en query string de l'URL du formulaire.
@@ -119,6 +118,26 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 - [ ] Recalculer la séquence des pages visibles à chaque étape côté serveur.
 - [ ] Adapter la validation finale aux seules pages/sections effectivement visibles.
 
+### Lot 5-bis — Signatures
+
+Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..." data-gvv-lock="...">`.
+`sync_fields_from_html` enregistre automatiquement un champ de type `signature` dans `form_fields`.
+
+| Priorité | Fonctionnalité | Complexité |
+|---|---|---|
+| 1 | Dessin canvas | Faible — `signature_pad.umd.min.js` déjà présent |
+| 2 | Upload image | Faible — pipeline file existant |
+| 3 | Pré-remplissage profil GVV | Moyenne — nouveau champ `membres.signature_path` |
+| 4 | Signature PGP | Élevée — hors V1 |
+
+- [ ] Créer `render_signature_widget(array $field, array $prefill_data): string` : génère le HTML du widget (onglets canvas + upload ; onglet PGP désactivé en V1).
+- [ ] Mode canvas : `signature_pad.umd.min.js` → `toDataURL('image/png')` → strip préfixe → hidden input base64 → `process_signature_input` → `base64_decode` → PNG dans `uploads/forms/signatures/` → entrée `form_submission_files`.
+- [ ] Mode upload : `<input type="file" accept="image/*">` dans le widget → pipeline standard `form_submission_files`.
+- [ ] Migration : ajouter `signature_path VARCHAR(255) NULL` à la table `membres`.
+- [ ] Ajouter les sources `member.signature` et `instructor.signature` à la taxonomie `form_prefill_service`.
+- [ ] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` si disponible ; remplaçable si `data-gvv-lock="false"`.
+- [ ] Créer `process_signature_input(string $name, string $content, string $type): array` : valider et dispatcher selon le type (`canvas|file|pgp`).
+
 ### Lot 6 — Documentation et validation finale
 
 - [ ] Migration de début de lot : vérifier et consolider les migrations précédentes dans un scénario complet (install from scratch + upgrade).
@@ -126,8 +145,9 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 - [ ] Ajouter exemples complets de formulaires et de CSS global.
 - [ ] Documenter import PDF -> HTML et ses limites.
 - [ ] Documenter l'API de pré-remplissage GVV et les exemples workflow.
+- [ ] Documenter le widget signature : modes canvas et upload, pré-remplissage depuis `membres.signature_path`, attributs `data-gvv-*`.
 - [ ] PHPUnit : modèles, validations, fichiers, archivage, puis pré-remplissage.
-- [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, puis pré-remplissage GVV.
+- [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, puis pré-remplissage GVV, signatures canvas et upload.
 - [ ] Vérification sécurité : uploads, contrôle d'accès, anti-spam.
 
 ## Stratégie de livraison
@@ -146,9 +166,9 @@ Lots inclus : 4.
 
 ### Phase 3 — Intégration GVV avancée
 
-Objectif : ajouter le pré-remplissage GVV, la sauvegarde/reprise de saisie multi-session, les pages conditionnelles et l'intégration fine dans les workflows.
+Objectif : ajouter le pré-remplissage GVV, les signatures (canvas + upload + pré-remplissage profil GVV), la sauvegarde/reprise de saisie multi-session, les pages conditionnelles et l'intégration fine dans les workflows.
 
-Lots inclus : 5.
+Lots inclus : 5, 5-bis.
 
 ### Phase 4 — Documentation et validation globale
 
@@ -163,7 +183,8 @@ Lots inclus : 6.
 3. Lot 3 (impression et archivage)
 4. Lot 4 (extensions documentaires)
 5. Lot 5 (pré-remplissage GVV + workflows)
-6. Lot 6 (documentation et validation)
+6. Lot 5-bis (signatures canvas + upload + pré-remplissage profil)
+7. Lot 6 (documentation et validation)
 
 ## Critères de fin
 
@@ -176,4 +197,6 @@ Lots inclus : 6.
 - L'import PDF -> HTML fonctionne avec rapport de conversion.
 - Un PDF imprimable est générable depuis une réponse.
 - Pré-remplissage GVV par paramètres est opérationnel et sécurisé.
+- Un champ signature peut être soumis en mode canvas ou upload image et est stocké dans `form_submission_files`.
+- La signature d'un profil GVV (`membres.signature_path`) peut pré-remplir le widget.
 - Une réponse est archivable dans `archived_documents` pour un pilote.

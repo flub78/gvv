@@ -47,6 +47,7 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 - automatisations liées aux workflows
 - sauvegarde/reprise de saisie multi-session (brouillon, reprise sécurisée, retour sur la dernière étape valide)
 - pages/sections conditionnelles selon les réponses (règles de visibilité + navigation conditionnelle)
+- signatures (canvas + upload image, puis pré-remplissage profil, puis PGP optionnel)
 
 ## Composants
 
@@ -168,7 +169,87 @@ date.year                  → date('Y')
 - **Lock côté serveur** : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et réinjecte la valeur résolue — le verrou HTML seul ne suffit pas.
 - **Pas d'accès direct à la base** : le service passe exclusivement par la liste blanche.
 
-### 6. Import PDF -> HTML
+### 6. Signatures
+
+#### Déclaration dans le HTML
+
+Un champ signature se déclare via un `<div>` avec l'attribut `data-gvv-type="signature"`, cohérent avec la syntaxe `data-gvv-*` existante. GVV remplace ce div au rendu public par le widget complet. `sync_fields_from_html` enregistre automatiquement un champ de type `signature` dans `form_fields`.
+
+```html
+<div class="sig-area"
+     data-gvv-type="signature"
+     data-gvv-name="signature_instructeur"
+     data-gvv-param="instructor_login"
+     data-gvv-lock="false">Signature</div>
+```
+
+Le div reste lisible en prévisualisation standalone (le texte s'affiche) ; le widget n'apparaît que dans GVV.
+
+#### Widget composite (trois onglets)
+
+```
+┌─────────────────────────────────────────────────┐
+│  [Dessiner]  [Importer une image]  [PGP]        │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│   canvas | prévisualisation image | ASCII PGP   │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│  [Effacer]                                      │
+└─────────────────────────────────────────────────┘
+<input type="hidden" name="signature_instructeur"      value="...base64 ou PGP...">
+<input type="hidden" name="signature_instructeur_type" value="canvas|file|pgp">
+```
+
+Deux hidden inputs transmis à chaque soumission : le contenu et le type, pour audit côté serveur.
+
+#### Mode 1 — Dessin canvas
+
+Réutilise `assets/js/signature_pad.umd.min.js` déjà présent (même pattern que `briefing_passager/bs_signView.php`) :
+- Canvas → `toDataURL('image/png')` → strip préfixe (CI2 filtre `data:...base64,...`) → hidden input base64
+- Normalisation à 600×200px avant envoi
+- Côté serveur : `base64_decode()` → PNG dans `uploads/forms/signatures/`
+- Référence dans `form_submission_files` (`mime_type = image/png`)
+
+#### Mode 2 — Upload image
+
+`<input type="file" accept="image/*">` dans le widget, pipeline file standard déjà géré par `form_submission_files`. Prévisualisation inline dans le cadre du widget.
+
+#### Mode 3 — Signature PGP (option avancée)
+
+**Côté client** : [OpenPGP.js](https://openpgpjs.org/). Workflow :
+1. Hash SHA-256 des valeurs soumises côté JS
+2. L'utilisateur entre sa passphrase (clé privée jamais transmise)
+3. Signature ASCII-armored produite → hidden input
+
+**Côté serveur PHP 7.4** : extension `gnupg` ou `exec('gpg --verify')`. La clé publique du membre est stockée dans `membres.pgp_public_key` (nouveau champ).
+
+**Stockage** : dans `form_submission_files` avec `mime_type = application/pgp-signature`, ou dans `form_submission_values.value_text` si le texte ASCII est court.
+
+**Limites** : complexité d'usage élevée (gestion de clé PGP par l'utilisateur), ~500 KB de JS supplémentaire, valeur légale incertaine (hors eIDAS qualifié). Réservé aux cas avancés.
+
+#### Pré-remplissage depuis GVV
+
+Nouveau champ `membres.signature_path` → chemin vers l'image PNG sur disque (même pattern que `membres.photo`).
+
+Sources à ajouter à la taxonomie :
+```
+member.signature     → membres.signature_path   param: pilot_login
+instructor.signature → membres.signature_path   param: instructor_login
+```
+
+Si une signature GVV est disponible, elle est affichée directement dans le widget. Si `data-gvv-lock="false"`, l'utilisateur peut la remplacer.
+
+#### Priorité de mise en œuvre
+
+| Priorité | Fonctionnalité | Complexité | Prérequis |
+|---|---|---|---|
+| 1 | Dessin canvas | Faible | `signature_pad.umd.min.js` déjà présent |
+| 2 | Upload image | Faible | Pipeline file existant |
+| 3 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
+| 4 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur |
+
+### 7. Import PDF -> HTML
 
 - Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
 - Détection des champs du PDF source quand possible
@@ -212,6 +293,12 @@ date.year                  → date('Y')
 
 - `render_submission_pdf(int $submission_id): string`
 - `archive_submission(int $submission_id, string $pilot_login): int`
+
+### Service signature
+
+- `render_signature_widget(array $field, array $prefill_data): string` — génère le HTML du widget
+- `process_signature_input(string $name, string $content, string $type): array` — valide et sauvegarde
+- `verify_pgp_signature(string $login, string $content, string $signature): bool`
 
 ## Sécurité
 

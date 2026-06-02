@@ -41,6 +41,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Remplacer l'ensemble du module workflow GVV en V1.
 - Concevoir un éditeur visuel WYSIWYG complet type "no-code" avancé en V1.
 - Ajouter la signature électronique qualifiée (eIDAS) en V1.
+- Signature PGP (OpenPGP.js) en V1 — option avancée réservée aux extensions ultérieures (complexité, dépendances JS, valeur légale incertaine).
 
 ## Portée
 
@@ -54,6 +55,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Prévisualisation admin des fichiers image/PDF soumis.
 - Insertion de documents archivés GVV dans le formulaire avec visualisation intégrée (scroll si nécessaire).
 - Liste admin des réponses + détail d'une réponse.
+- Champ signature : widget composite (dessin canvas + upload image) avec stockage dans `form_submission_files`.
+- Pré-remplissage d'une signature depuis le profil GVV (`membres.signature_path`, sources `member.signature` / `instructor.signature`).
 - Génération d'un PDF imprimable de la réponse.
 - Import d'un PDF formulaire pour produire une base HTML éditable.
 - Archivage d'une réponse vers `archived_documents` liée à un pilote.
@@ -132,7 +135,7 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 
 ### EF3 : Champs et validations
 
-1. Support des champs : text, email, date, number, textarea, select, radio, checkbox, file.
+1. Support des champs : text, email, date, number, textarea, select, radio, checkbox, file, signature.
 2. Validation serveur obligatoire, avec messages explicites.
 3. Gestion des champs obligatoires et formats (email, bornes numériques, etc.).
 
@@ -160,8 +163,21 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 6. Une liste blanche stricte des sources autorisées est définie — pas d'accès libre à la base.
 7. Le paramètre d'identification transmis en URL est validé (existence + appartenance à la section active).
 8. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
+9. La taxonomie des sources inclut `member.signature` → `membres.signature_path` (param : `pilot_login`) et `instructor.signature` → `membres.signature_path` (param : `instructor_login`).
 
 Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
+
+### EF6-bis : Champ signature
+
+1. Un champ signature est déclaré dans le HTML via `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..." data-gvv-lock="...">`. GVV remplace ce div par le widget lors du rendu public ; le texte du div reste visible en prévisualisation standalone.
+2. Le widget expose trois onglets : dessin canvas, upload image, signature PGP (option avancée exclue de V1).
+3. En mode canvas : la signature est normalisée (600×200 px), exportée en PNG base64, transmise via un champ caché, décodée côté serveur et stockée dans `form_submission_files` (`mime_type = image/png`).
+4. En mode upload : `<input type="file" accept="image/*">` dans le widget, pipeline standard `form_submission_files`.
+5. Deux valeurs cachées sont transmises à chaque soumission : le contenu et le type (`canvas|file|pgp`), pour audit côté serveur.
+6. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
+7. Si `data-gvv-lock="false"`, l'utilisateur peut remplacer la signature pré-remplie.
+
+Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-signatures)
 
 ### EF7 : Réponses et supervision
 

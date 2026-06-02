@@ -15,7 +15,7 @@
 
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
 
-* [] Ajout d'un calendrier des échéances
+* [x] Ajout d'un calendrier des échéances
  
 * [] Génération des certificats de formation et de pilotes VD.
      
