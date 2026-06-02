@@ -14,31 +14,11 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - CodeIgniter 2.x reste la base d'implémentation.
 - Le stockage fichiers GVV existant est utilisé (`uploads/`).
 - Les workflows GVV pourront consommer des URL publiques de formulaires.
-- L'import PDF -> HTML est "best effort" en V1.
+- Pas d'import PDF -> HTML, on peut demander la conversion à un outil d'IA.
 - La première mise en production vise un socle autonome de formulaires HTML, sans pré-remplissage GVV.
-- Évolution probable: ajouter une surcouche minimale d'orchestration (validation des documents + acceptation/rejet global) au-dessus des formulaires, plutôt qu'un moteur de procédures complet en première intention.
+- Évolution probable: ajouter une surcouche minimale d'orchestration (validation des documents + acceptation/rejet global) au-dessus des formulaires, plutôt qu'un moteur de procédures complet.
 
 ## Tâches à réaliser
-
-## État d'avancement
-
-- Lot 1 entamé.
-- Migration coeur formulaires créée et appliquée sur la base de test.
-- Migration `117_forms_club_nullable` ajoutée pour autoriser les formulaires globaux (`club` nullable).
-- Migration `118_forms_global_css` ajoutée pour supporter le CSS global formulaire.
-- Schéma SQL vérifié en base pour les 5 tables du socle.
-- Modèles `forms_model.php` et `form_pages_model.php` ajoutés.
-- Modèles `form_fields_model.php` et `form_submissions_model.php` ajoutés.
-- Contrôleur admin minimal créé pour lister, créer et publier un formulaire.
-- CRUD admin étendu avec édition, suppression et duplication.
-- Modèle `forms_model.php` adapté pour gérer section active + formulaires globaux dans le listing.
-- Contrôleur public `forms_public` ajouté avec routes publiques (`forms/{slug}`, `forms/submit/{slug}`) pour affichage multi-pages et soumission anonyme (premier slice).
-- Validation serveur centralisée introduite via la librairie `Forms_validation` et branchée dans `forms_public`.
-- Préparation de rendu HTML centralisée via la librairie `Forms_renderer` (normalisation des champs/options/valeurs pour la vue publique).
-- Gestion admin des pages ajoutée (liste, création, édition, suppression) avec import texte/HTML et export HTML/TXT.
-- CSS global de formulaire ajouté avec preview admin dédiée et application au rendu public.
-- Lot 2 démarré : migration `119_forms_files` ajoutée, stockage métadonnées fichiers dans `form_submission_files`, upload public sécurisé branché.
-- Vue admin des réponses ajoutée (liste + détail), preview inline image/PDF et téléchargement sécurisé des fichiers de soumission.
 
 ### Séquencement opérationnel (suite immédiate)
 
@@ -122,7 +102,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Implémenter le pipeline d'import PDF -> HTML.
 - [ ] Générer un rapport de conversion et prévoir la réédition manuelle post-import.
 
-### Lot 5 — Intégration GVV avancée
+s### Lot 5 — Intégration GVV avancée
 
 - [ ] Migration de début de lot : créer `09X_forms_prefill.php` avec les tables dédiées :
   - `form_prefill_bindings` (liaisons champs <-> API GVV)
