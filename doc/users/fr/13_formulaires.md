@@ -8,7 +8,8 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 2. [Interface d'administration](#interface-dadministration)
 3. [Types de champs](#types-de-champs)
 4. [Règles CSS](#règles-css)
-5. [Exemples de formulaires](#exemples-de-formulaires)
+5. [Pré-remplissage depuis GVV](#pré-remplissage-depuis-gvv)
+6. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -322,6 +323,70 @@ Lors de l'import dans GVV :
 1. Copier uniquement le contenu du `<body>` dans le champ `content_html`
 2. Déplacer le CSS dans le champ `global_css` du formulaire, en le scopant avec `.forms-public-root`
 3. Supprimer les `<form>`, les boutons `submit`/`reset` et les `@import` de polices
+
+---
+
+## Pré-remplissage depuis GVV
+
+Certains champs peuvent être pré-remplis automatiquement avec des données issues de GVV (membre, instructeur, club, date). La déclaration se fait directement dans le HTML du champ via des attributs `data-gvv-*`.
+
+> Cette fonctionnalité est prévue dans une version ultérieure du module.
+
+### Attributs disponibles
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-source` | Source de la donnée à injecter |
+| `data-gvv-param` | Nom du paramètre URL qui identifie la personne |
+| `data-gvv-lock` | `true` = champ verrouillé (non modifiable par l'utilisateur) |
+
+### Exemples
+
+```html
+<!-- Nom du candidat, pré-rempli depuis le membre identifié par pilot_login, non modifiable -->
+<input name="candidat_nom" type="text"
+       data-gvv-source="member.nom_prenom"
+       data-gvv-param="pilot_login"
+       data-gvv-lock="true">
+
+<!-- Adresse du candidat, pré-remplie mais modifiable -->
+<input name="candidat_adresse" type="text"
+       data-gvv-source="member.adresse_complete"
+       data-gvv-param="pilot_login">
+
+<!-- Nom du club (pas de paramètre) -->
+<input name="organisme" type="text"
+       data-gvv-source="club.nom">
+
+<!-- Date du jour -->
+<input name="date_signature" type="date"
+       data-gvv-source="date.today">
+```
+
+Les paramètres d'identification sont passés dans l'URL du formulaire :
+
+```
+https://monclub.gvv.net/forms/mon-formulaire?pilot_login=dupont_j&instructor_login=martin_p
+```
+
+### Sources de données disponibles
+
+| Source | Donnée injectée | Paramètre requis |
+|---|---|---|
+| `club.nom` | Nom du club | — |
+| `club.ville` | Ville du club | — |
+| `club.email` | Email du club | — |
+| `member.nom_prenom` | Nom et prénom du membre | `pilot_login` |
+| `member.email` | Email du membre | `pilot_login` |
+| `member.telephone` | Téléphone du membre | `pilot_login` |
+| `member.adresse_complete` | Adresse complète | `pilot_login` |
+| `member.date_naissance` | Date de naissance (YYYY-MM-DD) | `pilot_login` |
+| `member.lieu_naissance` | Lieu de naissance | `pilot_login` |
+| `member.date_lieu_naissance` | "JJ/MM/AAAA à Ville" | `pilot_login` |
+| `instructor.nom_prenom` | Nom et prénom de l'instructeur | `instructor_login` |
+| `user.nom_prenom` | Membre connecté | — (session) |
+| `date.today` | Date du jour (YYYY-MM-DD) | — |
+| `date.today_fr` | Date du jour (JJ/MM/AAAA) | — |
 
 ---
 

@@ -152,11 +152,16 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 
 ### EF6 : Données GVV et pré-remplissage
 
-1. Le formulaire peut déclarer des paramètres GVV (ex: `pilot_login`, `instructeur_login`, `section_id`).
-2. Certains champs peuvent être pré-remplis par extraction GVV via un encodage dédié.
-3. Une API d'extraction des données autorisées doit être définie (liste blanche de champs exposables).
-4. Les champs pré-remplis peuvent être verrouillés ou modifiables selon configuration.
-5. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
+1. Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
+2. Trois attributs : `data-gvv-source` (source de donnée), `data-gvv-param` (paramètre URL d'identification), `data-gvv-lock` (verrouillage serveur).
+3. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL du formulaire.
+4. Les sources autorisées couvrent : données du club (config), données d'un membre, données d'un instructeur, utilisateur de session, dates calculées.
+5. Le verrouillage est appliqué côté serveur : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et impose la valeur résolue.
+6. Une liste blanche stricte des sources autorisées est définie — pas d'accès libre à la base.
+7. Le paramètre d'identification transmis en URL est validé (existence + appartenance à la section active).
+8. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
+
+Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
 
 ### EF7 : Réponses et supervision
 

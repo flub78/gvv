@@ -90,22 +90,83 @@ Règles de filtrage section (listing admin) :
 
 ### 5. Pré-remplissage GVV
 
-- Service : `form_prefill_service`
-- Paramètres autorisés : `pilot_login`, `instructeur_login`, `section_id`, etc.
-- Liste blanche des champs exposables
-- Encodage des champs dynamiques via attributs `data-gvv-*`
+Service : `form_prefill_service`
 
-Exemple de champ dynamique :
+Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` sur les éléments `<input>`, `<textarea>` et `<select>`. Ces attributs sont ignorés par le navigateur et parsés côté serveur par DOMDocument (même pipeline que `sync_fields_from_html`).
+
+#### Attributs
+
+| Attribut | Rôle | Valeur |
+|---|---|---|
+| `data-gvv-source` | Source de la donnée GVV | voir taxonomie ci-dessous |
+| `data-gvv-param` | Paramètre URL qui identifie l'entité | `pilot_login`, `instructor_login` |
+| `data-gvv-lock` | Verrouillage côté serveur | `true` / `false` (défaut : `false`) |
+
+#### Exemple
 
 ```html
-<input
-  name="pilot_email"
-  type="email"
-  data-gvv-source="member.email"
-  data-gvv-param="pilot_login"
-  data-gvv-lock="true"
-/>
+<!-- Champ verrouillé : valeur imposée par GVV -->
+<input name="candidat_nom" type="text"
+       data-gvv-source="member.nom_prenom"
+       data-gvv-param="pilot_login"
+       data-gvv-lock="true">
+
+<!-- Champ éditable : pré-rempli mais modifiable -->
+<input name="candidat_adresse" type="text"
+       data-gvv-source="member.adresse_complete"
+       data-gvv-param="pilot_login">
+
+<!-- Source globale (pas de paramètre) -->
+<input name="organisme" type="text"
+       data-gvv-source="club.nom">
+
+<input name="date_signature" type="date"
+       data-gvv-source="date.today">
 ```
+
+Les paramètres sont transmis via l'URL du formulaire :
+
+```
+/forms/attestation-formation-procedures?pilot_login=duvollet_f&instructor_login=peignot_f
+```
+
+#### Taxonomie des sources
+
+```
+club.nom                   → $config['nom_club']
+club.sigle                 → $config['sigle_club']
+club.adresse               → $config['adresse_club']
+club.ville                 → $config['ville_club']
+club.email                 → $config['email_club']
+
+member.nom                 → mnom                      param: pilot_login
+member.prenom              → mprenom
+member.nom_prenom          → "mnom mprenom"
+member.email               → memail
+member.telephone           → mtelf (ou mtelm si vide)
+member.adresse             → madresse
+member.code_postal         → cp
+member.ville               → ville
+member.adresse_complete    → "madresse, cp ville"
+member.date_naissance      → mdaten (YYYY-MM-DD)
+member.lieu_naissance      → place_of_birth
+member.date_lieu_naissance → "JJ/MM/AAAA à lieu"
+
+instructor.*               → mêmes champs              param: instructor_login
+
+user.*                     → membre de la session courante (lien authentifié, sans param)
+
+date.today                 → date('Y-m-d')
+date.today_fr              → date('d/m/Y')
+date.year                  → date('Y')
+```
+
+#### Règles de sécurité
+
+- **Liste blanche stricte** : seules les sources déclarées ci-dessus sont autorisées.
+- **Validation du paramètre** : le login fourni en URL doit exister et appartenir à la section active.
+- **Lock côté serveur** : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et réinjecte la valeur résolue — le verrou HTML seul ne suffit pas.
+- **Pas d'accès direct à la base** : le service passe exclusivement par la liste blanche.
 
 ### 6. Import PDF -> HTML
 

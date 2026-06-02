@@ -102,22 +102,21 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Implémenter le pipeline d'import PDF -> HTML.
 - [ ] Générer un rapport de conversion et prévoir la réédition manuelle post-import.
 
-s### Lot 5 — Intégration GVV avancée
+s### Lot 5 — Pré-remplissage GVV
 
-- [ ] Migration de début de lot : créer `09X_forms_prefill.php` avec les tables dédiées :
-  - `form_prefill_bindings` (liaisons champs <-> API GVV)
-  - extensions éventuelles pour paramètres runtime workflow
-- [ ] Ajouter test migration up/down.
-- [ ] Définir la liste blanche des attributs GVV exposables.
-- [ ] Créer `form_prefill_service` et l'encodage HTML des champs dynamiques.
-- [ ] Gérer champs verrouillés/modifiables après pré-remplissage.
-- [ ] Permettre l'utilisation des liens formulaire dans les workflows GVV.
-- [ ] Définir les paramètres runtime passables au formulaire.
-- [ ] Ajouter la sauvegarde/reprise de saisie multi-session pour les utilisateurs externes (mode brouillon).
-- [ ] Définir un mécanisme de reprise sécurisé (token + contrôle email/PIN) et la politique d'expiration.
-- [ ] Reprendre la navigation sur la dernière étape valide en tenant compte des sections conditionnelles.
-- [ ] Ajouter des règles de visibilité des pages/sections selon les réponses (conditions simples en liste blanche d'opérateurs).
-- [ ] Recalculer la séquence des pages visibles à chaque étape (suivant/précédent/reprise) côté serveur.
+Syntaxe : attributs `data-gvv-source`, `data-gvv-param`, `data-gvv-lock` sur les éléments HTML.
+Paramètres transmis en query string de l'URL du formulaire.
+Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
+
+- [ ] Créer `form_prefill_service` : résolution des sources par liste blanche (club.*, member.*, instructor.*, user.*, date.*).
+- [ ] Parser les attributs `data-gvv-*` depuis le HTML de chaque page (DOMDocument, même pipeline que `sync_fields_from_html`).
+- [ ] Valider les paramètres URL (`pilot_login`, `instructor_login`) : existence + appartenance à la section active.
+- [ ] Injecter les valeurs résolues dans le rendu public avant affichage.
+- [ ] Appliquer le lock côté serveur : ignorer la valeur soumise pour les champs `data-gvv-lock="true"` et réinjecter la valeur GVV.
+- [ ] Permettre l'utilisation des liens formulaire dans les workflows GVV (paramètres encodés dans le lien).
+- [ ] Ajouter la sauvegarde/reprise de saisie multi-session pour les utilisateurs externes (mode brouillon, token de reprise).
+- [ ] Ajouter des règles de visibilité des pages/sections selon les réponses (conditions simples, liste blanche d'opérateurs).
+- [ ] Recalculer la séquence des pages visibles à chaque étape côté serveur.
 - [ ] Adapter la validation finale aux seules pages/sections effectivement visibles.
 
 ### Lot 6 — Documentation et validation finale
