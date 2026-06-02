@@ -1,0 +1,112 @@
+<!-- ============================================================
+     Formulaire membre — Extrait HTML compatible GVV
+       - pas de <head>, <html>, <body>, <form>
+       - pas de bouton submit/reset (GVV les fournit)
+       - les name="" correspondent aux noms techniques des champs GVV
+       - grille Bootstrap 5 native (.row, .col-md-*, .g-2)
+       - classes sémantiques préfixées fm- pour éviter les conflits
+       - le CSS est dans le champ "CSS global" (voir form_membre.css)
+     ============================================================ -->
+
+<div class="fm-page">
+
+  <h1>Formulaire membre</h1>
+
+  <!-- Identité -->
+  <div class="fm-section">
+    <div class="fm-section-label">Identité</div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="nom" name="nom">
+      </div>
+      <div class="col-md-6">
+        <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="prenom" name="prenom">
+      </div>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label for="date_naissance" class="form-label">Date de naissance</label>
+        <input type="date" class="form-control" id="date_naissance" name="date_naissance">
+      </div>
+      <div class="col-md-4">
+        <label for="lieu_naissance" class="form-label">Lieu de naissance</label>
+        <input type="text" class="form-control" id="lieu_naissance" name="lieu_naissance">
+      </div>
+      <div class="col-md-4">
+        <label for="genre" class="form-label">Genre</label>
+        <select class="form-select" id="genre" name="genre">
+          <option value="">-- Choisir --</option>
+          <option value="M">Masculin</option>
+          <option value="F">Féminin</option>
+          <option value="A">Autre</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo -->
+  <div class="fm-section">
+    <div class="fm-section-label">Photo</div>
+    <div class="mb-3">
+      <label for="photo" class="form-label">Photo numérique récente</label>
+      <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+      <div class="form-text">Formats acceptés : JPG, PNG. Taille maximale : 2 Mo.</div>
+    </div>
+  </div>
+
+  <!-- Adresse -->
+  <div class="fm-section">
+    <fieldset class="p-3 mb-0">
+      <legend>Adresse</legend>
+
+      <div class="row g-2 mb-3">
+        <div class="col-md-3">
+          <label for="adresse_numero" class="form-label">Numéro</label>
+          <input type="text" class="form-control" id="adresse_numero" name="adresse_numero">
+        </div>
+        <div class="col-md-9">
+          <label for="adresse_voie" class="form-label">Voie</label>
+          <input type="text" class="form-control" id="adresse_voie" name="adresse_voie"
+                 placeholder="Rue, avenue, boulevard...">
+        </div>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label for="code_postal" class="form-label">Code postal</label>
+          <input type="text" class="form-control" id="code_postal" name="code_postal" maxlength="10">
+        </div>
+        <div class="col-md-5">
+          <label for="ville" class="form-label">Ville</label>
+          <input type="text" class="form-control" id="ville" name="ville">
+        </div>
+        <div class="col-md-4">
+          <label for="pays" class="form-label">Pays</label>
+          <input type="text" class="form-control" id="pays" name="pays" value="France">
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Contact -->
+  <div class="fm-section">
+    <div class="fm-section-label">Contact</div>
+
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
+        <input type="email" class="form-control" id="email" name="email">
+      </div>
+      <div class="col-md-6">
+        <label for="telephone" class="form-label">Téléphone</label>
+        <input type="text" class="form-control" id="telephone" name="telephone"
+               placeholder="+33 6 XX XX XX XX">
+      </div>
+    </div>
+  </div>
+
+</div>

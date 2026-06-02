@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attestation de Formation — ULM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --ink: #0d1b2a;
+    --ink-light: #2c3e50;
+    --rule: #0d1b2a;
+    --accent: #1a5276;
+    --accent-light: #d6eaf8;
+    --paper: #ffffff;
+    --paper-dark: #eaf2fb;
+    --border: 2px solid var(--rule);
+    --border-thin: 1px solid #7f8c8d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #c9d6df;
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .document {
+    background: var(--paper);
+    width: 210mm;
+    max-width: 100%;
+    padding: 14mm 16mm 14mm;
+    border: var(--border);
+    box-shadow: 4px 4px 0 #7f9ab0, 8px 8px 0 #a8c0d0;
+    position: relative;
+  }
+
+  /* Coin décoratif */
+  .document::before, .document::after {
+    content: '';
+    position: absolute;
+    width: 28px; height: 28px;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .document::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+  .document::after  { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+  /* Bandeau titre */
+  .header {
+    border: var(--border);
+    border-bottom: none;
+    background: #1a3a5c;
+    color: var(--paper);
+    text-align: center;
+    padding: 10px 8px 8px;
+  }
+
+  .header .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 4px;
+  }
+
+  .header h1 {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+
+  .header .arrete {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #a8c4d8;
+    margin-top: 5px;
+  }
+
+  /* Boîte de section */
+  .section-box {
+    border: var(--border);
+    margin-top: -1px;
+  }
+
+  .section-box + .section-box { margin-top: 0; }
+
+  .section-title {
+    background: var(--paper-dark);
+    border-bottom: var(--border-thin);
+    padding: 4px 10px;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+
+  .section-body {
+    padding: 10px 12px;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .field-row:last-child { margin-bottom: 0; }
+
+  label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink-light);
+    min-width: 140px;
+    flex-shrink: 0;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  input[type="text"], input[type="date"], textarea {
+    flex: 1;
+    border: none;
+    border-bottom: var(--border-thin);
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink);
+    padding: 1px 3px 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
+    border-bottom-color: var(--accent);
+    background: rgba(26,82,118,0.05);
+  }
+
+  textarea {
+    resize: none;
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  /* Séparateur horizontal */
+  .divider {
+    border: none;
+    border-top: var(--border-thin);
+    margin: 0;
+  }
+
+  /* Zone attestation */
+  .atteste-box {
+    border: var(--border);
+    margin-top: -1px;
+    background: var(--paper-dark);
+  }
+
+  .atteste-body {
+    padding: 12px 14px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    text-align: center;
+  }
+
+  /* Pied bas — Fait à / Le / Signature */
+  .footer-row {
+    border: var(--border);
+    margin-top: -1px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .footer-cell {
+    padding: 10px 12px;
+    border-right: var(--border-thin);
+    border-bottom: var(--border-thin);
+    flex: 1;
+    min-width: 0;
+  }
+  .footer-cell:last-child {
+    border-right: none;
+    flex-basis: 100%;
+    border-bottom: none;
+  }
+
+  .footer-cell label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .sig-area {
+    height: 55px;
+    border: var(--border-thin);
+    border-style: dashed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    cursor: default;
+  }
+
+  /* Note de bas de page */
+  .note {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 8px;
+    color: var(--ink-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-top: var(--border-thin);
+    padding-top: 8px;
+    font-family: 'Josefin Sans', sans-serif;
+  }
+
+  /* Bouton impression */
+  .print-btn {
+    display: block;
+    margin: 22px auto 0;
+    padding: 8px 28px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: var(--accent); color: white; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .document { box-shadow: none; border: 2px solid #000; }
+    .print-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="document">
+
+  <!-- Titre -->
+  <div class="header">
+
+    <h1>Attestation de Formation</h1>
+    <div class="arrete">Arrêté du 17 février 2025 relatif aux conditions d'utilisation des ULM</div>
+  </div>
+
+  <!-- Formation -->
+  <div class="section-box">
+    <div class="section-title">Formation</div>
+    <div class="section-body">
+      <div class="field-row" style="justify-content:center;">
+        <input type="text" value="Formation Familiarisation aux Procédures et Matériels de l'Exploitant" style="text-align:center; font-weight:600; min-width:0;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Organisme -->
+  <div class="section-box">
+    <div class="section-title">Organisme</div>
+    <div class="section-body">
+      <div class="field-row">
+        <label>Nom de l'organisme</label>
+        <input type="text" name="organisme" placeholder="Dénomination de l'organisme">
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructeur -->
+  <div class="section-box">
+    <div class="section-title">Instructeur habilité</div>
+    <div class="section-body">
+      <div class="field-row">
+        <label>Nom et prénom</label>
+        <input type="text" placeholder="Nom Prénom">
+      </div>
+      <div class="field-row">
+        <label>Qualifications</label>
+        <input type="text" placeholder="Ex. : FI(A), FI(ULM) …">
+      </div>
+    </div>
+  </div>
+
+  <!-- Atteste que -->
+  <div class="atteste-box">
+    <div class="atteste-body">atteste que</div>
+  </div>
+
+  <!-- Candidat -->
+  <div class="section-box">
+    <div class="section-title">Candidat</div>
+    <div class="section-body">
+      <div class="field-row">
+        <label>Nom et prénom</label>
+        <input type="text" name="candidat_nom" placeholder="Nom Prénom">
+      </div>
+      <div class="field-row">
+        <label>Adresse</label>
+        <input type="text" name="candidat_adresse" placeholder="Adresse complète">
+      </div>
+      <div class="field-row">
+        <label>Date et lieu de naissance</label>
+        <input type="text" name="candidat_naissance" placeholder="JJ/MM/AAAA à Ville">
+      </div>
+      <div class="field-row">
+        <label>Qualifications</label>
+        <input type="text" name="candidat_qualifications" placeholder="Qualifications détenues">
+      </div>
+    </div>
+  </div>
+
+  <!-- Texte attestation -->
+  <div class="section-box">
+    <div class="section-body" style="font-family:'Source Sans 3',sans-serif; font-size:12px; line-height:1.65; text-align:justify; color:var(--ink);">
+      A suivi avec succès la formation <em>« Formation Familiarisation aux Procédures et Matériels de l'Exploitant »</em>, conformément aux dispositions de l'arrêté du 17 février 2025.
+    </div>
+  </div>
+
+  <!-- Pied -->
+  <div class="footer-row">
+    <div class="footer-cell">
+      <label>Fait à</label>
+      <input type="text" name="ville" placeholder="Ville">
+    </div>
+    <div class="footer-cell">
+      <label>Le</label>
+      <input type="date" name="date">
+    </div>
+    <div class="footer-cell">
+      <label>Signature de l'instructeur habilité</label>
+      <div class="sig-area">Signature</div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="note">
+    Document à conserver dans le dossier du pilote — durée minimale 3 ans (Manuel d'activité REP §A.1.6)
+  </div>
+
+</div>
+
+</body>
+</html>

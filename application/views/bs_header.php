@@ -53,10 +53,37 @@
 	echo html_script(array('type' => "text/javascript", 'src' => js_url('408316024a')));
 
 	echo html_link(array('rel' => "manifest", 'href' => base_url() . "manifest.json"));
-	echo html_link(array('rel' => "icon", 'type' => "image/x-icon", 'href' => base_url() . "favicon.ico"));
-	echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "32x32", 'href' => base_url() . "assets/images/gvv_icon_32.png"));
-	echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "16x16", 'href' => base_url() . "assets/images/gvv_icon_16.png"));
-	echo html_link(array('rel' => "apple-touch-icon", 'sizes' => "192x192", 'href' => base_url() . "assets/images/gvv_icon_192.png"));
+	if (file_exists(FCPATH . 'favicon.ico'))
+		echo html_link(array('rel' => "icon", 'type' => "image/x-icon", 'href' => base_url() . "favicon.ico"));
+	if (file_exists(FCPATH . 'assets/images/gvv_icon_32.png'))
+		echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "32x32", 'href' => base_url() . "assets/images/gvv_icon_32.png"));
+	if (file_exists(FCPATH . 'assets/images/gvv_icon_16.png'))
+		echo html_link(array('rel' => "icon", 'type' => "image/png", 'sizes' => "16x16", 'href' => base_url() . "assets/images/gvv_icon_16.png"));
+	if (file_exists(FCPATH . 'assets/images/gvv_icon_192.png'))
+		echo html_link(array('rel' => "apple-touch-icon", 'sizes' => "192x192", 'href' => base_url() . "assets/images/gvv_icon_192.png"));
+
+	// Backgrounds optionnels (header/footer) — injectés seulement si les fichiers existent
+	$img_path = FCPATH . 'assets/images/';
+	$has_header = file_exists($img_path . 'header.png');
+	$has_header_left = file_exists($img_path . 'header_left.gif');
+	$has_header_right = file_exists($img_path . 'header_right.gif');
+	$has_footer = file_exists($img_path . 'footer.png');
+	if ($has_header || $has_header_left || $has_header_right || $has_footer):
+		$img_url = base_url() . 'assets/images/';
+		echo '<style>';
+		if ($has_header || $has_header_left || $has_header_right) {
+			$bg_parts = array();
+			if ($has_header_left)  $bg_parts[] = "url({$img_url}header_left.gif) no-repeat left";
+			if ($has_header_right) $bg_parts[] = "url({$img_url}header_right.gif) no-repeat right";
+			if ($has_header)       $bg_parts[] = "url({$img_url}header.png)";
+			echo 'header{background:' . implode(',', $bg_parts) . ';}';
+			if ($has_header)
+				echo '@media only screen and (max-width:576px){header{background:url(' . $img_url . 'header.png);}}';
+		}
+		if ($has_footer)
+			echo 'footer{background:#000 url(' . $img_url . 'footer.png) left bottom;background-size:cover;}';
+		echo '</style>';
+	endif;
 
 	// CSS
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/datatable_jui.css'));

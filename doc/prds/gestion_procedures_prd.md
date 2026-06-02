@@ -6,6 +6,10 @@ Date : 24 mars 2026
 
 Doter GVV d'un moteur générique pour conduire des démarches administratives multi-étapes : inscription, renouvellement d'adhésion, demande de qualification, homologation, etc. Une procédure est un parcours défini par configuration, que suit un utilisateur (membre ou externe) jusqu'à validation complète par le club.
 
+### Note d'implementation probable
+
+Dans l'etat actuel de la feuille de route, cette fonctionnalite sera probablement introduite via une surcouche legere d'orchestration au-dessus du module formulaires (etat de dossier, validation documentaire et decision globale), avant d'envisager un moteur de procedures plus complet.
+
 ---
 
 ## Périmètre

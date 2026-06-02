@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>134i-Formlic – Déclaration de début de formation ULM</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+    background: #f5f5f5;
+    padding: 20px;
+  }
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 24px 28px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Header */
+  .header {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    border: 1.5px solid #003189;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .logo-flag { display: flex; gap: 1px; margin-bottom: 4px; }
+  .flag-b { width: 12px; height: 10px; background: #002395; }
+  .flag-w { width: 12px; height: 10px; background: #fff; border: 0.5px solid #ccc; }
+  .flag-r { width: 12px; height: 10px; background: #ED2939; }
+  .logo-text { font-size: 7.5px; font-weight: bold; line-height: 1.4; color: #333; }
+  .logo-sub { font-size: 6.5px; font-style: italic; color: #555; line-height: 1.3; }
+  .header-title { text-align: center; }
+  .header-title h1 { font-size: 13px; font-weight: bold; line-height: 1.4; }
+  .header-title .ref { font-size: 11px; color: #555; margin-top: 6px; display: flex; justify-content: space-around; border-top: 0.5px solid #ccc; padding-top: 6px; }
+  .dgac-box {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border: 1px solid #003189; padding: 6px 8px; border-radius: 4px;
+  }
+  .dgac-label { background: #003189; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 8px; letter-spacing: 1px; border-radius: 2px; }
+  .dgac-sub { font-size: 7px; color: #444; text-align: center; line-height: 1.3; margin-top: 2px; }
+
+  /* Guide box */
+  .guide-box {
+    border: 1px solid #888;
+    background: #f9f9f9;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-size: 11.5px;
+  }
+  .guide-box .guide-title { font-weight: bold; text-decoration: underline; margin-bottom: 6px; }
+  .guide-box ul { padding-left: 18px; line-height: 1.8; }
+
+  /* Sections */
+  .info-general { border: 1px solid #888; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; }
+  .info-general strong { font-weight: bold; }
+
+  .pieces { border: 1px solid #888; padding: 8px 14px; margin-bottom: 14px; font-size: 12px; }
+  .pieces strong { font-weight: bold; }
+
+  .section { border: 1px solid #555; margin-bottom: 14px; }
+  .section-header {
+    background: #003189;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .section-body { padding: 10px 12px; }
+
+  /* Form fields */
+  .field-table { width: 100%; border-collapse: collapse; }
+  .field-table td {
+    border: 0.5px solid #aaa;
+    padding: 4px 6px;
+    vertical-align: top;
+  }
+  .field-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    background: #f0f4ff;
+    width: 1%;
+  }
+  .field-input input[type=text],
+  .field-input input[type=email],
+  .field-input input[type=tel],
+  .field-input input[type=date] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #aaa;
+    background: transparent;
+    font-size: 12px;
+    padding: 2px 4px;
+    color: #1a1a1a;
+    outline: none;
+  }
+  .field-input input:focus { border-bottom-color: #003189; background: #f0f8ff; }
+
+  /* Candidate table layout */
+  .cand-table { width: 100%; border-collapse: collapse; }
+  .cand-table td, .cand-table th {
+    border: 0.5px solid #aaa;
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+  .cand-table th {
+    background: #dce6ff;
+    font-weight: bold;
+    font-size: 11px;
+    text-align: left;
+  }
+  .cand-table input[type=text],
+  .cand-table input[type=email],
+  .cand-table input[type=tel],
+  .cand-table input[type=date] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #999;
+    background: transparent;
+    font-size: 12px;
+    padding: 2px 2px;
+    outline: none;
+  }
+  .cand-table input:focus { border-bottom-color: #003189; }
+
+  .stagiaire-notice {
+    text-align: center;
+    font-weight: bold;
+    font-size: 11px;
+    background: #f0f4ff;
+    padding: 6px;
+    border-top: 0.5px solid #aaa;
+  }
+
+  /* Legal box */
+  .legal-box {
+    border: 1px solid #888;
+    padding: 8px 12px;
+    font-size: 11px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    background: #fafafa;
+  }
+  .legal-intro { font-weight: bold; margin-bottom: 6px; text-align: center; font-size: 11px; }
+  .legal-article { font-style: italic; font-size: 10.5px; color: #333; }
+
+  /* Signature area */
+  .sig-grid { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0; border: 0.5px solid #aaa; }
+  .sig-cell { padding: 8px 10px; border-right: 0.5px solid #aaa; }
+  .sig-cell:last-child { border-right: none; }
+  .sig-label { font-weight: bold; font-size: 11px; margin-bottom: 4px; }
+  .sig-field { border-bottom: 1px solid #888; height: 24px; width: 100%; }
+  .sig-center { text-align: center; }
+  .sig-big { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+  .sig-tuto { font-size: 10px; color: #c00; margin-bottom: 6px; }
+  .sig-notes { font-size: 9.5px; line-height: 1.5; }
+  .sig-notes u { text-decoration: underline; }
+  .sig-area { height: 50px; border: 1px dashed #aaa; margin-top: 6px; background: #fafafa; }
+  .sig-right { font-size: 10px; text-align: center; color: #444; }
+
+  /* Checkbox */
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .checkbox-row input[type=checkbox] { width: 14px; height: 14px; }
+  .checkbox-row label { font-size: 12px; }
+
+  /* Print / submit buttons */
+  .action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 0.5px solid #ccc;
+  }
+  .btn {
+    padding: 8px 20px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-reset { background: #fff; border: 1px solid #888; color: #555; }
+  .btn-print { background: #003189; border: none; color: #fff; font-weight: bold; }
+  .btn-reset:hover { background: #f0f0f0; }
+  .btn-print:hover { background: #002070; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; border: none; padding: 10px; }
+    .action-bar { display: none; }
+    input { border-bottom-color: #999 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="logo-flag">
+        <div class="flag-b"></div>
+        <div class="flag-w"></div>
+        <div class="flag-r"></div>
+      </div>
+      <div class="logo-text">MINISTÈRE<br>CHARGÉ<br>DES TRANSPORTS</div>
+      <div class="logo-sub">Liberté<br>Égalité<br>Fraternité</div>
+    </div>
+    <div class="header-title">
+      <h1>Formulaire de déclaration/d'attestation de début de formation au<br>brevet et à la licence ULM</h1>
+      <div class="ref">
+        <span><strong>134i-Formlic</strong></span>
+        <span>Rév 2 – 30/06/2021</span>
+        <span>Page 1 sur 1</span>
+      </div>
+    </div>
+    <div class="dgac-box">
+      <div class="dgac-label">DGAC</div>
+      <div class="dgac-sub">direction générale<br>de l'Aviation<br>civile<br><strong>DSAC</strong></div>
+    </div>
+  </div>
+
+  <!-- Guide -->
+  <div class="guide-box">
+    <div class="guide-title">Guide formulaire interactif : À lire impérativement</div>
+    <ul>
+      <li>Pour télécharger le formulaire depuis le site sur votre bureau : utiliser Firefox, cliquer « Télécharger » ou Clic droit → Enregistrer sous.</li>
+      <li>Pour utiliser les formulaires interactifs : ouvrir avec Adobe Acrobat Reader DC sur ordinateur uniquement.</li>
+      <li>Pensez à remplir ce formulaire électroniquement. Si vous ne souhaitez pas signer électroniquement : le remplir, l'imprimer, le signer et l'envoyer.</li>
+      <li>La liste des adresses mails/postales DSAC (Pôle Licences) se trouve sur le site du Ministère.</li>
+    </ul>
+  </div>
+
+  <!-- Informations générales -->
+  <div class="info-general">
+    <strong>Informations générales :</strong><br>
+    Le stagiaire conservera un exemplaire de la présente déclaration/attestation qui devra être à bord de l'aéronef lors des vols d'entraînement seul à bord.
+  </div>
+
+  <!-- Pièces -->
+  <div class="pieces">
+    <strong>Pièces à fournir :</strong>
+    <div class="checkbox-row">
+      <input type="checkbox" id="piece-id">
+      <label for="piece-id">Copie/Scan (recto/verso) de la pièce d'identité</label>
+    </div>
+  </div>
+
+  <div style="font-weight:bold;font-size:12px;margin-bottom:8px;">Information sur le navigant :</div>
+
+  <!-- Section 1 : Candidat -->
+  <div class="section">
+    <div class="section-header">1/3. Information sur le candidat</div>
+    <div class="section-body" style="padding:0">
+      <table class="cand-table">
+        <tr>
+          <th style="width:50%">Nom de famille <sup>1</sup></th>
+          <th style="width:50%">Nom d'usage <em style="font-weight:normal">(Si différent de <sup>1</sup>)</em></th>
+        </tr>
+        <tr>
+          <td><input type="text" id="nom" autocomplete="family-name"></td>
+          <td><input type="text" id="nom-usage"></td>
+        </tr>
+        <tr>
+          <th>Prénom(s)</th>
+          <th>Date de naissance</th>
+          <th>Lieu de naissance</th>
+        </tr>
+        <tr>
+          <td><input type="text" id="prenom" autocomplete="given-name"></td>
+          <td><input type="date" id="ddn"></td>
+          <td><input type="text" id="lieu-naissance"></td>
+        </tr>
+        <tr>
+          <th colspan="2">Adresse</th>
+          <th>Commune</th>
+          <th>Code postal</th>
+        </tr>
+        <tr>
+          <td colspan="2"><input type="text" id="adresse" autocomplete="street-address"></td>
+          <td><input type="text" id="commune"></td>
+          <td><input type="text" id="cp" autocomplete="postal-code"></td>
+        </tr>
+        <tr>
+          <th>Téléphone(s)</th>
+          <th colspan="3">Courriel</th>
+        </tr>
+        <tr>
+          <td><input type="tel" id="tel" autocomplete="tel"></td>
+          <td colspan="3"><input type="email" id="email" autocomplete="email"></td>
+        </tr>
+        <tr>
+          <th>N° licence <em style="font-weight:normal">(Si applicable)</em></th>
+          <th colspan="3">Pays de résidence</th>
+        </tr>
+        <tr>
+          <td><input type="text" id="licence"></td>
+          <td colspan="3"><input type="text" id="pays" value="France"></td>
+        </tr>
+      </table>
+      <div class="stagiaire-notice">
+        Le stagiaire désigné ci-dessus débute une formation en vue de l'obtention du brevet et de la licence ULM
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 : Instructeur -->
+  <div class="section">
+    <div class="section-header">2/3. Information sur l'instructeur</div>
+    <div class="section-body" style="padding:0">
+      <table class="cand-table">
+        <tr>
+          <th style="width:50%">Nom de famille</th>
+          <th style="width:50%">Prénom</th>
+        </tr>
+        <tr>
+          <td><input type="text" id="instr-nom"></td>
+          <td><input type="text" id="instr-prenom"></td>
+        </tr>
+        <tr>
+          <th>N° Licence</th>
+          <th>Date de fin de validité</th>
+        </tr>
+        <tr>
+          <td><input type="text" id="instr-licence"></td>
+          <td><input type="date" id="instr-licence-date"></td>
+        </tr>
+        <tr>
+          <th>N° Qualification d'instructeur</th>
+          <th>Date de fin de validité</th>
+        </tr>
+        <tr>
+          <td><input type="text" id="instr-qual"></td>
+          <td><input type="date" id="instr-qual-date"></td>
+        </tr>
+        <tr>
+          <th colspan="2">Aéroclub / Association</th>
+        </tr>
+        <tr>
+          <td colspan="2"><input type="text" id="aeroclub"></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 3 : Validation instructeur -->
+  <div class="section">
+    <div class="section-header">3/3. Validation des données renseignées : À COMPLÉTER PAR L'INSTRUCTEUR</div>
+    <div class="section-body">
+      <div class="legal-box">
+        <div class="legal-intro">
+          Je reconnais avoir pris connaissance des dispositions de l'article 441-1 du Code pénal, reproduites ci-dessous, relatives aux faux.
+          De plus en cas de violation de ces dispositions, nonobstant les sanctions pénales susceptibles de m'être infligées, je reconnais avoir été informé(e) que
+          la décision d'acceptation fera l'objet d'une décision de retrait immédiat.
+        </div>
+        <div class="legal-article">
+          « Constitue un faux toute altération frauduleuse de la vérité, de nature à causer un préjudice et accomplie par quelque moyen que ce soit, dans un écrit
+          ou tout autre support d'expression de la pensée qui a pour objet ou qui peut avoir pour effet d'établir la preuve d'un droit ou d'un fait ayant des
+          conséquences juridiques. Le faux et l'usage de faux sont punis de trois ans d'emprisonnement et de 45 000 euros d'amende. »
+        </div>
+      </div>
+
+      <div class="sig-grid">
+        <div class="sig-cell">
+          <div class="sig-label">Fait à</div>
+          <input type="text" id="fait-a" style="width:100%;border:none;border-bottom:1px solid #888;font-size:12px;padding:2px;outline:none;background:transparent">
+          <br><br>
+          <div class="sig-label">Le</div>
+          <input type="date" id="fait-le" style="width:100%;border:none;border-bottom:1px solid #888;font-size:12px;padding:2px;outline:none;background:transparent">
+        </div>
+        <div class="sig-cell sig-center">
+          <div class="sig-big">Signature</div>
+          <div style="font-size:11px;margin-bottom:4px">(électronique ou non)</div>
+          <div class="sig-area"></div>
+          <div class="sig-tuto" style="margin-top:6px">Lien tuto « Vidéo » signature électronique : <a href="#">Ici</a></div>
+          <div class="sig-notes">
+            <u>1/3) Les signatures avec « initiales » ou « Nom/prénom » ne seront pas acceptées.</u><br>
+            <u>2/3) La signature devra être identique à celle sur votre pièce d'identité.</u><br>
+            3/3) Veuillez prendre connaissance du tuto vidéo pour signer électroniquement.
+          </div>
+        </div>
+        <div class="sig-cell sig-right">
+          <div style="font-size:10px;font-weight:bold;margin-bottom:6px">Fournir la copie de la pièce d'identité</div>
+          <div style="font-size:9.5px;font-style:italic">(Si le formulaire est signé électroniquement)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-bar">
+    <button class="btn btn-reset" onclick="
+      document.querySelectorAll('input[type=text],input[type=email],input[type=tel],input[type=date]').forEach(i=>i.value='');
+      document.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+      document.getElementById('pays').value='France';
+    ">Réinitialiser</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Imprimer / Enregistrer PDF</button>
+  </div>
+
+</div>
+</body>
+</html>

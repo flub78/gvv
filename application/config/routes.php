@@ -51,6 +51,10 @@ $route['briefing_sign/(:any)']        = 'briefing_sign/index/$1';
 
 $route['membres/renommer'] = 'membre/renommer';
 
+// Forms module - public endpoints
+$route['forms/submit/(:any)'] = 'forms_public/submit/$1';
+$route['forms/(:any)'] = 'forms_public/index/$1';
+
 $route['default_controller'] = "welcome";
 $route['404_override'] = '';
 

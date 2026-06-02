@@ -136,6 +136,17 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 
 ---
 
+### 📄 Documents et Formulaires
+
+#### [13. Gestion des Formulaires](13_formulaires.md)
+**Formulaires HTML publiables en ligne**
+- Création et publication de formulaires multi-pages
+- Types de champs : texte, email, date, nombre, liste, radio, case à cocher, fichier
+- CSS compatible avec l'environnement GVV (Bootstrap 5)
+- Consultation et export des réponses
+
+---
+
 ### 🔗 Guides d'Intégration
 
 #### [OpenFlyers Integration](../openflyers_user.md)
@@ -172,7 +183,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 4. **[📈 Rapports](08_rapports.md)** - Analyser les performances
 5. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
 6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
-7. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données
+8. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

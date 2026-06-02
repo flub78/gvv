@@ -16,6 +16,14 @@ Le module doit permettre :
 
 La première livraison doit prioriser un socle de formulaires HTML de type Google Forms, avec support des fichiers et sans pré-remplissage GVV. Le pré-remplissage GVV et l'intégration workflow avancée sont prévus dans un second temps, une fois le socle autonome stabilisé.
 
+### Note d'orientation (évolution probable)
+
+Le module formulaires est considéré comme le socle de collecte et de reprise d'état. Une orchestration légère (états de validation documentaire + décision globale) pourra être ajoutée au-dessus de ce socle pour couvrir les besoins de type "procédure" sans introduire immédiatement un moteur workflow complexe.
+
+Une extension future probable du module consiste à permettre la sauvegarde et la reprise de saisie multi-session pour les utilisateurs externes (brouillon, lien/token de reprise, reprise sur la dernière étape valide).
+
+Une autre extension future probable consiste à gérer des pages/sections conditionnelles selon les réponses déjà fournies (règles de visibilité et navigation conditionnelle).
+
 ## Objectifs
 
 - Fournir un moteur de formulaires HTML multi-pages administrable dans GVV.
@@ -33,6 +41,7 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 - Remplacer l'ensemble du module workflow GVV en V1.
 - Concevoir un éditeur visuel WYSIWYG complet type "no-code" avancé en V1.
 - Ajouter la signature électronique qualifiée (eIDAS) en V1.
+- Signature PGP (OpenPGP.js) en V1 — option avancée réservée aux extensions ultérieures (complexité, dépendances JS, valeur légale incertaine).
 
 ## Portée
 
@@ -46,6 +55,8 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 - Prévisualisation admin des fichiers image/PDF soumis.
 - Insertion de documents archivés GVV dans le formulaire avec visualisation intégrée (scroll si nécessaire).
 - Liste admin des réponses + détail d'une réponse.
+- Champ signature : widget composite (dessin canvas + upload image) avec stockage dans `form_submission_files`.
+- Pré-remplissage d'une signature depuis le profil GVV (`membres.signature_path`, sources `member.signature` / `instructor.signature`).
 - Génération d'un PDF imprimable de la réponse.
 - Import d'un PDF formulaire pour produire une base HTML éditable.
 - Archivage d'une réponse vers `archived_documents` liée à un pilote.
@@ -54,6 +65,8 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 
 - OCR avancé sur PDF scannés non structurés en V1.
 - Rendu pixel-perfect garanti identique au PDF source importé.
+- Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
+- Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
 
 ## Personae & rôles
 
@@ -109,9 +122,20 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 3. Chaque page peut être importée depuis un fichier texte/HTML.
 4. Chaque page peut être exportée en fichier texte/HTML.
 
+### EF2-bis : Synchronisation fichiers disque
+
+1. Le contenu HTML d'une page et le CSS global d'un formulaire peuvent être stockés sous forme de fichiers dans `application/forms_templates/`.
+2. Nommage : `{public_slug}_pageN.html` pour les pages, `{public_slug}.css` pour le CSS global.
+3. Un bouton "Actualiser depuis le disque" dans l'admin déclenche la synchronisation fichier → base (le fichier est prioritaire).
+4. Toute sauvegarde via l'interface web écrit simultanément en base et sur disque.
+5. La détection de modification repose sur un hash MD5 du contenu (insensible aux timestamps de déploiement).
+6. La synchronisation n'est jamais déclenchée automatiquement au rendu public.
+
+Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md)
+
 ### EF3 : Champs et validations
 
-1. Support des champs : text, email, date, number, textarea, select, radio, checkbox, file.
+1. Support des champs : text, email, date, number, textarea, select, radio, checkbox, file, signature.
 2. Validation serveur obligatoire, avec messages explicites.
 3. Gestion des champs obligatoires et formats (email, bornes numériques, etc.).
 
@@ -131,11 +155,29 @@ La première livraison doit prioriser un socle de formulaires HTML de type Googl
 
 ### EF6 : Données GVV et pré-remplissage
 
-1. Le formulaire peut déclarer des paramètres GVV (ex: `pilot_login`, `instructeur_login`, `section_id`).
-2. Certains champs peuvent être pré-remplis par extraction GVV via un encodage dédié.
-3. Une API d'extraction des données autorisées doit être définie (liste blanche de champs exposables).
-4. Les champs pré-remplis peuvent être verrouillés ou modifiables selon configuration.
-5. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
+1. Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
+2. Trois attributs : `data-gvv-source` (source de donnée), `data-gvv-param` (paramètre URL d'identification), `data-gvv-lock` (verrouillage serveur).
+3. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL du formulaire.
+4. Les sources autorisées couvrent : données du club (config), données d'un membre, données d'un instructeur, utilisateur de session, dates calculées.
+5. Le verrouillage est appliqué côté serveur : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et impose la valeur résolue.
+6. Une liste blanche stricte des sources autorisées est définie — pas d'accès libre à la base.
+7. Le paramètre d'identification transmis en URL est validé (existence + appartenance à la section active).
+8. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
+9. La taxonomie des sources inclut `member.signature` → `membres.signature_path` (param : `pilot_login`) et `instructor.signature` → `membres.signature_path` (param : `instructor_login`).
+
+Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
+
+### EF6-bis : Champ signature
+
+1. Un champ signature est déclaré dans le HTML via `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..." data-gvv-lock="...">`. GVV remplace ce div par le widget lors du rendu public ; le texte du div reste visible en prévisualisation standalone.
+2. Le widget expose trois onglets : dessin canvas, upload image, signature PGP (option avancée exclue de V1).
+3. En mode canvas : la signature est normalisée (600×200 px), exportée en PNG base64, transmise via un champ caché, décodée côté serveur et stockée dans `form_submission_files` (`mime_type = image/png`).
+4. En mode upload : `<input type="file" accept="image/*">` dans le widget, pipeline standard `form_submission_files`.
+5. Deux valeurs cachées sont transmises à chaque soumission : le contenu et le type (`canvas|file|pgp`), pour audit côté serveur.
+6. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
+7. Si `data-gvv-lock="false"`, l'utilisateur peut remplacer la signature pré-remplie.
+
+Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-signatures)
 
 ### EF7 : Réponses et supervision
 

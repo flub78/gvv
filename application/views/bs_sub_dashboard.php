@@ -1230,6 +1230,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-danger">
+                <i class="fas fa-file-signature text-primary"></i>
+                <div class="card-title">Gestion des formulaires</div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_documentation') ?></div>
+                <a href="http://gvv.net/forms_admin" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
         <?php endif; ?>
 
         <div class="col-12 mt-3">
