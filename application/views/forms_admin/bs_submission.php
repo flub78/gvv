@@ -5,6 +5,14 @@
         $submission = isset($submission) ? $submission : array('id' => 0, 'submission_uuid' => '', 'status' => '', 'submitted_at' => '');
         $values = isset($values) ? $values : array();
         $files = isset($files) ? $files : array();
+
+        // Build a map of files indexed by field_id for inline signature display
+        $files_by_field_id = array();
+        foreach ($files as $f) {
+            if (!empty($f['field_id'])) {
+                $files_by_field_id[(int) $f['field_id']] = $f;
+            }
+        }
     ?>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -58,10 +66,23 @@
                             <tr><td colspan="3" class="text-center text-muted py-3"><?= $this->lang->line('forms_empty_no_values') ?></td></tr>
                         <?php else: ?>
                             <?php foreach ($values as $value): ?>
+                                <?php
+                                    $is_signature = (isset($value['field_type']) && $value['field_type'] === 'signature');
+                                    $sig_file = ($is_signature && !empty($value['field_id'])) ? (isset($files_by_field_id[(int) $value['field_id']]) ? $files_by_field_id[(int) $value['field_id']] : null) : null;
+                                ?>
                                 <tr>
                                     <td><?= html_escape((string) $value['field_label']) ?></td>
                                     <td><?= html_escape((string) $value['field_type']) ?></td>
-                                    <td><pre class="mb-0" style="white-space: pre-wrap;"><?= html_escape((string) $value['value_text']) ?></pre></td>
+                                    <td>
+                                        <?php if ($is_signature && $sig_file !== null): ?>
+                                            <?php $sig_url = site_url('forms_admin/submission_file/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $sig_file['id']) . '?inline=1'; ?>
+                                            <img src="<?= $sig_url ?>" alt="Signature" style="max-width:300px;max-height:100px;border:1px solid #dee2e6;border-radius:4px;">
+                                        <?php elseif ($is_signature): ?>
+                                            <span class="text-muted fst-italic"><?= $this->lang->line('forms_empty_no_files') ?></span>
+                                        <?php else: ?>
+                                            <pre class="mb-0" style="white-space: pre-wrap;"><?= html_escape((string) $value['value_text']) ?></pre>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

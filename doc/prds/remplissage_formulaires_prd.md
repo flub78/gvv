@@ -170,12 +170,14 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 ### EF6-bis : Champ signature
 
 1. Un champ signature est déclaré dans le HTML via `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..." data-gvv-lock="...">`. GVV remplace ce div par le widget lors du rendu public ; le texte du div reste visible en prévisualisation standalone.
-2. Le widget expose trois onglets : dessin canvas, upload image, signature PGP (option avancée exclue de V1).
+2. Le widget expose trois onglets : dessin canvas (écran tactile ou souris), upload image, saisie au clavier (fonte d'écriture manuscrite).
 3. En mode canvas : la signature est normalisée (600×200 px), exportée en PNG base64, transmise via un champ caché, décodée côté serveur et stockée dans `form_submission_files` (`mime_type = image/png`).
 4. En mode upload : `<input type="file" accept="image/*">` dans le widget, pipeline standard `form_submission_files`.
-5. Deux valeurs cachées sont transmises à chaque soumission : le contenu et le type (`canvas|file|pgp`), pour audit côté serveur.
-6. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
-7. Si `data-gvv-lock="false"`, l'utilisateur peut remplacer la signature pré-remplie.
+5. En mode clavier : le texte saisi est rendu en temps réel sur un canvas avec une fonte d'écriture manuscrite (Caveat) ; à la soumission, le canvas est exporté en PNG base64 et suit le même pipeline que le mode canvas.
+6. Deux valeurs cachées sont transmises à chaque soumission : le contenu et le type (`canvas|file|text`), pour audit côté serveur.
+7. La visualisation d'une signature soumise dans l'interface admin est graphique : l'image est affichée en ligne dans le détail de la soumission.
+8. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
+9. Si `data-gvv-lock="false"`, l'utilisateur peut remplacer la signature pré-remplie.
 
 Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-signatures)
 

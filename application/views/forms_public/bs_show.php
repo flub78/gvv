@@ -1,4 +1,7 @@
 <?php $this->lang->load('forms'); ?>
+<?php if (!empty($has_signature_widget)): ?>
+<script src="<?= base_url('assets/js/signature_pad.umd.min.js') ?>"></script>
+<?php endif; ?>
 <div class="container mt-4 mb-5">
     <?php
         $form = isset($form) ? $form : array('title' => '', 'description' => '', 'public_slug' => '');

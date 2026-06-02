@@ -1432,6 +1432,33 @@ class Forms_admin extends CI_Controller {
             );
         }
 
+        // Detect signature widgets declared as <div data-gvv-type="signature" data-gvv-name="...">
+        foreach ($xpath->query('//*[@data-gvv-type and @data-gvv-name]') as $node) {
+            if (strtolower($node->getAttribute('data-gvv-type')) !== 'signature') {
+                continue;
+            }
+            $name = trim($node->getAttribute('data-gvv-name'));
+            if ($name === '' || isset($seen[$name])) {
+                continue;
+            }
+            $seen[$name] = true;
+
+            $label = trim($node->textContent);
+            if ($label === '') {
+                $label = $name;
+            }
+
+            $fields[] = array(
+                'name'        => $name,
+                'label'       => $label,
+                'field_type'  => 'signature',
+                'is_required' => $node->hasAttribute('data-gvv-required') ? 1 : 0,
+                'sort_order'  => $sort++,
+                'options'     => array(),
+                'gvv_role'    => null,
+            );
+        }
+
         return $fields;
     }
 

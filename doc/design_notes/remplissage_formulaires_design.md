@@ -189,16 +189,17 @@ Le div reste lisible en prévisualisation standalone (le texte s'affiche) ; le w
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  [Dessiner]  [Importer une image]  [PGP]        │
+│  [Dessiner]  [Importer une image]  [Taper]      │
 ├─────────────────────────────────────────────────┤
 │                                                 │
-│   canvas | prévisualisation image | ASCII PGP   │
+│   canvas | prévisualisation image | canvas      │
+│           (dessin à la main)      (fonte manus.) │
 │                                                 │
 ├─────────────────────────────────────────────────┤
 │  [Effacer]                                      │
 └─────────────────────────────────────────────────┘
-<input type="hidden" name="signature_instructeur"      value="...base64 ou PGP...">
-<input type="hidden" name="signature_instructeur_type" value="canvas|file|pgp">
+<input type="hidden" name="signature_instructeur"      value="...base64...">
+<input type="hidden" name="signature_instructeur_type" value="canvas|file|text">
 ```
 
 Deux hidden inputs transmis à chaque soumission : le contenu et le type, pour audit côté serveur.
@@ -215,18 +216,16 @@ Réutilise `assets/js/signature_pad.umd.min.js` déjà présent (même pattern q
 
 `<input type="file" accept="image/*">` dans le widget, pipeline file standard déjà géré par `form_submission_files`. Prévisualisation inline dans le cadre du widget.
 
-#### Mode 3 — Signature PGP (option avancée)
+#### Mode 3 — Saisie au clavier (fonte manuscrite)
 
-**Côté client** : [OpenPGP.js](https://openpgpjs.org/). Workflow :
-1. Hash SHA-256 des valeurs soumises côté JS
-2. L'utilisateur entre sa passphrase (clé privée jamais transmise)
-3. Signature ASCII-armored produite → hidden input
+L'utilisateur tape son nom ou sa signature. Le texte est rendu en temps réel sur un canvas en fonte **Caveat** (Google Fonts, ~30 KB). À la soumission, le canvas est exporté en PNG base64 et suit exactement le même pipeline serveur que le mode canvas dessiné (type = `text`).
 
-**Côté serveur PHP 7.4** : extension `gnupg` ou `exec('gpg --verify')`. La clé publique du membre est stockée dans `membres.pgp_public_key` (nouveau champ).
+- Fonte chargée via `@import url('https://fonts.googleapis.com/css2?family=Caveat&display=swap')`.
+- La prévisualisation canvas (600×80 px) se met à jour à chaque frappe.
+- À la soumission, normalisation vers 600×200 px avant envoi.
+- Aucune dépendance JS supplémentaire.
 
-**Stockage** : dans `form_submission_files` avec `mime_type = application/pgp-signature`, ou dans `form_submission_values.value_text` si le texte ASCII est court.
-
-**Limites** : complexité d'usage élevée (gestion de clé PGP par l'utilisateur), ~500 KB de JS supplémentaire, valeur légale incertaine (hors eIDAS qualifié). Réservé aux cas avancés.
+**Option future** : signature PGP (OpenPGP.js + clé membre, hors V1 pour cause de complexité d'usage, ~500 KB de JS supplémentaire et valeur légale incertaine hors eIDAS qualifié).
 
 #### Pré-remplissage depuis GVV
 
@@ -246,8 +245,9 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 |---|---|---|---|
 | 1 | Dessin canvas | Faible | `signature_pad.umd.min.js` déjà présent |
 | 2 | Upload image | Faible | Pipeline file existant |
-| 3 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
-| 4 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur |
+| 3 | Saisie clavier (fonte Caveat) | Faible | Google Fonts CDN, canvas natif |
+| 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
+| 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
 
 ### 7. Import PDF -> HTML
 

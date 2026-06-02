@@ -28,6 +28,8 @@
 * [] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
+  
+* [] Approbation de documents
 
 * [] Informer le trésorier des renouvellement de cotisation par email
   

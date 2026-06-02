@@ -71,16 +71,30 @@ class Forms_public extends CI_Controller {
             $old_values
         );
 
+        // Inject signature widgets into page HTML.
+        // The view applies html_entity_decode to content_html before rendering,
+        // so we work on raw HTML here and store raw HTML back.
+        $has_signature_widget = false;
+        if (!empty($current_page['content_html'])) {
+            $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget);
+            if ($injected !== $raw) {
+                // Store raw injected HTML — the view's html_entity_decode is a no-op on raw HTML
+                $current_page['content_html'] = $injected;
+            }
+        }
+
         $data = array(
-            'form'                => $form,
-            'pages'               => $pages,
-            'current_page'        => $current_page,
-            'current_page_number' => $current_page_number,
-            'page_count'          => $page_count,
-            'fields'              => $fields,
-            'render_fields'       => $render_fields,
-            'error'               => $this->session->flashdata('forms_public_error') ?: '',
-            'old_values'          => $old_values,
+            'form'                   => $form,
+            'pages'                  => $pages,
+            'current_page'           => $current_page,
+            'current_page_number'    => $current_page_number,
+            'page_count'             => $page_count,
+            'fields'                 => $fields,
+            'render_fields'          => $render_fields,
+            'error'                  => $this->session->flashdata('forms_public_error') ?: '',
+            'old_values'             => $old_values,
+            'has_signature_widget'   => $has_signature_widget,
         );
 
         $this->render_view('forms_public/bs_show', $data);
@@ -114,10 +128,34 @@ class Forms_public extends CI_Controller {
         $fields = $this->form_fields_model->get_page_fields((int) $page['id']);
         $submitted_values = array();
         $file_field_keys = array();
+        $signature_canvas_data = array(); // field_id => base64 string for canvas/text modes
 
         foreach ($fields as $field) {
             $key        = (string) $field['name'];
             $field_type = isset($field['field_type']) ? $field['field_type'] : 'text';
+
+            if ($field_type === 'signature') {
+                $sig_type = trim((string) $this->input->post($key . '_type'));
+                if (!in_array($sig_type, array('canvas', 'text', 'file'), true)) {
+                    $sig_type = 'canvas';
+                }
+
+                if ($sig_type === 'file') {
+                    $file_field_keys[(int) $field['id']] = $key . '_file';
+                    $uploaded_name = '';
+                    if (isset($_FILES[$key . '_file']) && !empty($_FILES[$key . '_file']['name'])) {
+                        $uploaded_name = (string) $_FILES[$key . '_file']['name'];
+                    }
+                    $submitted_values[(int) $field['id']] = $uploaded_name;
+                } else {
+                    $base64 = trim((string) $this->input->post($key));
+                    $submitted_values[(int) $field['id']] = ($base64 !== '') ? '[signature]' : '';
+                    if ($base64 !== '') {
+                        $signature_canvas_data[(int) $field['id']] = $base64;
+                    }
+                }
+                continue;
+            }
 
             if ($field_type === 'file') {
                 $file_field_keys[(int) $field['id']] = $key;
@@ -146,6 +184,16 @@ class Forms_public extends CI_Controller {
         }
 
         $uploaded_files = array();
+
+        // Process canvas/text signature fields (base64 → PNG file)
+        foreach ($signature_canvas_data as $field_id => $base64) {
+            $result = $this->save_signature_canvas((int) $field_id, $base64);
+            if ($result) {
+                $uploaded_files[] = $result;
+                $submitted_values[$field_id] = $result['original_name'];
+            }
+        }
+
         if (!empty($file_field_keys)) {
             $upload_result = $this->process_uploaded_files($form, $file_field_keys);
             if (!empty($upload_result['errors'])) {
@@ -294,6 +342,45 @@ class Forms_public extends CI_Controller {
         return array(
             'files'  => $saved_files,
             'errors' => $errors,
+        );
+    }
+
+    /**
+     * Decode a base64 PNG string and save it as a file in the signatures upload dir.
+     * Returns a file descriptor array compatible with save_submission_files(), or null on failure.
+     */
+    private function save_signature_canvas($field_id, $base64) {
+        $png_data = @base64_decode($base64, true);
+        if ($png_data === false || strlen($png_data) < 67) { // 67 bytes = minimal valid PNG header
+            return null;
+        }
+
+        // Verify PNG magic bytes
+        if (substr($png_data, 0, 8) !== "\x89PNG\r\n\x1a\n") {
+            return null;
+        }
+
+        $relative_dir  = $this->upload_base_dir . '/' . date('Y/m');
+        $absolute_dir  = FCPATH . $relative_dir;
+
+        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0775, true)) {
+            return null;
+        }
+
+        $stored_name   = 'sig_' . uniqid('', true) . '.png';
+        $absolute_path = $absolute_dir . '/' . $stored_name;
+
+        if (@file_put_contents($absolute_path, $png_data) === false) {
+            return null;
+        }
+
+        return array(
+            'field_id'      => (int) $field_id,
+            'original_name' => 'signature.png',
+            'stored_name'   => $stored_name,
+            'mime_type'     => 'image/png',
+            'size_bytes'    => strlen($png_data),
+            'storage_path'  => $relative_dir . '/' . $stored_name,
         );
     }
 

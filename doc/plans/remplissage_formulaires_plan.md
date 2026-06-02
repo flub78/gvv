@@ -127,16 +127,22 @@ Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..
 |---|---|---|
 | 1 | Dessin canvas | Faible — `signature_pad.umd.min.js` déjà présent |
 | 2 | Upload image | Faible — pipeline file existant |
-| 3 | Pré-remplissage profil GVV | Moyenne — nouveau champ `membres.signature_path` |
-| 4 | Signature PGP | Élevée — hors V1 |
+| 3 | Saisie clavier (fonte Caveat) | Faible — canvas natif + Google Fonts CDN |
+| 4 | Pré-remplissage profil GVV | Moyenne — nouveau champ `membres.signature_path` |
+| 5 | Signature PGP | Élevée — hors V1 |
 
-- [ ] Créer `render_signature_widget(array $field, array $prefill_data): string` : génère le HTML du widget (onglets canvas + upload ; onglet PGP désactivé en V1).
-- [ ] Mode canvas : `signature_pad.umd.min.js` → `toDataURL('image/png')` → strip préfixe → hidden input base64 → `process_signature_input` → `base64_decode` → PNG dans `uploads/forms/signatures/` → entrée `form_submission_files`.
-- [ ] Mode upload : `<input type="file" accept="image/*">` dans le widget → pipeline standard `form_submission_files`.
+- [x] Ajouter le type `signature` dans `form_fields_model::$allowed_field_types`.
+- [x] Étendre `extract_html_fields` (forms_admin) pour détecter `<div data-gvv-type="signature" data-gvv-name="...">` et enregistrer le champ de type `signature`.
+- [x] Implémenter `Forms_renderer::render_signature_widget(string $name, string $label, bool $required): string` : génère le HTML du widget avec trois onglets (canvas dessin, upload image, saisie clavier fonte Caveat).
+- [x] Implémenter `Forms_renderer::inject_signature_widgets(string $html): string` : détecte les divs signature dans le HTML de la page et les remplace par le widget.
+- [x] Mode canvas : `signature_pad.umd.min.js` → `toDataURL('image/png')` → strip préfixe → hidden input base64.
+- [x] Mode upload : `<input type="file" accept="image/*" name="{field}_file">` → pipeline standard `form_submission_files`.
+- [x] Mode clavier : texte rendu sur canvas avec fonte Caveat → export PNG base64 → pipeline identique au mode canvas.
+- [x] Côté serveur `forms_public::submit()` : détecter les champs `signature`, dispatcher selon le type (`canvas|text` → `save_signature_canvas()` ; `file` → pipeline upload standard).
+- [x] Affichage graphique des signatures dans l'admin (`bs_submission.php`) : pour chaque champ `signature`, chercher le fichier associé dans `form_submission_files` et afficher l'image en ligne.
 - [ ] Migration : ajouter `signature_path VARCHAR(255) NULL` à la table `membres`.
 - [ ] Ajouter les sources `member.signature` et `instructor.signature` à la taxonomie `form_prefill_service`.
 - [ ] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` si disponible ; remplaçable si `data-gvv-lock="false"`.
-- [ ] Créer `process_signature_input(string $name, string $content, string $type): array` : valider et dispatcher selon le type (`canvas|file|pgp`).
 
 ### Lot 6 — Documentation et validation finale
 
