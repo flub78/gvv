@@ -190,6 +190,8 @@ class Forms_public extends CI_Controller {
             }
         }
 
+        $this->db->trans_start();
+
         $submission_id = $this->form_submissions_model->create_submission(array(
             'form_id'         => (int) $form['id'],
             'status'          => 'submitted',
@@ -200,15 +202,23 @@ class Forms_public extends CI_Controller {
             'values'          => $submitted_values,
         ));
 
-        if (!$submission_id) {
-            $this->session->set_flashdata('forms_public_error', 'Impossible d\'enregistrer votre reponse pour le moment.');
+        if (!empty($submission_id) && !empty($uploaded_files)) {
+            $this->form_submissions_model->save_submission_files($submission_id, $uploaded_files);
+        }
+
+        $this->db->trans_complete();
+
+        if (!$submission_id || $this->db->trans_status() === FALSE) {
+            foreach ($uploaded_files as $uf) {
+                $fp = FCPATH . ltrim((string) $uf['storage_path'], '/');
+                if (is_file($fp)) {
+                    @unlink($fp);
+                }
+            }
+            $this->session->set_flashdata('forms_public_error', 'Impossible d\'enregistrer votre réponse pour le moment.');
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
             redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number);
             return;
-        }
-
-        if (!empty($uploaded_files)) {
-            $this->form_submissions_model->save_submission_files($submission_id, $uploaded_files);
         }
 
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);

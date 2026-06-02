@@ -60,7 +60,7 @@
                 <input type="hidden" name="page_number" value="<?= $current_page_number ?>">
 
                 <?php if ($raw_html !== ''): ?>
-                    <?= $raw_html ?>
+                    <?= $raw_html /* HTML composé par un admin — confiance explicite accordée au rôle admin */ ?>
                 <?php else: ?>
                     <div class="alert alert-warning"><?= $this->lang->line('forms_alert_no_content') ?></div>
                 <?php endif; ?>

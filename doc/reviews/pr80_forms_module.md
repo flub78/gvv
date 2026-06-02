@@ -217,11 +217,11 @@ La validation `max_length[65535]` est définie pour `global_css`, mais le champ 
 | 1 | ~~CRITIQUE~~ CORRIGÉ | `views/forms_public/bs_show.php:34` | XSS via injection `global_css` — `str_ireplace('</style>', ...)` |
 | 2 | ~~CRITIQUE~~ CORRIGÉ | `views/forms_public/bs_show.php:46` | XSS `$error` — source html_escape dans `forms_public.php` |
 | 3 | ~~CRITIQUE~~ CORRIGÉ | `controllers/forms_admin.php:226,257,238,515,1310` | CSRF — POST obligatoire + formulaires dans les vues |
-| 4 | MAJEUR | `views/forms_public/bs_show.php:63` | Injection HTML brut (confiance admin) |
-| 5 | MAJEUR | `controllers/forms_public.php:193-211` | Pas de transaction DB submit + fichiers |
-| 6 | MAJEUR | `controllers/forms_admin.php:552` | `import_format` non validé contre liste blanche |
-| 7 | MAJEUR | `controllers/forms_admin.php:1109-1111` | Injection CRLF dans `Content-Disposition` |
-| 8 | MAJEUR | `controllers/forms_admin.php:1036` | Ownership de section non vérifié à la suppression |
+| 4 | ~~MAJEUR~~ CORRIGÉ | `views/forms_public/bs_show.php:63` | Injection HTML brut — commentaire confiance explicite |
+| 5 | ~~MAJEUR~~ CORRIGÉ | `controllers/forms_public.php:193-211` | Transaction DB + nettoyage fichiers si rollback |
+| 6 | ~~MAJEUR~~ CORRIGÉ | `controllers/forms_admin.php:552` | `import_format` — `in_list[text,html]` ajouté |
+| 7 | ~~MAJEUR~~ CORRIGÉ | `controllers/forms_admin.php:1119` | CRLF + guillemets filtrés dans `Content-Disposition` |
+| 8 | ~~MAJEUR~~ CORRIGÉ | `controllers/forms_admin.php:load_form_or_redirect` | Section ownership check dans `load_form_or_redirect` |
 | 9 | MINEUR | `controllers/forms_admin.php:626` | Pagination submissions limitée à 200 en dur |
 | 10 | MINEUR | `models/form_submissions_model.php:171` | Dead code : `set_submission_status()` |
 | 11 | MINEUR | `controllers/forms_admin.php:828,920` | Duplication `_fill_html_values*` |

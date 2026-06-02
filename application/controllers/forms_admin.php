@@ -557,7 +557,7 @@ class Forms_admin extends CI_Controller {
 
         $this->form_validation->set_rules('import_title', 'Titre', 'max_length[255]');
         $this->form_validation->set_rules('import_content', 'Contenu', 'required');
-        $this->form_validation->set_rules('import_format', 'Format', 'required');
+        $this->form_validation->set_rules('import_format', 'Format', 'required|in_list[text,html]');
 
         if ($this->form_validation->run() === FALSE) {
             $this->session->set_flashdata('forms_error', validation_errors());
@@ -1120,6 +1120,7 @@ class Forms_admin extends CI_Controller {
         if ($safe_name === '') {
             $safe_name = basename((string) $file['stored_name']);
         }
+        $safe_name = str_replace(["\r", "\n", '"'], ['', '', ''], $safe_name);
 
         if ($inline_allowed) {
             header('Content-Disposition: inline; filename="' . $safe_name . '"');
@@ -1547,6 +1548,18 @@ class Forms_admin extends CI_Controller {
             redirect('forms_admin');
             return false;
         }
+
+        $section_id = (int) $this->session->userdata('section');
+        if ($section_id > 0) {
+            $form_club = $form['club'];
+            // Allow access only to forms of the active section or global forms (club IS NULL)
+            if ($form_club !== null && (int) $form_club !== $section_id) {
+                $this->session->set_flashdata('forms_error', 'Accès refusé à ce formulaire.');
+                redirect('forms_admin');
+                return false;
+            }
+        }
+
         return $form;
     }
 
