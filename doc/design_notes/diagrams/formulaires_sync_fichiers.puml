@@ -1,0 +1,38 @@
+@startuml formulaires_sync_fichiers
+title Synchronisation Fichiers ↔ Base de données — Formulaires GVV
+
+actor Développeur as Dev
+participant "Fichier disque\napplication/forms_templates/" as F
+participant "Interface admin\nGVV" as A
+database "Base de données\n(forms, form_pages)" as D
+
+== Édition par fichier → Refresh ==
+
+Dev -> F : édite le HTML avec VS Code\n(live-server preview)
+Dev -> A : clique "Actualiser depuis le disque"
+A -> F : lit le fichier, calcule MD5
+A -> D : compare avec content_hash stocké
+alt hash différent (fichier modifié)
+    A -> D : met à jour content_html + content_hash
+    A --> Dev : "Synchronisé depuis le fichier"
+else hash identique
+    A --> Dev : "Déjà à jour"
+else fichier absent
+    A --> Dev : "Fichier non trouvé — export d'abord ?"
+end
+
+== Édition via interface web → écriture fichier ==
+
+Dev -> A : modifie content_html dans le textarea, sauvegarde
+A -> D : enregistre content_html + recalcule content_hash
+A -> F : écrit le fichier sur disque\n(crée si absent)
+A --> Dev : "Sauvegardé (fichier mis à jour)"
+
+== Export initial DB → fichier ==
+
+Dev -> A : clique "Exporter vers le disque"
+A -> D : lit content_html courant
+A -> F : écrit le fichier (écrase si existant)
+A --> Dev : "Exporté vers application/forms_templates/{slug}_pageN.html"
+
+@enduml

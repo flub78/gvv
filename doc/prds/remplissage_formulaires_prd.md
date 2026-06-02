@@ -119,6 +119,17 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 3. Chaque page peut être importée depuis un fichier texte/HTML.
 4. Chaque page peut être exportée en fichier texte/HTML.
 
+### EF2-bis : Synchronisation fichiers disque
+
+1. Le contenu HTML d'une page et le CSS global d'un formulaire peuvent être stockés sous forme de fichiers dans `application/forms_templates/`.
+2. Nommage : `{public_slug}_pageN.html` pour les pages, `{public_slug}.css` pour le CSS global.
+3. Un bouton "Actualiser depuis le disque" dans l'admin déclenche la synchronisation fichier → base (le fichier est prioritaire).
+4. Toute sauvegarde via l'interface web écrit simultanément en base et sur disque.
+5. La détection de modification repose sur un hash MD5 du contenu (insensible aux timestamps de déploiement).
+6. La synchronisation n'est jamais déclenchée automatiquement au rendu public.
+
+Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md)
+
 ### EF3 : Champs et validations
 
 1. Support des champs : text, email, date, number, textarea, select, radio, checkbox, file.

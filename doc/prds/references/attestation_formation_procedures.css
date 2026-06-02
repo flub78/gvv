@@ -1,0 +1,277 @@
+/* ============================================================
+   Attestation de Formation — Procédures ULM
+   CSS à placer dans le champ "CSS global" du formulaire GVV.
+   Scope : .gvv-forms (classe racine du document)
+   Toutes les règles sont préfixées afp- pour éviter les
+   conflits avec Bootstrap 5 et les styles GVV existants.
+   ============================================================ */
+
+/* Fonte optionnelle — supprimer si les fonts Google sont bloquées */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+/* Variables déclarées sur le conteneur racine (pas sur :root) */
+.gvv-forms {
+  --afp-ink:          #0d1b2a;
+  --afp-ink-light:    #2c3e50;
+  --afp-accent:       #1a5276;
+  --afp-accent-light: #d6eaf8;
+  --afp-paper:        #ffffff;
+  --afp-paper-dark:   #eaf2fb;
+  --afp-border:       2px solid #0d1b2a;
+  --afp-border-thin:  1px solid #7f8c8d;
+
+  /* Apparence document papier A4 */
+  background: var(--afp-paper);
+  width: 210mm;
+  max-width: 100%;
+  padding: 14mm 16mm;
+  border: var(--afp-border);
+  box-shadow: 4px 4px 0 #7f9ab0, 8px 8px 0 #a8c0d0;
+  position: relative;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  color: var(--afp-ink);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Coins décoratifs */
+.gvv-forms::before,
+.gvv-forms::after {
+  content: '';
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: var(--afp-accent);
+  border-style: solid;
+}
+.gvv-forms::before { top: 8px;    left: 8px;   border-width: 2px 0 0 2px; }
+.gvv-forms::after  { bottom: 8px; right: 8px;  border-width: 0 2px 2px 0; }
+
+/* -------- Bandeau titre -------- */
+.afp-header {
+  border: var(--afp-border);
+  border-bottom: none;
+  background: #1a3a5c;
+  color: var(--afp-paper);
+  text-align: center;
+  padding: 10px 8px 8px;
+  box-sizing: border-box;
+}
+
+.afp-header .afp-label-top {
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--afp-accent-light);
+  margin-bottom: 4px;
+}
+
+.afp-header h2 {
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  margin: 0;
+  color: var(--afp-paper);
+}
+
+.afp-header .afp-arrete {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a8c4d8;
+  margin-top: 5px;
+}
+
+/* -------- Boîtes de section -------- */
+.afp-section-box {
+  border: var(--afp-border);
+  margin-top: -1px;
+  box-sizing: border-box;
+}
+
+.afp-section-title {
+  background: var(--afp-paper-dark);
+  border-bottom: var(--afp-border-thin);
+  padding: 4px 10px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--afp-ink-light);
+}
+
+.afp-section-body {
+  padding: 10px 12px;
+}
+
+/* -------- Lignes de champs -------- */
+.afp-field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.afp-field-row:last-child { margin-bottom: 0; }
+
+/* Labels scoped — ne touche pas aux labels Bootstrap hors du doc */
+.gvv-forms .afp-field-row label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--afp-ink-light);
+  min-width: 140px;
+  flex-shrink: 0;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  /* reset Bootstrap */
+  margin-bottom: 0;
+  padding: 0;
+}
+
+/* Inputs scoped — ne touche pas aux .form-control Bootstrap hors du doc */
+.gvv-forms .afp-field-row input[type="text"],
+.gvv-forms .afp-field-row input[type="date"],
+.gvv-forms .afp-field-row textarea {
+  flex: 1;
+  border: none;
+  border-bottom: var(--afp-border-thin);
+  border-radius: 0;
+  background: transparent;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  font-size: 12.5px;
+  color: var(--afp-ink);
+  padding: 1px 3px 2px;
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.2s;
+  /* reset Bootstrap */
+  width: auto;
+}
+.gvv-forms .afp-field-row input[type="text"]:focus,
+.gvv-forms .afp-field-row input[type="date"]:focus,
+.gvv-forms .afp-field-row textarea:focus {
+  border-bottom-color: var(--afp-accent);
+  background: rgba(26, 82, 118, 0.05);
+  box-shadow: none;
+}
+
+.gvv-forms .afp-field-row textarea {
+  resize: none;
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* -------- Bandeau "atteste que" -------- */
+.afp-atteste-box {
+  border: var(--afp-border);
+  margin-top: -1px;
+  background: var(--afp-paper-dark);
+  box-sizing: border-box;
+}
+
+.afp-atteste-body {
+  padding: 12px 14px;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--afp-ink);
+  text-align: center;
+}
+
+/* -------- Pied — Fait à / Le / Signature -------- */
+.afp-footer-row {
+  border: var(--afp-border);
+  margin-top: -1px;
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.afp-footer-cell {
+  padding: 10px 12px;
+  border-right: var(--afp-border-thin);
+  border-bottom: var(--afp-border-thin);
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.afp-footer-cell:last-child {
+  border-right: none;
+  flex-basis: 100%;
+  border-bottom: none;
+}
+
+.gvv-forms .afp-footer-cell label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--afp-ink-light);
+  white-space: nowrap;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  padding: 0;
+}
+
+.gvv-forms .afp-footer-cell input[type="text"],
+.gvv-forms .afp-footer-cell input[type="date"] {
+  border: none;
+  border-bottom: var(--afp-border-thin);
+  border-radius: 0;
+  background: transparent;
+  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  font-size: 12.5px;
+  color: var(--afp-ink);
+  padding: 1px 3px 2px;
+  outline: none;
+  box-shadow: none;
+  width: 100%;
+}
+.gvv-forms .afp-footer-cell input[type="text"]:focus,
+.gvv-forms .afp-footer-cell input[type="date"]:focus {
+  border-bottom-color: var(--afp-accent);
+  background: rgba(26, 82, 118, 0.05);
+  box-shadow: none;
+}
+
+/* -------- Zone signature -------- */
+.afp-sig-area {
+  height: 55px;
+  border: var(--afp-border-thin);
+  border-style: dashed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bbb;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* -------- Note de bas de page -------- */
+.afp-note {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 8px;
+  color: var(--afp-ink-light);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-top: var(--afp-border-thin);
+  padding-top: 8px;
+}
+
+/* -------- Impression -------- */
+@media print {
+  .gvv-forms {
+    box-shadow: none;
+    border: 2px solid #000;
+    width: 100%;
+  }
+}
