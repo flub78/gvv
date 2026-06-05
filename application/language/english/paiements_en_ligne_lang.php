@@ -111,6 +111,9 @@ $lang['gvv_provision_checkout_description'] = "Pilot account top-up — %s";
 $lang['gvv_provision_error_montant_min']    = "The minimum amount is €%s.";
 $lang['gvv_provision_error_montant_max']    = "The maximum amount is €%s.";
 $lang['gvv_provision_error_limit_day']      = "You have reached the limit of 5 pending requests per day. Try again tomorrow or contact the administrator.";
+$lang['gvv_provision_motif_label']          = "Purpose (optional)";
+$lang['gvv_provision_motif_help']           = "Describe the reason for payment (e.g. 2025 membership, course, …)";
+$lang['gvv_provision_motif_too_long']       = "Purpose must not exceed 100 characters.";
 $lang['gvv_button_cancel']                  = "Cancel";
 
 // Dashboard — Mes paiements

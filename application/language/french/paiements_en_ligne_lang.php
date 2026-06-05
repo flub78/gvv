@@ -111,6 +111,9 @@ $lang['gvv_provision_checkout_description'] = "Provisionnement compte pilote —
 $lang['gvv_provision_error_montant_min']    = "Le montant minimum est de %s\u{00A0}€.";
 $lang['gvv_provision_error_montant_max']    = "Le montant maximum est de %s\u{00A0}€.";
 $lang['gvv_provision_error_limit_day']      = "Vous avez atteint la limite de 5 demandes en attente par jour. Réessayez demain ou contactez l'administrateur.";
+$lang['gvv_provision_motif_label']          = "Motif (optionnel)";
+$lang['gvv_provision_motif_help']           = "Précisez l'objet du versement (ex.\u{00A0}: cotisation 2025, stage, …)";
+$lang['gvv_provision_motif_too_long']       = "Le motif ne doit pas dépasser 100 caractères.";
 $lang['gvv_button_cancel']                  = "Annuler";
 
 // Dashboard — section Mes paiements

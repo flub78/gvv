@@ -40,6 +40,18 @@
     </div>
 </div>
 
+<div class="mb-3" style="max-width: 500px;">
+    <label for="motif" class="form-label">
+        <?= $this->lang->line('gvv_provision_motif_label') ?>
+    </label>
+    <input type="text" id="motif" name="motif" class="form-control"
+           maxlength="100"
+           value="<?= htmlspecialchars(isset($motif) ? $motif : '') ?>">
+    <div class="form-text">
+        <?= $this->lang->line('gvv_provision_motif_help') ?>
+    </div>
+</div>
+
 <div class="alert alert-info" style="max-width: 500px;">
     <small><?= $this->lang->line('gvv_bar_carte_helloasso_notice') ?></small>
 </div>

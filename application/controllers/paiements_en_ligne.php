@@ -479,8 +479,13 @@ class Paiements_en_ligne extends MY_Controller {
      */
     private function _process_demande($section, $club_id, $compte_pilote, $montant_min, $montant_max) {
         $montant = (float) $this->input->post('montant');
+        $motif   = trim((string) $this->input->post('motif'));
 
         $errors = $this->paiements_en_ligne_model->validate_demande_montant($montant, $montant_max, $montant_min);
+
+        if (strlen($motif) > 100) {
+            $errors[] = $this->lang->line('gvv_provision_motif_too_long');
+        }
 
         if (empty($errors)) {
             $user_id   = (int) $this->dx_auth->get_user_id();
@@ -494,6 +499,7 @@ class Paiements_en_ligne extends MY_Controller {
             $data = array(
                 'section'     => $section,
                 'montant'     => $montant,
+                'motif'       => $motif,
                 'montant_min' => $montant_min,
                 'montant_max' => $montant_max,
                 'error'       => implode('<br>', $errors),
@@ -511,6 +517,9 @@ class Paiements_en_ligne extends MY_Controller {
         $txid    = 'prov-' . $club_id . '-' . $user_id . '-' . time() . '-' . substr(uniqid(), -6);
         $description = sprintf($this->lang->line('gvv_provision_checkout_description'),
             htmlspecialchars($section['nom']));
+        if ($motif !== '') {
+            $description .= ' — ' . $motif;
+        }
 
         $tx_id = $this->paiements_en_ligne_model->create_transaction(array(
             'user_id'        => $user_id,

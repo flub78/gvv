@@ -111,6 +111,9 @@ $lang['gvv_provision_checkout_description'] = "Pilotenrekening opladen — %s";
 $lang['gvv_provision_error_montant_min']    = "Het minimumbedrag is €\u{00A0}%s.";
 $lang['gvv_provision_error_montant_max']    = "Het maximumbedrag is €\u{00A0}%s.";
 $lang['gvv_provision_error_limit_day']      = "U heeft de limiet van 5 openstaande aanvragen per dag bereikt. Probeer het morgen opnieuw of neem contact op met de beheerder.";
+$lang['gvv_provision_motif_label']          = "Reden (optioneel)";
+$lang['gvv_provision_motif_help']           = "Omschrijf het doel van de betaling (bv. lidmaatschap 2025, stage, …)";
+$lang['gvv_provision_motif_too_long']       = "De reden mag niet langer zijn dan 100 tekens.";
 $lang['gvv_button_cancel']                  = "Annuleren";
 
 // Dashboard — Mes paiements
