@@ -23,7 +23,6 @@ $lang['reservations_select_pilot'] = "-- Select Pilot --";
 $lang['reservations_select_instructor_none'] = "-- None --";
 
 // Status options
-$lang['reservations_status_reservation'] = "Reservation";
 $lang['reservations_status_maintenance'] = "Maintenance";
 $lang['reservations_status_unavailable'] = "Unavailable";
 $lang['reservations_status_vol_local'] = "Local flight";

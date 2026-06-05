@@ -277,8 +277,8 @@ class Reservations_model extends Common_Model {
         }
 
         // Pilot is required for all flight types; optional only for maintenance and unavailable
-        $status = isset($data['status']) ? $data['status'] : 'reservation';
-        $pilot_required = array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage');
+        $status = isset($data['status']) ? $data['status'] : 'vol_local';
+        $pilot_required = array('vol_local', 'navigation', 'vld', 'convoyage');
         if (in_array($status, $pilot_required) && (empty($data['pilot_member_id']) || !isset($data['pilot_member_id']))) {
             gvv_error("Reservations_model::create_reservation - pilot_member_id required for reservations");
             return 0;
@@ -289,7 +289,7 @@ class Reservations_model extends Common_Model {
             $data['section_id'] = $this->section_id;
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'reservation';
+            $data['status'] = 'vol_local';
         }
 
         $CI = &get_instance();
@@ -334,7 +334,6 @@ class Reservations_model extends Common_Model {
      */
     private function get_status_color($status) {
         $colors = array(
-            'reservation' => '#28A745',   // Green
             'maintenance' => '#FD7E14',   // Orange
             'unavailable' => '#DC3545',   // Red
             'vol_local'   => '#20C997',   // Teal
@@ -446,7 +445,7 @@ class Reservations_model extends Common_Model {
      * @param string $instructor_name Instructor name (optional)
      * @return string Formatted title: "HH:MM-HH:MM IMMAT Pilot + Instructor"
      */
-    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = 'reservation') {
+    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = 'vol_local') {
         // Extract time from datetime
         $start_time = substr($start_datetime, 11, 5); // HH:MM
         $end_time = substr($end_datetime, 11, 5); // HH:MM

@@ -23,7 +23,6 @@ $lang['reservations_select_pilot'] = "-- Selecteer piloot --";
 $lang['reservations_select_instructor_none'] = "-- Geen --";
 
 // Status options
-$lang['reservations_status_reservation'] = "Reservering";
 $lang['reservations_status_maintenance'] = "Onderhoud";
 $lang['reservations_status_unavailable'] = "Niet beschikbaar";
 $lang['reservations_status_vol_local'] = "Lokale vlucht";

@@ -81,7 +81,6 @@ class Reservations extends MY_Controller {
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_reservation' => $this->lang->line('reservations_status_reservation'),
             'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
             'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
             'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
@@ -212,7 +211,6 @@ class Reservations extends MY_Controller {
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_reservation' => $this->lang->line('reservations_status_reservation'),
             'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
             'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
             'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
@@ -480,8 +478,8 @@ class Reservations extends MY_Controller {
                 // If exists but no rows affected, data might be unchanged (not an error)
             }
             
-            $log_message = "Reservation: User " . ($action === 'resize' ? 'resized' : 'moved') . 
-                         " reservation ID " . $event_id . 
+            $log_message = "Reservation: User " . $drop_username . " " . ($action === 'resize' ? 'resized' : 'moved') .
+                         " reservation ID " . $event_id .
                          " from " . $start_datetime . " to " . $end_datetime;
             if ($resource_id) {
                 $log_message .= " (aircraft: " . $resource_id . ")";
@@ -590,7 +588,7 @@ class Reservations extends MY_Controller {
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
             $notes = isset($_POST['notes']) ? $_POST['notes'] : '';
-            $status = isset($_POST['status']) ? $_POST['status'] : 'reservation';
+            $status = isset($_POST['status']) ? $_POST['status'] : 'vol_local';
             $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
             $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
             $instructor_member_id = isset($_POST['instructor_member_id']) ? $_POST['instructor_member_id'] : null;
@@ -616,7 +614,7 @@ class Reservations extends MY_Controller {
             }
 
             // Pilot is required for all flight types; optional only for 'maintenance' and 'unavailable'
-            $pilot_required_statuses = array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage');
+            $pilot_required_statuses = array('vol_local', 'navigation', 'vld', 'convoyage');
             if (!$pilot_member_id && in_array($status, $pilot_required_statuses)) {
                 throw new Exception('Pilot member ID is required for reservations');
             }
@@ -740,7 +738,7 @@ class Reservations extends MY_Controller {
                     throw new Exception('Failed to create reservation');
                 }
 
-                gvv_info("Reservation: Created new reservation ID " . $new_id . " by user " . $username);
+                gvv_info("Reservation: User " . $username . " created reservation ID " . $new_id . " for " . $start_datetime);
 
                 echo json_encode(array(
                     'success' => true,
@@ -773,7 +771,7 @@ class Reservations extends MY_Controller {
                     // If exists but no rows affected, data might be unchanged (not an error)
                 }
 
-                gvv_info("Reservation: Updated reservation ID " . $reservation_id . " by user " . $username);
+                gvv_info("Reservation: User " . $username . " updated reservation ID " . $reservation_id . " for " . $start_datetime);
 
                 echo json_encode(array(
                     'success' => true,
@@ -823,11 +821,15 @@ class Reservations extends MY_Controller {
                 }
             }
 
+            // Fetch reservation data before deletion for logging
+            $del_res_data = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
+            $del_start = !empty($del_res_data['start_datetime']) ? $del_res_data['start_datetime'] : 'unknown';
+
             // Delete the reservation
             $success = $this->reservations_model->delete_reservation($reservation_id);
-            
+
             if ($success) {
-                gvv_info("Reservation deleted successfully: ID " . $reservation_id);
+                gvv_info("Reservation: User " . $del_username . " deleted reservation ID " . $reservation_id . " for " . $del_start);
                 echo json_encode(array('success' => true));
             } else {
                 throw new Exception('Failed to delete reservation');
@@ -954,7 +956,7 @@ class Reservations extends MY_Controller {
             ->from('reservations')
             ->where('pilot_member_id', $username)
             ->where('start_datetime >', $now)
-            ->where_in('status', array('reservation', 'vol_local', 'navigation', 'vld', 'convoyage'));
+            ->where_in('status', array('vol_local', 'navigation', 'vld', 'convoyage'));
         if ($exclude_reservation_id !== null) {
             $this->db->where('id !=', $exclude_reservation_id);
         }

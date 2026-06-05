@@ -1184,7 +1184,7 @@ $this->load->view('bs_banner');
                     pilot_member_id: (CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) ? CONFIG.currentUser : null,
                     instructor_member_id: null,
                     notes: '',
-                    status: 'reservation'
+                    status: 'vol_local'
                 }
             };
 
@@ -1263,7 +1263,7 @@ $this->load->view('bs_banner');
                 const aircraftModel = props.aircraft_model ? String(props.aircraft_model).replace(/"/g, '&quot;') : '';
                 const pilot = props.pilot ? String(props.pilot).replace(/"/g, '&quot;') : '';
                 const notes = props.notes ? String(props.notes).replace(/"/g, '&quot;') : '';
-                const status = props.status || 'reservation';
+                const status = props.status || 'vol_local';
                 const instructor = props.instructor ? String(props.instructor).replace(/"/g, '&quot;') : '';
 
                 console.log('Building selects with OPTIONS:', OPTIONS);
@@ -1348,7 +1348,6 @@ $this->load->view('bs_banner');
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus" ${readOnlyAttr}>
-                            <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
                             <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
                             <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
                             <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
@@ -1458,7 +1457,7 @@ $this->load->view('bs_banner');
                 return;
             }
             // Pilot required for all flight types; not required for maintenance/unavailable
-            const pilotRequiredStatuses = ['reservation', 'vol_local', 'navigation', 'vld', 'convoyage'];
+            const pilotRequiredStatuses = ['vol_local', 'navigation', 'vld', 'convoyage'];
             if (!pilotId && pilotRequiredStatuses.includes(status)) {
                 alert(TRANSLATIONS.error_no_pilot);
                 return;

@@ -216,7 +216,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const readOnly = !CONFIG.canBook;
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
-            const status = props.status || 'reservation';
+            const status = props.status || 'vol_local';
 
             const roAttr = readOnly ? 'disabled' : '';
 
@@ -290,7 +290,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 <div class="mb-3">
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus" ${roAttr}>
-                        <option value="reservation" ${status === 'reservation' ? 'selected' : ''}>${TRANSLATIONS.status_reservation}</option>
                         <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
                         <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
                         <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
@@ -364,7 +363,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             return;
         }
         // Pilot required for all flight types; not required for maintenance/unavailable
-        const pilotRequiredStatuses = ['reservation', 'vol_local', 'navigation', 'vld', 'convoyage'];
+        const pilotRequiredStatuses = ['vol_local', 'navigation', 'vld', 'convoyage'];
         if (!pilotId && pilotRequiredStatuses.includes(status)) {
             alert(TRANSLATIONS.error_no_pilot);
             return;
