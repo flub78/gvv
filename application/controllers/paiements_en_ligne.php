@@ -88,8 +88,8 @@ class Paiements_en_ligne extends MY_Controller {
     public function decouverte_qr($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
             && !$this->dx_auth->is_admin()
-            && !$this->user_has_role('gestion_vd')
-            && !$this->user_has_role('pilote_vd')) {
+            && !has_role('gestion_vd')
+            && !has_role('pilote_vd')) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -133,8 +133,8 @@ class Paiements_en_ligne extends MY_Controller {
     public function decouverte_pay($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
             && !$this->dx_auth->is_admin()
-            && !$this->user_has_role('gestion_vd')
-            && !$this->user_has_role('pilote_vd')) {
+            && !has_role('gestion_vd')
+            && !has_role('pilote_vd')) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -305,8 +305,8 @@ class Paiements_en_ligne extends MY_Controller {
     public function send_payment_link_email($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
             && !$this->dx_auth->is_admin()
-            && !$this->user_has_role('gestion_vd')
-            && !$this->user_has_role('pilote_vd')) {
+            && !has_role('gestion_vd')
+            && !has_role('pilote_vd')) {
             $this->dx_auth->deny_access();
             return;
         }
