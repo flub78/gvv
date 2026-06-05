@@ -92,7 +92,7 @@
 
 	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/fullcalendar.css'));
 
-	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/gvv.css'));
+	echo html_link(array('rel' => "stylesheet", 'type' => "text/css", 'href' => base_url() . 'assets/css/gvv.css?v=' . filemtime(FCPATH . 'assets/css/gvv.css')));
 
 
 	/// echo html_link(array('rel' => "stylesheet", 'media' => "screen", 'title' => "Design", 'type' => "text/css", 'href' => css_url('styles')));
@@ -126,10 +126,10 @@
 	}
 	?>
 
-	<script type="text/javascript" src="<?= base_url() ?>assets/javascript/multilevel.js"></script>
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/multilevel.css">
+	<script type="text/javascript" src="<?= base_url() ?>assets/javascript/multilevel.js?v=<?= filemtime(FCPATH . 'assets/javascript/multilevel.js') ?>"></script>
+	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/multilevel.css?v=<?= filemtime(FCPATH . 'assets/css/multilevel.css') ?>">
 	</link>
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/bs_styles.css">
+	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/bs_styles.css?v=<?= filemtime(FCPATH . 'assets/css/bs_styles.css') ?>">
 	</link>
 
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

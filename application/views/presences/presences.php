@@ -96,6 +96,18 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     #calendar .fc-header-toolbar .fc-today-button {
         margin-left: 6px;
     }
+
+    /* On mobile: wrap view buttons to a second centered row */
+    @media (max-width: 576px) {
+        #calendar .fc-header-toolbar {
+            flex-wrap: wrap;
+            row-gap: 6px;
+        }
+        #calendar .fc-header-toolbar .fc-toolbar-chunk:last-child {
+            flex: 0 0 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <script>
@@ -510,9 +522,19 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 console.log('Event clicked:', info.event);
                 displayEventModal(info.event);
             },
+            dateClick: function(info) {
+                // Works on mobile (tap) and desktop; pass exclusive end date as expected by displayEventModal
+                var endDate = new Date(info.date);
+                endDate.setDate(endDate.getDate() + 1);
+                displayEventModal(null, info.date, endDate);
+            },
             select: function(info) {
-                console.log('Date range selected:', info.startStr, 'to', info.endStr);
-                displayEventModal(null, info.start, info.end);
+                // Only handle multi-day drag selections; single-day clicks are handled by dateClick
+                var diffMs = info.end - info.start;
+                if (diffMs > 86400000) {
+                    console.log('Date range selected:', info.startStr, 'to', info.endStr);
+                    displayEventModal(null, info.start, info.end);
+                }
             },
             eventDrop: function(info) {
                 console.log('Event dropped:', info.event.id, 'to', info.event.start);
