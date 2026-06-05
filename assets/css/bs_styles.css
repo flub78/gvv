@@ -8,7 +8,7 @@
 
 header {
 
-	height: 75px;
+	min-height: 75px;
 	margin: 0;
 	padding: 0;
 }
@@ -19,6 +19,10 @@ header {
 	/* bootstrap extra small devices */
 	body {
 		background-color: lightblue;
+	}
+
+	header {
+		background-image: none;
 	}
 }
 

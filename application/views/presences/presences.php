@@ -86,6 +86,16 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         font-size: 14px;
     }
+
+    /* Keep prev/next and today on the same line with a small gap */
+    #calendar .fc-header-toolbar .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+    }
+
+    #calendar .fc-header-toolbar .fc-today-button {
+        margin-left: 6px;
+    }
 </style>
 
 <script>
