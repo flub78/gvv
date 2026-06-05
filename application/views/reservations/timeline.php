@@ -562,6 +562,7 @@ $this->load->view('bs_banner');
 
         // Global translations storage - will be initialized from PHP
         let TRANSLATIONS = {};
+        const STATUSES = <?php echo json_encode($statuses); ?>;
         
         /**
          * Load timeline data from server
@@ -1184,7 +1185,7 @@ $this->load->view('bs_banner');
                     pilot_member_id: (CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) ? CONFIG.currentUser : null,
                     instructor_member_id: null,
                     notes: '',
-                    status: 'vol_local'
+                    status: Object.keys(STATUSES)[0]
                 }
             };
 
@@ -1263,7 +1264,7 @@ $this->load->view('bs_banner');
                 const aircraftModel = props.aircraft_model ? String(props.aircraft_model).replace(/"/g, '&quot;') : '';
                 const pilot = props.pilot ? String(props.pilot).replace(/"/g, '&quot;') : '';
                 const notes = props.notes ? String(props.notes).replace(/"/g, '&quot;') : '';
-                const status = props.status || 'vol_local';
+                const status = props.status || Object.keys(STATUSES)[0];
                 const instructor = props.instructor ? String(props.instructor).replace(/"/g, '&quot;') : '';
 
                 console.log('Building selects with OPTIONS:', OPTIONS);
@@ -1348,14 +1349,10 @@ $this->load->view('bs_banner');
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus" ${readOnlyAttr}>
-                            <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
-                            <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
-                            <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
-                            <option value="convoyage" ${status === 'convoyage' ? 'selected' : ''}>${TRANSLATIONS.status_convoyage}</option>
-                            ${(!CONFIG.isAutoPlanchiste || CONFIG.canEditOthers) ? `
-                            <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
-                            <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
-                            ` : ''}
+                            ${Object.entries(STATUSES).map(([code, props]) => {
+                                if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) return '';
+                                return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
+                            }).join('')}
                         </select>
                     </div>
                 </form>`;
@@ -1457,7 +1454,7 @@ $this->load->view('bs_banner');
                 return;
             }
             // Pilot required for all flight types; not required for maintenance/unavailable
-            const pilotRequiredStatuses = ['vol_local', 'navigation', 'vld', 'convoyage'];
+            const pilotRequiredStatuses = Object.keys(STATUSES).filter(code => STATUSES[code].requires_pilot);
             if (!pilotId && pilotRequiredStatuses.includes(status)) {
                 alert(TRANSLATIONS.error_no_pilot);
                 return;

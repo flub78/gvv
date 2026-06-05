@@ -81,12 +81,6 @@ class Reservations extends MY_Controller {
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
-            'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
-            'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
-            'status_navigation' => $this->lang->line('reservations_status_navigation'),
-            'status_vld' => $this->lang->line('reservations_status_vld'),
-            'status_convoyage' => $this->lang->line('reservations_status_convoyage'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -115,6 +109,7 @@ class Reservations extends MY_Controller {
             'instructors_list' => $instructors_list,
             'aircraft_label' => $aircraft_label,
             'translations' => $translations,
+            'statuses' => $this->_build_statuses_for_view(),
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
             'is_auto_planchiste' => $is_auto_planchiste,
@@ -211,12 +206,6 @@ class Reservations extends MY_Controller {
             'select_aircraft' => $this->lang->line('reservations_select_aircraft'),
             'select_pilot' => $this->lang->line('reservations_select_pilot'),
             'select_instructor_none' => $this->lang->line('reservations_select_instructor_none'),
-            'status_maintenance' => $this->lang->line('reservations_status_maintenance'),
-            'status_unavailable' => $this->lang->line('reservations_status_unavailable'),
-            'status_vol_local' => $this->lang->line('reservations_status_vol_local'),
-            'status_navigation' => $this->lang->line('reservations_status_navigation'),
-            'status_vld' => $this->lang->line('reservations_status_vld'),
-            'status_convoyage' => $this->lang->line('reservations_status_convoyage'),
             'modal_new' => $this->lang->line('reservations_modal_new'),
             'modal_edit' => $this->lang->line('reservations_modal_edit'),
             'btn_create' => $this->lang->line('reservations_btn_create'),
@@ -248,6 +237,7 @@ class Reservations extends MY_Controller {
             'instructors_options' => $instructors_options,
             'aircraft_label' => $aircraft_label,
             'translations' => $translations,
+            'statuses' => $this->_build_statuses_for_view(),
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
             'is_auto_planchiste' => $is_auto_planchiste,
@@ -588,7 +578,8 @@ class Reservations extends MY_Controller {
             $start_datetime = isset($_POST['start_datetime']) ? $_POST['start_datetime'] : null;
             $end_datetime = isset($_POST['end_datetime']) ? $_POST['end_datetime'] : null;
             $notes = isset($_POST['notes']) ? $_POST['notes'] : '';
-            $status = isset($_POST['status']) ? $_POST['status'] : 'vol_local';
+            $all_statuses = Reservations_model::get_statuses();
+            $status = isset($_POST['status']) ? $_POST['status'] : array_keys($all_statuses)[0];
             $aircraft_id = isset($_POST['aircraft_id']) ? $_POST['aircraft_id'] : null;
             $pilot_member_id = isset($_POST['pilot_member_id']) ? $_POST['pilot_member_id'] : null;
             $instructor_member_id = isset($_POST['instructor_member_id']) ? $_POST['instructor_member_id'] : null;
@@ -614,7 +605,7 @@ class Reservations extends MY_Controller {
             }
 
             // Pilot is required for all flight types; optional only for 'maintenance' and 'unavailable'
-            $pilot_required_statuses = array('vol_local', 'navigation', 'vld', 'convoyage');
+            $pilot_required_statuses = array_keys(array_filter($all_statuses, function($s) { return $s['requires_pilot']; }));
             if (!$pilot_member_id && in_array($status, $pilot_required_statuses)) {
                 throw new Exception('Pilot member ID is required for reservations');
             }
@@ -956,7 +947,7 @@ class Reservations extends MY_Controller {
             ->from('reservations')
             ->where('pilot_member_id', $username)
             ->where('start_datetime >', $now)
-            ->where_in('status', array('vol_local', 'navigation', 'vld', 'convoyage'));
+            ->where_in('status', array_keys(array_filter(Reservations_model::get_statuses(), function($s) { return $s['requires_pilot']; })));
         if ($exclude_reservation_id !== null) {
             $this->db->where('id !=', $exclude_reservation_id);
         }
@@ -1018,6 +1009,20 @@ class Reservations extends MY_Controller {
         }
 
         return array('ok' => false, 'balance' => $balance, 'cost' => $total_cost);
+    }
+
+    /**
+     * Build the statuses array for views: adds translated labels to each status from get_statuses().
+     * This is the only place where lang keys are paired with status codes.
+     */
+    private function _build_statuses_for_view() {
+        $this->load->model('reservations_model');
+        $this->lang->load('reservations');
+        $statuses = Reservations_model::get_statuses();
+        foreach ($statuses as $code => &$props) {
+            $props['label'] = $this->lang->line('reservations_status_' . $code);
+        }
+        return $statuses;
     }
 
     /**

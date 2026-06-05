@@ -128,6 +128,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     };
 
     const TRANSLATIONS = <?php echo json_encode($translations); ?>;
+    const STATUSES = <?php echo json_encode($statuses); ?>;
     const BASE_URL = '<?php echo site_url(); ?>';
     const CONFIG = {
         currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
@@ -216,7 +217,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const readOnly = !CONFIG.canBook;
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
-            const status = props.status || 'vol_local';
+            const status = props.status || Object.keys(STATUSES)[0];
 
             const roAttr = readOnly ? 'disabled' : '';
 
@@ -290,14 +291,10 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 <div class="mb-3">
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus" ${roAttr}>
-                        <option value="vol_local" ${status === 'vol_local' ? 'selected' : ''}>${TRANSLATIONS.status_vol_local}</option>
-                        <option value="navigation" ${status === 'navigation' ? 'selected' : ''}>${TRANSLATIONS.status_navigation}</option>
-                        <option value="vld" ${status === 'vld' ? 'selected' : ''}>${TRANSLATIONS.status_vld}</option>
-                        <option value="convoyage" ${status === 'convoyage' ? 'selected' : ''}>${TRANSLATIONS.status_convoyage}</option>
-                        ${(!CONFIG.isAutoPlanchiste || CONFIG.canEditOthers) ? `
-                        <option value="maintenance" ${status === 'maintenance' ? 'selected' : ''}>${TRANSLATIONS.status_maintenance}</option>
-                        <option value="unavailable" ${status === 'unavailable' ? 'selected' : ''}>${TRANSLATIONS.status_unavailable}</option>
-                        ` : ''}
+                        ${Object.entries(STATUSES).map(([code, props]) => {
+                            if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) return '';
+                            return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
+                        }).join('')}
                     </select>
                 </div>
             </form>`;
@@ -363,7 +360,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             return;
         }
         // Pilot required for all flight types; not required for maintenance/unavailable
-        const pilotRequiredStatuses = ['vol_local', 'navigation', 'vld', 'convoyage'];
+        const pilotRequiredStatuses = Object.keys(STATUSES).filter(code => STATUSES[code].requires_pilot);
         if (!pilotId && pilotRequiredStatuses.includes(status)) {
             alert(TRANSLATIONS.error_no_pilot);
             return;

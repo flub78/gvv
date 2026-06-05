@@ -277,8 +277,10 @@ class Reservations_model extends Common_Model {
         }
 
         // Pilot is required for all flight types; optional only for maintenance and unavailable
-        $status = isset($data['status']) ? $data['status'] : 'vol_local';
-        $pilot_required = array('vol_local', 'navigation', 'vld', 'convoyage');
+        $all_statuses = self::get_statuses();
+        $default_status = array_keys($all_statuses)[0];
+        $status = isset($data['status']) ? $data['status'] : $default_status;
+        $pilot_required = array_keys(array_filter($all_statuses, function($s) { return $s['requires_pilot']; }));
         if (in_array($status, $pilot_required) && (empty($data['pilot_member_id']) || !isset($data['pilot_member_id']))) {
             gvv_error("Reservations_model::create_reservation - pilot_member_id required for reservations");
             return 0;
@@ -289,7 +291,7 @@ class Reservations_model extends Common_Model {
             $data['section_id'] = $this->section_id;
         }
         if (!isset($data['status'])) {
-            $data['status'] = 'vol_local';
+            $data['status'] = $default_status;
         }
 
         $CI = &get_instance();
@@ -327,22 +329,23 @@ class Reservations_model extends Common_Model {
     }
 
     /**
-     * Get color code for reservation status
-     *
-     * @param string $status Status value
-     * @return string Color code for FullCalendar
+     * Single source of truth for all reservation statuses and their properties.
+     * Adding or removing a status only requires changing this method.
      */
-    private function get_status_color($status) {
-        $colors = array(
-            'maintenance' => '#FD7E14',   // Orange
-            'unavailable' => '#DC3545',   // Red
-            'vol_local'   => '#20C997',   // Teal
-            'navigation'  => '#0D6EFD',   // Blue
-            'vld'         => '#6F42C1',   // Purple
-            'convoyage'   => '#FFC107',   // Amber
+    public static function get_statuses() {
+        return array(
+            'vol_local'   => array('requires_pilot' => true,  'admin_only' => false, 'color' => '#20C997'),
+            'navigation'  => array('requires_pilot' => true,  'admin_only' => false, 'color' => '#0D6EFD'),
+            'vld'         => array('requires_pilot' => true,  'admin_only' => false, 'color' => '#6F42C1'),
+            'convoyage'   => array('requires_pilot' => true,  'admin_only' => false, 'color' => '#FFC107'),
+            'maintenance' => array('requires_pilot' => false, 'admin_only' => true,  'color' => '#FD7E14'),
+            'unavailable' => array('requires_pilot' => false, 'admin_only' => true,  'color' => '#DC3545'),
         );
+    }
 
-        return isset($colors[$status]) ? $colors[$status] : '#28A745'; // Default green
+    private function get_status_color($status) {
+        $statuses = self::get_statuses();
+        return isset($statuses[$status]) ? $statuses[$status]['color'] : '#20C997';
     }
 
     /**
@@ -445,7 +448,7 @@ class Reservations_model extends Common_Model {
      * @param string $instructor_name Instructor name (optional)
      * @return string Formatted title: "HH:MM-HH:MM IMMAT Pilot + Instructor"
      */
-    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = 'vol_local') {
+    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = '') {
         // Extract time from datetime
         $start_time = substr($start_datetime, 11, 5); // HH:MM
         $end_time = substr($end_datetime, 11, 5); // HH:MM
