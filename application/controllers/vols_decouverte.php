@@ -1519,6 +1519,8 @@ EOD;
             'poids_max'            => $poids_max,
         );
 
+        $this->load->vars(['nav_back_url' => '']);
+
         $this->load->view('bs_header', $data);
         if ($is_logged_in) {
             $this->load->view('bs_menu', array('is_planchiste' => false, 'is_auto_planchiste' => false));
