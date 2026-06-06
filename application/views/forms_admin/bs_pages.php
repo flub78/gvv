@@ -50,8 +50,6 @@
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/page_edit/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_fields') ?></a>
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/page_export/' . (int) $form['id'] . '/' . (int) $page['id'] . '/html') ?>"><?= $this->lang->line('forms_button_export_html') ?></a>
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= site_url('forms_admin/page_export/' . (int) $form['id'] . '/' . (int) $page['id'] . '/txt') ?>"><?= $this->lang->line('forms_button_export_txt') ?></a>
                                         <form method="post" action="<?= site_url('forms_admin/page_delete/' . (int) $form['id'] . '/' . (int) $page['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_page') ?>');">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
                                         </form>
@@ -65,28 +63,4 @@
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="h5 mb-3"><?= $this->lang->line('forms_title_import_page') ?></h2>
-            <form method="post" action="<?= site_url('forms_admin/page_import/' . (int) $form['id']) ?>">
-                <div class="mb-3">
-                    <label class="form-label" for="import_title"><?= $this->lang->line('forms_label_title') ?></label>
-                    <input class="form-control" type="text" id="import_title" name="import_title" maxlength="255">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="import_format"><?= $this->lang->line('forms_label_format') ?></label>
-                    <select class="form-select" id="import_format" name="import_format" required>
-                        <option value="html"><?= $this->lang->line('forms_option_html') ?></option>
-                        <option value="text"><?= $this->lang->line('forms_option_text') ?></option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="import_content"><?= $this->lang->line('forms_label_content') ?></label>
-                    <textarea class="form-control" id="import_content" name="import_content" rows="8" required></textarea>
-                    <div class="form-text"><?= $this->lang->line('forms_help_import_content') ?></div>
-                </div>
-                <button class="btn btn-primary" type="submit"><?= $this->lang->line('forms_button_import') ?></button>
-            </form>
-        </div>
-    </div>
 </div>

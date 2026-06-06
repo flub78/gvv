@@ -67,6 +67,9 @@ $lang['forms_button_new_page']            = 'Nieuwe pagina';
 $lang['forms_button_import']              = 'Importeren';
 $lang['forms_button_export_html']         = 'Exporteren HTML';
 $lang['forms_button_export_txt']          = 'Exporteren TXT';
+$lang['forms_button_backup']              = 'Opslaan (ZIP)';
+$lang['forms_button_restore']             = 'Herstellen uit ZIP';
+$lang['forms_button_import_html']         = 'Importeren vanuit HTML';
 $lang['forms_button_add_field']           = 'Veld toevoegen';
 $lang['forms_button_fields']              = 'Velden';
 $lang['forms_button_responses']           = 'Reacties';
@@ -92,6 +95,8 @@ $lang['forms_title_pages']                = 'Formulierpagina\'s';
 $lang['forms_title_new_page']             = 'Nieuwe pagina';
 $lang['forms_title_edit_page']            = 'Pagina bewerken';
 $lang['forms_title_import_page']          = 'Pagina importeren';
+$lang['forms_title_import_html']          = 'Formulier aanmaken vanuit HTML-pagina';
+$lang['forms_title_backup_restore']       = 'Back-up en herstel';
 $lang['forms_title_fields']               = 'Velden — pagina';
 $lang['forms_title_add_field']            = 'Veld toevoegen';
 $lang['forms_title_edit_field']           = 'Veld bewerken';
@@ -154,6 +159,7 @@ $lang['forms_help_display_order']         = 'Laat leeg om aan het einde van de l
 $lang['forms_help_options_format']        = '(één per regel)';
 $lang['forms_help_options_usage']         = 'Elke regel is een optie die aan de gebruiker wordt aangeboden.';
 $lang['forms_help_import_content']        = 'De inhoud wordt als nieuwe pagina aan het einde van het formulier toegevoegd.';
+$lang['forms_help_restore']              = 'Het ZIP-bestand moet afkomstig zijn van een GVV-back-up. Titel, beschrijving, CSS en pagina\'s worden vervangen. Code, status en publieke link blijven ongewijzigd.';
 $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields

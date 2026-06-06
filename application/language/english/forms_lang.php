@@ -67,6 +67,9 @@ $lang['forms_button_new_page']            = 'New page';
 $lang['forms_button_import']              = 'Import';
 $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
+$lang['forms_button_backup']              = 'Backup (ZIP)';
+$lang['forms_button_restore']             = 'Restore from ZIP';
+$lang['forms_button_import_html']         = 'Import from HTML';
 $lang['forms_button_add_field']           = 'Add field';
 $lang['forms_button_fields']              = 'Fields';
 $lang['forms_button_responses']           = 'Responses';
@@ -92,6 +95,8 @@ $lang['forms_title_pages']                = 'Form pages';
 $lang['forms_title_new_page']             = 'New page';
 $lang['forms_title_edit_page']            = 'Edit page';
 $lang['forms_title_import_page']          = 'Import page';
+$lang['forms_title_import_html']          = 'Create a form from an HTML page';
+$lang['forms_title_backup_restore']       = 'Backup and restore';
 $lang['forms_title_fields']               = 'Fields — page';
 $lang['forms_title_add_field']            = 'Add field';
 $lang['forms_title_edit_field']           = 'Edit field';
@@ -154,6 +159,7 @@ $lang['forms_help_display_order']         = 'Leave empty to add at the end of th
 $lang['forms_help_options_format']        = '(one per line)';
 $lang['forms_help_options_usage']         = 'Each line is an option presented to the user.';
 $lang['forms_help_import_content']        = 'Content will be added as a new page at the end of the form.';
+$lang['forms_help_restore']              = 'The ZIP file must come from a GVV backup. Title, description, CSS and pages are replaced. Code, status and public slug remain unchanged.';
 $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields

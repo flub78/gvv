@@ -108,4 +108,37 @@
             </form>
         </div>
     </div>
+
+    <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_backup_restore') ?></h2>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <p class="text-muted small mb-2">
+                        Exporte le formulaire complet (métadonnées, CSS et pages HTML) dans un fichier ZIP.
+                    </p>
+                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/form_backup/' . (int) $form['id']) ?>">
+                        <?= $this->lang->line('forms_button_backup') ?>
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_restore') ?></p>
+                    <form method="post" enctype="multipart/form-data"
+                          action="<?= site_url('forms_admin/form_restore/' . (int) $form['id']) ?>"
+                          onsubmit="return confirm('Restaurer ce formulaire depuis le ZIP ? Le contenu actuel sera remplacé.');">
+                        <div class="input-group">
+                            <input type="file" class="form-control form-control-sm" name="restore_zip" accept=".zip" required>
+                            <button type="submit" class="btn btn-sm btn-warning">
+                                <?= $this->lang->line('forms_button_restore') ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>

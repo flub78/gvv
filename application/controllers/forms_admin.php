@@ -1600,6 +1600,286 @@ class Forms_admin extends CI_Controller {
         return $page;
     }
 
+    public function form_import_html() {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin');
+            return;
+        }
+
+        if (empty($_FILES['html_file']['tmp_name']) || (int) $_FILES['html_file']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', 'Aucun fichier HTML valide reçu.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $html_raw = file_get_contents($_FILES['html_file']['tmp_name']);
+        if ($html_raw === false || trim($html_raw) === '') {
+            $this->session->set_flashdata('forms_error', 'Fichier HTML vide ou illisible.');
+            redirect('forms_admin');
+            return;
+        }
+
+        // Parse full HTML document
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        @$dom->loadHTML($html_raw);
+        libxml_clear_errors();
+        $xpath = new DOMXPath($dom);
+
+        // Extract <title>
+        $title_nodes = $dom->getElementsByTagName('title');
+        $html_title  = $title_nodes->length > 0 ? trim($title_nodes->item(0)->textContent) : '';
+        if ($html_title === '') {
+            $html_title = 'Formulaire importé';
+        }
+
+        // Collect CSS from every <style> tag (head and body)
+        $css_parts = array();
+        foreach ($xpath->query('//style') as $style_node) {
+            $css = trim($style_node->textContent);
+            if ($css !== '') {
+                $css_parts[] = $css;
+            }
+        }
+        $global_css = implode("\n\n", $css_parts);
+
+        // Rewrite body { } so styles target the GVV form container
+        $global_css = preg_replace('/\bbody\s*\{/', '.forms-public-root {', $global_css);
+        $global_css = preg_replace('/\bbody\s*,/', '.forms-public-root,', $global_css);
+
+        // Detect CSS scope: first standalone class selector at start of a CSS line
+        $css_scope = '';
+        if (preg_match('/^\.([\w-]+)\s*\{/m', $global_css, $m)) {
+            if ($m[1] !== 'forms-public-root') {
+                $css_scope = $m[1];
+            }
+        }
+
+        // Remove <style> and <script> before extracting body content
+        $to_remove = array();
+        foreach ($xpath->query('//style | //script') as $node) {
+            $to_remove[] = $node;
+        }
+        foreach ($to_remove as $node) {
+            if ($node->parentNode) {
+                $node->parentNode->removeChild($node);
+            }
+        }
+
+        // Extract body content (inner HTML)
+        $body = $dom->getElementsByTagName('body')->item(0);
+        $content_html = '';
+        if ($body) {
+            foreach ($body->childNodes as $child) {
+                $content_html .= $dom->saveHTML($child);
+            }
+        }
+        $content_html = trim($content_html);
+
+        // Build a unique code from POST or from the HTML title
+        $code_input = trim((string) $this->input->post('import_code'));
+        if ($code_input !== '') {
+            $base_code = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $code_input);
+        } else {
+            $base_code = preg_replace('/[^a-z0-9_-]+/', '_', strtolower($html_title));
+            $base_code = trim($base_code, '_');
+            if ($base_code === '') {
+                $base_code = 'form_' . date('Ymd');
+            }
+        }
+        $base_code = substr($base_code, 0, 47);
+
+        $code = $base_code;
+        $i    = 1;
+        while ($this->db->where('code', $code)->count_all_results('forms') > 0) {
+            $code = $base_code . '_' . $i++;
+        }
+
+        $section_id = (int) $this->session->userdata('section');
+        $club       = $section_id > 0 ? $section_id : null;
+        $by         = $this->dx_auth->get_username();
+
+        $form_id = $this->forms_model->create_form(array(
+            'club'        => $club,
+            'code'        => $code,
+            'title'       => $html_title,
+            'description' => '',
+            'css_scope'   => $css_scope,
+            'global_css'  => $global_css,
+            'created_by'  => $by,
+        ));
+
+        if (!$form_id) {
+            $this->session->set_flashdata('forms_error', 'Impossible de créer le formulaire.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $page_id = $this->form_pages_model->create_page(array(
+            'form_id'      => (int) $form_id,
+            'page_number'  => 1,
+            'title'        => '',
+            'content_html' => $content_html,
+            'created_by'   => $by,
+        ));
+
+        if ($page_id) {
+            $this->sync_fields_from_html((int) $form_id, (int) $page_id, $content_html, $by);
+        }
+
+        $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($html_title) . ' » créé depuis le fichier HTML.');
+        redirect('forms_admin/edit/' . (int) $form_id);
+    }
+
+    public function form_backup($form_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if (!class_exists('ZipArchive')) {
+            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+
+        $meta = array(
+            'version'     => '1',
+            'code'        => (string) $form['code'],
+            'title'       => (string) $form['title'],
+            'description' => (string) $form['description'],
+            'css_scope'   => (string) $form['css_scope'],
+            'public_slug' => (string) $form['public_slug'],
+            'pages'       => array(),
+        );
+
+        $tmp = tempnam(sys_get_temp_dir(), 'gvv_form_');
+        $zip = new ZipArchive();
+        $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        foreach ($pages as $page) {
+            $num = (int) $page['page_number'];
+            $meta['pages'][] = array(
+                'page_number' => $num,
+                'title'       => (string) $page['title'],
+            );
+            $zip->addFromString(
+                sprintf('pages/%02d.html', $num),
+                (string) $page['content_html']
+            );
+        }
+
+        $zip->addFromString('meta.json', json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $zip->addFromString('styles.css', (string) $form['global_css']);
+        $zip->close();
+
+        $safe_code = preg_replace('/[^a-zA-Z0-9_-]+/', '-', (string) $form['code']);
+        $filename  = $safe_code . '.zip';
+
+        $zip_data = file_get_contents($tmp);
+        unlink($tmp);
+
+        $this->load->helper('download');
+        force_download($filename, $zip_data);
+    }
+
+    public function form_restore($form_id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/edit/' . (int) $form_id);
+            return;
+        }
+
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if (!class_exists('ZipArchive')) {
+            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        if (empty($_FILES['restore_zip']['tmp_name']) || (int) $_FILES['restore_zip']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', 'Aucun fichier valide reçu.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($_FILES['restore_zip']['tmp_name']) !== true) {
+            $this->session->set_flashdata('forms_error', 'Fichier ZIP invalide ou corrompu.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $meta_json = $zip->getFromName('meta.json');
+        if ($meta_json === false) {
+            $zip->close();
+            $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $meta = json_decode($meta_json, true);
+        if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
+            $zip->close();
+            $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $css = $zip->getFromName('styles.css');
+        if ($css === false) {
+            $css = '';
+        }
+
+        // Update metadata — code, status and public_slug are not overwritten
+        $this->forms_model->update_form((int) $form['id'], array(
+            'title'       => isset($meta['title'])       ? (string) $meta['title']       : $form['title'],
+            'description' => isset($meta['description']) ? (string) $meta['description'] : '',
+            'css_scope'   => isset($meta['css_scope'])   ? (string) $meta['css_scope']   : '',
+            'global_css'  => $css,
+            'updated_by'  => $this->dx_auth->get_username(),
+        ));
+
+        // Remove all existing pages (cascade removes their fields)
+        foreach ($this->form_pages_model->get_form_pages((int) $form['id']) as $ep) {
+            $this->form_pages_model->delete_page((int) $ep['id']);
+        }
+
+        // Recreate pages from the ZIP
+        $by          = $this->dx_auth->get_username();
+        $page_count  = 0;
+        foreach ($meta['pages'] as $pm) {
+            $num          = (int) $pm['page_number'];
+            $content_html = $zip->getFromName(sprintf('pages/%02d.html', $num));
+            if ($content_html === false) {
+                $content_html = '';
+            }
+
+            $page_id = $this->form_pages_model->create_page(array(
+                'form_id'      => (int) $form['id'],
+                'page_number'  => $num,
+                'title'        => isset($pm['title']) ? (string) $pm['title'] : '',
+                'content_html' => $content_html,
+                'created_by'   => $by,
+            ));
+
+            if ($page_id) {
+                $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $by);
+                $page_count++;
+            }
+        }
+
+        $zip->close();
+
+        $this->session->set_flashdata('forms_success', 'Formulaire restauré : ' . $page_count . ' page(s) importée(s).');
+        redirect('forms_admin/edit/' . (int) $form['id']);
+    }
+
     private function render_view($view, $data = array()) {
         load_bs_view('header', null, false);
         load_bs_view('menu', null, false);

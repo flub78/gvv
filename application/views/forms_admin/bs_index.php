@@ -14,7 +14,12 @@
             <h1 class="h3 mb-1"><?= $this->lang->line('forms_title_forms') ?></h1>
             <p class="text-muted mb-0"><?= $this->lang->line('forms_subtitle_admin') ?></p>
         </div>
-        <a class="btn btn-primary" href="<?= site_url('forms_admin/create') ?>"><?= $this->lang->line('forms_button_new_form') ?></a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importHtmlModal">
+                <?= $this->lang->line('forms_button_import_html') ?>
+            </button>
+            <a class="btn btn-primary" href="<?= site_url('forms_admin/create') ?>"><?= $this->lang->line('forms_button_new_form') ?></a>
+        </div>
     </div>
 
     <?php if (!empty($success)): ?>
@@ -96,6 +101,41 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal import depuis HTML -->
+<div class="modal fade" id="importHtmlModal" tabindex="-1" aria-labelledby="importHtmlModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importHtmlModalLabel"><?= $this->lang->line('forms_title_import_html') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="<?= site_url('forms_admin/form_import_html') ?>">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="html_file">Fichier HTML <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="html_file" name="html_file" accept=".html,.htm" required>
+                        <div class="form-text">
+                            Le CSS contenu dans les balises <code>&lt;style&gt;</code> est extrait automatiquement.
+                            Le contenu du <code>&lt;body&gt;</code> devient la page du formulaire.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="import_code">Code technique <small class="text-muted">(optionnel)</small></label>
+                        <input type="text" class="form-control" id="import_code" name="import_code"
+                               maxlength="50" placeholder="auto-généré depuis le titre de la page HTML"
+                               pattern="[a-zA-Z0-9_\-]+">
+                        <div class="form-text"><?= $this->lang->line('forms_help_code') ?></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $this->lang->line('forms_button_cancel') ?></button>
+                    <button type="submit" class="btn btn-primary"><?= $this->lang->line('forms_button_import_html') ?></button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

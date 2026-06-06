@@ -67,6 +67,9 @@ $lang['forms_button_new_page']            = 'Nouvelle page';
 $lang['forms_button_import']              = 'Importer';
 $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
+$lang['forms_button_backup']              = 'Sauvegarder (ZIP)';
+$lang['forms_button_restore']             = 'Restaurer depuis ZIP';
+$lang['forms_button_import_html']         = 'Import depuis HTML';
 $lang['forms_button_add_field']           = 'Ajouter un champ';
 $lang['forms_button_fields']              = 'Champs';
 $lang['forms_button_responses']           = 'Réponses';
@@ -92,7 +95,9 @@ $lang['forms_title_pages']                = 'Pages du formulaire';
 $lang['forms_title_new_page']             = 'Nouvelle page';
 $lang['forms_title_edit_page']            = 'Modifier la page';
 $lang['forms_title_import_page']          = 'Importer une page';
+$lang['forms_title_backup_restore']       = 'Sauvegarde et restauration';
 $lang['forms_title_fields']               = 'Champs — page';
+$lang['forms_title_import_html']          = 'Créer un formulaire depuis une page HTML';
 $lang['forms_title_add_field']            = 'Ajouter un champ';
 $lang['forms_title_edit_field']           = 'Modifier le champ';
 $lang['forms_title_submissions']          = 'Réponses du formulaire';
@@ -154,6 +159,7 @@ $lang['forms_help_display_order']         = 'Laissez vide pour ajouter en fin de
 $lang['forms_help_options_format']        = '(une par ligne)';
 $lang['forms_help_options_usage']         = 'Chaque ligne correspond à une option proposée à l\'utilisateur.';
 $lang['forms_help_import_content']        = 'Le contenu sera ajouté comme nouvelle page en fin de formulaire.';
+$lang['forms_help_restore']              = 'Le fichier ZIP doit provenir d\'une sauvegarde GVV. Le titre, la description, le CSS et les pages sont remplacés. Le code, le statut et le lien public restent inchangés.';
 $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields
