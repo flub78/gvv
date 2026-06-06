@@ -168,6 +168,12 @@ class Email_lists extends Gvv_Controller
         $data['manual_members'] = $this->email_lists_model->get_manual_members($id);
         $data['external_emails'] = $this->email_lists_model->get_external_emails($id);
 
+        $this->lang->load('email_lists');
+        $this->load->vars([
+            'nav_back_url'   => 'email_lists',
+            'nav_back_label' => $this->lang->line('email_lists_back'),
+        ]);
+
         return load_last_view('email_lists/view', $data, $this->unit_test);
     }
 
