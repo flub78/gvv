@@ -26,5 +26,5 @@ $lang['gvv_events_types_short_field_ordre'] = "Order";
 $lang['gvv_events_types_short_field_annual'] = "Annual";
 
 $lang['gvv_events_types_enum_activite'] = array(
-            0 => 'Other', 1 => 'glider', 2 => 'airplane', 3 => 'Ultralight' , 4 => 'FAI'
+            0 => 'Other', 1 => 'glider', 2 => 'Ultralight', 3 => 'airplane' , 4 => 'FAI'
         );;

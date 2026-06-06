@@ -665,7 +665,7 @@ class Vols_avion extends Gvv_Controller {
         $events = $this->event_model->flight_events(array(
             'evaid' => $id,
             'en_vol' => 1,
-            'activite' => 2
+            'activite' => 3
         ));
         $date_values = array();
         foreach ($events as $event) {

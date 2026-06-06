@@ -292,13 +292,13 @@ class Event extends Gvv_Controller {
         } elseif ($discipline == "avion") {
             $types = array (
                     0,
-                    2
+                    3
             );
             $title_key = "gvv_events_title_training";
         } elseif ($discipline == "ulm") {
             $types = array (
                     0,
-                    3
+                    2
             );
             $title_key = "gvv_events_title_training";
         } elseif ($discipline == "fai") {

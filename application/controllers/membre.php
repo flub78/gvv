@@ -127,7 +127,7 @@ class Membre extends Gvv_Controller {
     private function load_certificats($id) {
         // Load la liste des dates pour le membre
         $this->load->model('event_model');
-        // 0=Autre,1=planeur,2=avion,3=ULM,4=FAI
+        // 0=Autre,1=planeur,2=ULM,3=avion,4=FAI
         $this->event_model->evenement_de($id, array(
             'activite' => 0
         ), "vue_exp_autre");
@@ -135,7 +135,7 @@ class Membre extends Gvv_Controller {
             'activite' => 1
         ), "vue_exp_vv");
         $this->event_model->evenement_de($id, array(
-            'activite' => 2
+            'activite' => 3
         ), "vue_exp_avion");
         $this->event_model->evenement_de($id, array(
             'activite' => 4
