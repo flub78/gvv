@@ -259,10 +259,11 @@ class Paiements_en_ligne_model extends CI_Model {
      */
     public function get_transactions_with_user(array $filters = array()) {
         $this->db
-            ->select('p.*, m.mprenom, m.mnom, u.username')
+            ->select('p.*, m.mprenom, m.mnom, u.username, vd.id AS vd_id')
             ->from($this->table . ' p')
-            ->join('users u',     'u.id = p.user_id',     'left')
-            ->join('membres m',   'm.mlogin = u.username', 'left');
+            ->join('users u',           'u.id = p.user_id',                                    'left')
+            ->join('membres m',         'm.mlogin = u.username',                               'left')
+            ->join('vols_decouverte vd', "vd.paiement = CONCAT('HelloAsso:', p.transaction_id)", 'left');
 
         if (!empty($filters['user_id'])) {
             $this->db->where('p.user_id', (int) $filters['user_id']);

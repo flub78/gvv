@@ -137,9 +137,17 @@ foreach ($sections as $s) {
     <tbody>
     <?php foreach ($transactions as $tx): ?>
         <?php
-        $prenom = isset($tx['mprenom']) ? $tx['mprenom'] : '';
-        $nom    = isset($tx['mnom'])    ? $tx['mnom']    : '';
-        $pilot  = trim($prenom . ' ' . $nom) ?: $tx['username'];
+        $meta_row        = !empty($tx['metadata']) ? json_decode($tx['metadata'], true) : array();
+        $description_row = isset($meta_row['description']) ? $meta_row['description'] : '';
+
+        if (isset($meta_row['type']) && $meta_row['type'] === 'decouverte') {
+            $vd_num = !empty($tx['vd_id']) ? $tx['vd_id'] . ' ' : '';
+            $pilot = 'VD ' . $vd_num . (isset($meta_row['beneficiaire']) ? $meta_row['beneficiaire'] : '');
+        } else {
+            $prenom = isset($tx['mprenom']) ? $tx['mprenom'] : '';
+            $nom    = isset($tx['mnom'])    ? $tx['mnom']    : '';
+            $pilot  = trim($prenom . ' ' . $nom) ?: $tx['username'];
+        }
 
         $badge_class = array(
             'pending'   => 'bg-warning text-dark',
@@ -155,10 +163,6 @@ foreach ($sections as $s) {
         );
         $cls  = isset($badge_class[$tx['statut']]) ? $badge_class[$tx['statut']] : 'bg-secondary';
         $lbl  = isset($statut_key[$tx['statut']])  ? $this->lang->line($statut_key[$tx['statut']]) : $tx['statut'];
-        ?>
-        <?php
-        $meta_row = !empty($tx['metadata']) ? json_decode($tx['metadata'], true) : array();
-        $description_row = isset($meta_row['description']) ? $meta_row['description'] : '';
         ?>
         <tr>
             <td class="text-nowrap"><?= htmlspecialchars($tx['date_demande']) ?></td>
