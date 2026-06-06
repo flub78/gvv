@@ -89,13 +89,14 @@ if (isset($kid) && isset($$kid)) {
 <!-- Ligne 2 : Heure début, Heure fin, Horamètre début, Horamètre fin, Durée -->
 <div class="d-md-flex flex-row align-items-start gap-3 mb-3">
 
+    <?php $utc_suffix = (isset($section['nom']) && $section['nom'] === 'Avion') ? ' (UTC)' : ''; ?>
     <div class="d-flex flex-column mb-2">
-        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahdeb") ?></div>
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahdeb") . $utc_suffix ?></div>
         <div><?= $this->gvvmetadata->input_field("volsa", "vahdeb", $vahdeb) ?></div>
     </div>
 
     <div class="d-flex flex-column mb-2">
-        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahfin") ?></div>
+        <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "vahfin") . $utc_suffix ?></div>
         <div><?= $this->gvvmetadata->input_field("volsa", "vahfin", $vahfin) ?></div>
     </div>
 

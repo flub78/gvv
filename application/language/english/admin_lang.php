@@ -15,6 +15,7 @@ $lang['gvv_admin_title_restore'] = "Database restore";
 
 $lang['gvv_admin_menu_config'] = "Club configuration";
 $lang['gvv_admin_menu_certificates'] = "Types of dates and certificates";
+$lang['gvv_admin_menu_certificates_desc'] = "Manage event types, certificates and badges";
 
 $lang['gvv_admin_menu_backup'] = "Database backup";
 $lang['gvv_admin_menu_backup_media'] = "Media backup";

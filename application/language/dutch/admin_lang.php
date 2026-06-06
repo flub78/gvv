@@ -15,6 +15,7 @@ $lang['gvv_admin_title_restore'] = "Terugzetten database";
 
 $lang['gvv_admin_menu_config'] = "Configuratie club";
 $lang['gvv_admin_menu_certificates'] = "Type gegevens en certificaten";
+$lang['gvv_admin_menu_certificates_desc'] = "Beheer type evenementen, certificaten en badges";
 
 $lang['gvv_admin_menu_backup'] = "Database backup";
 $lang['gvv_admin_menu_backup_media'] = "Media backup";

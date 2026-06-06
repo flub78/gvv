@@ -142,6 +142,7 @@ $lang['db_card_section_roles']      = "Section roles";
 $lang['db_card_authorizations']     = "Authorizations";
 $lang['db_card_sections']           = "Sections";
 $lang['db_card_session_types']      = "Session types";
+$lang['db_card_events_types']       = "Event types";
 $lang['db_card_procedures']         = "Procedures";
 $lang['db_card_doc_types']          = "Document types";
 $lang['db_card_new_auth']           = "New auth system";

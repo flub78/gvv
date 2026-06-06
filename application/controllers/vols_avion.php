@@ -188,9 +188,11 @@ class Vols_avion extends Gvv_Controller {
         $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
 
         // Checkboxes formation
+        $section = $this->gvv_model->section();
+
         $certificats = array();
         $select = $this->events_types_model->select_all(array(
-            'activite' => 2,
+            'activite' => $section['id'],
             'en_vol' => 1
         ));
 
@@ -205,6 +207,7 @@ class Vols_avion extends Gvv_Controller {
 
         $this->data['certificats'] = $certificats;
         $this->data['certificat_values'] = $date_values;
+        $this->data['section'] = $section;
 
         $this->data['machines'] = $this->avions_model->machine_list(array(
             'actif' => 1

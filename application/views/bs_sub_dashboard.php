@@ -1208,6 +1208,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-danger">
+                <i class="fas fa-certificate text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_events_types') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_certificates') ?></div>
+                <a href="<?= controller_url('events_types') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
         <?php if ($this->config->item('gestion_documentaire')) : ?>
         <div class="col-12 mt-3">
             <h6 class="text-muted mb-2"><i class="fas fa-folder-open"></i> <?= $this->lang->line('db_sub_doc_management') ?></h6>
