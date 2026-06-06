@@ -415,10 +415,11 @@ class Paiements_en_ligne_model extends CI_Model {
 
         if (!$result['ok']) {
             // Erreur de configuration ou DB : marquer failed, remonter 200 à HA
+            $ecriture_error = isset($result['error']) ? $result['error'] : 'erreur inconnue';
             $this->update_transaction_status($gvv_txid, 'failed');
             if ($this->db->trans_status() === FALSE) {
                 $this->db->trans_rollback();
-                return $this->_webhook_error('Erreur DB après échec écriture : ' . $gvv_txid);
+                return $this->_webhook_error('Erreur DB après échec écriture : ' . $gvv_txid . ' — ' . $ecriture_error);
             }
             $this->db->trans_commit();
             return array(
