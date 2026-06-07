@@ -4,7 +4,7 @@ Date : 30 mai 2026
 
 ## Contexte
 
-La gestion actuelle orientée conversion de documents est jugée trop lourde et dépendante d'outils externes. Le besoin cible est un module de formulaires natifs HTML, inspiré de Google Forms, mais intégré à GVV et à son système documentaire.
+Le besoin cible est un module de formulaires natifs HTML, inspiré de Google Forms, mais intégré à GVV et à son système documentaire.
 
 Le module doit permettre :
 - la création et l'administration de formulaires par les admins ;
@@ -153,17 +153,28 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 3. Option de lien tokenisé/expirable selon configuration.
 4. Protection CSRF, anti-spam/rate-limit et audit des soumissions.
 
+### EF5-bis : Paramètres de configuration formulaires
+
+1. Un écran admin dédié permet de gérer des paramètres clé/valeur utilisables dans les formulaires.
+2. Chaque paramètre possède une clé technique, une valeur, un libellé lisible et une description optionnelle.
+3. La portée d'un paramètre est soit globale (sans section), soit restreinte à une section.
+4. Lors de la résolution, un paramètre de section est prioritaire sur le paramètre global de même clé.
+5. L'écran de configuration est accessible depuis la page d'index de l'administration des formulaires via une carte dédiée.
+6. Le premier paramètre à configurer est l'identification de l'organisme de formation (`organisme_formation`).
+7. Dans les formulaires, ces paramètres sont référencés via la source `config.cle_parametre`.
+
 ### EF6 : Données GVV et pré-remplissage
 
 1. Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
 2. Trois attributs : `data-gvv-source` (source de donnée), `data-gvv-param` (paramètre URL d'identification), `data-gvv-lock` (verrouillage serveur).
 3. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL du formulaire.
-4. Les sources autorisées couvrent : données du club (config), données d'un membre, données d'un instructeur, utilisateur de session, dates calculées.
+4. Les sources autorisées couvrent : données du club (config GVV), paramètres de configuration formulaires (`config.*`), données d'un membre, données d'un instructeur, utilisateur de session, dates calculées.
 5. Le verrouillage est appliqué côté serveur : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et impose la valeur résolue.
 6. Une liste blanche stricte des sources autorisées est définie — pas d'accès libre à la base.
 7. Le paramètre d'identification transmis en URL est validé (existence + appartenance à la section active).
 8. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
 9. La taxonomie des sources inclut `member.signature` → `membres.signature_path` (param : `pilot_login`) et `instructor.signature` → `membres.signature_path` (param : `instructor_login`).
+10. Pour tout champ pré-rempli GVV, le champ de saisie du formulaire est remplacé par la valeur pré-remplie affichée en lecture seule ; l'utilisateur ne peut pas la remplacer.
 
 Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
 
@@ -177,7 +188,7 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 6. Deux valeurs cachées sont transmises à chaque soumission : le contenu et le type (`canvas|file|text`), pour audit côté serveur.
 7. La visualisation d'une signature soumise dans l'interface admin est graphique : l'image est affichée en ligne dans le détail de la soumission.
 8. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
-9. Si `data-gvv-lock="false"`, l'utilisateur peut remplacer la signature pré-remplie.
+9. Si la signature est pré-remplie depuis GVV, elle est affichée en lecture seule et l'utilisateur ne peut pas la remplacer.
 
 Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-signatures)
 

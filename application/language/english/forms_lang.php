@@ -177,5 +177,33 @@ $lang['forms_option_html']                = 'HTML';
 $lang['forms_option_text']                = 'Text';
 $lang['forms_label_form_context']         = 'Form:';
 
+// Config params
+$lang['forms_config_title']               = 'Configuration parameters';
+$lang['forms_config_subtitle']            = 'Configurable values usable in forms via the config.* source.';
+$lang['forms_config_label_key']           = 'Technical key';
+$lang['forms_config_label_value']         = 'Value';
+$lang['forms_config_label_label']         = 'Label';
+$lang['forms_config_label_description']   = 'Description';
+$lang['forms_config_label_scope']         = 'Scope';
+$lang['forms_config_scope_global']        = 'Global';
+$lang['forms_config_help_key']            = 'Alphanumeric identifier (letters, digits, _). E.g.: organisme_formation';
+$lang['forms_config_help_source']         = 'Reference this parameter in a form with data-gvv-source="config.KEYHERE"';
+$lang['forms_config_empty']               = 'No configuration parameters defined.';
+$lang['forms_config_button_new']          = 'New parameter';
+$lang['forms_config_button_edit']         = 'Edit';
+$lang['forms_config_button_delete']       = 'Delete';
+$lang['forms_config_button_save']         = 'Save';
+$lang['forms_config_button_cancel']       = 'Cancel';
+$lang['forms_config_confirm_delete']      = 'Delete this parameter?';
+$lang['forms_config_created']             = 'Parameter created.';
+$lang['forms_config_updated']             = 'Parameter updated.';
+$lang['forms_config_deleted']             = 'Parameter deleted.';
+$lang['forms_config_error_key_exists']    = 'This key already exists for this scope.';
+$lang['forms_config_error_key_required']  = 'The technical key is required.';
+$lang['forms_config_error_label_required']= 'The label is required.';
+$lang['forms_config_error_invalid_key']   = 'The key may only contain letters, digits and _.';
+$lang['forms_config_card_title']          = 'Configuration';
+$lang['forms_config_card_description']    = 'Key/value parameters usable in forms.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/english/forms_lang.php */

@@ -177,5 +177,33 @@ $lang['forms_option_html']                = 'HTML';
 $lang['forms_option_text']                = 'Texte';
 $lang['forms_label_form_context']         = 'Formulaire :';
 
+// Config params
+$lang['forms_config_title']               = 'Paramètres de configuration';
+$lang['forms_config_subtitle']            = 'Valeurs configurables utilisées dans les formulaires via la source config.*.';
+$lang['forms_config_label_key']           = 'Clé technique';
+$lang['forms_config_label_value']         = 'Valeur';
+$lang['forms_config_label_label']         = 'Libellé';
+$lang['forms_config_label_description']   = 'Description';
+$lang['forms_config_label_scope']         = 'Portée';
+$lang['forms_config_scope_global']        = 'Global';
+$lang['forms_config_help_key']            = 'Identifiant alphanumérique (lettres, chiffres, _). Ex : organisme_formation';
+$lang['forms_config_help_source']         = 'Référencez ce paramètre dans un formulaire avec data-gvv-source="config.CLÉICI"';
+$lang['forms_config_empty']               = 'Aucun paramètre de configuration défini.';
+$lang['forms_config_button_new']          = 'Nouveau paramètre';
+$lang['forms_config_button_edit']         = 'Modifier';
+$lang['forms_config_button_delete']       = 'Supprimer';
+$lang['forms_config_button_save']         = 'Enregistrer';
+$lang['forms_config_button_cancel']       = 'Annuler';
+$lang['forms_config_confirm_delete']      = 'Supprimer ce paramètre ?';
+$lang['forms_config_created']             = 'Paramètre créé.';
+$lang['forms_config_updated']             = 'Paramètre mis à jour.';
+$lang['forms_config_deleted']             = 'Paramètre supprimé.';
+$lang['forms_config_error_key_exists']    = 'Cette clé existe déjà pour cette portée.';
+$lang['forms_config_error_key_required']  = 'La clé technique est obligatoire.';
+$lang['forms_config_error_label_required']= 'Le libellé est obligatoire.';
+$lang['forms_config_error_invalid_key']   = 'La clé ne doit contenir que des lettres, chiffres et _.';
+$lang['forms_config_card_title']          = 'Configuration';
+$lang['forms_config_card_description']    = 'Paramètres clé/valeur utilisables dans les formulaires.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/french/forms_lang.php */

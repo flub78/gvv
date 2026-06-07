@@ -41,8 +41,8 @@ class Forms_admin extends CI_Controller {
 
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
-            'nav_back_url'   => 'forms_admin',
-            'nav_back_label' => 'Liste des formulaires',
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
         ]);
     }
 
@@ -1939,6 +1939,208 @@ class Forms_admin extends CI_Controller {
 
         $this->session->set_flashdata('forms_success', 'Formulaire restauré : ' . $page_count . ' page(s) importée(s).');
         redirect('forms_admin/edit/' . (int) $form['id']);
+    }
+
+    // -------------------------------------------------------------------------
+    // Config params
+    // -------------------------------------------------------------------------
+
+    public function config() {
+        $this->load->vars([
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
+        ]);
+        $this->load->model('form_config_params_model');
+        $section_id = (int) $this->session->userdata('section');
+        $params = $this->form_config_params_model->list_params(
+            $section_id > 0 ? $section_id : null,
+            $section_id > 0
+        );
+
+        $this->db->select('id, nom as name');
+        $sections = $this->db->get('sections')->result_array();
+        $sections_by_id = array();
+        foreach ($sections as $s) {
+            $sections_by_id[$s['id']] = $s['name'];
+        }
+        foreach ($params as &$p) {
+            $p['section_name'] = $p['club_id'] ? (isset($sections_by_id[$p['club_id']]) ? $sections_by_id[$p['club_id']] : $p['club_id']) : null;
+        }
+        unset($p);
+
+        $data = array(
+            'controller' => $this->controller,
+            'params'     => $params,
+            'success'    => $this->session->flashdata('forms_success') ?: '',
+            'error'      => $this->session->flashdata('forms_error') ?: '',
+        );
+        $this->render_view('forms_admin/bs_config', $data);
+    }
+
+    public function config_create() {
+        $this->load->vars([
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
+        ]);
+        $section_id = (int) $this->session->userdata('section');
+        $section_name = '';
+        if ($section_id > 0) {
+            $s = $this->db->select('nom')->where('id', $section_id)->get('sections')->row_array();
+            $section_name = $s ? $s['nom'] : $section_id;
+        }
+
+        $data = array(
+            'controller'  => $this->controller,
+            'form_mode'   => 'create',
+            'form_action' => site_url('forms_admin/config_store'),
+            'section_id'  => $section_id,
+            'section_name'=> $section_name,
+            'param'       => array('param_key' => '', 'param_label' => '', 'param_value' => '', 'param_description' => '', 'club_id' => null),
+            'error'       => '',
+        );
+        $this->render_view('forms_admin/bs_config_form', $data);
+    }
+
+    public function config_store() {
+        $this->load->model('form_config_params_model');
+        $section_id = (int) $this->session->userdata('section');
+
+        $key   = trim($this->input->post('param_key'));
+        $label = trim($this->input->post('param_label'));
+
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $key)) {
+            $this->_config_form_error('create', $this->lang->line('forms_config_error_invalid_key'));
+            return;
+        }
+        if ($key === '') {
+            $this->_config_form_error('create', $this->lang->line('forms_config_error_key_required'));
+            return;
+        }
+        if ($label === '') {
+            $this->_config_form_error('create', $this->lang->line('forms_config_error_label_required'));
+            return;
+        }
+
+        $is_global = (bool) $this->input->post('is_global');
+        $club_id   = ($section_id > 0 && !$is_global) ? $section_id : null;
+
+        if ($this->form_config_params_model->key_exists($key, $club_id)) {
+            $this->_config_form_error('create', $this->lang->line('forms_config_error_key_exists'));
+            return;
+        }
+
+        $by = $this->dx_auth->get_username();
+        $this->form_config_params_model->create(array(
+            'club_id'           => $club_id,
+            'param_key'         => $key,
+            'param_label'       => $label,
+            'param_value'       => $this->input->post('param_value') ?: '',
+            'param_description' => $this->input->post('param_description') ?: null,
+        ), $by);
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_config_created'));
+        redirect('forms_admin/config');
+    }
+
+    public function config_edit($id = 0) {
+        $this->load->vars([
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
+        ]);
+        $this->load->model('form_config_params_model');
+        $param = $this->form_config_params_model->get_by_id((int) $id);
+        if (!$param) {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $section_id = (int) $this->session->userdata('section');
+        $section_name = '';
+        if ($section_id > 0) {
+            $s = $this->db->select('nom')->where('id', $section_id)->get('sections')->row_array();
+            $section_name = $s ? $s['nom'] : $section_id;
+        }
+
+        $data = array(
+            'controller'  => $this->controller,
+            'form_mode'   => 'edit',
+            'form_action' => site_url('forms_admin/config_update/' . (int) $id),
+            'section_id'  => $section_id,
+            'section_name'=> $section_name,
+            'param'       => $param,
+            'error'       => '',
+        );
+        $this->render_view('forms_admin/bs_config_form', $data);
+    }
+
+    public function config_update($id = 0) {
+        $this->load->model('form_config_params_model');
+        $param = $this->form_config_params_model->get_by_id((int) $id);
+        if (!$param) {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $label = trim($this->input->post('param_label'));
+        if ($label === '') {
+            $this->_config_form_error('edit', $this->lang->line('forms_config_error_label_required'), $id);
+            return;
+        }
+
+        $section_id = (int) $this->session->userdata('section');
+        $is_global  = (bool) $this->input->post('is_global');
+        $club_id    = ($section_id > 0 && !$is_global) ? $section_id : null;
+
+        $by = $this->dx_auth->get_username();
+        $this->form_config_params_model->update((int) $id, array(
+            'club_id'           => $club_id,
+            'param_label'       => $label,
+            'param_value'       => $this->input->post('param_value') ?: '',
+            'param_description' => $this->input->post('param_description') ?: null,
+        ), $by);
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_config_updated'));
+        redirect('forms_admin/config');
+    }
+
+    public function config_delete($id = 0) {
+        $this->load->model('form_config_params_model');
+        $this->form_config_params_model->delete((int) $id);
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_config_deleted'));
+        redirect('forms_admin/config');
+    }
+
+    private function _config_form_error($mode, $error_msg, $id = 0) {
+        $this->load->vars([
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
+        ]);
+        $this->load->model('form_config_params_model');
+        $section_id = (int) $this->session->userdata('section');
+        $section_name = '';
+        if ($section_id > 0) {
+            $s = $this->db->select('nom')->where('id', $section_id)->get('sections')->row_array();
+            $section_name = $s ? $s['nom'] : $section_id;
+        }
+
+        $param = $id ? $this->form_config_params_model->get_by_id($id) : array(
+            'param_key' => $this->input->post('param_key') ?: '',
+            'param_label' => $this->input->post('param_label') ?: '',
+            'param_value' => $this->input->post('param_value') ?: '',
+            'param_description' => $this->input->post('param_description') ?: '',
+            'club_id' => null,
+        );
+
+        $data = array(
+            'controller'  => $this->controller,
+            'form_mode'   => $mode,
+            'form_action' => $mode === 'edit' ? site_url('forms_admin/config_update/' . $id) : site_url('forms_admin/config_store'),
+            'section_id'  => $section_id,
+            'section_name'=> $section_name,
+            'param'       => $param,
+            'error'       => $error_msg,
+        );
+        $this->render_view('forms_admin/bs_config_form', $data);
     }
 
     private function render_view($view, $data = array()) {

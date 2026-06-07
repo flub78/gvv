@@ -177,5 +177,33 @@ $lang['forms_option_html']                = 'HTML';
 $lang['forms_option_text']                = 'Tekst';
 $lang['forms_label_form_context']         = 'Formulier:';
 
+// Config params
+$lang['forms_config_title']               = 'Configuratieparameters';
+$lang['forms_config_subtitle']            = 'Configureerbare waarden bruikbaar in formulieren via de bron config.*.';
+$lang['forms_config_label_key']           = 'Technische sleutel';
+$lang['forms_config_label_value']         = 'Waarde';
+$lang['forms_config_label_label']         = 'Label';
+$lang['forms_config_label_description']   = 'Beschrijving';
+$lang['forms_config_label_scope']         = 'Bereik';
+$lang['forms_config_scope_global']        = 'Globaal';
+$lang['forms_config_help_key']            = 'Alfanumerieke identifier (letters, cijfers, _). Bijv.: organisme_formation';
+$lang['forms_config_help_source']         = 'Verwijs naar deze parameter in een formulier met data-gvv-source="config.SLEUTELhier"';
+$lang['forms_config_empty']               = 'Geen configuratieparameters gedefinieerd.';
+$lang['forms_config_button_new']          = 'Nieuwe parameter';
+$lang['forms_config_button_edit']         = 'Bewerken';
+$lang['forms_config_button_delete']       = 'Verwijderen';
+$lang['forms_config_button_save']         = 'Opslaan';
+$lang['forms_config_button_cancel']       = 'Annuleren';
+$lang['forms_config_confirm_delete']      = 'Deze parameter verwijderen?';
+$lang['forms_config_created']             = 'Parameter aangemaakt.';
+$lang['forms_config_updated']             = 'Parameter bijgewerkt.';
+$lang['forms_config_deleted']             = 'Parameter verwijderd.';
+$lang['forms_config_error_key_exists']    = 'Deze sleutel bestaat al voor dit bereik.';
+$lang['forms_config_error_key_required']  = 'De technische sleutel is verplicht.';
+$lang['forms_config_error_label_required']= 'Het label is verplicht.';
+$lang['forms_config_error_invalid_key']   = 'De sleutel mag alleen letters, cijfers en _ bevatten.';
+$lang['forms_config_card_title']          = 'Configuratie';
+$lang['forms_config_card_description']    = 'Sleutel/waarde parameters bruikbaar in formulieren.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/dutch/forms_lang.php */

@@ -101,13 +101,29 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Implémenter le pipeline d'import PDF -> HTML.
 - [ ] Générer un rapport de conversion et prévoir la réédition manuelle post-import.
 
+### Lot 4-bis — Paramètres de configuration formulaires
+
+Table `form_config_params` (clé/valeur avec portée globale ou section) accessible depuis l'index admin des formulaires via une carte dédiée. Ces paramètres alimentent le namespace `config.*` du service de pré-remplissage.
+
+Voir : [Design paramètres de configuration](../design_notes/remplissage_formulaires_design.md#5-paramètres-de-configuration-formulaires)
+
+- [x] Migration `124_form_config_params.php` : table `form_config_params` (id, club_id nullable, param_key, param_value, param_label, param_description, audit fields) avec contrainte d'unicité `(club_id, param_key)`.
+- [x] Mettre à jour `application/config/migration.php` à la version 124.
+- [x] Créer `application/models/form_config_params_model.php` : CRUD, résolution avec fallback global→section.
+- [x] Ajouter les méthodes `config`, `config_create`, `config_store`, `config_edit`, `config_update`, `config_delete` dans `forms_admin.php`.
+- [x] Créer les vues `application/views/forms_admin/bs_config.php` (liste) et `bs_config_form.php` (create/edit).
+- [x] Ajouter une carte "Configuration" sur `bs_index.php` pointant vers `forms_admin/config`.
+- [x] Pré-charger le paramètre `organisme_formation` dans la migration (libellé + valeur vide).
+- [x] Ajouter les traductions (`forms_config_*`) dans les fichiers de langue français, anglais, néerlandais.
+- [x] Tests PHPUnit MySQL : migration up/down, CRUD modèle, résolution section > global (11 tests, tous verts).
+
 ### Lot 5 — Pré-remplissage GVV
 
 Syntaxe : attributs `data-gvv-source`, `data-gvv-param`, `data-gvv-lock` sur les éléments HTML.
 Paramètres transmis en query string de l'URL du formulaire.
 Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
 
-- [ ] Créer `form_prefill_service` : résolution des sources par liste blanche (club.*, member.*, instructor.*, user.*, date.*).
+- [ ] Créer `form_prefill_service` : résolution des sources par liste blanche (config.*, club.*, member.*, instructor.*, user.*, date.*). Le namespace `config.*` délègue à `form_config_params_model` avec résolution section → global. Prérequis : Lot 4-bis.
 - [ ] Parser les attributs `data-gvv-*` depuis le HTML de chaque page (DOMDocument, même pipeline que `sync_fields_from_html`).
 - [ ] Valider les paramètres URL (`pilot_login`, `instructor_login`) : existence + appartenance à la section active.
 - [ ] Injecter les valeurs résolues dans le rendu public avant affichage.
@@ -188,9 +204,10 @@ Lots inclus : 6.
 2. Lot 2 (réponses et fichiers)
 3. Lot 3 (impression et archivage)
 4. Lot 4 (extensions documentaires)
-5. Lot 5 (pré-remplissage GVV + workflows)
-6. Lot 5-bis (signatures canvas + upload + pré-remplissage profil)
-7. Lot 6 (documentation et validation)
+5. Lot 4-bis (paramètres de configuration formulaires)
+6. Lot 5 (pré-remplissage GVV + workflows) — dépend de Lot 4-bis pour `config.*`
+7. Lot 5-bis (signatures canvas + upload + pré-remplissage profil)
+8. Lot 6 (documentation et validation)
 
 ## Critères de fin
 

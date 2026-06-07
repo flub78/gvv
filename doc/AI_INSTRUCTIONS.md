@@ -178,12 +178,10 @@ Following `doc/development/workflow.md`:
    - Aim for >70% code coverage
    - Update test configs if needed
 
-### Migration and Legacy Code
+### Legacy Code
 
-- **Legacy migration ongoing**: Converting from CodeIgniter Unit_test to PHPUnit (see `PHPUNIT_MIGRATION_SUMMARY.md`)
-- **32 controllers** still have old CI Unit_test methods (to be migrated)
+- PHPUnit is the reference test framework for the project.
 - Avoid major architectural changes - this is a maintenance-mode project
-- **Code reuse first**: Always check if similar functionality exists before writing new code
 
 ---
 
@@ -210,7 +208,7 @@ Following `doc/development/workflow.md`:
 19. **Propagation**: When asked to modify a PRD also update the design document and plan if they exists. When asked to modify a design also update the PRD and plan if necessary. When asked to modify a plan, update design and PRD if they are impacted.
 20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission
 21. **Plantuml**: when generating diagrams, usually for design notes, manage them into separate files .puml, put them into a subdirectory named diagrams, generate the images and put a link in the design document. The images must appears embedded in the document on github.
-22. **Implementation completion**: When you are working on a whole feature (PRP), before to claim completion, run a phpunit smoke test and a playwright smoke test demonstrating that you can access the feature. In case of failure, enable the development mode in index.php, reproduce the error and fix it. Keep the tests in the test suite for future regression testing. Create a test to run the migrations if any and verify that the database schema is correct then rollback the database.
+22. **Implementation completion**: When you are working on a whole feature (PRP), before to claim completion, run a phpunit smoke test and a playwright smoke test demonstrating that you can access the feature. In case of failure, enable the development mode in index.php, reproduce the error and fix it. Keep the tests in the test suite for future regression testing. No needs to create migration tests if there are tests that check the feature based on the migration.
 23. **Test users**: on the development platform, use the test users defined in the bin/create_test_users.sql script to do testing. If the users are not defined ask the permission to run the script.
 
 ---
@@ -265,8 +263,6 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 7. **Don't use Composer** - Project uses manual dependency management
 8. **Only build what explicitly asked for** - Never assume, add or change features, infra or logic without a clear request in the PRD or plan to do so.
 9. **No Over-Engineering** - Do not introduce features, logs, collections or automation unless directly specified.
-10. **Do not generate additional documents when not required** - Restrict the documentation to the minimal, a PRD for the feature description and an implementation plan for the design , breakdown into tasks and status progress. Do not generate summaries of implementation, external todo lists or subpart design documents.
-11. **NEVER implement code changes without explicit approval** - When asked to "analyze", "suggest", "investigate", or "propose", provide analysis and recommendations ONLY. Wait for explicit approval (e.g., "apply the fix", "implement this", "make these changes") before modifying any code. If unsure whether to implement, ASK FIRST.
 
 ---
 
@@ -298,7 +294,6 @@ Located in `application/third_party/`:
 - **TCPDF**: PDF generation
 - **phpqrcode**: QR code generation
 - **Google API**: Google integration
-- **CIUnit**: Legacy testing framework (being phased out)
 
 Handle with care - these are external dependencies.
 
@@ -327,7 +322,6 @@ Key documentation files:
 - `doc/gemini-cli.md` - Gemini CLI usage guide for large codebase analysis
 - `doc/development/workflow.md` - Feature development workflow
 - `doc/development/phpunit.md` - Testing details
-- `PHPUNIT_MIGRATION_SUMMARY.md` - Migration status from CI Unit_test to PHPUnit
 
 ---
 

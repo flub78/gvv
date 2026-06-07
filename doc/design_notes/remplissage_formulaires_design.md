@@ -16,7 +16,7 @@ Pipeline principal :
 2. Publication lien public
 3. Soumission anonyme utilisateur
 4. Consultation admin des réponses
-5. Export PDF imprimable (optionnel)
+5. Export PDF imprimable
 6. Archivage vers `archived_documents` (optionnel)
 
 ## Note d'évolution probable
@@ -38,7 +38,6 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 ### Phase 2 — Extensions documentaires
 
 - references documentaires inline
-- import PDF -> HTML
 
 ### Phase 3 — Extensions GVV
 
@@ -86,10 +85,56 @@ Règles de filtrage section (listing admin) :
 
 - Entité : `form_document_refs`
 - `form_document_refs` : table de liaison entre un formulaire ou une page et un document archivé, utilisée pour référence et afficher le document dans le contexte du formulaire.
-- Insertion d'un document archivé dans une page formulaire
+- Insertion d'un document archivé dans une page formulaires
 - Rendu dans une boîte déroulante (iframe/viewer)
 
-### 5. Pré-remplissage GVV
+### 5. Paramètres de configuration formulaires
+
+Un écran admin dédié (`forms_admin/config`) permet de gérer des paramètres clé/valeur utilisables dans tous les formulaires. Ces paramètres constituent un référentiel stable de valeurs configurables qui ne sont ni des données membres ni des constantes de la config GVV globale.
+
+#### Table `form_config_params`
+
+| Colonne | Type | Contrainte |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT | PRIMARY KEY |
+| `club_id` | INT NULL | FK → clubs(id), NULL = portée globale |
+| `param_key` | VARCHAR(100) NOT NULL | Unique par (club_id, param_key) |
+| `param_value` | TEXT NOT NULL | Valeur brute |
+| `param_label` | VARCHAR(255) NOT NULL | Libellé lisible en admin |
+| `param_description` | TEXT NULL | Aide contextuelle optionnelle |
+| `created_at` | TIMESTAMP | Audit |
+| `updated_at` | TIMESTAMP | Audit |
+| `created_by` | INT NULL | FK → membres(mlogin) |
+| `updated_by` | INT NULL | FK → membres(mlogin) |
+
+#### Portée et résolution
+
+- **Portée globale** : `club_id = NULL` — disponible pour tous les formulaires quelle que soit la section active.
+- **Portée section** : `club_id = id_section` — surcharge le paramètre global de même clé pour les formulaires de cette section.
+- **Ordre de résolution** : section active → global. Si aucune valeur trouvée, le champ reste vide (pas d'erreur bloquante).
+
+#### Accès admin
+
+La page d'index de l'administration des formulaires (`forms_admin/index`) expose une carte "Configuration" pointant vers `forms_admin/config`. L'écran de config offre un CRUD simple (liste + formulaire create/edit/delete) sans pagination.
+
+#### Source taxonomy
+
+Nouveau namespace `config.*` dans le `form_prefill_service` :
+
+```
+config.organisme_formation  → form_config_params.param_value  (param_key = 'organisme_formation')
+config.<cle>                → form_config_params.param_value  (param_key = '<cle>')
+```
+
+Pas de `data-gvv-param` pour les sources `config.*` : la résolution utilise uniquement la section active de la session courante, pas un paramètre URL.
+
+#### Premier paramètre défini
+
+| Clé | Libellé | Usage |
+|---|---|---|
+| `organisme_formation` | Organisme de formation | Nom/identification de l'organisme dans les attestations et certificats |
+
+### 6. Pré-remplissage GVV
 
 Service : `form_prefill_service`
 
@@ -134,6 +179,8 @@ Les paramètres sont transmis via l'URL du formulaire :
 #### Taxonomie des sources
 
 ```
+config.<cle>               → form_config_params.param_value  (résolution section → global)
+
 club.nom                   → $config['nom_club']
 club.sigle                 → $config['sigle_club']
 club.adresse               → $config['adresse_club']
@@ -169,7 +216,7 @@ date.year                  → date('Y')
 - **Lock côté serveur** : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et réinjecte la valeur résolue — le verrou HTML seul ne suffit pas.
 - **Pas d'accès direct à la base** : le service passe exclusivement par la liste blanche.
 
-### 6. Signatures
+### 7. Signatures
 
 #### Déclaration dans le HTML
 
@@ -249,19 +296,19 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 | 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
 | 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
 
-### 7. Import PDF -> HTML
+### 8. Import PDF -> HTML
 
 - Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
 - Détection des champs du PDF source quand possible
 - Génération d'une page HTML initiale + rapport des champs non convertis
 
-### 7. Export PDF imprimable
+### 9. Export PDF imprimable
 
 - Rendu imprimé d'une soumission
 - Génération d'un PDF lisible et téléchargeable
 - Utilisable pour archivage documentaire
 
-### 8. Archivage documentaire
+### 10. Archivage documentaire
 
 - Entite : `archived_documents`
 - `archived_documents` : table d'archive finale des documents, avec métadonnées de fichier, liens vers pilote/section/type de document et suivi des versions et de la validation.
