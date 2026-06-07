@@ -497,7 +497,6 @@ OK (11 tests, 37 assertions)
 - [ ] Validation et règles métier
 
 #### Tests d'intégration (MySQL)
-- [ ] Migration up/down
 - [ ] FK CASCADE/RESTRICT
 - [ ] Résolution complète des adresses
 

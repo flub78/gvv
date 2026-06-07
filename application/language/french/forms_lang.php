@@ -205,5 +205,24 @@ $lang['forms_config_error_invalid_key']   = 'La clé ne doit contenir que des le
 $lang['forms_config_card_title']          = 'Configuration';
 $lang['forms_config_card_description']    = 'Paramètres clé/valeur utilisables dans les formulaires.';
 
+/* required_params */
+$lang['forms_label_required_params']  = 'Contexte GVV';
+$lang['forms_help_required_params']   = 'Sélecteurs nécessaires pour pré-remplir les champs issus de GVV (membres, instructeurs, événements).';
+$lang['forms_required_none']          = 'Formulaire public (sans pré-remplissage GVV)';
+$lang['forms_required_pilot']         = 'Sélection d\'un membre (candidat/pilote)';
+$lang['forms_required_instructor']    = 'Sélection d\'un instructeur';
+$lang['forms_required_both']          = 'Sélection membre + instructeur';
+
+/* generate page */
+$lang['forms_button_generate']          = 'Générer';
+$lang['forms_generate_title']           = 'Générer un formulaire pré-rempli';
+$lang['forms_generate_pilot']           = 'Candidat / Pilote';
+$lang['forms_generate_instructor']      = 'Instructeur';
+$lang['forms_generate_button']          = 'Remplir le formulaire';
+$lang['forms_generate_select_placeholder'] = '— Sélectionner —';
+$lang['forms_generate_error_not_found'] = 'Formulaire introuvable ou non publié.';
+$lang['forms_generate_error_pilot']     = 'Veuillez sélectionner un candidat.';
+$lang['forms_generate_error_instructor']= 'Veuillez sélectionner un instructeur.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/french/forms_lang.php */

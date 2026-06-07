@@ -34,7 +34,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Permettre l'import d'un document PDF vers une base HTML éditable.
 - Permettre la génération d'un PDF imprimable à partir d'une réponse.
 - Intégrer un mécanisme de champs dynamiques pré-remplis depuis GVV.
-- Archiver les réponses (et leur PDF imprimable si demandé) pour un pilote.
+- Permettre depuis une réponse la création d'un document archivé avec le PDF imprimable pré-rempli.
 
 ## Non-objectifs
 
@@ -59,7 +59,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Pré-remplissage d'une signature depuis le profil GVV (`membres.signature_path`, sources `member.signature` / `instructor.signature`).
 - Génération d'un PDF imprimable de la réponse.
 - Import d'un PDF formulaire pour produire une base HTML éditable.
-- Archivage d'une réponse vers `archived_documents` liée à un pilote.
+- Création d'un document archivé depuis une réponse via le formulaire documentaire existant, avec PDF imprimable pré-rempli.
 
 ### Exclu
 
@@ -95,7 +95,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 1. L'admin consulte la liste des réponses d'un formulaire.
 2. Il ouvre une réponse, visualise les pièces jointes (image/PDF) et les documents référencés.
 3. Il génère le PDF imprimable de la réponse.
-4. Il archive la réponse pour un pilote dans `archived_documents`.
+4. Il utilise le bouton de la réponse pour ouvrir la création de document archivé avec le PDF imprimable pré-rempli à la place du sélecteur de fichier.
 
 ## Exigences fonctionnelles
 
@@ -237,27 +237,27 @@ Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-s
 
 1. À partir d'une réponse, génération d'un PDF imprimable.
 2. Import d'un document PDF pour initialiser une version HTML éditable.
-3. Le système doit signaler clairement les éléments non convertis lors de l'import.
 
 ### EF9 : Archivage
 
-1. Une réponse peut être archivée dans `archived_documents`.
-2. L'archivage peut être lié à un pilote (obligatoire pour le cas d'usage demandé).
-3. Métadonnées minimales : formulaire source, date, auteur soumission, admin archiveur.
+1. Depuis le détail d'une réponse, un bouton permet d'ouvrir le formulaire existant de création de document archivé.
+2. Le PDF imprimable de la réponse est pré-rempli dans ce formulaire à la place du sélecteur de fichier.
+3. L'association au pilote reste gérée par le formulaire documentaire existant.
+4. Journalisation dans les fichiers de logs.
 
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
 - **Sécurité** : validation stricte des entrées et des fichiers, isolation du stockage.
 - **Performance** : ouverture formulaire < 2s en usage nominal ; soumission < 5s hors upload volumineux.
-- **Traçabilité** : journalisation des opérations admin et soumissions.
+- **Traçabilité** : journalisation dans les fichiers de logs.
 - **Compatibilité** : rendu responsive desktop/mobile.
 
 ## Documentation attendue
 
 - Exemples de formulaires prêts à l'emploi.
 - Exemple de CSS global de personnalisation.
-- Guide import PDF -> HTML et limites connues.
+- Guide import PDF -> HTML.
 - Guide génération PDF imprimable à partir d'une réponse.
 
 ## Mesures de succès

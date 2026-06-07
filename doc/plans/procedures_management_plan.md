@@ -49,7 +49,6 @@ Développement d'un système CRUD complet pour la gestion des procédures dans G
 - [ ] Créer `044_procedures.php`
 - [ ] Définir la structure de table
 - [ ] Ajouter contraintes et index
-- [ ] Tester la migration up/down
 
 ### 2.2 Mise à jour de la configuration
 - [ ] Mettre à jour `application/config/migration.php`
@@ -178,7 +177,6 @@ Développement d'un système CRUD complet pour la gestion des procédures dans G
 - [ ] **P1.1** Analyser attachments_model.php et comprendre les patterns
 - [ ] **P1.2** Créer le schéma de base de données procedures
 - [ ] **P1.3** Créer la migration 044_procedures.php
-- [ ] **P1.4** Tester la migration up/down
 - [ ] **P1.5** Créer la structure uploads/procedures/
 
 ### Phase 2: Librairie File_manager (1 jour)

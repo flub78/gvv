@@ -140,14 +140,15 @@ class Forms_admin extends CI_Controller {
         $club = ($section_id > 0 && !$is_global) ? $section_id : null;
 
         $id = $this->forms_model->create_form(array(
-            'club'        => $club,
-            'code'        => trim($this->input->post('code')),
-            'title'       => trim($this->input->post('title')),
-            'description' => trim($this->input->post('description')),
-            'public_slug' => trim($this->input->post('public_slug')),
-            'css_scope'   => trim($this->input->post('css_scope')),
-            'global_css'  => (string) $this->input->post('global_css'),
-            'created_by'  => $this->dx_auth->get_username(),
+            'club'            => $club,
+            'code'            => trim($this->input->post('code')),
+            'title'           => trim($this->input->post('title')),
+            'description'     => trim($this->input->post('description')),
+            'public_slug'     => trim($this->input->post('public_slug')),
+            'css_scope'       => trim($this->input->post('css_scope')),
+            'global_css'      => (string) $this->input->post('global_css'),
+            'required_params' => $this->input->post('required_params') ?: 'none',
+            'created_by'      => $this->dx_auth->get_username(),
         ));
 
         if (!$id) {
@@ -207,14 +208,15 @@ class Forms_admin extends CI_Controller {
         $status     = in_array($new_status, $allowed, true) ? $new_status : $current['status'];
 
         $ok = $this->forms_model->update_form($id, array(
-            'club'        => $club,
-            'title'       => trim($this->input->post('title')),
-            'description' => trim($this->input->post('description')),
-            'public_slug' => trim($this->input->post('public_slug')),
-            'css_scope'   => trim($this->input->post('css_scope')),
-            'global_css'  => (string) $this->input->post('global_css'),
-            'status'      => $status,
-            'updated_by'  => $this->dx_auth->get_username(),
+            'club'            => $club,
+            'title'           => trim($this->input->post('title')),
+            'description'     => trim($this->input->post('description')),
+            'public_slug'     => trim($this->input->post('public_slug')),
+            'css_scope'       => trim($this->input->post('css_scope')),
+            'global_css'      => (string) $this->input->post('global_css'),
+            'required_params' => $this->input->post('required_params') ?: $current['required_params'],
+            'status'          => $status,
+            'updated_by'      => $this->dx_auth->get_username(),
         ));
 
         if (!$ok) {
@@ -2145,6 +2147,72 @@ class Forms_admin extends CI_Controller {
             'error'       => $error_msg,
         );
         $this->render_view('forms_admin/bs_config_form', $data);
+    }
+
+    public function generate($slug = '') {
+        $slug = trim((string) $slug);
+        $form = $this->forms_model->get_by_public_slug($slug);
+        if (!$form || $form['status'] !== 'published') {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_generate_error_not_found'));
+            redirect('forms_admin');
+            return;
+        }
+
+        $required_params = isset($form['required_params']) ? $form['required_params'] : 'none';
+        $this->load->model('membres_model');
+
+        $section_id = (int) $this->session->userdata('section');
+        $pilot_selector      = $this->membres_model->get_selector($section_id);
+        $instructor_selector = $this->membres_model->inst_selector($section_id);
+
+        $data = array(
+            'controller'          => $this->controller,
+            'form'                => $form,
+            'required_params'     => $required_params,
+            'pilot_selector'      => $pilot_selector,
+            'instructor_selector' => $instructor_selector,
+            'error'               => $this->session->flashdata('forms_generate_error') ?: '',
+        );
+
+        $this->render_view('forms_admin/bs_generate', $data);
+    }
+
+    public function generate_submit($slug = '') {
+        $slug = trim((string) $slug);
+        $form = $this->forms_model->get_by_public_slug($slug);
+        if (!$form || $form['status'] !== 'published') {
+            redirect('forms_admin');
+            return;
+        }
+
+        $required_params  = isset($form['required_params']) ? $form['required_params'] : 'none';
+        $pilot_login      = trim((string) $this->input->post('pilot_login'));
+        $instructor_login = trim((string) $this->input->post('instructor_login'));
+
+        $errors = array();
+        if (in_array($required_params, array('pilot', 'pilot+instructor'), true) && $pilot_login === '') {
+            $errors[] = $this->lang->line('forms_generate_error_pilot');
+        }
+        if (in_array($required_params, array('instructor', 'pilot+instructor'), true) && $instructor_login === '') {
+            $errors[] = $this->lang->line('forms_generate_error_instructor');
+        }
+
+        if (!empty($errors)) {
+            $this->session->set_flashdata('forms_generate_error', implode('<br>', $errors));
+            redirect('forms_admin/generate/' . rawurlencode($slug));
+            return;
+        }
+
+        $params = array();
+        if ($pilot_login !== '')      $params[] = 'pilot_login='      . rawurlencode($pilot_login);
+        if ($instructor_login !== '') $params[] = 'instructor_login=' . rawurlencode($instructor_login);
+
+        $url = site_url('forms/' . rawurlencode($slug));
+        if (!empty($params)) {
+            $url .= '?' . implode('&', $params);
+        }
+
+        redirect($url);
     }
 
     private function render_view($view, $data = array()) {

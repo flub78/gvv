@@ -71,6 +71,25 @@
                     <div class="form-text"><?= $this->lang->line('forms_help_global_css') ?></div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label" for="required_params"><?= $this->lang->line('forms_label_required_params') ?></label>
+                    <?php
+                    $rp_current = isset($form['required_params']) ? $form['required_params'] : 'none';
+                    $rp_options = array(
+                        'none'             => $this->lang->line('forms_required_none'),
+                        'pilot'            => $this->lang->line('forms_required_pilot'),
+                        'instructor'       => $this->lang->line('forms_required_instructor'),
+                        'pilot+instructor' => $this->lang->line('forms_required_both'),
+                    );
+                    ?>
+                    <select class="form-select" id="required_params" name="required_params" style="max-width:320px;">
+                        <?php foreach ($rp_options as $val => $label): ?>
+                            <option value="<?= html_escape($val) ?>" <?= $rp_current === $val ? 'selected' : '' ?>><?= html_escape($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text"><?= $this->lang->line('forms_help_required_params') ?></div>
+                </div>
+
                 <div class="form-check mb-3">
                     <input
                         class="form-check-input"

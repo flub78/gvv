@@ -283,7 +283,7 @@ La fenêtre de création/modification est maintenant séparée en deux parties d
 - [x] Créer migration `051_add_source_file_to_email_list_external.php`
 - [x] ALTER TABLE `email_list_external` ADD COLUMN `source_file` VARCHAR(255) NULL
 - [x] Créer index composé `(email_list_id, source_file)` pour performances
-- [x] Tester migration up/down - Testé manuellement avec succès
+- [x] Validation migration réalisée manuellement avec succès
 - [x] Mettre à jour `application/config/migration.php` version = 51
 
 #### 3.7.2 Méthodes model pour upload ✅

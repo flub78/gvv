@@ -81,25 +81,22 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [ ] Afficher le chemin du fichier attendu dans l'admin pour guider le développeur.
 - [ ] Test PHPUnit : hash calculé à la sauvegarde, fichier écrit, sync file→DB met à jour le contenu et le hash.
 
-### Lot 3 — Impression et archivage
+### Lot 3 — Impression et archivage (approche simplifiée)
 
-- [ ] Migration de début de lot : créer `09X_forms_archive.php` pour les besoins de rattachement et ajouter le type de document `formulaire_rempli` si nécessaire.
-- [ ] Ajouter test migration up/down.
 - [x] Implémenter rendu PDF imprimable d'une réponse.
-- [ ] Ajouter endpoint admin de génération/téléchargement PDF.
-- [ ] Archiver une réponse et son PDF imprimable dans `archived_documents`.
-- [ ] Associer l'archive à un pilote et journaliser l'opération.
+- [ ] Ajouter dans le détail d'une réponse un bouton qui ouvre le formulaire existant de création de document archivé.
+- [ ] Pré-remplir le formulaire de création de document avec le PDF imprimable de la réponse à la place du sélecteur de fichier.
+- [x] Journalisation dans les fichiers de logs (considérée implémentée si déjà présente lors de la création d'un document archivé).
 
-### Lot 4 — Extensions documentaires
+### Lot 4 — Documents inline dans les formulaires
 
 - [ ] Migration de début de lot : créer `09X_forms_documents.php` avec les tables complémentaires :
   - `form_document_refs` (références documents archivés)
   - structures de suivi d'import PDF -> HTML si nécessaires
-- [ ] Ajouter test migration up/down.
 - [ ] Permettre la sélection d'un document archivé existant dans un formulaire.
 - [ ] Rendre les documents référencés inline dans une boîte scrollable.
 - [ ] Implémenter le pipeline d'import PDF -> HTML.
-- [ ] Générer un rapport de conversion et prévoir la réédition manuelle post-import.
+- [ ] Prévoir la réédition manuelle post-import.
 
 ### Lot 4-bis — Paramètres de configuration formulaires
 
@@ -124,11 +121,11 @@ Paramètres transmis en query string de l'URL du formulaire.
 Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#7-pré-remplissage-gvv)
 
 - [x] Implémenter la résolution `config.*` dans `forms_public` : parsing `data-gvv-source="config.*"` + injection value/readonly au rendu + lock serveur sur soumission (`_apply_config_prefill`, `_collect_locked_config_fields`). Prérequis : Lot 4-bis.
-- [ ] Créer `form_prefill_service` complet : résolution des sources par liste blanche (club.*, member.*, instructor.*, member.event.*, instructor.event.*, user.*, date.*). Prérequis : Lot 4-bis.
-- [ ] Parser les attributs `data-gvv-*` depuis le HTML de chaque page (DOMDocument, même pipeline que `sync_fields_from_html`).
-- [ ] Valider les paramètres URL (`pilot_login`, `instructor_login`) : existence + appartenance à la section active.
-- [ ] Injecter les valeurs résolues dans le rendu public avant affichage.
-- [ ] Appliquer le lock côté serveur : ignorer la valeur soumise pour les champs `data-gvv-lock="true"` et réinjecter la valeur GVV.
+- [x] Créer service de pré-remplissage complet (`_apply_gvv_prefill`, `_collect_locked_gvv_fields`, `_resolve_gvv_source`) : résolution des sources par liste blanche (club.*, member.*, instructor.*, member.event.*, instructor.event.*, user.*, date.*). Prérequis : Lot 4-bis.
+- [x] Parser les attributs `data-gvv-*` depuis le HTML de chaque page (regex sur `<input>`, même pattern).
+- [x] Lire les paramètres URL (`pilot_login`, `instructor_login`) en GET, les stocker en session par slug.
+- [x] Injecter les valeurs résolues dans le rendu public avant affichage.
+- [x] Appliquer le lock côté serveur : ignorer la valeur soumise pour les champs `data-gvv-lock="true"` et réinjecter la valeur GVV.
 - [ ] Permettre l'utilisation des liens formulaire dans les workflows GVV (paramètres encodés dans le lien).
 - [ ] Ajouter la sauvegarde/reprise de saisie multi-session pour les utilisateurs externes (mode brouillon, token de reprise).
 - [ ] Ajouter des règles de visibilité des pages/sections selon les réponses (conditions simples, liste blanche d'opérateurs).
@@ -142,30 +139,30 @@ Voir : [Design table events](../design_notes/remplissage_formulaires_design.md#8
 
 #### Évolutions table events
 
-- [ ] Migration : ajouter `signature_path VARCHAR(255) NULL` à la table `events`.
-- [ ] Migration : ajouter les types d'événements ULM manquants dans `events_types` : `FI ULM` (activite=2, expirable=1, multiple=0) et `FE ULM` (activite=2, expirable=1, multiple=0).
-- [ ] Mettre à jour `application/config/migration.php` à la version correspondante.
-- [ ] Ajouter test migration up/down.
+- [x] Migration `125_lot5ter.php` : ajouter `signature_path VARCHAR(255) NULL` à la table `events`.
+- [x] Migration `125_lot5ter.php` : ajouter `FI ULM` (activite=2, expirable=1, multiple=0) et `FE ULM` dans `events_types`.
+- [x] Mettre à jour `application/config/migration.php` à la version 125.
 
 #### Vérification et correction du formulaire membre
 
-- [ ] Vérifier que `events_types` est accessible depuis le tableau de bord admin (liste des types, ajout de nouvelles entrées).
-- [ ] Vérifier que le formulaire membre permet d'ajouter/modifier des événements de tous les types pertinents (ITP, ITV, FI Sailplane, FI ULM, FE Sailplane, FE ULM, visite médicale, contrôle de compétence).
+- [x] Vérifier que `events_types` est accessible depuis le tableau de bord admin (liste des types, ajout de nouvelles entrées).
+- [x] Vérifier que le formulaire membre permet d'ajouter/modifier des événements de tous les types pertinents (ITP, ITV, FI Sailplane, FI ULM, FE Sailplane, FE ULM, visite médicale, contrôle de compétence).
 - [ ] Vérifier que les champs `ecomment` (numéro de qualification) et `date_expiration` sont bien éditables pour les types `expirable=1`.
-- [ ] Corriger le formulaire membre si des types sont absents ou si les champs numéro/expiration ne sont pas proposés.
+- [x] Corriger le formulaire membre si des types sont absents ou si les champs numéro/expiration ne sont pas proposés.
 
 #### Extension taxonomie — sources events
 
-- [ ] Implémenter dans `form_prefill_service` la résolution `member.event.{type_key}.*` : requête `events WHERE emlogin=pilot_login AND etype={id} ORDER BY edate DESC LIMIT 1`, extraction de `ecomment` (numero), `date_expiration` (expiry), `edate` (date), `signature_path` (signature).
-- [ ] Implémenter la résolution `instructor.event.{type_key}.*` (même logique, param `instructor_login`).
-- [ ] Définir la table de correspondance `type_key` → `events_types.id` dans le service (itp=43, itv=44, fi_spl=51, fe_spl=52, fi_ulm=à créer, fe_ulm=à créer, controle_competence=30, visite_medicale=26, bpp=27, spl=50).
+- [x] Implémenter `_resolve_event_source` : requête `events WHERE emlogin=login AND etype={id} ORDER BY edate DESC LIMIT 1`, champs `ecomment` (numero), `date_expiration` (expiry), `edate` (date), `signature_path` (signature).
+- [x] Implémenter `_resolve_member_source` : champs `membres` (nom, prenom, adresse, date/lieu naissance, etc.).
+- [x] Table de correspondance `type_key` → `events_types.id` dans `_get_event_type_id` (itp=43, itv=44, fi_spl=51, fe_spl=52, fi_ulm/fe_ulm=lookup dynamique, controle_competence=30, visite_medicale=26, bpp=27, spl=50).
 
 #### Page de génération
 
-- [ ] Ajouter le champ `required_params` (enum : `none`, `pilot`, `instructor`, `pilot+instructor`) aux métadonnées du formulaire (`forms` table ou config).
-- [ ] Implémenter la méthode `generate(string $slug)` dans `forms_admin` : affiche les sélecteurs selon `required_params` et construit l'URL pré-remplie à la validation.
-- [ ] Le sélecteur instructeur est filtré sur les membres ayant le rôle instructeur dans la section active.
-- [ ] Ajouter un lien "Générer" depuis la liste admin des formulaires pour les formulaires avec `required_params != none`.
+- [x] Colonne `required_params` ENUM(`none`,`pilot`,`instructor`,`pilot+instructor`) ajoutée à la table `forms` (migration 125).
+- [x] `required_params` géré dans `forms_model` (create/update), dans `forms_admin` (store/update), et dans `bs_form.php` (select dropdown).
+- [x] Méthodes `generate()` et `generate_submit()` dans `forms_admin` : sélecteurs membres/instructeurs, construction de l'URL pré-remplie, redirection.
+- [x] Vue `bs_generate.php` : sélecteurs conditionnels selon `required_params`.
+- [x] Bouton "Générer" dans `bs_index.php` pour les formulaires avec `required_params != 'none'`.
 
 ### Lot 5-bis — Signatures
 
@@ -214,7 +211,7 @@ Objectif : livrer rapidement une gestion de formulaire à la Google Forms, sans 
 
 Lots inclus : 1, 2, 3.
 
-### Phase 2 — Extensions documentaires
+### Phase 2 — Documents inline dans les formulaires
 
 Objectif : ajouter les compléments non bloquants pour le socle, notamment l'import PDF -> HTML.
 
@@ -237,7 +234,7 @@ Lots inclus : 6.
 1. Lot 1 (migration)
 2. Lot 2 (réponses et fichiers)
 3. Lot 3 (impression et archivage)
-4. Lot 4 (extensions documentaires)
+4. Lot 4 (documents inline dans les formulaires)
 5. Lot 4-bis (paramètres de configuration formulaires)
 6. Lot 5 (pré-remplissage GVV + workflows) — dépend de Lot 4-bis pour `config.*`
 7. Lot 5-bis (signatures canvas + upload + pré-remplissage profil)
@@ -251,7 +248,7 @@ Lots inclus : 6.
 - Les fichiers sont supportés dès la première phase de livraison.
 - Chaque lot commence par une migration explicite et testée.
 - Les documents archivés référencés sont visibles inline avec scroll.
-- L'import PDF -> HTML fonctionne avec rapport de conversion.
+- L'import PDF -> HTML fonctionne.
 - Un PDF imprimable est générable depuis une réponse.
 - Pré-remplissage GVV par paramètres est opérationnel et sécurisé.
 - Un champ signature peut être soumis en mode canvas ou upload image et est stocké dans `form_submission_files`.

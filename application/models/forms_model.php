@@ -35,8 +35,9 @@ class Forms_model extends CI_Model {
             'public_slug' => isset($data['public_slug']) && $data['public_slug'] !== ''
                 ? $this->ensure_unique_slug($data['public_slug'])
                 : $this->ensure_unique_slug($data['code']),
-            'css_scope'   => isset($data['css_scope']) ? $data['css_scope'] : null,
-            'global_css'  => isset($data['global_css']) ? $data['global_css'] : null,
+            'css_scope'       => isset($data['css_scope']) ? $data['css_scope'] : null,
+            'global_css'      => isset($data['global_css']) ? $data['global_css'] : null,
+            'required_params' => isset($data['required_params']) ? $data['required_params'] : 'none',
             'created_at'  => $now,
             'updated_at'  => $now,
             'created_by'  => isset($data['created_by']) ? $data['created_by'] : null,
@@ -104,8 +105,9 @@ class Forms_model extends CI_Model {
             'title'       => isset($data['title']) ? $data['title'] : $current['title'],
             'description' => array_key_exists('description', $data) ? $data['description'] : $current['description'],
             'status'      => isset($data['status']) ? $data['status'] : $current['status'],
-            'css_scope'   => array_key_exists('css_scope', $data) ? $data['css_scope'] : $current['css_scope'],
-            'global_css'  => array_key_exists('global_css', $data) ? $data['global_css'] : (isset($current['global_css']) ? $current['global_css'] : null),
+            'css_scope'       => array_key_exists('css_scope', $data) ? $data['css_scope'] : $current['css_scope'],
+            'global_css'      => array_key_exists('global_css', $data) ? $data['global_css'] : (isset($current['global_css']) ? $current['global_css'] : null),
+            'required_params' => isset($data['required_params']) ? $data['required_params'] : (isset($current['required_params']) ? $current['required_params'] : 'none'),
             'updated_at'  => date('Y-m-d H:i:s'),
             'updated_by'  => isset($data['updated_by']) ? $data['updated_by'] : null,
         );

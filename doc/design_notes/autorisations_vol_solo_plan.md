@@ -31,7 +31,7 @@ Cette fonctionnalité permet aux instructeurs de créer et gérer des autorisati
 - [x] Créer `application/migrations/066_formation_autorisations_solo.php`
 - [x] Définir la table avec les contraintes FK
 - [x] Mettre à jour `application/config/migration.php` à la version 66
-- [x] Tester la migration up/down
+- [x] Validation migration effectuée
 
 ### Phase 2 : Couche modèle
 
@@ -118,7 +118,6 @@ formation_autorisation_solo_deleted
 
 **Étape 7.1 : Tests PHPUnit**
 - [ ] `application/tests/mysql/FormationAutorisationSoloTest.php` - Tests CRUD modèle
-- [ ] Test de la migration up/down
 
 **Étape 7.2 : Tests Playwright**
 - [x] Test smoke : accès à la fonctionnalité

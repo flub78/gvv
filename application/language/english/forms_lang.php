@@ -205,5 +205,24 @@ $lang['forms_config_error_invalid_key']   = 'The key may only contain letters, d
 $lang['forms_config_card_title']          = 'Configuration';
 $lang['forms_config_card_description']    = 'Key/value parameters usable in forms.';
 
+/* required_params */
+$lang['forms_label_required_params']  = 'GVV context';
+$lang['forms_help_required_params']   = 'Selectors needed to pre-fill fields from GVV (members, instructors, events).';
+$lang['forms_required_none']          = 'Public form (no GVV pre-fill)';
+$lang['forms_required_pilot']         = 'Member selection (candidate/pilot)';
+$lang['forms_required_instructor']    = 'Instructor selection';
+$lang['forms_required_both']          = 'Member + instructor selection';
+
+/* generate page */
+$lang['forms_button_generate']          = 'Generate';
+$lang['forms_generate_title']           = 'Generate pre-filled form';
+$lang['forms_generate_pilot']           = 'Candidate / Pilot';
+$lang['forms_generate_instructor']      = 'Instructor';
+$lang['forms_generate_button']          = 'Fill form';
+$lang['forms_generate_select_placeholder'] = '— Select —';
+$lang['forms_generate_error_not_found'] = 'Form not found or not published.';
+$lang['forms_generate_error_pilot']     = 'Please select a candidate.';
+$lang['forms_generate_error_instructor']= 'Please select an instructor.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/english/forms_lang.php */

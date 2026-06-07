@@ -82,6 +82,9 @@
                                         <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">
                                             <?= $this->lang->line('forms_button_responses') ?><?= $cnt > 0 ? ' <span class="badge bg-info text-dark ms-1">' . $cnt . '</span>' : '' ?>
                                         </a>
+                                        <?php if (!empty($form['required_params']) && $form['required_params'] !== 'none'): ?>
+                                        <a class="btn btn-sm btn-outline-success" href="<?= site_url('forms_admin/generate/' . rawurlencode($form['public_slug'])) ?>"><?= $this->lang->line('forms_button_generate') ?></a>
+                                        <?php endif; ?>
                                         <form method="post" action="<?= site_url('forms_admin/duplicate/' . $form['id']) ?>" style="display:contents">
                                             <button type="submit" class="btn btn-sm btn-outline-secondary"><?= $this->lang->line('forms_button_duplicate') ?></button>
                                         </form>

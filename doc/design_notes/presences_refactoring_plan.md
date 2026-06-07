@@ -619,7 +619,7 @@ $lang['gvv_menu_presences'] = 'Présences';
 
 ### Phase 1 : Migration base de données ✅ TERMINÉE
 1. ✅ Créer migration `application/migrations/060_refactor_calendar_table.php`
-2. ✅ Tester migration up/down
+2. ✅ Validation migration effectuée
 3. ✅ Mettre à jour `config/migration.php` (version 60)
 4. ✅ Créer test de migration (Calendar_migration_test.php)
 

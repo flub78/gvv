@@ -35,7 +35,7 @@ Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage pr
 - export PDF imprimable
 - archivage d'une réponse vers pilote
 
-### Phase 2 — Extensions documentaires
+### Phase 2 — Documents inline dans les formulaires
 
 - references documentaires inline
 
@@ -430,7 +430,7 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 
 - Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
 - Détection des champs du PDF source quand possible
-- Génération d'une page HTML initiale + rapport des champs non convertis
+- Génération d'une page HTML initiale
 
 ### 11. Export PDF imprimable
 
@@ -441,9 +441,9 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 ### 12. Archivage documentaire
 
 - Entite : `archived_documents`
-- `archived_documents` : table d'archive finale des documents, avec métadonnées de fichier, liens vers pilote/section/type de document et suivi des versions et de la validation.
-- Stockage persistant du fichier produit par export ou transfert depuis une soumission
-- Reference reutilisable dans les ecrans documentaires existants
+- Réutiliser le formulaire existant de création de document archivé.
+- Depuis le détail d'une réponse, un bouton ouvre ce formulaire avec le PDF imprimable déjà pré-rempli à la place du sélecteur de fichier.
+- Journalisation dans les fichiers de logs.
 
 ## API interne proposee
 
@@ -469,7 +469,7 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 ### Service impression/archivage
 
 - `render_submission_pdf(int $submission_id): string`
-- `archive_submission(int $submission_id, string $pilot_login): int`
+- Réutilisation du flux existant de création de document archivé (pas de service `archive_submission` dédié en V1 simplifiée).
 
 ### Service signature
 
@@ -484,7 +484,7 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 - Désinfection HTML des contenus admin importés
 - Protection CSRF
 - Limitation de débit sur soumissions publiques
-- Logs d'audit admin et soumissions
+- Journalisation dans les fichiers de logs
 
 ## Intégration workflows GVV
 

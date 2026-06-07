@@ -205,5 +205,24 @@ $lang['forms_config_error_invalid_key']   = 'De sleutel mag alleen letters, cijf
 $lang['forms_config_card_title']          = 'Configuratie';
 $lang['forms_config_card_description']    = 'Sleutel/waarde parameters bruikbaar in formulieren.';
 
+/* required_params */
+$lang['forms_label_required_params']  = 'GVV-context';
+$lang['forms_help_required_params']   = 'Selectoren nodig om velden vanuit GVV voor te vullen (leden, instructeurs, evenementen).';
+$lang['forms_required_none']          = 'Openbaar formulier (geen GVV-voorvulling)';
+$lang['forms_required_pilot']         = 'Ledselectie (kandidaat/piloot)';
+$lang['forms_required_instructor']    = 'Instructeurselectie';
+$lang['forms_required_both']          = 'Lid + instructeurselectie';
+
+/* generate page */
+$lang['forms_button_generate']          = 'Genereren';
+$lang['forms_generate_title']           = 'Voorgevuld formulier genereren';
+$lang['forms_generate_pilot']           = 'Kandidaat / Piloot';
+$lang['forms_generate_instructor']      = 'Instructeur';
+$lang['forms_generate_button']          = 'Formulier invullen';
+$lang['forms_generate_select_placeholder'] = '— Selecteer —';
+$lang['forms_generate_error_not_found'] = 'Formulier niet gevonden of niet gepubliceerd.';
+$lang['forms_generate_error_pilot']     = 'Selecteer een kandidaat.';
+$lang['forms_generate_error_instructor']= 'Selecteer een instructeur.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/dutch/forms_lang.php */

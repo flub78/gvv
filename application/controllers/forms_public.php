@@ -10,6 +10,7 @@ if (!defined('BASEPATH'))
 class Forms_public extends CI_Controller {
 
     private $upload_base_dir = 'uploads/forms_submissions';
+    private $_event_type_map_ulm = null;
 
     public function __construct() {
         parent::__construct();
@@ -71,7 +72,18 @@ class Forms_public extends CI_Controller {
             $old_values
         );
 
-        // Inject signature widgets and apply config prefill into page HTML.
+        $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
+        $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);
+
+        $get_pilot      = trim((string) $this->input->get('pilot_login'));
+        $get_instructor = trim((string) $this->input->get('instructor_login'));
+        if ($get_pilot      !== '') $this->session->set_userdata($session_key_pilot, $get_pilot);
+        if ($get_instructor !== '') $this->session->set_userdata($session_key_instructor, $get_instructor);
+
+        $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
+        $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
+
+        // Inject signature widgets and apply GVV prefill into page HTML.
         // The view applies html_entity_decode to content_html before rendering,
         // so we work on raw HTML here and store raw HTML back.
         $has_signature_widget = false;
@@ -79,7 +91,7 @@ class Forms_public extends CI_Controller {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget);
             $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
-            list($injected, ) = $this->_apply_config_prefill($injected, $club_id);
+            list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
             $current_page['content_html'] = $injected;
         }
 
@@ -173,10 +185,15 @@ class Forms_public extends CI_Controller {
             $submitted_values[(int) $field['id']] = $value;
         }
 
-        // Apply server-side lock: override submitted values for config-prefilled locked fields.
+        // Apply server-side lock: override submitted values for GVV-prefilled locked fields.
+        $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
+        $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);
+        $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
+        $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
+
         $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
         $raw_page_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $locked_config = $this->_collect_locked_config_fields($raw_page_html, $club_id);
+        $locked_config = $this->_collect_locked_gvv_fields($raw_page_html, $pilot_login, $instructor_login, $club_id);
         if (!empty($locked_config)) {
             foreach ($fields as $field) {
                 $fname = (string) $field['name'];
@@ -484,6 +501,230 @@ class Forms_public extends CI_Controller {
         }
 
         return $locked;
+    }
+
+    /**
+     * Apply all GVV data-gvv-source prefill to page HTML.
+     * Handles config.*, club.*, date.*, member.*, instructor.*, member.event.*, instructor.event.*
+     * Returns [modified_html, locked_fields_map].
+     */
+    private function _apply_gvv_prefill($html, $pilot_login, $instructor_login, $club_id) {
+        if (strpos($html, 'data-gvv-source') === false) {
+            return array($html, array());
+        }
+
+        $this->load->model('form_config_params_model');
+        $locked_fields = array();
+
+        $result = preg_replace_callback(
+            '/<input(\s[^>]*)>/is',
+            function ($m) use ($pilot_login, $instructor_login, $club_id, &$locked_fields) {
+                $attrs = $m[1];
+                if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) {
+                    return $m[0];
+                }
+                $source = $src[1];
+
+                $value = $this->_resolve_gvv_source($source, $pilot_login, $instructor_login, $club_id);
+                if ($value === null) {
+                    return $m[0];
+                }
+
+                $field_name = '';
+                if (preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                    $field_name = $nm[1];
+                }
+
+                $lock = (bool) preg_match('/\bdata-gvv-lock=["\']true["\']/', $attrs);
+                if ($lock && $field_name !== '') {
+                    $locked_fields[$field_name] = $value;
+                }
+
+                $clean = preg_replace('/\s+data-gvv-[a-z-]+=["\'][^"\']*["\']/', '', $attrs);
+                $clean = preg_replace('/\s+value=["\'][^"\']*["\']/', '', $clean);
+
+                if ($lock) {
+                    $clean .= ' readonly';
+                }
+
+                $esc = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+                return '<input' . $clean . ' value="' . $esc . '">';
+            },
+            $html
+        );
+
+        return array($result !== null ? $result : $html, $locked_fields);
+    }
+
+    /**
+     * Collect locked GVV fields for server-side enforcement on submit.
+     */
+    private function _collect_locked_gvv_fields($html, $pilot_login, $instructor_login, $club_id) {
+        $locked = array();
+        if (strpos($html, 'data-gvv-source') === false || strpos($html, 'data-gvv-lock') === false) {
+            return $locked;
+        }
+
+        $this->load->model('form_config_params_model');
+
+        preg_match_all('/<input(\s[^>]*)>/is', $html, $inputs);
+        foreach ($inputs[1] as $attrs) {
+            if (!preg_match('/\bdata-gvv-lock=["\']true["\']/', $attrs)) continue;
+            if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) continue;
+            if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
+
+            $value = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $club_id);
+            if ($value !== null) {
+                $locked[$nm[1]] = (string) $value;
+            }
+        }
+
+        return $locked;
+    }
+
+    /**
+     * Dispatch a data-gvv-source string to the correct resolver.
+     */
+    private function _resolve_gvv_source($source, $pilot_login, $instructor_login, $club_id) {
+        $parts = explode('.', $source, 4);
+        $ns = isset($parts[0]) ? $parts[0] : '';
+
+        switch ($ns) {
+            case 'config':
+                if (empty($parts[1])) return null;
+                return $this->form_config_params_model->resolve($parts[1], $club_id);
+
+            case 'club':
+                return $this->_resolve_club_source(isset($parts[1]) ? $parts[1] : '');
+
+            case 'date':
+                return $this->_resolve_date_source(isset($parts[1]) ? $parts[1] : '');
+
+            case 'user':
+                $login = $this->dx_auth->get_username();
+                if (isset($parts[1]) && $parts[1] === 'event') {
+                    return $this->_resolve_event_source(isset($parts[2]) ? $parts[2] : '', isset($parts[3]) ? $parts[3] : '', $login);
+                }
+                return $this->_resolve_member_source(isset($parts[1]) ? $parts[1] : '', $login);
+
+            case 'member':
+                if (empty($pilot_login)) return null;
+                if (isset($parts[1]) && $parts[1] === 'event') {
+                    return $this->_resolve_event_source(isset($parts[2]) ? $parts[2] : '', isset($parts[3]) ? $parts[3] : '', $pilot_login);
+                }
+                return $this->_resolve_member_source(isset($parts[1]) ? $parts[1] : '', $pilot_login);
+
+            case 'instructor':
+                if (empty($instructor_login)) return null;
+                if (isset($parts[1]) && $parts[1] === 'event') {
+                    return $this->_resolve_event_source(isset($parts[2]) ? $parts[2] : '', isset($parts[3]) ? $parts[3] : '', $instructor_login);
+                }
+                return $this->_resolve_member_source(isset($parts[1]) ? $parts[1] : '', $instructor_login);
+        }
+
+        return null;
+    }
+
+    private function _resolve_member_source($field, $login) {
+        if (empty($login)) return null;
+
+        static $cache = array();
+        if (!isset($cache[$login])) {
+            $row = $this->db->select('mnom, mprenom, memail, mtelf, mtelm, madresse, cp, ville, mdaten, place_of_birth, signature_path')
+                ->from('membres')
+                ->where('mlogin', $login)
+                ->get()->row_array();
+            $cache[$login] = $row ?: false;
+        }
+        $m = $cache[$login];
+        if (!$m) return null;
+
+        switch ($field) {
+            case 'nom':               return $m['mnom'];
+            case 'prenom':            return $m['mprenom'];
+            case 'nom_prenom':        return trim($m['mnom'] . ' ' . $m['mprenom']);
+            case 'email':             return $m['memail'];
+            case 'telephone':         return !empty($m['mtelf']) ? $m['mtelf'] : $m['mtelm'];
+            case 'adresse':           return $m['madresse'];
+            case 'code_postal':       return (string) $m['cp'];
+            case 'ville':             return $m['ville'];
+            case 'adresse_complete':  return trim($m['madresse'] . ', ' . $m['cp'] . ' ' . $m['ville']);
+            case 'date_naissance':    return (!empty($m['mdaten']) && $m['mdaten'] !== '0000-00-00') ? date('d/m/Y', strtotime($m['mdaten'])) : '';
+            case 'lieu_naissance':    return $m['place_of_birth'];
+            case 'date_lieu_naissance':
+                $d = (!empty($m['mdaten']) && $m['mdaten'] !== '0000-00-00') ? date('d/m/Y', strtotime($m['mdaten'])) : '';
+                return $d . (!empty($m['place_of_birth']) ? ' à ' . $m['place_of_birth'] : '');
+            case 'signature':         return $m['signature_path'];
+        }
+        return null;
+    }
+
+    private function _get_event_type_id($type_key) {
+        static $static_map = array(
+            'itp'                 => 43,
+            'itv'                 => 44,
+            'fi_spl'              => 51,
+            'fe_spl'              => 52,
+            'controle_competence' => 30,
+            'visite_medicale'     => 26,
+            'bpp'                 => 27,
+            'spl'                 => 50,
+        );
+        if (isset($static_map[$type_key])) return $static_map[$type_key];
+
+        if ($this->_event_type_map_ulm === null) {
+            $this->_event_type_map_ulm = array();
+            $rows = $this->db->select('id, name')->from('events_types')
+                ->where_in('name', array('FI ULM', 'FE ULM'))->get()->result_array();
+            foreach ($rows as $row) {
+                if ($row['name'] === 'FI ULM') $this->_event_type_map_ulm['fi_ulm'] = (int) $row['id'];
+                if ($row['name'] === 'FE ULM') $this->_event_type_map_ulm['fe_ulm'] = (int) $row['id'];
+            }
+        }
+        return isset($this->_event_type_map_ulm[$type_key]) ? $this->_event_type_map_ulm[$type_key] : null;
+    }
+
+    private function _resolve_event_source($type_key, $field, $login) {
+        if (empty($login) || empty($type_key) || empty($field)) return null;
+        $etype_id = $this->_get_event_type_id($type_key);
+        if ($etype_id === null) return null;
+
+        $row = $this->db->select('ecomment, edate, date_expiration, signature_path')
+            ->from('events')
+            ->where('emlogin', $login)
+            ->where('etype', $etype_id)
+            ->order_by('edate', 'DESC')
+            ->limit(1)
+            ->get()->row_array();
+        if (!$row) return null;
+
+        switch ($field) {
+            case 'numero':    return $row['ecomment'];
+            case 'date':      return (!empty($row['edate'])           && $row['edate']           !== '0000-00-00') ? date('d/m/Y', strtotime($row['edate']))           : '';
+            case 'expiry':    return (!empty($row['date_expiration']) && $row['date_expiration'] !== '0000-00-00') ? date('d/m/Y', strtotime($row['date_expiration'])) : '';
+            case 'signature': return $row['signature_path'];
+        }
+        return null;
+    }
+
+    private function _resolve_club_source($field) {
+        switch ($field) {
+            case 'nom':     return $this->config->item('nom_club');
+            case 'sigle':   return $this->config->item('sigle_club');
+            case 'adresse': return $this->config->item('adresse_club');
+            case 'ville':   return $this->config->item('ville_club');
+            case 'email':   return $this->config->item('email_club');
+        }
+        return null;
+    }
+
+    private function _resolve_date_source($field) {
+        switch ($field) {
+            case 'today':    return date('Y-m-d');
+            case 'today_fr': return date('d/m/Y');
+            case 'year':     return date('Y');
+        }
+        return null;
     }
 
     private function render_view($view, $data = array()) {
