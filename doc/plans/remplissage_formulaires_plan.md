@@ -69,7 +69,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [x] Gérer téléchargement sécurisé et politique de rétention initiale.
 - [x] Ajouter messages de confirmation explicites côté utilisateur.
 
-### Lot 2-bis — Synchronisation fichiers disque
+### Lot 2-bis — Synchronisation fichiers disque (option)
 
 - [ ] Migration : ajouter `content_hash VARCHAR(32) NULL` sur `form_pages` et `css_hash VARCHAR(32) NULL` sur `forms`.
 - [ ] Créer le répertoire `application/forms_templates/` avec `.htaccess` de protection (si nécessaire selon config serveur).
@@ -84,7 +84,7 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 ### Lot 3 — Impression et archivage (approche simplifiée)
 
 - [x] Implémenter rendu PDF imprimable d'une réponse.
-- [ ] Ajouter dans le détail d'une réponse un bouton qui ouvre le formulaire existant de création de document archivé.
+- [ ] Ajouter dans la liste des réponses un bouton qui ouvre le formulaire existant de création de document archivé.
 - [ ] Pré-remplir le formulaire de création de document avec le PDF imprimable de la réponse à la place du sélecteur de fichier.
 - [x] Journalisation dans les fichiers de logs (considérée implémentée si déjà présente lors de la création d'un document archivé).
 

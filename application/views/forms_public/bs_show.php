@@ -58,9 +58,22 @@
                 <span class="badge bg-secondary"><?= $this->lang->line('forms_label_page') ?> <?= $current_page_number ?> / <?= $page_count ?></span>
             </div>
 
+            <?php
+            $pilot_login_v      = isset($pilot_login)      ? (string) $pilot_login      : '';
+            $instructor_login_v = isset($instructor_login) ? (string) $instructor_login : '';
+            $gvv_qs = '';
+            if ($pilot_login_v      !== '') $gvv_qs .= '&pilot_login='      . rawurlencode($pilot_login_v);
+            if ($instructor_login_v !== '') $gvv_qs .= '&instructor_login=' . rawurlencode($instructor_login_v);
+            ?>
             <form method="post" enctype="multipart/form-data"
                   action="<?= site_url('forms/submit/' . rawurlencode($form['public_slug'])) ?>">
                 <input type="hidden" name="page_number" value="<?= $current_page_number ?>">
+                <?php if ($pilot_login_v      !== ''): ?>
+                <input type="hidden" name="gvv_pilot_login"      value="<?= html_escape($pilot_login_v) ?>">
+                <?php endif; ?>
+                <?php if ($instructor_login_v !== ''): ?>
+                <input type="hidden" name="gvv_instructor_login" value="<?= html_escape($instructor_login_v) ?>">
+                <?php endif; ?>
 
                 <?php if ($raw_html !== ''): ?>
                     <?= $raw_html /* HTML composé par un admin — confiance explicite accordée au rôle admin */ ?>
@@ -72,7 +85,7 @@
                     <div>
                         <?php if ($current_page_number > 1): ?>
                             <a class="btn btn-outline-secondary"
-                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number - 1 ?>">
+                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number - 1 . $gvv_qs ?>">
                                 <?= $this->lang->line('forms_button_previous_page') ?>
                             </a>
                         <?php endif; ?>
@@ -80,7 +93,7 @@
                     <div>
                         <?php if ($current_page_number < $page_count): ?>
                             <a class="btn btn-primary"
-                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number + 1 ?>">
+                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number + 1 . $gvv_qs ?>">
                                 <?= $this->lang->line('forms_button_next_page') ?>
                             </a>
                         <?php else: ?>

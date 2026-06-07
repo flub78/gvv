@@ -31,6 +31,14 @@
                     </ul>
                 </div>
             <?php endif; ?>
+
+            <?php if ($this->dx_auth->is_logged_in() && !empty($form['id'])): ?>
+                <div class="mt-3">
+                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>">
+                        <?= $this->lang->line('forms_button_back_to_responses') ?>
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

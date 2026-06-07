@@ -25,6 +25,7 @@ class Forms_admin extends CI_Controller {
         $this->load->library('form_validation');
         $this->load->library('forms_renderer');
         $this->lang->load('gvv');
+        $this->lang->load('forms');
 
         if (!$this->dx_auth->is_logged_in()) {
             redirect('auth/login');

@@ -106,6 +106,8 @@ class Forms_public extends CI_Controller {
             'error'                  => $this->session->flashdata('forms_public_error') ?: '',
             'old_values'             => $old_values,
             'has_signature_widget'   => $has_signature_widget,
+            'pilot_login'            => $pilot_login,
+            'instructor_login'       => $instructor_login,
         );
 
         $this->render_view('forms_public/bs_show', $data);
@@ -191,6 +193,22 @@ class Forms_public extends CI_Controller {
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
 
+        // Fallback: read from hidden POST inputs (set by bs_show.php) and refresh session.
+        $post_pilot      = trim((string) $this->input->post('gvv_pilot_login'));
+        $post_instructor = trim((string) $this->input->post('gvv_instructor_login'));
+        if ($pilot_login === '' && $post_pilot !== '') {
+            $pilot_login = $post_pilot;
+            $this->session->set_userdata($session_key_pilot, $pilot_login);
+        }
+        if ($instructor_login === '' && $post_instructor !== '') {
+            $instructor_login = $post_instructor;
+            $this->session->set_userdata($session_key_instructor, $instructor_login);
+        }
+
+        $gvv_params = '';
+        if ($pilot_login      !== '') $gvv_params .= '&pilot_login='      . rawurlencode($pilot_login);
+        if ($instructor_login !== '') $gvv_params .= '&instructor_login=' . rawurlencode($instructor_login);
+
         $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
         $raw_page_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $locked_config = $this->_collect_locked_gvv_fields($raw_page_html, $pilot_login, $instructor_login, $club_id);
@@ -208,7 +226,7 @@ class Forms_public extends CI_Controller {
         if (!empty($errors)) {
             $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
-            redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number);
+            redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
         }
 
@@ -228,7 +246,7 @@ class Forms_public extends CI_Controller {
             if (!empty($upload_result['errors'])) {
                 $this->session->set_flashdata('forms_public_error', implode('<br>', $upload_result['errors']));
                 $this->session->set_flashdata('forms_public_old_values', $submitted_values);
-                redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number);
+                redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
                 return;
             }
 
@@ -294,7 +312,7 @@ class Forms_public extends CI_Controller {
             }
             $this->session->set_flashdata('forms_public_error', 'Impossible d\'enregistrer votre réponse pour le moment.');
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
-            redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number);
+            redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
         }
 
