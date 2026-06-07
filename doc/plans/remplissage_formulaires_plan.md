@@ -123,7 +123,8 @@ Syntaxe : attributs `data-gvv-source`, `data-gvv-param`, `data-gvv-lock` sur les
 Paramètres transmis en query string de l'URL du formulaire.
 Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
 
-- [ ] Créer `form_prefill_service` : résolution des sources par liste blanche (config.*, club.*, member.*, instructor.*, user.*, date.*). Le namespace `config.*` délègue à `form_config_params_model` avec résolution section → global. Prérequis : Lot 4-bis.
+- [x] Implémenter la résolution `config.*` dans `forms_public` : parsing `data-gvv-source="config.*"` + injection value/readonly au rendu + lock serveur sur soumission (`_apply_config_prefill`, `_collect_locked_config_fields`). Prérequis : Lot 4-bis.
+- [ ] Créer `form_prefill_service` complet : résolution des sources par liste blanche (club.*, member.*, instructor.*, user.*, date.*). Prérequis : Lot 4-bis.
 - [ ] Parser les attributs `data-gvv-*` depuis le HTML de chaque page (DOMDocument, même pipeline que `sync_fields_from_html`).
 - [ ] Valider les paramètres URL (`pilot_login`, `instructor_login`) : existence + appartenance à la section active.
 - [ ] Injecter les valeurs résolues dans le rendu public avant affichage.

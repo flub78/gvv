@@ -71,17 +71,16 @@ class Forms_public extends CI_Controller {
             $old_values
         );
 
-        // Inject signature widgets into page HTML.
+        // Inject signature widgets and apply config prefill into page HTML.
         // The view applies html_entity_decode to content_html before rendering,
         // so we work on raw HTML here and store raw HTML back.
         $has_signature_widget = false;
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget);
-            if ($injected !== $raw) {
-                // Store raw injected HTML — the view's html_entity_decode is a no-op on raw HTML
-                $current_page['content_html'] = $injected;
-            }
+            $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
+            list($injected, ) = $this->_apply_config_prefill($injected, $club_id);
+            $current_page['content_html'] = $injected;
         }
 
         $data = array(
@@ -172,6 +171,19 @@ class Forms_public extends CI_Controller {
                 $value = array_values($value);
             }
             $submitted_values[(int) $field['id']] = $value;
+        }
+
+        // Apply server-side lock: override submitted values for config-prefilled locked fields.
+        $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
+        $raw_page_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $locked_config = $this->_collect_locked_config_fields($raw_page_html, $club_id);
+        if (!empty($locked_config)) {
+            foreach ($fields as $field) {
+                $fname = (string) $field['name'];
+                if (isset($locked_config[$fname])) {
+                    $submitted_values[(int) $field['id']] = $locked_config[$fname];
+                }
+            }
         }
 
         $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
@@ -382,6 +394,96 @@ class Forms_public extends CI_Controller {
             'size_bytes'    => strlen($png_data),
             'storage_path'  => $relative_dir . '/' . $stored_name,
         );
+    }
+
+    /**
+     * Resolve config.* data-gvv-source attributes in page HTML and inject values.
+     *
+     * Returns [modified_html, locked_fields_map].
+     * locked_fields_map: field_name => resolved_value for data-gvv-lock="true" fields.
+     * Also strips data-gvv-* attributes from the rendered output and adds readonly on locked inputs.
+     */
+    private function _apply_config_prefill($html, $club_id) {
+        if (strpos($html, 'data-gvv-source') === false) {
+            return array($html, array());
+        }
+
+        $this->load->model('form_config_params_model');
+        $locked_fields = array();
+
+        $result = preg_replace_callback(
+            '/<input(\s[^>]*)>/is',
+            function ($m) use ($club_id, &$locked_fields) {
+                $attrs = $m[1];
+
+                if (!preg_match('/\bdata-gvv-source=["\']config\.([a-zA-Z0-9_]+)["\']/', $attrs, $src)) {
+                    return $m[0];
+                }
+                $param_key = $src[1];
+
+                $value = $this->form_config_params_model->resolve($param_key, $club_id);
+                if ($value === null) {
+                    $value = '';
+                }
+
+                $field_name = '';
+                if (preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                    $field_name = $nm[1];
+                }
+
+                $lock = (bool) preg_match('/\bdata-gvv-lock=["\']true["\']/', $attrs);
+                if ($lock && $field_name !== '') {
+                    $locked_fields[$field_name] = $value;
+                }
+
+                // Strip all data-gvv-* attributes
+                $clean = preg_replace('/\s+data-gvv-[a-z-]+=["\'][^"\']*["\']/', '', $attrs);
+                // Remove any pre-existing value attribute to avoid duplication
+                $clean = preg_replace('/\s+value=["\'][^"\']*["\']/', '', $clean);
+
+                if ($lock) {
+                    $clean .= ' readonly';
+                }
+
+                $esc = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                return '<input' . $clean . ' value="' . $esc . '">';
+            },
+            $html
+        );
+
+        return array($result !== null ? $result : $html, $locked_fields);
+    }
+
+    /**
+     * Parse page HTML and return a map of field_name => resolved_value
+     * for every input that has both data-gvv-source="config.*" and data-gvv-lock="true".
+     * Used server-side on submit to override the submitted value regardless of what the browser sent.
+     */
+    private function _collect_locked_config_fields($html, $club_id) {
+        $locked = array();
+        if (strpos($html, 'data-gvv-source') === false || strpos($html, 'data-gvv-lock') === false) {
+            return $locked;
+        }
+
+        $this->load->model('form_config_params_model');
+
+        preg_match_all('/<input(\s[^>]*)>/is', $html, $inputs);
+        foreach ($inputs[1] as $attrs) {
+            if (!preg_match('/\bdata-gvv-lock=["\']true["\']/', $attrs)) {
+                continue;
+            }
+            if (!preg_match('/\bdata-gvv-source=["\']config\.([a-zA-Z0-9_]+)["\']/', $attrs, $src)) {
+                continue;
+            }
+            if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                continue;
+            }
+
+            $value = $this->form_config_params_model->resolve($src[1], $club_id);
+            $locked[$nm[1]] = $value !== null ? $value : '';
+        }
+
+        return $locked;
     }
 
     private function render_view($view, $data = array()) {
