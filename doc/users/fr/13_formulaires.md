@@ -94,7 +94,7 @@ Les champs déclarés permettent à GVV d'identifier les données soumises, d'ap
 | `radio` | `<input type="radio">` (groupe) | Options déclarées dans l'admin |
 | `checkbox` | `<input type="checkbox">` (groupe) | `name="champ[]"` pour les valeurs multiples |
 | `file` | `<input type="file">` | MIME et taille contrôlés |
-| `signature` | `<div data-gvv-type="signature">` | Widget interactif — voir ci-dessous |
+| `signature` | `<div data-gvv-type="signature" ...>` | Widget interactif — voir ci-dessous |
 
 ### Exemples HTML par type
 
