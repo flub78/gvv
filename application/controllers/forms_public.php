@@ -203,8 +203,8 @@ class Forms_public extends CI_Controller {
                 return;
             }
 
-            $uploaded_files = $upload_result['files'];
-            foreach ($uploaded_files as $uploaded_file) {
+            $uploaded_files = array_merge($uploaded_files, $upload_result['files']);
+            foreach ($upload_result['files'] as $uploaded_file) {
                 $field_id = (int) $uploaded_file['field_id'];
                 $submitted_values[$field_id] = $uploaded_file['original_name'];
             }

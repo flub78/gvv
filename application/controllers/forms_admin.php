@@ -693,8 +693,13 @@ class Forms_admin extends CI_Controller {
             $values_by_name[(string) $v['field_name']] = (string) $v['value_text'];
         }
         $files_by_name = array();
+        $sig_files     = array();
         foreach ($files_raw as $f) {
-            $files_by_name[(string) $f['field_name']] = (string) $f['original_name'];
+            $fname = (string) $f['field_name'];
+            $files_by_name[$fname] = (string) $f['original_name'];
+            if (!empty($f['storage_path'])) {
+                $sig_files[$fname] = $f;
+            }
         }
 
         $body_parts = array();
@@ -712,7 +717,7 @@ class Forms_admin extends CI_Controller {
             $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
             $raw = trim($raw);
 
-            $body_parts[] = $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name);
+            $body_parts[] = $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name, $sig_files);
         }
 
         $global_css   = !empty($form['global_css']) ? (string) $form['global_css'] : '';
@@ -788,8 +793,13 @@ class Forms_admin extends CI_Controller {
             $values_by_name[(string) $v['field_name']] = (string) $v['value_text'];
         }
         $files_by_name = array();
+        $sig_files     = array();
         foreach ($files_raw as $f) {
-            $files_by_name[(string) $f['field_name']] = (string) $f['original_name'];
+            $fname = (string) $f['field_name'];
+            $files_by_name[$fname] = (string) $f['original_name'];
+            if (!empty($f['storage_path'])) {
+                $sig_files[$fname] = $f;
+            }
         }
 
         $css = $this->_make_css_tcpdf_compatible(
@@ -815,7 +825,7 @@ class Forms_admin extends CI_Controller {
             $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
             $raw = trim($raw);
 
-            $body_parts[] = $this->_fill_html_values($raw, $values_by_name, $files_by_name);
+            $body_parts[] = $this->_fill_html_values($raw, $values_by_name, $files_by_name, $sig_files);
         }
 
         $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $css . '</style></head><body>'
@@ -841,7 +851,7 @@ class Forms_admin extends CI_Controller {
         exit;
     }
 
-    private function _fill_html_values_readonly($html, array $values_by_name, array $files_by_name) {
+    private function _fill_html_values_readonly($html, array $values_by_name, array $files_by_name, array $sig_files = array()) {
         if (trim($html) === '') {
             return $html;
         }
@@ -924,6 +934,24 @@ class Forms_admin extends CI_Controller {
             $select->setAttribute('disabled', 'disabled');
         }
 
+        // Replace signature widgets with the stored image (or an empty placeholder)
+        foreach (iterator_to_array($xpath->query('//*[@data-gvv-type][@data-gvv-name]')) as $div) {
+            if (strtolower($div->getAttribute('data-gvv-type')) !== 'signature') {
+                continue;
+            }
+            $name = $div->getAttribute('data-gvv-name');
+            if (isset($sig_files[$name]) && !empty($sig_files[$name]['storage_path'])) {
+                $img = $dom->createElement('img');
+                $img->setAttribute('src', base_url(ltrim((string) $sig_files[$name]['storage_path'], '/')));
+                $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; border-radius:4px; display:block;');
+                $div->parentNode->replaceChild($img, $div);
+            } else {
+                $span = $dom->createElement('span');
+                $span->setAttribute('style', 'display:block; height:60px; border:1px dashed #adb5bd; border-radius:4px;');
+                $div->parentNode->replaceChild($span, $div);
+            }
+        }
+
         $body   = $dom->getElementsByTagName('body')->item(0);
         $result = '';
         foreach ($body->childNodes as $child) {
@@ -933,7 +961,7 @@ class Forms_admin extends CI_Controller {
         return $result;
     }
 
-    private function _fill_html_values($html, array $values_by_name, array $files_by_name) {
+    private function _fill_html_values($html, array $values_by_name, array $files_by_name, array $sig_files = array()) {
         if (trim($html) === '') {
             return $html;
         }
@@ -997,6 +1025,25 @@ class Forms_admin extends CI_Controller {
             $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px;');
             $span->appendChild($dom->createTextNode($display));
             $select->parentNode->replaceChild($span, $select);
+        }
+
+        // Replace signature widgets with the stored image (or an empty placeholder)
+        foreach (iterator_to_array($xpath->query('//*[@data-gvv-type][@data-gvv-name]')) as $div) {
+            if (strtolower($div->getAttribute('data-gvv-type')) !== 'signature') {
+                continue;
+            }
+            $name = $div->getAttribute('data-gvv-name');
+            if (isset($sig_files[$name]) && !empty($sig_files[$name]['storage_path'])) {
+                $abs_path = FCPATH . ltrim((string) $sig_files[$name]['storage_path'], '/');
+                $img = $dom->createElement('img');
+                $img->setAttribute('src', $abs_path);
+                $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; display:block;');
+                $div->parentNode->replaceChild($img, $div);
+            } else {
+                $span = $dom->createElement('span');
+                $span->setAttribute('style', 'display:block; height:60px; border:1px dashed #adb5bd;');
+                $div->parentNode->replaceChild($span, $div);
+            }
         }
 
         $body   = $dom->getElementsByTagName('body')->item(0);
@@ -1737,12 +1784,6 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        if (!class_exists('ZipArchive')) {
-            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
-            redirect('forms_admin/edit/' . (int) $form['id']);
-            return;
-        }
-
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
 
         $meta = array(
@@ -1755,9 +1796,9 @@ class Forms_admin extends CI_Controller {
             'pages'       => array(),
         );
 
-        $tmp = tempnam(sys_get_temp_dir(), 'gvv_form_');
-        $zip = new ZipArchive();
-        $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        // Build content in a temp directory then zip with the system zip command (same as DB backup)
+        $tmp_dir = sys_get_temp_dir() . '/gvv_form_' . uniqid();
+        mkdir($tmp_dir . '/pages', 0700, true);
 
         foreach ($pages as $page) {
             $num = (int) $page['page_number'];
@@ -1765,24 +1806,42 @@ class Forms_admin extends CI_Controller {
                 'page_number' => $num,
                 'title'       => (string) $page['title'],
             );
-            $zip->addFromString(
-                sprintf('pages/%02d.html', $num),
+            file_put_contents(
+                sprintf('%s/pages/%02d.html', $tmp_dir, $num),
                 (string) $page['content_html']
             );
         }
 
-        $zip->addFromString('meta.json', json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        $zip->addFromString('styles.css', (string) $form['global_css']);
-        $zip->close();
+        file_put_contents($tmp_dir . '/meta.json', json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($tmp_dir . '/styles.css', (string) $form['global_css']);
 
         $safe_code = preg_replace('/[^a-zA-Z0-9_-]+/', '-', (string) $form['code']);
-        $filename  = $safe_code . '.zip';
+        $zip_path  = sys_get_temp_dir() . '/' . $safe_code . '.zip';
 
-        $zip_data = file_get_contents($tmp);
-        unlink($tmp);
+        $original_dir = getcwd();
+        chdir($tmp_dir);
+        exec('zip -r ' . escapeshellarg($zip_path) . ' .', $output, $return_code);
+        chdir($original_dir);
+
+        // Clean up temp directory
+        foreach (glob($tmp_dir . '/pages/*.html') as $f) { unlink($f); }
+        rmdir($tmp_dir . '/pages');
+        foreach (array('meta.json', 'styles.css') as $f) {
+            if (file_exists($tmp_dir . '/' . $f)) { unlink($tmp_dir . '/' . $f); }
+        }
+        rmdir($tmp_dir);
+
+        if ($return_code !== 0 || !file_exists($zip_path)) {
+            $this->session->set_flashdata('forms_error', 'Erreur lors de la création du fichier ZIP.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $zip_data = file_get_contents($zip_path);
+        unlink($zip_path);
 
         $this->load->helper('download');
-        force_download($filename, $zip_data);
+        force_download($safe_code . '.zip', $zip_data);
     }
 
     public function form_restore($form_id = 0) {

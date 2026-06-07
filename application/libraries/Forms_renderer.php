@@ -272,6 +272,10 @@ class Forms_renderer {
                         valueInput.value = '';
                         return;
                     }
+                    // Ensure the typed canvas reflects the current text before capturing
+                    if (activeTab === 'text' && textInput) {
+                        drawTypedSig(textInput.value);
+                    }
                     // Normalise to 600×200
                     var norm = document.createElement('canvas');
                     norm.width = 600; norm.height = 200;
