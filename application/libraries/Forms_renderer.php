@@ -163,8 +163,30 @@ class Forms_renderer {
     }
 
     private function build_signature_assets() {
-        // Google Font for handwriting (Caveat)
-        $out = '<style>@import url(\'https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap\');</style>' . "\n";
+        // Google Font for handwriting (Caveat) + CSS isolation for the widget
+        $out = '<style>' . "\n"
+             . '@import url(\'https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap\');' . "\n"
+             // Isolate the widget from unscoped form CSS (e.g. bare `input[type="text"]` rules)
+             . '.gvv-signature-widget { all: initial; display: block; font-family: inherit; }' . "\n"
+             . '.gvv-signature-widget * { box-sizing: border-box; }' . "\n"
+             . '.gvv-signature-widget .form-label { display: block; margin-bottom: 0.5rem; font-size: 1rem; font-weight: 600; color: #212529; }' . "\n"
+             . '.gvv-signature-widget .text-danger { color: #dc3545; }' . "\n"
+             . '.gvv-signature-widget .nav { display: flex; flex-wrap: wrap; padding-left: 0; margin-bottom: 0; list-style: none; }' . "\n"
+             . '.gvv-signature-widget .nav-tabs { border-bottom: 1px solid #dee2e6; }' . "\n"
+             . '.gvv-signature-widget .nav-item { display: list-item; }' . "\n"
+             . '.gvv-signature-widget .nav-link { display: block; padding: 0.5rem 1rem; color: #0d6efd; text-decoration: none; background: none; border: 1px solid transparent; border-radius: 0.375rem 0.375rem 0 0; cursor: pointer; font-size: 0.875rem; }' . "\n"
+             . '.gvv-signature-widget .nav-link.active { color: #495057; background-color: #fff; border-color: #dee2e6 #dee2e6 #fff; }' . "\n"
+             . '.gvv-signature-widget .gvv-sig-panel { display: block; padding: 1rem; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 0.375rem 0.375rem; background: #fff; }' . "\n"
+             . '.gvv-signature-widget .gvv-sig-panel.d-none { display: none !important; }' . "\n"
+             . '.gvv-signature-widget input[type="text"] { display: block; width: 100%; padding: 0.375rem 0.75rem; font-size: 1rem; font-weight: 400; line-height: 1.5; color: #212529; background-color: #fff; background-clip: padding-box; border: 1px solid #dee2e6; border-radius: 0.375rem; outline: revert; flex: unset; margin: 0 0 0.5rem 0; }' . "\n"
+             . '.gvv-signature-widget input[type="file"] { display: block; width: 100%; font-size: 0.875rem; }' . "\n"
+             . '.gvv-signature-widget .btn { display: inline-block; padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 0.25rem; cursor: pointer; border: 1px solid transparent; background: none; }' . "\n"
+             . '.gvv-signature-widget .btn-outline-secondary { color: #6c757d; border-color: #6c757d; }' . "\n"
+             . '.gvv-signature-widget .btn-outline-secondary:hover { background-color: #6c757d; color: #fff; }' . "\n"
+             . '.gvv-signature-widget .mt-2 { margin-top: 0.5rem !important; }' . "\n"
+             . '.gvv-signature-widget .mb-3 { margin-bottom: 1rem !important; }' . "\n"
+             . '.gvv-signature-widget .fw-semibold { font-weight: 600 !important; }' . "\n"
+             . '</style>' . "\n";
 
         $out .= <<<'JS'
 <script>
@@ -238,18 +260,36 @@ class Forms_renderer {
         }
 
         // --- Typed signature: render on canvas ---
-        function drawTypedSig(text) {
+        var sigFont = 'Caveat';
+        var sigFontLoaded = false;
+
+        function renderTypedSig(text) {
             if (!textCanvas) return;
-            textCanvas.width  = textCanvas.offsetWidth  || 600;
-            textCanvas.height = textCanvas.offsetHeight || 80;
+            var w = textCanvas.offsetWidth  || 600;
+            var h = textCanvas.offsetHeight || 80;
+            // Only reset intrinsic dimensions when they differ (avoids clearing a valid drawing)
+            if (textCanvas.width !== w)  textCanvas.width  = w;
+            if (textCanvas.height !== h) textCanvas.height = h;
             var ctx = textCanvas.getContext('2d');
             ctx.fillStyle = 'rgb(255,255,255)';
-            ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+            ctx.fillRect(0, 0, w, h);
             if (text) {
                 ctx.fillStyle = '#1a1a1a';
-                ctx.font = Math.round(textCanvas.height * 0.65) + 'px "Caveat", cursive';
+                ctx.font = Math.round(h * 0.65) + 'px "' + sigFont + '", cursive';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(text, 16, textCanvas.height / 2);
+                ctx.fillText(text, 16, h / 2);
+            }
+        }
+
+        function drawTypedSig(text) {
+            renderTypedSig(text);
+            // If the web font is not yet ready, schedule a redraw after it loads
+            if (!sigFontLoaded && document.fonts && document.fonts.load) {
+                var size = Math.round((textCanvas.offsetHeight || 80) * 0.65);
+                document.fonts.load(size + 'px "' + sigFont + '"').then(function () {
+                    sigFontLoaded = true;
+                    if (textInput && textInput.value) renderTypedSig(textInput.value);
+                });
             }
         }
         if (textInput) {
