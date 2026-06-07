@@ -49,6 +49,9 @@ $lang['forms_label_name_optional']        = 'Nom (optionnel)';
 $lang['forms_label_email_optional']       = 'Email (optionnel)';
 $lang['forms_label_page']                 = 'Page';
 $lang['forms_label_number']               = '#';
+$lang['forms_label_identifier']           = 'Identification';
+$lang['forms_checkbox_identifier']        = 'Identifiant de réponse';
+$lang['forms_help_identifier']            = 'Les champs cochés sont concaténés (séparés par un espace) pour former l\'identifiant visible dans la liste des réponses.';
 
 // Buttons
 $lang['forms_button_new_form']            = 'Nouveau formulaire';

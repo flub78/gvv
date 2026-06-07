@@ -95,12 +95,18 @@ class Form_submissions_model extends CI_Model {
     }
 
     public function get_form_submissions($form_id, $limit = 100, $offset = 0) {
-        return $this->db
-            ->where('form_id', (int) $form_id)
-            ->order_by('submitted_at', 'DESC')
-            ->limit((int) $limit, (int) $offset)
-            ->get($this->table)
-            ->result_array();
+        $sql = "SELECT s.*,
+                  (
+                    SELECT GROUP_CONCAT(sv.value_text ORDER BY ff.sort_order SEPARATOR ' ')
+                    FROM form_submission_values sv
+                    JOIN form_fields ff ON ff.id = sv.field_id
+                    WHERE sv.submission_id = s.id AND ff.is_identifier = 1
+                  ) AS response_identifier
+                FROM {$this->table} s
+                WHERE s.form_id = ?
+                ORDER BY s.submitted_at DESC
+                LIMIT ? OFFSET ?";
+        return $this->db->query($sql, array((int) $form_id, (int) $limit, (int) $offset))->result_array();
     }
 
     public function get_submission_values($submission_id) {

@@ -49,6 +49,9 @@ $lang['forms_label_name_optional']        = 'Naam (optioneel)';
 $lang['forms_label_email_optional']       = 'E-mail (optioneel)';
 $lang['forms_label_page']                 = 'Pagina';
 $lang['forms_label_number']               = '#';
+$lang['forms_label_identifier']           = 'Identificatie';
+$lang['forms_checkbox_identifier']        = 'Antwoordidentificatie';
+$lang['forms_help_identifier']            = 'Aangevinkte velden worden samengevoegd (gescheiden door een spatie) als identificatie in de lijst van antwoorden.';
 
 // Buttons
 $lang['forms_button_new_form']            = 'Nieuw formulier';

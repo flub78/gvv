@@ -28,8 +28,7 @@
                     <thead>
                         <tr>
                             <th><?= $this->lang->line('forms_label_id') ?></th>
-                            <th><?= $this->lang->line('forms_label_uuid') ?></th>
-                            <th><?= $this->lang->line('forms_label_status') ?></th>
+                            <th><?= $this->lang->line('forms_label_identifier') ?></th>
                             <th><?= $this->lang->line('forms_label_submitted_by') ?></th>
                             <th><?= $this->lang->line('forms_label_date') ?></th>
                             <th class="text-end"><?= $this->lang->line('forms_label_actions') ?></th>
@@ -38,14 +37,16 @@
                     <tbody>
                         <?php if (empty($submissions)): ?>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4"><?= $this->lang->line('forms_empty_no_submissions') ?></td>
+                                <td colspan="5" class="text-center text-muted py-4"><?= $this->lang->line('forms_empty_no_submissions') ?></td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($submissions as $submission): ?>
                                 <tr>
                                     <td><?= (int) $submission['id'] ?></td>
-                                    <td><code><?= html_escape((string) $submission['submission_uuid']) ?></code></td>
-                                    <td><?= html_escape((string) $submission['status']) ?></td>
+                                    <td>
+                                        <?php $ident = trim((string) ($submission['response_identifier'] ?? '')); ?>
+                                        <?= $ident !== '' ? html_escape($ident) : '<span class="text-muted">—</span>' ?>
+                                    </td>
                                     <td>
                                         <?php
                                             $name = trim((string) $submission['submitter_name']);

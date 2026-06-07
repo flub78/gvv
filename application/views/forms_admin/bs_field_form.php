@@ -12,7 +12,8 @@
         $v_name         = isset($field['name'])         ? $field['name']         : '';
         $v_label        = isset($field['label'])        ? $field['label']        : '';
         $v_field_type   = isset($field['field_type'])   ? $field['field_type']   : 'text';
-        $v_is_required  = !empty($field['is_required']);
+        $v_is_required   = !empty($field['is_required']);
+        $v_is_identifier = !empty($field['is_identifier']);
         $v_sort_order   = isset($field['sort_order'])   ? $field['sort_order']   : '';
         $v_options_text = isset($field['options_text']) ? $field['options_text'] : '';
 
@@ -78,10 +79,15 @@
                                value="<?= html_escape((string) $v_sort_order) ?>">
                         <div class="form-text"><?= $this->lang->line('forms_help_display_order') ?></div>
                     </div>
-                    <div class="col-md-4 d-flex align-items-center pt-4">
+                    <div class="col-md-4 d-flex flex-column gap-2 pt-4">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="is_required" name="is_required" value="1" <?= $v_is_required ? 'checked' : '' ?>>
                             <label class="form-check-label" for="is_required"><?= $this->lang->line('forms_checkbox_required') ?></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_identifier" name="is_identifier" value="1" <?= $v_is_identifier ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="is_identifier"><?= $this->lang->line('forms_checkbox_identifier') ?></label>
+                            <div class="form-text"><?= $this->lang->line('forms_help_identifier') ?></div>
                         </div>
                     </div>
                 </div>

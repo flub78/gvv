@@ -49,6 +49,9 @@ $lang['forms_label_name_optional']        = 'Name (optional)';
 $lang['forms_label_email_optional']       = 'Email (optional)';
 $lang['forms_label_page']                 = 'Page';
 $lang['forms_label_number']               = '#';
+$lang['forms_label_identifier']           = 'Identification';
+$lang['forms_checkbox_identifier']        = 'Response identifier';
+$lang['forms_help_identifier']            = 'Checked fields are concatenated (space-separated) to form the identifier shown in the submissions list.';
 
 // Buttons
 $lang['forms_button_new_form']            = 'New form';
