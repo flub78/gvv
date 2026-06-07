@@ -41,12 +41,16 @@ class Forms_admin extends CI_Controller {
 
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
-            'nav_back_url'   => 'welcome/section/admin_sys',
-            'nav_back_label' => 'Administration système',
+            'nav_back_url'   => 'forms_admin',
+            'nav_back_label' => 'Liste des formulaires',
         ]);
     }
 
     public function index() {
+        $this->load->vars([
+            'nav_back_url'   => 'welcome/section/admin_sys',
+            'nav_back_label' => 'Administration système',
+        ]);
         $section_id = (int) $this->session->userdata('section');
         $forms      = $this->forms_model->list_forms(array('section_context' => $section_id));
         $form_ids   = array_column($forms, 'id');
