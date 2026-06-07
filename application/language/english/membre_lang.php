@@ -27,7 +27,9 @@ $lang['membre_fieldset_billing'] = "Billing";
 $lang['membre_fieldset_responsibility'] = "Club responsibilities";
 $lang['membre_fieldset_airplane'] = "Airplane experience";
 $lang['membre_fieldset_glider'] = "Glider experience";
+$lang['membre_fieldset_ulm'] = "ULM experience";
 $lang['membre_fieldset_information'] = "Informations";
+$lang['membre_add_experience'] = "Add experience";
 
 $lang['membre_filter_active'] = "Active";
 $lang['membre_filter_age'] = "Age";

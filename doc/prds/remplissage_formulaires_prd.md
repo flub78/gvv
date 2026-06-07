@@ -168,15 +168,50 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 1. Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
 2. Trois attributs : `data-gvv-source` (source de donnée), `data-gvv-param` (paramètre URL d'identification), `data-gvv-lock` (verrouillage serveur).
 3. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL du formulaire.
-4. Les sources autorisées couvrent : données du club (config GVV), paramètres de configuration formulaires (`config.*`), données d'un membre, données d'un instructeur, utilisateur de session, dates calculées.
+4. Les sources autorisées couvrent deux tables GVV distinctes, avec une syntaxe explicite :
+   - `member.*` et `instructor.*` → données de la table `membres` (identité, coordonnées, dates) ;
+   - `member.event.*` et `instructor.event.*` → données de la table `events` (qualifications, brevets, licences, visites médicales).
+   - `config.*` → paramètres de configuration formulaires ;
+   - `club.*` → données du club depuis la configuration GVV ;
+   - `user.*` → membre de la session courante ;
+   - `date.*` → dates calculées.
 5. Le verrouillage est appliqué côté serveur : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et impose la valeur résolue.
 6. Une liste blanche stricte des sources autorisées est définie — pas d'accès libre à la base.
 7. Le paramètre d'identification transmis en URL est validé (existence + appartenance à la section active).
 8. Cette exigence est hors du périmètre de la première livraison et intervient après le socle autonome de formulaires.
-9. La taxonomie des sources inclut `member.signature` → `membres.signature_path` (param : `pilot_login`) et `instructor.signature` → `membres.signature_path` (param : `instructor_login`).
+9. La taxonomie des sources inclut `member.signature` → `membres.signature_path` et `instructor.signature` → `membres.signature_path`, ainsi que `instructor.event.{type}.signature` → `events.signature_path` pour la signature stockée dans un événement de qualification.
 10. Pour tout champ pré-rempli GVV, le champ de saisie du formulaire est remplacé par la valeur pré-remplie affichée en lecture seule ; l'utilisateur ne peut pas la remplacer.
 
-Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#5-pré-remplissage-gvv)
+Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.md#6-pré-remplissage-gvv)
+
+### EF6-ter : Page de génération pour formulaires à contexte GVV
+
+Les formulaires qui exploitent des données GVV (données membre, données instructeur, événements/qualifications) sont toujours générés dans un contexte GVV authentifié. Ils ne s'ouvrent pas via un lien public brut.
+
+1. Chaque formulaire GVV-contextuel dispose d'une **page de génération** accessible depuis l'interface admin GVV.
+2. Cette page présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire : sélecteur de membre (`pilot_login`) et/ou sélecteur d'instructeur (`instructor_login`).
+3. Un bouton de confirmation construit l'URL pré-remplie et ouvre le formulaire avec tous les champs GVV résolus côté serveur.
+4. Exemple pour une attestation de formation :
+
+```
+Page : Générer une attestation de formation
+
+  Instructeur : [sélecteur membres avec rôle instructeur ▼]
+  Candidat    : [sélecteur membres ▼]
+
+  [Remplir l'attestation]
+```
+
+5. Le formulaire s'ouvre avec tous les champs issus de `membres` et de `events` déjà pré-remplis et verrouillés.
+6. La page de génération est accessible depuis la liste des formulaires admin ou depuis une fiche de formation existante.
+
+### EF6-quater : Gestion des types d'événements et données events
+
+1. Les qualifications, brevets et informations instructeur non présents dans `membres` sont stockés dans la table `events` (champ `ecomment` pour le numéro, `date_expiration` pour la validité).
+2. La table `events_types` doit être accessible depuis le dashboard pour consultation et administration.
+3. Le formulaire membre doit permettre d'ajouter et modifier des événements de tous les types pertinents, y compris les qualifications instructeur.
+4. Des types d'événements ULM (FI ULM, FE ULM) doivent être créés dans `events_types` pour couvrir les qualifications ULM instructeur.
+5. La table `events` doit être enrichie d'une colonne `signature_path VARCHAR(255) NULL` pour permettre le stockage d'une signature associée à un événement de qualification (ex. signature d'un instructeur pour son ITP ou son FI Sailplane).
 
 ### EF6-bis : Champ signature
 

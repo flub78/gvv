@@ -113,7 +113,9 @@ class Event extends Gvv_Controller {
      */
     protected function form_static_element($action) {
         parent::form_static_element($action);
-        $this->data ['event_type_selector'] = $this->events_types_model->selector();
+        $where = (isset($this->_activite_filter) && $this->_activite_filter !== '') ?
+            array('activite' => $this->_activite_filter) : array();
+        $this->data ['event_type_selector'] = $this->events_types_model->selector($where);
         $this->data ["mimage"] = $this->membres_model->image($this->data ["emlogin"]);
         $pilote = $this->data ['emlogin'];
         $this->data ['avions_selector'] = $this->vols_avion_model->selector(array (
@@ -141,7 +143,8 @@ class Event extends Gvv_Controller {
      *
      * @see Gvv_Controller::create()
      */
-    public function create($mlogin = "") {
+    public function create($mlogin = "", $activite = "") {
+        $this->_activite_filter = $activite;
         parent::create(TRUE);
 
         if ($mlogin == "") {

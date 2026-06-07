@@ -29,7 +29,9 @@ $lang['membre_fieldset_billing'] = "Facturatie";
 $lang['membre_fieldset_responsibility'] = "Verantwoordelijkheden club";
 $lang['membre_fieldset_airplane'] = "Ervaring motorvliegen";
 $lang['membre_fieldset_glider'] = "Ervaring zweefvliegen";
+$lang['membre_fieldset_ulm'] = "Ervaring ULM";
 $lang['membre_fieldset_information'] = "Informatie";
+$lang['membre_add_experience'] = "Ervaring toevoegen";
 
 $lang['membre_filter_active'] = "Actief";
 $lang['membre_filter_age'] = "Leeftijd";

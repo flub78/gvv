@@ -487,7 +487,13 @@ echo heading("membre_title_airplane_training", 4);
 if ($action != CREATION) {
     echo form_fieldset($this->lang->line("membre_fieldset_airplane"));
 
-    echo '<div class="mt-4">';
+    if ($has_modification_rights) {
+        echo '<div class="mb-2">';
+        echo anchor(controller_url('event') . '/create/' . $mlogin . '/3', $this->lang->line('membre_add_experience'), 'class="btn btn-sm btn-secondary"');
+        echo '</div>';
+    }
+
+    echo '<div class="mt-2">';
     $attrs = array(
         'controller' => "event",
         'actions' => array('edit', 'delete'),
@@ -547,7 +553,13 @@ echo heading("membre_title_glider_training", 4);
 if ($action != CREATION) {
     echo form_fieldset($this->lang->line("membre_fieldset_glider"));
 
-    echo '<div class="mt-4">';
+    if ($has_modification_rights) {
+        echo '<div class="mb-2">';
+        echo anchor(controller_url('event') . '/create/' . $mlogin . '/1', $this->lang->line('membre_add_experience'), 'class="btn btn-sm btn-secondary"');
+        echo '</div>';
+    }
+
+    echo '<div class="mt-2">';
     $attrs = array(
         'controller' => "event",
         'actions' => array('edit', 'delete'),
@@ -565,6 +577,32 @@ if ($action != CREATION) {
 }
 
 echo form_fieldset_close();
+
+// ========================================================================
+// ULM SECTION
+// ========================================================================
+if ($action != CREATION) {
+    echo form_fieldset($this->lang->line("membre_fieldset_ulm"));
+
+    if ($has_modification_rights) {
+        echo '<div class="mb-2">';
+        echo anchor(controller_url('event') . '/create/' . $mlogin . '/2', $this->lang->line('membre_add_experience'), 'class="btn btn-sm btn-secondary"');
+        echo '</div>';
+    }
+
+    echo '<div class="mt-2">';
+    $attrs = array(
+        'controller' => "event",
+        'actions' => array('edit', 'delete'),
+        'fields' => array('event_type', 'date', 'comment'),
+        'mode' => ($has_modification_rights) ? "rw" : "ro",
+        'param' => $mlogin
+    );
+    echo $this->gvvmetadata->table("vue_exp_ulm", $attrs, "");
+    echo '</div>';
+
+    echo form_fieldset_close();
+}
 
 // ========================================================================
 // COMMENTS SECTION

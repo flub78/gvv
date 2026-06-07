@@ -28,7 +28,9 @@ $lang['membre_fieldset_billing'] = "Facturation";
 $lang['membre_fieldset_responsibility'] = "Responsabilités club";
 $lang['membre_fieldset_airplane'] = "Expérience avion";
 $lang['membre_fieldset_glider'] = "Expérience vol à voile";
+$lang['membre_fieldset_ulm'] = "Expérience ULM";
 $lang['membre_fieldset_information'] = "Informations";
+$lang['membre_add_experience'] = "Ajouter une expérience";
 
 $lang['membre_filter_active'] = "Actifs";
 $lang['membre_filter_age'] = "Age";

@@ -135,6 +135,9 @@ class Membre extends Gvv_Controller {
             'activite' => 1
         ), "vue_exp_vv");
         $this->event_model->evenement_de($id, array(
+            'activite' => 2
+        ), "vue_exp_ulm");
+        $this->event_model->evenement_de($id, array(
             'activite' => 3
         ), "vue_exp_avion");
         $this->event_model->evenement_de($id, array(

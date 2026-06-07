@@ -134,7 +134,47 @@ Pas de `data-gvv-param` pour les sources `config.*` : la résolution utilise uni
 |---|---|---|
 | `organisme_formation` | Organisme de formation | Nom/identification de l'organisme dans les attestations et certificats |
 
-### 6. Pré-remplissage GVV
+### 6. Formulaires à contexte GVV — Page de génération
+
+Les formulaires qui exploitent des données GVV (table `membres`, table `events`) ne s'ouvrent jamais via un lien public brut. Ils sont toujours générés dans un contexte GVV authentifié depuis une **page de génération** dédiée.
+
+#### Principe
+
+La page de génération est une page admin GVV (contrôleur `forms_admin`, méthode `generate`) qui :
+1. Présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire (`pilot_login`, `instructor_login`, ou les deux).
+2. À la validation, construit l'URL pré-remplie et redirige vers le formulaire public avec les paramètres encodés.
+
+#### Exemple — Attestation de formation
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Générer une attestation de formation                │
+├──────────────────────────────────────────────────────┤
+│  Instructeur : [sélecteur instructeurs de section ▼] │
+│  Candidat    : [sélecteur membres ▼]                 │
+│                                                      │
+│              [Remplir l'attestation]                 │
+└──────────────────────────────────────────────────────┘
+```
+
+Le bouton construit l'URL :
+```
+/forms/attestation-formation?pilot_login=duvollet_f&instructor_login=peignot_f
+```
+
+Le formulaire s'ouvre avec tous les champs GVV pré-remplis et verrouillés.
+
+#### Configuration des paramètres requis
+
+Chaque formulaire déclare dans ses métadonnées (`forms.required_params`) les paramètres GVV nécessaires :
+- `none` : formulaire public autonome, pas de page de génération.
+- `pilot` : sélecteur membre requis → paramètre `pilot_login`.
+- `instructor` : sélecteur instructeur requis → paramètre `instructor_login`.
+- `pilot+instructor` : les deux sélecteurs requis.
+
+La page de génération s'adapte automatiquement selon cette configuration.
+
+### 7. Pré-remplissage GVV
 
 Service : `form_prefill_service`
 
@@ -148,45 +188,74 @@ Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv
 | `data-gvv-param` | Paramètre URL qui identifie l'entité | `pilot_login`, `instructor_login` |
 | `data-gvv-lock` | Verrouillage côté serveur | `true` / `false` (défaut : `false`) |
 
-#### Exemple
+#### Syntaxe des sources — principe de distinction des tables
+
+La syntaxe `data-gvv-source` indique explicitement la table d'origine :
+- **`member.*`** et **`instructor.*`** → données de la table **`membres`** (identité, coordonnées, dates de naissance).
+- **`member.event.{type_key}.*`** et **`instructor.event.{type_key}.*`** → données de la table **`events`** (qualifications, brevets, numéros de licence, dates de validité, signature de qualification).
+
+Cette distinction est intentionnelle et visible dans le HTML du formulaire : un développeur qui lit le formulaire sait immédiatement d'où vient chaque donnée.
+
+#### Exemple complet — Attestation de formation
 
 ```html
-<!-- Champ verrouillé : valeur imposée par GVV -->
+<!-- Données membres — table membres -->
 <input name="candidat_nom" type="text"
        data-gvv-source="member.nom_prenom"
        data-gvv-param="pilot_login"
        data-gvv-lock="true">
 
-<!-- Champ éditable : pré-rempli mais modifiable -->
 <input name="candidat_adresse" type="text"
        data-gvv-source="member.adresse_complete"
-       data-gvv-param="pilot_login">
+       data-gvv-param="pilot_login"
+       data-gvv-lock="true">
 
-<!-- Source globale (pas de paramètre) -->
+<input name="instructeur_nom" type="text"
+       data-gvv-source="instructor.nom_prenom"
+       data-gvv-param="instructor_login"
+       data-gvv-lock="true">
+
+<!-- Données events — table events (qualification instructeur) -->
+<input name="instructeur_num_itp" type="text"
+       data-gvv-source="instructor.event.itp.numero"
+       data-gvv-param="instructor_login"
+       data-gvv-lock="true">
+
+<input name="instructeur_itp_expiry" type="date"
+       data-gvv-source="instructor.event.itp.expiry"
+       data-gvv-param="instructor_login"
+       data-gvv-lock="true">
+
+<!-- Signature instructeur depuis son événement ITP — table events -->
+<div data-gvv-type="signature"
+     data-gvv-name="signature_instructeur"
+     data-gvv-source="instructor.event.itp.signature"
+     data-gvv-param="instructor_login"
+     data-gvv-lock="false">Signature instructeur</div>
+
+<!-- Source globale (config) -->
 <input name="organisme" type="text"
-       data-gvv-source="club.nom">
+       data-gvv-source="config.organisme_formation">
 
 <input name="date_signature" type="date"
        data-gvv-source="date.today">
 ```
 
-Les paramètres sont transmis via l'URL du formulaire :
-
-```
-/forms/attestation-formation-procedures?pilot_login=duvollet_f&instructor_login=peignot_f
-```
-
 #### Taxonomie des sources
 
 ```
-config.<cle>               → form_config_params.param_value  (résolution section → global)
+── Table form_config_params ──────────────────────────────────────────────
+config.<cle>               → form_config_params.param_value
+                             (résolution section → global, sans param URL)
 
+── Config GVV globale ────────────────────────────────────────────────────
 club.nom                   → $config['nom_club']
 club.sigle                 → $config['sigle_club']
 club.adresse               → $config['adresse_club']
 club.ville                 → $config['ville_club']
 club.email                 → $config['email_club']
 
+── Table membres (pilote) ────────────────────────────────────────────────
 member.nom                 → mnom                      param: pilot_login
 member.prenom              → mprenom
 member.nom_prenom          → "mnom mprenom"
@@ -199,24 +268,85 @@ member.adresse_complete    → "madresse, cp ville"
 member.date_naissance      → mdaten (YYYY-MM-DD)
 member.lieu_naissance      → place_of_birth
 member.date_lieu_naissance → "JJ/MM/AAAA à lieu"
+member.signature           → membres.signature_path
 
-instructor.*               → mêmes champs              param: instructor_login
+── Table events (pilote) ─────────────────────────────────────────────────
+member.event.{type_key}.numero    → events.ecomment    (plus récent)
+member.event.{type_key}.expiry    → events.date_expiration
+member.event.{type_key}.date      → events.edate
+member.event.{type_key}.signature → events.signature_path
 
-user.*                     → membre de la session courante (lien authentifié, sans param)
+── Table membres (instructeur) ───────────────────────────────────────────
+instructor.*               → mêmes champs que member.*  param: instructor_login
+instructor.signature       → membres.signature_path
 
+── Table events (instructeur) ────────────────────────────────────────────
+instructor.event.{type_key}.numero    → events.ecomment    (plus récent)
+instructor.event.{type_key}.expiry    → events.date_expiration
+instructor.event.{type_key}.date      → events.edate
+instructor.event.{type_key}.signature → events.signature_path
+
+── Utilisateur de session ────────────────────────────────────────────────
+user.*                     → membre de la session courante (sans param)
+
+── Dates calculées ───────────────────────────────────────────────────────
 date.today                 → date('Y-m-d')
 date.today_fr              → date('d/m/Y')
 date.year                  → date('Y')
 ```
 
+#### Clés `{type_key}` définies
+
+| `type_key` | `events_types.id` | Nom affiché | Activité |
+|---|---|---|---|
+| `itp` | 43 | ITP | Planeur |
+| `itv` | 44 | ITV | Planeur |
+| `fi_spl` | 51 | FI Sailplane | Planeur |
+| `fe_spl` | 52 | FE Sailplane | Planeur |
+| `fi_ulm` | à créer | FI ULM | ULM |
+| `fe_ulm` | à créer | FE ULM | ULM |
+| `controle_competence` | 30 | Contrôle de compétence | Planeur |
+| `visite_medicale` | 26 | Visite médicale | Tous |
+| `bpp` | 27 | BPP | Planeur |
+| `spl` | 50 | SPL | Planeur |
+
+Pour les types `multiple=1` (ex. `visite_medicale`, `controle_competence`), le service prend l'entrée la plus récente (`ORDER BY edate DESC LIMIT 1`).
+
 #### Règles de sécurité
 
-- **Liste blanche stricte** : seules les sources déclarées ci-dessus sont autorisées.
+- **Liste blanche stricte** : seules les sources déclarées dans la taxonomie sont autorisées.
 - **Validation du paramètre** : le login fourni en URL doit exister et appartenir à la section active.
 - **Lock côté serveur** : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et réinjecte la valeur résolue — le verrou HTML seul ne suffit pas.
 - **Pas d'accès direct à la base** : le service passe exclusivement par la liste blanche.
 
-### 7. Signatures
+### 8. Table events — évolutions requises
+
+#### Colonne signature_path
+
+Ajouter `signature_path VARCHAR(255) NULL` à la table `events` pour permettre le stockage d'une signature image associée à un événement de qualification (ex. signature numérisée de l'instructeur associée à son ITP ou son FI Sailplane).
+
+```sql
+ALTER TABLE events ADD COLUMN signature_path VARCHAR(255) NULL
+    COMMENT 'Chemin vers la signature image associée à cet événement';
+```
+
+Cette colonne est alimentée soit par upload admin depuis la fiche membre, soit par pré-remplissage depuis `membres.signature_path` lors de la génération d'un formulaire.
+
+#### Types ULM à créer
+
+Les qualifications instructeur ULM manquent dans `events_types`. Ajouter :
+
+| name | activite | expirable | multiple | annual |
+|---|---|---|---|---|
+| FI ULM | 2 | 1 | 0 | 0 |
+| FE ULM | 2 | 1 | 0 | 0 |
+
+#### Vérifications à réaliser
+
+- **Dashboard events_types** : vérifier que les types d'événements sont accessibles depuis le tableau de bord admin (consultation et ajout de nouvelles entrées).
+- **Formulaire membre** : vérifier que l'interface de saisie des événements d'un membre couvre tous les types pertinents (ITP, FI Sailplane, FI ULM, etc.) avec saisie du numéro (`ecomment`) et de la date d'expiration (`date_expiration`). Corriger si certains types sont manquants ou si le formulaire ne permet pas la saisie de ces champs.
+
+### 9. Signatures
 
 #### Déclaration dans le HTML
 
@@ -296,19 +426,19 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 | 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
 | 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
 
-### 8. Import PDF -> HTML
+### 10. Import PDF -> HTML
 
 - Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
 - Détection des champs du PDF source quand possible
 - Génération d'une page HTML initiale + rapport des champs non convertis
 
-### 9. Export PDF imprimable
+### 11. Export PDF imprimable
 
 - Rendu imprimé d'une soumission
 - Génération d'un PDF lisible et téléchargeable
 - Utilisable pour archivage documentaire
 
-### 10. Archivage documentaire
+### 12. Archivage documentaire
 
 - Entite : `archived_documents`
 - `archived_documents` : table d'archive finale des documents, avec métadonnées de fichier, liens vers pilote/section/type de document et suivi des versions et de la validation.

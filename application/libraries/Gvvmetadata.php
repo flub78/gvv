@@ -226,6 +226,7 @@ class GVVMetadata extends Metadata {
                 $this->alias_table["vue_exp_fai"] = "events";
                 $this->alias_table["vue_exp_avion"] = "events";
                 $this->alias_table["vue_exp_vv"] = "events";
+                $this->alias_table["vue_exp_ulm"] = "events";
 
                 // $this->field['events_year']['event_type']['Name'] = 'Type';
                 $this->field['events_year']['event_type']['Type'] = 'varchar';
