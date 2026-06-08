@@ -762,12 +762,9 @@ class Membres_model extends Common_Model {
      * @return mixed Insert id or primary key fallback from Common_Model::create
      */
     public function create($data) {
-        if (empty($data['mnumero'])) {
-            $row = $this->db->select('COUNT(*) AS cnt')->from($this->table)->get()->row_array();
-            $count = isset($row['cnt']) ? (int)$row['cnt'] : 0;
-            $data['mnumero'] = $count + 1;
-        }
-
+        // mnumero is AUTO_INCREMENT since migration 108 — let MySQL assign it
+        // Using COUNT(*)+1 caused duplicates when members were deleted (COUNT < MAX)
+        unset($data['mnumero']);
         return parent::create($data);
     }
 

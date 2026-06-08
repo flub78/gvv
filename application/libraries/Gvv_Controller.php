@@ -686,7 +686,7 @@ class Gvv_Controller extends MY_Controller {
                             $msg = $this->db->_error_message();
 
                             if ($code == 1062) {
-                                $msg = $this->lang->line("gvv_error_duplicate_entry");
+                                $msg = $this->lang->line("gvv_error_duplicate_entry") . " (table: " . $this->gvv_model->table() . ")";
                             } elseif ($code == 1451) {
                                 $msg = "Erreur:" . $msg . $this->lang->line("gvv_error_foreign_key_constraint");
                             } else {
@@ -703,8 +703,8 @@ class Gvv_Controller extends MY_Controller {
                         $this->data['message'] = '<div class="text-danger">' . $msg . '</div>';
                         throw $e;
                     }
-                    // only replace autoincremented id
-                    if ($id) {
+                    // only replace autoincremented id (not when PK was already provided, e.g. membres.mlogin)
+                    if ($id && empty($processed_data[$this->kid])) {
                         gvv_debug("autoincremented id=$id, key=" . $this->kid);
                         $processed_data[$this->kid] = $id;
                         gvv_debug("processed_data = " . var_export($processed_data, true));
@@ -752,7 +752,7 @@ class Gvv_Controller extends MY_Controller {
                         $msg = $this->db->_error_message();
 
                         if ($code == 1062) {
-                            $msg = $this->lang->line("gvv_error_duplicate_entry");
+                            $msg = $this->lang->line("gvv_error_duplicate_entry") . " (table: " . $this->gvv_model->table() . ")";
                         } elseif ($code == 1451 || $code == 1452) {
                             // 1451: Cannot delete or update a parent row
                             // 1452: Cannot add or update a child row (FK constraint)

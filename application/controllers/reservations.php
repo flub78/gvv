@@ -1040,10 +1040,11 @@ class Reservations extends MY_Controller {
             $section_id         = $this->session->userdata('section');
             $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
             $is_pilote_vd       = $this->gvv_authorization->has_role($this->user_id, 'pilote_vd',       $section_id);
+            $is_mecano          = $this->gvv_authorization->has_role($this->user_id, 'mecano',          $section_id);
             $can_edit_others    = $this->gvv_authorization->has_role($this->user_id, 'club-admin',      NULL)
                                 || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id);
-            $balance_exempt     = $can_edit_others || $is_pilote_vd;
-            $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd;
+            $balance_exempt     = $can_edit_others || $is_pilote_vd || $is_mecano;
+            $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
         } else {
             $is_auto_planchiste = false;
             $can_edit_others    = true;
