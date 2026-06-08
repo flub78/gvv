@@ -10,7 +10,8 @@ if (!defined('BASEPATH'))
  */
 class Forms_renderer {
 
-    private static $signature_assets_emitted = false;
+    private static $signature_assets_emitted  = false;
+    private static $validation_script_emitted = false;
 
     public function normalize_fields_for_view(array $fields, array $old_values = array()) {
         $normalized = array();
@@ -111,7 +112,8 @@ class Forms_renderer {
         $id_canvas = 'gvv-sig-canvas-' . $fn;
         $id_tcanv  = 'gvv-sig-tcanv-'  . $fn;
 
-        $html  = '<div class="gvv-signature-widget mb-3" data-sig-name="' . $fn . '">' . "\n";
+        $req_data = $required ? ' data-gvv-required="true"' : '';
+        $html  = '<div class="gvv-signature-widget mb-3" data-sig-name="' . $fn . '"' . $req_data . '>' . "\n";
         $html .= '  <label class="form-label fw-semibold">' . $lbl . $req_star . '</label>' . "\n";
 
         // Tabs
@@ -160,6 +162,196 @@ class Forms_renderer {
         }
 
         return $html;
+    }
+
+    /**
+     * Append client-side validation script to page HTML (emitted once per request).
+     *
+     * The script disables HTML5 native validation bubbles and replaces them with
+     * Bootstrap is-invalid highlighting + an inline invalid-feedback message per
+     * field + a summary alert at the top of the form listing all missing fields.
+     * It handles regular required inputs, checkboxes, and GVV signature widgets.
+     */
+    public function inject_validation_script($html) {
+        if (self::$validation_script_emitted) {
+            return $html;
+        }
+        self::$validation_script_emitted = true;
+        return $html . $this->build_validation_script();
+    }
+
+    private function build_validation_script() {
+        return <<<'VALJS'
+<style>
+input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!important;border-width:1px;border-style:solid;outline:none;}
+.gvv-invalid-feedback{display:block;color:#dc3545;font-size:.875em;margin-top:.25rem;}
+.gvv-sig-invalid>.gvv-sig-panel,
+.gvv-sig-invalid .gvv-sig-tabs{outline:2px solid #dc3545;border-radius:4px;}
+.gvv-sig-error{display:block;color:#dc3545;font-size:.875em;margin-top:.25rem;}
+</style>
+<script>
+(function () {
+    'use strict';
+
+    function init() {
+        var form = document.querySelector('form[action*="forms/submit"]');
+        if (!form) return;
+
+        /* Disable HTML5 native validation bubbles — we handle display ourselves */
+        form.setAttribute('novalidate', 'novalidate');
+
+        form.addEventListener('submit', function (e) {
+            clearErrors(form);
+            var missing = [];
+
+            /* 1. Standard required inputs / selects / textareas */
+            form.querySelectorAll('input[required],textarea[required],select[required]').forEach(function (el) {
+                if (el.closest('.gvv-signature-widget')) return; /* handled below */
+                if (isEmpty(el)) {
+                    markFieldInvalid(el);
+                    missing.push(getLabel(el));
+                }
+            });
+
+            /* 2. Required signature widgets
+             * The widget's own submit listener (registered earlier) has already
+             * populated the hidden .gvv-sig-value input before this runs. */
+            form.querySelectorAll('.gvv-signature-widget[data-gvv-required="true"]').forEach(function (widget) {
+                var typeInput  = widget.querySelector('.gvv-sig-type-hidden');
+                var valueInput = widget.querySelector('.gvv-sig-value');
+                var mode = typeInput ? typeInput.value : 'canvas';
+                var empty = false;
+                if (mode === 'file') {
+                    var fi = widget.querySelector('.gvv-sig-file-input');
+                    empty = !fi || !fi.files || fi.files.length === 0;
+                } else {
+                    empty = !valueInput || valueInput.value.trim() === '';
+                }
+                if (empty) {
+                    markSigInvalid(widget);
+                    var lbl = widget.querySelector('.form-label');
+                    missing.push(lbl ? lbl.textContent.trim().replace(/\s*\*\s*$/, '').trim() : 'Signature');
+                }
+            });
+
+            if (missing.length > 0) {
+                e.preventDefault();
+                showSummary(form, missing);
+                var first = form.querySelector('.is-invalid, .gvv-sig-invalid');
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
+
+    function isEmpty(el) {
+        if (el.type === 'checkbox') return !el.checked;
+        if (el.type === 'radio')    return !document.querySelector('input[name="' + esc(el.name) + '"]:checked');
+        return el.value.trim() === '';
+    }
+
+    function getLabel(el) {
+        var field = el.closest('.field');
+        if (field) {
+            var lbl = field.querySelector('label');
+            if (lbl) return lbl.textContent.trim().replace(/\s*\*\s*$/, '').trim();
+        }
+        return el.name || 'Champ';
+    }
+
+    function markFieldInvalid(el) {
+        el.classList.add('is-invalid');
+        var parent = el.parentNode;
+        if (!parent.querySelector('.gvv-invalid-feedback')) {
+            var fb = document.createElement('div');
+            fb.className = 'gvv-invalid-feedback';
+            fb.textContent = 'Ce champ est obligatoire.';
+            parent.insertBefore(fb, el.nextSibling);
+        }
+        if (!el.dataset.gvvValidationBound) {
+            el.dataset.gvvValidationBound = '1';
+            var clear = function () {
+                if (!isEmpty(el)) {
+                    el.classList.remove('is-invalid');
+                    var fb = el.parentNode.querySelector('.gvv-invalid-feedback');
+                    if (fb) fb.remove();
+                }
+            };
+            el.addEventListener('input',  clear);
+            el.addEventListener('change', clear);
+        }
+    }
+
+    function markSigInvalid(widget) {
+        widget.classList.add('gvv-sig-invalid');
+        if (!widget.querySelector('.gvv-sig-error')) {
+            var fb = document.createElement('div');
+            fb.className = 'gvv-sig-error';
+            fb.textContent = 'La signature est obligatoire.';
+            widget.appendChild(fb);
+        }
+        if (!widget.dataset.gvvSigBound) {
+            widget.dataset.gvvSigBound = '1';
+            var canvas = widget.querySelector('.gvv-sig-draw-canvas');
+            if (canvas) {
+                ['pointerup', 'mouseup', 'touchend'].forEach(function (ev) {
+                    canvas.addEventListener(ev, function () { clearSigError(widget); });
+                });
+            }
+            var fileInput = widget.querySelector('.gvv-sig-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    if (fileInput.files && fileInput.files.length > 0) clearSigError(widget);
+                });
+            }
+            var textInput = widget.querySelector('.gvv-sig-text-input');
+            if (textInput) {
+                textInput.addEventListener('input', function () {
+                    if (textInput.value.trim() !== '') clearSigError(widget);
+                });
+            }
+        }
+    }
+
+    function clearSigError(widget) {
+        widget.classList.remove('gvv-sig-invalid');
+        var fb = widget.querySelector('.gvv-sig-error');
+        if (fb) fb.remove();
+    }
+
+    function showSummary(form, labels) {
+        var alert = document.createElement('div');
+        alert.className = 'alert alert-danger gvv-validation-summary';
+        alert.setAttribute('role', 'alert');
+        var items = labels.map(function (l) {
+            return '<li>' + esc(l) + '</li>';
+        }).join('');
+        alert.innerHTML = '<strong>Veuillez renseigner les champs obligatoires :</strong>'
+            + '<ul class="mb-0 mt-1">' + items + '</ul>';
+        form.insertBefore(alert, form.firstChild);
+        alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearErrors(form) {
+        form.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+        form.querySelectorAll('.gvv-invalid-feedback').forEach(function (el) { el.remove(); });
+        form.querySelectorAll('.gvv-sig-invalid').forEach(function (el) { el.classList.remove('gvv-sig-invalid'); });
+        form.querySelectorAll('.gvv-sig-error').forEach(function (el) { el.remove(); });
+        var s = form.querySelector('.gvv-validation-summary');
+        if (s) s.remove();
+    }
+
+    function esc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+VALJS;
     }
 
     private function build_signature_assets() {

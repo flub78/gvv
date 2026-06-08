@@ -90,6 +90,7 @@ class Forms_public extends CI_Controller {
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget);
+            $injected = $this->forms_renderer->inject_validation_script($injected);
             $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
             list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
             $current_page['content_html'] = $injected;
