@@ -100,7 +100,7 @@ class Reservations extends MY_Controller {
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
-        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano) = $this->_reservation_permissions();
 
         $data = array(
             'timeline_increment' => $this->config->item('timeline_increment'),
@@ -113,7 +113,8 @@ class Reservations extends MY_Controller {
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
             'is_auto_planchiste' => $is_auto_planchiste,
-            'can_book' => $can_book
+            'can_book' => $can_book,
+            'is_mecano' => $is_mecano
         );
         load_last_view('reservations/reservations_v6', $data);
     }
@@ -187,7 +188,7 @@ class Reservations extends MY_Controller {
         $instructors_options = $this->membres_model->inst_selector(0, true);
 
         // User context for access control
-        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano) = $this->_reservation_permissions();
 
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
@@ -241,7 +242,8 @@ class Reservations extends MY_Controller {
             'current_username' => $current_username,
             'can_edit_others' => $can_edit_others,
             'is_auto_planchiste' => $is_auto_planchiste,
-            'can_book' => $can_book
+            'can_book' => $can_book,
+            'is_mecano' => $is_mecano
         );
 
         load_last_view('reservations/timeline', $data);
@@ -382,7 +384,7 @@ class Reservations extends MY_Controller {
             }
 
             // Access control
-            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt, $drop_can_book) = $this->_reservation_permissions();
+            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt, $drop_can_book, $drop_is_mecano) = $this->_reservation_permissions();
 
             // Read-only members cannot create or modify reservations
             if (!$drop_can_book) {
@@ -390,7 +392,8 @@ class Reservations extends MY_Controller {
                 throw new Exception($this->lang->line('reservations_error_not_authorized'));
             }
 
-            if ($drop_is_auto_planchiste && !$drop_can_edit_others) {
+            $drop_no_pilot = empty($reservation['pilot_member_id']);
+            if ($drop_is_auto_planchiste && !$drop_can_edit_others && !($drop_is_mecano && $drop_no_pilot)) {
                 if ($reservation['pilot_member_id'] !== $drop_username) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_not_authorized'));
@@ -421,26 +424,26 @@ class Reservations extends MY_Controller {
             // Determine the aircraft_id for conflict check
             $check_aircraft_id = $resource_id ? $resource_id : $reservation['aircraft_id'];
 
-            // Check for conflicts (aircraft, pilot, instructor)
-            $conflict_check = $this->reservations_model->check_reservation_conflicts(
-                $check_aircraft_id,
-                $reservation['pilot_member_id'],
-                $reservation['instructor_member_id'],
-                $start_datetime,
-                $end_datetime,
-                $event_id  // Exclude current reservation from conflict check
-            );
+            // Maintenance and unavailable reservations bypass aircraft conflict check
+            $no_conflict_statuses = array('maintenance', 'unavailable');
+            if (!in_array($reservation['status'], $no_conflict_statuses)) {
+                $conflict_check = $this->reservations_model->check_reservation_conflicts(
+                    $check_aircraft_id,
+                    $reservation['pilot_member_id'],
+                    $reservation['instructor_member_id'],
+                    $start_datetime,
+                    $end_datetime,
+                    $event_id  // Exclude current reservation from conflict check
+                );
 
-            if (!$conflict_check['valid']) {
-                // Load language file for error messages
-                $this->lang->load('reservations');
-
-                $error_messages = array();
-                foreach ($conflict_check['conflicts'] as $conflict_type) {
-                    $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                if (!$conflict_check['valid']) {
+                    $this->lang->load('reservations');
+                    $error_messages = array();
+                    foreach ($conflict_check['conflicts'] as $conflict_type) {
+                        $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                    }
+                    throw new Exception(implode(', ', $error_messages));
                 }
-
-                throw new Exception(implode(', ', $error_messages));
             }
 
             // Prepare update data
@@ -632,7 +635,7 @@ class Reservations extends MY_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
 
-            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book) = $this->_reservation_permissions();
+            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano) = $this->_reservation_permissions();
 
             // Read-only members cannot create or modify reservations
             if (!$can_book) {
@@ -644,7 +647,7 @@ class Reservations extends MY_Controller {
             $is_create = empty($reservation_id);
 
             // Access control for auto_planchiste
-            if ($is_auto_planchiste && !$can_edit_others) {
+            if ($is_auto_planchiste && !$can_edit_others && !$is_mecano) {
                 // maintenance and unavailable are restricted to privileged users
                 if (in_array($status, array('maintenance', 'unavailable'))) {
                     throw new Exception($this->lang->line('reservations_error_not_authorized'));
@@ -688,26 +691,26 @@ class Reservations extends MY_Controller {
                 }
             }
 
-            // Check for conflicts (aircraft, pilot, instructor)
-            $conflict_check = $this->reservations_model->check_reservation_conflicts(
-                $aircraft_id,
-                $pilot_member_id,
-                $instructor_member_id,
-                $start_datetime,
-                $end_datetime,
-                $is_create ? null : $reservation_id
-            );
+            // Maintenance and unavailable reservations bypass aircraft conflict check
+            $no_conflict_statuses = array('maintenance', 'unavailable');
+            if (!in_array($status, $no_conflict_statuses)) {
+                $conflict_check = $this->reservations_model->check_reservation_conflicts(
+                    $aircraft_id,
+                    $pilot_member_id,
+                    $instructor_member_id,
+                    $start_datetime,
+                    $end_datetime,
+                    $is_create ? null : $reservation_id
+                );
 
-            if (!$conflict_check['valid']) {
-                // Load language file for error messages
-                $this->lang->load('reservations');
-
-                $error_messages = array();
-                foreach ($conflict_check['conflicts'] as $conflict_type) {
-                    $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                if (!$conflict_check['valid']) {
+                    $this->lang->load('reservations');
+                    $error_messages = array();
+                    foreach ($conflict_check['conflicts'] as $conflict_type) {
+                        $error_messages[] = $this->lang->line('reservations_conflict_' . $conflict_type);
+                    }
+                    throw new Exception(implode(', ', $error_messages));
                 }
-
-                throw new Exception(implode(', ', $error_messages));
             }
 
             if ($is_create) {
@@ -796,7 +799,7 @@ class Reservations extends MY_Controller {
             $this->load->model('reservations_model');
 
             // Access control
-            list($del_username, $del_can_edit_others, $del_is_auto_planchiste, , $del_can_book) = $this->_reservation_permissions();
+            list($del_username, $del_can_edit_others, $del_is_auto_planchiste, , $del_can_book, $del_is_mecano) = $this->_reservation_permissions();
 
             // Read-only members cannot delete reservations
             if (!$del_can_book) {
@@ -807,7 +810,8 @@ class Reservations extends MY_Controller {
             if ($del_is_auto_planchiste && !$del_can_edit_others) {
                 $this->lang->load('reservations');
                 $del_reservation = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
-                if (!$del_reservation || $del_reservation['pilot_member_id'] !== $del_username) {
+                $del_no_pilot = empty($del_reservation['pilot_member_id']);
+                if (!$del_reservation || (!($del_is_mecano && $del_no_pilot) && $del_reservation['pilot_member_id'] !== $del_username)) {
                     throw new Exception($this->lang->line('reservations_error_not_authorized'));
                 }
             }
@@ -1047,11 +1051,12 @@ class Reservations extends MY_Controller {
             $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
         } else {
             $is_auto_planchiste = false;
+            $is_mecano          = false;
             $can_edit_others    = true;
             $balance_exempt     = true;
             $can_book           = true;
         }
-        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book);
+        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano);
     }
 
 }

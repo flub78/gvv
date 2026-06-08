@@ -514,6 +514,7 @@ $this->load->view('bs_banner');
             currentUser: '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
             canEditOthers: <?php echo $can_edit_others ? 'true' : 'false'; ?>,
             isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>,
+            isMecano: <?php echo $is_mecano ? 'true' : 'false'; ?>,
             canBook: <?php echo $can_book ? 'true' : 'false'; ?>
         };
         
@@ -722,7 +723,7 @@ $this->load->view('bs_banner');
             
             // Determine if current user can edit this event
             const pilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-            const canEditEvent = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser));
+            const canEditEvent = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser) || (CONFIG.isMecano && !pilotId));
 
             // Add resize handle
             const resizeHandle = document.createElement('div');
@@ -1235,7 +1236,7 @@ $this->load->view('bs_banner');
 
                 // Determine edit permissions for this event
                 const eventPilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-                const isEventOwner = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser));
+                const isEventOwner = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser) || (CONFIG.isMecano && !eventPilotId));
                 const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
                 
                 // Extract and safely prepare data
@@ -1350,7 +1351,7 @@ $this->load->view('bs_banner');
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus" ${readOnlyAttr}>
                             ${Object.entries(STATUSES).map(([code, props]) => {
-                                if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) return '';
+                                if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano) return '';
                                 return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
                             }).join('')}
                         </select>

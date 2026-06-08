@@ -134,6 +134,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
         canEditOthers:     <?php echo $can_edit_others     ? 'true' : 'false'; ?>,
         isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>,
+        isMecano:          <?php echo $is_mecano           ? 'true' : 'false'; ?>,
         canBook:           <?php echo $can_book            ? 'true' : 'false'; ?>
     };
 
@@ -292,7 +293,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus" ${roAttr}>
                         ${Object.entries(STATUSES).map(([code, props]) => {
-                            if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers) return '';
+                            if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano) return '';
                             return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
                         }).join('')}
                     </select>
