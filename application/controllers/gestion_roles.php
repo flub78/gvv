@@ -87,10 +87,9 @@ class Gestion_roles extends CI_Controller {
 
         if ($user_id) {
             $user_q = $this->db
-                ->select('u.id, u.username, u.email, m.mnom, m.mprenom, s.nom as section_name')
+                ->select('u.id, u.username, u.email, m.mnom, m.mprenom')
                 ->from('users u')
                 ->join('membres m', 'u.username = m.mlogin', 'left')
-                ->join('sections s', 'm.club = s.id', 'left')
                 ->where('u.id', (int)$user_id)
                 ->get()->row_array();
 
