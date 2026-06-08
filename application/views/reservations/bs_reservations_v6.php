@@ -167,6 +167,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             saveBtn.textContent = isCreate ? TRANSLATIONS.btn_create : TRANSLATIONS.btn_save;
             cancelBtn.textContent = TRANSLATIONS.btn_cancel;
 
+            // Members without booking rights are always read-only
+            const readOnly = !CONFIG.canBook;
+
             // Show/hide save/delete buttons based on booking rights
             if (readOnly) {
                 saveBtn.style.display = 'none';
@@ -214,8 +217,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
             // auto_planchiste creating a new event: force pilot to self
             const pilotId = props.pilot_member_id || (lockPilotToSelf ? CONFIG.currentUser : '');
-            // Members without booking rights are always read-only
-            const readOnly = !CONFIG.canBook;
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
             const status = props.status || Object.keys(STATUSES)[0];
