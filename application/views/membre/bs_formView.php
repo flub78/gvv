@@ -95,7 +95,8 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
             <?php if ($action == CREATION): ?>
                 <div class="col-md-6">
                     <label for="mlogin" class="form-label"><?php echo $this->lang->line("gvv_membres_field_mlogin"); ?></label>
-                    <?php echo input_field('mlogin', $mlogin, array('type' => 'text', 'class' => 'form-control', 'id' => 'mlogin', 'title' => 'Identifiant de connexion obligatoire, initiales + nom en minuscule')); ?>
+                    <?php echo input_field('mlogin', $mlogin, array('type' => 'text', 'class' => 'form-control', 'id' => 'mlogin', 'title' => 'Identifiant de connexion obligatoire. Par convention, ce sont les premières lettres du prénom suivies des lettres du nom, le tout en minuscule.')); ?>
+                    <div class="form-text">Par convention, ce sont les premières lettres du prénom suivies des lettres du nom, le tout en minuscule.</div>
                 </div>
             <?php else: ?>
                 <?php if (isset($pilote_selector)): ?>
