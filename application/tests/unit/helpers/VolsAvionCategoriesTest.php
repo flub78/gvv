@@ -16,6 +16,7 @@ require_once dirname(__DIR__, 3) . '/helpers/vols_avion_categories_helper.php';
  *   Vol propriétaire (4)  : instructeur, club_admin, propriétaire de la machine
  *   Vol porte ouverte (5) : instructeur, club_admin, pilote_vd
  *   Vol BIA (6)           : instructeur, club_admin, pilote_vd
+ *   Convoyage (7)         : instructeur, club_admin, pilote_rem
  */
 class VolsAvionCategoriesTest extends TestCase
 {
@@ -27,6 +28,7 @@ class VolsAvionCategoriesTest extends TestCase
         4 => 'Vol propriétaire',
         5 => 'Vol porte ouverte',
         6 => 'Vol BIA',
+        7 => 'Convoyage',
     );
 
     private function roles($overrides = array())
@@ -81,6 +83,7 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(4, $result, 'Vol propriétaire');
         $this->assertArrayHasKey(5, $result, 'Vol porte ouverte');
         $this->assertArrayHasKey(6, $result, 'Vol BIA');
+        $this->assertArrayHasKey(7, $result, 'Convoyage');
     }
 
     // ------------------------------------------------------------------
@@ -112,6 +115,7 @@ class VolsAvionCategoriesTest extends TestCase
         $result = $this->compute($this->roles(['pilote_rem' => true]));
         $this->assertArrayHasKey(0, $result, 'Standard');
         $this->assertArrayHasKey(3, $result, 'Remorquage');
+        $this->assertArrayHasKey(7, $result, 'Convoyage');
         $this->assertArrayNotHasKey(1, $result, 'VD interdit');
         $this->assertArrayNotHasKey(2, $result, 'Essai interdit');
         $this->assertArrayNotHasKey(4, $result, 'Propriétaire interdit');
@@ -133,6 +137,7 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayNotHasKey(4, $result, 'Propriétaire interdit');
         $this->assertArrayHasKey(5, $result, 'Vol porte ouverte');
         $this->assertArrayHasKey(6, $result, 'Vol BIA');
+        $this->assertArrayNotHasKey(7, $result, 'Convoyage interdit');
     }
 
     // ------------------------------------------------------------------
@@ -149,6 +154,7 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayNotHasKey(3, $result, 'Remorquage interdit');
         $this->assertArrayNotHasKey(5, $result, 'PO interdit');
         $this->assertArrayNotHasKey(6, $result, 'BIA interdit');
+        $this->assertArrayNotHasKey(7, $result, 'Convoyage interdit');
     }
 
     public function test_owns_machine_without_auto_planchiste_no_standard()
@@ -171,6 +177,7 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(3, $result);
         $this->assertArrayHasKey(5, $result);
         $this->assertArrayHasKey(6, $result);
+        $this->assertArrayHasKey(7, $result);
         $this->assertArrayNotHasKey(2, $result);
         $this->assertArrayNotHasKey(4, $result);
     }

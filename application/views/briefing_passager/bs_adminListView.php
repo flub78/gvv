@@ -64,7 +64,7 @@ $this->lang->load('briefing_passager');
         </td>
         <td><?= $b['uploaded_at'] ? date('d/m/Y H:i', strtotime($b['uploaded_at'])) : '—' ?></td>
         <td>
-            <a href="<?= site_url('briefing_passager/view/' . $b['id']) ?>" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('briefing_passager_view') ?>">
+            <a href="<?= site_url('archived_documents/preview/' . $b['id']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('briefing_passager_view') ?>">
                 <i class="fas fa-eye"></i>
             </a>
         </td>

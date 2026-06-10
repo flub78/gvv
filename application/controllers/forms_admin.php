@@ -838,9 +838,7 @@ class Forms_admin extends CI_Controller {
             }
         }
 
-        $css = $this->_make_css_tcpdf_compatible(
-            !empty($form['global_css']) ? (string) $form['global_css'] : ''
-        );
+        $css = !empty($form['global_css']) ? (string) $form['global_css'] : '';
 
         $body_parts = array();
         foreach ($pages as $page) {
@@ -864,28 +862,97 @@ class Forms_admin extends CI_Controller {
             $body_parts[] = $this->_fill_html_values($raw, $values_by_name, $files_by_name, $sig_files);
         }
 
-        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $css . '</style></head><body>'
+        // Include Bootstrap CSS so grid/component classes (col-md-*, form-control, etc.)
+        // are applied by wkhtmltopdf. Embedded inline to keep the HTML self-contained.
+        $bootstrap_css = '';
+        $bootstrap_path = FCPATH . 'assets/css/bootstrap.min.css';
+        if (is_readable($bootstrap_path)) {
+            $bootstrap_css = file_get_contents($bootstrap_path);
+        }
+
+        // wkhtmltopdf renders A4 at ~794 CSS px, below Bootstrap's md breakpoint (768px).
+        // Force col-md-* and col-lg-* widths unconditionally so the grid is always applied.
+        $pdf_grid_fix = '.row{display:flex!important;flex-wrap:wrap!important;}'
+            . '.col-md-1{flex:0 0 auto!important;width:8.333333%!important;}'
+            . '.col-md-2{flex:0 0 auto!important;width:16.666667%!important;}'
+            . '.col-md-3{flex:0 0 auto!important;width:25%!important;}'
+            . '.col-md-4{flex:0 0 auto!important;width:33.333333%!important;}'
+            . '.col-md-5{flex:0 0 auto!important;width:41.666667%!important;}'
+            . '.col-md-6{flex:0 0 auto!important;width:50%!important;}'
+            . '.col-md-7{flex:0 0 auto!important;width:58.333333%!important;}'
+            . '.col-md-8{flex:0 0 auto!important;width:66.666667%!important;}'
+            . '.col-md-9{flex:0 0 auto!important;width:75%!important;}'
+            . '.col-md-10{flex:0 0 auto!important;width:83.333333%!important;}'
+            . '.col-md-11{flex:0 0 auto!important;width:91.666667%!important;}'
+            . '.col-md-12{flex:0 0 auto!important;width:100%!important;}'
+            . '.col-lg-1{flex:0 0 auto!important;width:8.333333%!important;}'
+            . '.col-lg-2{flex:0 0 auto!important;width:16.666667%!important;}'
+            . '.col-lg-3{flex:0 0 auto!important;width:25%!important;}'
+            . '.col-lg-4{flex:0 0 auto!important;width:33.333333%!important;}'
+            . '.col-lg-5{flex:0 0 auto!important;width:41.666667%!important;}'
+            . '.col-lg-6{flex:0 0 auto!important;width:50%!important;}'
+            . '.col-lg-7{flex:0 0 auto!important;width:58.333333%!important;}'
+            . '.col-lg-8{flex:0 0 auto!important;width:66.666667%!important;}'
+            . '.col-lg-9{flex:0 0 auto!important;width:75%!important;}'
+            . '.col-lg-10{flex:0 0 auto!important;width:83.333333%!important;}'
+            . '.col-lg-11{flex:0 0 auto!important;width:91.666667%!important;}'
+            . '.col-lg-12{flex:0 0 auto!important;width:100%!important;}';
+
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+              . '<style>' . $bootstrap_css . '</style>'
+              . '<style>' . $pdf_grid_fix . '</style>'
+              . '<style>' . $css . '</style>'
+              . '</head><body>'
               . implode('<p style="page-break-after:always;"></p>', $body_parts)
               . '</body></html>';
 
         $html = $this->_embed_local_images_as_base64($html);
 
-        include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
-
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator($this->config->item('nom_club') ?: 'GVV');
-        $pdf->SetAuthor($this->config->item('nom_club') ?: 'GVV');
-        $pdf->SetTitle($form['title']);
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->SetMargins(10, 10, 10);
-        $pdf->SetAutoPageBreak(true, 10);
-        $pdf->AddPage();
-        $pdf->writeHTML($html, true, false, true, false, '');
-
         $safe_title = preg_replace('/[^a-z0-9_\-]/i', '_', $form['title']);
         $filename   = 'reponse_' . (int) $submission['id'] . '_' . $safe_title . '.pdf';
-        $pdf->Output($filename, 'I');
+
+        $tmp_html = tempnam(sys_get_temp_dir(), 'gvv_pdf_') . '.html';
+        $tmp_pdf  = tempnam(sys_get_temp_dir(), 'gvv_pdf_') . '.pdf';
+
+        file_put_contents($tmp_html, $html);
+
+        // Use configurable path; fall back to common install locations
+        $binary = $this->config->item('wkhtmltopdf_path') ?: 'wkhtmltopdf';
+        if ($binary === 'wkhtmltopdf') {
+            foreach (array('/usr/bin/wkhtmltopdf', '/usr/local/bin/wkhtmltopdf', '/usr/local/wkhtmltox/bin/wkhtmltopdf') as $candidate) {
+                if (is_executable($candidate)) { $binary = $candidate; break; }
+            }
+        }
+
+        $cmd = sprintf(
+            '%s --page-size A4 --margin-top 10mm --margin-bottom 10mm'
+            . ' --margin-left 10mm --margin-right 10mm'
+            . ' --encoding utf-8 --disable-javascript --print-media-type --quiet %s %s 2>&1',
+            escapeshellarg($binary),
+            escapeshellarg($tmp_html),
+            escapeshellarg($tmp_pdf)
+        );
+
+        $output = shell_exec($cmd);
+
+        if (!file_exists($tmp_pdf) || filesize($tmp_pdf) === 0) {
+            @unlink($tmp_html);
+            @unlink($tmp_pdf);
+            log_message('error', 'wkhtmltopdf failed: ' . $output);
+            show_error('La génération du PDF a échoué. Vérifiez que wkhtmltopdf est installé.');
+            return;
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Length: ' . filesize($tmp_pdf));
+        readfile($tmp_pdf);
+
+        @unlink($tmp_html);
+        @unlink($tmp_pdf);
         exit;
     }
 
@@ -1031,27 +1098,20 @@ class Forms_admin extends CI_Controller {
                 $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
                 $is_checked    = ($submitted === $checked_value)
                               || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
-                $display   = ($is_checked ? '[x] ' : '[ ] ') . $checked_value;
+                $display   = $is_checked ? '☑' : '☐';
                 $use_block = false;
             } elseif ($type === 'radio') {
                 $radio_value = $input->getAttribute('value');
                 $submitted   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
-                $display     = ($submitted === $radio_value ? '(o) ' : '( ) ') . $radio_value;
+                $display     = ($submitted === $radio_value) ? '●' : '○';
                 $use_block   = false;
             } else {
                 $display   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
                 $use_block = true;
             }
 
-            // Use a block-level <div> for text fields so TCPDF starts the value on a new
-            // line after the label. Checkbox/radio/file stay inline (<span>).
-            if ($use_block) {
-                $el = $dom->createElement('div');
-                $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; padding:1px 3px; margin-bottom:4px;');
-            } else {
-                $el = $dom->createElement('span');
-                $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
-            }
+            $el = $dom->createElement('span');
+            $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
             $el->appendChild($dom->createTextNode($display));
             $input->parentNode->replaceChild($el, $input);
         }
@@ -1070,8 +1130,8 @@ class Forms_admin extends CI_Controller {
         foreach ($selects as $select) {
             $name    = $select->getAttribute('name');
             $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
-            $span    = $dom->createElement('div');
-            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; padding:1px 3px; margin-bottom:4px;');
+            $span    = $dom->createElement('span');
+            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
             $span->appendChild($dom->createTextNode($display));
             $select->parentNode->replaceChild($span, $select);
         }
@@ -1085,11 +1145,8 @@ class Forms_admin extends CI_Controller {
             if (isset($sig_files[$name]) && !empty($sig_files[$name]['storage_path'])) {
                 $abs_path = FCPATH . ltrim((string) $sig_files[$name]['storage_path'], '/');
                 if (file_exists($abs_path) && is_readable($abs_path)) {
-                    // Embed image as base64 so TCPDF doesn't need to resolve a filesystem path
-                    // (TCPDF prepends DOCUMENT_ROOT to absolute paths, which breaks when
-                    // the project root differs from DOCUMENT_ROOT)
                     $img = $dom->createElement('img');
-                    $img->setAttribute('src', '@' . base64_encode(file_get_contents($abs_path)));
+                    $img->setAttribute('src', 'data:image/png;base64,' . base64_encode(file_get_contents($abs_path)));
                     $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; display:block;');
                     $div->parentNode->replaceChild($img, $div);
                 } else {
@@ -1114,43 +1171,31 @@ class Forms_admin extends CI_Controller {
     }
 
     /**
-     * Replace <img src="http://our-server/path"> with <img src="@base64data">
-     * so TCPDF reads images directly from disk instead of making HTTP requests.
+     * Replace <img src="http://our-server/path"> with a standard data URI so the
+     * HTML is self-contained and wkhtmltopdf can render it without network requests.
      */
     private function _embed_local_images_as_base64($html) {
         $base_url = rtrim(base_url(), '/') . '/';
 
-        // Replace a local img tag: embed src as base64 and ensure TCPDF renders it at
-        // full width (TCPDF ignores class-based CSS for image sizing, so we need inline style).
-        $embed_tag = function ($img_tag, $src) use ($base_url) {
+        $embed_src = function ($src) use ($base_url) {
             if (strpos($src, $base_url) !== 0) {
-                return $img_tag;
+                return null;
             }
-            $rel_path = substr($src, strlen($base_url));
-            $abs_path = FCPATH . ltrim($rel_path, '/');
+            $abs_path = FCPATH . ltrim(substr($src, strlen($base_url)), '/');
             if (!file_exists($abs_path) || !is_readable($abs_path)) {
-                return $img_tag;
+                return null;
             }
-            $b64 = '@' . base64_encode(file_get_contents($abs_path));
-            // Replace the src value
-            $tag = preg_replace('/\bsrc=(["\'])[^"\']+\1/i', 'src="' . $b64 . '"', $img_tag);
-            // If no explicit width/height/style on the ORIGINAL tag, force an explicit
-            // mm-based width so TCPDF renders the image at page content width.
-            // - Do NOT use width:100%: TCPDF resolves % relative to font size, not page width.
-            // - The form PDF uses 10mm margins on A4 (210mm), giving 190mm of content width.
-            // - This explicit value overrides any class-based CSS width (e.g. .header img{width:100%})
-            //   which would otherwise also cause the wrong font-size-relative calculation.
-            if (!preg_match('/\b(?:width|height|style)\s*=/i', $img_tag)) {
-                $tag = preg_replace('/<img\b/i', '<img style="width:190mm;display:block;"', $tag);
-            }
-            return $tag;
+            $info = getimagesize($abs_path);
+            $mime = $info ? $info['mime'] : 'image/png';
+            return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($abs_path));
         };
 
         // Double quotes
         $html = preg_replace_callback(
             '/(<img\b[^>]*\bsrc=")([^"]+)("[^>]*>)/i',
-            function ($m) use ($embed_tag) {
-                return $embed_tag($m[1] . $m[2] . $m[3], $m[2]);
+            function ($m) use ($embed_src) {
+                $data = $embed_src($m[2]);
+                return $data !== null ? $m[1] . $data . $m[3] : $m[0];
             },
             $html
         );
@@ -1158,8 +1203,9 @@ class Forms_admin extends CI_Controller {
         // Single quotes
         $html = preg_replace_callback(
             "/(<img\b[^>]*\bsrc=')([^']+)('[^>]*>)/i",
-            function ($m) use ($embed_tag) {
-                return $embed_tag($m[1] . $m[2] . $m[3], $m[2]);
+            function ($m) use ($embed_src) {
+                $data = $embed_src($m[2]);
+                return $data !== null ? $m[1] . $data . $m[3] : $m[0];
             },
             $html
         );
