@@ -898,9 +898,16 @@ class Forms_admin extends CI_Controller {
             . '.col-lg-11{flex:0 0 auto!important;width:91.666667%!important;}'
             . '.col-lg-12{flex:0 0 auto!important;width:100%!important;}';
 
+        // Force wkhtmltopdf to render background colours and images (suppressed by
+        // --print-media-type by default, which activates @media print rules that
+        // strip backgrounds for ink economy).
+        $pdf_bg_fix = '* { -webkit-print-color-adjust: exact !important;'
+                    . '    print-color-adjust: exact !important; }';
+
         $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
               . '<style>' . $bootstrap_css . '</style>'
               . '<style>' . $pdf_grid_fix . '</style>'
+              . '<style>' . $pdf_bg_fix . '</style>'
               . '<style>' . $css . '</style>'
               . '</head><body>'
               . implode('<p style="page-break-after:always;"></p>', $body_parts)
@@ -1111,7 +1118,11 @@ class Forms_admin extends CI_Controller {
             }
 
             $el = $dom->createElement('span');
-            $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
+            if ($use_block) {
+                $el->setAttribute('style', 'display:inline-block; border:1px solid #ced4da; border-radius:4px; background:#fff; padding:3px 8px; min-width:100px; min-height:24px; font-size:0.95em; vertical-align:middle;');
+            } else {
+                $el->setAttribute('style', 'display:inline-block; min-width:20px; vertical-align:middle;');
+            }
             $el->appendChild($dom->createTextNode($display));
             $input->parentNode->replaceChild($el, $input);
         }
@@ -1121,7 +1132,7 @@ class Forms_admin extends CI_Controller {
             $name    = $textarea->getAttribute('name');
             $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
             $div     = $dom->createElement('div');
-            $div->setAttribute('style', 'border:1px solid #7f8c8d; padding:4px; min-height:40px; width:100%;');
+            $div->setAttribute('style', 'border:1px solid #ced4da; border-radius:4px; background:#fff; padding:6px 8px; min-height:60px; width:100%; font-size:0.95em;');
             $div->appendChild($dom->createTextNode($display));
             $textarea->parentNode->replaceChild($div, $textarea);
         }
@@ -1131,7 +1142,7 @@ class Forms_admin extends CI_Controller {
             $name    = $select->getAttribute('name');
             $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
             $span    = $dom->createElement('span');
-            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
+            $span->setAttribute('style', 'display:inline-block; border:1px solid #ced4da; border-radius:4px; background:#fff; padding:3px 8px; min-width:100px; min-height:24px; font-size:0.95em; vertical-align:middle;');
             $span->appendChild($dom->createTextNode($display));
             $select->parentNode->replaceChild($span, $select);
         }

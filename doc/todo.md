@@ -18,6 +18,8 @@
 * [x] Ajout d'un calendrier des échéances
  
 * [] Génération des certificats de formation et de pilotes VD.
+
+* [] Gestion de l'inscription, y compris les autorisations parentales (wip)
      
 * [] Ajout de vrais export excel en sus des csv.
 
@@ -33,7 +35,7 @@
 
 * [] Informer le trésorier des renouvellement de cotisation par email
   
-* [] Gestion de l'inscription, y compris les autorisations parentales (wip)
+
 
 * [] Facture automatique de hangar
 

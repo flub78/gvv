@@ -1058,16 +1058,41 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        $mime_type = $doc['mime_type'];
-        if (!$mime_type) {
-            $mime_type = mime_content_type($doc['file_path']);
-        }
+        $mime_type = $this->_detect_inline_mime_type($doc);
 
         header('Content-Type: ' . $mime_type);
         header('Content-Disposition: inline; filename="' . basename($doc['original_filename']) . '"');
         header('Content-Length: ' . filesize($doc['file_path']));
         readfile($doc['file_path']);
         exit;
+    }
+
+    /**
+     * Detect a browser-friendly MIME type for inline previews.
+     * Some stored documents have a generic MIME type which makes browsers
+     * propose a download instead of rendering the PDF in a new tab.
+     */
+    private function _detect_inline_mime_type($doc) {
+        $file_path = !empty($doc['file_path']) ? $doc['file_path'] : '';
+        $mime_type = !empty($doc['mime_type']) ? trim((string)$doc['mime_type']) : '';
+
+        if ($mime_type !== '' && $mime_type !== 'application/octet-stream') {
+            return $mime_type;
+        }
+
+        $extension = strtolower(pathinfo((string)($doc['original_filename'] ?? $file_path), PATHINFO_EXTENSION));
+        if ($extension === 'pdf') {
+            return 'application/pdf';
+        }
+
+        if ($file_path && function_exists('mime_content_type')) {
+            $detected_mime_type = @mime_content_type($file_path);
+            if (!empty($detected_mime_type)) {
+                return $detected_mime_type;
+            }
+        }
+
+        return 'application/octet-stream';
     }
 
     /**
