@@ -45,14 +45,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($forms)): ?>
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                    <?= ($section_id > 0) ? $this->lang->line('forms_empty_section') : $this->lang->line('forms_empty_no_forms') ?>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($forms as $form): ?>
+                        <?php foreach ($forms as $form): ?>
                                 <tr>
                                     <td><code><?= html_escape($form['code']) ?></code></td>
                                     <td><?= html_escape($form['title']) ?></td>
@@ -99,8 +92,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
