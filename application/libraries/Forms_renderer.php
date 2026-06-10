@@ -55,18 +55,170 @@ class Forms_renderer {
     }
 
     /**
+     * Repopulate native HTML form fields from a previous submission's values.
+     *
+     * Used when server-side validation fails: the controller saves submitted values
+     * as flashdata, and on re-display this method injects them back into the HTML so
+     * the user does not lose what they typed.
+     *
+     * $fields:     array of field records (each with 'id', 'name', 'field_type')
+     * $old_values: field_id => submitted_value (as stored by the submit() controller)
+     *
+     * Handles: text/email/date/number inputs, select (single), textarea,
+     *          checkbox groups, radio groups.  Skips file and signature fields.
+     */
+    public function repopulate_html_fields($html, array $fields, array $old_values) {
+        if (empty($old_values)) {
+            return $html;
+        }
+
+        // Build field_name => {value, type} map
+        $map = array();
+        foreach ($fields as $field) {
+            $fid  = (int)    $field['id'];
+            $name = (string) $field['name'];
+            $type = isset($field['field_type']) ? (string) $field['field_type'] : 'text';
+            if ($name === '' || !array_key_exists($fid, $old_values)) {
+                continue;
+            }
+            // Skip fields that cannot or need not be repopulated
+            if (in_array($type, array('file', 'signature'), true)) {
+                continue;
+            }
+            $map[$name] = array('value' => $old_values[$fid], 'type' => $type);
+        }
+
+        if (empty($map)) {
+            return $html;
+        }
+
+        // --- <input> elements ---
+        $html = preg_replace_callback(
+            '/<input(\s[^>]*)>/is',
+            function ($m) use ($map) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                    return $m[0];
+                }
+                $name = $nm[1];
+                if (!isset($map[$name])) {
+                    return $m[0];
+                }
+
+                $value      = $map[$name]['value'];
+                $input_type = 'text';
+                if (preg_match('/\btype=["\']([^"\']+)["\']/', $attrs, $tm)) {
+                    $input_type = strtolower($tm[1]);
+                }
+
+                if (in_array($input_type, array('hidden', 'file', 'submit', 'reset', 'button'), true)) {
+                    return $m[0];
+                }
+
+                if ($input_type === 'checkbox') {
+                    $checked_values = is_array($value) ? array_map('strval', $value) : array();
+                    $checkbox_val   = '';
+                    if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $attrs, $vm)) {
+                        $checkbox_val = $vm[1];
+                    }
+                    $clean = preg_replace('/\s+checked(?:=["\'][^"\']*["\'])?/i', '', $attrs);
+                    if (in_array($checkbox_val, $checked_values, true)) {
+                        $clean .= ' checked';
+                    }
+                    return '<input' . $clean . '>';
+                }
+
+                if ($input_type === 'radio') {
+                    $radio_val = '';
+                    if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $attrs, $vm)) {
+                        $radio_val = $vm[1];
+                    }
+                    $clean = preg_replace('/\s+checked(?:=["\'][^"\']*["\'])?/i', '', $attrs);
+                    if ((string) $value === $radio_val) {
+                        $clean .= ' checked';
+                    }
+                    return '<input' . $clean . '>';
+                }
+
+                // text / email / date / number / tel / …
+                $clean = preg_replace('/\s+value=["\'][^"\']*["\']/', '', $attrs);
+                $esc   = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+                return '<input' . $clean . ' value="' . $esc . '">';
+            },
+            $html
+        );
+
+        // --- <select> elements ---
+        foreach ($map as $field_name => $entry) {
+            if ($entry['type'] !== 'select') {
+                continue;
+            }
+            $selected_val = (string) $entry['value'];
+            $html = preg_replace_callback(
+                '/<select(\s[^>]*)>(.*?)<\/select>/is',
+                function ($m) use ($field_name, $selected_val) {
+                    if (!preg_match('/\bname=["\']' . preg_quote($field_name, '/') . '["\']/', $m[1])) {
+                        return $m[0];
+                    }
+                    $inner = preg_replace_callback(
+                        '/<option(\s[^>]*)>/is',
+                        function ($om) use ($selected_val) {
+                            $oattrs  = $om[1];
+                            $opt_val = '';
+                            if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $oattrs, $vm)) {
+                                $opt_val = $vm[1];
+                            }
+                            $clean = preg_replace('/\s+selected(?:=["\'][^"\']*["\'])?/i', '', $oattrs);
+                            if ($opt_val === $selected_val) {
+                                $clean .= ' selected';
+                            }
+                            return '<option' . $clean . '>';
+                        },
+                        $m[2]
+                    );
+                    return '<select' . $m[1] . '>' . $inner . '</select>';
+                },
+                $html
+            );
+        }
+
+        // --- <textarea> elements ---
+        $html = preg_replace_callback(
+            '/<textarea(\s[^>]*)>(.*?)<\/textarea>/is',
+            function ($m) use ($map) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                    return $m[0];
+                }
+                $name = $nm[1];
+                if (!isset($map[$name])) {
+                    return $m[0];
+                }
+                $esc = htmlspecialchars((string) $map[$name]['value'], ENT_QUOTES, 'UTF-8');
+                return '<textarea' . $attrs . '>' . $esc . '</textarea>';
+            },
+            $html
+        );
+
+        return $html;
+    }
+
+    /**
      * Replace <div data-gvv-type="signature"> elements in page HTML with the
      * interactive signature widget.  Returns the modified HTML string and sets
      * $has_signature_widget to true when at least one widget was injected.
+     *
+     * $sig_prefill: optional map of field_name => base64 string to restore a
+     * previously submitted signature when re-displaying after a validation error.
      */
-    public function inject_signature_widgets($html, &$has_signature_widget = false) {
+    public function inject_signature_widgets($html, &$has_signature_widget = false, array $sig_prefill = array()) {
         if (strpos($html, 'data-gvv-type') === false) {
             return $html;
         }
 
         $result = preg_replace_callback(
             '/<div([^>]*)\bdata-gvv-type=["\']signature["\']([^>]*)>(.*?)<\/div>/is',
-            function ($matches) use (&$has_signature_widget) {
+            function ($matches) use (&$has_signature_widget, $sig_prefill) {
                 $all_attrs = $matches[1] . $matches[2];
 
                 preg_match('/data-gvv-name=["\']([^"\']+)["\']/', $all_attrs, $name_m);
@@ -84,8 +236,10 @@ class Forms_renderer {
                     $label = $field_name;
                 }
 
+                $prefill = isset($sig_prefill[$field_name]) ? $sig_prefill[$field_name] : '';
+
                 $has_signature_widget = true;
-                return $this->render_signature_widget($field_name, $label, $required);
+                return $this->render_signature_widget($field_name, $label, $required, $prefill);
             },
             $html
         );
@@ -100,7 +254,7 @@ class Forms_renderer {
      * Two hidden inputs transmit value and type (canvas|file|text) to the server.
      * The first call also emits the shared CSS/JS assets (once per page).
      */
-    public function render_signature_widget($field_name, $label = '', $required = false) {
+    public function render_signature_widget($field_name, $label = '', $required = false, $prefill_base64 = '') {
         $fn = htmlspecialchars($field_name, ENT_QUOTES, 'UTF-8');
         $lbl = htmlspecialchars($label !== '' ? $label : $field_name, ENT_QUOTES, 'UTF-8');
         $req_attr = $required ? ' required' : '';
@@ -152,7 +306,11 @@ class Forms_renderer {
         $html .= '  </div>' . "\n";
 
         // Hidden inputs
-        $html .= '  <input type="hidden" name="' . $fn . '" class="gvv-sig-value">' . "\n";
+        $prefill_attrs = '';
+        if ($prefill_base64 !== '') {
+            $prefill_attrs = ' value="' . htmlspecialchars($prefill_base64, ENT_QUOTES, 'UTF-8') . '" data-sig-prefill="1"';
+        }
+        $html .= '  <input type="hidden" name="' . $fn . '" class="gvv-sig-value"' . $prefill_attrs . '>' . "\n";
         $html .= '  <input type="hidden" name="' . $fn . '_type" class="gvv-sig-type-hidden" value="canvas">' . "\n";
         $html .= '</div>' . "\n";
 
@@ -414,6 +572,19 @@ VALJS;
             pad = new SignaturePad(drawCanvas, { backgroundColor: 'rgb(255,255,255)' });
         }
 
+        // --- Restore prefill (signature kept after a validation failure) ---
+        if (valueInput && valueInput.getAttribute('data-sig-prefill') === '1' && valueInput.value && drawCanvas) {
+            var prefillB64 = valueInput.value;
+            requestAnimationFrame(function () {
+                var img = new Image();
+                img.onload = function () {
+                    var ctx = drawCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, drawCanvas.offsetWidth, drawCanvas.offsetHeight);
+                };
+                img.src = 'data:image/png;base64,' + prefillB64;
+            });
+        }
+
         // --- Tab switching ---
         widget.querySelectorAll('[data-sig-tab]').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -495,9 +666,9 @@ VALJS;
                 if (activeTab === 'canvas' || activeTab === 'text') {
                     var src = activeTab === 'canvas' ? drawCanvas : textCanvas;
                     if (!src) return;
-                    // Skip if canvas is blank
+                    // Skip if canvas is blank; but keep a prefill value if the user did not redraw
                     if (activeTab === 'canvas' && pad && pad.isEmpty()) {
-                        valueInput.value = '';
+                        if (!valueInput.value) valueInput.value = '';
                         return;
                     }
                     if (activeTab === 'text' && (!textInput || textInput.value.trim() === '')) {

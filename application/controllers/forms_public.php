@@ -66,7 +66,8 @@ class Forms_public extends CI_Controller {
         }
 
         $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
-        $old_values = $this->session->flashdata('forms_public_old_values') ?: array();
+        $old_values     = $this->session->flashdata('forms_public_old_values') ?: array();
+        $sig_canvas_data = $this->session->flashdata('forms_public_sig_canvas')  ?: array();
         $render_fields = $this->forms_renderer->normalize_fields_for_view(
             $fields,
             $old_values
@@ -89,10 +90,13 @@ class Forms_public extends CI_Controller {
         $has_signature_widget = false;
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget);
+            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, $sig_canvas_data);
             $injected = $this->forms_renderer->inject_validation_script($injected);
             $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
             list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
+            if (!empty($old_values)) {
+                $injected = $this->forms_renderer->repopulate_html_fields($injected, $fields, $old_values);
+            }
             $current_page['content_html'] = $injected;
         }
 
@@ -142,7 +146,8 @@ class Forms_public extends CI_Controller {
         $fields = $this->form_fields_model->get_page_fields((int) $page['id']);
         $submitted_values = array();
         $file_field_keys = array();
-        $signature_canvas_data = array(); // field_id => base64 string for canvas/text modes
+        $signature_canvas_data = array();    // field_id   => base64 (for file saving on success)
+        $signature_canvas_by_name = array(); // field_name => base64 (for session persistence on failure)
 
         foreach ($fields as $field) {
             $key        = (string) $field['name'];
@@ -166,6 +171,7 @@ class Forms_public extends CI_Controller {
                     $submitted_values[(int) $field['id']] = ($base64 !== '') ? '[signature]' : '';
                     if ($base64 !== '') {
                         $signature_canvas_data[(int) $field['id']] = $base64;
+                        $signature_canvas_by_name[$key] = $base64;
                     }
                 }
                 continue;
@@ -227,6 +233,9 @@ class Forms_public extends CI_Controller {
         if (!empty($errors)) {
             $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
+            if (!empty($signature_canvas_by_name)) {
+                $this->session->set_flashdata('forms_public_sig_canvas', $signature_canvas_by_name);
+            }
             redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
         }
