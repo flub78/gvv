@@ -15,16 +15,13 @@
         }
     ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="mb-3">
         <div>
             <h1 class="h3 mb-1"><?= $this->lang->line('forms_title_submission_detail') ?></h1>
             <p class="text-muted mb-0">
                 <?= html_escape($form['title']) ?> (<?= html_escape($form['code']) ?>)
                 - <?= $this->lang->line('forms_section_submission') ?><?= (int) $submission['id'] ?>
             </p>
-        </div>
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_submissions') ?></a>
         </div>
     </div>
 

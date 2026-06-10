@@ -159,7 +159,7 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         <?php endif; ?>
 
         <!-- Administration Club -->
-        <?php if ($is_ca): ?>
+        <?php if (isset($is_ca_any_section) ? $is_ca_any_section : $is_ca): ?>
         <div class="col-6 col-md-4 col-lg-3">
             <a class="section-tile admin" href="<?= controller_url('welcome/section/admin_club') ?>">
                 <i class="fas fa-cogs text-danger"></i>

@@ -3,6 +3,14 @@
     <?php
         $form = isset($form) ? $form : array('id' => 0, 'title' => '', 'code' => '');
         $submissions = isset($submissions) ? $submissions : array();
+        $public_slug = trim((string) ($form['public_slug'] ?? ''));
+        $can_fill_form = ($public_slug !== '');
+        $required_params = (string) ($form['required_params'] ?? 'none');
+        $requires_generate = in_array($required_params, array('pilot', 'instructor', 'pilot+instructor'), true);
+        $fill_label = $requires_generate ? $this->lang->line('forms_button_generate') : $this->lang->line('forms_generate_button');
+        $fill_url = $requires_generate
+            ? site_url('forms_admin/generate/' . rawurlencode($public_slug))
+            : site_url('forms/' . rawurlencode($public_slug));
     ?>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -10,7 +18,12 @@
             <h1 class="h3 mb-1"><?= $this->lang->line('forms_title_submissions') ?></h1>
             <p class="text-muted mb-0"><?= html_escape($form['title']) ?> (<?= html_escape($form['code']) ?>)</p>
         </div>
-        <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/edit/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_form') ?></a>
+        <div class="d-flex gap-2">
+            <?php if ($can_fill_form): ?>
+                <a class="btn btn-primary" href="<?= $fill_url ?>"><?= $fill_label ?></a>
+            <?php endif; ?>
+            <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/edit/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_form') ?></a>
+        </div>
     </div>
 
     <?php if (!empty($success)): ?>
@@ -35,11 +48,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($submissions)): ?>
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4"><?= $this->lang->line('forms_empty_no_submissions') ?></td>
-                            </tr>
-                        <?php else: ?>
+                        <?php if (!empty($submissions)): ?>
                             <?php foreach ($submissions as $submission): ?>
                                 <tr>
                                     <td><?= (int) $submission['id'] ?></td>

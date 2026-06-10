@@ -184,6 +184,7 @@ class Welcome extends Gvv_Controller {
             // Use NULL so has_role searches across all sections for cross-section checks.
             $q = $raw_section_id ? $this->db->where('id', (int)$raw_section_id)->get('sections') : NULL;
             $section_id = ($q && $q->num_rows() > 0) ? (int)$raw_section_id : NULL;
+            $data['is_ca_any_section'] = $this->gvv_authorization->has_role($this->user_id, 'ca', NULL);
             $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
             $data['is_bureau'] = $this->gvv_authorization->has_role($this->user_id, 'bureau', $section_id);
             $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
@@ -206,6 +207,7 @@ class Welcome extends Gvv_Controller {
             ));
         } else {
             $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
+            $data['is_ca_any_section'] = $data['is_ca'];
             $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
             $data['is_instructeur'] = false;
             $data['is_mecano'] = false;

@@ -679,6 +679,11 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
+        $this->load->vars([
+            'nav_back_url'   => 'forms_admin/submissions/' . (int) $form['id'],
+            'nav_back_label' => 'Réponses',
+        ]);
+
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
         if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
             $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
@@ -703,6 +708,11 @@ class Forms_admin extends CI_Controller {
         if (!$form) {
             return;
         }
+
+        $this->load->vars([
+            'nav_back_url'   => 'forms_admin/submissions/' . (int) $form['id'],
+            'nav_back_label' => 'Réponses',
+        ]);
 
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
         if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
@@ -858,6 +868,8 @@ class Forms_admin extends CI_Controller {
               . implode('<p style="page-break-after:always;"></p>', $body_parts)
               . '</body></html>';
 
+        $html = $this->_embed_local_images_as_base64($html);
+
         include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
 
         $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
@@ -1012,25 +1024,36 @@ class Forms_admin extends CI_Controller {
             }
 
             if ($type === 'file') {
-                $display = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
+                $display    = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
+                $use_block  = false;
             } elseif ($type === 'checkbox') {
                 $checked_value = $input->getAttribute('value');
                 $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
                 $is_checked    = ($submitted === $checked_value)
                               || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
-                $display = ($is_checked ? '[x] ' : '[ ] ') . $checked_value;
+                $display   = ($is_checked ? '[x] ' : '[ ] ') . $checked_value;
+                $use_block = false;
             } elseif ($type === 'radio') {
                 $radio_value = $input->getAttribute('value');
                 $submitted   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
                 $display     = ($submitted === $radio_value ? '(o) ' : '( ) ') . $radio_value;
+                $use_block   = false;
             } else {
-                $display = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $display   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $use_block = true;
             }
 
-            $span = $dom->createElement('span');
-            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
-            $span->appendChild($dom->createTextNode($display));
-            $input->parentNode->replaceChild($span, $input);
+            // Use a block-level <div> for text fields so TCPDF starts the value on a new
+            // line after the label. Checkbox/radio/file stay inline (<span>).
+            if ($use_block) {
+                $el = $dom->createElement('div');
+                $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; padding:1px 3px; margin-bottom:4px;');
+            } else {
+                $el = $dom->createElement('span');
+                $el->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px; padding:1px 3px;');
+            }
+            $el->appendChild($dom->createTextNode($display));
+            $input->parentNode->replaceChild($el, $input);
         }
 
         $textareas = iterator_to_array($xpath->query('//textarea[@name]'));
@@ -1047,8 +1070,8 @@ class Forms_admin extends CI_Controller {
         foreach ($selects as $select) {
             $name    = $select->getAttribute('name');
             $display = isset($values_by_name[$name]) ? $values_by_name[$name] : '';
-            $span    = $dom->createElement('span');
-            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; display:inline-block; min-width:80px;');
+            $span    = $dom->createElement('div');
+            $span->setAttribute('style', 'border-bottom:1px solid #7f8c8d; padding:1px 3px; margin-bottom:4px;');
             $span->appendChild($dom->createTextNode($display));
             $select->parentNode->replaceChild($span, $select);
         }
@@ -1061,10 +1084,19 @@ class Forms_admin extends CI_Controller {
             $name = $div->getAttribute('data-gvv-name');
             if (isset($sig_files[$name]) && !empty($sig_files[$name]['storage_path'])) {
                 $abs_path = FCPATH . ltrim((string) $sig_files[$name]['storage_path'], '/');
-                $img = $dom->createElement('img');
-                $img->setAttribute('src', $abs_path);
-                $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; display:block;');
-                $div->parentNode->replaceChild($img, $div);
+                if (file_exists($abs_path) && is_readable($abs_path)) {
+                    // Embed image as base64 so TCPDF doesn't need to resolve a filesystem path
+                    // (TCPDF prepends DOCUMENT_ROOT to absolute paths, which breaks when
+                    // the project root differs from DOCUMENT_ROOT)
+                    $img = $dom->createElement('img');
+                    $img->setAttribute('src', '@' . base64_encode(file_get_contents($abs_path)));
+                    $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; display:block;');
+                    $div->parentNode->replaceChild($img, $div);
+                } else {
+                    $span = $dom->createElement('span');
+                    $span->setAttribute('style', 'display:block; height:60px; border:1px dashed #adb5bd;');
+                    $div->parentNode->replaceChild($span, $div);
+                }
             } else {
                 $span = $dom->createElement('span');
                 $span->setAttribute('style', 'display:block; height:60px; border:1px dashed #adb5bd;');
@@ -1079,6 +1111,60 @@ class Forms_admin extends CI_Controller {
         }
 
         return $result;
+    }
+
+    /**
+     * Replace <img src="http://our-server/path"> with <img src="@base64data">
+     * so TCPDF reads images directly from disk instead of making HTTP requests.
+     */
+    private function _embed_local_images_as_base64($html) {
+        $base_url = rtrim(base_url(), '/') . '/';
+
+        // Replace a local img tag: embed src as base64 and ensure TCPDF renders it at
+        // full width (TCPDF ignores class-based CSS for image sizing, so we need inline style).
+        $embed_tag = function ($img_tag, $src) use ($base_url) {
+            if (strpos($src, $base_url) !== 0) {
+                return $img_tag;
+            }
+            $rel_path = substr($src, strlen($base_url));
+            $abs_path = FCPATH . ltrim($rel_path, '/');
+            if (!file_exists($abs_path) || !is_readable($abs_path)) {
+                return $img_tag;
+            }
+            $b64 = '@' . base64_encode(file_get_contents($abs_path));
+            // Replace the src value
+            $tag = preg_replace('/\bsrc=(["\'])[^"\']+\1/i', 'src="' . $b64 . '"', $img_tag);
+            // If no explicit width/height/style on the ORIGINAL tag, force an explicit
+            // mm-based width so TCPDF renders the image at page content width.
+            // - Do NOT use width:100%: TCPDF resolves % relative to font size, not page width.
+            // - The form PDF uses 10mm margins on A4 (210mm), giving 190mm of content width.
+            // - This explicit value overrides any class-based CSS width (e.g. .header img{width:100%})
+            //   which would otherwise also cause the wrong font-size-relative calculation.
+            if (!preg_match('/\b(?:width|height|style)\s*=/i', $img_tag)) {
+                $tag = preg_replace('/<img\b/i', '<img style="width:190mm;display:block;"', $tag);
+            }
+            return $tag;
+        };
+
+        // Double quotes
+        $html = preg_replace_callback(
+            '/(<img\b[^>]*\bsrc=")([^"]+)("[^>]*>)/i',
+            function ($m) use ($embed_tag) {
+                return $embed_tag($m[1] . $m[2] . $m[3], $m[2]);
+            },
+            $html
+        );
+
+        // Single quotes
+        $html = preg_replace_callback(
+            "/(<img\b[^>]*\bsrc=')([^']+)('[^>]*>)/i",
+            function ($m) use ($embed_tag) {
+                return $embed_tag($m[1] . $m[2] . $m[3], $m[2]);
+            },
+            $html
+        );
+
+        return $html;
     }
 
     private function _make_css_tcpdf_compatible($css) {
@@ -1113,11 +1199,24 @@ class Forms_admin extends CI_Controller {
         // Replace flex/grid with block (unsupported by TCPDF)
         $css = preg_replace('/display\s*:\s*(?:flex|inline-flex|grid)\s*;/i', 'display: block;', $css);
 
+        // Convert 'background' shorthand to 'background-color' when value is a plain color.
+        // TCPDF only processes background-color; the shorthand 'background' is silently ignored.
+        $css = preg_replace(
+            '/\bbackground\s*:\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)\s*;/i',
+            'background-color:$1;',
+            $css
+        );
+        // Remove remaining 'background' shorthand (images, gradients — not renderable in TCPDF)
+        $css = preg_replace('/\bbackground\s*:[^;]+;/i', '', $css);
+
         // Remove unsupported properties
         $css = preg_replace('/box-shadow\s*:[^;]+;/i', '', $css);
         $css = preg_replace('/transition\s*:[^;]+;/i', '', $css);
         $css = preg_replace('/gap\s*:[^;]+;/i', '', $css);
         $css = preg_replace('/flex(?:-[a-z]+)?\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/border-radius(?:-[a-z]+)?\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/(?:min|max)-(?:width|height)\s*:[^;]+;/i', '', $css);
+        $css = preg_replace('/(?:align|justify)-(?:items|content|self)\s*:[^;]+;/i', '', $css);
 
         return $css;
     }
