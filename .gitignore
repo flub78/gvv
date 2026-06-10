@@ -48,3 +48,5 @@ playwright/build/*
 playwright/playwright/*
 application/config/email.php
 application/config/gvv_config.php
+
+.claude/worktrees/*
