@@ -95,14 +95,18 @@ class MembreMnumeroModelTest extends TransactionalTestCase
     }
 
     /**
-     * The model sets mnumero = COUNT(*) + 1 specifically.
-     * Verify this exact value is stored.
+     * Since migration 108, mnumero is AUTO_INCREMENT — MySQL assigns the next
+     * AUTO_INCREMENT value, which diverges from COUNT(*)+1 when rows have been
+     * inserted and rolled back (e.g. by TransactionalTestCase in other tests).
+     * We read the expected next value from information_schema before the insert.
      */
     public function testCreateWithoutMnumeroAssignsCountPlusOne()
     {
-        $count_row = $this->ci->db->select('COUNT(*) AS cnt')->from('membres')->get()->row_array();
-        $count_before = (int) $count_row['cnt'];
-        $expected_mnumero = $count_before + 1;
+        $row = $this->ci->db->query(
+            "SELECT AUTO_INCREMENT AS next_id FROM information_schema.TABLES
+             WHERE table_schema = DATABASE() AND table_name = 'membres'"
+        )->row_array();
+        $expected_mnumero = (int) $row['next_id'];
 
         $data = $this->memberData(uniqid());
 
@@ -118,7 +122,7 @@ class MembreMnumeroModelTest extends TransactionalTestCase
         $this->assertEquals(
             $expected_mnumero,
             (int) $member['mnumero'],
-            'mnumero must equal COUNT(*) + 1 at time of creation'
+            'mnumero must equal the AUTO_INCREMENT value at time of creation'
         );
     }
 
