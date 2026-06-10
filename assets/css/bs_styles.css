@@ -1,10 +1,15 @@
 /*
  * Stylesheet pour GVV
- * 
+ *
  * Cette feuille de style ne devrait gérer que l'aspect graphique de GVV.
  * Le positionnement est géré par layout.css.
- 
+
  */
+
+/* Compensate for sticky navbar when browser auto-scrolls a focused input into view */
+html {
+    scroll-padding-top: 70px;
+}
 
 header {
 
