@@ -178,6 +178,7 @@ class Forms_admin extends CI_Controller {
 
         $section_id = (int) $this->session->userdata('section');
 
+        $this->form_validation->set_rules('code', 'Code', 'required|max_length[50]|alpha_dash');
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
@@ -208,7 +209,25 @@ class Forms_admin extends CI_Controller {
         $allowed    = array('draft', 'published', 'archived');
         $status     = in_array($new_status, $allowed, true) ? $new_status : $current['status'];
 
+        $new_code = trim($this->input->post('code'));
+        if ($new_code !== $current['code'] && $this->forms_model->code_exists($new_code, $id)) {
+            $form = array_merge($current, $this->input->post());
+            $form['is_global'] = !empty($form['is_global']) ? 1 : 0;
+            $data = array(
+                'controller'   => $this->controller,
+                'form_mode'    => 'edit',
+                'form_action'  => site_url('forms_admin/update/' . $id),
+                'submit_label' => 'Enregistrer',
+                'form'         => $form,
+                'section_id'   => $section_id,
+                'error'        => 'Ce code est déjà utilisé par un autre formulaire.',
+            );
+            $this->render_view('forms_admin/bs_form', $data);
+            return;
+        }
+
         $ok = $this->forms_model->update_form($id, array(
+            'code'            => $new_code,
             'club'            => $club,
             'title'           => trim($this->input->post('title')),
             'description'     => trim($this->input->post('description')),
@@ -1851,6 +1870,116 @@ class Forms_admin extends CI_Controller {
 
         $this->load->helper('download');
         force_download($safe_code . '.zip', $zip_data);
+    }
+
+    public function form_import_zip() {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin');
+            return;
+        }
+
+        if (!class_exists('ZipArchive')) {
+            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
+            redirect('forms_admin');
+            return;
+        }
+
+        if (empty($_FILES['import_zip']['tmp_name']) || (int) $_FILES['import_zip']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', 'Aucun fichier ZIP valide reçu.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($_FILES['import_zip']['tmp_name']) !== true) {
+            $this->session->set_flashdata('forms_error', 'Fichier ZIP invalide ou corrompu.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $meta_json = $zip->getFromName('meta.json');
+        if ($meta_json === false) {
+            $zip->close();
+            $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive — ce fichier n\'est pas une sauvegarde de formulaire GVV.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $meta = json_decode($meta_json, true);
+        if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
+            $zip->close();
+            $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $css = $zip->getFromName('styles.css');
+        if ($css === false) {
+            $css = '';
+        }
+
+        // Build a unique code: use the one from the backup, suffix _2/_3/... on conflict
+        $base_code = preg_replace('/[^a-zA-Z0-9_-]+/', '_', isset($meta['code']) ? (string) $meta['code'] : 'form');
+        $base_code = trim($base_code, '_');
+        if ($base_code === '') {
+            $base_code = 'form_' . date('Ymd');
+        }
+        $base_code = substr($base_code, 0, 47);
+
+        $code = $base_code;
+        $i    = 2;
+        while ($this->db->where('code', $code)->count_all_results('forms') > 0) {
+            $code = $base_code . '_' . $i++;
+        }
+
+        $section_id = (int) $this->session->userdata('section');
+        $club       = $section_id > 0 ? $section_id : null;
+        $by         = $this->dx_auth->get_username();
+
+        $form_id = $this->forms_model->create_form(array(
+            'club'        => $club,
+            'code'        => $code,
+            'title'       => isset($meta['title'])       ? (string) $meta['title']       : $code,
+            'description' => isset($meta['description']) ? (string) $meta['description'] : '',
+            'css_scope'   => isset($meta['css_scope'])   ? (string) $meta['css_scope']   : '',
+            'global_css'  => $css,
+            'created_by'  => $by,
+        ));
+
+        if (!$form_id) {
+            $zip->close();
+            $this->session->set_flashdata('forms_error', 'Impossible de créer le formulaire depuis la sauvegarde.');
+            redirect('forms_admin');
+            return;
+        }
+
+        $page_count = 0;
+        foreach ($meta['pages'] as $pm) {
+            $num          = (int) $pm['page_number'];
+            $content_html = $zip->getFromName(sprintf('pages/%02d.html', $num));
+            if ($content_html === false) {
+                $content_html = '';
+            }
+
+            $page_id = $this->form_pages_model->create_page(array(
+                'form_id'      => (int) $form_id,
+                'page_number'  => $num,
+                'title'        => isset($pm['title']) ? (string) $pm['title'] : '',
+                'content_html' => $content_html,
+                'created_by'   => $by,
+            ));
+
+            if ($page_id) {
+                $this->sync_fields_from_html((int) $form_id, (int) $page_id, $content_html, $by);
+                $page_count++;
+            }
+        }
+
+        $zip->close();
+
+        $title = isset($meta['title']) ? (string) $meta['title'] : $code;
+        $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($title) . ' » importé depuis la sauvegarde (' . $page_count . ' page(s)).');
+        redirect('forms_admin/edit/' . (int) $form_id);
     }
 
     public function form_restore($form_id = 0) {

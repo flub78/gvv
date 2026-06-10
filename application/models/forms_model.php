@@ -101,6 +101,7 @@ class Forms_model extends CI_Model {
         }
 
         $update = array(
+            'code'        => !empty($data['code']) ? $data['code'] : $current['code'],
             'club'        => array_key_exists('club', $data) ? $data['club'] : $current['club'],
             'title'       => isset($data['title']) ? $data['title'] : $current['title'],
             'description' => array_key_exists('description', $data) ? $data['description'] : $current['description'],
@@ -296,7 +297,7 @@ class Forms_model extends CI_Model {
         return $this->db->count_all_results() > 0;
     }
 
-    private function code_exists($code, $exclude_id = 0) {
+    public function code_exists($code, $exclude_id = 0) {
         $this->db->from($this->table);
         $this->db->where('code', $code);
         if ($exclude_id) {

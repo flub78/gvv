@@ -33,7 +33,7 @@
 
                 <div class="mb-3">
                     <label class="form-label" for="code"><?= $this->lang->line('forms_label_code') ?></label>
-                    <input class="form-control" id="code" name="code" type="text" maxlength="50" <?= (isset($form_mode) && $form_mode === 'edit') ? '' : 'required' ?> value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>" <?= (isset($form_mode) && $form_mode === 'edit') ? 'readonly' : '' ?>>
+                    <input class="form-control" id="code" name="code" type="text" maxlength="50" required pattern="[a-zA-Z0-9_\-]+" value="<?= html_escape(isset($form['code']) ? $form['code'] : '') ?>">
                     <div class="form-text"><?= $this->lang->line('forms_help_code') ?></div>
                 </div>
 

@@ -18,6 +18,9 @@
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importHtmlModal">
                 <?= $this->lang->line('forms_button_import_html') ?>
             </button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importZipModal">
+                <?= $this->lang->line('forms_button_import_zip') ?>
+            </button>
             <a class="btn btn-primary" href="<?= site_url('forms_admin/create') ?>"><?= $this->lang->line('forms_button_new_form') ?></a>
         </div>
     </div>
@@ -96,6 +99,34 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal import depuis sauvegarde ZIP -->
+<div class="modal fade" id="importZipModal" tabindex="-1" aria-labelledby="importZipModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importZipModalLabel"><?= $this->lang->line('forms_title_import_zip') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="<?= site_url('forms_admin/form_import_zip') ?>">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="import_zip">Fichier ZIP <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="import_zip" name="import_zip" accept=".zip" required>
+                        <div class="form-text">
+                            Sauvegarde exportée depuis la page d'édition d'un formulaire GVV (<code>.zip</code>).
+                            Un nouveau formulaire est créé ; le lien public n'est pas importé.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $this->lang->line('forms_button_cancel') ?></button>
+                    <button type="submit" class="btn btn-primary"><?= $this->lang->line('forms_button_import_zip') ?></button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
