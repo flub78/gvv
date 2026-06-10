@@ -1097,32 +1097,39 @@ class Forms_admin extends CI_Controller {
                 continue;
             }
 
-            if ($type === 'file') {
-                $display    = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
-                $use_block  = false;
-            } elseif ($type === 'checkbox') {
+            if ($type === 'checkbox') {
+                // CSS-drawn box — Unicode ☑/☐ are unreliable in wkhtmltopdf (font gaps)
                 $checked_value = $input->getAttribute('value');
                 $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
                 $is_checked    = ($submitted === $checked_value)
                               || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
-                $display   = $is_checked ? '☑' : '☐';
-                $use_block = false;
-            } elseif ($type === 'radio') {
+                $box = $dom->createElement('span');
+                $bg  = $is_checked ? 'background:#222;' : 'background:#fff;';
+                $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;' . $bg);
+                $input->parentNode->replaceChild($box, $input);
+                continue;
+            }
+
+            if ($type === 'radio') {
+                // CSS-drawn circle — same reason
                 $radio_value = $input->getAttribute('value');
                 $submitted   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
-                $display     = ($submitted === $radio_value) ? '●' : '○';
-                $use_block   = false;
+                $is_selected = ($submitted === $radio_value);
+                $dot = $dom->createElement('span');
+                $bg  = $is_selected ? 'background:#222;' : 'background:#fff;';
+                $dot->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;border-radius:50%;vertical-align:middle;margin-right:3px;' . $bg);
+                $input->parentNode->replaceChild($dot, $input);
+                continue;
+            }
+
+            if ($type === 'file') {
+                $display = isset($files_by_name[$base_name]) ? $files_by_name[$base_name] : '—';
             } else {
-                $display   = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
-                $use_block = true;
+                $display = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
             }
 
             $el = $dom->createElement('span');
-            if ($use_block) {
-                $el->setAttribute('style', 'display:inline-block; border:1px solid #ced4da; border-radius:4px; background:#fff; padding:3px 8px; min-width:100px; min-height:24px; font-size:0.95em; vertical-align:middle;');
-            } else {
-                $el->setAttribute('style', 'display:inline-block; min-width:20px; vertical-align:middle;');
-            }
+            $el->setAttribute('style', 'display:inline-block; border:1px solid #ced4da; border-radius:4px; background:#fff; padding:3px 8px; min-width:100px; min-height:24px; font-size:0.95em; vertical-align:middle;');
             $el->appendChild($dom->createTextNode($display));
             $input->parentNode->replaceChild($el, $input);
         }
@@ -1971,13 +1978,14 @@ class Forms_admin extends CI_Controller {
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
 
         $meta = array(
-            'version'     => '1',
-            'code'        => (string) $form['code'],
-            'title'       => (string) $form['title'],
-            'description' => (string) $form['description'],
-            'css_scope'   => (string) $form['css_scope'],
-            'public_slug' => (string) $form['public_slug'],
-            'pages'       => array(),
+            'version'         => '1',
+            'code'            => (string) $form['code'],
+            'title'           => (string) $form['title'],
+            'description'     => (string) $form['description'],
+            'css_scope'       => (string) $form['css_scope'],
+            'public_slug'     => (string) $form['public_slug'],
+            'required_params' => (string) $form['required_params'],
+            'pages'           => array(),
         );
 
         // Build content in a temp directory then zip with the system zip command (same as DB backup)
@@ -2085,13 +2093,14 @@ class Forms_admin extends CI_Controller {
         $by         = $this->dx_auth->get_username();
 
         $form_id = $this->forms_model->create_form(array(
-            'club'        => $club,
-            'code'        => $code,
-            'title'       => isset($meta['title'])       ? (string) $meta['title']       : $code,
-            'description' => isset($meta['description']) ? (string) $meta['description'] : '',
-            'css_scope'   => isset($meta['css_scope'])   ? (string) $meta['css_scope']   : '',
-            'global_css'  => $css,
-            'created_by'  => $by,
+            'club'            => $club,
+            'code'            => $code,
+            'title'           => isset($meta['title'])           ? (string) $meta['title']           : $code,
+            'description'     => isset($meta['description'])     ? (string) $meta['description']     : '',
+            'css_scope'       => isset($meta['css_scope'])       ? (string) $meta['css_scope']       : '',
+            'required_params' => isset($meta['required_params']) ? (string) $meta['required_params'] : 'none',
+            'global_css'      => $css,
+            'created_by'      => $by,
         ));
 
         if (!$form_id) {
