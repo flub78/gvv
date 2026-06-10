@@ -1878,45 +1878,37 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        if (!class_exists('ZipArchive')) {
-            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
-            redirect('forms_admin');
-            return;
-        }
-
         if (empty($_FILES['import_zip']['tmp_name']) || (int) $_FILES['import_zip']['error'] !== UPLOAD_ERR_OK) {
             $this->session->set_flashdata('forms_error', 'Aucun fichier ZIP valide reçu.');
             redirect('forms_admin');
             return;
         }
 
-        $zip = new ZipArchive();
-        if ($zip->open($_FILES['import_zip']['tmp_name']) !== true) {
-            $this->session->set_flashdata('forms_error', 'Fichier ZIP invalide ou corrompu.');
+        $tmp_dir = $this->_unzip_to_tmpdir($_FILES['import_zip']['tmp_name']);
+        if ($tmp_dir === false) {
+            $this->session->set_flashdata('forms_error', 'Impossible d\'extraire le fichier ZIP (commande unzip indisponible ou archive corrompue).');
             redirect('forms_admin');
             return;
         }
 
-        $meta_json = $zip->getFromName('meta.json');
-        if ($meta_json === false) {
-            $zip->close();
+        $meta_path = $tmp_dir . '/meta.json';
+        if (!file_exists($meta_path)) {
+            $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive — ce fichier n\'est pas une sauvegarde de formulaire GVV.');
             redirect('forms_admin');
             return;
         }
 
-        $meta = json_decode($meta_json, true);
+        $meta = json_decode(file_get_contents($meta_path), true);
         if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
-            $zip->close();
+            $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
             redirect('forms_admin');
             return;
         }
 
-        $css = $zip->getFromName('styles.css');
-        if ($css === false) {
-            $css = '';
-        }
+        $css_path = $tmp_dir . '/styles.css';
+        $css = file_exists($css_path) ? file_get_contents($css_path) : '';
 
         // Build a unique code: use the one from the backup, suffix _2/_3/... on conflict
         $base_code = preg_replace('/[^a-zA-Z0-9_-]+/', '_', isset($meta['code']) ? (string) $meta['code'] : 'form');
@@ -1947,7 +1939,7 @@ class Forms_admin extends CI_Controller {
         ));
 
         if (!$form_id) {
-            $zip->close();
+            $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'Impossible de créer le formulaire depuis la sauvegarde.');
             redirect('forms_admin');
             return;
@@ -1955,11 +1947,9 @@ class Forms_admin extends CI_Controller {
 
         $page_count = 0;
         foreach ($meta['pages'] as $pm) {
-            $num          = (int) $pm['page_number'];
-            $content_html = $zip->getFromName(sprintf('pages/%02d.html', $num));
-            if ($content_html === false) {
-                $content_html = '';
-            }
+            $num      = (int) $pm['page_number'];
+            $page_file = $tmp_dir . sprintf('/pages/%02d.html', $num);
+            $content_html = file_exists($page_file) ? file_get_contents($page_file) : '';
 
             $page_id = $this->form_pages_model->create_page(array(
                 'form_id'      => (int) $form_id,
@@ -1975,7 +1965,7 @@ class Forms_admin extends CI_Controller {
             }
         }
 
-        $zip->close();
+        $this->_cleanup_tmpdir($tmp_dir);
 
         $title = isset($meta['title']) ? (string) $meta['title'] : $code;
         $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($title) . ' » importé depuis la sauvegarde (' . $page_count . ' page(s)).');
@@ -1993,45 +1983,37 @@ class Forms_admin extends CI_Controller {
             return;
         }
 
-        if (!class_exists('ZipArchive')) {
-            $this->session->set_flashdata('forms_error', 'L\'extension ZipArchive n\'est pas disponible sur ce serveur.');
-            redirect('forms_admin/edit/' . (int) $form['id']);
-            return;
-        }
-
         if (empty($_FILES['restore_zip']['tmp_name']) || (int) $_FILES['restore_zip']['error'] !== UPLOAD_ERR_OK) {
             $this->session->set_flashdata('forms_error', 'Aucun fichier valide reçu.');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
-        $zip = new ZipArchive();
-        if ($zip->open($_FILES['restore_zip']['tmp_name']) !== true) {
-            $this->session->set_flashdata('forms_error', 'Fichier ZIP invalide ou corrompu.');
+        $tmp_dir = $this->_unzip_to_tmpdir($_FILES['restore_zip']['tmp_name']);
+        if ($tmp_dir === false) {
+            $this->session->set_flashdata('forms_error', 'Impossible d\'extraire le fichier ZIP (commande unzip indisponible ou archive corrompue).');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
-        $meta_json = $zip->getFromName('meta.json');
-        if ($meta_json === false) {
-            $zip->close();
+        $meta_path = $tmp_dir . '/meta.json';
+        if (!file_exists($meta_path)) {
+            $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive.');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
-        $meta = json_decode($meta_json, true);
+        $meta = json_decode(file_get_contents($meta_path), true);
         if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
-            $zip->close();
+            $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
-        $css = $zip->getFromName('styles.css');
-        if ($css === false) {
-            $css = '';
-        }
+        $css_path = $tmp_dir . '/styles.css';
+        $css = file_exists($css_path) ? file_get_contents($css_path) : '';
 
         // Update metadata — code, status and public_slug are not overwritten
         $this->forms_model->update_form((int) $form['id'], array(
@@ -2047,15 +2029,13 @@ class Forms_admin extends CI_Controller {
             $this->form_pages_model->delete_page((int) $ep['id']);
         }
 
-        // Recreate pages from the ZIP
-        $by          = $this->dx_auth->get_username();
-        $page_count  = 0;
+        // Recreate pages from the extracted ZIP
+        $by         = $this->dx_auth->get_username();
+        $page_count = 0;
         foreach ($meta['pages'] as $pm) {
-            $num          = (int) $pm['page_number'];
-            $content_html = $zip->getFromName(sprintf('pages/%02d.html', $num));
-            if ($content_html === false) {
-                $content_html = '';
-            }
+            $num       = (int) $pm['page_number'];
+            $page_file = $tmp_dir . sprintf('/pages/%02d.html', $num);
+            $content_html = file_exists($page_file) ? file_get_contents($page_file) : '';
 
             $page_id = $this->form_pages_model->create_page(array(
                 'form_id'      => (int) $form['id'],
@@ -2071,7 +2051,7 @@ class Forms_admin extends CI_Controller {
             }
         }
 
-        $zip->close();
+        $this->_cleanup_tmpdir($tmp_dir);
 
         $this->session->set_flashdata('forms_success', 'Formulaire restauré : ' . $page_count . ' page(s) importée(s).');
         redirect('forms_admin/edit/' . (int) $form['id']);
@@ -2343,6 +2323,34 @@ class Forms_admin extends CI_Controller {
         }
 
         redirect($url);
+    }
+
+    private function _unzip_to_tmpdir($uploaded_tmp_path) {
+        $tmp_dir = sys_get_temp_dir() . '/gvv_zip_' . uniqid();
+        mkdir($tmp_dir, 0700, true);
+
+        exec('unzip -o ' . escapeshellarg($uploaded_tmp_path) . ' -d ' . escapeshellarg($tmp_dir), $output, $return_code);
+
+        if ($return_code !== 0) {
+            $this->_cleanup_tmpdir($tmp_dir);
+            return false;
+        }
+
+        return $tmp_dir;
+    }
+
+    private function _cleanup_tmpdir($dir) {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
+        }
+        rmdir($dir);
     }
 
     private function render_view($view, $data = array()) {
