@@ -73,7 +73,6 @@
                                     <td>
                                         <div class="d-flex justify-content-end align-items-center flex-wrap gap-1">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/edit/' . $form['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
-                                        <a class="btn btn-sm btn-outline-dark" href="<?= site_url('forms_admin/pages/' . $form['id']) ?>"><?= $this->lang->line('forms_button_pages') ?></a>
                                         <?php $cnt = isset($submission_counts[$form['id']]) ? (int) $submission_counts[$form['id']] : 0; ?>
                                         <a class="btn btn-sm btn-outline-info" href="<?= site_url('forms_admin/submissions/' . $form['id']) ?>">
                                             <?= $this->lang->line('forms_button_responses') ?><?= $cnt > 0 ? ' <span class="badge bg-info text-dark ms-1">' . $cnt . '</span>' : '' ?>

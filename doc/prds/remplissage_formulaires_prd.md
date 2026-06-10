@@ -68,6 +68,18 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
 - Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
 
+## Taxonomie des formulaires
+
+Les formulaires se répartissent en trois catégories selon leur degré d'intégration avec GVV :
+
+| Catégorie | Description | Pré-remplissage | Post-soumission | Exemple |
+|---|---|---|---|---|
+| **1 — Autonome** | Formulaire public sans contexte GVV | Aucun | Stockage `form_submissions` uniquement | `inscription_club` |
+| **2 — Contextuel GVV** | Formulaire pré-rempli depuis les données GVV | `data-gvv-source` ou params URL | Stockage `form_submissions` uniquement, PDF manuel | `attestation_de_formation_ulm` |
+| **3 — Intégré workflow** | Formulaire déclenche des actions GVV à la soumission | Params URL (valeurs VLD) | Handler post-soumission (archivage, mise à jour entité, token) | `briefing_passager_ulm` |
+
+Cette taxonomie guide les décisions d'architecture : les formulaires de catégorie 1 ne sont jamais affectés par les évolutions d'intégration GVV.
+
 ## Personae & rôles
 
 - **Administrateur** : gère les formulaires, styles, liens, réponses, export PDF, archivage.
@@ -165,7 +177,13 @@ Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichie
 
 ### EF6 : Données GVV et pré-remplissage
 
-1. Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
+Deux mécanismes coexistent selon la nature du contexte :
+
+**Mécanisme A — `data-gvv-source` (contexte membre/instructeur)** : les champs pré-remplis depuis la table `membres` ou `events` utilisent des attributs HTML déclaratifs. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL.
+
+**Mécanisme B — paramètres URL directs (contexte entité GVV)** : pour les formulaires dont le contexte provient d'une entité GVV autre qu'un membre (ex. vol de découverte), les valeurs de pré-remplissage sont passées directement en paramètres URL par le contrôleur appelant. Le formulaire n'embarque aucun attribut `data-gvv-source` pour ces champs. Un mécanisme `lock[]` permet au contrôleur de verrouiller côté serveur les champs dont GVV est autoritaire.
+
+1. Les champs pré-remplis via mécanisme A sont déclarés dans le HTML via des attributs `data-gvv-*` directement sur les éléments de saisie.
 2. Trois attributs : `data-gvv-source` (source de donnée), `data-gvv-param` (paramètre URL d'identification), `data-gvv-lock` (verrouillage serveur).
 3. Les paramètres d'identification (`pilot_login`, `instructor_login`) sont transmis dans l'URL du formulaire.
 4. Les sources autorisées couvrent deux tables GVV distinctes, avec une syntaxe explicite :
@@ -245,6 +263,34 @@ Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-s
 3. L'association au pilote reste gérée par le formulaire documentaire existant.
 4. Journalisation dans les fichiers de logs.
 
+### EF10 : Intégration workflow GVV — handler post-soumission
+
+Pour les formulaires de catégorie 3 (intégrés dans un workflow GVV), la soumission doit déclencher des actions GVV spécifiques au-delà du simple stockage.
+
+1. Chaque formulaire peut déclarer un handler de post-soumission via un champ de configuration `handler_class`.
+2. Le handler est instancié par `forms_public` après la création de la soumission et appelé avec l'identifiant de la soumission et les paramètres de contexte GVV.
+3. Les paramètres de contexte (token, identifiant d'entité GVV, etc.) sont transmis dans l'URL d'ouverture du formulaire, distincts des valeurs de champs, et stockés avec la soumission dans un champ `context_params` JSON.
+4. Actions typiques d'un handler : génération et archivage automatique du PDF, mise à jour d'une entité GVV (vol de découverte, dossier pilote), invalidation d'un token one-time.
+5. Le handler retourne une URL de redirection pour personnaliser la page de confirmation.
+6. Sur erreur du handler, la soumission reste stockée et peut être retraitée ; l'erreur est journalisée.
+7. Les handlers sont des classes PHP localisées dans `application/libraries/form_handlers/` implémentant une interface commune.
+
+**Cas d'usage de référence** : le formulaire `briefing_passager_ulm` est intégré dans le workflow de vol de découverte. Actuellement géré par le contrôleur `briefing_sign`, il migre progressivement vers le moteur de formulaires générique avec un handler `BriefingPassagerUlmHandler` qui gère la génération PDF, l'archivage dans `archived_documents`, la mise à jour du vol de découverte et l'invalidation du token one-time.
+
+### EF11 : Cartes dynamiques dans les dashboards
+
+Un mécanisme de configuration piloté par données permet aux club-admins d'ajouter des raccourcis de navigation sous forme de cartes dans n'importe quel dashboard GVV, sans développement. Le cas d'usage principal est l'exposition de formulaires (génération d'attestation, briefing passager) depuis les dashboards pilote et instructeur.
+
+1. Un club-admin peut créer, modifier, désactiver et supprimer des raccourcis de dashboard via une interface CRUD dédiée.
+2. Chaque raccourci est défini par : dashboard cible, section cible (optionnelle), titre, description (optionnelle), URL de destination, icône (Bootstrap Icons), couleur (classe Bootstrap ou valeur hex), ordre d'affichage, statut actif.
+3. L'URL de destination peut être interne (chemin relatif GVV) ou externe (URL absolue) ; les URLs externes s'ouvrent dans un nouvel onglet (`target="_blank"`).
+4. **Multi-langue** : chaque champ titre et description peut stocker une clé de fichier de langue GVV. Si la clé est reconnue par `$this->lang->line()`, la valeur traduite est utilisée ; sinon, le texte brut de la table est affiché.
+5. Seuls les club-admins peuvent créer, modifier et supprimer des raccourcis.
+6. Un raccourci peut être restreint à un rôle minimum (`role_required`) : les utilisateurs sans ce rôle ne voient pas la carte.
+7. Les dashboards instrumentés au premier déploiement sont : `accueil`, `pilote`, `instructeur`, `formations`. Tout nouveau dashboard peut être instrumenté sans modification de la table.
+8. Dans chaque dashboard instrumenté, les raccourcis actifs et visibles pour l'utilisateur courant sont récupérés via un appel modèle unique et rendus dans la section correspondante.
+9. Les tests Playwright qui vérifient l'accessibilité de toutes les URLs visibles doivent être mis à jour pour couvrir les raccourcis dynamiques : soit en les excluant du test d'accessibilité automatique, soit en les testant séparément avec les paramètres d'authentification appropriés.
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -271,3 +317,5 @@ Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-s
 - V1 : éditeur strictement HTML structuré ou blocs UI intermédiaires ?
 - Politique de conservation des fichiers uploadés non archivés ?
 - Niveau d'automatisation d'archivage depuis les workflows ?
+- Stratégie de migration `briefing_sign` → handler : remplacement complet ou cohabitation prolongée ?
+- Autres entités GVV à intégrer en catégorie 3 au-delà du briefing passager ?

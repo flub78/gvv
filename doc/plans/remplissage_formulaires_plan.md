@@ -191,21 +191,91 @@ Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..
 - [ ] Ajouter la source `instructor.event.{type_key}.signature` (depuis `events.signature_path`) à la taxonomie — prérequis : migration Lot 5-ter.
 - [ ] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` ou `events.signature_path` selon la source déclarée ; remplaçable si `data-gvv-lock="false"`.
 
-### Lot 6 — Documentation et validation finale
+### Lot 6 — Intégration workflow GVV (handlers post-soumission)
+
+Objectif : permettre aux formulaires de catégorie 3 de déclencher des actions GVV après soumission. Cas de référence : migration de `briefing_passager_ulm` / `briefing_sign` vers le moteur de formulaires générique.
+
+Chaque étape est conclue par une vérification de non-régression sur les formulaires de catégorie 1 (`inscription_club`) et de catégorie 2 (`attestation_de_formation_ulm`).
+
+#### Étape 6.1 — Infrastructure pré-remplissage mécanisme B (non-breaking)
+
+Prérequis : Lot 5 terminé.
+
+- [ ] Étendre `forms_public/index` : lire tous les paramètres GET, séparer les noms réservés (`token`, `vld_id`, `lock`, `page`, `pilot_login`, `instructor_login`) des noms de champs, stocker les deux groupes en session par slug.
+- [ ] Injecter les valeurs de pré-remplissage dans les champs HTML dont le `name=` correspond (via `repopulate_html_fields` existant ou nouveau helper).
+- [ ] Appliquer `readonly` et enforcement serveur sur les champs listés dans `lock[]`.
+- [ ] **Validation non-régression** : PHPUnit existant vert + Playwright smoke `inscription_club` (soumission anonyme) + `attestation_de_formation_ulm` (pré-remplissage mécanisme A) → comportement inchangé.
+
+#### Étape 6.2 — Stockage du contexte GVV sur les soumissions
+
+- [ ] Migration : ajouter `context_params TEXT NULL` à `form_submissions`.
+- [ ] Dans `forms_public/submit` : extraire les paramètres contexte de la session, les sérialiser en JSON et les stocker dans `context_params` à la création de la soumission.
+- [ ] **Validation non-régression** : PHPUnit migration up/down + smoke tests catégorie 1 et 2.
+
+#### Étape 6.3 — Infrastructure handler post-soumission
+
+- [ ] Migration : ajouter `handler_class VARCHAR(100) NULL` à `forms`.
+- [ ] Créer `application/libraries/form_handlers/GvvFormHandlerInterface.php`.
+- [ ] Dans `forms_public/submit` : après création de la soumission, instancier le handler si `handler_class` est défini, appeler `after_submit($submission_id, $context_params)`, rediriger selon le retour.
+- [ ] Journaliser les erreurs handler sans crasher (la soumission reste accessible en admin).
+- [ ] **Validation non-régression** : smoke tests catégorie 1 et 2 — le `handler_class` NULL ne change rien au comportement existant.
+
+#### Étape 6.4 — BriefingPassagerUlmHandler
+
+- [ ] Créer `application/libraries/form_handlers/BriefingPassagerUlmHandler.php`.
+- [ ] Implémenter `after_submit` : validation token, génération PDF (réutilise logique `submission_pdf`), archivage dans `archived_documents` (lié à `vld_id`), mise à jour `vols_decouverte`, invalidation `briefing_tokens`.
+- [ ] Configurer `handler_class = 'BriefingPassagerUlmHandler'` sur le formulaire `briefing_passager_ulm` en base.
+- [ ] **Tests PHPUnit** : BriefingPassagerUlmHandlerTest — token valide → PDF archivé + VLD mis à jour + token invalidé ; token expiré → erreur journalisée.
+
+#### Étape 6.5 — Migration briefing_passager/generate_link
+
+- [ ] Modifier `briefing_passager/generate_link` : construire l'URL `/forms/fiche-passager?token=...&vld_id=...&date_vol=...&...&lock[]=...` au lieu de `briefing_sign/{token}`.
+- [ ] Vérifier que le QR code et le lien email utilisent la nouvelle URL.
+- [ ] **Playwright** : smoke test briefing complet — génération lien → formulaire pré-rempli → soumission → PDF archivé → confirmation.
+
+#### Étape 6.6 — Validation finale et retrait briefing_sign
+
+- [ ] Vérifier que `briefing_sign` peut être retiré sans casser d'autres dépendances (routes, vues, tests).
+- [ ] Archiver ou supprimer `briefing_sign.php` et ses vues si aucun autre consommateur.
+- [ ] Mettre à jour `routes.php` si nécessaire.
+- [ ] **Playwright non-régression globale** : `inscription_club`, `attestation_de_formation_ulm`, `briefing_passager_ulm`.
+- [ ] **PHPUnit non-régression** : suite complète verte.
+
+### Lot 7 — Cartes dynamiques dans les dashboards
+
+Objectif : permettre aux club-admins d'ajouter des raccourcis de navigation dans les dashboards GVV sans développement. Indépendant des lots de formulaires — peut être réalisé dès que le socle (Lot 1) est terminé.
+
+Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design.md#14-cartes-dynamiques-dans-les-dashboards)
+
+- [ ] Migration `1XX_dashboard_shortcuts.php` : table `dashboard_shortcuts` (id, dashboard, section, title_key, title, description_key, description, url, icon, color, role_required, sort_order, active, club_id, audit fields).
+- [ ] Mettre à jour `application/config/migration.php`.
+- [ ] Créer `application/models/shortcuts_model.php` : `get_for_dashboard($dashboard, $role, $club_id)` avec filtrage rôle et club, CRUD complet, résolution multi-langue.
+- [ ] Créer contrôleur `shortcuts_admin` + vues CRUD (liste, créer, modifier, supprimer, activer/désactiver). Accès réservé club-admin.
+- [ ] Créer partial view `application/views/common/_shortcuts.php` : rendu Bootstrap des cartes groupées par section, résolution titre/description multi-langue, gestion URL interne vs externe.
+- [ ] Ajouter une carte "Raccourcis dashboard" sur `forms_admin/index` pointant vers `shortcuts_admin`.
+- [ ] Instrumenter les dashboards `accueil`, `pilote`, `instructeur`, `formations` : appel `shortcuts_model::get_for_dashboard()` dans les contrôleurs + inclusion du partial dans les vues.
+- [ ] Ajouter les traductions (`shortcuts_title`, `shortcuts_description`, etc.) dans les fichiers de langue français, anglais, néerlandais.
+- [ ] **Mettre à jour les tests Playwright** : adapter les tests qui parcourent toutes les URLs visibles pour exclure ou traiter correctement les raccourcis dynamiques (URLs de contexte, paramètres d'authentification requis).
+- [ ] Tests PHPUnit : migration up/down, `get_for_dashboard` (filtrage rôle, filtrage club, actif/inactif), résolution multi-langue (clé trouvée / clé absente).
+- [ ] **Validation** : créer un raccourci pointant vers `forms_admin/generate/attestation-de-formation-ulm`, vérifier qu'il apparaît dans le dashboard cible pour un club-admin et qu'il est invisible pour un rôle sans accès.
+
+### Lot 8 — Documentation et validation finale
 
 - [ ] Migration de début de lot : vérifier et consolider les migrations précédentes dans un scénario complet (install from scratch + upgrade).
 - [ ] Documenter le socle formulaire autonome et les fichiers uploadés.
+- [ ] Documenter la taxonomie des formulaires (catégories 1, 2, 3) et les exemples.
 - [ ] Ajouter exemples complets de formulaires et de CSS global.
 - [ ] Documenter import PDF -> HTML et ses limites.
-- [ ] Documenter l'API de pré-remplissage GVV et les exemples workflow.
+- [ ] Documenter l'API de pré-remplissage GVV (mécanismes A et B) et les exemples workflow.
 - [ ] Documenter le widget signature : modes canvas et upload, pré-remplissage depuis `membres.signature_path`, attributs `data-gvv-*`.
-- [ ] PHPUnit : modèles, validations, fichiers, archivage, puis pré-remplissage.
-- [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, puis pré-remplissage GVV, signatures canvas et upload.
+- [ ] Documenter la création d'un handler post-soumission (interface, exemple BriefingPassagerUlm).
+- [ ] PHPUnit : modèles, validations, fichiers, archivage, pré-remplissage, handlers.
+- [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, pré-remplissage GVV, signatures canvas et upload, workflow briefing end-to-end.
 - [ ] Vérification sécurité : uploads, contrôle d'accès, anti-spam.
 
 ## Stratégie de livraison
 
-### Phase 1 — Socle formulaires autonome
+### Phase 1 — Socle formulaires autonome (catégorie 1)
 
 Objectif : livrer rapidement une gestion de formulaire à la Google Forms, sans pré-remplissage GVV, mais avec support des fichiers.
 
@@ -217,17 +287,29 @@ Objectif : ajouter les compléments non bloquants pour le socle, notamment l'imp
 
 Lots inclus : 4.
 
-### Phase 3 — Intégration GVV avancée
+### Phase 3 — Intégration GVV contextuelle (catégorie 2)
 
-Objectif : ajouter le pré-remplissage GVV, les signatures (canvas + upload + pré-remplissage profil GVV), la sauvegarde/reprise de saisie multi-session, les pages conditionnelles et l'intégration fine dans les workflows.
+Objectif : ajouter le pré-remplissage GVV (mécanisme A et B), les signatures (canvas + upload + pré-remplissage profil GVV), la sauvegarde/reprise de saisie multi-session, les pages conditionnelles.
 
 Lots inclus : 5, 5-bis.
 
-### Phase 4 — Documentation et validation globale
+### Phase 4 — Intégration workflow GVV (catégorie 3)
+
+Objectif : permettre aux formulaires de déclencher des actions GVV à la soumission. Migration `briefing_passager_ulm` comme cas de référence.
+
+Lots inclus : 6.
+
+### Phase 5 — Cartes dynamiques dans les dashboards
+
+Objectif : exposer les formulaires et autres fonctionnalités dans les dashboards GVV via un mécanisme de configuration sans développement. Peut être réalisé en parallèle des phases 2 à 4.
+
+Lots inclus : 7.
+
+### Phase 6 — Documentation et validation globale
 
 Objectif : stabiliser, documenter et valider l'ensemble des phases précédentes.
 
-Lots inclus : 6.
+Lots inclus : 8.
 
 ## Ordre de réalisation recommandé
 
@@ -236,21 +318,36 @@ Lots inclus : 6.
 3. Lot 3 (impression et archivage)
 4. Lot 4 (documents inline dans les formulaires)
 5. Lot 4-bis (paramètres de configuration formulaires)
-6. Lot 5 (pré-remplissage GVV + workflows) — dépend de Lot 4-bis pour `config.*`
+6. Lot 5 (pré-remplissage GVV mécanisme A + workflows) — dépend de Lot 4-bis pour `config.*`
 7. Lot 5-bis (signatures canvas + upload + pré-remplissage profil)
-8. Lot 6 (documentation et validation)
+8. Lot 5-ter (page de génération + évolutions events)
+9. Lot 6 (intégration workflow GVV — handlers + migration briefing_passager)
+10. Lot 7 (cartes dynamiques dans les dashboards) — indépendant, réalisable dès Lot 1 terminé
+11. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
+### Catégorie 1 (autonome)
 - Un admin peut créer, modifier, supprimer et publier un formulaire multi-pages.
 - Un utilisateur non authentifié peut remplir via lien public.
 - Les admins consultent les réponses et visualisent images/PDF soumis.
 - Les fichiers sont supportés dès la première phase de livraison.
+- Un PDF imprimable est générable depuis une réponse.
+- Une réponse est archivable dans `archived_documents` pour un pilote.
+
+### Catégorie 2 (contextuel GVV)
+- Pré-remplissage mécanisme A (`data-gvv-source`) opérationnel et sécurisé.
+- Pré-remplissage mécanisme B (paramètres URL directs + `lock[]`) opérationnel.
+- Un champ signature peut être soumis en mode canvas ou upload image.
+- La signature d'un profil GVV peut pré-remplir le widget.
+
+### Catégorie 3 (intégré workflow)
+- `BriefingPassagerUlmHandler` opérationnel : PDF archivé, VLD mis à jour, token invalidé.
+- `briefing_passager/generate_link` construit l'URL mécanisme B vers `forms/fiche-passager`.
+- Non-régression catégorie 1 et 2 vérifiée à chaque étape du Lot 6.
+- PHPUnit et Playwright verts sur les trois catégories.
+
+### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.
 - Les documents archivés référencés sont visibles inline avec scroll.
 - L'import PDF -> HTML fonctionne.
-- Un PDF imprimable est générable depuis une réponse.
-- Pré-remplissage GVV par paramètres est opérationnel et sécurisé.
-- Un champ signature peut être soumis en mode canvas ou upload image et est stocké dans `form_submission_files`.
-- La signature d'un profil GVV (`membres.signature_path`) peut pré-remplir le widget.
-- Une réponse est archivable dans `archived_documents` pour un pilote.

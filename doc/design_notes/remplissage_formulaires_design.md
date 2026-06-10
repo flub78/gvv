@@ -8,6 +8,27 @@ Le module passe d'une logique centrée « template PDF » à une logique « form
 
 La stratégie d'implémentation privilégie d'abord un socle autonome de formulaires HTML avec gestion des fichiers, puis ajoute dans un second temps le pré-remplissage GVV et l'intégration workflow avancée.
 
+## Taxonomie des formulaires
+
+Trois catégories selon le degré d'intégration avec GVV :
+
+```
+Catégorie 1 — Autonome
+  Lien public brut → forms_public → form_submissions
+  Exemples : inscription_club
+
+Catégorie 2 — Contextuel GVV
+  Lien pré-rempli (pilot_login / instructor_login ou valeurs VLD) → forms_public → form_submissions
+  Exemples : attestation_de_formation_ulm
+
+Catégorie 3 — Intégré workflow
+  Lien pré-rempli + token → forms_public → form_submissions + handler
+  Handler → archivage PDF + mise à jour entité GVV + invalidation token
+  Exemples : briefing_passager_ulm
+```
+
+**Invariant de non-régression** : toute évolution d'intégration GVV (mécanisme B, handlers) est additive. Les formulaires de catégorie 1 ne sont jamais impactés.
+
 ## Architecture cible
 
 Pipeline principal :
@@ -174,11 +195,46 @@ Chaque formulaire déclare dans ses métadonnées (`forms.required_params`) les 
 
 La page de génération s'adapte automatiquement selon cette configuration.
 
-### 7. Pré-remplissage GVV
+### 7. Pré-remplissage GVV — deux mécanismes
+
+#### Mécanisme A : attributs `data-gvv-source` (contexte membre/instructeur)
 
 Service : `form_prefill_service`
 
 Les champs pré-remplis sont déclarés dans le HTML via des attributs `data-gvv-*` sur les éléments `<input>`, `<textarea>` et `<select>`. Ces attributs sont ignorés par le navigateur et parsés côté serveur par DOMDocument (même pipeline que `sync_fields_from_html`).
+
+Applicable quand la source est la table `membres` ou `events` (identifié par `pilot_login` / `instructor_login`). Les sources `date.*`, `club.*`, `config.*` utilisent également ce mécanisme (elles sont auto-résolues sans paramètre d'identification).
+
+#### Mécanisme B : paramètres URL directs (contexte entité GVV)
+
+Pour les formulaires dont le contexte provient d'une entité GVV autre qu'un membre (vol de découverte, dossier, réservation), le contrôleur appelant passe les valeurs directement en paramètres URL :
+
+```
+/forms/{slug}
+  ?{field_name}={valeur}     ← pré-remplissage du champ correspondant
+  &lock[]={field_name}       ← verrouillage serveur de ce champ
+  &{context_key}={valeur}    ← paramètre de contexte GVV (token, vld_id, etc.)
+```
+
+`forms_public` sépare les paramètres en trois catégories :
+- **Contexte** : noms réservés (`token`, `vld_id`, `lock`, `page`, `pilot_login`, `instructor_login`) → stockés dans `context_params` JSON de la soumission, jamais injectés dans les champs
+- **Pré-remplissage** : tout paramètre dont le nom correspond à un `form_fields.name` → injecté comme valeur par défaut dans le champ HTML
+- **Verrouillage** : paramètres listés dans `lock[]` → champ `readonly` + enforcement serveur à la soumission
+
+Le formulaire HTML ne porte aucun attribut `data-gvv-source` pour les champs pré-remplis via mécanisme B. Les attributs statiques (`date.today`, `config.*`, `club.*`) peuvent coexister dans le même formulaire.
+
+**Exemple — briefing_passager_ulm** :
+
+| Champ formulaire | Source VLD | Verrouillé |
+|---|---|---|
+| `date_vol` | `vols_decouverte.date_vol` | Oui |
+| `site_decollage` | `vols_decouverte.aerodrome` | Oui |
+| `identification_ulm` | `vols_decouverte.airplane_immat` | Oui |
+| `nom` | `vols_decouverte.beneficiaire` (1re partie) | Non |
+| `prenom` | `vols_decouverte.beneficiaire` (2e partie) | Non |
+| `poids_declare` | `vols_decouverte.participation` | Non |
+| `personne_a_prevenir` | `vols_decouverte.urgence` | Non |
+| `telephone` | `vols_decouverte.beneficiaire_tel` | Non |
 
 #### Attributs
 
@@ -425,6 +481,147 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 | 3 | Saisie clavier (fonte Caveat) | Faible | Google Fonts CDN, canvas natif |
 | 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
 | 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
+
+### 13. Intégration workflow GVV — handler post-soumission
+
+#### Principe
+
+Pour les formulaires de catégorie 3, `forms_public/submit` appelle un handler après avoir créé la soumission. Le handler exécute les actions GVV métier.
+
+#### Évolutions de schéma
+
+```sql
+-- Déclarer un handler sur un formulaire
+ALTER TABLE forms ADD COLUMN handler_class VARCHAR(100) NULL
+    COMMENT 'Classe PHP du handler post-soumission, NULL = aucun';
+
+-- Stocker le contexte GVV avec la soumission
+ALTER TABLE form_submissions ADD COLUMN context_params TEXT NULL
+    COMMENT 'JSON : token, vld_id, etc. — paramètres de contexte non liés aux champs';
+```
+
+#### Interface des handlers
+
+```php
+// application/libraries/form_handlers/GvvFormHandlerInterface.php
+interface GvvFormHandlerInterface {
+    // Appelé après création de la soumission.
+    // Retourne : ['redirect_url' => string|null, 'error' => string|null]
+    public function after_submit(int $submission_id, array $context_params): array;
+}
+```
+
+Les handlers sont placés dans `application/libraries/form_handlers/`. `forms_public` instancie la classe déclarée dans `forms.handler_class` si elle implémente l'interface.
+
+#### Handler de référence : BriefingPassagerUlmHandler
+
+```
+BriefingPassagerUlmHandler::after_submit($submission_id, $context)
+  ├── Valide le token ($context['token']) → non expiré, non utilisé
+  ├── Récupère le VLD ($context['vld_id'])
+  ├── Génère le PDF (réutilise la logique submission_pdf)
+  ├── Archive dans archived_documents (lié au vld_id)
+  ├── Met à jour vols_decouverte (beneficiaire, participation, urgence)
+  ├── Marque briefing_tokens.used_at
+  └── Retourne redirect_url → page de confirmation briefing
+```
+
+#### Construction de l'URL par briefing_passager/generate_link
+
+```
+/forms/fiche-passager
+  ?token=<64hex>                    ← contexte (→ context_params)
+  &vld_id=<id>                      ← contexte (→ context_params)
+  &date_vol=2024-06-10              ← pré-remplissage mécanisme B
+  &site_decollage=LFOG
+  &identification_ulm=F-JXXX
+  &nom=Dupont&prenom=Jean
+  &poids_declare=75
+  &personne_a_prevenir=Marie+Dupont
+  &telephone=0612345678
+  &lock[]=date_vol                  ← verrouillage mécanisme B
+  &lock[]=site_decollage
+  &lock[]=identification_ulm
+```
+
+#### Comportement en cas d'erreur handler
+
+La soumission est déjà créée avant l'appel du handler. En cas d'erreur :
+- L'erreur est journalisée (`log_message('error', ...)`)
+- La soumission reste accessible depuis l'admin pour retraitement manuel
+- L'utilisateur voit un message d'erreur générique (pas de détails techniques)
+
+### 14. Cartes dynamiques dans les dashboards
+
+#### Principe
+
+Un mécanisme piloté par données permet aux club-admins d'injecter des cartes de raccourci dans n'importe quel dashboard GVV sans modifier le code. Le cas d'usage principal est l'exposition de formulaires (génération d'attestation, briefing passager) depuis les dashboards pilote et instructeur.
+
+#### Table `dashboard_shortcuts`
+
+| Colonne | Type | Contrainte |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT | PRIMARY KEY |
+| `dashboard` | VARCHAR(50) NOT NULL | Identifiant du dashboard cible (`accueil`, `pilote`, `instructeur`, `formations`, …) |
+| `section` | VARCHAR(50) NULL | Section cible dans le dashboard, NULL = non catégorisé |
+| `title_key` | VARCHAR(100) NULL | Clé de langue GVV (optionnelle) |
+| `title` | VARCHAR(100) NOT NULL | Texte affiché si `title_key` absent ou clé non trouvée |
+| `description_key` | VARCHAR(255) NULL | Clé de langue GVV (optionnelle) |
+| `description` | TEXT NULL | Texte affiché si clé absente ou non trouvée |
+| `url` | VARCHAR(255) NOT NULL | URL relative (interne GVV) ou absolue (externe) |
+| `icon` | VARCHAR(50) NULL | Nom Bootstrap Icons, ex. `bi-file-earmark-check` |
+| `color` | VARCHAR(20) NULL | Classe Bootstrap (`primary`, `success`, …) ou hex `#3d6b84` |
+| `role_required` | VARCHAR(50) NULL | NULL = tous ; sinon rôle GVV minimum requis pour voir la carte |
+| `sort_order` | INT DEFAULT 0 | Ordre dans la section, croissant |
+| `active` | TINYINT(1) DEFAULT 1 | 0 = désactivé (non affiché) |
+| `club_id` | INT NULL | FK → clubs(id), NULL = toutes sections |
+| `created_at` | TIMESTAMP | Audit |
+| `updated_at` | TIMESTAMP | Audit |
+| `created_by` | INT NULL | FK → membres(mlogin) |
+| `updated_by` | INT NULL | FK → membres(mlogin) |
+
+#### Résolution multi-langue
+
+La résolution s'effectue au rendu, dans la langue active de la session :
+
+```php
+$title = ($title_key && $this->lang->line($title_key) !== false)
+    ? $this->lang->line($title_key)
+    : $title;
+// idem pour description_key / description
+```
+
+#### URL interne vs externe
+
+- URL interne (ne commence pas par `http`) : rendue avec `site_url($url)`, ouverte dans l'onglet courant.
+- URL externe (commence par `http`) : attribut `target="_blank" rel="noopener noreferrer"` sur le lien.
+
+#### Administration
+
+Contrôleur dédié `shortcuts_admin` :
+- CRUD complet : liste, créer, modifier, supprimer, activer/désactiver.
+- Accès réservé au rôle club-admin.
+- Accessible depuis une carte "Raccourcis dashboard" sur `forms_admin/index`.
+
+#### Intégration dans les dashboards
+
+Chaque dashboard instrumenté charge ses raccourcis via un appel unique au modèle, puis inclut un partial view commun :
+
+```php
+// Contrôleur dashboard
+$data['shortcuts'] = $this->shortcuts_model
+    ->get_for_dashboard('pilote', $user_role, $club_id);
+// Vue dashboard
+$this->load->view('common/_shortcuts', $data);
+```
+
+Le partial `common/_shortcuts.php` parcourt les raccourcis par section et rend chaque carte Bootstrap.
+
+**Dashboards à instrumenter** : `accueil`, `pilote`, `instructeur`, `formations`. Tout contrôleur de dashboard peut être instrumenté en ajoutant l'appel modèle et en incluant le partial dans sa vue.
+
+#### Impact sur les tests Playwright
+
+Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être adaptés : les raccourcis dynamiques pointent vers des URLs de contexte (formulaires pré-remplis, pages admin spécifiques) qui peuvent ne pas être accessibles sans les bons paramètres. Deux options : exclure les cartes dynamiques du parcours automatique, ou ajouter un test dédié avec les paramètres d'authentification appropriés.
 
 ### 10. Import PDF -> HTML
 
