@@ -158,8 +158,12 @@ class MY_Controller extends CI_Controller
 
         $section_id = $this->session->userdata('section');
 
+        // "Toutes" uses key 0 — falsy in PHP, so use strict comparison to distinguish
+        // "not set" (FALSE) from "Toutes" ('0' or 0).
+        $section_is_set = ($section_id !== FALSE && $section_id !== NULL);
+
         // "Toutes" : section_id does not correspond to a real section — skip check.
-        if ($section_id) {
+        if ($section_is_set) {
             $q = $this->db->where('id', (int) $section_id)->get('sections');
             if ($q->num_rows() === 0) {
                 log_message('debug', "MY_Controller: section_id={$section_id} is not a real section (Toutes mode), skipping login permission check");
@@ -170,7 +174,7 @@ class MY_Controller extends CI_Controller
         log_message('debug', "MY_Controller: _check_login_permission called for user_id={$this->user_id}, section_id={$section_id}");
 
         // If no section is set, auto-select first section where user has 'user' role
-        if (!$section_id) {
+        if (!$section_is_set) {
             log_message('debug', "MY_Controller: No section in session, auto-selecting first available section for user");
 
             $this->db->where('user_id', $this->user_id);
