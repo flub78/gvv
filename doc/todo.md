@@ -20,6 +20,12 @@
 * [] Génération des certificats de formation et de pilotes VD.
 
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
+  
+* [] Rappel des réservations par email pour le pilote et l'instructeur.
+
+* [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré, ou si le pilote n'a pas volé dans le système depuis 120 jours. Ou si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle 
+
+* [] Insérer la liste des documents d'un pilote dans sa carte membre.
      
 * [] Ajout de vrais export excel en sus des csv.
 
