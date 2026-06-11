@@ -93,7 +93,12 @@ $lang['archived_documents_new_version'] = 'New version';
 $lang['archived_documents_new_version_title'] = 'New version of document';
 $lang['archived_documents_new_version_of'] = 'New version of';
 $lang['archived_documents_updated'] = 'Document updated successfully';
-$lang['archived_documents_same_type_warning'] = 'A document of this type already exists. Continuing will create an independent document. To update the existing one, use the "New version" button on it.';
+$lang['archived_documents_same_type_warning']    = 'A document of this type already exists.';
+$lang['archived_documents_existing_found']       = 'A document of this type already exists for this pilot:';
+$lang['archived_documents_action_add_new']       = 'Add a separate document (default)';
+$lang['archived_documents_action_replace']       = 'Replace this document (new version)';
+$lang['archived_documents_existing_uploaded_on'] = 'Uploaded on';
+$lang['archived_documents_existing_valid_until'] = 'valid until';
 $lang['archived_documents_machine'] = 'Machine';
 $lang['archived_documents_scope'] = 'Scope';
 

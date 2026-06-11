@@ -20,9 +20,15 @@ if ($banner_color === '') {
         // Prevent double-submission on slow networks: disable submit buttons after first click.
         // setTimeout defers the disable until after the browser has collected form data,
         // so named submit buttons (name="button") are still included in the POST payload.
-        $('form').on('submit', function() {
+        // We check isDefaultPrevented() inside the timeout so that client-side validation
+        // (which calls e.preventDefault()) keeps the button enabled on error.
+        $('form').on('submit', function(e) {
             var $btns = $(this).find('button[type="submit"], input[type="submit"]');
-            setTimeout(function() { $btns.prop('disabled', true); }, 0);
+            setTimeout(function() {
+                if (!e.isDefaultPrevented()) {
+                    $btns.prop('disabled', true);
+                }
+            }, 0);
         });
 
         // notre code ici

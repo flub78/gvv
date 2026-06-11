@@ -44,6 +44,28 @@ $this->lang->load('archived_documents');
     <?= $message ?>
 <?php endif; ?>
 
+<!-- Choice panel: shown via AJAX when an existing document of the same type is found -->
+<?php if (empty($previous_version_id)): ?>
+<div id="existing-doc-panel" class="alert alert-warning d-none mb-3">
+    <p class="mb-2"><i class="fas fa-exclamation-triangle"></i> <strong><?= $this->lang->line('archived_documents_existing_found') ?></strong></p>
+    <div id="existing-docs-info" class="mb-3 ps-2"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="action_on_existing" id="action_add_new" value="add_new" checked>
+        <label class="form-check-label" for="action_add_new">
+            <i class="fas fa-file-plus"></i> <?= $this->lang->line('archived_documents_action_add_new') ?>
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="action_on_existing" id="action_replace" value="replace">
+        <label class="form-check-label text-danger" for="action_replace">
+            <i class="fas fa-exchange-alt"></i> <?= $this->lang->line('archived_documents_action_replace') ?>
+        </label>
+    </div>
+    <div id="replace-selector" class="mt-2 ps-4 d-none"></div>
+    <input type="hidden" name="existing_doc_id_for_replace" id="existing_doc_id_for_replace" value="">
+</div>
+<?php endif; ?>
+
 <?= form_open_multipart('archived_documents/formValidation/' . $action, array('class' => 'form-horizontal', 'id' => 'document-upload-form')) ?>
 
 <div class="card">
@@ -281,6 +303,85 @@ function initDropZone(inputId) {
 }
 
 initDropZone('userfile');
+</script>
+
+<script>
+(function () {
+    var checkUrl        = '<?= site_url('archived_documents/check_existing_document') ?>';
+    var labelUploadedOn = <?= json_encode($this->lang->line('archived_documents_existing_uploaded_on')) ?>;
+    var labelValidUntil = <?= json_encode($this->lang->line('archived_documents_existing_valid_until')) ?>;
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function docLabel(doc) {
+        var parts = [];
+        if (doc.description) parts.push(doc.description);
+        parts.push(doc.filename);
+        if (doc.uploaded_at) parts.push(labelUploadedOn + ' ' + doc.uploaded_at);
+        if (doc.valid_until)  parts.push(labelValidUntil  + ' ' + doc.valid_until);
+        return parts.join(' — ');
+    }
+
+    function hidePanel() {
+        var p = document.getElementById('existing-doc-panel');
+        if (!p) return;
+        p.classList.add('d-none');
+        document.getElementById('existing_doc_id_for_replace').value = '';
+        var addNew = document.getElementById('action_add_new');
+        if (addNew) addNew.checked = true;
+    }
+
+    function showPanel(docs) {
+        var panel  = document.getElementById('existing-doc-panel');
+        if (!panel) return;
+        var infoEl = document.getElementById('existing-docs-info');
+        var selEl  = document.getElementById('replace-selector');
+        var html   = '';
+        docs.forEach(function (doc) {
+            html += '<div><i class="fas fa-file-alt me-1"></i>' + escHtml(docLabel(doc)) + '</div>';
+        });
+        infoEl.innerHTML = html;
+
+        if (docs.length > 1) {
+            var selHtml = '<select class="form-select form-select-sm" id="replace-doc-select">';
+            docs.forEach(function (doc) {
+                selHtml += '<option value="' + doc.id + '">' + escHtml(docLabel(doc)) + '</option>';
+            });
+            selHtml += '</select>';
+            selEl.innerHTML = selHtml;
+            selEl.classList.remove('d-none');
+            document.getElementById('replace-doc-select').addEventListener('change', function () {
+                document.getElementById('existing_doc_id_for_replace').value = this.value;
+            });
+        } else {
+            selEl.innerHTML = '';
+            selEl.classList.add('d-none');
+        }
+
+        document.getElementById('existing_doc_id_for_replace').value = docs[0].id;
+        panel.classList.remove('d-none');
+        document.getElementById('action_add_new').checked = true;
+    }
+
+    function checkExisting() {
+        var typeEl  = document.getElementById('document_type_id');
+        var pilotEl = document.getElementById('pilot_login');
+        var typeId  = typeEl  ? typeEl.value  : '';
+        var pilot   = pilotEl ? pilotEl.value : '';
+        if (!typeId || !pilot) { hidePanel(); return; }
+        fetch(checkUrl + '?type_id=' + encodeURIComponent(typeId) + '&pilot_login=' + encodeURIComponent(pilot))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.exists) { showPanel(data.docs); } else { hidePanel(); }
+            })
+            .catch(function () { hidePanel(); });
+    }
+
+    // Select2 triggers change via jQuery — use jQuery event delegation.
+    $(document).on('change', '#document_type_id, #pilot_login', checkExisting);
+}());
 </script>
 
 <script>

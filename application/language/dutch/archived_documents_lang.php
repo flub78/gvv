@@ -93,7 +93,12 @@ $lang['archived_documents_new_version'] = 'Nieuwe versie';
 $lang['archived_documents_new_version_title'] = 'Nieuwe versie van document';
 $lang['archived_documents_new_version_of'] = 'Nieuwe versie van';
 $lang['archived_documents_updated'] = 'Document succesvol bijgewerkt';
-$lang['archived_documents_same_type_warning'] = 'Er bestaat al een document van dit type. Als u doorgaat, maakt u een onafhankelijk document. Gebruik de knop "Nieuwe versie" op het bestaande document om het bij te werken.';
+$lang['archived_documents_same_type_warning']    = 'Er bestaat al een document van dit type.';
+$lang['archived_documents_existing_found']       = 'Er bestaat al een document van dit type voor deze piloot:';
+$lang['archived_documents_action_add_new']       = 'Een afzonderlijk document toevoegen (standaard)';
+$lang['archived_documents_action_replace']       = 'Dit document vervangen (nieuwe versie)';
+$lang['archived_documents_existing_uploaded_on'] = 'Geüpload op';
+$lang['archived_documents_existing_valid_until'] = 'geldig tot';
 $lang['archived_documents_machine'] = 'Machine';
 $lang['archived_documents_scope'] = 'Bereik';
 

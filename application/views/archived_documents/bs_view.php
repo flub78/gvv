@@ -255,9 +255,22 @@ $is_private = !empty($type['is_private']);
                             <i class="fas fa-eye"></i>
                         </a>
                         <?php endif; ?>
-                        <a href="<?= site_url('archived_documents/download/' . $ver['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                        <a href="<?= site_url('archived_documents/download/' . $ver['id']) ?>" class="btn btn-sm btn-outline-secondary" title="<?= $this->lang->line('archived_documents_download') ?>">
                             <i class="fas fa-download"></i>
                         </a>
+                        <?php
+                        $can_delete_ver = $is_admin ||
+                            ($ver['pilot_login'] === $current_user &&
+                             (!isset($ver['validation_status']) || $ver['validation_status'] !== 'approved'));
+                        if ($can_delete_ver):
+                        ?>
+                        <a href="<?= site_url('archived_documents/delete/' . $ver['id']) ?>?from=<?= $document['id'] ?>"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');"
+                           title="<?= $this->lang->line('archived_documents_delete') ?>">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

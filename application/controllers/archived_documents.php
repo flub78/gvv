@@ -331,23 +331,59 @@ class Archived_documents extends Gvv_Controller {
         $this->data['uploaded_by'] = $this->dx_auth->get_username();
         $this->data['force_pilot_types'] = true;
 
-        // UX warning: check if a document of the pre-selected type already exists for this pilot
-        $type_id = $this->input->get('type');
-        if (!empty($type_id)) {
-            $existing = $this->gvv_model->get_first(array(
-                'document_type_id' => $type_id,
-                'pilot_login'      => $this->dx_auth->get_username(),
-                'is_current_version' => 1,
-            ));
-            if ($existing) {
-                $this->data['same_type_warning'] = true;
-                $this->data['existing_doc_id'] = $existing['id'];
-            }
-        }
-
         $this->form_static_element(CREATION);
 
         return load_last_view($this->controller . '/formPilotView', $this->data, $this->unit_test);
+    }
+
+    /**
+     * AJAX: returns current documents of a given type for a given pilot.
+     * Used by the upload forms to let the user choose between replacing or adding.
+     */
+    public function check_existing_document() {
+        if (!$this->dx_auth->is_logged_in()) {
+            echo json_encode(array('exists' => false));
+            return;
+        }
+
+        $type_id     = (int)$this->input->get('type_id');
+        $pilot_login = $this->input->get('pilot_login');
+
+        if (!$this->_is_admin()) {
+            $pilot_login = $this->dx_auth->get_username();
+        }
+
+        if (!$type_id || !$pilot_login) {
+            echo json_encode(array('exists' => false));
+            return;
+        }
+
+        $this->db->select('id, original_filename, description, valid_from, valid_until, uploaded_at')
+            ->from('archived_documents')
+            ->where('document_type_id', $type_id)
+            ->where('pilot_login', $pilot_login)
+            ->where('is_current_version', 1)
+            ->order_by('id', 'DESC');
+        $query = $this->db->get();
+
+        if (!$query || $query->num_rows() === 0) {
+            echo json_encode(array('exists' => false));
+            return;
+        }
+
+        $docs = array();
+        foreach ($query->result_array() as $row) {
+            $docs[] = array(
+                'id'          => (int)$row['id'],
+                'filename'    => $row['original_filename'],
+                'description' => $row['description'] ?: '',
+                'uploaded_at' => $row['uploaded_at'] ? date('d/m/Y', strtotime($row['uploaded_at'])) : '',
+                'valid_until' => $row['valid_until']  ? date('d/m/Y', strtotime($row['valid_until']))  : '',
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array('exists' => true, 'docs' => $docs));
     }
 
     /**
@@ -543,20 +579,16 @@ class Archived_documents extends Gvv_Controller {
         // Prepare document data
         $previous_version_id = $this->input->post('previous_version_id');
         $machine_immat = $new_version_lock ? $new_version_lock['machine_immat'] : ($this->input->post('machine_immat') ?: null);
-        
-        // Auto-detect previous version: if not explicitly specified, find current version of same
-        // document type for the same scope (pilot/section/machine) to maintain version chain
-        if (empty($previous_version_id) && !empty($document_type_id)) {
-            $search_criteria = array(
-                'document_type_id' => $document_type_id,
-                'section_id'       => $section_id,
-                'pilot_login'      => !empty($pilot_login) ? $pilot_login : null,
-                'machine_immat'    => $machine_immat,
-                'is_current_version' => 1,
-            );
-            $existing_current = $this->gvv_model->get_first($search_criteria);
-            if ($existing_current) {
-                $previous_version_id = $existing_current['id'];
+
+        // If not explicitly set (e.g. from new_version() flow), respect the user's explicit choice:
+        // 'replace' → link to the chosen existing document; 'add_new' or absent → independent doc.
+        if (empty($previous_version_id)) {
+            $action_on_existing = $this->input->post('action_on_existing');
+            if ($action_on_existing === 'replace') {
+                $replace_id = (int)$this->input->post('existing_doc_id_for_replace');
+                if ($replace_id > 0) {
+                    $previous_version_id = $replace_id;
+                }
             }
         }
         
@@ -934,6 +966,17 @@ class Archived_documents extends Gvv_Controller {
         $this->gvv_model->delete_document($id, $current_user, $is_admin);
 
         $this->session->set_flashdata('message', '<div class="alert alert-success">Document supprime</div>');
+
+        // If deletion was triggered from a view page, return there (if the doc still exists)
+        $from_id = (int)$this->input->get('from');
+        if ($from_id && $from_id !== $id) {
+            $from_doc = $this->gvv_model->get_by_id('id', $from_id);
+            if ($from_doc) {
+                redirect(site_url('archived_documents/view/' . $from_id));
+                return;
+            }
+        }
+
         redirect($list_url);
     }
 

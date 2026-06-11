@@ -93,7 +93,12 @@ $lang['archived_documents_new_version'] = 'Nouvelle version';
 $lang['archived_documents_new_version_title'] = 'Nouvelle version du document';
 $lang['archived_documents_new_version_of'] = 'Nouvelle version de';
 $lang['archived_documents_updated'] = 'Document mis à jour avec succès';
-$lang['archived_documents_same_type_warning'] = 'Un document de ce type existe déjà. En continuant, vous créerez un document indépendant. Pour mettre à jour le document existant, utilisez le bouton "Nouvelle version" sur ce dernier.';
+$lang['archived_documents_same_type_warning']    = 'Un document de ce type existe déjà.';
+$lang['archived_documents_existing_found']       = 'Un document de ce type existe déjà pour ce pilote :';
+$lang['archived_documents_action_add_new']       = 'Ajouter un document séparé (par défaut)';
+$lang['archived_documents_action_replace']       = 'Remplacer ce document (nouvelle version)';
+$lang['archived_documents_existing_uploaded_on'] = 'Chargé le';
+$lang['archived_documents_existing_valid_until'] = 'valide jusqu\'au';
 $lang['archived_documents_machine'] = 'Machine';
 $lang['archived_documents_scope'] = 'Portée';
 

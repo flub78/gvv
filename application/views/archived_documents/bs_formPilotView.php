@@ -34,17 +34,26 @@ $this->lang->load('archived_documents');
 </div>
 <?php endif; ?>
 
-<?php if (!empty($same_type_warning)): ?>
-<div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle"></i>
-    <?= $this->lang->line('archived_documents_same_type_warning') ?>
-    <?php if (!empty($existing_doc_id)): ?>
-    <a href="<?= site_url('archived_documents/new_version/' . $existing_doc_id) ?>" class="btn btn-sm btn-outline-warning ms-2">
-        <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version') ?>
-    </a>
-    <?php endif; ?>
+<!-- Choice panel: shown via AJAX when an existing document of the same type is found -->
+<div id="existing-doc-panel" class="alert alert-warning d-none">
+    <p class="mb-2"><i class="fas fa-exclamation-triangle"></i> <strong><?= $this->lang->line('archived_documents_existing_found') ?></strong></p>
+    <div id="existing-docs-info" class="mb-3 ps-2"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="action_on_existing" id="action_add_new" value="add_new" checked>
+        <label class="form-check-label" for="action_add_new">
+            <i class="fas fa-file-plus"></i> <?= $this->lang->line('archived_documents_action_add_new') ?>
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="action_on_existing" id="action_replace" value="replace">
+        <label class="form-check-label text-danger" for="action_replace">
+            <i class="fas fa-exchange-alt"></i> <?= $this->lang->line('archived_documents_action_replace') ?>
+        </label>
+    </div>
+    <!-- Populated by JS when multiple current docs exist -->
+    <div id="replace-selector" class="mt-2 ps-4 d-none"></div>
+    <input type="hidden" name="existing_doc_id_for_replace" id="existing_doc_id_for_replace" value="">
 </div>
-<?php endif; ?>
 
 <?php if (isset($message)): ?>
     <?= $message ?>
@@ -130,3 +139,83 @@ $this->lang->load('archived_documents');
 <?= form_close() ?>
 
 </div>
+
+<script>
+(function () {
+    var checkUrl    = '<?= site_url('archived_documents/check_existing_document') ?>';
+    var labelUploadedOn  = <?= json_encode($this->lang->line('archived_documents_existing_uploaded_on')) ?>;
+    var labelValidUntil  = <?= json_encode($this->lang->line('archived_documents_existing_valid_until')) ?>;
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function docLabel(doc) {
+        var parts = [];
+        if (doc.description) parts.push(doc.description);
+        parts.push(doc.filename);
+        if (doc.uploaded_at) parts.push(labelUploadedOn + ' ' + doc.uploaded_at);
+        if (doc.valid_until)  parts.push(labelValidUntil  + ' ' + doc.valid_until);
+        return parts.join(' — ');
+    }
+
+    function hidePanel() {
+        var p = document.getElementById('existing-doc-panel');
+        if (p) p.classList.add('d-none');
+        document.getElementById('existing_doc_id_for_replace').value = '';
+        var addNew = document.getElementById('action_add_new');
+        if (addNew) addNew.checked = true;
+    }
+
+    function showPanel(docs) {
+        var infoEl = document.getElementById('existing-docs-info');
+        var selEl  = document.getElementById('replace-selector');
+        var html   = '';
+        docs.forEach(function (doc) {
+            html += '<div><i class="fas fa-file-alt me-1"></i>' + escHtml(docLabel(doc)) + '</div>';
+        });
+        infoEl.innerHTML = html;
+
+        // If multiple current docs (data inconsistency), show a selector for which to replace
+        if (docs.length > 1) {
+            var selHtml = '<label class="form-label small"><?= $this->lang->line('archived_documents_type') ?> :</label><select class="form-select form-select-sm" id="replace-doc-select">';
+            docs.forEach(function (doc) {
+                selHtml += '<option value="' + doc.id + '">' + escHtml(docLabel(doc)) + '</option>';
+            });
+            selHtml += '</select>';
+            selEl.innerHTML = selHtml;
+            selEl.classList.remove('d-none');
+            document.getElementById('replace-doc-select').addEventListener('change', function () {
+                document.getElementById('existing_doc_id_for_replace').value = this.value;
+            });
+        } else {
+            selEl.innerHTML = '';
+            selEl.classList.add('d-none');
+        }
+
+        // Default: first doc selected for replace
+        document.getElementById('existing_doc_id_for_replace').value = docs[0].id;
+        document.getElementById('existing-doc-panel').classList.remove('d-none');
+        // Reset to safe default
+        document.getElementById('action_add_new').checked = true;
+    }
+
+    function checkExisting(typeId) {
+        if (!typeId) { hidePanel(); return; }
+        fetch(checkUrl + '?type_id=' + encodeURIComponent(typeId))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.exists) { showPanel(data.docs); } else { hidePanel(); }
+            })
+            .catch(function () { hidePanel(); });
+    }
+
+    // Select2 triggers change via jQuery — use jQuery event delegation.
+    $(document).on('change', '#document_type_id', function () { checkExisting($(this).val()); });
+    // Initial check after Select2 has initialised (runs after footer's $(document).ready).
+    $(document).ready(function () {
+        var val = $('#document_type_id').val();
+        if (val) { checkExisting(val); }
+    });
+}());
+</script>
