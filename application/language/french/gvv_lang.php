@@ -895,3 +895,6 @@ $lang['gvv_rename_error_invalid_step'] = "Étape invalide.";
 $lang['gvv_rename_success_message']    = "Renommage réussi : %d enregistrements mis à jour.";
 
 $lang['not_available_for_this_section'] = "Cette fonctionnalité n'est pas disponible pour cette section.";
+
+$lang['gvv_error_not_authorized'] = "Vous n'êtes pas autorisé à accéder à cette ressource.";
+$lang['gvv_error_not_found']      = "La ressource demandée est introuvable.";

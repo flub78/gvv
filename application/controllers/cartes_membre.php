@@ -63,7 +63,7 @@ class Cartes_membre extends CI_Controller {
         ]);
 
         $current_user = $this->dx_auth->get_username();
-        $is_admin     = $this->dx_auth->is_admin();
+        $is_admin     = has_role('ca');
 
         // Non-admin : accès limité à sa propre carte.
         if (!$is_admin) {
@@ -152,7 +152,7 @@ class Cartes_membre extends CI_Controller {
      * POST : traite la soumission du formulaire lot et redirige vers lot_pdf.
      */
     public function generation() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -241,7 +241,7 @@ class Cartes_membre extends CI_Controller {
      * Les logins sélectionnés sont lus depuis la session (positionnés par lot()).
      */
     public function lot_pdf() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -288,7 +288,7 @@ class Cartes_membre extends CI_Controller {
      * POST : traite l'upload et enregistre en configuration.
      */
     public function config() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -333,7 +333,7 @@ class Cartes_membre extends CI_Controller {
      * Enregistre la configuration de mise en page (POST depuis bs_config).
      */
     public function layout_save() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -349,7 +349,7 @@ class Cartes_membre extends CI_Controller {
      * Télécharge le fichier JSON de configuration de mise en page.
      */
     public function layout_export($annee = null) {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -367,7 +367,7 @@ class Cartes_membre extends CI_Controller {
      * Importe une configuration de mise en page depuis un fichier JSON uploadé.
      */
     public function layout_import() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 
@@ -393,7 +393,7 @@ class Cartes_membre extends CI_Controller {
      * Réinitialise la mise en page au défaut (supprime la clé configuration).
      */
     public function layout_reset() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!has_role('ca')) {
             show_error($this->lang->line('gvv_error_not_authorized'), 403);
         }
 

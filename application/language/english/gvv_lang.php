@@ -884,3 +884,6 @@ $lang['gvv_rename_error_invalid_step'] = "Invalid step.";
 $lang['gvv_rename_success_message']    = "Rename successful: %d records updated.";
 
 $lang['not_available_for_this_section'] = "This feature is not available for this section.";
+
+$lang['gvv_error_not_authorized'] = "You are not authorized to access this resource.";
+$lang['gvv_error_not_found']      = "The requested resource was not found.";
