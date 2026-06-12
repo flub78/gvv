@@ -39,6 +39,16 @@ class AuditDocumentsEmailMigrationTest extends TestCase
         $this->assertTrue($migration->up(), 'Migration 095 up() should succeed');
     }
 
+    private function tableExists($table)
+    {
+        $t = $this->db->escape_str($table);
+        $row = $this->db->query(
+            "SELECT COUNT(*) AS cnt FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$t'"
+        )->row_array();
+        return isset($row['cnt']) && (int) $row['cnt'] > 0;
+    }
+
     public function testMigration095AddsExpectedColumns()
     {
         $this->runMigrationUp();
@@ -46,11 +56,19 @@ class AuditDocumentsEmailMigrationTest extends TestCase
         $this->assertTrue($this->columnExists('archived_documents', 'updated_by'));
         $this->assertTrue($this->columnExists('email_lists', 'updated_by'));
 
-        foreach (array('document_types', 'attachments', 'mails') as $table) {
+        foreach (array('document_types', 'attachments') as $table) {
             $this->assertTrue($this->columnExists($table, 'created_by'));
             $this->assertTrue($this->columnExists($table, 'created_at'));
             $this->assertTrue($this->columnExists($table, 'updated_by'));
             $this->assertTrue($this->columnExists($table, 'updated_at'));
+        }
+
+        // mails table is optional (may not exist in all environments)
+        if ($this->tableExists('mails')) {
+            $this->assertTrue($this->columnExists('mails', 'created_by'));
+            $this->assertTrue($this->columnExists('mails', 'created_at'));
+            $this->assertTrue($this->columnExists('mails', 'updated_by'));
+            $this->assertTrue($this->columnExists('mails', 'updated_at'));
         }
     }
 
@@ -58,26 +76,35 @@ class AuditDocumentsEmailMigrationTest extends TestCase
     {
         $this->runMigrationUp();
 
-        $suffix = (string) time();
+        $mailsTableExists = (bool) $this->db->query(
+            "SELECT COUNT(*) AS cnt FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mails'"
+        )->row_array()['cnt'];
 
-        // Insert a mails row with explicit NULL audit fields to validate backfill
-        $this->db->query(
-            "INSERT INTO mails (titre, destinataires, copie_a, selection, individuel, date_envoie, texte, debut_facturation, fin_facturation, created_by, created_at, updated_by, updated_at)
-             VALUES ('lot3 migration test $suffix', 'test@example.com', '', 0, 1, '2026-03-25 10:00:00', 'body', NULL, NULL, NULL, NULL, NULL, NULL)"
-        );
+        if ($mailsTableExists) {
+            $suffix = (string) time();
 
-        $migration = new Migration_Audit_documents_email();
-        $this->assertTrue($migration->up(), 'Migration 095 should be idempotent and succeed when rerun');
+            $this->db->query(
+                "INSERT INTO mails (titre, destinataires, copie_a, selection, individuel, date_envoie, texte, debut_facturation, fin_facturation, created_by, created_at, updated_by, updated_at)
+                 VALUES ('lot3 migration test $suffix', 'test@example.com', '', 0, 1, '2026-03-25 10:00:00', 'body', NULL, NULL, NULL, NULL, NULL, NULL)"
+            );
 
-        $mail = $this->db->query(
-            "SELECT created_at, updated_at
-             FROM mails
-             WHERE titre = 'lot3 migration test $suffix'
-             ORDER BY id DESC LIMIT 1"
-        )->row_array();
+            $migration = new Migration_Audit_documents_email();
+            $this->assertTrue($migration->up(), 'Migration 095 should be idempotent and succeed when rerun');
 
-        $this->assertStringStartsWith('2026-03-25 10:00:00', $mail['created_at']);
-        $this->assertStringStartsWith('2026-03-25 10:00:00', $mail['updated_at']);
+            $mail = $this->db->query(
+                "SELECT created_at, updated_at FROM mails
+                 WHERE titre = 'lot3 migration test $suffix' ORDER BY id DESC LIMIT 1"
+            )->row_array();
+
+            $this->assertStringStartsWith('2026-03-25 10:00:00', $mail['created_at']);
+            $this->assertStringStartsWith('2026-03-25 10:00:00', $mail['updated_at']);
+
+            $this->db->query("DELETE FROM mails WHERE titre = 'lot3 migration test $suffix'");
+        } else {
+            $migration = new Migration_Audit_documents_email();
+            $this->assertTrue($migration->up(), 'Migration 095 should succeed even when mails table is absent');
+        }
 
         // Existing email_lists rows should have updated_by backfilled from created_by
         $counts = $this->db->query(
@@ -90,7 +117,5 @@ class AuditDocumentsEmailMigrationTest extends TestCase
         if ((int) $counts['total'] > 0) {
             $this->assertEquals(0, (int) $counts['missing_updated_by']);
         }
-
-        $this->db->query("DELETE FROM mails WHERE titre = 'lot3 migration test $suffix'");
     }
 }

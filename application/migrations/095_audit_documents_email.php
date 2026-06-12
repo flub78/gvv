@@ -13,6 +13,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Migration_Audit_documents_email extends CI_Migration {
 
+    private function table_exists($table)
+    {
+        $t = $this->db->escape_str($table);
+        $row = $this->db->query(
+            "SELECT COUNT(*) AS cnt FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$t'"
+        )->row_array();
+        return isset($row['cnt']) && (int) $row['cnt'] > 0;
+    }
+
     private function column_exists($table, $column)
     {
         $t = $this->db->escape_str($table);
@@ -29,6 +39,9 @@ class Migration_Audit_documents_email extends CI_Migration {
 
     private function add_column_if_missing($table, $column, $definition)
     {
+        if (!$this->table_exists($table)) {
+            return TRUE;
+        }
         if (!$this->column_exists($table, $column)) {
             $t = $this->db->escape_str($table);
             $c = $this->db->escape_str($column);
@@ -39,6 +52,9 @@ class Migration_Audit_documents_email extends CI_Migration {
 
     private function drop_column_if_exists($table, $column)
     {
+        if (!$this->table_exists($table)) {
+            return TRUE;
+        }
         if ($this->column_exists($table, $column)) {
             $t = $this->db->escape_str($table);
             $c = $this->db->escape_str($column);
@@ -83,6 +99,9 @@ class Migration_Audit_documents_email extends CI_Migration {
 
         // keep internal consistency for tables with full audit columns
         foreach (array('document_types', 'attachments', 'mails') as $table) {
+            if (!$this->table_exists($table)) {
+                continue;
+            }
             $this->db->query("UPDATE `$table` SET updated_by = created_by WHERE updated_by IS NULL AND created_by IS NOT NULL");
             $this->db->query("UPDATE `$table` SET updated_at = created_at WHERE updated_at IS NULL AND created_at IS NOT NULL");
         }

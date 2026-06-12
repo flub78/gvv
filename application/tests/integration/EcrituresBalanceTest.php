@@ -132,10 +132,9 @@ class EcrituresBalanceTest extends TestCase {
         TestLogger::info("  - With 25/page (page 1): solde = {$ecriture_25['solde']}");
 
         // CRITICAL: The balance must be identical
-        $this->assertEquals($ecriture_10['solde'], $ecriture_25['solde'],
+        $this->assertEqualsWithDelta($ecriture_10['solde'], $ecriture_25['solde'], 0.01,
             "Balance for ecriture {$ecriture_10['id']} must be identical regardless of pagination. " .
-            "Got {$ecriture_10['solde']} with 10/page and {$ecriture_25['solde']} with 25/page",
-            0.01);
+            "Got {$ecriture_10['solde']} with 10/page and {$ecriture_25['solde']} with 25/page");
 
         // Also test with another target position to be thorough (if we have enough data)
         if ($total_count > 22) {
@@ -163,9 +162,8 @@ class EcrituresBalanceTest extends TestCase {
                 TestLogger::info("  - With 10/page (page 3): solde = {$ecriture_10_p3['solde']}");
                 TestLogger::info("  - With 25/page (page 1): solde = {$ecriture_25_2['solde']}");
 
-                $this->assertEquals($ecriture_10_p3['solde'], $ecriture_25_2['solde'],
-                    "Balance for ecriture {$ecriture_10_p3['id']} must be identical regardless of pagination",
-                    0.01);
+                $this->assertEqualsWithDelta($ecriture_10_p3['solde'], $ecriture_25_2['solde'], 0.01,
+                    "Balance for ecriture {$ecriture_10_p3['id']} must be identical regardless of pagination");
             }
         }
     }
@@ -232,11 +230,10 @@ class EcrituresBalanceTest extends TestCase {
 
             TestLogger::info("  Line " . ($i + 1) . " (ID {$curr['id']}): prev={$prev_solde}, op={$operation}, curr={$curr_solde}, expected={$expected_solde}\n");
 
-            $this->assertEquals($expected_solde, $curr_solde,
+            $this->assertEqualsWithDelta($expected_solde, $curr_solde, 0.01,
                 "Balance increment error at line " . ($i + 1) . " (ID {$curr['id']}). " .
                 "Previous balance: {$prev_solde}, Operation: {$operation}, " .
-                "Expected: {$expected_solde}, Got: {$curr_solde}",
-                0.01);
+                "Expected: {$expected_solde}, Got: {$curr_solde}");
         }
     }
 
@@ -296,9 +293,8 @@ class EcrituresBalanceTest extends TestCase {
 
         TestLogger::info("  Expected balance (independently calculated): {$expected_initial}");
 
-        $this->assertEquals($expected_initial, $first_solde,
-            "First row balance should match independently calculated value",
-            0.01);
+        $this->assertEqualsWithDelta($expected_initial, $first_solde, 0.01,
+            "First row balance should match independently calculated value");
     }
 
     /**
@@ -368,10 +364,9 @@ class EcrituresBalanceTest extends TestCase {
 
                 TestLogger::info("  Position " . (10 + $i) . " (ID {$e1['id']}): page1 solde={$e1['solde']}, page2 solde={$e2['solde']}\n");
 
-                $this->assertEquals($e1['solde'], $e2['solde'],
+                $this->assertEqualsWithDelta($e1['solde'], $e2['solde'], 0.01,
                     "Overlapping ecriture ID {$e1['id']} must have identical balance. " .
-                    "Page 1: {$e1['solde']}, Page 2: {$e2['solde']}",
-                    0.01);
+                    "Page 1: {$e1['solde']}, Page 2: {$e2['solde']}");
             }
         }
     }

@@ -51,8 +51,6 @@ class MembreMnumeroModelTest extends TransactionalTestCase
             'ville'     => 'Paris',
             'pays'      => 'France',
             'msexe'     => 'M',
-            'mniveaux'  => 0,
-            'macces'    => 0,
             'ext'       => 0,
             'actif'     => 1,
             'categorie' => '0',

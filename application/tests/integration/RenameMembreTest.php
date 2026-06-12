@@ -52,7 +52,6 @@ class RenameMembreTest extends TransactionalTestCase
             'actif'   => 1,
             'ext'     => 0,
             'm25ans'  => 0,
-            'mniveaux'=> 0,
         ];
         $data = array_merge($defaults, $overrides);
         $this->CI->db->insert('membres', $data);
