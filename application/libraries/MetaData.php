@@ -1398,6 +1398,18 @@ abstract class Metadata {
                 $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
             }
             return $btn;
+        } elseif ($action == 'rotate_cw') {
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '"'
+                 . ' class="btn btn-sm btn-outline-secondary"'
+                 . ' title="Rotation horaire"'
+                 . ' onclick="return confirm(\'Rotation horaire ?\')"><i class="fas fa-redo" aria-hidden="true"></i></a>';
+            return $btn;
+        } elseif ($action == 'rotate_ccw') {
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '"'
+                 . ' class="btn btn-sm btn-outline-secondary"'
+                 . ' title="Rotation anti-horaire"'
+                 . ' onclick="return confirm(\'Rotation anti-horaire ?\')"><i class="fas fa-undo" aria-hidden="true"></i></a>';
+            return $btn;
         }
 
         // Default fallback: simple anchor to preserve legacy behavior

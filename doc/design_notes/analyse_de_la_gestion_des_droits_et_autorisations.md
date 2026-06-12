@@ -280,9 +280,9 @@ Le système `user_roles_per_section` est la cible. Il couvre :
 
 ### 4.3 Qualifications : `events` comme entité centrale, PDF optionnel
 
-**Principe** : la qualification est l'entité métier. Le PDF en est la preuve optionnelle. Un administrateur doit pouvoir modifier la date de validité d'un PPL et déposer ou remplacer sa copie PDF sur la même page, que le document existe déjà ou non.
+**Principe** : la qualification est l'entité métier. Le PDF en est la preuve optionnelle. Il ne faut pas créer deux sources de vérité pour la validité : la date d'obtention, la date d'expiration et le numéro restent dans `events`, et le document n'est qu'une pièce justificative rattachée à cette qualification.
 
-La conséquence est que `events` (ou une table `qualifications` qui lui succède) porte toutes les données de la qualification, et que le PDF est un attribut de cet enregistrement :
+La conséquence est qu'un écran unique de gestion des qualifications pilote l'opération, mais n'écrit la validité qu'à un seul endroit. `events` (ou une table `qualifications` qui lui succède) porte toutes les données métier de la qualification, et le PDF est un attribut ou une annexe de cet enregistrement :
 
 | Attribut | Emplacement |
 |----------|-------------|
@@ -293,6 +293,8 @@ La conséquence est que `events` (ou une table `qualifications` qui lui succède
 | Fichier PDF (optionnel) | `events.file_path` (champ à ajouter) ou FK vers un stockage fichier |
 
 `archived_documents` reste l'outil des **documents administratifs** dont le document lui-même est la chose principale : attestations d'assurance, manuels d'exploitation, briefings passagers, autorisations parentales. Ces documents ont un cycle de vie propre (validation, versionnage, workflow de signature) qui n'a pas de sens pour une qualification aéronautique.
+
+**Règle d'implémentation** : lorsqu'un type est une qualification, l'utilisateur passe par le flux qualification et non par le flux archivage documentaire. L'UI peut accepter le dépôt du PDF, mais la création de la qualification est refusée depuis `archived_documents` afin d'éviter toute divergence sur la validité.
 
 **Ligne de partage** :
 - *"Ce pilote a un PPL valide jusqu'au…"* → `events` (qualification, avec PDF en attribut optionnel).
@@ -314,35 +316,48 @@ Tous les sélecteurs de pilotes qualifiés (instructeurs, remorqueurs, mécanici
 
 ## 5. Chemin d'évolution progressif et réaliste
 
-Le projet est en mode maintenance active ; les refactorings majeurs doivent être transparents pour les utilisateurs. Voici un chemin en trois niveaux de priorité.
+Le projet est en mode maintenance active ; les refactorings majeurs doivent être transparents pour les utilisateurs. Le chemin d'évolution est organisé en deux objectifs séquentiels.
 
-### Niveau 1 — Compléter la migration en cours (6–12 semaines)
+### Objectif 1 — Supprimer `mniveaux` et `macces` (priorité 1)
 
-Ces actions sont déjà planifiées (`2025_authorization_refactoring_plan.md`, phase M2→M5) :
+Cet objectif est le premier livrable attendu. Tant qu'il n'est pas atteint, l'unification du concept de qualification reste secondaire.
 
-1. **Terminer la migration des 33 contrôleurs restants** vers `Gvv_Authorization`.
-2. **Ajouter les rôles manquants dans `types_roles`** si nécessaire (ex. chef de piste, plieur, treuillard) pour couvrir tous les bits de `mniveaux` qui ont un effet opérationnel.
-3. **Vérifier la cohérence** `mniveaux` ↔ `user_roles_per_section` sur la base de données de production pour détecter les désynchronisations.
-4. **Documenter `macces`** : inventorier si des clubs l'utilisent, décider de le garder (avec des constantes documentées) ou de le déprécier.
+**Étapes nécessaires :**
 
-### Niveau 2 — Clarifier les qualifications (3–6 mois)
+1. **Migrer tous les contrôleurs vers `Gvv_Authorization`** (fin de M2→M5) pour supprimer toute dépendance implicite aux bits.
+2. **Compléter le dictionnaire des rôles dans `types_roles`** pour couvrir les responsabilités actuellement encodées dans `mniveaux` (chef de piste, plieur, treuillard, etc.).
+3. **Rendre ces rôles administrables dans l'UI** (`gestion_roles`) afin qu'aucune capacité ne devienne non gérable après retrait des bits.
+4. **Migrer les usages applicatifs restants de `mniveaux`** :
+  - sélecteurs (`qualif_selector()`),
+  - filtres e-mail,
+  - accès formation legacy.
+5. **Traiter `macces` en premier** : inventorier les usages club, puis déprécier et retirer son affichage (aucune logique métier active ne le lit).
+6. **Exécuter un contrôle de cohérence en base** entre l'ancien état (`mniveaux`) et le nouvel état (`user_roles_per_section`) pour détecter les écarts avant bascule finale.
+7. **Basculer puis supprimer** :
+  - retirer l'affichage et l'édition de `mniveaux`/`macces` dans la fiche membre,
+  - supprimer les colonnes et le code mort associé.
 
-5. **Étendre `events` pour supporter un fichier joint** : ajouter un champ `file_path` (ou une table de stockage fichiers liée) pour permettre de déposer le PDF d'une qualification sans quitter la page de gestion de la qualification. `archived_documents` n'est plus utilisé pour les qualifications aéronautiques.
-6. **Implémenter AlarmAggregator** (lot 5 de `archivage_documentaire_plan.md`) pour unifier les alarmes documentaires et calculées.
-7. **Migrer les sélecteurs** : supprimer `qualif_selector()` en faveur d'une requête sur `user_roles_per_section`, ou documenter son maintien explicitement si des cas d'usage legacy persistent.
+**Critères de sortie de l'objectif 1 :**
 
-### Niveau 3 — Clarification finale (6–18 mois)
+- Aucun contrôle d'accès ou sélecteur ne lit `mniveaux` ou `macces`.
+- Tous les rôles opérationnels sont gérés via `user_roles_per_section`.
+- Les écrans d'administration permettent de gérer ce qui était auparavant porté par les bits.
 
-**Précondition avant de retirer l'affichage de `mniveaux` dans la fiche membre :**
+### Objectif 2 — Unifier le concept de qualification (priorité 2)
 
-- `macces` : aucun risque, peut être retiré immédiatement — aucune logique ne le lit.
-- `mniveaux` : risque réel si retiré prématurément. Deux conditions doivent être remplies :
-  1. **Tous les bits ont un équivalent gérable** dans `user_roles_per_section` ou dans la page de gestion des qualifications — notamment PILOTE_PLANEUR, VI_PLANEUR, PLIEUR, TREUILLARD, CHEF_DE_PISTE, CHEF_PILOTE qui n'y sont pas encore, et les rôles de gouvernance (CA, TRESORIER…) qui sont dans `user_roles_per_section` mais exclus de l'interface `gestion_roles`.
-  2. **`qualif_selector()` et le filtrage e-mail** ne lisent plus `mniveaux`.
-  Retirer l'affichage avant ces deux conditions crée un trou fonctionnel : les qualifications non encore migrées deviennent ingérables.
+Cet objectif commence **après** la suppression effective de `mniveaux`/`macces`.
 
-8. **Supprimer `mniveaux` et `macces`** : une fois tous les contrôleurs migrés et les préconditions ci-dessus remplies, retirer les deux colonnes. Les bits de gouvernance sont dans `user_roles_per_section`, les qualifications aéronautiques dans `events`.
-10. **Interface de gestion des rôles et qualifications unifiée** : une vue administrateur unique montrant pour chaque pilote ses rôles par section (depuis `user_roles_per_section`) et ses qualifications avec dates de validité (depuis `events` + `archived_documents`), avec les alarmes en regard.
+**But :** proposer une seule interface utilisateur de gestion des qualifications, avec ou sans justificatif PDF.
+
+**Étapes proposées :**
+
+1. **Définir le périmètre métier de "qualification"** (ce qui relève de la qualification vs ce qui reste un document administratif).
+2. **Introduire une façade fonctionnelle unique "qualification"** (contrôleur + service) pour éviter les créations concurrentes par plusieurs flux.
+3. **Arbitrer le stockage canonique** à ce moment : conserver `events`, basculer vers `archived_documents`, ou modèle hybride.
+4. **Appliquer la règle de source de vérité unique** pour la date de validité et les numéros, quel que soit l'arbitrage retenu.
+5. **Aligner les alarmes** via `AlarmAggregator` pour présenter une vue homogène côté utilisateur.
+
+**Décision explicitement reportée à l'objectif 2 :** le choix final entre `events` et `archived_documents` comme support principal des qualifications n'est pas figé à ce stade.
 
 ---
 
@@ -351,10 +366,10 @@ Ces actions sont déjà planifiées (`2025_authorization_refactoring_plan.md`, p
 | Décision | Options | Recommandation |
 |----------|---------|----------------|
 | Sort de `macces` | Garder avec documentation, déprécier, supprimer | Déprécier si aucun club ne l'utilise activement |
-| Stockage du PDF d'une qualification | Dans `archived_documents` (séparé), dans `events` (attribut optionnel) | Dans `events` — la qualification est l'entité, le PDF est sa preuve |
+| Stockage principal des qualifications et de leur justificatif | `events`, `archived_documents`, modèle hybride | Décision reportée à l'objectif 2, après suppression de `mniveaux`/`macces` |
 | Bits `mniveaux` pour la gouvernance | Garder en parallèle, supprimer après migration | Supprimer après migration complète vers `user_roles_per_section` |
 | Périmètre du rôle `instructeur` par section | Global (null), Par section, Les deux | Par section pour IVV/ITP, global pour FI/FE avion |
-| Alarmes : quand implémenter AlarmAggregator ? | Maintenant, Après migration auth, Séparément | Après niveau 1 — dépend de données stables |
+| Alarmes : quand implémenter AlarmAggregator ? | Maintenant, Après migration auth, Séparément | Après objectif 1 — dépend de données stables |
 
 ---
 

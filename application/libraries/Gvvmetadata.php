@@ -818,6 +818,7 @@ class GVVMetadata extends Metadata {
                  */
                 $this->field['attachments']['file']['Subtype'] = 'loader';
                 $this->field['attachments']['file']['Subtype'] = 'upload_image';
+                $this->field['vue_attachments']['file']['Subtype'] = 'upload_image';
                 $this->field['vue_attachments']['section']['Name'] = 'Section';
 
 

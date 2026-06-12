@@ -3316,15 +3316,10 @@ class Compta extends Gvv_Controller {
 
                     // File cell - with view/edit mode
                     $file_path = $attachment['file'];
-                    $file_name = basename($file_path);
+                    $file_url = $this->_attachment_url($file_path);
                     $html .= '<td class="attachment-cell">';
                     $html .= '<div class="view-mode">';
-                    if (file_exists($file_path)) {
-                        $file_url = $this->_attachment_url($file_path);
-                        $html .= '<a href="' . $file_url . '" target="_self">' . htmlspecialchars($file_name) . '</a>';
-                    } else {
-                        $html .= htmlspecialchars($file_name) . ' <span class="text-danger">(manquant)</span>';
-                    }
+                    $html .= attachment($attach_id, $file_path, $file_url);
                     $html .= '</div>';
                     $html .= '<div class="edit-mode" style="display: none;">';
                     $html .= '<input type="file" class="form-control form-control-sm file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx">';
@@ -3340,7 +3335,11 @@ class Compta extends Gvv_Controller {
                         $html .= '<button class="btn btn-sm btn-primary edit-attachment-btn" title="Modifier">';
                         $html .= '<i class="fas fa-edit"></i></button> ';
                         $html .= '<button class="btn btn-sm btn-danger delete-attachment-btn" title="Supprimer">';
-                        $html .= '<i class="fas fa-trash"></i></button>';
+                        $html .= '<i class="fas fa-trash"></i></button> ';
+                        $html .= '<button class="btn btn-sm btn-outline-secondary rotate-attachment-btn" data-direction="ccw" data-id="' . $attach_id . '" title="Rotation anti-horaire">';
+                        $html .= '<i class="fas fa-undo"></i></button> ';
+                        $html .= '<button class="btn btn-sm btn-outline-secondary rotate-attachment-btn" data-direction="cw" data-id="' . $attach_id . '" title="Rotation horaire">';
+                        $html .= '<i class="fas fa-redo"></i></button>';
                         $html .= '</div>';
                         $html .= '<div class="edit-mode" style="display: none;">';
                         $html .= '<button class="btn btn-sm btn-success save-attachment-btn" title="Enregistrer">';

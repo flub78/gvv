@@ -337,6 +337,182 @@ class Attachments extends Gvv_Controller {
      * http://gvv.net/index.php/attachments/message/frederic    OK
      */
     /**
+     * Rotation horaire d'un attachement (PDF ou image)
+     */
+    function rotate_cw($id) {
+        $this->_do_rotate($id, 'cw');
+    }
+
+    /**
+     * Rotation anti-horaire d'un attachement (PDF ou image)
+     */
+    function rotate_ccw($id) {
+        $this->_do_rotate($id, 'ccw');
+    }
+
+    /**
+     * Effectue la rotation d'un fichier attachement.
+     * Retourne du JSON si requête AJAX, sinon redirige vers le referrer.
+     */
+    private function _do_rotate($id, $direction) {
+        $is_ajax = $this->input->is_ajax_request();
+
+        if (!has_role('tresorier')) {
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Accès refusé']);
+            } else {
+                redirect('welcome/deny');
+            }
+            return;
+        }
+
+        $elt = $this->gvv_model->get_by_id('id', $id);
+        if (!$elt || empty($elt['file'])) {
+            $msg = 'Attachement non trouvé';
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => $msg]);
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                redirect('attachments/page');
+            }
+            return;
+        }
+
+        $file_path = $elt['file'];
+        $abs = (strpos($file_path, './') === 0) ? FCPATH . substr($file_path, 2) : $file_path;
+        $real = realpath($abs);
+        $uploads_real = realpath(FCPATH . 'uploads');
+        if ($real === false || $uploads_real === false || strpos($real, $uploads_real) !== 0) {
+            $msg = 'Chemin de fichier invalide';
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => $msg]);
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                redirect('attachments/page');
+            }
+            return;
+        }
+
+        if (!file_exists($real)) {
+            $msg = 'Fichier non trouvé sur le disque';
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => $msg]);
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                redirect('attachments/page');
+            }
+            return;
+        }
+
+        $mime = @mime_content_type($real);
+        $tmp_base = sys_get_temp_dir() . '/gvv_rotate_' . uniqid();
+
+        if ($mime === 'application/pdf') {
+            $qpdf = trim(@shell_exec('which qpdf 2>/dev/null'));
+            if (!$qpdf || !file_exists($qpdf)) {
+                $msg = 'Utilitaire qpdf manquant sur le serveur';
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => $msg]);
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                    $this->_redirect_back();
+                }
+                return;
+            }
+            $angle = ($direction === 'cw') ? '+90' : '-90';
+            $tmp_file = $tmp_base . '.pdf';
+            $cmd = escapeshellcmd($qpdf) . ' --rotate=' . $angle . ':1-z '
+                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0 || !file_exists($tmp_file)) {
+                @unlink($tmp_file);
+                $msg = 'Erreur rotation PDF: ' . htmlspecialchars(implode(' ', $output));
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => $msg]);
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                    $this->_redirect_back();
+                }
+                return;
+            }
+            rename($tmp_file, $real);
+            $this->load->library('pdf_thumbnail');
+            $this->pdf_thumbnail->delete_thumbnail($real);
+            $this->pdf_thumbnail->generate($real, true);
+
+        } elseif (strpos($mime, 'image/') === 0) {
+            $convert = trim(@shell_exec('which convert 2>/dev/null'));
+            if (!$convert || !file_exists($convert)) {
+                $msg = 'Utilitaire convert manquant sur le serveur';
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => $msg]);
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                    $this->_redirect_back();
+                }
+                return;
+            }
+            $degrees = ($direction === 'cw') ? '90' : '-90';
+            $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+            $tmp_file = $tmp_base . '.' . $ext;
+            $cmd = escapeshellcmd($convert) . ' -rotate ' . escapeshellarg($degrees) . ' '
+                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0 || !file_exists($tmp_file)) {
+                @unlink($tmp_file);
+                $msg = 'Erreur rotation image: ' . htmlspecialchars(implode(' ', $output));
+                if ($is_ajax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => $msg]);
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $msg . '</div>');
+                    $this->_redirect_back();
+                }
+                return;
+            }
+            rename($tmp_file, $real);
+
+        } else {
+            $msg = 'Type de fichier non supporté pour la rotation';
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => $msg]);
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-warning">' . $msg . '</div>');
+                $this->_redirect_back();
+            }
+            return;
+        }
+
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-success">Fichier pivoté avec succès</div>');
+            $this->_redirect_back();
+        }
+    }
+
+    /**
+     * Redirige vers la page précédente (HTTP_REFERER) ou la liste des attachements.
+     */
+    private function _redirect_back() {
+        $referer = $this->input->server('HTTP_REFERER');
+        if ($referer) {
+            redirect($referer);
+        } else {
+            redirect('attachments/page');
+        }
+    }
+
+    /**
      * Convertit un chemin absolu en chemin relatif (depuis la racine web)
      */
     private function _to_relative_path($abs_path) {

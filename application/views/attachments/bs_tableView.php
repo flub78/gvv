@@ -52,8 +52,8 @@ $attrs = array(
 
 // Modify actions and mode based on user permissions
 if (isset($can_modify) && $can_modify) {
-    // Tresorier: full read-write access
-    $attrs['actions'] = array('edit', 'delete');
+    // Tresorier: full read-write access with rotation
+    $attrs['actions'] = array('edit', 'delete', 'rotate_ccw', 'rotate_cw');
     $attrs['mode'] = "rw";
 } else {
     // Bureau: read-only access

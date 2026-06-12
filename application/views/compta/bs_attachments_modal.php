@@ -77,6 +77,41 @@ function loadAttachments(ecritureId) {
 
 // Initialize inline editing handlers
 function initializeAttachmentHandlers() {
+    // Rotation buttons
+    $(document).off('click', '.rotate-attachment-btn').on('click', '.rotate-attachment-btn', function() {
+        var $btn = $(this);
+        var direction = $btn.data('direction');
+        var attachmentId = $btn.data('id');
+        var label = direction === 'cw' ? 'Rotation horaire' : 'Rotation anti-horaire';
+
+        if (!confirm(label + ' ?')) return;
+
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        var endpoint = direction === 'cw'
+            ? '<?= base_url() ?>index.php/attachments/rotate_cw/' + attachmentId
+            : '<?= base_url() ?>index.php/attachments/rotate_ccw/' + attachmentId;
+
+        $.ajax({
+            url: endpoint,
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showSuccessToast(label + ' effectuée');
+                } else {
+                    alert(response.error || 'Erreur lors de la rotation');
+                }
+                $btn.prop('disabled', false).html(direction === 'cw' ? '<i class="fas fa-redo"></i>' : '<i class="fas fa-undo"></i>');
+            },
+            error: function() {
+                alert('Erreur lors de la rotation');
+                $btn.prop('disabled', false).html(direction === 'cw' ? '<i class="fas fa-redo"></i>' : '<i class="fas fa-undo"></i>');
+            }
+        });
+    });
+
     // Edit button click
     $(document).off('click', '.edit-attachment-btn').on('click', '.edit-attachment-btn', function() {
         var $row = $(this).closest('tr');
