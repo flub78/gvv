@@ -1033,9 +1033,9 @@ class Reservations extends MY_Controller {
      * Return reservation permission context for the current user.
      * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book)
      *
-     * $can_edit_others  — may create/edit/delete reservations for other pilots (club-admin, instructeur)
-     * $balance_exempt   — exempt from balance check: club-admin, instructeur, pilote_vd
-     * $can_book         — may create/modify/delete any reservation (auto_planchiste, pilote_vd, instructeur, club-admin)
+     * $can_edit_others  — may create/edit/delete reservations for other pilots (club-admin, instructeur, gestion_vd)
+     * $balance_exempt   — exempt from balance check: club-admin, instructeur, gestion_vd, pilote_vd
+     * $can_book         — may create/modify/delete any reservation (auto_planchiste, pilote_vd, instructeur, gestion_vd, club-admin)
      *                     Members without any of these roles are read-only: they can view but not act.
      */
     private function _reservation_permissions() {
@@ -1046,7 +1046,8 @@ class Reservations extends MY_Controller {
             $is_pilote_vd       = $this->gvv_authorization->has_role($this->user_id, 'pilote_vd',       $section_id);
             $is_mecano          = $this->gvv_authorization->has_role($this->user_id, 'mecano',          $section_id);
             $can_edit_others    = $this->gvv_authorization->has_role($this->user_id, 'club-admin',      NULL)
-                                || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id);
+                                || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id)
+                                || $this->gvv_authorization->has_role($this->user_id, 'gestion_vd',     $section_id);
             $balance_exempt     = $can_edit_others || $is_pilote_vd || $is_mecano;
             $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
         } else {
