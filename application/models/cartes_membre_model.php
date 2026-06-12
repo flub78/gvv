@@ -106,23 +106,6 @@ class Cartes_membre_model extends CI_Model {
     }
 
     /**
-     * Retourne le président actif du club (mniveaux & PRESIDENT).
-     * PRESIDENT = 2 (voir application/config/constants.php).
-     *
-     * @return array|null  ['mnom' => ..., 'mprenom' => ...]
-     */
-    public function get_president() {
-        $row = $this->db
-            ->select('mnom, mprenom')
-            ->from('membres')
-            ->where('(mniveaux & 2) != 0', null, false)
-            ->where('actif', 1)
-            ->limit(1)
-            ->get()->row_array();
-        return $row ?: null;
-    }
-
-    /**
      * Retourne le chemin absolu vers la photo d'un membre, ou null si absente.
      *
      * @param string|null $photo  Valeur du champ photo en base

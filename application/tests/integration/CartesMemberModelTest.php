@@ -123,27 +123,6 @@ class CartesMemberModelTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // get_president()
-    // ------------------------------------------------------------------
-
-    public function testGetPresidentReturnsNullOrArray()
-    {
-        $result = $this->model->get_president();
-        $this->assertTrue($result === null || is_array($result),
-            'get_president() should return null or array');
-    }
-
-    public function testGetPresidentArrayHasNameFields()
-    {
-        $result = $this->model->get_president();
-        if ($result === null) {
-            $this->markTestSkipped('No president defined in database');
-        }
-        $this->assertArrayHasKey('mnom', $result);
-        $this->assertArrayHasKey('mprenom', $result);
-    }
-
-    // ------------------------------------------------------------------
     // get_photo_path()
     // ------------------------------------------------------------------
 

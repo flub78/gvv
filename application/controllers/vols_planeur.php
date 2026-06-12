@@ -178,7 +178,7 @@ class Vols_planeur extends Gvv_Controller {
         $this->gvvmetadata->set_selector('inst_selector', $this->membres_model->inst_selector());
         $this->gvvmetadata->set_selector('rem_selector', $rem_selector);
         $this->gvvmetadata->set_selector('pilrem_selector', $this->membres_model->pilrem_selector());
-        $this->gvvmetadata->set_selector('treuillard_selector', $this->membres_model->qualif_selector('mlogin', TREUILLARD));
+        $this->gvvmetadata->set_selector('treuillard_selector', $this->membres_model->treuillard_selector());
         $this->gvvmetadata->set_selector('payeur_selector', $payeur_selector);
         $this->gvvmetadata->set_selector('terrains_selector', $this->terrains_model->selector_with_null());
 
