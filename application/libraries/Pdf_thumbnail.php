@@ -264,14 +264,14 @@ class Pdf_thumbnail
     }
 
     /**
-     * Read /Rotate value from a PDF file (scans first 64 KB of the file)
+     * Read /Rotate value from a PDF file.
+     * Scans the full file because qpdf places /Rotate inside page dictionaries
+     * which can appear anywhere in the PDF body.
      */
     private function get_pdf_rotation($pdf_path)
     {
-        $handle = @fopen($pdf_path, 'rb');
-        if (!$handle) return 0;
-        $content = fread($handle, 65536);
-        fclose($handle);
+        $content = @file_get_contents($pdf_path);
+        if ($content === false) return 0;
         if (preg_match('/\/Rotate\s+(\d+)/', $content, $m)) {
             return ((int)$m[1]) % 360;
         }
