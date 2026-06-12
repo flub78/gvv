@@ -671,6 +671,24 @@ class Archived_documents extends Gvv_Controller {
         $this->data['can_access_file'] = $this->_can_access_private_file($is_private, $doc['pilot_login']);
         $this->data['back_url'] = site_url($this->_is_admin() ? 'archived_documents/page' : 'archived_documents/my_documents');
 
+        // Regenerate PDF thumbnail if the PDF is newer than the existing thumbnail
+        $mime = !empty($doc['mime_type']) ? $doc['mime_type'] : '';
+        if ($mime === 'application/pdf' && !empty($doc['file_path'])) {
+            $abs = (strpos($doc['file_path'], './') === 0)
+                ? FCPATH . substr($doc['file_path'], 2)
+                : $doc['file_path'];
+            $real = realpath($abs);
+            if ($real) {
+                $this->load->library('pdf_thumbnail');
+                $thumb_path = $this->pdf_thumbnail->get_thumbnail_path($real);
+                $pdf_mtime  = @filemtime($real);
+                $thumb_mtime = file_exists($thumb_path) ? @filemtime($thumb_path) : 0;
+                if ($pdf_mtime > $thumb_mtime) {
+                    $this->pdf_thumbnail->generate($real, true);
+                }
+            }
+        }
+
         load_last_view($this->controller . '/view', $this->data);
     }
 
@@ -1415,9 +1433,6 @@ class Archived_documents extends Gvv_Controller {
                 return;
             }
             rename($tmp_file, $real);
-            $this->load->library('pdf_thumbnail');
-            $this->pdf_thumbnail->delete_thumbnail($real);
-            $this->pdf_thumbnail->generate($real, true);
 
         } elseif (strpos($mime, 'image/') === 0) {
             $convert = trim(@shell_exec('which convert 2>/dev/null'));
