@@ -416,9 +416,6 @@ class Membre extends Gvv_Controller {
             return;
         }
 
-        $this->data['mniveau'] = int2array($this->data['mniveaux']);
-        $this->data['macce'] = int2array($this->data['macces']);
-
         $this->load->model('comptes_model');
         $this->load->model('sections_model');
         $sections = $this->sections_model->section_list();
@@ -496,11 +493,6 @@ class Membre extends Gvv_Controller {
      */
     function form2database($action = '') {
         $processed_data = parent::form2database($action);
-        $processed_data["mniveaux"] = array2int($this->input->post('mniveau'));
-        $processed_data["macces"] = array2int($this->input->post('macce'));
-        unset($processed_data["mniveau"]);
-        unset($processed_data["macce"]);
-
         // unset date fields
         foreach (
             array(
@@ -844,10 +836,6 @@ class Membre extends Gvv_Controller {
 
         if ($mlogin != "") {
             parent::edit($mlogin, false);
-        }
-        if (isset($this->data['mniveau'])) {
-            $this->data['mniveau'] = int2array($this->data['mniveaux']);
-            $this->data['macce'] = int2array($this->data['macces']);
         }
         $this->load->model('comptes_model');
         $this->load_certificats($mlogin);

@@ -2418,11 +2418,11 @@ class Admin extends CI_Controller {
 INSERT INTO `migrations` (`version`) VALUES ({$migration_version});
 
 -- Membres de test (utilisateurs Gaulois)
-INSERT INTO `membres` (`mlogin`, `mnom`, `mprenom`, `memail`, `memailparent`, `madresse`, `cp`, `ville`, `pays`, `mtelf`, `mtelm`, `mdaten`, `m25ans`, `mlieun`, `msexe`, `mniveaux`, `macces`, `club`, `ext`, `actif`, `username`, `photo`, `compte`, `comment`, `trigramme`, `categorie`, `profession`, `inst_glider`, `inst_airplane`, `licfed`) VALUES
-('abraracourcix', 'Le Gaulois', 'Abraracourcix', 'abraracourcix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 8192, 0, 0, 0, 1, '0', '', 0, 'abraracourcix', '', '0', '', '', '', 0),
-('asterix', 'Le Gaulois', 'Asterix', 'asterix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 524288, 0, 0, 0, 1, '0', '', 0, 'asterix', '', '0', '', '', '', 0),
-('goudurix', 'Le Gaulois', 'Goudurix', 'goudurix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 0, 0, 1, '0', '', 0, 'goudurix', '', '0', '', '', '', 0),
-('panoramix', 'Le Gaulois', 'Panoramix', 'panoramix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 491520, 0, 0, 0, 1, '0', '', 0, 'panoramix', '', '0', '', '', '', 0);
+INSERT INTO `membres` (`mlogin`, `mnom`, `mprenom`, `memail`, `memailparent`, `madresse`, `cp`, `ville`, `pays`, `mtelf`, `mtelm`, `mdaten`, `m25ans`, `mlieun`, `msexe`, `club`, `ext`, `actif`, `username`, `photo`, `compte`, `comment`, `trigramme`, `categorie`, `profession`, `inst_glider`, `inst_airplane`, `licfed`) VALUES
+('abraracourcix', 'Le Gaulois', 'Abraracourcix', 'abraracourcix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 1, '0', '', 0, 'abraracourcix', '', '0', '', '', '', 0),
+('asterix', 'Le Gaulois', 'Asterix', 'asterix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 1, '0', '', 0, 'asterix', '', '0', '', '', '', 0),
+('goudurix', 'Le Gaulois', 'Goudurix', 'goudurix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 1, '0', '', 0, 'goudurix', '', '0', '', '', '', 0),
+('panoramix', 'Le Gaulois', 'Panoramix', 'panoramix@flub78.net', '', '1 rue des menhirs', 0, '', '', '', '', NULL, 0, '0', 'M', 0, 0, 1, '0', '', 0, 'panoramix', '', '0', '', '', '', 0);
 
 -- Permissions
 INSERT INTO `permissions` (`id`, `role_id`, `data`) VALUES
@@ -2832,8 +2832,6 @@ SQL;
                     'ville' => $user_data['ville'],
                     'pays' => 'France',
                     'msexe' => 'M',
-                    'mniveaux' => $user_data['roles_bits'],
-                    'macces' => 0,
                     'ext' => 0,
                     'actif' => 1,
                     'username' => $username,
@@ -3140,8 +3138,6 @@ SQL;
                         'ville' => 'Paris',
                         'pays' => 'France',
                         'msexe' => 'M',
-                        'mniveaux' => 0,
-                        'macces' => 0,
                         'club' => 0,
                         'ext' => 0,
                         'actif' => 1,

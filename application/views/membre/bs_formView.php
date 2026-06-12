@@ -343,97 +343,6 @@ if (isset($kid) && isset($$kid)) {
 }
 }
 
-// ========================================================================
-// RESPONSIBILITY SECTION
-// ========================================================================
-echo form_fieldset($this->lang->line("membre_fieldset_responsibility"));
-$levels = $this->lang->line("membres_niveaux");
-?>
-
-<div class="row g-3">
-    <!-- Row 1 -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', PRESIDENT, $mniveau, 'class="form-check-input" id="president"'); ?>
-            <label class="form-check-label" for="president"><?php echo $levels[PRESIDENT]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', VICE_PRESIDENT, $mniveau, 'class="form-check-input" id="vice_president"'); ?>
-            <label class="form-check-label" for="vice_president"><?php echo $levels[VICE_PRESIDENT]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', CA, $mniveau, 'class="form-check-input" id="ca"'); ?>
-            <label class="form-check-label" for="ca"><?php echo $levels[CA]; ?></label>
-        </div>
-    </div>
-
-    <!-- Row 2 -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', TRESORIER, $mniveau, 'class="form-check-input" id="tresorier"'); ?>
-            <label class="form-check-label" for="tresorier"><?php echo $levels[TRESORIER]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', SECRETAIRE, $mniveau, 'class="form-check-input" id="secretaire"'); ?>
-            <label class="form-check-label" for="secretaire"><?php echo $levels[SECRETAIRE]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', SECRETAIRE_ADJ, $mniveau, 'class="form-check-input" id="secretaire_adj"'); ?>
-            <label class="form-check-label" for="secretaire_adj"><?php echo $levels[SECRETAIRE_ADJ]; ?></label>
-        </div>
-    </div>
-
-    <!-- Row 3 -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', CHEF_PILOTE, $mniveau, 'class="form-check-input" id="chef_pilote"'); ?>
-            <label class="form-check-label" for="chef_pilote"><?php echo $levels[CHEF_PILOTE]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', MECANO, $mniveau, 'class="form-check-input" id="mecano"'); ?>
-            <label class="form-check-label" for="mecano"><?php echo $levels[MECANO]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', PLIEUR, $mniveau, 'class="form-check-input" id="plieur"'); ?>
-            <label class="form-check-label" for="plieur"><?php echo $levels[PLIEUR]; ?></label>
-        </div>
-    </div>
-
-    <!-- Row 4 -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', INTERNET, $mniveau, 'class="form-check-input" id="internet"'); ?>
-            <label class="form-check-label" for="internet"><?php echo $levels[INTERNET]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', TREUILLARD, $mniveau, 'class="form-check-input" id="treuillard"'); ?>
-            <label class="form-check-label" for="treuillard"><?php echo $levels[TREUILLARD]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', CHEF_DE_PISTE, $mniveau, 'class="form-check-input" id="chef_de_piste"'); ?>
-            <label class="form-check-label" for="chef_de_piste"><?php echo $levels[CHEF_DE_PISTE]; ?></label>
-        </div>
-    </div>
-</div>
-
-<?php
-echo form_fieldset_close();
 
 // ========================================================================
 // AIRPLANE SECTION
@@ -443,26 +352,6 @@ echo heading("membre_title_airplane_training", 4);
 ?>
 
 <div class="row g-3">
-    <!-- Qualifications -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', PILOTE_AVION, $mniveau, 'class="form-check-input" id="pilote_avion"'); ?>
-            <label class="form-check-label" for="pilote_avion"><?php echo $levels[PILOTE_AVION]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', VI_AVION, $mniveau, 'class="form-check-input" id="vi_avion"'); ?>
-            <label class="form-check-label" for="vi_avion"><?php echo $levels[VI_AVION]; ?></label>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', REMORQUEUR, $mniveau, 'class="form-check-input" id="remorqueur"'); ?>
-            <label class="form-check-label" for="remorqueur"><?php echo $levels[REMORQUEUR]; ?></label>
-        </div>
-    </div>
     <!-- Instructeur responsable -->
     <div class="col-md-6">
         <label for="inst_airplane" class="form-label"><?php echo $this->lang->line("gvv_membres_field_inst_airplane"); ?></label>
@@ -503,19 +392,6 @@ echo heading("membre_title_glider_training", 4);
 ?>
 
 <div class="row g-3">
-    <!-- Qualifications -->
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', PILOTE_PLANEUR, $mniveau, 'class="form-check-input" id="pilote_planeur"'); ?>
-            <label class="form-check-label" for="pilote_planeur"><?php echo $levels[PILOTE_PLANEUR]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', VI_PLANEUR, $mniveau, 'class="form-check-input" id="vi_planeur"'); ?>
-            <label class="form-check-label" for="vi_planeur"><?php echo $levels[VI_PLANEUR]; ?></label>
-        </div>
-    </div>
     <!-- Instructeur responsable -->
     <div class="col-md-6">
         <label for="inst_glider" class="form-label"><?php echo $this->lang->line("gvv_membres_field_inst_glider"); ?></label>

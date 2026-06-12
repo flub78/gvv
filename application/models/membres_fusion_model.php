@@ -13,7 +13,7 @@ class Membres_fusion_model extends CI_Model {
     // mlogin et mnumero sont toujours conservés côté destination.
     private $merge_fields = array(
         'mnom', 'mprenom', 'memail', 'memailparent', 'madresse', 'cp', 'ville', 'pays',
-        'mtelf', 'mtelm', 'mdaten', 'm25ans', 'mlieun', 'msexe', 'mniveaux', 'macces',
+        'mtelf', 'mtelm', 'mdaten', 'm25ans', 'mlieun', 'msexe',
         'club', 'ext', 'actif', 'username', 'photo', 'compte', 'comment', 'trigramme',
         'categorie', 'profession', 'inst_glider', 'inst_airplane', 'licfed',
         'place_of_birth', 'inscription_date', 'validation_date', 'membre_payeur',

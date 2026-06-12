@@ -18,7 +18,7 @@ $field_labels = array(
     'memailparent' => 'Email parents', 'madresse' => 'Adresse', 'cp' => 'Code postal',
     'ville' => 'Ville', 'pays' => 'Pays', 'mtelf' => 'Tél. fixe', 'mtelm' => 'Mobile',
     'mdaten' => 'Date naissance', 'm25ans' => '< 25 ans', 'mlieun' => 'Lieu naissance',
-    'msexe' => 'Sexe', 'mniveaux' => 'Qualifications', 'macces' => 'Droits accès',
+    'msexe' => 'Sexe',
     'club' => 'Club', 'ext' => 'Ext.', 'actif' => 'Actif', 'username' => 'Username',
     'photo' => 'Photo', 'compte' => 'Compte', 'comment' => 'Commentaire',
     'trigramme' => 'Trigramme', 'categorie' => 'Catégorie', 'profession' => 'Profession',
