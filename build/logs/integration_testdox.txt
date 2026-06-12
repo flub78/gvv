@@ -264,20 +264,20 @@ Membre Admin Authorization
  [x] Club admin role exists in database
 
 Membres Fusion
- [x] Analyse rapport comptes et soldes
- [x] Fusion fiche membre
- [x] Fusion conserve destination
- [x] Exhaustivite aucune reference source apres
- [x] Conservation soldes compte 411 sans conflit
- [x] Merge comptes 411 meme section
- [x] Invariant nombre ecritures total
- [x] Conflits unicite formation seances participants
- [x] Atomicite fusion rollback sur erreur
- [x] Membre payeur propagation
- [x] Reaffectation events
+ [ ] Analyse rapport comptes et soldes
+ [ ] Fusion fiche membre
+ [ ] Fusion conserve destination
+ [ ] Exhaustivite aucune reference source apres
+ [ ] Conservation soldes compte 411 sans conflit
+ [ ] Merge comptes 411 meme section
+ [ ] Invariant nombre ecritures total
+ [ ] Conflits unicite formation seances participants
+ [ ] Atomicite fusion rollback sur erreur
+ [ ] Membre payeur propagation
+ [ ] Reaffectation events
  [x] Acces restreint dev user structure
  [x] Dashboard contient carte fusion
- [x] Analyse membres vierges
+ [ ] Analyse membres vierges
 
 My Html Helper Integration
  [x] P basic
@@ -400,16 +400,16 @@ Rename Membre
  [x] Validate new mlogin empty
  [x] Validate new mlogin purely numeric
  [x] Validate new mlogin invalid characters
- [x] Validate new mlogin already exists
+ [ ] Validate new mlogin already exists
  [x] Validate new mlogin valid
  [x] Preview rename member not found
- [x] Preview rename shows affected tables
- [x] Preview rename detects dx auth account
- [x] Execute rename success
- [x] Execute rename updates dx auth
- [x] Execute rename exhaustive
- [x] Execute rename atomicity on error
- [x] Execute rename preserves business data
+ [ ] Preview rename shows affected tables
+ [ ] Preview rename detects dx auth account
+ [ ] Execute rename success
+ [ ] Execute rename updates dx auth
+ [ ] Execute rename exhaustive
+ [ ] Execute rename atomicity on error
+ [ ] Execute rename preserves business data
 
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images

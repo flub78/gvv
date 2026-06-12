@@ -133,36 +133,16 @@ $config['listes_de_destinataires'] = array(
 /*
  * A chaque valeur de la liste ci-dessus doit correspondre un segment de requête SQL qui
  * selectionne les membres dont on veut garder les adresses emails
- * 
- * Les champs les plus interressant sont:
- * categorie:	entier qui code la catégorie du pilote
- * mniveaux: enier qui contient un champ de bits avec les valeurs suivants
- *    define("TRESORIER", 8);		// 2**3
- *    define("SECRETAIRE", 16);		// 2**4
- *    define("SECRETAIRE_ADJ", 32); // 2**5
- *    define("CA", 64);             // 2**6
- *    define("CHEF_PILOTE", 128);       // 2**7
- *    define("VI_PLANEUR", 256);
- *    define("VI_AVION", 512);
- *    define("MECANO", 1024);
- *    define("PILOTE_PLANEUR", 2048);
- *    define("PILOTE_AVION", 4096);
- *    define("REMORQUEUR", 8192);
- *    define("PLIEUR", 16384);
- *    define("ITP", 32768);
- *    define("IVV", 65536);
- *    define("FI_AVION", 131072);
- *    define("FE_AVION", 262144);
- *    define("TREUILLARD", 524288);
+ *
+ * Les champs disponibles : categorie (catégorie du pilote), solde, etc.
+ * Les rôles sont dans user_roles_per_section (types_roles.nom : 'instructeur', 'ca', ...).
  */
-$instructeurs = 65536 + 32768 + 131072 + 262144;
-$ca = 64;            // membres du conseil d'adminstration       
 $config['listes_de_requetes'] = array(
   '0' => '',
   '1' => 'solde < 0',
-  '2' => "(mniveaux & ($instructeurs)) != 0",
-  '3' => "(mniveaux & ($ca)) != 0",
-  '4' => "(mniveaux & ($ca + $instructeurs)) != 0",
+  '2' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom = 'instructeur' AND urps.revoked_at IS NULL)",
+  '3' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom = 'ca' AND urps.revoked_at IS NULL)",
+  '4' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom IN ('ca', 'instructeur') AND urps.revoked_at IS NULL)",
   '5' => 'categorie = 3'
 );
 

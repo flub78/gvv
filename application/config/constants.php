@@ -86,25 +86,6 @@ define('CONVOYAGE', 7); // Vol de convoyage (facturé à demi-tarif)
 define('PROPRIO_PRIVE', 1);
 
 
-# Valeurs pour Mniveau (champ de bits pour la fiche pilote)
-define("INTERNET", 1);
-define("PRESIDENT", 2);
-define("VICE_PRESIDENT", 4);
-define("TRESORIER", 8);
-define("SECRETAIRE", 16);
-define("SECRETAIRE_ADJ", 32);
-define("CA", 64);
-define("CHEF_PILOTE", 128);
-define("VI_PLANEUR", 256);
-define("VI_AVION", 512);
-define("MECANO", 1024);
-define("PILOTE_PLANEUR", 2048);
-define("PILOTE_AVION", 4096);
-define("REMORQUEUR", 8192);
-define("PLIEUR", 16384);
-define("TREUILLARD", 524288);
-define("CHEF_DE_PISTE", 1048576);
-
 
 /* End of file constants.php */
 /* Location: ./application/config/constants.php */

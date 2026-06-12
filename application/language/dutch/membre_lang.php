@@ -120,26 +120,6 @@ $lang['membres_filter_active_select'] = array(0 => 'Alle', 1 => 'Inactief', 2 =>
 $lang['membres_filter_age'] = array(0 => 'Alle', 1 => '-25 jaar', 2 => '+25 jaar');
 $lang['membres_filter_validation'] = array(0 => 'Alle', 1 => 'In afwachting van validatie', 2 => 'Gevalideerd');
 
-$lang['membres_niveaux'] = array(
-	PRESIDENT => "Voorzitter",
-	VICE_PRESIDENT => "Ondervoorzitter",
-	CA => "Bestuurslid",
-	TRESORIER => "Penningmeester",
-	SECRETAIRE => "Secretaris",
-	SECRETAIRE_ADJ => "Adj. Head of Training",
-	CHEF_PILOTE => "Hoofdinstructeur",
-	MECANO => "Werkhuisverantwoordelijke",
-	PLIEUR => "Heeft sleutel",
-	INTERNET => "Effectief lid",
-	TREUILLARD => "Lierist",
-	CHEF_DE_PISTE => "Startleider",
-	PILOTE_AVION => "Motorpiloot",
-	VI_AVION => "Initiatievluchten motorvliegen",
-	REMORQUEUR => "Sleeppiloot",
-	PILOTE_PLANEUR => "Zweefvliegpiloot",
-	VI_PLANEUR => "Initiatievluchten"
-);
-
 # Individual sheet
 # $this->lang->line("")
 $lang['membre_title_perso'] = "Persoonlijke gegevens";

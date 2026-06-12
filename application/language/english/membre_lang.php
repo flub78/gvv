@@ -115,26 +115,6 @@ $lang['membres_filter_active_select'] = array(0 => 'All', 1 => 'inactive', 2 => 
 $lang['membres_filter_age'] = array(0 => 'All', 1 => '-25 year', 2 => '+25 year');
 $lang['membres_filter_validation'] = array(0 => 'All', 1 => 'Pending validation', 2 => 'Validated');
 
-$lang['membres_niveaux'] = array(
-	PRESIDENT => "President",
-	VICE_PRESIDENT => "Vice-President",
-	CA => "Club administrator",
-	TRESORIER => "Treasurer",
-	SECRETAIRE => "Secretary",
-	SECRETAIRE_ADJ => "Assistant secretary",
-	CHEF_PILOTE => "Chief Pilot",
-	MECANO => "Mechanic",
-	PLIEUR => "Rigger",
-	INTERNET => "Webmaster",
-	TREUILLARD => "Winch operator",
-	CHEF_DE_PISTE => "Ground chief",
-	PILOTE_AVION => "Airplane pilot",
-	VI_AVION => "Scenic flight pilot",
-	REMORQUEUR => "Tow plane pilot",
-	PILOTE_PLANEUR => "Glider pilot",
-	VI_PLANEUR => "Glider scenic flight pilot"
-);
-
 # Individual sheet
 # $this->lang->line("")
 $lang['membre_title_perso'] = "Individual sheet";
