@@ -12,21 +12,3 @@ Events Types Metadata
  [x] Metadata inheritance
  [x] All expected fields are defined
 
-Mail Metadata
- [x] Metadata instantiation
- [x] Mail table fields are defined
- [x] Id field has custom name
- [x] Date envoie field is configured
- [x] Titre field is configured
- [x] Selection field is configured
- [x] Individuel field is boolean
- [x] Destinataires field has textarea attrs
- [x] Texte field has textarea attrs
- [x] Mails selection is enumerate
- [x] Vue mails selection is enumerate
- [x] Titre field has title
- [x] Destinataires field has title
- [x] Individuel field has title
- [x] Texte field has title with variables
- [x] Metadata has field array
-

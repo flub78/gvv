@@ -60,7 +60,6 @@ class Database {
 		'type_ticket',
 		'reports',
 		'sections',
-		'mails',
 		'historique',
 		'migrations',
 		'attachments',

@@ -1,0 +1,42 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "Aéroclub d'Abbeville - Buigny - Baie de Somme - test local" [level=1] [ref=e3]
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "Accueil GVV" [ref=e6] [cursor=pointer]:
+        - /url: http://gvv.net/welcome
+        - generic [ref=e7]: 
+        - text: Accueil GVV
+      - text: 
+  - generic [ref=e10]:
+    - term [ref=e11]:
+      - generic [ref=e12]: Utilisateur
+    - definition [ref=e13]:
+      - textbox "Utilisateur" [ref=e14]
+    - term [ref=e15]:
+      - generic [ref=e16]: Mot de passe
+    - definition [ref=e17]:
+      - generic [ref=e18]:
+        - textbox "Mot de passe" [ref=e19]
+        - button [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 
+    - term [ref=e22]:
+      - generic [ref=e23]: Section
+    - definition [ref=e24]:
+      - combobox "Section" [ref=e25]:
+        - option "Avion"
+        - option "Planeur" [selected]
+        - option "ULM"
+        - option "Général"
+        - option "Toutes"
+    - term
+    - definition [ref=e26]:
+      - checkbox "Se souvenir de l'utilisateur et de la section" [ref=e27]
+      - generic [ref=e28]: Se souvenir de l'utilisateur et de la section
+      - link "Mot de passe oublié" [ref=e29] [cursor=pointer]:
+        - /url: http://gvv.net/auth/forgot_password
+    - term
+    - definition [ref=e30]:
+      - button "Connexion" [ref=e31] [cursor=pointer]
+  - contentinfo [ref=e32]:
+    - paragraph [ref=e33]: Copyright (©) 2026 Philippe Boissel et Frédéric Peignot, GPL V3.0 Page générée en 0.0372 secondes

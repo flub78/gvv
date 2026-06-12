@@ -26,6 +26,8 @@
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré, ou si le pilote n'a pas volé dans le système depuis 120 jours. Ou si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle 
 
 * [] Insérer la liste des documents d'un pilote dans sa carte membre.
+
+* [] Searchbox datatable sur les paiements HelloAsso
      
 * [] Ajout de vrais export excel en sus des csv.
 
@@ -40,8 +42,6 @@
 * [] Approbation de documents
 
 * [] Informer le trésorier des renouvellement de cotisation par email
-  
-
 
 * [] Facture automatique de hangar
 
