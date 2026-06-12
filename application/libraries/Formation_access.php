@@ -67,21 +67,14 @@ class Formation_access {
         if (!$this->is_enabled()) {
             return false;
         }
-        // Admin can always manage programmes
+
         if ($this->CI->dx_auth->is_admin()) {
             return true;
         }
 
-        // Members of the Conseil d'Administration (CA) should also be allowed
-        $this->CI->load->model('membres_model');
-        $username = $this->CI->dx_auth->get_username();
-        $membre = $this->CI->membres_model->get_by_id('mlogin', $username);
-
-        if ($membre && isset($membre['mniveaux'])) {
-            return (($membre['mniveaux'] & CA) != 0);
-        }
-
-        return false;
+        $this->CI->load->library('Gvv_Authorization');
+        $user_id = $this->CI->dx_auth->get_user_id();
+        return $this->CI->gvv_authorization->has_any_role($user_id, ['ca', 'club-admin'], NULL);
     }
 
     /**

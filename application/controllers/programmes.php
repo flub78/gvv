@@ -1040,7 +1040,7 @@ class Programmes extends Gvv_Controller
      *   - CA ou club-admin dans n'importe quelle section : accès en lecture à toutes les sections
      *   - instructeur ou rp dans la section courante : accès en lecture à cette section
      *   - "Toutes" : ca ou club-admin dans n'importe quelle section
-     * Legacy: admin ou CA (bit flag mniveaux) — comportement inchangé
+     * Legacy: admin ou CA via user_roles_per_section
      *
      * @return bool
      */
@@ -1071,7 +1071,7 @@ class Programmes extends Gvv_Controller
      * New auth (user has roles in user_roles_per_section, regardless of global flag):
      *   - Section spécifique : club-admin ou rp dans cette section
      *   - "Toutes"           : club-admin uniquement (section ambiguë pour la création)
-     * Legacy: admin ou CA (bit flag mniveaux) — comportement inchangé
+     * Legacy: admin ou CA via user_roles_per_section
      *
      * @return bool
      */
