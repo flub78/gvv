@@ -788,8 +788,8 @@ class Rapprochements extends CI_Controller {
      */
     public function export_ecritures($mode = 'csv') {
         // Verify user has appropriate role
-        if (!$this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('ca')) {
+            $this->_deny_access();
             return;
         }
 

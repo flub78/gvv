@@ -153,7 +153,7 @@ class Deadlines_calendar extends MY_Controller {
     }
 
     private function _is_admin() {
-        return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
+        return $this->user_has_role('ca') || $this->user_has_role('club-admin');
     }
 }
 

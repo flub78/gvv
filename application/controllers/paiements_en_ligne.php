@@ -87,10 +87,10 @@ class Paiements_en_ligne extends MY_Controller {
      */
     public function decouverte_qr($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
-            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('club-admin')
             && !has_role('gestion_vd')
             && !has_role('pilote_vd')) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -132,10 +132,10 @@ class Paiements_en_ligne extends MY_Controller {
      */
     public function decouverte_pay($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
-            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('club-admin')
             && !has_role('gestion_vd')
             && !has_role('pilote_vd')) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -304,10 +304,10 @@ class Paiements_en_ligne extends MY_Controller {
      */
     public function send_payment_link_email($transaction_id = '') {
         if (!has_role('tresorier') && !has_role('bureau')
-            && !$this->dx_auth->is_admin()
+            && !$this->user_has_role('club-admin')
             && !has_role('gestion_vd')
             && !has_role('pilote_vd')) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -1073,8 +1073,8 @@ class Paiements_en_ligne extends MY_Controller {
      * Accès : tresorier, bureau, admin
      */
     public function genere_bar_qrcode() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 
@@ -1173,8 +1173,8 @@ class Paiements_en_ligne extends MY_Controller {
      * Accès : trésorier, bureau, admin + HelloAsso activé pour la section
      */
     public function paiement_generique() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 
@@ -1352,8 +1352,8 @@ class Paiements_en_ligne extends MY_Controller {
      * Accès : trésorier, bureau, admin
      */
     public function paiement_generique_checkout($txid = '') {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 
@@ -1491,8 +1491,8 @@ class Paiements_en_ligne extends MY_Controller {
      * Accès : tresorier, bureau, admin
      */
     public function liste() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 
@@ -1552,8 +1552,8 @@ class Paiements_en_ligne extends MY_Controller {
      * Accès : tresorier, bureau, admin
      */
     public function liste_csv() {
-        if (!has_role('tresorier') && !has_role('bureau') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!has_role('tresorier') && !has_role('bureau') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 
@@ -2489,13 +2489,9 @@ EOD;
      * Accès : admin uniquement
      */
     public function admin_config() {
-        $is_admin = $this->dx_auth->is_admin();
-        if (!$is_admin && $this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $is_admin = $this->gvv_authorization->has_role($this->dx_auth->get_user_id(), 'club-admin', NULL);
-        }
+        $is_admin = $this->user_has_role('club-admin');
         if (!$is_admin) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -2571,7 +2567,7 @@ EOD;
      * Accès : admin uniquement
      */
     public function test_connexion() {
-        if (!$this->dx_auth->is_admin()) {
+        if (!$this->user_has_role('club-admin')) {
             $this->output->set_status_header(403);
             $this->output->set_content_type('application/json');
             $this->output->set_output(json_encode(array('success' => false, 'message' => 'Accès refusé')));

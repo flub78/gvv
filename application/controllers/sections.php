@@ -48,11 +48,7 @@ class Sections extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view accessible to all users, create/edit/delete requires ca (via modification_level)
-        if ($this->use_new_auth) {
-            $this->require_roles(['user']);
-        }
+        $this->require_roles(['user']);
 
         $this->lang->load('sections');
         $this->load->model('comptes_model');
@@ -94,11 +90,6 @@ class Sections extends Gvv_Controller {
      * Export de la liste des sections en CSV ou PDF
      */
     public function export($mode = 'csv') {
-        // Legacy authorization for non-migrated users
-        if (!$this->use_new_auth && !$this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
-            return;
-        }
         
         $rows = $this->gvv_model->select_page(10000, 0);
         $fields = array('nom', 'description');

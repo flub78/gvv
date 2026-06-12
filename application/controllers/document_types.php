@@ -45,10 +45,7 @@ class Document_types extends Gvv_Controller {
             show_404();
         }
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        if ($this->use_new_auth) {
-            $this->require_roles(['ca']);
-        }
+        $this->require_roles(['ca']);
 
         $this->lang->load('document_types');
     }

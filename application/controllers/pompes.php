@@ -94,7 +94,7 @@ class Pompes extends Gvv_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = 0;
         $this->data['message'] = "";
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
 
         $this->data['totaux'] = $this->gvv_model->select_totaux($selection);
 

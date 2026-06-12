@@ -76,15 +76,11 @@ class Tickets extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view/solde accessible to all users, create/edit/delete requires ca
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
-                $this->require_roles(['ca']);
-            } else {
-                $this->require_roles(['user']);
-            }
+        $method = $this->router->fetch_method();
+        if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
+            $this->require_roles(['ca']);
+        } else {
+            $this->require_roles(['user']);
         }
 
         $this->load->model('membres_model');
@@ -222,7 +218,7 @@ class Tickets extends Gvv_Controller {
         $this->data ['date_end'] = '';
         $this->data ['filter_pilote'] = '';
         $this->data ['filter_machine'] = '';
-        $this->data ['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
+        $this->data ['planchiste'] = $this->user_has_role('planchiste');
         $selection = array ();
 
         $pilote_selector = array (
@@ -292,7 +288,7 @@ class Tickets extends Gvv_Controller {
     function page($premier = 0, $pilote = '', $lien = FALSE) {
         $this->push_return_url("Tickets");
 
-        if (! $this->dx_auth->is_role('ca', true, true)) {
+        if (!$this->user_has_role('ca')) {
             // Si le pilote n'est pas autorisé, restriction à ses tickets
             $pilote = $this->dx_auth->get_username();
             $lien = TRUE;
@@ -309,7 +305,7 @@ class Tickets extends Gvv_Controller {
         } else {
             $this->data ['nom'] = '';
         }
-        $this->data ['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data ['has_modification_rights'] = $this->has_modification_rights();
 
         $this->select_page($premier, $pilote);
         return load_last_view($this->table_view, $this->data, $this->unit_test);
@@ -324,7 +320,7 @@ class Tickets extends Gvv_Controller {
      *            $pilote
      */
     function export($mode = "csv", $pilote = '') {
-        if (! $this->dx_auth->is_role('ca', true, true)) {
+        if (!$this->user_has_role('ca')) {
             $pilote = $this->dx_auth->get_username();
         }
         $this->select_page(0, $pilote, 10000);

@@ -55,10 +55,7 @@ class Rapports extends Gvv_Controller {
                 }
                 $this->dx_auth->check_uri_permissions();
 
-                // Authorization: Code-based (v2.0) - only for migrated users
-                if ($this->use_new_auth) {
-                        $this->require_roles(['ca']);
-                }
+                $this->require_roles(['ca']);
 
                 $this->load->library('Document');
 

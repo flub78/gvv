@@ -58,11 +58,7 @@ class Comptes extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // CA and bureau can view (read-only); tresorier can also modify
-        if ($this->use_new_auth) {
-            $this->require_roles(['tresorier', 'ca', 'bureau']);
-        }
+        $this->require_roles(['tresorier', 'ca', 'bureau']);
 
         $this->load->model('plan_comptable_model');
         $this->load->model('ecritures_model');
@@ -1879,11 +1875,7 @@ class Comptes extends Gvv_Controller {
     function cloture($action = MODIFICATION) {
 
         // Accès réservé aux super_tresorier et admins
-        if ($this->use_new_auth) {
-            $this->require_roles(['super-tresorier']);
-        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
-            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
-        }
+        $this->require_roles(['super-tresorier']);
 
         // remplissage des dates
         $balance_date = $this->session->userdata('balance_date');
@@ -1984,11 +1976,7 @@ class Comptes extends Gvv_Controller {
      * Export de l'état de clôture en CSV
      */
     function cloture_csv() {
-        if ($this->use_new_auth) {
-            $this->require_roles(['super-tresorier']);
-        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
-            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
-        }
+        $this->require_roles(['super-tresorier']);
 
         $balance_date = $this->session->userdata('balance_date');
         if (!$balance_date) {
@@ -2030,11 +2018,7 @@ class Comptes extends Gvv_Controller {
      * Export de l'état de clôture en PDF
      */
     function cloture_pdf() {
-        if ($this->use_new_auth) {
-            $this->require_roles(['super-tresorier']);
-        } elseif (!$this->dx_auth->is_admin() && !$this->dx_auth->is_role('super-tresorier', true, true)) {
-            show_error($this->lang->line('gvv_access_denied') ?: 'Access denied', 403);
-        }
+        $this->require_roles(['super-tresorier']);
 
         $balance_date = $this->session->userdata('balance_date');
         if (!$balance_date) {
@@ -2084,7 +2068,7 @@ class Comptes extends Gvv_Controller {
      */
     function decloture() {
         // Accès réservé aux admins qui sont dans dev_users
-        if (!$this->dx_auth->is_admin()) {
+        if (!$this->user_has_role('club-admin')) {
             show_error('Accès réservé aux administrateurs.', 403);
         }
         $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));

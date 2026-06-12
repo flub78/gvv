@@ -44,7 +44,7 @@ class Admin extends CI_Controller {
             $backup_methods = ['backup_form', 'backup', 'backup_media'];
             $method = $this->router->fetch_method();
             if (!in_array($method, $backup_methods) || !$this->_has_backup_db_role()) {
-                $this->dx_auth->deny_access();
+                $this->_deny_access();
                 return;
             }
         }
@@ -61,28 +61,17 @@ class Admin extends CI_Controller {
     }
 
     /**
-     * Check if the current user is an admin.
-     * For new-auth users, checks the club-admin role; for legacy users, uses dx_auth->is_admin().
+     * Check if the current user is a club-admin.
      */
     private function _is_admin() {
-        if ($this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $user_id = $this->dx_auth->get_user_id();
-            return $this->gvv_authorization->has_role($user_id, 'club-admin', NULL);
-        }
-        return $this->dx_auth->is_admin();
+        return $this->user_has_role('club-admin');
     }
 
     /**
-     * Check if the current user has the backup_db role (new auth system only).
+     * Check if the current user has the backup_db role.
      */
     private function _has_backup_db_role() {
-        if ($this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $user_id = $this->dx_auth->get_user_id();
-            return $this->gvv_authorization->has_role($user_id, 'backup_db', NULL);
-        }
-        return FALSE;
+        return $this->gvv_authorization->has_role($this->dx_auth->get_user_id(), 'backup_db', NULL);
     }
 
     /**

@@ -56,13 +56,10 @@ class Compta extends Gvv_Controller {
             }
         }
 
-        // Authorization: Code-based (v2.0) - only for migrated users
         // mon_compte, journal_compte, export, pdf, new_year, datatable_journal_compte and filterValidation are accessible to regular users (own data only)
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
-                $this->require_roles(['tresorier', 'bureau']);
-            }
+        $method = $this->router->fetch_method();
+        if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
+            $this->require_roles(['tresorier', 'bureau']);
         }
 
         $this->load->model('comptes_model');
@@ -87,7 +84,7 @@ class Compta extends Gvv_Controller {
         // Any tresorier (in any section) can access this page for reading.
         // Section-scoped modification rights are checked below per entry.
         if (!$this->has_modification_rights()) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -382,7 +379,7 @@ class Compta extends Gvv_Controller {
     public function formValidation($action, $return_on_success = false) {
         // Check authorization - only users with modification_level role can submit entries
         if (!$this->has_modification_rights()) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
 
@@ -445,7 +442,7 @@ class Compta extends Gvv_Controller {
 
                 // Check if RAN mode is enabled and date is in 2024 (admin only)
                 $this->config->load('program');
-                $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
+                $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->user_has_role('club-admin');
                 $date_op = $processed_data['date_op'];
                 $use_ran_mode = $ran_mode_enabled && $date_op >= '2024-01-01' && $date_op < '2025-01-01';
 
@@ -522,7 +519,7 @@ class Compta extends Gvv_Controller {
                 // Modification: verify the user has rights in the entry's section.
                 $entry_section_id = isset($processed_data['club']) ? $processed_data['club'] : NULL;
                 if (!$this->has_modification_rights($entry_section_id)) {
-                    $this->dx_auth->deny_access();
+                    $this->_deny_access();
                     return;
                 }
 
@@ -557,7 +554,7 @@ class Compta extends Gvv_Controller {
         // Check authorization - only users with modification_level role can create entries
         $authorized = $this->has_modification_rights();
         if (!$authorized) {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
             return;
         }
         parent::create(FALSE);
@@ -582,7 +579,7 @@ class Compta extends Gvv_Controller {
 
         // RAN mode detection (config + admin rights required)
         $this->config->load('program');
-        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
+        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->user_has_role('club-admin');
         $this->data['ran_mode_enabled'] = $ran_mode_enabled;
 
         $compte1_selector = $this->comptes_model->selector_with_null($emploi_selection, TRUE);
@@ -1948,14 +1945,14 @@ class Compta extends Gvv_Controller {
         $cross_section_tresorier = $this->config->item('tresorers_can_access_others_sections')
             && $this->has_modification_rights(NULL);
         if ($user == $this->dx_auth->get_username()) {
-        } else if ($this->dx_auth->is_role('bureau', true, true)) {
+        } else if ($this->user_has_role('bureau')) {
         } else if ($compte == $info_pilote['compte']) {
         } else if ($cross_section_tresorier) {
             // Tresorier in any section — read-only access allowed when feature flag is active
-        } else if ($this->use_new_auth && $this->allow_roles(['ca'], NULL)) {
+        } else if ($this->allow_roles(['ca'], NULL)) {
             // CA members (globally) — read-only access allowed
         } else {
-            $this->dx_auth->deny_access();
+            $this->_deny_access();
         }
 
         $this->data['kid'] = 'id';
@@ -1963,7 +1960,7 @@ class Compta extends Gvv_Controller {
         $this->data['nom'] = $this->comptes_model->image($compte);
         $this->data['premier'] = $premier;
         $this->data['compte'] = $compte;
-        $this->data['navigation_allowed'] = $this->dx_auth->is_role('bureau', true, true);
+        $this->data['navigation_allowed'] = $this->user_has_role('bureau');
         $this->data['tresorier'] = $this->has_modification_rights($query_section_id);
 
         // fields for purchase
@@ -2037,18 +2034,17 @@ class Compta extends Gvv_Controller {
         if (!$this->has_modification_rights($modification_section_id)) {
             // Cross-section tresorier: has modification_level role in some other section — read-only allowed
             // when the feature flag is active.
-            $cross_section_ok = $this->use_new_auth
-                && $this->config->item('tresorers_can_access_others_sections')
+            $cross_section_ok = $this->config->item('tresorers_can_access_others_sections')
                 && $this->has_modification_rights(NULL);
             // CA members can view any account journal (read-only) — same access level as comptes/balance.
-            $is_global_ca = $this->use_new_auth && $this->allow_roles(['ca'], NULL);
+            $is_global_ca = $this->allow_roles(['ca'], NULL);
             if ($cross_section_ok || $is_global_ca) {
                 // read-only access granted, no deny
             } else {
                 $owner = $this->comptes_model->user($compte);
                 $mlogin = $this->dx_auth->get_username();
                 if ($owner != $mlogin) {
-                    $this->dx_auth->deny_access();
+                    $this->_deny_access();
                     return;
                 }
             }
@@ -2069,7 +2065,7 @@ class Compta extends Gvv_Controller {
             // Only apply owner check if no explicit section was provided (session-based access)
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
-            $has_board_rights = $this->dx_auth->is_role('bureau', true, true);
+            $has_board_rights = $this->user_has_role('bureau');
             if (($owner != $mlogin) && !$has_board_rights) {
                 $this->session->set_flashdata('error', $this->lang->line('gvv_comptes_error_account_not_found'));
                 redirect("comptes/balance");
@@ -2108,7 +2104,7 @@ class Compta extends Gvv_Controller {
         if ($this->gvv_model->section() && ($this->gvv_model->section_id() != $data['club'])) {
             $account_owner = isset($data['pilote']) ? $data['pilote'] : $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
-            $has_board_rights = $this->dx_auth->is_role('bureau', true, true);
+            $has_board_rights = $this->user_has_role('bureau');
             if (($account_owner != $mlogin) && !$has_board_rights) {
                 $this->output->set_output(json_encode(['error' => 'Access denied to account: ' . $compte]));
                 return;
@@ -2124,14 +2120,14 @@ class Compta extends Gvv_Controller {
         $authorized = false;
         if ($user == $mlogin) {
             $authorized = true;
-        } else if ($this->dx_auth->is_role('bureau', true, true)) {
+        } else if ($this->user_has_role('bureau')) {
             $authorized = true;
         } else if ($compte == $info_pilote['compte']) {
             $authorized = true;
         }
 
         // CA members (globally) can view any account journal — read-only, same as comptes/balance.
-        if (!$authorized && $this->use_new_auth) {
+        if (!$authorized) {
             $authorized = $this->allow_roles(['ca'], NULL);
         }
 
@@ -2618,7 +2614,7 @@ class Compta extends Gvv_Controller {
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
             if ($owner != $mlogin) {
-                $this->dx_auth->deny_access();
+                $this->_deny_access();
                 return;
             }
         }
@@ -2899,7 +2895,7 @@ class Compta extends Gvv_Controller {
             $owner = $this->comptes_model->user($compte);
             $mlogin = $this->dx_auth->get_username();
             if ($owner != $mlogin) {
-                $this->dx_auth->deny_access();
+                $this->_deny_access();
                 return;
             }
         }
@@ -3552,7 +3548,7 @@ class Compta extends Gvv_Controller {
     // -------------------------------------------------------------------------
 
     private function _check_transfert_access() {
-        if (!has_role('super-tresorier') && !$this->dx_auth->is_admin()) {
+        if (!has_role('super-tresorier') && !$this->user_has_role('club-admin')) {
             show_error($this->lang->line('gvv_error_not_authorized') ?: 'Accès non autorisé', 403);
         }
     }

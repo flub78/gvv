@@ -46,15 +46,11 @@ class Procedures extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // page accessible to all users, create/edit/delete requires ca
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
-                $this->require_roles(['ca']);
-            } else {
-                $this->require_roles(['user']);
-            }
+        $method = $this->router->fetch_method();
+        if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
+            $this->require_roles(['ca']);
+        } else {
+            $this->require_roles(['user']);
         }
 
         $this->lang->load('procedures');
@@ -124,7 +120,7 @@ class Procedures extends Gvv_Controller {
             return;
         }
 
-        $is_privileged_user = $this->dx_auth->is_role('ca') || $this->dx_auth->is_role('admin') || $this->dx_auth->is_admin();
+        $is_privileged_user = $this->user_has_role('ca') || $this->user_has_role('club-admin');
         if (!$is_privileged_user && $procedure['status'] !== 'published') {
             show_404();
             return;
@@ -142,7 +138,7 @@ class Procedures extends Gvv_Controller {
         $data['attached_files'] = $this->procedures_model->list_procedure_files($procedure['name']);
         
         // Vérifier les permissions de modification
-        $data['can_edit'] = $this->dx_auth->is_role('ca') || $this->dx_auth->is_role('admin');
+        $data['can_edit'] = $this->user_has_role('ca') || $this->user_has_role('club-admin');
 
         $this->set_nav_back('procedures', 'db_btn_retour_liste');
 
@@ -167,7 +163,7 @@ class Procedures extends Gvv_Controller {
      * Affiche le formulaire de modification
      */
     function edit($id = "", $load_view = true, $action = MODIFICATION) {
-        if (!$this->dx_auth->is_role('ca') && !$this->dx_auth->is_admin()) {
+        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin')) {
             show_404();
             return;
         }
@@ -294,8 +290,8 @@ class Procedures extends Gvv_Controller {
      * Supprimer une procédure
      */
     function delete($id) {
-        if (!$this->dx_auth->is_role('admin')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
         
@@ -435,7 +431,7 @@ class Procedures extends Gvv_Controller {
      * Télécharger un fichier
      */
     function download($id, $filename) {
-        if (!$this->dx_auth->is_logged_in() || !$this->dx_auth->is_role('user')) {
+        if (!$this->dx_auth->is_logged_in() || !$this->user_has_role('user')) {
             show_404();
             return;
         }

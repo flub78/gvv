@@ -4,13 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * GVV Base Controller
  *
- * Common ancestor for all GVV controllers. Provides dual-mode authorization
- * support for the progressive migration from DX_Auth to Gvv_Authorization.
- *
- * Authorization system selection based on configuration:
- * - If use_new_authorization = FALSE: All users use legacy DX_Auth
- * - If use_new_authorization = TRUE: All users use new Gvv_Authorization system
- * - Per-user migration via use_new_authorization table (when global flag is FALSE)
+ * Common ancestor for all GVV controllers. Uses Gvv_Authorization exclusively.
  *
  * @package    GVV
  * @subpackage Core
@@ -24,22 +18,7 @@ class MY_Controller extends CI_Controller
     protected $user_id;
 
     /**
-     * Whether to use new authorization system for this user
-     * @var bool
-     */
-    protected $use_new_auth = FALSE;
-
-    /**
-     * Migration status for current user
-     * @var string|null
-     */
-    protected $migration_status = NULL;
-
-    /**
      * Constructor
-     *
-     * Initializes authentication libraries and determines which
-     * authorization system to use based on user migration status.
      */
     public function __construct()
     {
@@ -49,96 +28,31 @@ class MY_Controller extends CI_Controller
 
         $this->load->library('Gvv_Authorization');
 
-        // Initialize user authentication
+        // Initialize user session
         $this->_init_auth();
     }
 
     /**
-     * Initialize authentication and determine which system to use
-     *
-     * Checks user login status via DX_Auth and then determines whether
-     * to route authorization checks through the new or legacy system.
-     *
-     * Decision flow (Priority Order):
-     * 1. Check if username exists in `use_new_authorization` table → NEW system
-     * 2. Check global flag `use_new_authorization`:
-     *    - If TRUE → NEW system for all users
-     *    - If FALSE → LEGACY system for all users
+     * Initialize session context after login.
      *
      * @return void
      */
     private function _init_auth()
     {
-        // Check if user is logged in (via DX_Auth session)
         if (!$this->dx_auth->is_logged_in()) {
-            return; // Not logged in - handled by individual controllers
+            return;
         }
 
-        // Get user ID and username from session
         $this->user_id = $this->dx_auth->get_user_id();
-        $username = $this->dx_auth->get_username();
 
         // Ensure section_selector is always available in session
-        // This handles cases where session data is partially lost
         if (!$this->session->userdata('section_selector')) {
             $this->load->model('sections_model');
             $section_selector = $this->sections_model->selector_with_all();
             $this->session->set_userdata('section_selector', $section_selector);
-            log_message('debug', "MY_Controller: Reinitialized section_selector in session");
         }
 
-        // Load config to check global authorization flag
-        $this->config->load('gvv_config', TRUE, TRUE);
-        $use_new_authorization = $this->config->item('use_new_authorization', 'gvv_config');
-        if ($use_new_authorization === FALSE || $use_new_authorization === NULL) $use_new_authorization = TRUE;
-
-        // Priority 1: Check if user is in per-user migration table
-        if (!$use_new_authorization) {
-            log_message('debug', "MY_Controller: Global flag is FALSE, checking per-user migration table for '$username'");
-
-            try {
-                $this->db->where('username', $username);
-                $query = $this->db->get('use_new_authorization');
-            } catch (Exception $e) {
-                log_message('error', "MY_Controller: Database error querying use_new_authorization table: " . $e->getMessage());
-                $query = FALSE;
-            }
-
-            $row_count = $query ? $query->num_rows() : 0;
-            log_message('debug', "MY_Controller: Per-user table query returned {$row_count} rows");
-
-            if ($row_count > 0) {
-                $this->use_new_auth = TRUE;
-                $this->migration_status = 'per_user_pilot';
-                log_message('debug', "MY_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (per-user migration)");
-
-                $this->session->set_userdata('use_new_auth', TRUE);
-
-                // Check if user has 'user' role for current section
-                $this->_check_login_permission();
-                return;
-            } else {
-                log_message('debug', "MY_Controller: User '$username' NOT in per-user migration table, will use legacy system");
-            }
-        } else {
-            log_message('debug', "MY_Controller: Global flag is TRUE, skipping per-user table check");
-        }
-
-        // Priority 2: Use global flag
-        if ($use_new_authorization) {
-            $this->use_new_auth = TRUE;
-            $this->migration_status = 'global_enabled';
-            log_message('debug', "MY_Controller: User '$username' (ID: {$this->user_id}) using NEW authorization (global flag)");
-
-            // Check if user has 'user' role for current section
-            $this->_check_login_permission();
-        } else {
-            $this->use_new_auth = FALSE;
-            $this->migration_status = 'legacy';
-            log_message('debug', "MY_Controller: User '$username' (ID: {$this->user_id}) using LEGACY authorization");
-        }
-
-        $this->session->set_userdata('use_new_auth', $this->use_new_auth);
+        $this->_check_login_permission();
     }
 
     /**
@@ -266,49 +180,27 @@ class MY_Controller extends CI_Controller
     /**
      * Deny access to current request
      *
-     * @param string $redirect_to Optional redirect destination
+     * @param string $redirect_to Unused, kept for compatibility
      */
     protected function _deny_access($redirect_to = '')
     {
-        if ($this->use_new_auth) {
-            $this->load->view('authorization/access_denied');
-        } else {
-            if ($redirect_to) {
-                $this->dx_auth->deny_access($redirect_to);
-            } else {
-                $this->dx_auth->deny_access();
-            }
-        }
+        $this->load->view('authorization/access_denied');
     }
 
     /**
-     * Check if user has a specific role (compatibility wrapper)
+     * Check if user has a specific role
      *
      * @param string $role_name Role name to check
      * @return bool TRUE if user has role
      */
     protected function _has_role($role_name)
     {
-        if ($this->use_new_auth) {
-            $section_id = $this->session->userdata('section');
-            return $this->gvv_authorization->user_has_role(
-                $this->user_id,
-                $role_name,
-                $section_id
-            );
-        } else {
-            return $this->dx_auth->is_role($role_name);
-        }
-    }
-
-    /**
-     * Check if current user uses the new authorization system
-     *
-     * @return bool
-     */
-    public function uses_new_auth()
-    {
-        return $this->use_new_auth;
+        $section_id = $this->session->userdata('section');
+        return $this->gvv_authorization->user_has_role(
+            $this->user_id,
+            $role_name,
+            $section_id
+        );
     }
 
     /**

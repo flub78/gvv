@@ -230,7 +230,7 @@ class Meteo extends Gvv_Controller {
      * Authorization helper
      */
     private function can_manage_cards() {
-        return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_role('admin', true, true);
+        return $this->user_has_role('ca') || $this->user_has_role('club-admin');
     }
 }
 

@@ -29,8 +29,7 @@ class Licences extends Gvv_Controller {
     protected $controller = 'licences';
     protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'licences_model';
-    protected $modification_level = 'ca'; // Legacy authorization for non-migrated users
-    protected $use_new_auth = FALSE; // Use legacy authorization system
+    protected $modification_level = 'ca';
     protected $rules = array ();
 
 
@@ -40,10 +39,7 @@ class Licences extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        if ($this->use_new_auth) {
-            $this->require_roles(['ca']);
-        }
+        $this->require_roles(['ca']);
     }
 
     /**

@@ -62,15 +62,11 @@ class Alarmes extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // index accessible to all users, create/edit/delete requires ca
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
-                $this->require_roles(['ca']);
-            } else {
-                $this->require_roles(['user']);
-            }
+        $method = $this->router->fetch_method();
+        if (in_array($method, ['create', 'edit', 'delete', 'formValidation'])) {
+            $this->require_roles(['ca']);
+        } else {
+            $this->require_roles(['user']);
         }
 
         $this->load->model('membres_model');
@@ -237,7 +233,7 @@ class Alarmes extends Gvv_Controller {
 
     	$current_login = $this->dx_auth->get_username();
 
-    	if (!$this->dx_auth->is_role('ca', true, true)) {
+    	if (!$this->user_has_role('ca')) {
     		$mlogin = $current_login;
     	} elseif (!$mlogin) {
     		$mlogin = $current_login;

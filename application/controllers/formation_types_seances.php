@@ -34,11 +34,7 @@ class Formation_types_seances extends CI_Controller {
             redirect('auth/login');
         }
 
-        $is_admin = $this->dx_auth->is_admin();
-        if (!$is_admin && $this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $is_admin = $this->gvv_authorization->has_role($this->dx_auth->get_user_id(), 'club-admin', NULL);
-        }
+        $is_admin = $this->dx_auth->is_admin() || $this->user_has_role('club-admin');
         if (!$is_admin) {
             show_error($this->lang->line('formation_acces_refuse'), 403);
         }

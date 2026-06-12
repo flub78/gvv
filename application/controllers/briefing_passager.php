@@ -598,7 +598,7 @@ class Briefing_passager extends Gvv_Controller {
     }
 
     private function _is_admin() {
-        return $this->user_has_role('gestion_vd') || $this->dx_auth->is_admin();
+        return $this->user_has_role('gestion_vd') || $this->user_has_role('club-admin');
     }
 
     private function _ensure_directory($dirname) {

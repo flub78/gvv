@@ -78,11 +78,8 @@ class Gvv_Controller extends MY_Controller {
                 && in_array($current_method, $this->public_methods, true);
 
             if (!$is_public) {
-                // For new-auth users, skip legacy URI permission check inside check_login()
-                if ($this->use_new_auth) {
-                    $this->dx_auth->skip_uri_check = TRUE;
-                }
-                // Checks to be done only when not controlled by PHPUnit
+                // Skip legacy URI permission check — authorization is handled by Gvv_Authorization
+                $this->dx_auth->skip_uri_check = TRUE;
                 $this->dx_auth->check_login();
             }
         }
@@ -180,11 +177,7 @@ class Gvv_Controller extends MY_Controller {
             return TRUE;
         }
 
-        if ($this->use_new_auth) {
-            return $this->allow_roles([$this->modification_level], $section_id);
-        }
-
-        return $this->dx_auth->is_role($this->modification_level, true, true);
+        return $this->allow_roles([$this->modification_level], $section_id);
     }
 
     /**
@@ -371,7 +364,7 @@ class Gvv_Controller extends MY_Controller {
 
         // Mode RAN: désactiver le contrôle de date de gel pour les admins
         $this->config->load('program');
-        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->dx_auth->is_role('admin');
+        $ran_mode_enabled = $this->config->item('ran_mode_enabled') && $this->user_has_role('club-admin');
 
         if ($ran_mode_enabled) {
             gvv_debug("Mode RAN actif: contrôle de date de gel désactivé pour admin");
@@ -1008,9 +1001,6 @@ class Gvv_Controller extends MY_Controller {
     /**
      * Check if the current user has a given role.
      *
-     * Uses new authorization (user_roles_per_section) for users enrolled in new auth,
-     * falls back to legacy DX_Auth for other users.
-     *
      * This method is public so it can be called from views_helper via $CI->user_has_role().
      *
      * @param string $role Role name to check
@@ -1018,34 +1008,19 @@ class Gvv_Controller extends MY_Controller {
      */
     public function user_has_role($role)
     {
-        // Admins bypass all role checks regardless of auth system
+        // Admins bypass all role checks
         if ($this->dx_auth->is_admin()) {
             return true;
         }
 
-        if ($this->use_new_auth) {
-            // Resolve section: explicit controller section_id first, then session section from model
-            $section_id = NULL;
-            if (isset($this->section_id)) {
-                $section_id = $this->section_id;
-            } elseif (isset($this->gvv_model) && method_exists($this->gvv_model, 'section_id')) {
-                $section_id = $this->gvv_model->section_id();
-            }
-            return $this->allow_roles([$role], $section_id);
+        // Resolve section: explicit controller section_id first, then session section from model
+        $section_id = NULL;
+        if (isset($this->section_id)) {
+            $section_id = $this->section_id;
+        } elseif (isset($this->gvv_model) && method_exists($this->gvv_model, 'section_id')) {
+            $section_id = $this->gvv_model->section_id();
         }
-        return $this->dx_auth->is_role($role, true, true);
-    }
-
-    /**
-     * Public accessor for views: returns TRUE if the new authorization system
-     * is active for the current user. Used by bs_menu.php to filter the
-     * section selector.
-     *
-     * @return bool
-     */
-    public function uses_new_auth()
-    {
-        return $this->use_new_auth;
+        return $this->allow_roles([$role], $section_id);
     }
 
     /**

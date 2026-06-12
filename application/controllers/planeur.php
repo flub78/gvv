@@ -53,15 +53,11 @@ class Planeur extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view accessible to all users, create/edit/delete requires ca
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if (in_array($method, ['create', 'delete', 'formValidation'])) {
-                $this->require_roles(['ca']);
-            } else {
-                $this->require_roles(['user']);
-            }
+        $method = $this->router->fetch_method();
+        if (in_array($method, ['create', 'delete', 'formValidation'])) {
+            $this->require_roles(['ca']);
+        } else {
+            $this->require_roles(['user']);
         }
 
         $this->load->model('tarifs_model');
@@ -148,9 +144,6 @@ class Planeur extends Gvv_Controller {
      * @see My_Controller::create()
      */
     function create() {
-        if (!$this->use_new_auth && !$this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
-        }
         parent::create();
     }
 
@@ -159,8 +152,8 @@ class Planeur extends Gvv_Controller {
      */
     public function export($mode = 'csv') {
         // Access control
-        if (!$this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('ca')) {
+            $this->_deny_access();
             return;
         }
 

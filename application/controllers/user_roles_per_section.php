@@ -56,9 +56,9 @@ class User_roles_per_section extends Gvv_Controller {
         $section = $this->input->post('section');
         $current_url = $this->input->post('current_url');
 
-        // For new-auth users, validate the section before accepting it.
+        // Validate the section before accepting it.
         // "Toutes" is represented by a key that does not match any real section id.
-        if ($this->use_new_auth && $this->dx_auth->is_logged_in()) {
+        if ($this->dx_auth->is_logged_in()) {
             $section_int = (int) $section;
             $is_real_section = $section_int > 0
                 && $this->db->where('id', $section_int)->count_all_results('sections') > 0;

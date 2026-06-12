@@ -22,7 +22,7 @@ class Dates_gel extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        if (!$this->dx_auth->is_admin()) {
+        if (!$this->user_has_role('club-admin')) {
             show_error('Accès réservé aux administrateurs.', 403);
         }
 
@@ -71,7 +71,7 @@ class Dates_gel extends Gvv_Controller {
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
         $this->data['active_section'] = $section;
-        $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->dx_auth->is_admin() || $this->user_has_role($this->modification_level));
+        $this->data['has_modification_rights'] = (!isset($this->modification_level) || $this->user_has_role('club-admin') || $this->user_has_role($this->modification_level));
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }

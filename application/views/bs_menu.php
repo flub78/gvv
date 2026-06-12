@@ -53,11 +53,9 @@ if ($total_real_sections == 1) {
 }
 
 $public_vd_url = site_url('vols_decouverte/public_vd?section=' . $current_section_id);
-// Sélecteur de sections : filtré par droits pour les utilisateurs du nouveau système
-$uses_new_auth = $CI->session->userdata('use_new_auth')
-    || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
-$selector_functional = $uses_new_auth || $CI->dx_auth->is_admin();
-if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
+// Sélecteur de sections filtré par droits
+$selector_functional = true;
+if ($CI->dx_auth->is_logged_in()) {
     $user_id = $CI->dx_auth->get_user_id();
     $section_selector = $CI->sections_model->selector_for_user($user_id);
 } else {

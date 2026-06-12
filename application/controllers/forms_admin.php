@@ -31,12 +31,7 @@ class Forms_admin extends CI_Controller {
             redirect('auth/login');
         }
 
-        $is_admin = $this->dx_auth->is_admin() || $this->dx_auth->is_role('ca', true, true);
-        if (!$is_admin && $this->session->userdata('use_new_auth')) {
-            $this->load->library('Gvv_Authorization');
-            $is_admin = $this->gvv_authorization->has_role($this->dx_auth->get_user_id(), 'club-admin', NULL);
-        }
-        if (!$is_admin) {
+        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin')) {
             show_error('Acces reserve aux administrateurs.', 403);
         }
 

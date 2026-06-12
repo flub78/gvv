@@ -1,8 +1,8 @@
 # GVV Authorization System Refactoring Plan
 
-**Document Version:** 2.7
-**Date:** 2025-01-08 (Updated: 2026-03-25)
-**Status:** Phase M2 In Progress — 20 controllers migrated, 5 test users with Playwright coverage aligned on all 5 Gaulois profiles
+**Document Version:** 2.8
+**Date:** 2025-01-08 (Updated: 2026-06-12)
+**Status:** Migration use_new_auth TERMINÉE — Gvv_Authorization exclusif, flag supprimé, branche legacy dx_auth d'autorisation supprimée. Tous les contrôleurs utilisent user_has_role() / require_roles(). Tests : 1343/1369 (26 échecs pré-existants non liés à cette migration).
 **Author:** Claude Code Analysis
 **Based on:** PRD v2.0 - Code-Based Permission Management with Per-User Progressive Migration
 

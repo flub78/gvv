@@ -58,17 +58,13 @@ class Membre extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // delete requires club-admin; create/formValidation require ca; all others require user
-        if ($this->use_new_auth) {
-            $method = $this->router->fetch_method();
-            if ($method === 'delete') {
-                $this->require_roles(['club-admin']);
-            } elseif (in_array($method, ['create', 'formValidation'])) {
-                $this->require_roles(['ca']);
-            } else {
-                $this->require_roles(['user']);
-            }
+        $method = $this->router->fetch_method();
+        if ($method === 'delete') {
+            $this->require_roles(['club-admin']);
+        } elseif (in_array($method, ['create', 'formValidation'])) {
+            $this->require_roles(['ca']);
+        } else {
+            $this->require_roles(['user']);
         }
 
         $this->load->helper('bitfields');
@@ -86,10 +82,6 @@ class Membre extends Gvv_Controller {
      * Accès restreint aux rôles CA et supérieurs
      */
     function create() {
-        if (!$this->dx_auth->is_role($this->modification_level, true, true)) {
-            $this->dx_auth->deny_access();
-            return;
-        }
         parent::create();
     }
 
@@ -113,10 +105,10 @@ class Membre extends Gvv_Controller {
             $data['compte'] = 0;
         }
         // In new auth, only club-admin may change name fields; ca may also change birthdate
-        if ($this->use_new_auth && !$this->user_has_role('club-admin')) {
+        if (!$this->user_has_role('club-admin')) {
             unset($data['mnom'], $data['mprenom']);
         }
-        if ($this->use_new_auth && !$this->user_has_role('ca')) {
+        if (!$this->user_has_role('ca')) {
             unset($data['mdaten']);
         }
     }
@@ -245,7 +237,7 @@ class Membre extends Gvv_Controller {
         $this->data['count'] = $this->gvv_model->count();
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
-        $this->data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $this->data['has_modification_rights'] = $this->has_modification_rights();
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
     }
@@ -258,7 +250,7 @@ class Membre extends Gvv_Controller {
         header('Content-Type: application/json');
 
         // Admin only
-        if (!$this->dx_auth->is_role('admin', true, true)) {
+        if (!$this->user_has_role('club-admin')) {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
@@ -303,7 +295,7 @@ class Membre extends Gvv_Controller {
      */
     function selection() {
         $this->data['filter_active'] = $this->session->userdata('filter_active');
-        $is_ca = $this->dx_auth->is_role('ca', true, true);
+        $is_ca = $this->user_has_role('ca');
 
         $selection = "";
         $year = $this->session->userdata('year');
@@ -395,7 +387,7 @@ class Membre extends Gvv_Controller {
                     redirect('membre/ma_fiche');
                     return;
                 }
-                $this->dx_auth->deny_access();
+                $this->_deny_access();
                 return;
             }
         }
@@ -461,11 +453,6 @@ class Membre extends Gvv_Controller {
      * Accessible uniquement aux utilisateurs du nouveau système d'autorisations.
      */
     function mes_autorisations() {
-        if (!$this->use_new_auth) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
         $this->load->model('authorization_model');
         $user_id = $this->dx_auth->get_user_id();
         $roles = $this->authorization_model->get_user_roles($user_id, NULL);
@@ -535,13 +522,13 @@ class Membre extends Gvv_Controller {
     function form_static_element($action = MODIFICATION) {
         $this->data['mniveau'] = array();
         // Utilisé seulement pour les certificats
-        $this->data['has_modification_rights'] = $this->dx_auth->is_role('ca', true, true);
+        $this->data['has_modification_rights'] = $this->user_has_role('ca');
         parent::form_static_element($action);
-        // In new auth, only club-admin may edit identity fields (name, firstname); ca may also edit birthdate
-        $this->data['has_admin_rights'] = !$this->use_new_auth || $this->user_has_role('club-admin');
-        $this->data['has_birthdate_rights'] = !$this->use_new_auth || $this->user_has_role('ca');
+        // Only club-admin may edit identity fields (name, firstname); ca may also edit birthdate
+        $this->data['has_admin_rights'] = $this->user_has_role('club-admin');
+        $this->data['has_birthdate_rights'] = $this->user_has_role('ca');
         $this->load->model('comptes_model');
-        if ($this->dx_auth->is_role('ca', true, true)) {
+        if ($this->user_has_role('ca')) {
             $this->data['pilote_selector'] = $this->membres_model->selector();
         }
 
@@ -651,7 +638,7 @@ class Membre extends Gvv_Controller {
         $data['kid'] = $this->kid;
 
         $data['controller'] = $this->controller;
-        $data['has_modification_rights'] = (! isset($this->modification_level) || $this->dx_auth->is_role($this->modification_level, true, true));
+        $data['has_modification_rights'] = $this->has_modification_rights();
         return load_last_view("membre/licences", $data, $this->unit_test);
     }
 
@@ -702,11 +689,6 @@ class Membre extends Gvv_Controller {
      * - Suppression de l'ancienne photo si elle existe
      */
     public function formValidation($action, $return_on_success = false) {
-        if (!$this->use_new_auth && !$this->dx_auth->is_role($this->modification_level, true, true)) {
-            $this->dx_auth->deny_access();
-            return;
-        }
-
         $mlogin = $this->input->post('mlogin');
 
         // Vérifier si un fichier a été uploadé
@@ -1271,8 +1253,8 @@ class Membre extends Gvv_Controller {
             return;
         }
 
-        if (!$this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('ca')) {
+            $this->_deny_access();
             return;
         }
 

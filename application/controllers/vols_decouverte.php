@@ -68,7 +68,7 @@ class Vols_decouverte extends Gvv_Controller {
      * Le rôle CA n'est pas inclus : il donne accès en lecture seule uniquement.
      */
     private function has_full_vd_rights() {
-        return $this->dx_auth->is_admin()
+        return $this->user_has_role('club-admin')
             || parent::user_has_role('gestion_vd')
             || parent::user_has_role('tresorier')
             || parent::user_has_role('bureau');
@@ -119,7 +119,7 @@ class Vols_decouverte extends Gvv_Controller {
         parent::create(true);
 
         // Bouton "Créer" (paiement géré manuellement) : trésorier, bureau et admin uniquement
-        $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->dx_auth->is_admin();
+        $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->user_has_role('club-admin');
         // Bouton "Payer par CB" : tous les utilisateurs ayant accès, dès que HelloAsso est activé pour la section
         $this->data['vd_par_cb_enabled'] = false;
         $section_id = (int) $this->session->userdata('section');
@@ -1037,8 +1037,8 @@ EOD;
      * Export de la liste des vols de découverte en CSV ou PDF
      */
     public function export($mode = 'csv') {
-        if (!$this->user_has_role('gestion_vd') && !$this->dx_auth->is_admin()) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('gestion_vd') && !$this->user_has_role('club-admin')) {
+            $this->_deny_access();
             return;
         }
 

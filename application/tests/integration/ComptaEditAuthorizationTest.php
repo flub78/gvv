@@ -19,9 +19,9 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents($controller_file);
 
         $this->assertRegExp(
-            '/protected function has_modification_rights\(\$section_id = NULL\)\s*\{.*?if \(!isset\(\$this->modification_level\) \|\| \$this->modification_level === \'\'\) \{.*?return TRUE;.*?\}.*?if \(\$this->dx_auth->is_admin\(\)\) \{.*?return TRUE;.*?\}.*?if \(\$this->use_new_auth\) \{.*?return \$this->allow_roles\(\[\$this->modification_level\], \$section_id\);.*?\}.*?return \$this->dx_auth->is_role\(\$this->modification_level, true, true\);.*?\}/s',
+            '/protected function has_modification_rights\(\$section_id = NULL\)\s*\{.*?if \(!isset\(\$this->modification_level\) \|\| \$this->modification_level === \'\'\) \{.*?return TRUE;.*?\}.*?if \(\$this->dx_auth->is_admin\(\)\) \{.*?return TRUE;.*?\}.*?return \$this->allow_roles\(\[\$this->modification_level\], \$section_id\);.*?\}/s',
             $source,
-            'Gvv_Controller::has_modification_rights() must support explicit section context in new authorization mode and keep DX_Auth as legacy fallback'
+            'Gvv_Controller::has_modification_rights() must support explicit section context via allow_roles()'
         );
     }
 
@@ -75,9 +75,9 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
         );
 
         $this->assertRegExp(
-            '/function journal_compte\(.*?\$cross_section_ok = \$this->use_new_auth\s*&& \$this->config->item\(\'tresorers_can_access_others_sections\'\)\s*&& \$this->has_modification_rights\(NULL\);/s',
+            '/function journal_compte\(.*?\$cross_section_ok = \$this->config->item\(\'tresorers_can_access_others_sections\'\)\s*&& \$this->has_modification_rights\(NULL\);/s',
             $source,
-            'journal_compte() cross-section treasurer read access must remain gated by feature flag'
+            'journal_compte() cross-section treasurer read access must use has_modification_rights(NULL)'
         );
 
         $this->assertRegExp(

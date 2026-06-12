@@ -1039,24 +1039,16 @@ class Reservations extends MY_Controller {
      *                     Members without any of these roles are read-only: they can view but not act.
      */
     private function _reservation_permissions() {
-        $username = $this->dx_auth->get_username();
-        if ($this->use_new_auth) {
-            $section_id         = $this->session->userdata('section');
-            $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
-            $is_pilote_vd       = $this->gvv_authorization->has_role($this->user_id, 'pilote_vd',       $section_id);
-            $is_mecano          = $this->gvv_authorization->has_role($this->user_id, 'mecano',          $section_id);
-            $can_edit_others    = $this->gvv_authorization->has_role($this->user_id, 'club-admin',      NULL)
-                                || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id)
-                                || $this->gvv_authorization->has_role($this->user_id, 'gestion_vd',     $section_id);
-            $balance_exempt     = $can_edit_others || $is_pilote_vd || $is_mecano;
-            $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
-        } else {
-            $is_auto_planchiste = false;
-            $is_mecano          = false;
-            $can_edit_others    = true;
-            $balance_exempt     = true;
-            $can_book           = true;
-        }
+        $username   = $this->dx_auth->get_username();
+        $section_id = $this->session->userdata('section');
+        $is_auto_planchiste = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
+        $is_pilote_vd       = $this->gvv_authorization->has_role($this->user_id, 'pilote_vd',       $section_id);
+        $is_mecano          = $this->gvv_authorization->has_role($this->user_id, 'mecano',          $section_id);
+        $can_edit_others    = $this->gvv_authorization->has_role($this->user_id, 'club-admin',      NULL)
+                            || $this->gvv_authorization->has_role($this->user_id, 'instructeur',    $section_id)
+                            || $this->gvv_authorization->has_role($this->user_id, 'gestion_vd',     $section_id);
+        $balance_exempt     = $can_edit_others || $is_pilote_vd || $is_mecano;
+        $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
         return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano);
     }
 

@@ -97,7 +97,7 @@ class Presences extends MY_Controller {
             'roles_options' => $roles_options,
             'translations' => $translations,
             'current_user' => $this->dx_auth->get_username(),
-            'is_ca' => $this->dx_auth->is_role('ca', true, true)
+            'is_ca' => $this->user_has_role('ca')
         );
 
         load_last_view('presences/presences', $data);
@@ -552,7 +552,7 @@ class Presences extends MY_Controller {
      */
     private function can_modify($event_id) {
         // CA and above can modify all presences
-        if ($this->dx_auth->is_role('ca', true, true)) {
+        if ($this->user_has_role('ca')) {
             return true;
         }
 
@@ -584,7 +584,7 @@ class Presences extends MY_Controller {
      */
     private function can_create($mlogin) {
         // CA and above can create presences for anyone
-        if ($this->dx_auth->is_role('ca', true, true)) {
+        if ($this->user_has_role('ca')) {
             return true;
         }
 

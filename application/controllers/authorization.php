@@ -50,47 +50,11 @@ class Authorization extends CI_Controller {
         $this->load->library('DX_Auth');
         $this->lang->load('gvv');
 
-        log_message('error', '[DEBUG] User role from session: ' . $this->session->userdata('DX_role_name'));
-
         if (getenv('TEST') != '1') {
             $this->dx_auth->check_login();
         }
 
-        // Authorization-specific setup
-        $user_roles = array_merge(
-            (array)$this->session->userdata('DX_parent_roles_name'),
-            (array)$this->session->userdata('DX_role_name')
-        );
-        $required_roles = array('admin', 'club-admin');
-        $has_role = FALSE;
-        foreach ($required_roles as $required_role) {
-            foreach ($user_roles as $user_role) {
-                if (strtolower($required_role) == strtolower($user_role)) {
-                    $has_role = TRUE;
-                    break 2;
-                }
-            }
-        }
-
-        log_message('error', 'ROLES_DEBUG: User roles: ' . print_r($user_roles, TRUE));
-        log_message('error', 'ROLES_DEBUG: Required roles: ' . print_r($required_roles, TRUE));
-        log_message('error', 'ROLES_DEBUG: Has role: ' . ($has_role ? 'yes' : 'no'));
-        log_message('error', 'ROLES_DEBUG: is_role check: ' . ($this->dx_auth->is_role(array('admin', 'club-admin')) ? 'yes' : 'no'));
-
-        if (!$has_role && $this->dx_auth->is_logged_in()) {
-            $username = $this->dx_auth->get_username();
-            $q = $this->db->where('username', $username)->get('use_new_authorization');
-            if ($q && $q->num_rows() > 0) {
-                $this->load->model('authorization_model');
-                $this->load->library('Gvv_Authorization');
-                $user_id = $this->dx_auth->get_user_id();
-                $has_role = $this->gvv_authorization->has_role($user_id, 'club-admin', NULL);
-            }
-        }
-
-        if (!$has_role) {
-            $this->dx_auth->deny_access();
-        }
+        $this->require_roles(['club-admin']);
 
         $this->load->model('authorization_model');
         $this->load->library('Gvv_Authorization');
@@ -114,11 +78,6 @@ class Authorization extends CI_Controller {
 
         // Get recent audit log entries
         $data['recent_audits'] = $this->authorization_model->get_audit_log(array(), 10);
-
-        // Check if new system is enabled
-        $this->config->load('gvv_config', TRUE, TRUE);
-        $config = $this->config->item('gvv_config');
-        $data['new_system_enabled'] = isset($config['use_new_authorization']) ? $config['use_new_authorization'] : TRUE;
 
         load_last_view('authorization/dashboard', $data);
     }

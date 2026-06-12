@@ -38,11 +38,7 @@ class Welcome extends Gvv_Controller {
         // Check if user is logged in or not
         $this->dx_auth->check_login();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // Authorization: Code-based (v2.0) - only for migrated users
-        if ($this->use_new_auth) {
-            $this->require_roles(['user']);
-        }
+        $this->require_roles(['user']);
 
         if ($this->config->item('calendar_id')) {
             gvv_debug('google account = ' . $this->config->item('calendar_id'));
@@ -165,58 +161,37 @@ class Welcome extends Gvv_Controller {
         unset($account);
         $data['user_accounts'] = $raw_accounts;
 
-        // Pass new auth status to view
-        $data['use_new_auth'] = $this->use_new_auth;
-
         // Active section data (gestion_planeurs, gestion_avions, libelle_menu_avions, …)
         $data['section'] = $this->sections_model->section();
 
-        // Check user roles (following bs_menu.php role checks)
-        $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
-        $data['is_admin'] = $this->dx_auth->is_role('admin'); // System admin
-        $data['is_backup_db'] = $this->dx_auth->is_role('backup_db'); // always false for legacy users — intentional (backup_db is a new-auth-only role)
-        $data['is_treasurer'] = $this->dx_auth->is_role('tresorier') || $this->dx_auth->is_role('super-tresorier');
-
-        if ($this->use_new_auth) {
-            $raw_section_id = $this->session->userdata('section');
-            $this->load->library('Gvv_Authorization');
-            // When "Toutes" is selected, section_id doesn't match any real section.
-            // Use NULL so has_role searches across all sections for cross-section checks.
-            $q = $raw_section_id ? $this->db->where('id', (int)$raw_section_id)->get('sections') : NULL;
-            $section_id = ($q && $q->num_rows() > 0) ? (int)$raw_section_id : NULL;
-            $data['is_ca_any_section'] = $this->gvv_authorization->has_role($this->user_id, 'ca', NULL);
-            $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
-            $data['is_bureau'] = $this->gvv_authorization->has_role($this->user_id, 'bureau', $section_id);
-            $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
-            // Global check: treasurer accordion and read menu visible in all sections
-            $data['is_treasurer'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', NULL);
-            // Section-specific: write capabilities only for the current section
-            $data['is_treasurer_in_section'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', $section_id);
-            $data['is_mecano'] = $this->gvv_authorization->has_role($this->user_id, 'mecano', $section_id);
-            $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
-            $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
-            $data['is_pilote_rem'] = $this->gvv_authorization->has_role($this->user_id, 'pilote_rem', $section_id);
-            $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
-            $data['is_admin'] = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL);
-            // Formation visibility: CA anywhere grants cross-section read access to formations.
-            // In a specific section, instructeur and rp also qualify.
-            $data['can_view_formation'] = $this->gvv_authorization->has_any_role(
-                $this->user_id, ['ca', 'club-admin'], NULL
-            ) || ($section_id !== NULL && $this->gvv_authorization->has_any_role(
-                $this->user_id, ['instructeur', 'rp'], $section_id
-            ));
-        } else {
-            $data['is_ca'] = $this->dx_auth->is_role('ca'); // Club admin
-            $data['is_ca_any_section'] = $data['is_ca'];
-            $data['is_bureau'] = $this->dx_auth->is_role('bureau'); // Bureau member
-            $data['is_instructeur'] = false;
-            $data['is_mecano'] = false;
-            $data['is_planchiste'] = $this->dx_auth->is_role('planchiste');
-            $data['is_auto_planchiste'] = false;
-            $data['is_pilote_rem'] = false; // pilote_rem est un rôle du nouveau système d'autorisation uniquement
-            $data['can_view_formation'] = $data['is_ca'] || $data['is_admin'];
-            $data['is_treasurer_in_section'] = $data['is_treasurer'];
-        }
+        // Check user roles
+        $raw_section_id = $this->session->userdata('section');
+        $this->load->library('Gvv_Authorization');
+        // When "Toutes" is selected, section_id doesn't match any real section.
+        // Use NULL so has_role searches across all sections for cross-section checks.
+        $q = $raw_section_id ? $this->db->where('id', (int)$raw_section_id)->get('sections') : NULL;
+        $section_id = ($q && $q->num_rows() > 0) ? (int)$raw_section_id : NULL;
+        $data['is_ca_any_section'] = $this->gvv_authorization->has_role($this->user_id, 'ca', NULL);
+        $data['is_ca'] = $this->gvv_authorization->has_role($this->user_id, 'ca', $section_id);
+        $data['is_bureau'] = $this->gvv_authorization->has_role($this->user_id, 'bureau', $section_id);
+        $data['is_instructeur'] = $this->gvv_authorization->has_role($this->user_id, 'instructeur', $section_id);
+        // Global check: treasurer accordion and read menu visible in all sections
+        $data['is_treasurer'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', NULL);
+        // Section-specific: write capabilities only for the current section
+        $data['is_treasurer_in_section'] = $this->gvv_authorization->has_role($this->user_id, 'tresorier', $section_id);
+        $data['is_mecano'] = $this->gvv_authorization->has_role($this->user_id, 'mecano', $section_id);
+        $data['is_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'planchiste', $section_id);
+        $data['is_auto_planchiste'] = $this->gvv_authorization->has_role($this->user_id, 'auto_planchiste', $section_id);
+        $data['is_pilote_rem'] = $this->gvv_authorization->has_role($this->user_id, 'pilote_rem', $section_id);
+        $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
+        $data['is_admin'] = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL);
+        // Formation visibility: CA anywhere grants cross-section read access to formations.
+        // In a specific section, instructeur and rp also qualify.
+        $data['can_view_formation'] = $this->gvv_authorization->has_any_role(
+            $this->user_id, ['ca', 'club-admin'], NULL
+        ) || ($section_id !== NULL && $this->gvv_authorization->has_any_role(
+            $this->user_id, ['instructeur', 'rp'], $section_id
+        ));
 
         // Check if user is authorized for development/test features
         $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
@@ -357,11 +332,7 @@ class Welcome extends Gvv_Controller {
      * Page d'acceuil du comptable
      */
     public function compta() {
-        if ($this->use_new_auth) {
-            $this->require_roles(['tresorier']);
-        } elseif (! $this->dx_auth->is_role('tresorier')) {
-            $this->dx_auth->deny_access();
-        }
+        $this->require_roles(['tresorier']);
         load_last_view('welcome/compta', array());
     }
 
@@ -379,12 +350,8 @@ class Welcome extends Gvv_Controller {
      * Page d'acceuil du comptable
      */
     public function ca() {
-        if ($this->use_new_auth) {
-            // Use cross-section check (NULL) so any CA across all sections can access
-            $this->gvv_authorization->require_roles(['ca'], NULL);
-        } elseif (! $this->dx_auth->is_role('ca')) {
-            $this->dx_auth->deny_access();
-        }
+        // Cross-section check (NULL) so any CA across all sections can access
+        $this->gvv_authorization->require_roles(['ca'], NULL);
         $year = $this->session->userdata('year');
         if (! $year) {
             $year = Date("Y");

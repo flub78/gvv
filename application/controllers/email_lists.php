@@ -41,8 +41,7 @@ class Email_lists extends Gvv_Controller
     protected $controller = 'email_lists';
     protected $back_dashboard = 'welcome/section/admin_club';
     protected $model = 'email_lists_model';
-    protected $modification_level = 'secretaire'; // Legacy authorization for non-migrated users
-    protected $use_new_auth = FALSE; // Use legacy authorization system
+    protected $modification_level = 'secretaire';
     protected $rules = array();
     protected $filter_variables = array();
 
@@ -53,10 +52,7 @@ class Email_lists extends Gvv_Controller
     {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        if ($this->use_new_auth) {
-            $this->require_roles(['secretaire', 'ca']);
-        }
+        $this->require_roles(['secretaire', 'ca']);
 
         $this->load->model('email_lists_model');
         $this->load->helper('email');
@@ -75,7 +71,7 @@ class Email_lists extends Gvv_Controller
 
         // Get all lists (or user's lists depending on permissions)
         $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        $is_admin = $this->user_has_role('club-admin');
         $data['lists'] = $this->email_lists_model->get_user_lists($user_id, $is_admin);
         $data['is_admin'] = $is_admin;
 
@@ -211,7 +207,7 @@ class Email_lists extends Gvv_Controller
 
         // Determine if user can edit visible field (admins or list creator)
         $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        $is_admin = $this->user_has_role('club-admin');
         $data['can_edit_visible'] = $is_admin || ($list['created_by'] == $user_id);
 
         // Load available roles and sections for criteria tab
@@ -226,7 +222,7 @@ class Email_lists extends Gvv_Controller
 
         // Load sublists data for modification mode
         $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        $is_admin = $this->user_has_role('club-admin');
         
         $data['sublists'] = $this->email_lists_model->get_sublists($id);
         $data['available_sublists'] = $this->email_lists_model->get_available_sublists($user_id, $is_admin, $id, $list['visible']);
@@ -279,7 +275,7 @@ class Email_lists extends Gvv_Controller
 
         // Handle visible field: admins can modify all lists, creators can modify their own
         $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        $is_admin = $this->user_has_role('club-admin');
         
         $new_visible = $this->input->post('visible') ? 1 : 0;
         
@@ -1086,7 +1082,7 @@ class Email_lists extends Gvv_Controller
 
         // Check permissions
         $user_id = $this->dx_auth->get_user_id();
-        $is_admin = $this->dx_auth->is_role('admin');
+        $is_admin = $this->user_has_role('club-admin');
 
         // Only admin or list creator can toggle visibility
         if (!$is_admin && $list['created_by'] != $user_id) {

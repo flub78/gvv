@@ -54,10 +54,7 @@ class Vols_planeur extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        if ($this->use_new_auth) {
-            $this->require_roles(['user']);
-        }
+        $this->require_roles(['user']);
 
         // remplit les selecteurs depuis la base
         $this->load->model('membres_model');
@@ -811,10 +808,11 @@ class Vols_planeur extends Gvv_Controller {
      * Active ou désactive le filtrage
      */
     public function filterValidation() {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('planchiste')) {
+            $this->_deny_access();
+            return;
         }
-        
+
         $button = $this->input->post('button');
 
         if ($button == $this->lang->line("gvv_str_select")) {
@@ -863,8 +861,8 @@ class Vols_planeur extends Gvv_Controller {
     public function vols_du_pilote($pilote) {
         // Regular users can view their own flights, planchiste can view any pilot's flights
         $mlogin = $this->dx_auth->get_username();
-        if ($pilote != $mlogin && !$this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+        if ($pilote != $mlogin && !$this->user_has_role('planchiste')) {
+            $this->_deny_access();
             return;
         }
         
@@ -1280,10 +1278,11 @@ class Vols_planeur extends Gvv_Controller {
      *            $premier
      */
     function export_per($year, $type = "month") {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('planchiste')) {
+            $this->_deny_access();
+            return;
         }
-        
+
         $this->load->helper('statistic');
         date_default_timezone_set('Europe/Paris');
 
@@ -1800,10 +1799,11 @@ class Vols_planeur extends Gvv_Controller {
      * compte le nombre de jours de vol par pilote pour la selection
      */
     function jours_de_vol() {
-        if (! $this->dx_auth->is_role('planchiste')) {
-            $this->dx_auth->deny_access();
+        if (!$this->user_has_role('planchiste')) {
+            $this->_deny_access();
+            return;
         }
-        
+
         $data ['title'] = 'Jours de vol sur machine club par personne';
         $data ['text'] = 'Attention, le filtrage est controlé sur la page vols planeur.';
         $data ['attrs'] = array ();

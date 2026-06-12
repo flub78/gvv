@@ -107,8 +107,8 @@ class Archived_documents extends Gvv_Controller {
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login, $this->session->userdata('section'));
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
-        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
-        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
+        $this->data['is_bureau'] = $this->user_has_role('bureau');
+        $this->data['is_strict_admin'] = $this->user_has_role('club-admin');
         $this->data['pilot_login'] = $pilot_login;
         $this->data['current_user'] = $pilot_login;
 
@@ -241,8 +241,8 @@ class Archived_documents extends Gvv_Controller {
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
         $this->data['has_modification_rights'] = true;
-        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
-        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
+        $this->data['is_bureau'] = $this->user_has_role('bureau');
+        $this->data['is_strict_admin'] = $this->user_has_role('club-admin');
         $this->data['current_user'] = $this->dx_auth->get_username();
 
         // Member email list for recipient autocomplete in the email modal
@@ -282,8 +282,8 @@ class Archived_documents extends Gvv_Controller {
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
-        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
-        $this->data['is_strict_admin'] = $this->dx_auth->is_admin();
+        $this->data['is_bureau'] = $this->user_has_role('bureau');
+        $this->data['is_strict_admin'] = $this->user_has_role('club-admin');
         $this->data['pilot_login'] = $pilot_login;
         $this->data['current_user'] = $this->dx_auth->get_username();
 
@@ -664,8 +664,8 @@ class Archived_documents extends Gvv_Controller {
         $this->data['versions'] = $this->gvv_model->get_version_history($id);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = $this->_is_admin();
-        $this->data['is_ca'] = $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
-        $this->data['is_bureau'] = $this->dx_auth->is_role('bureau', true, true);
+        $this->data['is_ca'] = $this->dx_auth->is_role('ca', true, true) || $this->user_has_role('club-admin');
+        $this->data['is_bureau'] = $this->user_has_role('bureau');
         $this->data['can_delete'] = $this->data['is_admin'] ||
             ($doc['pilot_login'] === $this->dx_auth->get_username() && (!isset($doc['validation_status']) || $doc['validation_status'] !== 'approved'));
         $this->data['can_access_file'] = $this->_can_access_private_file($is_private, $doc['pilot_login']);
@@ -1003,7 +1003,7 @@ class Archived_documents extends Gvv_Controller {
      */
     function toggle_alarm($id) {
         // Check bureau or admin access
-        if (!$this->dx_auth->is_role('bureau', true, true) && !$this->_is_admin()) {
+        if (!$this->user_has_role('bureau') && !$this->_is_admin()) {
             echo json_encode(array('success' => false, 'error' => 'Acces refuse'));
             return;
         }
@@ -1223,7 +1223,7 @@ class Archived_documents extends Gvv_Controller {
      * Check if current user is admin (CA or admin)
      */
     private function _is_admin() {
-        return $this->dx_auth->is_role('ca', true, true) || $this->dx_auth->is_admin();
+        return $this->user_has_role('ca') || $this->user_has_role('club-admin');
     }
 
     /**
@@ -1238,8 +1238,8 @@ class Archived_documents extends Gvv_Controller {
         if (!$is_private) {
             return true;
         }
-        return $this->dx_auth->is_admin()
-            || $this->dx_auth->is_role('bureau', true, true)
+        return $this->user_has_role('club-admin')
+            || $this->user_has_role('bureau')
             || (!empty($pilot_login) && $pilot_login === $this->dx_auth->get_username());
     }
 

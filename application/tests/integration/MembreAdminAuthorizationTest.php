@@ -41,14 +41,14 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         );
     }
 
-    public function testFormValidationLegacyCheckIsGatedByOldAuthFlag()
+    public function testFormValidationHasNoLegacyDxAuthCheck()
     {
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
-        $this->assertRegExp(
-            "/if \(!\\\$this->use_new_auth && !\\\$this->dx_auth->is_role\(\\\$this->modification_level, true, true\)\)/",
+        $this->assertNotRegExp(
+            "/use_new_auth.*dx_auth->is_role\(\\\$this->modification_level/",
             $source,
-            "formValidation() legacy DX_Auth check must be wrapped in !use_new_auth"
+            "formValidation() must not contain legacy DX_Auth gated by use_new_auth after migration"
         );
     }
 
@@ -57,9 +57,9 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
         $this->assertRegExp(
-            "/if \(\\\$this->use_new_auth && !\\\$this->user_has_role\('club-admin'\)\) \{\\s*unset\(\\\$data\['mnom'\], \\\$data\['mprenom'\]\);/",
+            "/if \(!\\\$this->user_has_role\('club-admin'\)\) \{\\s*unset\(\\\$data\['mnom'\], \\\$data\['mprenom'\]\);/",
             $source,
-            "pre_update() must strip mnom/mprenom when new auth is active and user is not club-admin"
+            "pre_update() must strip mnom/mprenom when user is not club-admin"
         );
     }
 
@@ -68,9 +68,9 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
         $this->assertRegExp(
-            "/if \(\\\$this->use_new_auth && !\\\$this->user_has_role\('ca'\)\) \{\\s*unset\(\\\$data\['mdaten'\]\);/",
+            "/if \(!\\\$this->user_has_role\('ca'\)\) \{\\s*unset\(\\\$data\['mdaten'\]\);/",
             $source,
-            "pre_update() must strip mdaten when new auth is active and user is not ca"
+            "pre_update() must strip mdaten when user is not ca"
         );
     }
 
@@ -79,9 +79,9 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
         $this->assertRegExp(
-            "/\\\$this->data\['has_admin_rights'\] = !\\\$this->use_new_auth \|\| \\\$this->user_has_role\('club-admin'\);/",
+            "/\\\$this->data\['has_admin_rights'\] = \\\$this->user_has_role\('club-admin'\);/",
             $source,
-            "form_static_element() must set has_admin_rights based on new auth and club-admin role"
+            "form_static_element() must set has_admin_rights based on club-admin role"
         );
     }
 

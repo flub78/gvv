@@ -62,11 +62,7 @@ class Vols_avion extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        // Authorization: Code-based (v2.0) - only for migrated users
-        // page/view accessible to all users, create/edit/delete requires planchiste (via modification_level)
-        if ($this->use_new_auth) {
-            $this->require_roles(['user']);
-        }
+        $this->require_roles(['user']);
 
         // remplit les selecteurs depuis la base
         $this->load->model('membres_model');
@@ -733,7 +729,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['filter_dc'] = 0;
         $this->data['filter_vi'] = 0;
         $this->data['filter_prive'] = 0;
-        $this->data['planchiste'] = $this->dx_auth->is_role('planchiste', true, true);
+        $this->data['planchiste'] = $this->user_has_role('planchiste');
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
         $selection = "YEAR(vadate) = \"$year\"";

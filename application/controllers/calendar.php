@@ -59,7 +59,7 @@ class Calendar extends MY_Controller {
             'actif' => "1"
         ));
 
-        $data['is_ca'] = $this->dx_auth->is_role('ca', true, true);
+        $data['is_ca'] = $this->user_has_role('ca');
         $data['mlogin'] = $this->membres_model->default_id();
         $data['event_id'] = "";
 
@@ -82,7 +82,7 @@ class Calendar extends MY_Controller {
      * CA members can modify any event, regular users can only modify their own
      */
     private function modification_allowed($event_id) {
-        if ($this->dx_auth->is_role('ca', true, true)) {
+        if ($this->user_has_role('ca')) {
             return true;
         }
 
@@ -106,7 +106,7 @@ class Calendar extends MY_Controller {
      * CA members can create events for anyone, regular users only for themselves
      */
     private function creation_allowed($mlogin) {
-        if ($this->dx_auth->is_role('ca', true, true)) {
+        if ($this->user_has_role('ca')) {
             return true;
         }
         return ($this->dx_auth->get_username() == $mlogin);

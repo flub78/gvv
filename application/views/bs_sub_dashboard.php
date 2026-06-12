@@ -216,7 +216,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
-        <?php if (!empty($use_new_auth)): ?>
+        <?php if (true): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-shield-alt text-danger"></i>

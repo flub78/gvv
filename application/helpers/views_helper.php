@@ -153,30 +153,8 @@ if (!function_exists('has_role')) {
             return $CI->user_has_role($role);
         }
 
-        if ($CI->session->userdata('use_new_auth')) {
-            $CI->load->library('Gvv_Authorization');
-            $user_id = $CI->dx_auth->get_user_id();
-
-            // Keep club-admin as a global super-role for menu visibility checks.
-            if ($role !== 'club-admin' && $CI->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
-                return true;
-            }
-
-            $raw_section_id = $CI->session->userdata('section');
-            $section_id = NULL;
-            if ($raw_section_id) {
-                $q = $CI->db->where('id', (int)$raw_section_id)->get('sections');
-                $section_id = ($q && $q->num_rows() > 0) ? (int)$raw_section_id : NULL;
-            }
-            return $CI->gvv_authorization->has_role($user_id, $role, $section_id);
-        }
-
-        // Legacy auth: admins bypass all role checks.
-        if ($CI->dx_auth->is_admin()) {
-            return true;
-        }
-
-        return $CI->dx_auth->is_role($role, true, true);
+        // unreachable (user_has_role is always available via Gvv_Controller)
+        return false;
     }
 }
 
@@ -203,21 +181,15 @@ if (!function_exists('has_global_role')) {
             }
         }
 
-        $uses_new_auth = $CI->session->userdata('use_new_auth')
-            || (method_exists($CI, 'uses_new_auth') && $CI->uses_new_auth());
-
-        if ($uses_new_auth && $CI->dx_auth->is_logged_in()) {
-            $CI->load->library('Gvv_Authorization');
-            $user_id = $CI->dx_auth->get_user_id();
-            if ($role !== 'club-admin' && $CI->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
-                return true;
-            }
-            // NULL section_id → check across all sections
-            return $CI->gvv_authorization->has_role($user_id, $role, NULL);
+        if (!$CI->dx_auth->is_logged_in()) {
+            return false;
         }
-
-        // Fallback to regular section-scoped check for legacy users
-        return has_role($role);
+        $CI->load->library('Gvv_Authorization');
+        $user_id = $CI->dx_auth->get_user_id();
+        if ($role !== 'club-admin' && $CI->gvv_authorization->has_role($user_id, 'club-admin', NULL)) {
+            return true;
+        }
+        return $CI->gvv_authorization->has_role($user_id, $role, NULL);
     }
 }
 

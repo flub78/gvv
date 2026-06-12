@@ -254,7 +254,7 @@ Log Helper Integration
 Membre Admin Authorization
  [x] Constructor requires club admin for delete
  [x] Constructor requires ca for create and form validation
- [x] Form validation legacy check is gated by old auth flag
+ [x] Form validation has no legacy dx auth check
  [x] Pre update strips name fields for non club admin
  [x] Pre update strips birthdate for non ca
  [x] Form static element sets has admin rights flag
