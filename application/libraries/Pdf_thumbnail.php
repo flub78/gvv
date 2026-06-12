@@ -138,8 +138,12 @@ class Pdf_thumbnail
 
         $temp_file = sys_get_temp_dir() . '/pdf_thumb_' . uniqid() . '.jpg';
 
-        // Use ImageMagick convert (preferred: respects /Rotate page attribute)
-        // Fall back to Ghostscript if convert is not available
+        // Try ImageMagick convert first (preferred: respects /Rotate page attribute).
+        // If it fails (e.g. due to ImageMagick PDF security policy on Debian/Ubuntu),
+        // fall back to Ghostscript.
+        $output = [];
+        $return_var = 1;
+
         if ($this->convert_path) {
             $cmd = sprintf(
                 '%s -density 72 -thumbnail %dx%d -background white -alpha remove -flatten %s[0] %s 2>&1',
@@ -149,7 +153,16 @@ class Pdf_thumbnail
                 escapeshellarg($pdf_path),
                 escapeshellarg($temp_file)
             );
-        } else {
+            exec($cmd, $output, $return_var);
+            if ($return_var !== 0 && file_exists($temp_file)) {
+                @unlink($temp_file);
+            }
+        }
+
+        // Fall back to Ghostscript if convert is unavailable or failed
+        if (($return_var !== 0 || !file_exists($temp_file)) && $this->gs_path) {
+            $output = [];
+            $return_var = 0;
             $cmd = sprintf(
                 '%s -dNOPAUSE -dBATCH -dSAFER -dQUIET ' .
                 '-dFirstPage=1 -dLastPage=1 ' .
@@ -162,11 +175,8 @@ class Pdf_thumbnail
                 escapeshellarg($temp_file),
                 escapeshellarg($pdf_path)
             );
+            exec($cmd, $output, $return_var);
         }
-
-        $output = [];
-        $return_var = 0;
-        exec($cmd, $output, $return_var);
 
         if ($return_var !== 0 || !file_exists($temp_file)) {
             if (file_exists($temp_file)) {
@@ -175,7 +185,7 @@ class Pdf_thumbnail
             return [
                 'success' => false,
                 'thumbnail_path' => null,
-                'error' => ($this->convert_path ? 'convert' : 'Ghostscript') . ' failed: ' . implode("\n", $output)
+                'error' => 'thumbnail generation failed (convert+gs): ' . implode("\n", $output)
             ];
         }
 
