@@ -143,6 +143,7 @@ class Pdf_thumbnail
         // fall back to Ghostscript.
         $output = [];
         $return_var = 1;
+        $used_gs = false;
 
         if ($this->convert_path) {
             $cmd = sprintf(
@@ -161,6 +162,7 @@ class Pdf_thumbnail
 
         // Fall back to Ghostscript if convert is unavailable or failed
         if (($return_var !== 0 || !file_exists($temp_file)) && $this->gs_path) {
+            $used_gs = true;
             $output = [];
             $return_var = 0;
             $cmd = sprintf(
@@ -187,6 +189,14 @@ class Pdf_thumbnail
                 'thumbnail_path' => null,
                 'error' => 'thumbnail generation failed (convert+gs): ' . implode("\n", $output)
             ];
+        }
+
+        // Ghostscript ignores /Rotate — apply it manually via GD
+        if ($used_gs) {
+            $rotation = $this->get_pdf_rotation($pdf_path);
+            if ($rotation !== 0) {
+                $this->rotate_jpeg($temp_file, $rotation);
+            }
         }
 
         // Resize to final thumbnail size using GD
@@ -251,6 +261,38 @@ class Pdf_thumbnail
         imagedestroy($thumb);
 
         return $result;
+    }
+
+    /**
+     * Read /Rotate value from a PDF file (scans first 64 KB of the file)
+     */
+    private function get_pdf_rotation($pdf_path)
+    {
+        $handle = @fopen($pdf_path, 'rb');
+        if (!$handle) return 0;
+        $content = fread($handle, 65536);
+        fclose($handle);
+        if (preg_match('/\/Rotate\s+(\d+)/', $content, $m)) {
+            return ((int)$m[1]) % 360;
+        }
+        return 0;
+    }
+
+    /**
+     * Rotate a JPEG file in-place using GD.
+     * $degrees is the clockwise rotation as stored in PDF /Rotate (90, 180, 270).
+     * imagerotate() is counter-clockwise, so we invert.
+     */
+    private function rotate_jpeg($image_path, $degrees)
+    {
+        if (!function_exists('imagecreatefromjpeg') || $degrees === 0) return;
+        $img = @imagecreatefromjpeg($image_path);
+        if (!$img) return;
+        $ccw = (360 - $degrees) % 360;
+        $rotated = imagerotate($img, $ccw, 0);
+        imagejpeg($rotated, $image_path, 85);
+        imagedestroy($img);
+        imagedestroy($rotated);
     }
 
     /**
