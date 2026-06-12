@@ -1345,6 +1345,116 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
+     * Rotate a PDF or image document (admin only)
+     * @param int    $id        Document ID
+     * @param string $direction 'cw' (clockwise) or 'ccw' (counter-clockwise)
+     */
+    function rotate($id, $direction) {
+        $current_user = $this->dx_auth->get_username();
+
+        if (!in_array($direction, array('cw', 'ccw'))) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Direction invalide</div>');
+            redirect('archived_documents/view/' . $id);
+            return;
+        }
+
+        $doc = $this->gvv_model->get_by_id('id', $id);
+        if (!$doc) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Document non trouvé</div>');
+            redirect('archived_documents/view/' . $id);
+            return;
+        }
+
+        // Access check: admin or document owner
+        if (!$this->_is_admin() && $doc['pilot_login'] !== $current_user) {
+            redirect('archived_documents/my_documents');
+            return;
+        }
+
+        // Resolve and validate file path (must stay within uploads/)
+        $file_path = $doc['file_path'];
+        $abs = (strpos($file_path, './') === 0) ? FCPATH . substr($file_path, 2) : $file_path;
+        $real = realpath($abs);
+        $uploads_real = realpath(FCPATH . 'uploads');
+        if ($real === false || $uploads_real === false || strpos($real, $uploads_real) !== 0) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Chemin de fichier invalide</div>');
+            redirect('archived_documents/view/' . $id);
+            return;
+        }
+
+        if (!file_exists($real)) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Fichier non trouvé</div>');
+            redirect('archived_documents/view/' . $id);
+            return;
+        }
+
+        $mime = (!empty($doc['mime_type']) && $doc['mime_type'] !== 'application/octet-stream')
+            ? $doc['mime_type']
+            : @mime_content_type($real);
+
+        $tmp_base = sys_get_temp_dir() . '/gvv_rotate_' . uniqid();
+
+        if ($mime === 'application/pdf') {
+            $qpdf = trim(@shell_exec('which qpdf 2>/dev/null'));
+            if (!$qpdf || !file_exists($qpdf)) {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('archived_documents_rotate_tool_missing') . ' (qpdf)</div>');
+                redirect('archived_documents/view/' . $id);
+                return;
+            }
+            $angle = ($direction === 'cw') ? '+90' : '-90';
+            $tmp_file = $tmp_base . '.pdf';
+            $cmd = escapeshellcmd($qpdf) . ' --rotate=' . $angle . ':1-z '
+                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0 || !file_exists($tmp_file)) {
+                @unlink($tmp_file);
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">'
+                    . $this->lang->line('archived_documents_rotate_error') . ': '
+                    . htmlspecialchars(implode(' ', $output)) . '</div>');
+                redirect('archived_documents/view/' . $id);
+                return;
+            }
+            rename($tmp_file, $real);
+            $this->load->library('pdf_thumbnail');
+            $this->pdf_thumbnail->delete_thumbnail($real);
+            $this->pdf_thumbnail->generate($real, true);
+
+        } elseif (strpos($mime, 'image/') === 0) {
+            $convert = trim(@shell_exec('which convert 2>/dev/null'));
+            if (!$convert || !file_exists($convert)) {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('archived_documents_rotate_tool_missing') . ' (convert)</div>');
+                redirect('archived_documents/view/' . $id);
+                return;
+            }
+            $degrees = ($direction === 'cw') ? '90' : '-90';
+            $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+            $tmp_file = $tmp_base . '.' . $ext;
+            $cmd = escapeshellcmd($convert) . ' -rotate ' . escapeshellarg($degrees) . ' '
+                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
+            exec($cmd, $output, $return_code);
+            if ($return_code !== 0 || !file_exists($tmp_file)) {
+                @unlink($tmp_file);
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">'
+                    . $this->lang->line('archived_documents_rotate_error') . ': '
+                    . htmlspecialchars(implode(' ', $output)) . '</div>');
+                redirect('archived_documents/view/' . $id);
+                return;
+            }
+            rename($tmp_file, $real);
+
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning">'
+                . $this->lang->line('archived_documents_rotate_not_supported') . '</div>');
+            redirect('archived_documents/view/' . $id);
+            return;
+        }
+
+        $this->session->set_flashdata('message', '<div class="alert alert-success">'
+            . $this->lang->line('archived_documents_rotate_success') . '</div>');
+        redirect('archived_documents/view/' . $id);
+    }
+
+    /**
      * Convertit un chemin absolu en chemin relatif (depuis la racine web)
      */
     private function _to_relative_path($abs_path) {

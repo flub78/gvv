@@ -626,7 +626,9 @@ if (! function_exists('attachment')) {
 
         $inner_html = "";
         if (in_array($ext, $image_exts)) {
-            $inner_html = '<img class="doc-thumbnail" src="' . $url . '"/>';
+            $mtime = @filemtime($abs);
+            $versioned_url = $url . ($mtime ? '?t=' . $mtime : '');
+            $inner_html = '<img class="doc-thumbnail" src="' . $versioned_url . '"/>';
         } elseif ($ext === 'pdf') {
             $thumb_path = get_pdf_thumbnail_path($abs);
             if ($thumb_path && file_exists($thumb_path)) {
@@ -634,6 +636,8 @@ if (! function_exists('attachment')) {
                 // absolute path issues with ltrim
                 $thumb_rel = dirname($filename) . '/thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
                 $thumb_url = rtrim(base_url(), '/') . '/' . ltrim($thumb_rel, './');
+                $thumb_mtime = @filemtime($thumb_path);
+                $thumb_url .= $thumb_mtime ? '?t=' . $thumb_mtime : '';
                 $inner_html = '<img class="doc-thumbnail" src="' . $thumb_url . '" title="' . htmlspecialchars($filename) . '"/>';
             } else {
                 $unique_id = 'pdf-thumb-' . md5($filename);

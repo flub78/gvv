@@ -17,6 +17,14 @@ $type_label = (!empty($type) && !empty($type['name'])) ? $type['name'] : $this->
 $show_type = ($type_label !== $this->lang->line('archived_documents_type_other'));
 $can_access_file = isset($can_access_file) ? $can_access_file : true;
 $is_private = !empty($type['is_private']);
+$mime_type = !empty($document['mime_type']) ? $document['mime_type'] : '';
+$ext = strtolower(pathinfo($document['original_filename'], PATHINFO_EXTENSION));
+$is_owner = isset($current_user) && $current_user === $document['pilot_login'];
+$is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
+    $mime_type === 'application/pdf' ||
+    strpos($mime_type, 'image/') === 0 ||
+    in_array($ext, array('pdf', 'jpg', 'jpeg', 'png', 'gif'))
+);
 ?>
 
 <div id="body" class="body container-fluid">
@@ -199,9 +207,25 @@ $is_private = !empty($type['is_private']);
                 <div class="mb-3 doc-preview-large">
                     <?= attachment($document['id'], $document['file_path'], $preview_url) ?>
                 </div>
+                <?php if ($is_rotatable): ?>
+                <a href="<?= site_url('archived_documents/rotate/' . $document['id'] . '/ccw') ?>"
+                   class="btn btn-outline-secondary"
+                   onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_ccw') ?> ?');"
+                   title="<?= $this->lang->line('archived_documents_rotate_ccw') ?>">
+                    <i class="fas fa-undo"></i>
+                </a>
+                <?php endif; ?>
                 <a href="<?= $preview_url ?>" class="btn btn-outline-primary">
                     <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('archived_documents_preview') ?>
                 </a>
+                <?php if ($is_rotatable): ?>
+                <a href="<?= site_url('archived_documents/rotate/' . $document['id'] . '/cw') ?>"
+                   class="btn btn-outline-secondary"
+                   onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_cw') ?> ?');"
+                   title="<?= $this->lang->line('archived_documents_rotate_cw') ?>">
+                    <i class="fas fa-redo"></i>
+                </a>
+                <?php endif; ?>
                 <?php else: ?>
                 <div class="text-muted py-4">
                     <i class="fas fa-lock fa-3x mb-3 d-block"></i>

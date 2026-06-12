@@ -123,5 +123,12 @@ $lang['archived_documents_legend_expired']      = "Verlopen";
 $lang['archived_documents_legend_expiring_soon']= "Vervalt binnenkort";
 $lang['archived_documents_legend_active']       = "Geldig";
 
+$lang['archived_documents_rotate_cw']           = 'Rechtsom draaien';
+$lang['archived_documents_rotate_ccw']          = 'Linksom draaien';
+$lang['archived_documents_rotate_success']      = 'Document succesvol gedraaid';
+$lang['archived_documents_rotate_error']        = 'Fout bij roteren';
+$lang['archived_documents_rotate_tool_missing'] = 'Rotatieprogramma ontbreekt op de server';
+$lang['archived_documents_rotate_not_supported']= 'Rotatie is alleen beschikbaar voor PDF- en afbeeldingsbestanden';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/dutch/archived_documents_lang.php */

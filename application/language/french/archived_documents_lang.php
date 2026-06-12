@@ -123,5 +123,12 @@ $lang['archived_documents_legend_expired']      = "Expiré";
 $lang['archived_documents_legend_expiring_soon']= "Expire bientôt";
 $lang['archived_documents_legend_active']       = "Valide";
 
+$lang['archived_documents_rotate_cw']           = 'Rotation horaire';
+$lang['archived_documents_rotate_ccw']          = 'Rotation anti-horaire';
+$lang['archived_documents_rotate_success']      = 'Document pivoté avec succès';
+$lang['archived_documents_rotate_error']        = 'Erreur lors de la rotation';
+$lang['archived_documents_rotate_tool_missing'] = 'Utilitaire de rotation manquant sur le serveur';
+$lang['archived_documents_rotate_not_supported']= 'La rotation n\'est disponible que pour les fichiers PDF et images';
+
 /* End of file archived_documents_lang.php */
 /* Location: ./application/language/french/archived_documents_lang.php */

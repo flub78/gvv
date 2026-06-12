@@ -16,48 +16,51 @@ class Pdf_thumbnail
     private $thumb_width = 150;
     private $thumb_height = 150;
     private $gs_path = null;
+    private $convert_path = null;
 
     public function __construct()
     {
         $this->CI = &get_instance();
-        $this->gs_path = $this->find_ghostscript();
+        $this->convert_path = $this->find_executable('convert', ['/usr/bin/convert', '/usr/local/bin/convert']);
+        $this->gs_path = $this->find_executable('gs', ['/usr/bin/gs', '/usr/local/bin/gs', '/opt/local/bin/gs']);
     }
 
     /**
-     * Find Ghostscript executable path
-     *
-     * @return string|null Path to gs or null if not found
+     * Find an executable by checking common paths then `which`
+     */
+    private function find_executable($name, $paths)
+    {
+        foreach ($paths as $path) {
+            if (file_exists($path) && is_executable($path)) {
+                return $path;
+            }
+        }
+        $result = @shell_exec('which ' . escapeshellarg($name) . ' 2>/dev/null');
+        if ($result) {
+            $path = trim($result);
+            if (file_exists($path) && is_executable($path)) {
+                return $path;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @deprecated Use find_executable() instead
      */
     private function find_ghostscript()
     {
-        $possible_paths = ['/usr/bin/gs', '/usr/local/bin/gs', '/opt/local/bin/gs'];
-
-        foreach ($possible_paths as $path) {
-            if (file_exists($path) && is_executable($path)) {
-                return $path;
-            }
-        }
-
-        // Try which command
-        $which_result = @shell_exec('which gs 2>/dev/null');
-        if ($which_result) {
-            $path = trim($which_result);
-            if (file_exists($path) && is_executable($path)) {
-                return $path;
-            }
-        }
-
-        return null;
+        return $this->find_executable('gs', ['/usr/bin/gs', '/usr/local/bin/gs', '/opt/local/bin/gs']);
     }
 
     /**
      * Check if PDF thumbnail generation is available
      *
-     * @return bool True if Ghostscript is available
+     * @return bool True if convert or Ghostscript is available
      */
     public function is_available()
     {
-        return $this->gs_path !== null;
+        return $this->convert_path !== null || $this->gs_path !== null;
     }
 
     /**
@@ -133,40 +136,46 @@ class Pdf_thumbnail
             ];
         }
 
-        // Generate thumbnail using Ghostscript
-        // -dFirstPage=1 -dLastPage=1 : Only process first page
-        // -sDEVICE=jpeg : Output as JPEG
-        // -dJPEGQ=85 : JPEG quality
-        // -r72 : Resolution (72 dpi is sufficient for thumbnails)
-        // -dPDFFitPage : Fit page to device size
         $temp_file = sys_get_temp_dir() . '/pdf_thumb_' . uniqid() . '.jpg';
 
-        $cmd = sprintf(
-            '%s -dNOPAUSE -dBATCH -dSAFER -dQUIET ' .
-            '-dFirstPage=1 -dLastPage=1 ' .
-            '-sDEVICE=jpeg -dJPEGQ=85 -r72 ' .
-            '-dPDFFitPage -g%dx%d ' .
-            '-sOutputFile=%s %s 2>&1',
-            escapeshellcmd($this->gs_path),
-            $this->thumb_width * 2,  // Generate at 2x for better quality
-            $this->thumb_height * 2,
-            escapeshellarg($temp_file),
-            escapeshellarg($pdf_path)
-        );
+        // Use ImageMagick convert (preferred: respects /Rotate page attribute)
+        // Fall back to Ghostscript if convert is not available
+        if ($this->convert_path) {
+            $cmd = sprintf(
+                '%s -density 72 -thumbnail %dx%d -background white -alpha remove -flatten %s[0] %s 2>&1',
+                escapeshellcmd($this->convert_path),
+                $this->thumb_width * 2,
+                $this->thumb_height * 2,
+                escapeshellarg($pdf_path),
+                escapeshellarg($temp_file)
+            );
+        } else {
+            $cmd = sprintf(
+                '%s -dNOPAUSE -dBATCH -dSAFER -dQUIET ' .
+                '-dFirstPage=1 -dLastPage=1 ' .
+                '-sDEVICE=jpeg -dJPEGQ=85 -r72 ' .
+                '-dPDFFitPage -g%dx%d ' .
+                '-sOutputFile=%s %s 2>&1',
+                escapeshellcmd($this->gs_path),
+                $this->thumb_width * 2,
+                $this->thumb_height * 2,
+                escapeshellarg($temp_file),
+                escapeshellarg($pdf_path)
+            );
+        }
 
         $output = [];
         $return_var = 0;
         exec($cmd, $output, $return_var);
 
         if ($return_var !== 0 || !file_exists($temp_file)) {
-            // Clean up temp file if it exists
             if (file_exists($temp_file)) {
                 @unlink($temp_file);
             }
             return [
                 'success' => false,
                 'thumbnail_path' => null,
-                'error' => 'Ghostscript failed: ' . implode("\n", $output)
+                'error' => ($this->convert_path ? 'convert' : 'Ghostscript') . ' failed: ' . implode("\n", $output)
             ];
         }
 
