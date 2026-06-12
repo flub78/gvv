@@ -133,12 +133,8 @@ $lang['membres_niveaux'] = array(
 	PILOTE_AVION => "Pilote avion",
 	VI_AVION => "Aut. Vi Avion",
 	REMORQUEUR => "Pilote Remorqueur",
-	FI_AVION => "FI avion",
-	FE_AVION => "FE avion",
 	PILOTE_PLANEUR => "Pilote Planeur",
-	VI_PLANEUR => "Aut. Vi Planeur",
-	ITP => "FI planeur",
-	IVV => "FE planeur"
+	VI_PLANEUR => "Aut. Vi Planeur"
 );
 
 # Individual sheet

@@ -104,8 +104,7 @@ class Formation_access {
             return $this->CI->gvv_authorization->has_role($user_id, 'instructeur', $section_id);
         }
 
-        // Legacy system: check mniveaux bit flags
-        // ITP (32768), IVV (65536), FI_AVION (131072), FE_AVION (262144)
+        // Legacy system: check mniveaux bit flags (instructeur = ITP|IVV|FI_AVION|FE_AVION)
         $instructeur_flags = 32768 + 65536 + 131072 + 262144;
 
         $this->CI->load->model('membres_model');

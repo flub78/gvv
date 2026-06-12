@@ -86,27 +86,6 @@ class Membres_model extends Common_Model {
          */
     }
 
-    /**
-     * Retourne un hash qui peut-être utilisé dans un menu drow-down
-     *
-     * @param
-     *            hash des valeurs
-     */
-    public function qualif_selector($key, $level) {
-        $allkeys = $this->select_columns($key . ',mniveaux', 0, 0, array (
-                'actif' => 1
-        ));
-        $result = array ();
-        $result [''] = '';
-        foreach ( $allkeys as $row ) {
-            $niveaux = $row ['mniveaux'];
-            if (($niveaux & ($level)) != 0) {
-                $value = $row [$key];
-                $result [$value] = $this->image($value);
-            }
-        }
-        return $result;
-    }
 
     /**
      * Retourne le tableau tableau utilisé pour l'affichage par page
@@ -605,6 +584,35 @@ class Membres_model extends Common_Model {
         $this->db->where('comptes.masked', 0);
         $this->db->where('urps.types_roles_id', 18); // 18 = treuillard
         $this->db->where('urps.section_id', $section_id);
+        $this->db->where('urps.revoked_at IS NULL');
+
+        if ($only_actif) {
+            $this->db->where('membres.actif', 1);
+        }
+
+        $this->db->order_by('membres.mnom', 'ASC');
+        $this->db->order_by('membres.mprenom', 'ASC');
+
+        $query = $this->db->get();
+
+        $selector = array('' => '');
+        if ($query && $query->num_rows() > 0) {
+            foreach ($query->result_array() as $row) {
+                $mlogin = $row['mlogin'];
+                $selector[$mlogin] = $this->image($mlogin);
+            }
+        }
+
+        return $selector;
+    }
+
+    public function inst_selector_all($only_actif = true) {
+        $this->db->distinct();
+        $this->db->select('membres.mlogin');
+        $this->db->from('membres');
+        $this->db->join('users', 'users.username = membres.mlogin', 'inner');
+        $this->db->join('user_roles_per_section urps', 'urps.user_id = users.id', 'inner');
+        $this->db->where('urps.types_roles_id', 11); // 11 = instructeur
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($only_actif) {

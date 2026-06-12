@@ -136,12 +136,8 @@ $lang['membres_niveaux'] = array(
 	PILOTE_AVION => "Motorpiloot",
 	VI_AVION => "Initiatievluchten motorvliegen",
 	REMORQUEUR => "Sleeppiloot",
-	FI_AVION => "FI Motorvliegen",
-	FE_AVION => "FE Motorvliegen",
 	PILOTE_PLANEUR => "Zweefvliegpiloot",
-	VI_PLANEUR => "Initiatievluchten",
-	ITP => "FI",
-	IVV => "FE"
+	VI_PLANEUR => "Initiatievluchten"
 );
 
 # Individual sheet

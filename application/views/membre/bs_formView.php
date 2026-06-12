@@ -463,19 +463,6 @@ echo heading("membre_title_airplane_training", 4);
             <label class="form-check-label" for="remorqueur"><?php echo $levels[REMORQUEUR]; ?></label>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', FI_AVION, $mniveau, 'class="form-check-input" id="fi_avion"'); ?>
-            <label class="form-check-label" for="fi_avion"><?php echo $levels[FI_AVION]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', FE_AVION, $mniveau, 'class="form-check-input" id="fe_avion"'); ?>
-            <label class="form-check-label" for="fe_avion"><?php echo $levels[FE_AVION]; ?></label>
-        </div>
-    </div>
-
     <!-- Instructeur responsable -->
     <div class="col-md-6">
         <label for="inst_airplane" class="form-label"><?php echo $this->lang->line("gvv_membres_field_inst_airplane"); ?></label>
@@ -529,19 +516,6 @@ echo heading("membre_title_glider_training", 4);
             <label class="form-check-label" for="vi_planeur"><?php echo $levels[VI_PLANEUR]; ?></label>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', ITP, $mniveau, 'class="form-check-input" id="itp"'); ?>
-            <label class="form-check-label" for="itp"><?php echo $levels[ITP]; ?></label>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="form-check">
-            <?php echo checkbox_array('mniveau', IVV, $mniveau, 'class="form-check-input" id="ivv"'); ?>
-            <label class="form-check-label" for="ivv"><?php echo $levels[IVV]; ?></label>
-        </div>
-    </div>
-
     <!-- Instructeur responsable -->
     <div class="col-md-6">
         <label for="inst_glider" class="form-label"><?php echo $this->lang->line("gvv_membres_field_inst_glider"); ?></label>

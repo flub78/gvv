@@ -1707,7 +1707,7 @@ class Admin extends CI_Controller {
 
         // Extract glider instructors
         $this->load->model('membres_model');
-        $glider_selector = $this->membres_model->qualif_selector('mlogin', ITP | IVV);
+        $glider_selector = $this->membres_model->inst_selector_all();
 
         foreach ($glider_selector as $login => $label) {
             if (empty($login)) {
@@ -1758,7 +1758,7 @@ class Admin extends CI_Controller {
         );
 
         // Extract airplane instructors (FI/FE) using same selector as vols_avion
-        $air_selector = $this->membres_model->qualif_selector('mlogin', FI_AVION | FE_AVION);
+        $air_selector = $this->membres_model->inst_selector_all();
 
         foreach ($air_selector as $login => $label) {
             if (empty($login)) {

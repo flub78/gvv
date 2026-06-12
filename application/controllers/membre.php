@@ -568,8 +568,9 @@ class Membre extends Gvv_Controller {
         } else {
             $this->data['compte_ticket'] = $this->data['mlogin'];
         }
-        $this->gvvmetadata->set_selector('inst_glider_selector', $this->membres_model->qualif_selector('mlogin', ITP | IVV));
-        $this->gvvmetadata->set_selector('inst_airplane_selector', $this->membres_model->qualif_selector('mlogin', FE_AVION | FI_AVION));
+        $inst_all = $this->membres_model->inst_selector_all();
+        $this->gvvmetadata->set_selector('inst_glider_selector', $inst_all);
+        $this->gvvmetadata->set_selector('inst_airplane_selector', $inst_all);
     }
 
     /**

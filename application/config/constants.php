@@ -102,10 +102,6 @@ define("PILOTE_PLANEUR", 2048);
 define("PILOTE_AVION", 4096);
 define("REMORQUEUR", 8192);
 define("PLIEUR", 16384);
-define("ITP", 32768);
-define("IVV", 65536);
-define("FI_AVION", 131072);
-define("FE_AVION", 262144);
 define("TREUILLARD", 524288);
 define("CHEF_DE_PISTE", 1048576);
 

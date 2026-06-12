@@ -131,12 +131,8 @@ $lang['membres_niveaux'] = array(
 	PILOTE_AVION => "Airplane pilot",
 	VI_AVION => "Scenic flight pilot",
 	REMORQUEUR => "Tow plane pilot",
-	FI_AVION => "FI",
-	FE_AVION => "FE",
 	PILOTE_PLANEUR => "Glider pilot",
-	VI_PLANEUR => "Glider scenic flight pilot",
-	ITP => "Glider FI",
-	IVV => "Glider FE"
+	VI_PLANEUR => "Glider scenic flight pilot"
 );
 
 # Individual sheet
