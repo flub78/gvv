@@ -30,7 +30,7 @@
  *
  * @see /doc/plans/2025_authorization_refactoring_plan.md
  */
-class Authorization extends CI_Controller {
+class Authorization extends MY_Controller {
     protected $controller = 'authorization';
 
     /**
@@ -73,6 +73,7 @@ class Authorization extends CI_Controller {
         $data['title'] = $this->lang->line('authorization_title');
 
         // Get system statistics
+        $data['new_system_enabled'] = $this->gvv_authorization->use_new_system();
         $data['total_roles'] = count($this->authorization_model->get_all_roles());
         $data['total_users'] = $this->db->count_all('users');
 
