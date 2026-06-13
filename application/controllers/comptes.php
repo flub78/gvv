@@ -309,6 +309,7 @@ class Comptes extends Gvv_Controller {
      * pour afficher la somme des créances et des dettes des comptes 400)
      */
     function page($codec = "", $codec2 = "", $detail = 0) {
+        $this->require_roles(['tresorier', 'bureau']);
         $this->push_return_url("comptes balance");
 
         $general = $this->session->userdata('general') && !$codec;
@@ -415,6 +416,7 @@ class Comptes extends Gvv_Controller {
      * @param string $codec2 Code compte fin (optionnel)
      */
     function balance($codec = "", $codec2 = "") {
+        $this->require_roles(['tresorier', 'bureau']);
         $this->push_return_url("comptes balance");
 
         $this->load_filter($this->filter_variables);

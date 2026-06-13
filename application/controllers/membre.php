@@ -62,7 +62,7 @@ class Membre extends Gvv_Controller {
         if ($method === 'delete') {
             $this->require_roles(['club-admin']);
         } elseif (in_array($method, ['create', 'formValidation'])) {
-            $this->require_roles(['ca']);
+            $this->require_roles(['ca', 'bureau', 'tresorier']);
         } else {
             $this->require_roles(['user']);
         }

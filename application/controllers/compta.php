@@ -607,6 +607,7 @@ class Compta extends Gvv_Controller {
      * Ecriture Générale
      */
     function create() {
+        $this->require_roles(['tresorier']);
         $this->ecriture("gvv_compta_title_line", [], []);
     }
 

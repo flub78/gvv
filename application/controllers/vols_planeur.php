@@ -223,7 +223,11 @@ class Vols_planeur extends Gvv_Controller {
     function create() {
         $is_planchiste = $this->user_has_role('planchiste');
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
-        if (! $is_planchiste && ! $is_auto_planchiste) {
+        $can_create = $is_planchiste || $is_auto_planchiste
+            || $this->user_has_role('ca')
+            || $this->user_has_role('bureau')
+            || $this->user_has_role('tresorier');
+        if (! $can_create) {
             $this->dx_auth->deny_access();
             return;
         }

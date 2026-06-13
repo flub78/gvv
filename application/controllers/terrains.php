@@ -38,7 +38,7 @@ class Terrains extends Gvv_Controller {
     function __construct() {
         parent::__construct();
 
-        $this->require_roles(['ca']);
+        $this->require_roles(['ca', 'bureau', 'tresorier']);
     }
 
 }
