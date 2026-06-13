@@ -715,23 +715,21 @@ class Vols_decouverte extends Gvv_Controller {
     function send_email_with_pdf($vd, $pdf_content, $id, $validity_date) {
         $this->load->library('email');
 
-        $sender = "info@aeroclub-abbeville.fr";
-        $sender = $this->configuration_model->get_param('vd.email.sender_email');
-
-        // Feature flag: use standard email configuration if enabled
-        $use_unified_cfg = (bool) $this->config->item('use_standard_email_configuration_for_vd');
+        $sender      = $this->configuration_model->get_param('vd.email.sender_email') ?: 'noreply@gvv.net';
+        $sender_name = $this->configuration_model->get_param('vd.email.sender_name')  ?: "Aéroclub d'Abbeville";
 
         // Prepare email library
         $this->email->clear(true); // also clears attachments
         $this->email->set_mailtype('html');
         $this->email->set_newline("\r\n");
         $this->email->set_crlf("\r\n");
-        gvv_debug('VD email: using standard email configuration (config/email.php)', 'email_config');
 
         // Set email parameters
-        $this->email->from($sender, 'Aéroclub d\'Abbeville');
+        $this->email->from($sender, $sender_name);
         $this->email->to($vd['beneficiaire_email']);
-        $this->email->bcc($sender);
+        if ($sender !== 'noreply@gvv.net') {
+            $this->email->bcc($sender);
+        }
 
         $this->email->subject('Votre bon de vol de découverte');
 
