@@ -266,3 +266,69 @@ Commence après la stabilisation des droits d'accès.
 - `application/models/membres_model.php` — Sélecteurs de pilotes qualifiés
 - `application/models/event_model.php` — Validités médicale et instructeur
 - `application/migrations/128_drop_mniveaux_macces.php` — Migration de suppression des colonnes
+
+---
+
+## 8. Annexe — Analyse fonctionnelle Events / Documents archivés / Qualifications
+
+### 8.1 Groupes demandés
+
+#### Groupe A — Ce qui existe dans `events` et ne sert pas (ou pas directement) à la gestion des qualifications
+
+Fonctionnalités existantes :
+- Historique d'événements liés aux vols (`evpid`, `evaid`, `events_types.en_vol`) pour rattacher un fait à un vol avion/planeur.
+- Événements de type performance/palmarès (origine historique du module), utilisés dans des vues statistiques annuelles.
+- Fonctions de reporting global (`getStats`, `formation`) qui mélangent plusieurs usages de la table et ne sont pas centrées qualification.
+
+Utilité dans un contexte qualification :
+- Faible à moyenne (utile pour traçabilité historique), mais ces usages ne constituent pas le coeur de la qualification réglementaire.
+
+#### Groupe B — Ce qui existe dans `events` et sert à la gestion des qualifications
+
+Fonctionnalités existantes :
+- Stockage des attributs métier d'une qualification : type (`etype`), date d'obtention (`edate`), date d'expiration (`date_expiration`), numéro/commentaire (`ecomment`).
+- Gestion des validités utilisées opérationnellement :
+  - `medical_validity_date()` pour la visite médicale, utilisée uniquement à l'affichage sur la page legacy alarmes.
+  - `inst_validity()` pour la qualification instructeur (ITP/ITV),  utilisée uniquement à l'affichage sur la page legacy alarmes.
+- Alimentation des formulaires pré-remplis (numéro, échéance, signature d'événement via `signature_path` ajouté en migration 125).
+- Édition simple d'un état courant par type via logique `replace` (un enregistrement courant par pilote/type). C'est un peu le mécanisme des versions de documents en utilisant la dernière version.
+
+Utilité dans un contexte qualification :
+- Forte : `events` porte aujourd'hui la source métier effective des dates de validité et de certains contrôles opérationnels.
+
+#### Groupe C — Ce qui existe dans `archived_documents` et ne sert pas (ou pas directement) à la gestion des qualifications
+
+Fonctionnalités existantes :
+- Archivage générique de documents administratifs de portée pilote/section/club (`scope`).
+- Workflows de validation documentaire (`pending`, `approved`, `rejected`) et motif de rejet. Note: si un pilote apporte la preuve d'une qualification ou d'un renouvellement on peut concevoir que cela doive être validé par un administrateur.
+- Versionnage et historique documentaire (chaînage `previous_version_id`, `is_current_version`).
+- Cas d'usage non qualification : briefings passagers, consignes de sécurité, documents club, attestations diverses.
+
+Utilité dans un contexte qualification :
+- Faible à moyenne : ces fonctions restent pertinentes pour la gouvernance documentaire, mais pas pour le calcul métier des qualifications.
+
+#### Groupe D — Ce qui existe dans `archived_documents` et sert à la gestion des qualifications
+
+Fonctionnalités existantes :
+- Types documentaires pilote pertinents pour qualification/preuve (`medical`, `license`, éventuellement `insurance`).
+- Gestion d'échéance documentaire (`valid_until`, `alert_days_before`) avec statuts (`active`, `expiring_soon`, `expired`, `missing`).
+- Contrôle de présence des pièces requises (`get_missing_documents`) pour un pilote.
+
+Utilité dans un contexte qualification :
+- Moyenne à forte, mais surtout comme couche de preuve/justificatif et de complétude, pas comme source métier principale des habilitations en vol.
+
+### 8.2 Diagramme des ensembles et intersections
+
+![Diagramme Venn events documents qualifications](diagrams/events-documents-qualifications-venn.svg)
+
+Le diagramme utilise trois couleurs de fond semi-transparentes (events, documents archives, qualifications). Les intersections affichent des couleurs additionnees pour representer l'appartenance a plusieurs ensembles.
+
+### 8.3 Lecture synthétique
+
+- Aujourd'hui, `events` couvre mieux la logique métier de qualification (dates, type, validité opérationnelle).
+- `archived_documents` couvre mieux la preuve, la conformité documentaire et le cycle de vie du fichier.
+- Le besoin principal n'est pas de supprimer l'un des deux ensembles, mais de fiabiliser leur intersection avec un flux unique côté utilisateur.
+- Fonctionnellement, la cible la plus robuste est :
+  - qualification portée par une entité métier claire,
+  - justificatif documentaire lié explicitement,
+  - contrôle de cohérence et alarmes unifiées.

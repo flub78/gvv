@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Diagramme d ensembles Events Documents Qualifications</title>
+  <desc id="desc">Trois ensembles en recouvrement avec annotations des zones exclusives et des intersections.</desc>
+
+  <rect x="0" y="0" width="1500" height="1080" fill="#ffffff"/>
+
+  <!-- Ensembles -->
+  <circle cx="560" cy="420" r="300" fill="#ff7043" fill-opacity="0.48" stroke="#c63f17" stroke-width="3"/>
+  <circle cx="840" cy="420" r="300" fill="#42a5f5" fill-opacity="0.48" stroke="#1e6fb5" stroke-width="3"/>
+  <circle cx="700" cy="662" r="300" fill="#66bb6a" fill-opacity="0.48" stroke="#368b3a" stroke-width="3"/>
+
+  <!-- Titres des ensembles -->
+  <text x="310" y="110" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#7a2c14">EVENTS</text>
+  <text x="905" y="110" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#124c80">DOCUMENTS ARCHIVES</text>
+  <text x="585" y="1025" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#1f5a23">QUALIFICATIONS</text>
+
+  <!-- Zone EVENTS seule -->
+  <text x="230" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Events hors qualification</text>
+  <text x="200" y="380" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Evenements lies aux vols</text>
+  <text x="200" y="407" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Statistiques annuelles</text>
+  <text x="200" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Historique/palmares</text>
+
+  <!-- Zone DOCUMENTS seule -->
+  <text x="1020" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Documents hors qualification</text>
+  <text x="1020" y="380" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Briefings passagers</text>
+  <text x="1020" y="407" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Consignes securite</text>
+  <text x="1020" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Documents club/section</text>
+
+  <!-- Zone QUALIFICATIONS seule -->
+  <text x="560" y="900" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Qualification cible unifiee</text>
+  <text x="540" y="930" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Entite metier explicite</text>
+  <text x="540" y="957" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Source de verite unique</text>
+
+  <!-- Intersection EVENTS + DOCUMENTS -->
+  <text x="610" y="250" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">EVENTS + DOCUMENTS</text>
+  <text x="560" y="280" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Meme information de validite</text>
+  <text x="560" y="307" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Risque de desynchronisation</text>
+
+  <!-- Intersection EVENTS + QUALIFICATIONS -->
+  <text x="380" y="620" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">EVENTS + QUALIFICATIONS</text>
+  <text x="340" y="650" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Validites medicales/instructeur</text>
+  <text x="340" y="677" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Donnees operationnelles</text>
+
+  <!-- Intersection DOCUMENTS + QUALIFICATIONS -->
+  <text x="800" y="620" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">DOCUMENTS + QUALIFICATIONS</text>
+  <text x="770" y="650" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Pieces justificatives medical/license</text>
+  <text x="770" y="677" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Controle des manquants</text>
+
+  <!-- Intersection triple -->
+  <circle cx="700" cy="528" r="88" fill="#ffffff" fill-opacity="0.66" stroke="#616161" stroke-width="1.5"/>
+  <text x="604" y="516" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#111111" font-weight="700">TRIPLE INTERSECTION</text>
+  <text x="620" y="542" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#111111">Workflow qualif + preuve</text>
+  <text x="612" y="567" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#111111">Mise a jour atomique</text>
+
+  <!-- Legende -->
+  <rect x="70" y="976" width="1360" height="74" rx="8" fill="#fafafa" stroke="#cccccc"/>
+  <text x="90" y="1006" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111">Legende : la transparence additionne visuellement les couleurs dans les recouvrements pour montrer l appartenance multiple.</text>
+  <text x="90" y="1032" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111">Orange = Events, Bleu = Documents archives, Vert = Qualifications.</text>
+</svg>
