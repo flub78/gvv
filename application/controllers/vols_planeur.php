@@ -1122,10 +1122,6 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de statistiques
      */
     public function statistic($force_regeneration = false) {
-        if (! $this->user_has_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-        
         $this->load->helper('Statistic');
 
         $year = $this->session->userdata('year');
@@ -1209,10 +1205,6 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page de cumuls annuel
      */
     public function cumuls() {
-        if (! $this->user_has_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-        
         $first_flight = $this->gvv_model->latest_flight(array (), "asc");
         if (count($first_flight) < 1) {
             $data ['title'] = $this->lang->line("gvv_error");
@@ -1234,10 +1226,6 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page historique
      */
     public function histo() {
-        if (! $this->user_has_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-        
         $data = array ();
         $data ['machines'] = $this->gvv_model->histo(true);
         $data ['controller'] = $this->controller;
@@ -1253,10 +1241,6 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche la page Age moyen du parc
      */
     public function age() {
-        if (! $this->user_has_role('planchiste')) {
-            $this->dx_auth->deny_access();
-        }
-
         // $tmp = $this->gvv_model->age();
         // var_dump($tmp); exit;
         $data = array ();
