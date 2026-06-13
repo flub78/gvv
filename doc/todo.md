@@ -23,7 +23,15 @@
   
 * [] Rappel des réservations par email pour le pilote et l'instructeur.
 
-* [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré, ou si le pilote n'a pas volé dans le système depuis 120 jours. Ou si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle 
+* [] Page archived_documents/view/154 il suffit modifier le lien pour afficher les documents archivés d'un autre pilote. Faire une étude globale sur les vulnérabilités.
+
+* [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
+
+* [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
+
+* [] Ajouter un mode remise en vol. Le supplément DC n'est pas facturé.
+
+* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
 
 * [] Insérer la liste des documents d'un pilote dans sa carte membre.
 

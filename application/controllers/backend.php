@@ -38,9 +38,7 @@ class Backend extends GVV_Controller {
 
         $this->load->model('dx_auth/roles', 'roles');
 
-        // Protect entire controller so only admin,
-        // and users that have granted role in permissions table can access it.
-        $this->dx_auth->check_uri_permissions();
+        $this->require_roles(['club-admin']);
 
         $this->lang->load('auth');
     }
