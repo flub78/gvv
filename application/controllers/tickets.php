@@ -122,6 +122,7 @@ class Tickets extends Gvv_Controller {
      * Affiche le solde de tickets de tous les utilisateurs
      */
     function solde($mode = "") {
+        $this->require_roles(['ca', 'bureau', 'tresorier']);
         $selection = array ();
         $select = $this->gvv_model->select_totaux($selection, "pilote, type");
 

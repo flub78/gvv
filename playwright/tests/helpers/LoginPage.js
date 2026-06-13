@@ -53,18 +53,12 @@ class LoginPage extends BasePage {
     const sectionSelect = this.page.locator('select[name="section"]');
     const hasSectionSelector = await sectionSelect.count() > 0;
 
-    if (hasSectionSelector && section === null) {
-      // Auto-detect: use the first available section option
-      const firstOption = await sectionSelect.locator('option').first().getAttribute('value');
-      if (firstOption) {
-        section = firstOption;
-        console.log(`Auto-selected first available section: ${section}`);
-      }
-    }
-
-    // Select section if provided or auto-detected
-    if (section && section !== '' && hasSectionSelector) {
-      await this.select('section', section);
+    // Select section only if explicitly provided — when null, leave the HTML default
+    // (which is remembered_section=1/Planeur) so _check_login_permission() can auto-assign
+    // the correct section for users whose roles may not cover the first dropdown option.
+    if (section !== null && section !== undefined && section !== '' && hasSectionSelector) {
+      await this.select('section', String(section));
+      console.log(`Selected section: ${section}`);
       await this.screenshot('after_select_section');
     }
     

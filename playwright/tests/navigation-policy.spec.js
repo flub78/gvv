@@ -47,6 +47,15 @@ async function checkNoPhpErrors(page) {
  * Fonctionne avec les selects enrichis (Choices.js / Select2).
  * skip=0 → première option non-vide, skip=1 → deuxième, etc.
  */
+/**
+ * Fill a date input and dismiss the datepicker calendar if it opens.
+ */
+async function fillDate(page, name, value) {
+    await page.fill(`input[name="${name}"]`, value);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+}
+
 async function selectNthOption(page, name, skip = 0) {
     return page.evaluate(([fieldName, skipCount]) => {
         const sel = document.querySelector(`select[name="${fieldName}"]`);
@@ -73,6 +82,15 @@ async function selectNthOption(page, name, skip = 0) {
 test('Vol avion créé depuis le dashboard : retour au dashboard', async ({ page }) => {
     await login(page, 'testplanchiste');
 
+    // Date+heure unique par seconde pour éviter les conflits entre exécutions successives
+    const seed = Math.floor(Date.now() / 1000);
+    const testDay   = String((seed % 28) + 1).padStart(2, '0');   // 01-28
+    const testMonth = String((seed % 12) + 1).padStart(2, '0');   // 01-12
+    const testDate  = `${testDay}/${testMonth}/2035`;
+    const testHour  = String(seed % 23).padStart(2, '0');         // 00-22
+    const testHdeb  = `${testHour}:00`;
+    const testHfin  = `${String((seed % 23) + 1).padStart(2, '0')}:00`;
+
     // Visiter le dashboard — doit pousser l'URL dans la pile (après correctif)
     await page.goto(WELCOME_URL);
     await page.waitForLoadState('networkidle');
@@ -84,12 +102,12 @@ test('Vol avion créé depuis le dashboard : retour au dashboard', async ({ page
     await page.waitForLoadState('networkidle');
     await checkNoPhpErrors(page);
 
-    // Remplir les champs requis
-    await page.fill('input[name="vadate"]', '19/04/2026');
+    // Remplir les champs requis — date+heure unique par seconde pour éviter les conflits
+    await fillDate(page, 'vadate', testDate);
     await selectNthOption(page, 'vamacid', 0);
     await selectNthOption(page, 'vapilid', 0);
-    await page.fill('input[name="vahdeb"]', '10:00');
-    await page.fill('input[name="vahfin"]', '11:00');
+    await page.fill('input[name="vahdeb"]', testHdeb);
+    await page.fill('input[name="vahfin"]', testHfin);
 
     // Fixer horamètre début < fin pour que la durée soit calculée
     await page.evaluate(() => {
@@ -134,11 +152,10 @@ test('Écriture comptable créée depuis le dashboard : retour au dashboard', as
     await checkNoPhpErrors(page);
 
     // Remplir le formulaire (champ date = date_op, libellé = description)
-    await page.fill('input[name="date_op"]', '19/04/2026');
+    await fillDate(page, 'date_op', '19/04/2026');
     await selectNthOption(page, 'compte1', 0);
     await selectNthOption(page, 'compte2', 1);
     await page.fill('input[name="montant"]', '1.00');
-    await page.fill('input[name="description"]', `NAV_TEST_${Date.now()}`);
 
     // Soumettre avec "Créer"
     await page.click('#validate');
@@ -172,11 +189,10 @@ test('Écriture créée depuis le grand journal : retour au grand journal', asyn
     await page.waitForLoadState('networkidle');
     await checkNoPhpErrors(page);
 
-    await page.fill('input[name="date_op"]', '19/04/2026');
+    await fillDate(page, 'date_op', '19/04/2026');
     await selectNthOption(page, 'compte1', 0);
     await selectNthOption(page, 'compte2', 1);
     await page.fill('input[name="montant"]', '1.00');
-    await page.fill('input[name="description"]', `NAV_TEST_${Date.now()}`);
 
     await page.click('#validate');
     await page.waitForLoadState('networkidle');
@@ -247,7 +263,6 @@ test('Erreur de validation puis succès : retour à la page d\'origine', async (
     // Sélectionner les comptes mais laisser le montant vide → erreur attendue
     await selectNthOption(page, 'compte1', 0);
     await selectNthOption(page, 'compte2', 1);
-    await page.fill('input[name="description"]', `NAV_TEST_${Date.now()}`);
     // montant vide intentionnellement
 
     await page.click('#validate');
@@ -259,7 +274,7 @@ test('Erreur de validation puis succès : retour à la page d\'origine', async (
     expect(bodyAfterError).toMatch(/requis|required|obligatoire|champ|field/i);
 
     // Corriger et soumettre
-    await page.fill('input[name="date_op"]', '19/04/2026');
+    await fillDate(page, 'date_op', '19/04/2026');
     await page.fill('input[name="montant"]', '1.00');
 
     await page.click('#validate');
