@@ -13,7 +13,7 @@ const { test, expect } = require('@playwright/test');
 
 const LOGIN_URL       = '/index.php/auth/login';
 const FUSION_URL      = '/index.php/membres_fusion';
-const DEV_USER        = { username: 'fpeignot',      password: 'password' };
+const DEV_USER        = { username: 'testadmin',     password: 'password' };
 const NON_DEV_USER    = { username: 'abraracourcix',  password: 'password' };
 
 async function loginAs(page, user) {
