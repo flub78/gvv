@@ -14,46 +14,48 @@
   <text x="905" y="110" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#124c80">DOCUMENTS ARCHIVES</text>
   <text x="585" y="1025" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#1f5a23">QUALIFICATIONS</text>
 
-  <!-- Zone EVENTS seule -->
-  <text x="230" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Events hors qualification</text>
+  <!-- Zone EVENTS seule (Groupe A) -->
+  <text x="200" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Groupe A — Events hors qualification</text>
   <text x="200" y="380" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Evenements lies aux vols</text>
   <text x="200" y="407" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Statistiques annuelles</text>
-  <text x="200" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Historique/palmares</text>
+  <text x="200" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Historique / palmares</text>
 
-  <!-- Zone DOCUMENTS seule -->
-  <text x="1020" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Documents hors qualification</text>
+  <!-- Zone DOCUMENTS seule (Groupe C) -->
+  <text x="1010" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Groupe C — Documents hors qualification</text>
   <text x="1020" y="380" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Briefings passagers</text>
   <text x="1020" y="407" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Consignes securite</text>
-  <text x="1020" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Documents club/section</text>
+  <text x="1020" y="434" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Documents club / section</text>
 
   <!-- Zone QUALIFICATIONS seule -->
   <text x="560" y="900" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Qualification cible unifiee</text>
   <text x="540" y="930" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Entite metier explicite</text>
   <text x="540" y="957" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Source de verite unique</text>
 
-  <!-- Intersection EVENTS + DOCUMENTS -->
-  <text x="610" y="250" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">EVENTS + DOCUMENTS</text>
-  <text x="560" y="280" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Meme information de validite</text>
-  <text x="560" y="307" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Risque de desynchronisation</text>
+  <!-- Intersection EVENTS + DOCUMENTS seule (hors qualifications) -->
+  <text x="590" y="245" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Events + Documents</text>
+  <text x="566" y="273" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Risque de desynchronisation</text>
+  <text x="566" y="298" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Sans couche d abstraction</text>
 
-  <!-- Intersection EVENTS + QUALIFICATIONS -->
-  <text x="380" y="620" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">EVENTS + QUALIFICATIONS</text>
-  <text x="340" y="650" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Validites medicales/instructeur</text>
-  <text x="340" y="677" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Donnees operationnelles</text>
+  <!-- Intersection EVENTS + QUALIFICATIONS seule (Groupe B exclusif) -->
+  <text x="290" y="618" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Groupe B — Events + Qualif.</text>
+  <text x="285" y="646" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Pre-remplissage formulaires</text>
+  <text x="285" y="672" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#555555" font-style="italic">  (detail d implementation)</text>
 
-  <!-- Intersection DOCUMENTS + QUALIFICATIONS -->
-  <text x="800" y="620" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">DOCUMENTS + QUALIFICATIONS</text>
-  <text x="770" y="650" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Pieces justificatives medical/license</text>
-  <text x="770" y="677" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Controle des manquants</text>
+  <!-- Intersection DOCUMENTS + QUALIFICATIONS seule (Groupe D exclusif) -->
+  <text x="862" y="618" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1a1a1a" font-weight="700">Groupe D — Documents + Qualif.</text>
+  <text x="862" y="646" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Attachement de fichiers</text>
+  <text x="862" y="672" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Photocopies, docs electroniques</text>
+  <text x="862" y="698" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1a1a1a">- Validation / workflow</text>
 
-  <!-- Intersection triple -->
-  <circle cx="700" cy="528" r="88" fill="#ffffff" fill-opacity="0.66" stroke="#616161" stroke-width="1.5"/>
-  <text x="604" y="516" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#111111" font-weight="700">TRIPLE INTERSECTION</text>
-  <text x="620" y="542" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#111111">Workflow qualif + preuve</text>
-  <text x="612" y="567" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#111111">Mise a jour atomique</text>
+  <!-- Triple intersection — Fonctionnalites communes -->
+  <circle cx="700" cy="522" r="100" fill="#ffffff" fill-opacity="0.72" stroke="#616161" stroke-width="1.5"/>
+  <text x="608" y="490" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111" font-weight="700">Fonctionnalites communes</text>
+  <text x="615" y="516" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#111111">Stockage date / validite / numero</text>
+  <text x="615" y="540" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#111111">Verification expiration</text>
+  <text x="615" y="564" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#111111">Gestion de version / derniere version</text>
 
   <!-- Legende -->
   <rect x="70" y="976" width="1360" height="74" rx="8" fill="#fafafa" stroke="#cccccc"/>
   <text x="90" y="1006" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111">Legende : la transparence additionne visuellement les couleurs dans les recouvrements pour montrer l appartenance multiple.</text>
-  <text x="90" y="1032" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111">Orange = Events, Bleu = Documents archives, Vert = Qualifications.</text>
+  <text x="90" y="1032" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#111111">Orange = Events (Groupes A+B), Bleu = Documents archives (Groupes C+D), Vert = Qualifications.</text>
 </svg>

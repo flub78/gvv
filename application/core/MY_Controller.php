@@ -184,7 +184,7 @@ class MY_Controller extends CI_Controller
      */
     protected function _deny_access($redirect_to = '')
     {
-        $this->load->view('authorization/access_denied');
+        $this->dx_auth->deny_access();
     }
 
     /**
@@ -196,11 +196,17 @@ class MY_Controller extends CI_Controller
     protected function _has_role($role_name)
     {
         $section_id = $this->session->userdata('section');
-        return $this->gvv_authorization->user_has_role(
+        return $this->gvv_authorization->has_role(
             $this->user_id,
             $role_name,
             $section_id
         );
+    }
+
+    public function user_has_role($role)
+    {
+        if ($this->dx_auth->is_admin()) return true;
+        return $this->_has_role($role);
     }
 
     /**

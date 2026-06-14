@@ -26,7 +26,7 @@
  *   - npx playwright test tests/migration-test.spec.js
  *
  */
-class Admin extends CI_Controller {
+class Admin extends MY_Controller {
     protected $controller = "admin";
     protected $unit_test = FALSE;
 

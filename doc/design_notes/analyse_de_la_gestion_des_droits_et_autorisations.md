@@ -278,7 +278,7 @@ Commence après la stabilisation des droits d'accès.
 Fonctionnalités existantes :
 - Historique d'événements liés aux vols (`evpid`, `evaid`, `events_types.en_vol`) pour rattacher un fait à un vol avion/planeur.
 - Événements de type performance/palmarès (origine historique du module), utilisés dans des vues statistiques annuelles.
-- Fonctions de reporting global (`getStats`, `formation`) qui mélangent plusieurs usages de la table et ne sont pas centrées qualification.
+- Fonctions de reporting global (`getStats`, `formation`) qui mélangent plusieurs usages de la table et ne sont pas centrées qualification. Ces fonctions sont utilisées pour l'affichage de statistiques sur le dashboard et dans les exports CSV.
 
 Utilité dans un contexte qualification :
 - Faible à moyenne (utile pour traçabilité historique), mais ces usages ne constituent pas le coeur de la qualification réglementaire.
@@ -300,22 +300,22 @@ Utilité dans un contexte qualification :
 
 Fonctionnalités existantes :
 - Archivage générique de documents administratifs de portée pilote/section/club (`scope`).
-- Workflows de validation documentaire (`pending`, `approved`, `rejected`) et motif de rejet. Note: si un pilote apporte la preuve d'une qualification ou d'un renouvellement on peut concevoir que cela doive être validé par un administrateur.
-- Versionnage et historique documentaire (chaînage `previous_version_id`, `is_current_version`).
 - Cas d'usage non qualification : briefings passagers, consignes de sécurité, documents club, attestations diverses.
 
 Utilité dans un contexte qualification :
 - Faible à moyenne : ces fonctions restent pertinentes pour la gouvernance documentaire, mais pas pour le calcul métier des qualifications.
 
-#### Groupe D — Ce qui existe dans `archived_documents` et sert à la gestion des qualifications
+#### Groupe D — Ce qui existe dans `archived_documents` et peut servir à la gestion des qualifications
 
 Fonctionnalités existantes :
 - Types documentaires pilote pertinents pour qualification/preuve (`medical`, `license`, éventuellement `insurance`).
 - Gestion d'échéance documentaire (`valid_until`, `alert_days_before`) avec statuts (`active`, `expiring_soon`, `expired`, `missing`).
 - Contrôle de présence des pièces requises (`get_missing_documents`) pour un pilote.
+- Workflows de validation documentaire (`pending`, `approved`, `rejected`) et motif de rejet. Note: si un pilote apporte la preuve d'une qualification ou d'un renouvellement on peut concevoir que cela doive être validé par un administrateur.
+- Versionnage et historique documentaire (chaînage `previous_version_id`, `is_current_version`).
 
 Utilité dans un contexte qualification :
-- Moyenne à forte, mais surtout comme couche de preuve/justificatif et de complétude, pas comme source métier principale des habilitations en vol.
+- Moyenne à forte, mais surtout comme couche de preuve/justificatif et de complétude.
 
 ### 8.2 Diagramme des ensembles et intersections
 
@@ -332,3 +332,15 @@ Le diagramme utilise trois couleurs de fond semi-transparentes (events, document
   - qualification portée par une entité métier claire,
   - justificatif documentaire lié explicitement,
   - contrôle de cohérence et alarmes unifiées.
+
+### 8.4 Conclusion
+
+`events` et `archived_documents` partagent un noyau commun de fonctionnalités utilisables pour la gestion des qualifications :
+
+- **Stockage des attributs métier** : date d'obtention, date de validité, numéro ou description.
+- **Contrôle des échéances** : détection de l'expiration et de l'expiration proche.
+- **Gestion de version** : mécanisme de remplacement de l'enregistrement courant (`events`) ou chaînage historique explicite (`archived_documents`).
+
+`events` alimente également le pré-remplissage des formulaires pilotes, mais ce mécanisme s'appuie sur la couche d'abstraction de gestion des qualifications ; c'est un détail d'implémentation, pas une fonctionnalité propre au module.
+
+La différence structurante est l'attachement de fichiers : `archived_documents` est le seul module qui supporte le stockage de pièces jointes (photocopies, documents électroniques). C'est sa valeur ajoutée distinctive dans le contexte qualification.

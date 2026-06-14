@@ -44,11 +44,6 @@ class Presences extends MY_Controller {
         ]);
     }
 
-    protected function user_has_role($role) {
-        if ($this->dx_auth->is_admin()) return true;
-        return $this->_has_role($role);
-    }
-
     /**
      * Display the FullCalendar v6 interface for presences
      */
