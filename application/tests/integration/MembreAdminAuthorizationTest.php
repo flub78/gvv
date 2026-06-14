@@ -35,9 +35,9 @@ class MembreAdminAuthorizationTest extends TransactionalTestCase
         $source = file_get_contents(APPPATH . 'controllers/membre.php');
 
         $this->assertRegExp(
-            "/elseif \(in_array\(\\\$method, \['create', 'formValidation'\]\)\) \{\\s*\\\$this->require_roles\(\['ca'\]\);/",
+            "/elseif \(in_array\(\\\$method, \['create', 'formValidation'\]\)\) \{\\s*\\\$this->require_roles\(\['ca', 'bureau', 'tresorier'\]\);/",
             $source,
-            "Constructor must require ca for create and formValidation in new auth"
+            "Constructor must require ca, bureau or tresorier for create and formValidation in new auth"
         );
     }
 
