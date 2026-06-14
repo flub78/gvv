@@ -88,8 +88,6 @@ $lang['gvv_membres_field_validation_date'] = "Validatiedatum";
 
 $lang['gvv_membres_field_mlieun'] = "Geboorteplaats";
 $lang['gvv_membres_field_msexe'] = "Geslacht";
-$lang['gvv_membres_field_mniveaux'] = "Kwalificaties";
-$lang['gvv_membres_field_macces'] = "Verantwoordelijkheden";
 $lang['gvv_membres_field_club'] = "lub";
 $lang['gvv_membres_field_ext'] = "Buitenkant";
 $lang['gvv_membres_field_username'] = "Naam";

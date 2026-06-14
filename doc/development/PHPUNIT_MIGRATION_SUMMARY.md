@@ -80,7 +80,6 @@ public function testAddFirstRowFunction()
 ```
 
 **Coverage:**
-- ⚠️ `testCheckboxArrayFunction()` (form helper dependency)
 - ⚠️ `testInputFieldFunction()` (type error in helper)
 - ✅ `testDropdownFieldFunction()`
 - ✅ `testAddFirstRowFunction()`

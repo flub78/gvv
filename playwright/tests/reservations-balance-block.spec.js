@@ -96,7 +96,7 @@ test.describe.serial('Blocage solde insuffisant — réservation 1h', () => {
                 end_datetime: dateStr + ' 11:00:00',
                 instructor_member_id: '',
                 notes: 'PW test solde 1h',
-                status: 'reservation',
+                status: 'vol_local',
             }
         });
 
@@ -146,7 +146,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
                 end_datetime: dateStr + ' 10:30:00',
                 instructor_member_id: '',
                 notes: 'PW test multi-appareil 1re',
-                status: 'reservation',
+                status: 'vol_local',
             }
         });
 
@@ -175,7 +175,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
                 end_datetime: dateStr + ' 11:30:00',
                 instructor_member_id: '',
                 notes: 'PW test multi-appareil 2e',
-                status: 'reservation',
+                status: 'vol_local',
             }
         });
 

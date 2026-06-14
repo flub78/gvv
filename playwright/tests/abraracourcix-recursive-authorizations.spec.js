@@ -41,6 +41,8 @@ const SKIP_PATTERNS = [
     /\/save/,
     /\/export/,
     /\/pdf\b/,
+    /\/pdf_month\b/,          // PDF export (planchiste only, but stats page is open to all)
+    /\/pdf_machine\b/,        // PDF export (planchiste only, but stats page is open to all)
     /\/csv\b/,
     /\/csv_/,                 // CSV download endpoints (csv_month, csv_machine, etc.)
     /\/print\b/,

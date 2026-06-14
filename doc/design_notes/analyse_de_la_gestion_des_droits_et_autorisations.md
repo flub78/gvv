@@ -48,7 +48,7 @@ Ce système associe explicitement un utilisateur à un rôle dans une section do
 - `Gvv_Controller::require_roles()` / `allow_roles()` pour la protection des contrôleurs migrés.
 - `welcome.php` affiche des éléments de dashboard conditionnellement selon `has_role('instructeur')`.
 
-**État de la migration :** le champ `use_new_auth` (par session) détermine quel chemin d'autorisation est emprunté. Environ la moitié des contrôleurs a été migrée (phase M2). Les contrôleurs restants (tickets, planeur, vols_avion, achats, comptes, avion, reservations…) utilisent encore le mécanisme legacy `dx_auth`.
+**État de la migration :** le flag `use_new_auth` est supprimé — tous les contrôleurs passent par `Gvv_Authorization`. Il subsiste 4-5 appels `dx_auth->is_role()` / `is_admin()` isolés à migrer vers `user_has_role()` (`archived_documents.php`, `formation_types_seances.php`, `login_as.php`, `vols_avion.php`). Les nombreux appels `dx_auth->get_username()` et `dx_auth->is_logged_in()` sont des usages d'identification de session, non des résidus d'autorisation.
 
 **Caractéristiques :**
 - Non hiérarchique : chaque rôle est indépendant.
@@ -134,27 +134,19 @@ Un design d'`AlarmAggregator` est documenté mais pas encore implémenté.
 
 ## 3. Problèmes et incohérences restants
 
-### 3.1 Résidus `mniveaux` dans `program.php`
 
-Les filtres de destinataires d'e-mail dans `application/config/program.php` contiennent encore des requêtes SQL brutes référençant la colonne `mniveaux` :
+### 3.1 Résidus `dx_auth->is_role()` dans quelques contrôleurs
 
-```php
-$config['listes_de_requetes'] = array(
-  '2' => "(mniveaux & ($instructeurs)) != 0",
-  '3' => "(mniveaux & ($ca)) != 0",
-  '4' => "(mniveaux & ($ca + $instructeurs)) != 0",
-);
-```
+Le flag `use_new_auth` est supprimé et la migration vers `Gvv_Authorization` est essentiellement achevée. Il reste 4-5 appels `dx_auth->is_role()` / `is_admin()` à remplacer par `user_has_role()` :
 
-La colonne ayant été supprimée par la migration 128, ces filtres provoqueront une erreur SQL à l'exécution. Ils doivent être réécrits pour interroger `user_roles_per_section`.
+- `archived_documents.php` — `dx_auth->is_role('ca', true, true)`
+- `formation_types_seances.php` — `dx_auth->is_admin()`
+- `login_as.php` — `dx_auth->is_admin()`
+- `vols_avion.php` — `dx_auth->is_admin()`
 
-Les constantes correspondantes dans `constants.php` (PRESIDENT, IVV, MECANO, etc.) sont maintenant du code mort — elles peuvent être supprimées une fois `program.php` corrigé.
+Ces appels sont isolés et sans impact sur le comportement global, mais introduisent une dépendance résiduelle à `dx_auth` pour le contrôle d'accès.
 
-### 3.2 Migration `use_new_auth` incomplète
-
-La bascule `use_new_auth` subsiste dans une dizaine de contrôleurs (tickets, planeur, vols_avion, achats, comptes, avion, reservations, welcome…). Ces contrôleurs testent encore `$this->use_new_auth` pour choisir entre `dx_auth` et `Gvv_Authorization`. Tant que cette migration n'est pas achevée, la surface de code à maintenir est double et le comportement entre utilisateurs migrés et non-migrés peut diverger.
-
-### 3.3 Séparation events / archived_documents pour les licences
+### 3.2 Séparation events / archived_documents pour les licences
 
 Du point de vue d'un administrateur, **une licence est une entité unique** : un pilote a un PPL avec un numéro, une date d'obtention, une date de validité, et éventuellement une copie PDF. Le système actuel impose deux interactions sur deux pages distinctes :
 - Modifier la date de validité → passer par `events`.
@@ -162,7 +154,7 @@ Du point de vue d'un administrateur, **une licence est une entité unique** : un
 
 Cette séparation est un artefact d'implémentation, source de confusion et de risque de désynchronisation (date dans `events` ≠ date sur le PDF archivé).
 
-### 3.4 Pas de support multi-sections pour les qualifications
+### 3.3 Pas de support multi-sections pour les qualifications
 
 Les qualifications dans `events` sont globales (pas de dimension section). Un IVV de la section planeur est aussi visible comme IVV de la section ULM. `user_roles_per_section` résout cela pour les rôles d'accès, mais les qualifications techniques (visite médicale, BPP) n'ont pas de dimension section dans `events`.
 
@@ -224,15 +216,7 @@ Tous les sélecteurs de pilotes qualifiés (instructeurs, remorqueurs, mécanici
 
 ## 5. Prochaines étapes
 
-### Étape 1 — Corriger les résidus `mniveaux` dans `program.php` (urgence : bug actif)
-
-Les entrées 2, 3, 4 de `listes_de_requetes` doivent être réécrites en sous-requêtes sur `user_roles_per_section`. Supprimer ensuite les constantes de bits orphelines dans `constants.php`.
-
-### Étape 2 — Achever la migration `use_new_auth`
-
-Migrer les contrôleurs restants vers `Gvv_Authorization`, supprimer la branche `dx_auth` legacy et le flag `use_new_auth`.
-
-### Étape 3 — Unifier le concept de qualification (priorité 2)
+### Étape 1 — Unifier le concept de qualification (priorité 2)
 
 Commence après la stabilisation des droits d'accès.
 

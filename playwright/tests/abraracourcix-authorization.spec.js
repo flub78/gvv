@@ -241,13 +241,14 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
     });
 
     // ============================================================
-    // ADMINISTRATION DU CLUB - visible uniquement en section avion (section 3)
+    // ADMINISTRATION DU CLUB - visible dans toutes les sections dès
+    // que l'utilisateur est CA dans au moins une section.
     //
-    // Abraracourcix a le rôle 'ca' UNIQUEMENT dans la section avion (section_id=3).
-    // La section "Administration du club" doit apparaître sur le dashboard
-    // seulement quand la section active est la section avion.
+    // Abraracourcix a le rôle 'ca' dans la section avion (section_id=3).
+    // Le dashboard affiche la carte "Administration du club" dans toutes
+    // les sections actives si is_ca_any_section est vrai.
     // ============================================================
-    test.describe('Dashboard - section Administration du club (CA uniquement section avion)', () => {
+    test.describe('Dashboard - section Administration du club (CA dans au moins une section)', () => {
 
         test('section avion (3) - Administration du club visible', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '3');
@@ -258,31 +259,31 @@ test.describe('Abraracourcix Authorization - New Auth System', () => {
             ).toContain('Administration du club');
         });
 
-        test('section planeur (1) - Administration du club non visible (pas CA)', async ({ page }) => {
+        test('section planeur (1) - Administration du club visible (CA dans une autre section)', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '1');
             const content = await page.content();
             expect(
                 content,
-                'Section Administration du club ne doit PAS être visible en section planeur (pas CA)'
-            ).not.toContain('Administration du club');
+                'Section Administration du club doit être visible en section planeur (CA dans section avion)'
+            ).toContain('Administration du club');
         });
 
-        test('section ULM (2) - Administration du club non visible (pas CA)', async ({ page }) => {
+        test('section ULM (2) - Administration du club visible (CA dans une autre section)', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '2');
             const content = await page.content();
             expect(
                 content,
-                'Section Administration du club ne doit PAS être visible en section ULM (pas CA)'
-            ).not.toContain('Administration du club');
+                'Section Administration du club doit être visible en section ULM (CA dans section avion)'
+            ).toContain('Administration du club');
         });
 
-        test('section générale (4) - Administration du club non visible (pas CA)', async ({ page }) => {
+        test('section générale (4) - Administration du club visible (CA dans une autre section)', async ({ page }) => {
             await loginAndGoto(page, 'welcome', '4');
             const content = await page.content();
             expect(
                 content,
-                'Section Administration du club ne doit PAS être visible en section générale (pas CA)'
-            ).not.toContain('Administration du club');
+                'Section Administration du club doit être visible en section générale (CA dans section avion)'
+            ).toContain('Administration du club');
         });
     });
 

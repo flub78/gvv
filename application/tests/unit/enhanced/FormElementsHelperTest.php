@@ -17,21 +17,6 @@ class FormElementsHelperTest extends TestCase
         }
     }
 
-    /**
-     * Test checkbox_array() function
-     */
-    public function testCheckboxArrayFunction()
-    {
-        if (function_exists('checkbox_array')) {
-            $mniveaux = 0;
-            $checkbox_array = checkbox_array('mniveau', 1, $mniveaux);
-            
-            $this->assertIsString($checkbox_array, "checkbox_array should return a string");
-            $this->assertStringContainsString('mniveau', $checkbox_array, "Checkbox should contain the field name");
-        } else {
-            $this->markTestSkipped('checkbox_array function not available');
-        }
-    }
 
     /**
      * Test input_field() function

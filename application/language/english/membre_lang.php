@@ -85,8 +85,6 @@ $lang['gvv_membres_field_validation_date'] = "Validation date";
 
 $lang['gvv_membres_field_mlieun'] = "Birthplace";
 $lang['gvv_membres_field_msexe'] = "Gender";
-$lang['gvv_membres_field_mniveaux'] = "Qualifications";
-$lang['gvv_membres_field_macces'] = "Responsabilities";
 $lang['gvv_membres_field_club'] = "Club";
 $lang['gvv_membres_field_ext'] = "Exterieur";
 $lang['gvv_membres_field_username'] = "Name";

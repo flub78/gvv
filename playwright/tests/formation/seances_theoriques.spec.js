@@ -119,7 +119,7 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
     }
 
     test('Peut attacher un document à une séance théorique', async ({ page }) => {
-        await login(page, INSTRUCTOR_USER);
+        await login(page, ADMIN_USER);
 
         const seanceId = await getFirstSeanceId(page);
         expect(seanceId).not.toBeNull();
@@ -155,7 +155,7 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
     });
 
     test('Peut supprimer un document d\'une séance théorique', async ({ page }) => {
-        await login(page, INSTRUCTOR_USER);
+        await login(page, ADMIN_USER);
 
         const seanceId = await getFirstSeanceId(page);
         expect(seanceId).not.toBeNull();

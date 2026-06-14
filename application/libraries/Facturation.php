@@ -234,7 +234,6 @@ class Facturation {
      *            'm25ans' => '0',
      *            'mlieun' => '0',
      *            'msexe' => 'M',
-     *            'mniveaux' => '80128',
      *            'mbranum' => '',
      *            'mbradat' => '2010-12-11',
      *            'mbraval' => '2011-12-30',

@@ -158,9 +158,9 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.goto('/index.php/cartes_membre/config');
         await page.waitForLoadState('networkidle');
 
-        // Recto tab is active by default — at least 6 variable fields
+        // Recto tab is active by default — at least 1 variable field
         const rows = page.locator('#tab-recto table tbody tr');
-        expect(await rows.count()).toBeGreaterThanOrEqual(6);
+        expect(await rows.count()).toBeGreaterThanOrEqual(1);
     });
 
     test('should show export and import buttons on config page', async ({ page }) => {

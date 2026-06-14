@@ -24,13 +24,12 @@ GVV gère déjà des données de qualification mais de façon fragmentée :
 - La table `events` stocke les attributs métier (type, date d'obtention, date d'expiration, numéro). C'est la source de vérité opérationnelle actuelle.
 - La table `archived_documents` permet d'attacher des fichiers (copies de licences, rapports médicaux) mais reste disconnectée des données `events`.
 - Le contrôleur `alarmes.php` calcule les alertes d'expiration médicale et d'instructeur à la volée.
-- Le champ `membres.mniveaux` encode en bitmap certaines qualifications opérationnelles (instructeur, remorqueur…) — source d'incohérence documentée dans le PRD autorisation.
 
 Cette fragmentation génère une double saisie, un risque de désynchronisation, et une UX dégradée.
 
 ### 2.2 Réglementation de référence
 
-Dans le domaine du vol à voile en Europe, les qualifications gérées par un club incluent notamment :
+Dans le domaine de l'aviation légère en Europe, les qualifications gérées par un club incluent notamment :
 
 | Qualification | Nature | Validité typique |
 |---|---|---|
@@ -88,7 +87,8 @@ La liste exacte des qualifications gérées est configurable par l'administrateu
 **EF-Q15** — Un pilote voit sur son tableau de bord personnel la liste de ses qualifications avec leur statut : valide, expire bientôt, expirée, manquante, en attente.  
 **EF-Q16** — Un pilote peut consulter le détail de chaque qualification (dates, numéro, pièce jointe, historique).  
 **EF-Q17** — Un administrateur peut consulter les qualifications de n'importe quel pilote.  
-**EF-Q18** — Un administrateur a accès à un tableau récapitulatif de toutes les qualifications de tous les pilotes actifs, filtrable par type et par statut.  
+**EF-Q18** — Un administrateur a accès à un tableau récapitulatif de toutes les qualifications de tous les pilotes actifs, filtrable par type, par statut et par section.  
+**EF-Q18b** — Les qualifications globales apparaissent dans le tableau de toutes les sections. Les qualifications spécifiques à une section n'apparaissent que dans le tableau de cette section.  
 **EF-Q19** — Le tableau récapitulatif est exportable en CSV et en PDF.
 
 ### 4.5 Alarmes et notifications
@@ -104,13 +104,14 @@ La liste exacte des qualifications gérées est configurable par l'administrateu
 
 **EF-Q26** — Un administrateur peut définir la liste des types de qualifications gérés par le système.  
 **EF-Q27** — Pour chaque type, il configure : nom, description, caractère expirable (oui/non), délai d'alerte avant expiration, caractère obligatoire (oui/non), activité concernée (planeur / avion / ULM / global).  
+**EF-Q27b** — Chaque type de qualification est configuré avec une portée : **globale** (s'applique à toutes les sections, ex. visite médicale, BPP) ou **spécifique à une section** (ex. qualification instructeur planeur, autorisation remorquage ULM). Une qualification spécifique à une section n'est visible et obligatoire que pour les pilotes de cette section.  
 **EF-Q28** — Un type peut être archivé (masqué) sans perdre les données historiques.  
 **EF-Q29** — L'ordre d'affichage des types dans les tableaux est configurable.
 
 ### 4.7 Blocage conditionnel d'opérations
 
 **EF-Q30** — Certaines opérations peuvent être conditionnées à la validité d'une ou plusieurs qualifications : réservation d'appareil, réservation sans instructeur, enregistrement de vol solo.  
-**EF-Q31** — La liste des qualifications requises pour chaque opération est configurable par l'administrateur.  
+**EF-Q31** — La liste des qualifications requises pour chaque opération est configurable par l'administrateur. Une condition peut référencer une qualification globale ou une qualification spécifique à la section dans laquelle l'opération est réalisée.  
 **EF-Q32** — Si une qualification requise est expirée ou manquante, l'opération est bloquée et un message explicite indique quelle qualification est insuffisante.  
 **EF-Q33** — Un administrateur peut lever manuellement un blocage pour un pilote donné, avec justification tracée.
 
@@ -118,7 +119,7 @@ La liste exacte des qualifications gérées est configurable par l'administrateu
 
 ## 5. Exigences non fonctionnelles
 
-**ENF-Q01** — Les qualifications d'un pilote sont accessibles à la section qui les concerne (dimension section héritée du type de qualification ou renseignée à la déclaration).  
+**ENF-Q01** — Une qualification est soit **globale** (visible et obligatoire dans toutes les sections), soit **rattachée à une section** (visible et obligatoire uniquement dans cette section). La portée est définie au niveau du type de qualification (§4.6 EF-Q27b). Par exemple, un instructeur planeur ne doit pas être automatiquement considéré comme instructeur ULM.  
 **ENF-Q02** — Un pilote ne peut pas voir ni modifier les qualifications d'un autre pilote.  
 **ENF-Q03** — Les pièces justificatives sont stockées de façon sécurisée ; leur accès est limité au pilote concerné et aux administrateurs.  
 **ENF-Q04** — Toute action (déclaration, validation, rejet, modification) est journalisée (qui, quand, action).  

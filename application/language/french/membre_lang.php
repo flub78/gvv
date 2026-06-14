@@ -87,8 +87,6 @@ $lang['gvv_membres_field_validation_date'] = "Date de validation par le CA";
 
 $lang['gvv_membres_field_mlieun'] = "Lieu de naisance";
 $lang['gvv_membres_field_msexe'] = "Genre";
-$lang['gvv_membres_field_mniveaux'] = "Qualifications";
-$lang['gvv_membres_field_macces'] = "Responsabilités";
 $lang['gvv_membres_field_club'] = "Club";
 $lang['gvv_membres_field_ext'] = "Extérieur";
 $lang['gvv_membres_field_username'] = "Nom";
