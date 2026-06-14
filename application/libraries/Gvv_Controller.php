@@ -1020,6 +1020,11 @@ class Gvv_Controller extends MY_Controller {
         } elseif (isset($this->gvv_model) && method_exists($this->gvv_model, 'section_id')) {
             $section_id = $this->gvv_model->section_id();
         }
+        // "Toutes les sections" stores 0 in session and model; normalize to NULL
+        // so the authorization check spans all sections for menu visibility.
+        if ((int)$section_id <= 0) {
+            $section_id = NULL;
+        }
         return $this->allow_roles([$role], $section_id);
     }
 
