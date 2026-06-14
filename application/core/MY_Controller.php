@@ -166,12 +166,15 @@ class MY_Controller extends CI_Controller
             $section_id = $this->session->userdata('section');
         }
 
-        // Mode "Toutes" : section_id ne correspond pas à une vraie section → vérification globale (toutes sections)
-        if ($section_id) {
+        // Mode "Toutes" (session value 0) is falsy in PHP — use > 0 to avoid
+        // treating 0 as a real section_id and convert it to NULL for a global check.
+        if ((int)$section_id > 0) {
             $q = $this->db->where('id', (int) $section_id)->get('sections');
             if ($q->num_rows() === 0) {
                 $section_id = NULL;
             }
+        } else {
+            $section_id = NULL;
         }
 
         return $this->gvv_authorization->require_roles($roles, $section_id, $replace);
@@ -195,7 +198,10 @@ class MY_Controller extends CI_Controller
      */
     protected function _has_role($role_name)
     {
-        $section_id = $this->session->userdata('section');
+        $raw = $this->session->userdata('section');
+        // 0 = "Toutes les sections" sentinel (falsy but not NULL/FALSE).
+        // Normalize to NULL so the authorization check spans all sections.
+        $section_id = ($raw !== NULL && $raw !== FALSE && (int)$raw > 0) ? (int)$raw : NULL;
         return $this->gvv_authorization->has_role(
             $this->user_id,
             $role_name,
