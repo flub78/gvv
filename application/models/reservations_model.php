@@ -82,8 +82,8 @@ class Reservations_model extends Common_Model {
             $event = array(
                 'id' => $reservation['id'],
                 'title' => $title,
-                'start' => $reservation['start_datetime'],
-                'end' => $reservation['end_datetime'],
+                'start' => str_replace(' ', 'T', $reservation['start_datetime']),
+                'end' => str_replace(' ', 'T', $reservation['end_datetime']),
                 'backgroundColor' => $this->get_status_color($reservation['status']),
                 'borderColor' => $this->get_status_color($reservation['status']),
                 'extendedProps' => array(
@@ -506,8 +506,8 @@ class Reservations_model extends Common_Model {
                 'id' => $res['id'],
                 'resourceId' => $res['aircraft_id'],
                 'title' => $title,
-                'start' => $res['start_datetime'],
-                'end' => $res['end_datetime'],
+                'start' => str_replace(' ', 'T', $res['start_datetime']),
+                'end' => str_replace(' ', 'T', $res['end_datetime']),
                 'status' => $res['status'],
                 'extendedProps' => array(
                     'aircraft_id' => $res['aircraft_id'],

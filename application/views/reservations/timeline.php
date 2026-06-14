@@ -658,8 +658,8 @@ $this->load->view('bs_banner');
             
             // Add drag selection handlers for empty slots
             document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.addEventListener('mousedown', function(e) {
-                    if (e.target === this && e.button === 0) {
+                slot.addEventListener('pointerdown', function(e) {
+                    if (e.target === this && e.isPrimary) {
                         startSlotSelection(e, this);
                     }
                 });
@@ -676,14 +676,14 @@ $this->load->view('bs_banner');
 
             if (!resourceRow) return;
 
-            const startTime = new Date(event.start);
-            const endTime = new Date(event.end);
+            const startTime = new Date(event.start.replace(' ', 'T'));
+            const endTime = new Date(event.end.replace(' ', 'T'));
 
             // Calculate day boundaries for the currently displayed date
-            const currentDayStart = new Date(state.currentDate + ' 00:00:00');
-            const currentDayEnd = new Date(state.currentDate + ' 23:59:59');
-            const timelineStart = new Date(state.currentDate + ' ' + String(CONFIG.startHour).padStart(2, '0') + ':00:00');
-            const timelineEnd = new Date(state.currentDate + ' 23:59:59');
+            const currentDayStart = new Date(state.currentDate + 'T00:00:00');
+            const currentDayEnd = new Date(state.currentDate + 'T23:59:59');
+            const timelineStart = new Date(state.currentDate + 'T' + String(CONFIG.startHour).padStart(2, '0') + ':00:00');
+            const timelineEnd = new Date(state.currentDate + 'T23:59:59');
 
             // Clip start time to current day's timeline boundaries
             let clippedStartTime = startTime;
@@ -742,7 +742,7 @@ $this->load->view('bs_banner');
 
             // Add event handlers
             let clickStartX = 0;
-            eventEl.addEventListener('mousedown', (e) => {
+            eventEl.addEventListener('pointerdown', (e) => {
                 clickStartX = e.clientX;
             });
 
@@ -759,14 +759,14 @@ $this->load->view('bs_banner');
             });
 
             if (canEditEvent) {
-                eventEl.addEventListener('mousedown', (e) => {
-                    if (e.button === 0 && !e.target.classList.contains('resize-handle')) {
+                eventEl.addEventListener('pointerdown', (e) => {
+                    if (e.isPrimary && !e.target.classList.contains('resize-handle')) {
                         startDragging(e, event, eventEl, 'move');
                     }
                 });
 
-                resizeHandle.addEventListener('mousedown', (e) => {
-                    if (e.button === 0) {
+                resizeHandle.addEventListener('pointerdown', (e) => {
+                    if (e.isPrimary) {
                         e.stopPropagation();
                         startDragging(e, event, eventEl, 'resize');
                     }
@@ -833,9 +833,9 @@ $this->load->view('bs_banner');
             state.dragDistance = 0;
             
             eventEl.classList.add('dragging');
-            
-            document.addEventListener('mousemove', onDragMove);
-            document.addEventListener('mouseup', onDragEnd);
+
+            document.addEventListener('pointermove', onDragMove);
+            document.addEventListener('pointerup', onDragEnd);
         }
         
         /**
@@ -867,8 +867,8 @@ $this->load->view('bs_banner');
         function onDragEnd(e) {
             if (!state.draggingEvent || !state.draggingElement) return;
             
-            document.removeEventListener('mousemove', onDragMove);
-            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('pointermove', onDragMove);
+            document.removeEventListener('pointerup', onDragEnd);
             
             const event = state.draggingEvent;
             const eventEl = state.draggingElement;
@@ -1010,9 +1010,9 @@ $this->load->view('bs_banner');
             resourceRow.appendChild(selectionEl);
             state.selectionElement = selectionEl;
 
-            // Add document-level mouse handlers
-            document.addEventListener('mousemove', onSlotSelectionMove);
-            document.addEventListener('mouseup', onSlotSelectionEnd);
+            // Add document-level pointer handlers
+            document.addEventListener('pointermove', onSlotSelectionMove);
+            document.addEventListener('pointerup', onSlotSelectionEnd);
         }
 
         /**
@@ -1056,8 +1056,8 @@ $this->load->view('bs_banner');
         function onSlotSelectionEnd(e) {
             if (!state.isSelecting) return;
 
-            document.removeEventListener('mousemove', onSlotSelectionMove);
-            document.removeEventListener('mouseup', onSlotSelectionEnd);
+            document.removeEventListener('pointermove', onSlotSelectionMove);
+            document.removeEventListener('pointerup', onSlotSelectionEnd);
 
             // Preserve the clicked slot before resetting state
             const clickedSlot = state.selectionStartSlot;
@@ -1563,7 +1563,7 @@ $this->load->view('bs_banner');
         function setupDateNavigation() {
             // Navigation buttons
             document.getElementById('btnPrevious').addEventListener('click', function() {
-                const date = new Date(state.currentDate);
+                const date = new Date(state.currentDate + 'T12:00:00');
                 date.setDate(date.getDate() - 1);
                 navigateToDate(date);
             });
@@ -1573,7 +1573,7 @@ $this->load->view('bs_banner');
             });
 
             document.getElementById('btnNext').addEventListener('click', function() {
-                const date = new Date(state.currentDate);
+                const date = new Date(state.currentDate + 'T12:00:00');
                 date.setDate(date.getDate() + 1);
                 navigateToDate(date);
             });
@@ -1600,7 +1600,7 @@ $this->load->view('bs_banner');
          * Update date display
          */
         function updateDateDisplay() {
-            const date = new Date(state.currentDate);
+            const date = new Date(state.currentDate + 'T12:00:00');
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             const formatted = date.toLocaleDateString('<?php echo $this->lang->line("lang") ?: "en"; ?>', options);
             document.getElementById('currentDateDisplay').textContent = formatted;
@@ -1613,7 +1613,7 @@ $this->load->view('bs_banner');
          * Helper: Format time
          */
         function formatTime(datetime) {
-            const date = new Date(datetime);
+            const date = new Date(datetime.replace(' ', 'T'));
             return String(date.getHours()).padStart(2, '0') + ':' + 
                    String(date.getMinutes()).padStart(2, '0');
         }

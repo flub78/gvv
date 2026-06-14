@@ -127,8 +127,11 @@ class Reservations extends MY_Controller {
         if (ob_get_level()) {
             ob_clean();
         }
-        
+
         header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         
         try {
             // Get date range from request parameters (FullCalendar provides these)
@@ -256,8 +259,11 @@ class Reservations extends MY_Controller {
         if (ob_get_level()) {
             ob_clean();
         }
-        
+
         header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         
         try {
             $this->load->model('reservations_model');
