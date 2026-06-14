@@ -171,7 +171,7 @@ Axe 1 : Droits d'accès à l'application
 
 Axe 2 : Qualifications et licences (entités métier avec dates de validité)
   → La qualification est l'entité principale ; le PDF est un attribut optionnel
-  → Géré par events (étendu pour supporter un fichier joint)
+  → Géré par archived_documents (types qualification) avec migration progressive depuis events
   → Alarmes unifiées via AlarmAggregator
 
 Axe 3 : Documents administratifs (entités dont le document est la chose principale)
@@ -184,23 +184,40 @@ Axe 3 : Documents administratifs (entités dont le document est la chose princip
 
 `user_roles_per_section` est le système cible. Il couvre la dimension section, la traçabilité et des rôles extensibles. La migration `dx_auth` → `Gvv_Authorization` doit être achevée pour les contrôleurs restants.
 
-### 4.3 Qualifications : `events` comme entité centrale, PDF optionnel
+### 4.3 Qualifications : option 3 retenue (`archived_documents` étendu)
 
-La qualification est l'entité métier. Le PDF en est la preuve optionnelle. La date d'obtention, la date d'expiration et le numéro restent dans `events` ; le document est une pièce justificative rattachée :
+La stratégie retenue est d'utiliser `archived_documents` comme support principal des qualifications, via des types documentaires dédiés "qualification", en conservant une migration progressive depuis `events`.
 
-| Attribut | Emplacement |
-|----------|-------------|
-| Type de qualification (PPL, médical, BPP…) | `events.etype` → `events_types` |
-| Date d'obtention | `events.edate` |
-| Date de validité | `events.date_expiration` |
-| Numéro de licence | `events.ecomment` |
-| Fichier PDF (optionnel) | `events.file_path` (champ à ajouter) ou FK vers un stockage fichier |
+#### 4.3.1 Modèle cible
 
-`archived_documents` reste l'outil des **documents administratifs** dont le document lui-même est la chose principale. La règle : lorsqu'un type est une qualification, l'utilisateur passe par le flux qualification — pas par le flux archivage documentaire.
+- Les types de documents reçoivent un indicateur métier `is_qualification` (au niveau `document_types`).
+- Les enregistrements de qualification ajoutent `qualification_number` (numéro de licence/qualification) dans `archived_documents`.
+- Pour les types `is_qualification=1`, la pièce jointe devient facultative (cas auto-déclaré ou saisie administrative sans scan immédiat).
 
-**Ligne de partage** :
-- *"Ce pilote a un PPL valide jusqu'au…"* → `events`.
-- *"Cette section a une attestation d'assurance valide jusqu'au…"* → `archived_documents`.
+Conséquence schéma : la nullabilité de `original_filename` seule est insuffisante ; `file_path` doit également être nullable pour permettre une qualification sans fichier.
+
+#### 4.3.2 Règles métier
+
+- Une qualification est toujours rattachée à un pilote (`scope='pilot'`).
+- Les statuts existants (`pending`, `approved`, `rejected`) et les dates (`valid_from`, `valid_until`) restent la base du cycle de vie.
+- Le numéro de qualification est porté par `qualification_number`, pas par `description`.
+- La présence d'un fichier n'est plus obligatoire pour les qualifications, mais reste obligatoire pour les autres types selon les règles de type.
+
+#### 4.3.3 Migration fonctionnelle depuis `events`
+
+La création et la mise à jour des qualifications aujourd'hui faites dans `event` doivent être reprises dans le flux qualification documentaire :
+
+- création/édition via `event/create` + `event/formValidation`,
+- logique d'unicité/courant via `event_model::replace`,
+- lectures métier via `medical_validity_date`, `inst_validity`, `bpp_date`, `controle_date`, `passager_date`.
+
+Le plan de transition est progressif :
+
+1. Introduire les nouveaux champs et la validation conditionnelle fichier.
+2. Créer une façade `QualificationService` qui lit prioritairement `archived_documents` (types qualification), avec fallback `events`.
+3. Migrer les écrans/contrôles métier vers la façade.
+4. Migrer les données historiques `events` vers `archived_documents` pour les types ciblés.
+5. Retirer progressivement l'usage qualification de `events`.
 
 ### 4.4 Alarmes : un seul point d'entrée
 
@@ -212,6 +229,12 @@ L'`AlarmAggregator` (conçu dans `gestion_alarmes_design.md`) est la façade uni
 
 Tous les sélecteurs de pilotes qualifiés (instructeurs, remorqueurs, mécaniciens, treuilleurs) sont construits depuis `user_roles_per_section`. Le filtre e-mail de `program.php` doit rejoindre ce modèle.
 
+### 4.6 Options non retenues (et pourquoi)
+
+- **Option 1 — Nouvelle table `qualifications` dédiée** : non retenue à ce stade, car elle duplique une grande partie des capacités déjà présentes (`archived_documents` : versioning, validation, alertes, historisation) et augmente le coût de maintenance.
+- **Option 2 — Couche abstraite sur `events` + `archived_documents` sans convergence de stockage** : utile comme étape transitoire, mais non retenue comme cible finale car elle maintient deux sources actives de données qualification et un risque durable de désynchronisation.
+- **Option 4 — Étendre `events` pour gérer des fichiers** : non retenue, car cela revient à reconstruire dans `events` des fonctionnalités déjà matures de `archived_documents` (upload, versioning, validation, preview, gestion documentaire).
+
 ---
 
 ## 5. Prochaines étapes
@@ -222,7 +245,7 @@ Commence après la stabilisation des droits d'accès.
 
 1. Définir le périmètre métier de "qualification" (ce qui relève de la qualification vs document administratif).
 2. Introduire une façade fonctionnelle unique (contrôleur + service) pour éviter les créations concurrentes.
-3. Arbitrer le stockage canonique : conserver `events`, migrer vers `archived_documents`, ou hybride.
+3. Implémenter le stockage canonique retenu (option 3) dans `archived_documents` avec compatibilité transitoire `events`.
 4. Appliquer la règle de source de vérité unique pour la date de validité.
 5. Aligner les alarmes via `AlarmAggregator`.
 
@@ -232,7 +255,7 @@ Commence après la stabilisation des droits d'accès.
 
 | Décision | Options | Recommandation |
 |----------|---------|----------------|
-| Stockage principal des qualifications et de leur justificatif | `events`, `archived_documents`, modèle hybride | Décision reportée à l'étape 3 |
+| Stockage principal des qualifications et de leur justificatif | `events`, `archived_documents`, modèle hybride | Option 3 : `archived_documents` étendu (`is_qualification`, `qualification_number`, fichier facultatif pour qualification) avec migration progressive depuis `events` |
 | Périmètre du rôle `instructeur` par section | Global (null), Par section, Les deux | Par section pour IVV/ITP, global pour FI/FE avion |
 | Alarmes : quand implémenter AlarmAggregator ? | Maintenant, Après migration auth, Séparément | Après étape 2 — dépend de données stables |
 
