@@ -188,7 +188,6 @@ $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
 
 <?php if ($payeur_non_pilote) : ?>
     <!-- hidden: remove wrapping div to re-enable payeur/pourcentage -->
-    <div style="display:none">
     <div class="d-md-flex flex-row mb-2">
         <!-- Payeur -->
         <div class="me-3 mb-2 payeur">
@@ -196,15 +195,16 @@ $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
             <?= $this->gvvmetadata->input_field("volsp", 'payeur', $payeur) ?>
         </div>
 
+        <div style="display:none">
         <?php if ($partage) : ?>
             <div class="me-3 mb-2 payeur">
                 <?= $this->lang->line("gvv_vols_planeur_label_percent") . ": " ?>
                 <?= $this->gvvmetadata->input_field("volsp", 'pourcentage', $pourcentage) ?>
             </div>
         <?php endif; ?>
+    </div><!-- end hidden -->
 
     </div>
-    </div><!-- end hidden -->
 <?php endif; ?>
 
 <div class="d-md-flex flex-row mb-2">

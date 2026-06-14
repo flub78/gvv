@@ -318,6 +318,7 @@ class Calendar_model_test extends TestCase {
             'created_by' => 'test'
         );
         $event_id = $this->calendar_model->create_event($data);
+        $this->test_record_ids[] = $event_id;
 
         // Delete event
         $result = $this->calendar_model->delete_event($event_id);

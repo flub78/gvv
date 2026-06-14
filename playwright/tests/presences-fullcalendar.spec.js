@@ -141,6 +141,51 @@ test.describe('Presences FullCalendar v6', () => {
     await waitForCalendar(page);
   });
 
+  test.afterEach(async ({ page }) => {
+    // Clean up all presences created for test users during this test
+    try {
+      // Re-login as admin (in case a test switched to a different user)
+      await page.goto('/index.php/auth/logout');
+      await page.waitForLoadState('networkidle');
+      await login(page, TEST_USERS.admin.username, TEST_USERS.admin.password);
+
+      // Fetch events for a 3-month window around today
+      const today = new Date();
+      const startParam = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0];
+      const endParam = new Date(today.getFullYear(), today.getMonth() + 2, 1).toISOString().split('T')[0];
+
+      const events = await page.evaluate(async ({ start, end }) => {
+        try {
+          const res = await fetch(`/index.php/presences/get_events?start=${start}&end=${end}`);
+          const data = await res.json();
+          return Array.isArray(data) ? data : [];
+        } catch (e) {
+          return [];
+        }
+      }, { start: startParam, end: endParam });
+
+      const testLogins = ['testuser', 'testca', 'testbureau'];
+      const testEvents = events.filter(e => e.extendedProps && testLogins.includes(e.extendedProps.mlogin));
+
+      for (const event of testEvents) {
+        await page.evaluate(async (id) => {
+          const formData = new FormData();
+          formData.append('id', id);
+          await fetch('/index.php/presences/delete_presence', {
+            method: 'POST',
+            body: formData
+          }).catch(() => {});
+        }, event.id);
+      }
+
+      if (testEvents.length > 0) {
+        console.log(`Cleanup: supprimé ${testEvents.length} présence(s) de test`);
+      }
+    } catch (e) {
+      console.log('Cleanup error (non-fatal):', e.message);
+    }
+  });
+
   test('should display FullCalendar with correct views', async ({ page }) => {
     // Verify calendar is displayed
     const calendar = page.locator('#calendar.fc');

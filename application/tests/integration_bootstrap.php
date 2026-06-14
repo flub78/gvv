@@ -274,6 +274,11 @@ class RealDatabase {
     }
 
     public function where($key, $value = null) {
+        // No-op for empty arrays — avoids generating a trailing AND with no condition
+        if (is_array($key) && empty($key)) {
+            return $this;
+        }
+
         // Add AND before this condition if we already have conditions
         // But NOT if the last element is '(' (we're starting a group) or 'OR'
         $last_condition = end($this->where_conditions);
