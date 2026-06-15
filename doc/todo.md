@@ -6,7 +6,7 @@
 
 ## Reste à faire
 
-* [] Corriger les tests playwrights
+* [x] Corriger les tests playwrights 100% le 14/06/2026
 
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
@@ -33,7 +33,7 @@
 
 * [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
 
-* [] Insérer la liste des documents d'un pilote dans sa carte membre.
+* [] Insérer la liste des documents et qualifications d'un pilote dans sa carte membre.
 
 * [] Searchbox datatable sur les paiements HelloAsso
      
@@ -48,6 +48,8 @@
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Approbation de documents
+* 
+* [] ajout autonomie pour limiter la durée des vols et les séances de formation en vol
 
 * [] Informer le trésorier des renouvellement de cotisation par email
 
