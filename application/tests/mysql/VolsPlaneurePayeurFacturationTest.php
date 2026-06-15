@@ -3,18 +3,19 @@
 require_once __DIR__ . '/../integration/TransactionalTestCase.php';
 
 /**
- * Vérifie que la facturation impute les achats au payeur quand celui-ci
- * est différent du pilote.
+ * Vérifie que la facturation est correctement gérée lors de la création,
+ * modification et suppression de vols planeurs.
  *
- * La logique testée est Facturation::nouvel_achat_partage() (classe de base),
- * appelée via Facturation_cpta comme module de référence.
- *
- * Trois cas :
- *  - payeur à 100 % : seul le payeur est débité
- *  - payeur à 50 %  : pilote et payeur sont débités chacun à moitié
- *  - sans payeur    : seul le pilote est débité (non-régression)
+ * Deux niveaux de test :
+ * - Création directe + facturation manuelle : teste la logique de répartition
+ *   pilote/payeur dans Facturation::nouvel_achat_partage().
+ * - Cycle complet via vols_planeur_model : teste que create(), update() et delete()
+ *   gèrent correctement la facturation (défacturation + refacturation).
  *
  * @covers Facturation::nouvel_achat_partage
+ * @covers Vols_planeur_model::create
+ * @covers Vols_planeur_model::update
+ * @covers Vols_planeur_model::delete
  */
 class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
 {
@@ -44,6 +45,9 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
         if (!isset($this->CI->gvv_model)) {
             $this->CI->gvv_model = $this->CI->tarifs_model;
         }
+
+        // Charge les configs autoloadées en production mais absentes du bootstrap de test
+        $this->CI->config->load('club', FALSE, TRUE);
 
         // Charge les traductions pour que les descriptions restent sous 80 caractères
         $this->CI->lang->load('facturation', 'french');
@@ -104,7 +108,7 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
     // -----------------------------------------------------------------------
 
     /**
-     * Insère un vol planeur de test et retourne son vpid.
+     * Insère un vol planeur de test directement en base (sans facturation).
      * vpautonome=0 : pas de remontage, seules les heures sont facturées.
      */
     private function insertVolPlaneur(array $overrides = []): int
@@ -130,6 +134,68 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
         $id = (int) $this->CI->db->insert_id();
         $this->assertGreaterThan(0, $id, 'L\'insertion du vol test doit réussir');
         return $id;
+    }
+
+    /**
+     * Crée un vol via vols_planeur_model::create() — facturation automatique
+     * déclenchée par le modèle via le module configuré (Facturation_accabs).
+     */
+    private function creerEtFacturerViaModele(array $overrides = []): int
+    {
+        $defaults = [
+            'vpdate'            => '2099-01-15',
+            'vppilid'           => $this->pilot_login,
+            'vpmacid'           => $this->machine_immat,
+            'vpcdeb'            => '10.00',
+            'vpcfin'            => '11.00',
+            'vpduree'           => 60,
+            'vpautonome'        => 0,
+            'vpaltrem'          => 0,
+            'vpcategorie'       => 0,
+            'vpdc'              => 0,
+            'vpticcolle'        => 0,
+            'facture'           => 0,
+            'payeur'            => '',
+            'pourcentage'       => 0,
+            'tempmoteur'        => 0,
+            'remorqueur'        => '',
+            'pilote_remorqueur' => '',
+            'vplieudeco'        => 'LFOI',
+        ];
+        $data = array_merge($defaults, $overrides);
+        $id = $this->CI->vols_planeur_model->create($data);
+        $this->assertGreaterThan(0, (int) $id, 'create() doit retourner un vpid valide');
+        return (int) $id;
+    }
+
+    /**
+     * Retourne les données d'un vol à passer à vols_planeur_model::update().
+     * Contient uniquement des colonnes réelles de la table volsp.
+     */
+    private function dataUpdateVol(int $vol_id, array $overrides = []): array
+    {
+        $defaults = [
+            'vpid'              => $vol_id,
+            'vpdate'            => '2099-01-15',
+            'vppilid'           => $this->pilot_login,
+            'vpmacid'           => $this->machine_immat,
+            'vpcdeb'            => '10.00',
+            'vpcfin'            => '11.00',
+            'vpduree'           => 60,
+            'vpautonome'        => 0,
+            'vpaltrem'          => 0,
+            'vpcategorie'       => 0,
+            'vpdc'              => 0,
+            'vpticcolle'        => 0,
+            'facture'           => 0,
+            'payeur'            => '',
+            'pourcentage'       => 0,
+            'tempmoteur'        => 0,
+            'remorqueur'        => '',
+            'pilote_remorqueur' => '',
+            'vplieudeco'        => 'LFOI',
+        ];
+        return array_merge($defaults, $overrides);
     }
 
     /**
@@ -169,7 +235,7 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
     private function getAchatsForVol(int $vol_id): array
     {
         return $this->CI->db
-            ->select('pilote, quantite, produit')
+            ->select('id, pilote, quantite, produit')
             ->from('achats')
             ->where('vol_planeur', $vol_id)
             ->get()
@@ -205,7 +271,7 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
     }
 
     // -----------------------------------------------------------------------
-    // Tests
+    // Tests : création directe + facturation manuelle (logique de répartition)
     // -----------------------------------------------------------------------
 
     /**
@@ -275,5 +341,175 @@ class VolsPlaneurePayeurFacturationTest extends TransactionalTestCase
                 "Sans payeur, l'achat doit être imputé au pilote ({$this->pilot_login}) uniquement"
             );
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests : cycle complet via vols_planeur_model (create / update / delete)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Un vol standard créé via le modèle est facturé au pilote.
+     */
+    public function testVolStandardFactureAuPiloteViaModele(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele();
+
+        $achats = $this->getAchatsForVol($vol_id);
+        $this->assertNotEmpty($achats,
+            'Le modèle doit créer des achats pour un vol standard');
+
+        foreach ($achats as $achat) {
+            $this->assertEquals($this->pilot_login, $achat['pilote'],
+                'Sans payeur, le vol doit être facturé au pilote');
+        }
+    }
+
+    /**
+     * Modifier la durée du vol via le modèle recalcule la facturation :
+     * les anciens achats sont remplacés et les quantités augmentent.
+     */
+    public function testModificationDureeRecalculeLaFacturation(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele(['vpduree' => 60]);
+
+        $achats_avant = $this->getAchatsForVol($vol_id);
+        $this->assertNotEmpty($achats_avant, 'La facturation initiale doit créer des achats');
+        $ids_avant = array_map('intval', array_column($achats_avant, 'id'));
+        $qte_avant = array_sum(array_map('floatval', array_column($achats_avant, 'quantite')));
+
+        $this->CI->vols_planeur_model->update('vpid',
+            $this->dataUpdateVol($vol_id, ['vpduree' => 120]));
+
+        $achats_apres = $this->getAchatsForVol($vol_id);
+        $this->assertNotEmpty($achats_apres, 'Après modification de durée, la facturation doit exister');
+
+        $ids_apres = array_map('intval', array_column($achats_apres, 'id'));
+        foreach ($ids_avant as $old_id) {
+            $this->assertNotContains($old_id, $ids_apres,
+                'Les anciens achats doivent être remplacés lors d\'une modification de durée');
+        }
+
+        $qte_apres = array_sum(array_map('floatval', array_column($achats_apres, 'quantite')));
+        $this->assertGreaterThan($qte_avant, $qte_apres,
+            'La quantité facturée doit augmenter quand la durée double (60 → 120 min)');
+    }
+
+    /**
+     * Modifier l'altitude de remorquage via le modèle recalcule la facturation :
+     * passer de 500m à 700m ajoute des tranches de 100m supplémentaires.
+     */
+    public function testModificationAltitudeRemorquageRecalcule(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele(['vpautonome' => 3, 'vpaltrem' => 500]);
+
+        $produits_avant = array_column($this->getAchatsForVol($vol_id), 'produit');
+        $this->assertContains('Remorqué 500m', $produits_avant,
+            'Un remorqué 500m doit être facturé à 500m');
+        $this->assertNotContains('Remorqué 100m', $produits_avant,
+            'Pas de tranches 100m supplémentaires à exactement 500m');
+
+        $this->CI->vols_planeur_model->update('vpid',
+            $this->dataUpdateVol($vol_id, ['vpautonome' => 3, 'vpaltrem' => 700]));
+
+        $produits_apres = array_column($this->getAchatsForVol($vol_id), 'produit');
+        $this->assertContains('Remorqué 500m', $produits_apres,
+            'Le remorqué 500m de base doit rester après passage à 700m');
+        $this->assertContains('Remorqué 100m', $produits_apres,
+            'Des tranches 100m supplémentaires doivent apparaître à 700m');
+    }
+
+    /**
+     * Changer le pilote via le modèle refacture au nouveau pilote
+     * et supprime la facturation de l'ancien.
+     */
+    public function testChangementPiloteRefacture(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele();
+
+        foreach ($this->getAchatsForVol($vol_id) as $a) {
+            $this->assertEquals($this->pilot_login, $a['pilote'],
+                'Initial : le vol doit être facturé au pilote A');
+        }
+
+        $this->CI->vols_planeur_model->update('vpid',
+            $this->dataUpdateVol($vol_id, ['vppilid' => $this->payeur_login]));
+
+        $pilotes_apres = array_column($this->getAchatsForVol($vol_id), 'pilote');
+        $this->assertNotEmpty($pilotes_apres,
+            'Après changement de pilote, la facturation doit exister');
+        $this->assertNotContains($this->pilot_login, $pilotes_apres,
+            'L\'ancien pilote ne doit plus être facturé après changement');
+        $this->assertContains($this->payeur_login, $pilotes_apres,
+            'Le nouveau pilote doit être facturé après changement');
+    }
+
+    /**
+     * Changer le payeur à 100 % via le modèle refacture au payeur
+     * et supprime la facturation du pilote.
+     *
+     * C'est le cas exact du bug signalé (vol 9280) : pourcentage doit être 100
+     * pour que la logique de facturation impute l'achat au payeur.
+     */
+    public function testChangementPayeur100PourcentRefacture(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele();
+
+        foreach ($this->getAchatsForVol($vol_id) as $a) {
+            $this->assertEquals($this->pilot_login, $a['pilote'],
+                'Initial : le vol sans payeur doit être facturé au pilote');
+        }
+
+        $this->CI->vols_planeur_model->update('vpid',
+            $this->dataUpdateVol($vol_id, [
+                'payeur'      => $this->payeur_login,
+                'pourcentage' => 100,
+            ]));
+
+        $pilotes_apres = array_column($this->getAchatsForVol($vol_id), 'pilote');
+        $this->assertNotEmpty($pilotes_apres,
+            'Après ajout d\'un payeur à 100 %, la facturation doit exister');
+        $this->assertNotContains($this->pilot_login, $pilotes_apres,
+            'Avec payeur à 100 %, le pilote ne doit plus être facturé');
+        $this->assertContains($this->payeur_login, $pilotes_apres,
+            'Avec payeur à 100 %, le payeur doit être facturé');
+    }
+
+    /**
+     * Changer le payeur à 50 % via le modèle facture à la fois
+     * le pilote et le payeur (chacun pour moitié).
+     */
+    public function testChangementPayeur50PourcentRefacture(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele();
+
+        $this->CI->vols_planeur_model->update('vpid',
+            $this->dataUpdateVol($vol_id, [
+                'payeur'      => $this->payeur_login,
+                'pourcentage' => 50,
+            ]));
+
+        $pilotes_apres = array_column($this->getAchatsForVol($vol_id), 'pilote');
+        $this->assertNotEmpty($pilotes_apres,
+            'Avec partage à 50 %, la facturation doit exister');
+        $this->assertContains($this->pilot_login, $pilotes_apres,
+            'Avec payeur à 50 %, le pilote doit être facturé pour sa moitié');
+        $this->assertContains($this->payeur_login, $pilotes_apres,
+            'Avec payeur à 50 %, le payeur doit être facturé pour sa moitié');
+    }
+
+    /**
+     * Supprimer un vol via le modèle efface entièrement sa facturation.
+     */
+    public function testSuppressionVolDefacture(): void
+    {
+        $vol_id = $this->creerEtFacturerViaModele();
+
+        $this->assertNotEmpty($this->getAchatsForVol($vol_id),
+            'Avant suppression, des achats doivent exister');
+
+        $this->CI->vols_planeur_model->delete(['vpid' => $vol_id]);
+
+        $this->assertEmpty($this->getAchatsForVol($vol_id),
+            'Après suppression du vol, aucun achat ne doit rester');
     }
 }
