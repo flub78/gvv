@@ -80,6 +80,14 @@ class ComptaEditAuthorizationTest extends TransactionalTestCase
             'journal_compte() cross-section treasurer read access must use has_modification_rights(NULL)'
         );
 
+        // Bureau role must grant read-only access to any account journal, matching
+        // the behaviour already present in datatable_journal_compte().
+        $this->assertRegExp(
+            '/function journal_compte\(.*?\$is_bureau = \$this->user_has_role\(\'bureau\'\);.*?if \(\$cross_section_ok \|\| \$is_global_ca \|\| \$is_bureau\)/s',
+            $source,
+            'journal_compte() must grant read-only access to bureau users, same as datatable_journal_compte()'
+        );
+
         $this->assertRegExp(
             '/function pdf\(.*?\$compte_data = \$this->comptes_model->get_by_id\(\'id\', \$compte\);.*?\$modification_section_id = .*?;.*?if \(!\$this->has_modification_rights\(\$modification_section_id\)\) \{/s',
             $source,

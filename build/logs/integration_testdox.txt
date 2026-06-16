@@ -88,8 +88,8 @@ Authorization Integration
  [x] Complete authorization workflow
 
 Authorization Migration
- [ ] Grant user role per section
- [ ] New authorization bypasses legacy
+ [x] Grant user role per section
+ [x] New authorization bypasses legacy
 
 Balance Accordion Search
  [x] Accordion search java script logic
@@ -259,8 +259,8 @@ Membre Admin Authorization
  [x] Pre update strips birthdate for non ca
  [x] Form static element sets has admin rights flag
  [x] View renders identity fields conditionally
- [ ] Pre update preserves identity fields for club admin
- [ ] Pre update strips name fields for ca user
+ [x] Pre update preserves identity fields for club admin
+ [x] Pre update strips name fields for ca user
  [x] Club admin role exists in database
 
 Membres Fusion
@@ -420,24 +420,24 @@ Smart Adjustor Correlation Integration
  [x] Correlation for virement emis against all images
 
 Users Coherence
- [ ] User exists with data set "asterix"
- [ ] User exists with data set "obelix"
- [ ] User exists with data set "abraracourcix"
- [ ] User exists with data set "goudurix"
- [ ] User exists with data set "panoramix"
- [ ] User in new authorization with data set "asterix"
- [ ] User in new authorization with data set "obelix"
- [ ] User in new authorization with data set "abraracourcix"
- [ ] User in new authorization with data set "goudurix"
- [ ] User in new authorization with data set "panoramix"
- [ ] User has expected roles with data set "asterix"
- [ ] User has expected roles with data set "obelix"
- [ ] User has expected roles with data set "abraracourcix"
- [ ] User has expected roles with data set "goudurix"
+ [x] User exists with data set "asterix"
+ [x] User exists with data set "obelix"
+ [x] User exists with data set "abraracourcix"
+ [x] User exists with data set "goudurix"
+ [x] User exists with data set "panoramix"
+ [x] User in new authorization with data set "asterix"
+ [x] User in new authorization with data set "obelix"
+ [x] User in new authorization with data set "abraracourcix"
+ [x] User in new authorization with data set "goudurix"
+ [x] User in new authorization with data set "panoramix"
+ [x] User has expected roles with data set "asterix"
+ [x] User has expected roles with data set "obelix"
+ [x] User has expected roles with data set "abraracourcix"
+ [x] User has expected roles with data set "goudurix"
  [ ] User has expected roles with data set "panoramix"
- [ ] Panoramix is club admin in all sections
+ [x] Panoramix is club admin in all sections
  [x] Panoramix has no comptes
- [ ] Abraracourcix ca role is avion only
+ [x] Abraracourcix ca role is avion only
 
 Vols Decouverte Date Validite
  [x] Date validite column exists

@@ -2037,9 +2037,10 @@ class Compta extends Gvv_Controller {
             // when the feature flag is active.
             $cross_section_ok = $this->config->item('tresorers_can_access_others_sections')
                 && $this->has_modification_rights(NULL);
-            // CA members can view any account journal (read-only) — same access level as comptes/balance.
+            // CA and bureau members can view any account journal (read-only).
             $is_global_ca = $this->allow_roles(['ca'], NULL);
-            if ($cross_section_ok || $is_global_ca) {
+            $is_bureau = $this->user_has_role('bureau');
+            if ($cross_section_ok || $is_global_ca || $is_bureau) {
                 // read-only access granted, no deny
             } else {
                 $owner = $this->comptes_model->user($compte);
