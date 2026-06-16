@@ -104,11 +104,18 @@ $lang['archived_documents_scope'] = 'Scope';
 
 $lang['archived_documents_send_email'] = 'Send email';
 $lang['archived_documents_email_recipient'] = 'Recipient';
+$lang['archived_documents_email_recipients'] = 'Recipients';
+$lang['archived_documents_email_add_member'] = 'Search a club member...';
+$lang['archived_documents_email_add_free'] = 'Free email address';
+$lang['archived_documents_email_add'] = 'Add';
+$lang['archived_documents_email_no_recipients'] = 'Please add at least one recipient.';
+$lang['archived_documents_email_invalid'] = 'Invalid email address.';
+$lang['archived_documents_email_already_added'] = 'This address is already in the list.';
 $lang['archived_documents_email_subject'] = 'Subject';
 $lang['archived_documents_email_body'] = 'Message';
 $lang['archived_documents_email_send'] = 'Send';
 $lang['archived_documents_email_open_client'] = 'Open mail client';
-$lang['archived_documents_email_sent'] = 'Email sent successfully';
+$lang['archived_documents_email_sent'] = 'Email sent successfully to:';
 $lang['archived_documents_email_error'] = 'Error sending email';
 $lang['archived_documents_email_access_denied'] = 'Access denied';
 

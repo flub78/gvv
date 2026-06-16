@@ -1175,12 +1175,26 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
-        $recipient = $this->input->post('recipient');
-        $subject   = $this->input->post('subject');
-        $body      = $this->input->post('body');
+        $recipients_raw = $this->input->post('recipients');
+        $subject        = $this->input->post('subject');
+        $body           = $this->input->post('body');
 
-        if (empty($recipient) || empty($subject) || empty($body)) {
-            $data['msg'] = 'Destinataire, objet et message sont obligatoires.';
+        if (empty($recipients_raw) || empty($subject) || empty($body)) {
+            $data['msg'] = 'Destinataires, objet et message sont obligatoires.';
+            load_last_view('error', $data);
+            return;
+        }
+
+        $parsed = array_filter(array_map('trim', explode(',', $recipients_raw)));
+        $valid_recipients = array();
+        foreach ($parsed as $addr) {
+            if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                $valid_recipients[] = $addr;
+            }
+        }
+
+        if (empty($valid_recipients)) {
+            $data['msg'] = 'Aucune adresse email valide fournie.';
             load_last_view('error', $data);
             return;
         }
@@ -1193,7 +1207,7 @@ class Archived_documents extends Gvv_Controller {
         $this->email->set_newline("\r\n");
         $this->email->set_crlf("\r\n");
         $this->email->from($from, $this->config->item('nom_club'));
-        $this->email->to($recipient);
+        $this->email->to($valid_recipients);
         $this->email->subject($subject);
 
         $this->email->message(nl2br(htmlspecialchars($body)));
@@ -1204,10 +1218,13 @@ class Archived_documents extends Gvv_Controller {
         }
 
         if ($this->email->send()) {
+            $recipients_display = implode(', ', array_map(function ($a) {
+                return '&lt;' . htmlspecialchars($a) . '&gt;';
+            }, $valid_recipients));
             $msg = '<div class="alert alert-success alert-dismissible fade show">'
                  . '<i class="fas fa-check"></i> '
                  . $this->lang->line('archived_documents_email_sent')
-                 . ' &lt;' . htmlspecialchars($recipient) . '&gt;'
+                 . ' ' . $recipients_display
                  . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>'
                  . '</div>';
             $this->session->set_flashdata('message', $msg);

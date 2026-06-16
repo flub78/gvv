@@ -104,11 +104,18 @@ $lang['archived_documents_scope'] = 'Bereik';
 
 $lang['archived_documents_send_email'] = 'E-mail verzenden';
 $lang['archived_documents_email_recipient'] = 'Ontvanger';
+$lang['archived_documents_email_recipients'] = 'Ontvangers';
+$lang['archived_documents_email_add_member'] = 'Zoek een clublid...';
+$lang['archived_documents_email_add_free'] = 'Vrij e-mailadres';
+$lang['archived_documents_email_add'] = 'Toevoegen';
+$lang['archived_documents_email_no_recipients'] = 'Voeg minstens één ontvanger toe.';
+$lang['archived_documents_email_invalid'] = 'Ongeldig e-mailadres.';
+$lang['archived_documents_email_already_added'] = 'Dit adres staat al in de lijst.';
 $lang['archived_documents_email_subject'] = 'Onderwerp';
 $lang['archived_documents_email_body'] = 'Bericht';
 $lang['archived_documents_email_send'] = 'Verzenden';
 $lang['archived_documents_email_open_client'] = 'E-mailclient openen';
-$lang['archived_documents_email_sent'] = 'E-mail succesvol verzonden';
+$lang['archived_documents_email_sent'] = 'E-mail succesvol verzonden naar:';
 $lang['archived_documents_email_error'] = 'Fout bij verzenden van e-mail';
 $lang['archived_documents_email_access_denied'] = 'Toegang geweigerd';
 

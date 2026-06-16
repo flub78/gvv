@@ -104,11 +104,18 @@ $lang['archived_documents_scope'] = 'Portée';
 
 $lang['archived_documents_send_email'] = 'Envoyer un email';
 $lang['archived_documents_email_recipient'] = 'Destinataire';
+$lang['archived_documents_email_recipients'] = 'Destinataires';
+$lang['archived_documents_email_add_member'] = 'Rechercher un membre du club...';
+$lang['archived_documents_email_add_free'] = 'Adresse email libre';
+$lang['archived_documents_email_add'] = 'Ajouter';
+$lang['archived_documents_email_no_recipients'] = 'Veuillez ajouter au moins un destinataire.';
+$lang['archived_documents_email_invalid'] = 'Adresse email invalide.';
+$lang['archived_documents_email_already_added'] = 'Cette adresse est déjà dans la liste.';
 $lang['archived_documents_email_subject'] = 'Objet';
 $lang['archived_documents_email_body'] = 'Message';
 $lang['archived_documents_email_send'] = 'Envoyer';
 $lang['archived_documents_email_open_client'] = 'Ouvrir le client mail';
-$lang['archived_documents_email_sent'] = 'Email envoyé avec succès';
+$lang['archived_documents_email_sent'] = 'Email envoyé avec succès à :';
 $lang['archived_documents_email_error'] = 'Erreur lors de l\'envoi de l\'email';
 $lang['archived_documents_email_access_denied'] = 'Accès refusé';
 

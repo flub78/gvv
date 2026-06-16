@@ -319,17 +319,33 @@ document.getElementById('clear-filters').addEventListener('click', function() {
       <form id="docEmailForm" method="post" action="">
         <div class="modal-body">
           <div class="mb-3">
-            <label for="docEmailRecipient" class="form-label"><?= $this->lang->line('archived_documents_email_recipient') ?></label>
-            <input type="email" class="form-control" id="docEmailRecipient" name="recipient"
-                   list="memberEmailDatalist" autocomplete="off" required>
-            <datalist id="memberEmailDatalist">
-              <?php if (!empty($member_emails)): ?>
-              <?php foreach ($member_emails as $m): ?>
-              <option value="<?= htmlspecialchars($m['memail']) ?>"
-                      label="<?= htmlspecialchars(trim($m['mprenom'] . ' ' . $m['mnom'])) ?>">
-              <?php endforeach; ?>
-              <?php endif; ?>
-            </datalist>
+            <label class="form-label fw-semibold"><?= $this->lang->line('archived_documents_email_recipients') ?> *</label>
+            <div id="recipientChips" class="d-flex flex-wrap gap-1 p-2 border rounded bg-light mb-2" style="min-height:38px;"></div>
+            <input type="hidden" id="docEmailRecipients" name="recipients">
+            <div id="recipientError" class="text-danger small mb-2" style="display:none;"></div>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="memberEmailSearch"
+                     list="memberEmailDatalist" autocomplete="off"
+                     placeholder="<?= $this->lang->line('archived_documents_email_add_member') ?>">
+              <datalist id="memberEmailDatalist">
+                <?php if (!empty($member_emails)): ?>
+                <?php foreach ($member_emails as $m): ?>
+                <option value="<?= htmlspecialchars($m['memail']) ?>"
+                        label="<?= htmlspecialchars(trim($m['mprenom'] . ' ' . $m['mnom'])) ?>">
+                <?php endforeach; ?>
+                <?php endif; ?>
+              </datalist>
+              <button type="button" class="btn btn-outline-secondary" id="addMemberEmailBtn">
+                <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_email_add') ?>
+              </button>
+            </div>
+            <div class="input-group">
+              <input type="email" class="form-control" id="freeEmailInput"
+                     placeholder="<?= $this->lang->line('archived_documents_email_add_free') ?>">
+              <button type="button" class="btn btn-outline-secondary" id="addFreeEmailBtn">
+                <i class="fas fa-plus"></i> <?= $this->lang->line('archived_documents_email_add') ?>
+              </button>
+            </div>
           </div>
           <div class="mb-3">
             <label for="docEmailSubject" class="form-label"><?= $this->lang->line('archived_documents_email_subject') ?></label>
@@ -355,12 +371,119 @@ document.getElementById('clear-filters').addEventListener('click', function() {
 
 <script>
 (function() {
-    var senderSignature = <?= json_encode(isset($sender_signature) ? $sender_signature : $this->config->item('nom_club')) ?>;
-    var sendEmailBaseUrl  = <?= json_encode(site_url('archived_documents/send_email')) ?> + '/';
+    var senderSignature  = <?= json_encode(isset($sender_signature) ? $sender_signature : $this->config->item('nom_club')) ?>;
+    var sendEmailBaseUrl = <?= json_encode(site_url('archived_documents/send_email')) ?> + '/';
+    var msgInvalid       = <?= json_encode($this->lang->line('archived_documents_email_invalid')) ?>;
+    var msgDuplicate     = <?= json_encode($this->lang->line('archived_documents_email_already_added')) ?>;
+    var msgNoRecipient   = <?= json_encode($this->lang->line('archived_documents_email_no_recipients')) ?>;
+
+    var recipients = [];
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showError(msg) {
+        var el = document.getElementById('recipientError');
+        el.textContent = msg;
+        el.style.display = '';
+    }
+
+    function clearError() {
+        var el = document.getElementById('recipientError');
+        el.textContent = '';
+        el.style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderChips() {
+        var container = document.getElementById('recipientChips');
+        container.innerHTML = '';
+        recipients.forEach(function(email) {
+            var chip = document.createElement('span');
+            chip.className = 'badge bg-secondary d-inline-flex align-items-center gap-1 py-1 px-2';
+            chip.style.fontSize = '0.85em';
+            var label = document.createElement('span');
+            label.textContent = email;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-close btn-close-white';
+            btn.style.fontSize = '0.55em';
+            btn.setAttribute('aria-label', 'Retirer');
+            btn.addEventListener('click', (function(e) {
+                return function() { removeRecipient(e); };
+            })(email));
+            chip.appendChild(label);
+            chip.appendChild(btn);
+            container.appendChild(chip);
+        });
+        document.getElementById('docEmailRecipients').value = recipients.join(',');
+    }
+
+    function addRecipient(email) {
+        email = email.trim().toLowerCase();
+        if (!isValidEmail(email)) {
+            showError(msgInvalid);
+            return false;
+        }
+        if (recipients.indexOf(email) !== -1) {
+            showError(msgDuplicate);
+            return false;
+        }
+        clearError();
+        recipients.push(email);
+        renderChips();
+        return true;
+    }
+
+    function removeRecipient(email) {
+        recipients = recipients.filter(function(e) { return e !== email; });
+        renderChips();
+    }
 
     function buildEmailBody(subject) {
         return "Bonjour,\n\nVoici le document " + subject + "\n\nCordialement,\n" + senderSignature;
     }
+
+    document.getElementById('addMemberEmailBtn').addEventListener('click', function() {
+        var input = document.getElementById('memberEmailSearch');
+        if (addRecipient(input.value)) { input.value = ''; }
+    });
+
+    document.getElementById('memberEmailSearch').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (addRecipient(this.value)) { this.value = ''; }
+        }
+    });
+
+    document.getElementById('memberEmailSearch').addEventListener('change', function() {
+        if (isValidEmail(this.value.trim())) {
+            if (addRecipient(this.value)) { this.value = ''; }
+        }
+    });
+
+    document.getElementById('addFreeEmailBtn').addEventListener('click', function() {
+        var input = document.getElementById('freeEmailInput');
+        if (addRecipient(input.value)) { input.value = ''; }
+    });
+
+    document.getElementById('freeEmailInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (addRecipient(this.value)) { this.value = ''; }
+        }
+    });
+
+    document.getElementById('docEmailForm').addEventListener('submit', function(e) {
+        if (recipients.length === 0) {
+            e.preventDefault();
+            showError(msgNoRecipient);
+        }
+    });
 
     document.querySelectorAll('.doc-email-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -368,13 +491,17 @@ document.getElementById('clear-filters').addEventListener('click', function() {
             var recipient = this.getAttribute('data-recipient');
             var subject   = this.getAttribute('data-subject');
 
-            document.getElementById('docEmailRecipient').value = recipient;
+            recipients = [];
+            clearError();
+            document.getElementById('memberEmailSearch').value = '';
+            document.getElementById('freeEmailInput').value    = '';
             document.getElementById('docEmailSubject').value   = subject;
             document.getElementById('docEmailBody').value      = buildEmailBody(subject);
             document.getElementById('docEmailForm').action     = sendEmailBaseUrl + docId;
 
-            var modal = new bootstrap.Modal(document.getElementById('docEmailModal'));
-            modal.show();
+            if (recipient) { addRecipient(recipient); }
+
+            new bootstrap.Modal(document.getElementById('docEmailModal')).show();
         });
     });
 })();
