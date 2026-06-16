@@ -21,7 +21,7 @@ const TEST_USER = {
   correctPassword: 'password'
 };
 
-test.describe('Rapprochements Tab Persistence', () => {
+test.describe.serial('Rapprochements Tab Persistence', () => {
 
   test('should save active tab to sessionStorage when clicked', async ({ page }) => {
     // Login and upload bank statement

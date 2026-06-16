@@ -127,7 +127,7 @@ async function countEvents(page) {
   return await page.locator('.fc-event').count();
 }
 
-test.describe('Presences FullCalendar v6', () => {
+test.describe.serial('Presences FullCalendar v6', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login as admin for most tests

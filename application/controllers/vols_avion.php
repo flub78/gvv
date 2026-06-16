@@ -607,35 +607,34 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::edit()
      */
     function edit($id = '', $load_view = true, $action = MODIFICATION) {
-        // planchiste / pilote_rem (section planeurs): full access; auto_planchiste: edit own flights; others: view own flights only
+        // Access rules:
+        //   planchiste / pilote_rem  → full edit
+        //   auto_planchiste + own flight → edit own
+        //   all other logged-in users → view-only (any flight)
         $is_planchiste = $this->can_write_airplane_flights();
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
         $bypass_modification_level = FALSE;
-        if (! $is_planchiste) {
+
+        if ($is_planchiste) {
+            $action = MODIFICATION;
+        } else {
             $flight = $this->gvv_model->get_by_id('vaid', $id);
             $mlogin = $this->dx_auth->get_username();
             $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
-            if (! $is_own_flight) {
-                $this->dx_auth->deny_access();
-                return;
-            }
-            if (! $is_auto_planchiste) {
-                // Regular user: view only
-                $action = VISUALISATION;
-            } else {
-                // auto_planchiste editing own flight: ownership already verified, bypass level check
+            if ($is_own_flight && $is_auto_planchiste) {
+                // auto_planchiste editing own flight: bypass level check
+                $action = MODIFICATION;
                 $bypass_modification_level = TRUE;
+            } else {
+                // Non-planchiste: read-only for own flight or any other flight
+                $action = VISUALISATION;
             }
         }
 
         $this->load->model('ecritures_model');
-        // $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion"))) ? VISUALISATION : MODIFICATION;
-        $action = MODIFICATION;
         if ($bypass_modification_level) {
             // Temporarily clear modification_level so ensure_modification_rights() in parent::edit()
             // skips the planchiste check — ownership was already verified above.
-            // Note: parent::edit() must return normally (not via redirect/show_404) for the restore
-            // to execute; the ownership guard above ensures we only reach this path on valid flights.
             $saved_level = $this->modification_level;
             $this->modification_level = '';
             parent::edit($id, FALSE, $action);
