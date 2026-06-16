@@ -85,9 +85,6 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
                 <i class="fas fa-home text-primary"></i>
                 <?= $this->lang->line("welcome_title") ?>
             </h2>
-            <?php if (!empty($user_name)): ?>
-                <p class="text-muted"><?= $this->lang->line('db_greeting') ?><?= htmlspecialchars($user_name) ?></p>
-            <?php endif; ?>
         </div>
     </div>
 

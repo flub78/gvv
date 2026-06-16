@@ -173,6 +173,7 @@ $this->load->view('bs_banner');
             background-color: white;
             border-bottom: 2px solid #ddd;
             height: 50px;
+            min-width: calc(18 * 60px); /* 18h × 60px = 6h→24h */
         }
         
         .time-slot-header {
@@ -202,16 +203,17 @@ $this->load->view('bs_banner');
         }
         
         .resource-timeline {
-            min-width: 100%;
+            min-width: max-content;
             display: flex;
             flex-direction: column;
         }
-        
+
         .resource-row-timeline {
             display: flex;
             border-bottom: 3px solid #999;
             height: 60px;
             position: relative;
+            min-width: calc(18 * 60px); /* 18h × 60px = 6h→24h */
         }
         
         .resource-row-timeline:last-child {
@@ -378,53 +380,90 @@ $this->load->view('bs_banner');
         }
         
         @media (max-width: 768px) {
-            .timeline-resources {
-                width: 120px;
+            .timeline-resources { width: 120px; }
+            .time-slot-header   { min-width: 50px; }
+            .time-slot          { min-width: 50px; }
+            .resource-row-timeline { min-width: calc(18 * 60px); } /* aligne sur le header (flex: 0 0 60px) */
+
+            /* Hauteur auto : le tableau s'adapte au nombre d'avions */
+            .timeline-container {
+                height: auto;
+                margin: 10px;
             }
-            
-            .time-slot-header {
-                min-width: 50px;
+            .timeline-body {
+                height: auto;
+                overflow: visible;
             }
-            
-            .time-slot {
-                min-width: 50px;
+            .timeline-grid {
+                overflow-x: auto;
+                overflow-y: visible;
             }
-            
+
             .timeline-header {
                 flex-direction: column;
                 align-items: stretch;
+                padding: 8px;
+                gap: 6px;
             }
-            
+
+            /* Masqués sur mobile */
+            .timeline-title { display: none; }
+            #btnToday       { display: none; }
+
+            /* Barre de navigation compacte en 2 lignes */
             .timeline-controls {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                align-items: center;
             }
 
             .timeline-controls .btn {
-                width: 100%;
                 margin: 0;
+                white-space: nowrap;
             }
 
+            /* Séparateur de ligne entre rangée 1 et rangée 2 */
+            .timeline-controls::after {
+                content: '';
+                width: 100%;
+                order: 20;
+                height: 0;
+                flex-shrink: 0;
+            }
+
+            /* Rangée 1 : ← Précédent | date formatée | Suivant → */
+            #btnPrevious {
+                order: 10;
+                flex: 0 0 auto;
+            }
+            .current-date-display {
+                order: 11;
+                flex: 1 1 auto;
+                min-width: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: center;
+                font-size: 14px;
+            }
+            #btnNext {
+                order: 12;
+                flex: 0 0 auto;
+            }
+
+            /* Rangée 2 : input date | Mois | Semaine | Liste */
             #datePicker {
-                grid-column: 1 / -1;
-                width: 100% !important;
+                order: 30;
+                flex: 1 1 auto;
+                min-width: 120px;
+                width: auto !important;
                 display: block !important;
                 margin: 0 !important;
             }
-
-            .current-date-display {
-                grid-column: 1 / -1;
-                width: 100%;
-                min-width: 0;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .timeline-controls {
-                grid-template-columns: 1fr;
-            }
+            #btnMonth { order: 31; flex: 0 0 auto; }
+            #btnWeek  { order: 32; flex: 0 0 auto; }
+            #btnList  { order: 33; flex: 0 0 auto; }
         }
     </style>
 
@@ -444,13 +483,13 @@ $this->load->view('bs_banner');
                 <div class="current-date-display" id="currentDateDisplay">
                     <?php echo $current_date_formatted; ?>
                 </div>
-                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
+                <a id="btnMonth" class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
                     <?php echo $this->lang->line('month') ?: 'Mois'; ?>
                 </a>
-                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=timeGridWeek" title="Vue semaine">
+                <a id="btnWeek" class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=timeGridWeek" title="Vue semaine">
                     <?php echo $this->lang->line('week') ?: 'Semaine'; ?>
                 </a>
-                <a class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=listWeek" title="Vue liste">
+                <a id="btnList" class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=listWeek" title="Vue liste">
                     <?php echo $this->lang->line('list') ?: 'Liste'; ?>
                 </a>
                 <button class="btn btn-outline-secondary btn-sm" id="btnToday" title="Go to today">

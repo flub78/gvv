@@ -10,6 +10,11 @@ if ($banner_color === '') {
 }
 ?>
 
+<style>
+@media (max-width: 768px) {
+    header.container-fluid { display: none; }
+}
+</style>
 <header class="container-fluid p-3 text-white text-center" style="background-color: <?= htmlspecialchars($banner_color, ENT_QUOTES, 'UTF-8') ?>;">
     <!-- Ici on mettra la bannière -->
     <div id="header_left"></div>
