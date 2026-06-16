@@ -393,6 +393,7 @@ $this->load->view('bs_banner');
             .timeline-body {
                 height: auto;
                 overflow: visible;
+                padding-bottom: 16px;
             }
             .timeline-grid {
                 overflow-x: auto;
@@ -1018,6 +1019,9 @@ $this->load->view('bs_banner');
          * Start slot selection (drag to create reservation)
          */
         function startSlotSelection(e, slotEl) {
+            // Sur écran tactile, désactive la sélection par glisser pour ne pas bloquer le scroll
+            if (window.matchMedia('(pointer: coarse)').matches) return;
+
             e.preventDefault();
 
             // Read-only members cannot create reservations
