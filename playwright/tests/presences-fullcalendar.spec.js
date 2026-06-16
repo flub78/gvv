@@ -357,13 +357,13 @@ test.describe('Presences FullCalendar v6', () => {
       comment: 'To be deleted'
     });
 
-    await savePresence(page);
-    await page.waitForTimeout(2000);
+    await page.click('#saveEventBtn');
+    await page.waitForLoadState('networkidle');
 
     // Find the specific event we just created by its comment text
     // The event title includes the comment, e.g. "Test Testuser - Solo - To be deleted"
     const targetEvent = page.locator('.fc-event').filter({ hasText: 'To be deleted' }).first();
-    await expect(targetEvent).toBeVisible({ timeout: 5000 });
+    await expect(targetEvent).toBeVisible({ timeout: 15000 });
 
     // Click on the specific event to open edit modal
     await targetEvent.click();

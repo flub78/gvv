@@ -223,8 +223,9 @@ test.describe('Archived Documents Smoke Tests', () => {
     const modal = page.locator('#docEmailModal');
     await expect(modal).toBeVisible({ timeout: 3000 });
 
-    // Verify fields are present
-    await expect(page.locator('#docEmailRecipient')).toBeVisible();
+    // Verify recipient area and form fields are present
+    await expect(page.locator('#freeEmailInput')).toBeVisible();
+    await expect(page.locator('#addFreeEmailBtn')).toBeVisible();
     await expect(page.locator('#docEmailSubject')).toBeVisible();
     await expect(page.locator('#docEmailBody')).toBeVisible();
 
@@ -258,12 +259,12 @@ test.describe('Archived Documents Smoke Tests', () => {
     const modal = page.locator('#docEmailModal');
     await expect(modal).toBeVisible({ timeout: 3000 });
 
-    // Override recipient to a public test address (visible at mailinator.com/v4/public/inboxes.jsp?to=test-gvv)
-    await page.locator('#docEmailRecipient').fill('test-gvv@mailinator.com');
+    // Add recipient via the free-email input (chip-based UI)
+    await page.locator('#freeEmailInput').fill('test-gvv@mailinator.com');
+    await page.locator('#addFreeEmailBtn').click();
 
-    // Submit the form
-    const form = modal.locator('form');
-    await form.evaluate(f => f.submit());
+    // Submit the form via the submit button (so the recipient validation runs)
+    await modal.locator('button[type="submit"]').click();
 
     // Should redirect back to list with success alert
     await page.waitForLoadState('networkidle');

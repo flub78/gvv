@@ -129,8 +129,8 @@ create_legacy_user() {
     if [ "$role_id" -ne 2 ]; then
         local nom=$(echo "$username" | sed 's/.*/\u&/')
         mysql_exec -e "
-            INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
-            VALUES ('$username', '$nom', 'Test', '$email', '1 rue de Test', 75000, 'Paris', 'France', 'M', 0, 0, 0, 1, '$username', '0');
+            INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, ext, actif, username, categorie)
+            VALUES ('$username', '$nom', 'Test', '$email', '1 rue de Test', 75000, 'Paris', 'France', 'M', 0, 1, '$username', '0');
         "
 
         # 3. Create 411 account in default section
@@ -227,8 +227,8 @@ create_gaulois_user() {
 
     # 2. Create membre entry (no 'club' column — removed in migration)
     mysql_exec -e "
-        INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
-        VALUES ('$username', '$nom', '$prenom', '$email', '$adresse', 22000, 'Village gaulois', 'France', 'M', $roles_bits, 0, 0, 1, '$username', '0');
+        INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, ext, actif, username, categorie)
+        VALUES ('$username', '$nom', '$prenom', '$email', '$adresse', 22000, 'Village gaulois', 'France', 'M', 0, 1, '$username', '0');
     "
 
     # 3. Create 411 accounts and roles for each section
@@ -385,8 +385,8 @@ mysql_exec -e "
 "
 PANORAMIX_USER_ID=$(mysql_query "SELECT id FROM users WHERE username='panoramix'")
 mysql_exec -e "
-    INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, mniveaux, macces, ext, actif, username, categorie)
-    VALUES ('panoramix', 'Panoramix', 'Le Gaulois', 'panoramix@gmail.com', '1 rue du Menhir', 22000, 'Village gaulois', 'France', 'M', 0, 0, 0, 1, 'panoramix', '0');
+    INSERT INTO membres (mlogin, mnom, mprenom, memail, madresse, cp, ville, pays, msexe, ext, actif, username, categorie)
+    VALUES ('panoramix', 'Panoramix', 'Le Gaulois', 'panoramix@gmail.com', '1 rue du Menhir', 22000, 'Village gaulois', 'France', 'M', 0, 1, 'panoramix', '0');
 "
 # Grant user + club-admin roles in all sections
 for section_id in $(mysql_query "SELECT id FROM sections ORDER BY id"); do
