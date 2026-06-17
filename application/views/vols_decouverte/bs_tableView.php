@@ -182,10 +182,13 @@ if ($has_modification_rights) {
 <?php
 
 $is_pilot_only = !$has_modification_rights && (isset($has_pilot_rights) && $has_pilot_rights);
+$show_briefing = has_briefing_admin_role();
 if ($has_modification_rights) {
-    $table_actions = array('edit', 'delete', 'print_vd', 'email_vd', 'action', 'briefing_vd');
+    $table_actions = array('edit', 'delete', 'print_vd', 'email_vd', 'action');
+    if ($show_briefing) $table_actions[] = 'briefing_vd';
 } elseif ($is_pilot_only) {
-    $table_actions = array('print_vd', 'email_vd', 'action', 'briefing_vd');
+    $table_actions = array('print_vd', 'email_vd', 'action');
+    if ($show_briefing) $table_actions[] = 'briefing_vd';
 } else {
     $table_actions = array();
 }

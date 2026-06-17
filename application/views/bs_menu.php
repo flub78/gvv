@@ -96,7 +96,9 @@ if ($CI->dx_auth->is_logged_in()) {
                           <li><a class="dropdown-item" href="<?= $public_vd_url ?>" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe text-info"></i> <?= translation("gvv_menu_public_page") ?></a></li>
                           <?php endif; ?>
                           <li><a class="dropdown-item" href="<?= controller_url("vols_decouverte/select_by_id") ?>"><i class="fas fa-search text-primary"></i> <?= translation("gvv_menu_vols_decouverte_select") ?></a></li>
+                          <?php if (has_briefing_admin_role()) : ?>
                           <li><a class="dropdown-item" href="<?= controller_url("briefing_passager/admin_list") ?>"><i class="fas fa-clipboard-check text-success"></i> <?= translation("briefing_passager_menu") ?></a></li>
+                          <?php endif; ?>
                         <?php endif; ?>
                       </ul>
                     </li>

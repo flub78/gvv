@@ -205,3 +205,13 @@ if (!function_exists('has_vd_role')) {
         return has_role('ca') || has_role('gestion_vd') || has_role('pilote_vd');
     }
 }
+
+if (!function_exists('has_briefing_admin_role')) {
+    /**
+     * Returns true if the current user can manage passenger briefings.
+     * Allowed roles: instructeur, pilote_vd, club-admin.
+     */
+    function has_briefing_admin_role() {
+        return has_role('instructeur') || has_role('pilote_vd') || has_role('club-admin');
+    }
+}

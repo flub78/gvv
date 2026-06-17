@@ -40,19 +40,6 @@ echo heading("gvv_vols_decouverte_element", 3);
 
 <?php
 
-// echo validation_errors();
-$form = $this->gvvmetadata->form_flexbox('vols_decouverte', array(
-	'date_vente' => $date_vente,
-	'product' => $product,
-	'beneficiaire' => $beneficiaire,
-	'de_la_part' => $de_la_part,
-	'beneficiaire_email' => $beneficiaire_email,
-	'urgence' => $urgence,
-	'cancelled' => $cancelled
-));
-
-// echo $form;
-
 $index_page = $this->config->item('index_page');
 
 $index = ($index_page) ? "$index_page/" : "";

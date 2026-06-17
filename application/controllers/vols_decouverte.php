@@ -592,7 +592,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['obfuscated_id'] = $obfuscated_id;
         $product = $this->data['product'];
         $tarif = $this->tarifs_model->get_tarif($product, date("Y-m-d"));
-        $this->data['description'] = ($tarif['description'] != "") ? $tarif['description'] : $product;
+        $this->data['description'] = (!empty($tarif['description'])) ? $tarif['description'] : $product;
 
         // Check if expired: use date_validite if set, otherwise date_vente + 1 year
         if (!empty($this->data['date_validite'])) {

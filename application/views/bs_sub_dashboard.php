@@ -415,6 +415,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if (has_briefing_admin_role()) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-clipboard-check text-success"></i>
@@ -423,6 +424,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('briefing_passager/admin_list') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php endif; ?>
         <?php endif; ?>
     </div>
 
