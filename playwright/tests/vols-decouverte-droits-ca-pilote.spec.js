@@ -171,7 +171,7 @@ test.describe('VD — trois niveaux de droits', () => {
     // (Bug 1 : tresorier ne pouvait pas modifier → était bloqué en 404)
     // ================================================================
 
-    test('Gestionnaire (tresorier) — voit tous les boutons dans la liste', async ({ page }) => {
+    test('Gestionnaire (tresorier) — voit les boutons de gestion VD dans la liste', async ({ page }) => {
         await loginAs(page, 'goudurix', AVION_SECTION);
         await page.goto(VD_LIST_URL);
         await page.waitForLoadState('domcontentloaded');
@@ -179,7 +179,8 @@ test.describe('VD — trois niveaux de droits', () => {
         await expect(page.locator('a[href*="/vols_decouverte/create"]')).toBeVisible();
         await expect(page.locator('a[href*="/vols_decouverte/edit/"]').first()).toBeVisible();
         await expect(page.locator('a[href*="/vols_decouverte/action/"]').first()).toBeVisible();
-        await expect(page.locator('a[href*="/briefing_passager/upload/"]').first()).toBeVisible();
+        // Le bouton briefing est réservé aux rôles instructeur, pilote_vd et club-admin (pas tresorier)
+        await expect(page.locator('a[href*="/briefing_passager/upload/"]').first()).not.toBeVisible();
     });
 
     test('Bug 1 — Gestionnaire (tresorier) peut modifier un VD via /edit/', async ({ page }) => {
