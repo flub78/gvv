@@ -509,10 +509,8 @@ if ($CI->dx_auth->is_logged_in()) {
         <form class="d-flex ms-5 bg-dark border-0">
           <div class="text-white bg-dark me-1 text-center">
             <?= $gvv_display_name ?>
-            <?php if (!method_exists($CI, 'uses_new_auth') || !$CI->uses_new_auth()): ?>
-            <div class="text-white me-1 text-center">
-              <?= $gvv_role ?>
-            </div>
+            <?php if ($CI->dx_auth->is_admin()): ?>
+            <div class="text-black bg-danger me-1 text-center px-2 rounded fw-bold">admin</div>
             <?php endif; ?>
 
             <?php if ($total_real_sections > 1) : ?>
