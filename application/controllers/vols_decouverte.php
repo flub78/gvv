@@ -1215,6 +1215,7 @@ EOD;
         $this->lang->load('vols_decouverte');
         $this->lang->load('paiements_en_ligne');
 
+        $section_fixed = (bool) $this->input->get('section');
         $section_id = (int) ($section_id ?: $this->input->get('section'));
 
         // Liste de toutes les sections avec VD par CB activé et statut quota
@@ -1243,7 +1244,7 @@ EOD;
         // PRG: restore errors and form data from a failed POST redirect
         $errors    = (array) ($this->session->flashdata('vd_public_errors')    ?: array());
         $form_data = (array) ($this->session->flashdata('vd_public_form_data') ?: array());
-        $this->_render_public_vd($section_id, $section_row, $sections_disponibles, $section_error, $errors, null, $form_data);
+        $this->_render_public_vd($section_id, $section_row, $sections_disponibles, $section_error, $errors, null, $form_data, $section_fixed);
     }
 
     /**
@@ -1458,7 +1459,8 @@ EOD;
         $section_error = '',
         array $errors = array(),
         $quota_status = null,
-        array $form_data = array()
+        array $form_data = array(),
+        $section_fixed = false
     ) {
         $products    = array();
         $quota_status_get = null;
@@ -1515,6 +1517,7 @@ EOD;
             'flash_success'        => $this->session->flashdata('success'),
             'flash_error'          => $this->session->flashdata('error'),
             'poids_max'            => $poids_max,
+            'section_fixed'        => $section_fixed,
         );
 
         $this->load->vars(['nav_back_url' => '']);

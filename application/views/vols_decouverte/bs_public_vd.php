@@ -132,7 +132,7 @@ if (!empty($errors) && is_array($errors)) {
   <!-- Sélecteur de section (masqué si section forcée depuis l'URL) -->
   <?php if (empty($sections_disponibles)): ?>
   <div class="alert alert-info"><?= $this->lang->line('gvv_vd_public_no_section_available') ?></div>
-  <?php elseif (empty($section_row) || count($sections_disponibles) > 1): ?>
+  <?php elseif (!$section_fixed && (empty($section_row) || count($sections_disponibles) > 1)): ?>
   <div class="mb-4">
     <h5><?= $this->lang->line('gvv_vd_public_choose_section') ?></h5>
     <div class="row g-2">
