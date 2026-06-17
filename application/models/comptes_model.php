@@ -655,11 +655,20 @@ class Comptes_model extends Common_Model {
         $data['valeur_nette_immo_corp'] = $data['valeur_brute_immo_corp'] - $data['amortissements_corp'];
         $tiers = $this->ecritures_model->select_solde($date_op, 4, 5, FALSE);
 
+        // Comptes 467 (inter-sections) : nettés par codec pour éviter le double comptage consolidé
+        // Tous les autres comptes de classe 4 : traitement compte par compte (ex. 411 membres)
+        $net_467 = [];
         $creances_pilotes = 0.0;
         foreach ($tiers as $row) {
-            if ($row['solde'] < 0) {
+            if (strpos($row['code'], '467') === 0) {
+                if (!isset($net_467[$row['code']])) $net_467[$row['code']] = 0.0;
+                $net_467[$row['code']] += $row['solde'];
+            } elseif ($row['solde'] < 0) {
                 $creances_pilotes -= $row['solde'];
             }
+        }
+        foreach ($net_467 as $net) {
+            if ($net < 0) $creances_pilotes -= $net;
         }
         $data['creances_pilotes'] = $creances_pilotes;
 
@@ -706,9 +715,16 @@ class Comptes_model extends Common_Model {
         $data['total_passif'] += $dettes_fiscales_sociales;
 
         // Autres créditeurs (44-47x) : État (44), groupe/associés (45, dont 451), débiteurs divers (46)
-        $autres_crediteurs = 0.0;
+        // Groupement par codec pour neutraliser les transactions inter-sections (467) qui se compensent
+        $net_by_codec = [];
         foreach ($this->ecritures_model->select_solde($date_op, 44, 47, FALSE) as $row) {
-            if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
+            $codec = $row['code'];
+            if (!isset($net_by_codec[$codec])) $net_by_codec[$codec] = 0.0;
+            $net_by_codec[$codec] += $row['solde'];
+        }
+        $autres_crediteurs = 0.0;
+        foreach ($net_by_codec as $net) {
+            if ($net > 0) $autres_crediteurs += $net;
         }
         $data['total_passif'] += $autres_crediteurs;
 

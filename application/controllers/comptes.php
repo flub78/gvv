@@ -1337,9 +1337,15 @@ class Comptes extends Gvv_Controller {
         foreach ($this->ecritures_model->select_solde($date_op, 42, 44, FALSE) as $row) {
             if ($row['solde'] > 0) $dettes_fiscales_sociales += $row['solde'];
         }
-        $autres_crediteurs = 0.0;
+        $net_by_codec = [];
         foreach ($this->ecritures_model->select_solde($date_op, 44, 47, FALSE) as $row) {
-            if ($row['solde'] > 0) $autres_crediteurs += $row['solde'];
+            $codec = $row['code'];
+            if (!isset($net_by_codec[$codec])) $net_by_codec[$codec] = 0.0;
+            $net_by_codec[$codec] += $row['solde'];
+        }
+        $autres_crediteurs = 0.0;
+        foreach ($net_by_codec as $net) {
+            if ($net > 0) $autres_crediteurs += $net;
         }
 
         $fonds_propres_sans_droit_reprise = $bilan['fonds_associatifs'] + $bilan['reports_cred'] + $bilan['reports_deb'];
