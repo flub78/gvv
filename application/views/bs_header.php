@@ -181,4 +181,29 @@
 		}
 	</script>
 
+	<!-- Collapse all accordions and filter cards on mobile (smartphones < 768px) -->
+	<script type="text/javascript">
+		document.addEventListener('DOMContentLoaded', function() {
+			if (window.innerWidth < 768) {
+				// Collapse Bootstrap accordions
+				document.querySelectorAll('.accordion-collapse.show').forEach(function(panel) {
+					bootstrap.Collapse.getOrCreateInstance(panel, {toggle: false}).hide();
+				});
+				// Collapse card-based filter sections and make them togglable
+				document.querySelectorAll('.card-header').forEach(function(header) {
+					if (header.querySelector('.fa-filter')) {
+						var body = header.closest('.card').querySelector('.card-body');
+						if (body) {
+							body.style.display = 'none';
+							header.style.cursor = 'pointer';
+							header.addEventListener('click', function() {
+								body.style.display = body.style.display === 'none' ? '' : 'none';
+							});
+						}
+					}
+				});
+			}
+		});
+	</script>
+
 </head>

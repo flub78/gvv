@@ -61,6 +61,9 @@ $this->lang->load('gvv');
 
     <!-- Filters -->
     <div class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-filter" aria-hidden="true"></i> Filtres
+        </div>
         <div class="card-body">
             <form method="get" action="<?= controller_url($controller) ?>" class="row g-3">
                 <div class="col-md-4">

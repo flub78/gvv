@@ -333,7 +333,7 @@ class Backend extends GVV_Controller {
     /**
      * Validation du formulaire d'édition
      */
-    public function formValidation($action) {
+    public function formValidation($action, $return_on_success = false) {
         // Validates the form entries
         $this->form_validation->set_error_delimiters('<div class="error">', '</div>');
 

@@ -65,7 +65,12 @@ $filter_scope = isset($filters['scope']) ? $filters['scope'] : '';
     white-space: nowrap !important;
 }
 </style>
-<form method="get" class="mb-3" id="doc-filter-form">
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fas fa-filter" aria-hidden="true"></i> Filtres
+    </div>
+    <div class="card-body">
+<form method="get" id="doc-filter-form">
     <input type="hidden" name="filter_submitted" value="1">
     <div class="row g-2 align-items-end">
         <div class="col-sm-3">
@@ -122,6 +127,8 @@ $filter_scope = isset($filters['scope']) ? $filters['scope'] : '';
         </div>
     </div>
 </form>
+    </div>
+</div>
 <script>
 // Purge le state DataTables sauvegardé pour cette table afin que les largeurs de colonnes
 // ne soient pas restaurées depuis une ancienne session où du texte d'erreur les avait élargies.

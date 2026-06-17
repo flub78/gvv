@@ -56,11 +56,11 @@ if ($section) {
     <!-- Filtre -->
     <div class="accordion-item">
         <h3 class="accordion-header" id="panel-filtre">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panel_filter_id" aria-expanded="true" aria-controls="panel_filter_id">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panel_filter_id" aria-expanded="false" aria-controls="panel_filter_id">
                 <?= $this->lang->line("gvv_str_filter") ?>
             </button>
         </h3>
-        <div id="panel_filter_id" class="accordion-collapse collapse  <?= $filter_active ? 'show' : '' ?>" aria-labelledby="panel-filtre">
+        <div id="panel_filter_id" class="accordion-collapse collapse" aria-labelledby="panel-filtre">
             <div class="accordion-body">
                 <form action="<?= controller_url($controller) . '/filterValidation/' . $compte . ($section ? '/' . $section['id'] : '') ?>" method="post" accept-charset="utf-8" name="saisie">
 
@@ -157,10 +157,10 @@ if ($section) {
         <div class="accordion-item">
             <h3 class="accordion-header" id="panel-compte">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
-                    <?= $this->lang->line("gvv_compta_fieldset_compte") ?>
+                    <?= $this->lang->line("gvv_compta_fieldset_compte") . nbs() . $nom ?>
                 </button>
             </h3>
-            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse show" aria-labelledby="panel-compte">
+            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse" aria-labelledby="panel-compte">
                 <div class="accordion-body">
                     <?php
                     if ($solde_avant < 0) {
@@ -326,6 +326,24 @@ echo '<style>
     background-color: #ffff00;
     font-weight: bold;
     padding: 0 2px;
+}
+
+/* Accordion headers - visually clickable */
+.accordion-button {
+    background-color: #f0f4f8;
+    font-weight: 600;
+    border-left: 4px solid #6c9dc6;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #d6e8f7;
+    color: #1a5276;
+    border-left: 4px solid #2980b9;
+}
+
+.accordion-button:hover {
+    background-color: #dce8f3;
+    cursor: pointer;
 }
 </style>';
 ?>
