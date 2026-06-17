@@ -842,7 +842,7 @@ class Comptes_model extends Common_Model {
                 if ($line) {
                     if (isset($elt[$i])) {
                         $val = str_replace(',', '.', $elt[$i]);
-                        $total += $val;
+                        $total += is_numeric($val) ? (float)$val : 0.0;
                     }
                 }
                 $line += 1;

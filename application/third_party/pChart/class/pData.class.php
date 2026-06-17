@@ -62,7 +62,7 @@
    /* Class creator */
    function __construct()
     {
-     $this->Data = "";
+     $this->Data = array();
      $this->Data["XAxisDisplay"] = AXIS_FORMAT_DEFAULT;
      $this->Data["XAxisFormat"]  = NULL;
      $this->Data["XAxisName"]    = NULL;
@@ -96,7 +96,7 @@
 
    /* Strip VOID values */
    function stripVOID($Values)
-    { $Result = ""; foreach($Values as $Key => $Value) { if ( $Value != VOID ) { $Result[] = $Value; } } return($Result); }
+    { $Result = array(); foreach($Values as $Key => $Value) { if ( $Value != VOID ) { $Result[] = $Value; } } return($Result); }
 
    /* Return the number of values contained in a given serie */
    function getSerieCount($Serie)
@@ -389,7 +389,7 @@
     {
      if ( !isset($this->Data["Series"][$Serie]) ) { return(NULL); }
 
-     $Result = "";
+     $Result = array();
      $Result["R"] = $this->Data["Series"][$Serie]["Color"]["R"];
      $Result["G"] = $this->Data["Series"][$Serie]["Color"]["G"];
      $Result["B"] = $this->Data["Series"][$Serie]["Color"]["B"];
@@ -429,7 +429,7 @@
    function loadPalette($FileName,$Overwrite=FALSE)
     {
      if ( !file_exists($FileName) ) { return(-1); }
-     if ( $Overwrite ) { $this->Palette = ""; }
+     if ( $Overwrite ) { $this->Palette = array(); }
 
      $fileHandle = @fopen($FileName, "r");
      if (!$fileHandle) { return(-1); }
@@ -439,7 +439,7 @@
        if ( preg_match("/,/",$buffer) )
         {
          list($R,$G,$B,$Alpha) = preg_split("/,/",$buffer);
-         if ( $this->Palette == "" ) { $ID = 0; } else { $ID = count($this->Palette); }
+         $ID = empty($this->Palette) ? 0 : count($this->Palette);
          $this->Palette[$ID] = array("R"=>$R,"G"=>$G,"B"=>$B,"Alpha"=>$Alpha);
         }
       }
@@ -512,7 +512,7 @@
     {
      $Abscissa = $this->Data["Abscissa"];
 
-     $SelectedSeries = "";
+     $SelectedSeries = array();
      $MaxVal         = 0;
      foreach($this->Data["Axis"] as $AxisID => $Axis)
       {
@@ -575,7 +575,7 @@
      $Handle = @fopen($FileName,"r");
      if ($Handle)
       {
-       $HeaderParsed = FALSE; $SerieNames = "";
+       $HeaderParsed = FALSE; $SerieNames = array();
        while (!feof($Handle))
         {
          $Buffer = fgets($Handle, 4096);
@@ -592,7 +592,7 @@
             }
            else
             {
-             if ($SerieNames == "" ) { foreach($Values as $Key => $Name) {  if ( !in_array($Key,$SkipColumns) ) { $SerieNames[$Key] = $DefaultSerieName.$Key; } } }
+             if (empty($SerieNames)) { foreach($Values as $Key => $Name) {  if ( !in_array($Key,$SkipColumns) ) { $SerieNames[$Key] = $DefaultSerieName.$Key; } } }
              foreach($Values as $Key => $Value) {  if ( !in_array($Key,$SkipColumns) ) { $this->addPoints($Value,$SerieNames[$Key]); } }
             }
           }
@@ -627,7 +627,7 @@
 
    /* Convert a string to a single elements array */
    function convertToArray($Value)
-    { $Values = ""; $Values[] = $Value; return($Values); }
+    { $Values = array(); $Values[] = $Value; return($Values); }
 
    /* Class string wrapper */
    function __toString()

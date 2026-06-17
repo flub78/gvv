@@ -89,7 +89,6 @@ echo br(2);
 	$bar = array(
 		array('label' => "Excel", 'url' => "$controller/csv_month/$year"),
 		array('label' => "Pdf", 'url' => "$controller/pdf_month/$year"),
-		array('label' => "Génération", 'url' => "$controller/statistic/true", "role" => 'ca'),
 	);
 	echo br() . button_bar4($bar);
 	echo '</div>';

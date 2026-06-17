@@ -1182,7 +1182,7 @@ class Vols_avion extends Gvv_Controller {
     /**
      * Affiche la page de statistique
      */
-    public function statistic($force_regeneration = false) {
+    public function statistic() {
         $this->load->helper('Statistic');
         $year = $this->session->userdata('year');
 
@@ -1193,34 +1193,24 @@ class Vols_avion extends Gvv_Controller {
         $data['year_selector'] = $this->gvv_model->getYearSelector("vadate");
         $this->push_return_url("vols avion statistiques");
 
-        // var_dump($data['per_month']);
-
         $data['latest_flight'] = $this->gvv_model->latest_flight(array(
             'year(vadate)' => $year
         ));
         $flight_exist = (count($data['latest_flight']) > 0);
 
-        if (false) {
-            if ($flight_exist || $force_regeneration) {
+        if ($flight_exist) {
+            $latest_date = $data['latest_flight'][0]['vadate'];
+            $latest_time = $data['latest_flight'][0]['vacdeb'];
+            $latest_epoch = strtotime($latest_date) + (int) ($latest_time * 3600);
 
-                $latest_date = $data['latest_flight'][0]['vadate'];
-                $latest_time = $data['latest_flight'][0]['vacdeb'];
-                $latest_epoch = strtotime($latest_date) + (int) ($latest_time * 3600);
-
-                $filename = image_dir() . "avion_mois_$year.png";
-                if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
-                    month_chart($filename, $data['per_month'], array(
-                        1,
-                        3,
-                        7,
-                        11
-                    ), "Heures de vol");
-                }
-
-                $filename = image_dir() . "avion_machine_$year.png";
-                if ($force_regeneration || no_file_or_file_too_old($filename, $latest_epoch)) {
-                    # machine_barchart($filename, $data ['per_machine'], "Heures de vol");
-                }
+            $filename = image_dir() . "avion_mois_$year.png";
+            if (no_file_or_file_too_old($filename, $latest_epoch)) {
+                month_chart($filename, $data['per_month'], array(
+                    1,
+                    3,
+                    7,
+                    11
+                ), "Heures de vol");
             }
         }
         load_last_view('vols_avion/statistic', $data);

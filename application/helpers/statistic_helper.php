@@ -200,7 +200,10 @@ if (! function_exists('pdf_per_month_page')) {
 
         $x = $pdf->GetX();
         $y = $pdf->GetY();
-        $pdf->Image(image_dir() . $type . "_mois_$year.png", $x + 15, $y, 150);
+        $chart_file = image_dir() . $type . "_mois_$year.png";
+        if (file_exists($chart_file)) {
+            $pdf->Image($chart_file, $x + 15, $y, 150);
+        }
     }
 }
 
