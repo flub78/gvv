@@ -21,7 +21,7 @@
  * @package controllers
  */
 
-class Formation_rapports extends CI_Controller
+class Formation_rapports extends MY_Controller
 {
     protected $controller = 'formation_rapports';
 

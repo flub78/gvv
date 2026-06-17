@@ -184,6 +184,10 @@ class Archived_documents extends Gvv_Controller {
             }
         }
 
+        if ($this->input->get('filter') === 'pending' && !$this->input->get('filter_submitted')) {
+            $filters['pending'] = true;
+        }
+
         $this->data['filters'] = $filters;
         $documents = $this->gvv_model->get_filtered_documents($filters);
 

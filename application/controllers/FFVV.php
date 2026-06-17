@@ -46,7 +46,7 @@ Requests::register_autoloader();
  * @author frederic
  *
  */
-class FFVV extends CI_Controller {
+class FFVV extends MY_Controller {
 
     var $controller = 'FFVV';
 

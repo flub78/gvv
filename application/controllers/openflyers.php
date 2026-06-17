@@ -22,7 +22,7 @@ if (! defined('BASEPATH'))
  * @package controllers
  *          Page d'acceuil
  */
-class OpenFlyers extends CI_Controller {
+class OpenFlyers extends MY_Controller {
 
     function __construct() {
         parent::__construct();

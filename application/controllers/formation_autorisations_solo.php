@@ -34,7 +34,7 @@ if (!defined('BASEPATH'))
  * @author GVV Development Team
  * @see doc/design_notes/autorisations_vol_solo_plan.md
  */
-class Formation_autorisations_solo extends CI_Controller {
+class Formation_autorisations_solo extends MY_Controller {
 
     public function __construct() {
         parent::__construct();

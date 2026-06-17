@@ -21,7 +21,7 @@
  * @package controllers
  */
 
-class Formation_progressions extends CI_Controller
+class Formation_progressions extends MY_Controller
 {
     protected $controller = 'formation_progressions';
     protected $unit_test = FALSE;

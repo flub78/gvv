@@ -115,7 +115,9 @@ if ($CI->dx_auth->is_logged_in()) {
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/page") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_all_documents") ?></a></li>
                   <li><a class="dropdown-item" href="<?= controller_url("archived_documents/pending") ?>"><i class="fas fa-clock text-info"></i> <?= translation("archived_documents_pending_documents") ?></a></li>
                   <?php endif; ?>
+                  <?php if (has_role('admin')) : ?>
                   <li><a class="dropdown-item" href="<?= controller_url("acceptance_admin/page") ?>"><i class="fas fa-clipboard-check text-info"></i> <?= translation("acceptance_admin_menu") ?></a></li>
+                  <?php endif; ?>
                   <?php if (has_role('bureau')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("rapports/financier") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_financial_reports") ?></a></li>
                   <?php endif; ?>

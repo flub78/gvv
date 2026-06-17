@@ -16,7 +16,7 @@ if (!defined('BASEPATH'))
  * @see doc/prds/suivi_formation_prd.md
  * @see doc/plans/suivi_formation_plan.md Phase 4
  */
-class Formation_seances extends CI_Controller {
+class Formation_seances extends MY_Controller {
 
     /**
      * Weather conditions list

@@ -16,7 +16,7 @@ if (!defined('BASEPATH'))
  * @see doc/prds/suivi_formation_prd.md
  * @see doc/plans/suivi_formation_plan.md Phase 3
  */
-class Formation_inscriptions extends CI_Controller {
+class Formation_inscriptions extends MY_Controller {
     
     public function __construct() {
         parent::__construct();

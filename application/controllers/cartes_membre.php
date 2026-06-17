@@ -10,7 +10,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *   lot_pdf()        → génère et envoie le PDF recto/verso en lot
  *   config()         → gestion des fonds recto/verso par année (upload)
  */
-class Cartes_membre extends CI_Controller {
+class Cartes_membre extends MY_Controller {
 
     protected $controller = 'cartes_membre';
 

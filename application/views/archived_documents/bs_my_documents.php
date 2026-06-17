@@ -40,22 +40,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
 <?php endif; ?>
 </div>
 
-<!-- Missing required documents -->
-<?php if (!empty($missing)): ?>
-<div class="alert alert-warning">
-    <h5><i class="fas fa-exclamation-circle"></i> <?= $this->lang->line('archived_documents_required_missing') ?></h5>
-    <ul class="mb-0">
-        <?php foreach ($missing as $type): ?>
-        <li>
-            <?= htmlspecialchars($type['name']) ?>
-            <a href="<?= site_url('archived_documents/create_pilot?type=' . $type['id']) ?>" class="btn btn-sm btn-outline-primary ms-2">
-                <i class="fas fa-plus"></i> Ajouter
-            </a>
-        </li>
-        <?php endforeach; ?>
-    </ul>
-</div>
-<?php endif; ?>
+<!-- Missing required documents — fonctionnalité non terminée, masquée temporairement -->
 
 <!-- Pilot documents -->
 <h5 class="mt-4"><i class="fas fa-user"></i> <?= $this->lang->line('archived_documents_pilot_documents_section') ?></h5>

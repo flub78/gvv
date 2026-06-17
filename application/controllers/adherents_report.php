@@ -21,7 +21,7 @@
  * @package controllers
  */
 
-class Adherents_report extends CI_Controller {
+class Adherents_report extends MY_Controller {
 
     protected $controller = 'adherents_report';
     protected $modification_level = 'ca';

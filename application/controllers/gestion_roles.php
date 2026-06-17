@@ -7,7 +7,7 @@
  * Ne présente que les rôles de niveau section, en excluant
  * les rôles réservés à l'administration (ca, bureau, tresorier).
  */
-class Gestion_roles extends CI_Controller {
+class Gestion_roles extends MY_Controller {
 
     private $excluded_roles = array('ca', 'bureau', 'tresorier');
 

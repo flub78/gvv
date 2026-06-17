@@ -11,7 +11,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *   preview()  → rapport de prévisualisation (POST)
  *   executer() → exécution de la fusion (POST avec confirmation)
  */
-class Membres_fusion extends CI_Controller {
+class Membres_fusion extends MY_Controller {
 
     protected $controller = 'membres_fusion';
 

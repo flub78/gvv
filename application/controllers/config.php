@@ -19,7 +19,7 @@
  * File: config.php
  * config controller.
  */
-class Config extends CI_Controller {
+class Config extends MY_Controller {
 
     // Définition des caractéristiques des champs à afficher
     private $fields = array (

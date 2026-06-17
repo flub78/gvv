@@ -15,7 +15,7 @@ if (!defined('BASEPATH'))
  * @see doc/prds/gestion_des_seances_theoriques.md
  * @see doc/plans/seances_theoriques_plan.md Phase 1
  */
-class Formation_types_seances extends CI_Controller {
+class Formation_types_seances extends MY_Controller {
 
     public function __construct() {
         parent::__construct();

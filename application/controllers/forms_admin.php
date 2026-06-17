@@ -10,7 +10,7 @@ if (!defined('BASEPATH'))
  * - create a form
  * - publish a form
  */
-class Forms_admin extends CI_Controller {
+class Forms_admin extends MY_Controller {
 
     protected $controller = 'forms_admin';
 

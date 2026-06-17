@@ -26,7 +26,7 @@ $filter_scope = isset($filters['scope']) ? $filters['scope'] : '';
 
 <div id="body" class="body container-fluid">
 
-<h3><i class="fas fa-archive"></i> <?= $this->lang->line('archived_documents_all_documents') ?></h3>
+<h3><i class="fas fa-archive"></i> <?= $filter_pending ? $this->lang->line('archived_documents_pending_documents') : $this->lang->line('archived_documents_all_documents') ?></h3>
 
 <?php if ($this->session->flashdata('message')): ?>
     <?= $this->session->flashdata('message') ?>

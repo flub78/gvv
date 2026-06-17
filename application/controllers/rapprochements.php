@@ -20,7 +20,7 @@ if (! defined('BASEPATH'))
  *
  * Rapprochements bancaires
  */
-class Rapprochements extends CI_Controller {
+class Rapprochements extends MY_Controller {
 
     protected $shared_reconciliator = null; // Reconciliator partagé pour éviter de reparser
 

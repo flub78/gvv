@@ -20,7 +20,7 @@ if (!defined('BASEPATH'))
  *
  * @package controllers
  */
-class Formation_seances_theoriques extends CI_Controller {
+class Formation_seances_theoriques extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
