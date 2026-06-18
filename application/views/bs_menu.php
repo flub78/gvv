@@ -518,7 +518,7 @@ if ($CI->dx_auth->is_logged_in()) {
             <?php endif; ?>
 
             <?php if ($total_real_sections > 1) : ?>
-              <div>
+              <div class="mt-1">
                 <?= $this->lang->line("gvv_sections_element") . ": " . dropdown_field('section', $this->session->userdata('section'), $section_selector, 'class="" onchange="' . ($selector_functional ? 'updateSection(this.value)' : 'warnSectionNotFunctional(this)') . '"') ?>
               </div>
               <?php if (!$selector_functional) : ?>
