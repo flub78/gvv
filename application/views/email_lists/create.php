@@ -113,6 +113,26 @@ $this->lang->load('email_lists');
                     </div>
                 </div>
 
+                <!-- Cotisation requise -->
+                <div class="row mb-3">
+                    <div class="col-sm-10 offset-sm-2">
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="require_cotisation"
+                                   name="require_cotisation"
+                                   value="1"
+                                   <?= set_checkbox('require_cotisation', '1', TRUE) ?>>
+                            <label class="form-check-label" for="require_cotisation">
+                                <?= $this->lang->line("email_lists_require_cotisation") ?>
+                            </label>
+                            <div class="form-text">
+                                <?= $this->lang->line("email_lists_require_cotisation_help") ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Visible (Public/Private) -->
                 <div class="row mb-3">
                     <div class="col-sm-10 offset-sm-2">

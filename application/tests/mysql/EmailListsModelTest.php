@@ -708,6 +708,122 @@ class EmailListsModelTest extends TestCase
         $this->assertEquals(1, $parent_count, 'Parent email should be deduplicated when added from multiple sources');
     }
 
+    // ========================================================================
+    // require_cotisation Tests
+    // ========================================================================
+
+    /**
+     * Vérifie que require_cotisation=1 exclut les membres sans cotisation à jour
+     * et que require_cotisation=0 les inclut quand même.
+     */
+    public function testRequireCotisation_FiltersRoleMembersCorrectly()
+    {
+        $year = (int) date('Y');
+
+        // Trouver un membre avec un rôle mais SANS cotisation pour l'année en cours
+        $result = $this->CI->db->query(
+            "SELECT m.mlogin, m.memail, urps.types_roles_id, urps.section_id
+             FROM membres m
+             INNER JOIN users u ON u.username = m.mlogin
+             INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
+             WHERE m.actif = 1
+               AND urps.revoked_at IS NULL
+               AND m.memail IS NOT NULL AND m.memail != ''
+               AND NOT EXISTS (
+                   SELECT 1 FROM licences l
+                   WHERE l.pilote = m.mlogin AND l.type = 0 AND l.year = $year
+               )
+             LIMIT 1"
+        );
+        $member_no_cotisation = $result->row_array();
+
+        if (empty($member_no_cotisation)) {
+            $this->markTestSkipped('No active role-member without current-year subscription found');
+        }
+
+        $role_id    = $member_no_cotisation['types_roles_id'];
+        $section_id = $member_no_cotisation['section_id'];
+        $email      = strtolower(trim($member_no_cotisation['memail']));
+
+        // Liste avec cotisation requise
+        $list_with = $this->model->create_list(array(
+            'name'               => 'TEST_RequireCotisation_With',
+            'created_by'         => $this->test_user_id,
+            'require_cotisation' => 1,
+        ));
+        $this->model->add_role_to_list($list_with, $role_id, $section_id);
+
+        // Liste sans cotisation requise
+        $list_without = $this->model->create_list(array(
+            'name'               => 'TEST_RequireCotisation_Without',
+            'created_by'         => $this->test_user_id,
+            'require_cotisation' => 0,
+        ));
+        $this->model->add_role_to_list($list_without, $role_id, $section_id);
+
+        $emails_with    = $this->model->textual_list($list_with);
+        $emails_without = $this->model->textual_list($list_without);
+
+        // Avec cotisation requise : le membre sans cotisation NE doit PAS apparaître
+        $found_in_with = in_array($email, array_map('strtolower', $emails_with));
+        $this->assertFalse($found_in_with,
+            'Member without current subscription should be excluded when require_cotisation=1');
+
+        // Sans cotisation requise : le membre DOIT apparaître
+        $found_in_without = in_array($email, array_map('strtolower', $emails_without));
+        $this->assertTrue($found_in_without,
+            'Member without current subscription should be included when require_cotisation=0');
+
+        // Nettoyage
+        $this->CI->db->query("DELETE FROM email_lists WHERE name LIKE 'TEST_RequireCotisation%'");
+    }
+
+    /**
+     * Vérifie que require_cotisation=1 inclut bien les membres avec cotisation à jour.
+     */
+    public function testRequireCotisation_IncludesMembersWithCotisation()
+    {
+        $year = (int) date('Y');
+
+        // Trouver un membre avec un rôle ET une cotisation pour l'année en cours
+        $result = $this->CI->db->query(
+            "SELECT m.mlogin, m.memail, urps.types_roles_id, urps.section_id
+             FROM membres m
+             INNER JOIN users u ON u.username = m.mlogin
+             INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
+             INNER JOIN licences l ON l.pilote = m.mlogin AND l.type = 0 AND l.year = $year
+             WHERE m.actif = 1
+               AND urps.revoked_at IS NULL
+               AND m.memail IS NOT NULL AND m.memail != ''
+             LIMIT 1"
+        );
+        $member_with_cotisation = $result->row_array();
+
+        if (empty($member_with_cotisation)) {
+            $this->markTestSkipped('No active role-member with current-year subscription found');
+        }
+
+        $role_id    = $member_with_cotisation['types_roles_id'];
+        $section_id = $member_with_cotisation['section_id'];
+        $email      = strtolower(trim($member_with_cotisation['memail']));
+
+        $list_id = $this->model->create_list(array(
+            'name'               => 'TEST_RequireCotisation_HasCot',
+            'created_by'         => $this->test_user_id,
+            'require_cotisation' => 1,
+        ));
+        $this->model->add_role_to_list($list_id, $role_id, $section_id);
+
+        $emails = $this->model->textual_list($list_id);
+
+        $found = in_array($email, array_map('strtolower', $emails));
+        $this->assertTrue($found,
+            'Member with current subscription should be included when require_cotisation=1');
+
+        // Nettoyage
+        $this->CI->db->query("DELETE FROM email_lists WHERE name LIKE 'TEST_RequireCotisation%'");
+    }
+
     public function testParentEmail_IncludedInDetailedList()
     {
         // Find a member with a parent email

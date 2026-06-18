@@ -71,6 +71,7 @@ class Email_lists_model extends CI_Model
             'name' => $data['name'],
             'description' => isset($data['description']) ? $data['description'] : NULL,
             'active_member' => isset($data['active_member']) ? $data['active_member'] : 'active',
+            'require_cotisation' => isset($data['require_cotisation']) ? (int)(bool)$data['require_cotisation'] : 1,
             'visible' => isset($data['visible']) ? $data['visible'] : 1,
             'created_by' => $data['created_by'],
             'updated_by' => isset($data['updated_by']) ? $data['updated_by'] : $data['created_by']
@@ -115,7 +116,7 @@ class Email_lists_model extends CI_Model
             return FALSE;
         }
 
-        $allowed_fields = array('name', 'description', 'active_member', 'visible');
+        $allowed_fields = array('name', 'description', 'active_member', 'require_cotisation', 'visible');
         $update_data = array();
 
         foreach ($allowed_fields as $field) {
@@ -393,9 +394,10 @@ class Email_lists_model extends CI_Model
      * @param int $types_roles_id Role ID
      * @param int $section_id Section ID
      * @param string $active_member Filter: 'active', 'inactive', 'all'
+     * @param bool $require_cotisation When true, only members with a subscription for the current year are included
      * @return array Array of users with email addresses
      */
-    public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active')
+    public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active', $require_cotisation = true)
     {
         $this->db->select('m.memail as email, m.memailparent, m.mnom, m.mprenom, m.mlogin, m.actif');
         $this->db->from('user_roles_per_section urps');
@@ -411,6 +413,11 @@ class Email_lists_model extends CI_Model
             $this->db->where('m.actif', 0);
         }
         // 'all' - no filter
+
+        if ($require_cotisation) {
+            $year = (int) date('Y');
+            $this->db->join('licences lic', "lic.pilote = m.mlogin AND lic.type = 0 AND lic.year = $year", 'inner');
+        }
 
         $query = $this->db->get();
         if ($query === FALSE) {
@@ -869,11 +876,14 @@ class Email_lists_model extends CI_Model
         // 1. Resolve members by roles (table email_list_roles)
         $roles = $this->get_list_roles($list_id);
 
+        $require_cotisation = !empty($list['require_cotisation']);
+
         foreach ($roles as $role) {
             $role_members = $this->get_users_by_role_and_section(
                 $role['types_roles_id'],
                 $role['section_id'],
-                $list['active_member']
+                $list['active_member'],
+                $require_cotisation
             );
             foreach ($role_members as $member) {
                 // Add primary email
@@ -965,12 +975,14 @@ class Email_lists_model extends CI_Model
 
         // 1. Resolve members by roles (table email_list_roles)
         $roles = $this->get_list_roles($list_id);
+        $require_cotisation = !empty($list['require_cotisation']);
 
         foreach ($roles as $role) {
             $role_members = $this->get_users_by_role_and_section(
                 $role['types_roles_id'],
                 $role['section_id'],
-                $list['active_member']
+                $list['active_member'],
+                $require_cotisation
             );
             foreach ($role_members as $user) {
                 $name = trim($user['mnom'] . ' ' . $user['mprenom']);

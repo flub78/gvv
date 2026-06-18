@@ -200,3 +200,9 @@
 * [x] Vérifier/completer la validation des vols avion, pilote en vol, machine en vol, etc
 
 * [x] Masses maximales pour la réservation de VI
+
+* [x] Corriger les tests playwrights 100% le 14/06/2026
+
+* [x] Ajout d'un calendrier des échéances
+
+* [x] Ajouter un mode remise en vol. Le supplément DC n'est pas facturé.

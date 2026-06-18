@@ -6,17 +6,15 @@
 
 ## Reste à faire
 
-* [x] Corriger les tests playwrights 100% le 14/06/2026
-
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
- 
+
+* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
+   
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
 
-* [x] Ajout d'un calendrier des échéances
- 
 * [] Génération des certificats de formation et de pilotes VD.
 
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip)
@@ -28,10 +26,6 @@
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
 
 * [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
-
-* [] Ajouter un mode remise en vol. Le supplément DC n'est pas facturé.
-
-* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
 
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa carte membre.
 

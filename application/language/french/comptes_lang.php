@@ -115,6 +115,11 @@ $lang['comptes_bilan_autres_crediteurs'] = "Autres dettes et créditeurs";
 $lang['comptes_bilan_dettes_financieres'] = "Emprunts et dettes financières diverses";
 $lang['comptes_bilan_stocks'] = "Stocks";
 $lang['comptes_bilan_total_dettes'] = "Total des dettes";
+$lang['comptes_bilan_comptes_banque'] = "Comptes bancaires";
+$lang['comptes_bilan_cumul_amortissements'] = "Cumul des amortissements";
+$lang['comptes_bilan_depreciations'] = "Dépréciations";
+$lang['comptes_bilan_total_actifs_financiers'] = "Total actifs financiers";
+$lang['comptes_bilan_diff_actif_passif'] = "Total actifs - total dettes";
 
 
 $lang['comptes_button_cloture'] = "Clôture";

@@ -144,6 +144,25 @@ if ($this->session->flashdata('success')) {
                         <div class="form-check">
                             <input class="form-check-input"
                                    type="checkbox"
+                                   id="require_cotisation"
+                                   name="require_cotisation"
+                                   value="1"
+                                   <?= set_checkbox('require_cotisation', '1', isset($list['require_cotisation']) ? $list['require_cotisation'] == 1 : true) ?>>
+                            <label class="form-check-label" for="require_cotisation">
+                                <?= $this->lang->line("email_lists_require_cotisation") ?>
+                            </label>
+                            <div class="form-text">
+                                <?= $this->lang->line("email_lists_require_cotisation_help") ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-10 offset-sm-2">
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
                                    id="visible"
                                    name="visible"
                                    value="1"
@@ -458,6 +477,10 @@ function refreshListPreview() {
     // Add active_member filter
     formData.append('active_member', document.getElementById('active_member').value);
 
+    // Add require_cotisation filter
+    const requireCotisation = document.getElementById('require_cotisation');
+    formData.append('require_cotisation', requireCotisation && requireCotisation.checked ? '1' : '0');
+
     // AJAX request to preview endpoint
     fetch('<?= controller_url($controller) ?>/preview_list', {
         method: 'POST',
@@ -528,6 +551,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Listen for changes on active_member filter
     document.getElementById('active_member').addEventListener('change', updatePreviewCounts);
+
+    // Listen for changes on require_cotisation filter
+    const requireCotisationEl = document.getElementById('require_cotisation');
+    if (requireCotisationEl) {
+        requireCotisationEl.addEventListener('change', updatePreviewCounts);
+    }
 
     // Override addManualMember to update counts
     const originalAddManualMember = window.addManualMember;

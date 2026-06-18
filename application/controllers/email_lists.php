@@ -95,6 +95,11 @@ class Email_lists extends Gvv_Controller
 
         $data['title'] = $this->lang->line('email_lists_create');
 
+        $this->load->vars([
+            'nav_back_url'   => 'email_lists',
+            'nav_back_label' => $this->lang->line('email_lists_back'),
+        ]);
+
         return load_last_view('email_lists/create', $data, $this->unit_test);
     }
 
@@ -124,6 +129,7 @@ class Email_lists extends Gvv_Controller
             'name' => $this->input->post('name'),
             'description' => $this->input->post('description'),
             'active_member' => $this->input->post('active_member'),
+            'require_cotisation' => $this->input->post('require_cotisation') ? 1 : 0,
             'visible' => $this->input->post('visible') ? 1 : 0,
             'created_by' => $user_id
         );
@@ -236,6 +242,11 @@ class Email_lists extends Gvv_Controller
         $this->load->model('membres_model');
         $data['available_members'] = $this->membres_model->selector(array('actif' => 1));
 
+        $this->load->vars([
+            'nav_back_url'   => 'email_lists',
+            'nav_back_label' => $this->lang->line('email_lists_back'),
+        ]);
+
         return load_last_view('email_lists/form', $data, $this->unit_test);
     }
 
@@ -302,7 +313,8 @@ class Email_lists extends Gvv_Controller
         $list_data = array(
             'name' => $this->input->post('name'),
             'description' => $this->input->post('description'),
-            'active_member' => $this->input->post('active_member')
+            'active_member' => $this->input->post('active_member'),
+            'require_cotisation' => $this->input->post('require_cotisation') ? 1 : 0
         );
 
         // Apply visible field if user has permission
@@ -746,6 +758,9 @@ class Email_lists extends Gvv_Controller
             $external_emails = $this->input->post('external_emails') ?: array();
             $external_names = $this->input->post('external_names') ?: array();
             $active_member = $this->input->post('active_member') ?: 'active';
+            $require_cotisation = $this->input->post('require_cotisation') !== null
+                ? (bool)$this->input->post('require_cotisation')
+                : true;
             $list_id = $this->input->post('list_id') ?: NULL;
 
             // If we have a list_id, fetch external emails from database (overrides posted data)
@@ -776,7 +791,7 @@ class Email_lists extends Gvv_Controller
                         $section_id = ($section_id === 0) ? NULL : $section_id;
 
                         // Get users for this role/section
-                        $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member);
+                        $users = $this->email_lists_model->get_users_by_role_and_section($role_id, $section_id, $active_member, $require_cotisation);
                         foreach ($users as $user) {
                             // Add primary email
                             if (!empty($user['email'])) {
