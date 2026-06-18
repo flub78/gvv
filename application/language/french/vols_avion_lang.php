@@ -7,7 +7,7 @@
 # $this->lang->line("")
 
 $lang['gvv_vols_avion_title'] = "Vol Avion";
-$lang['gvv_vols_avion_title_list'] = "Planche des vols avion";
+$lang['gvv_vols_avion_title_list'] = "Planche des vols";
 $lang['gvv_vols_avion_title_per_pilot'] = "Statistiques pilote";
 $lang['gvv_vols_avion_title_yearly_machine'] = "Total des heures par machine";
 $lang['gvv_vols_avion_title_yearly_hours'] = "Total des heures par an";

@@ -35,7 +35,10 @@ if (isset($message)) {
 echo checkalert($this->session, isset($popup) ? $popup : "");
 echo validation_errors();
 
-echo heading("gvv_vols_avion_title", 3);
+$titre_vol = !empty($section['libelle_menu_avions'])
+    ? 'Vol ' . htmlspecialchars($section['libelle_menu_avions'])
+    : $this->lang->line('gvv_vols_avion_title');
+echo "<h3>" . $titre_vol . "</h3>\n";
 
 echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
