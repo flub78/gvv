@@ -703,6 +703,12 @@ $this->load->view('bs_banner');
                         startSlotSelection(e, this);
                     }
                 });
+                // On touch devices, pointerdown bails early to allow scroll; handle taps via click instead
+                slot.addEventListener('click', function(e) {
+                    if (window.matchMedia('(pointer: coarse)').matches) {
+                        handleSlotClick(this);
+                    }
+                });
             });
         }
         
