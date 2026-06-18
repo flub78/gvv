@@ -64,6 +64,11 @@ function compute_vols_avion_categories(array $all, array $roles)
         $allowed[7] = $all[7];
     }
 
+    // Remise en vol (8)
+    if ($r['instructeur'] && isset($all[8])) {
+        $allowed[8] = $all[8];
+    }
+
     // Vol propriétaire (4) : instructeur OU propriétaire d'au moins une machine
     if ($r['instructeur'] || $r['owns_machine']) {
         $allowed[4] = $all[4];

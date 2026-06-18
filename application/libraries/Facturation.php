@@ -350,6 +350,10 @@ class Facturation {
             // Vol de convoyage : demi-tarif sur le vol principal uniquement
             $desc .= " Convoyage";
             $convoyage = TRUE;
+        } elseif ($vol['vacategorie'] == REMISE_EN_VOL) {
+            // Remise en vol : heures facturées au tarif normal, pas de supplément DC
+            $desc .= " Remise en vol";
+            $dc_a_facturer = FALSE;
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol
