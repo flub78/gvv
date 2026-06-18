@@ -592,6 +592,21 @@ $this->load->view('bs_banner');
 
             loadTimelineData();
             setupDateNavigation();
+
+            // On touch devices, absorb the ghost click that fires ~300ms after touchend
+            // when the modal is already closed, to prevent it from hitting navigation links.
+            document.getElementById('eventModal').addEventListener('hidden.bs.modal', function() {
+                if (!window.matchMedia('(pointer: coarse)').matches) return;
+                const absorbGhostClick = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    document.removeEventListener('click', absorbGhostClick, true);
+                };
+                document.addEventListener('click', absorbGhostClick, { capture: true });
+                setTimeout(function() {
+                    document.removeEventListener('click', absorbGhostClick, true);
+                }, 350);
+            });
         });
 
         // Global options storage - will be initialized from PHP
