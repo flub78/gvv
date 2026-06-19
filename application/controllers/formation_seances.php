@@ -238,6 +238,12 @@ class Formation_seances extends MY_Controller {
             return $this->_show_create_form_with_error($this->_form_error);
         }
 
+        // Vérification autonomie machine
+        $autonomie_error = $this->_check_machine_autonomie($seance_data);
+        if ($autonomie_error) {
+            return $this->_show_create_form_with_error($autonomie_error);
+        }
+
         // Collect evaluations
         $evaluations = $this->_collect_evaluations();
 
@@ -432,6 +438,13 @@ class Formation_seances extends MY_Controller {
         $seance_data = $this->_build_seance_data($is_libre);
 
         if ($seance_data === false) {
+            return $this->edit($id);
+        }
+
+        // Vérification autonomie machine
+        $autonomie_error = $this->_check_machine_autonomie($seance_data);
+        if ($autonomie_error) {
+            $this->session->set_flashdata('error', $autonomie_error);
             return $this->edit($id);
         }
 
@@ -793,6 +806,43 @@ class Formation_seances extends MY_Controller {
         }
 
         return $seance_data;
+    }
+
+    /**
+     * Vérifie que la durée d'une séance ne dépasse pas l'autonomie de la machine.
+     * Ne s'applique qu'aux machines de type avion (machinesa).
+     *
+     * @param array $seance_data Données de la séance (machine_id, duree en HH:MM:SS)
+     * @return string|null Message d'erreur ou null si OK
+     */
+    private function _check_machine_autonomie($seance_data) {
+        if (empty($seance_data['machine_id']) || empty($seance_data['duree'])) {
+            return null;
+        }
+
+        $machine_id = $seance_data['machine_id'];
+        $avion = $this->avions_model->get_by_id('macimmat', $machine_id);
+        if (!$avion || !isset($avion['autonomie_en_heures']) || $avion['autonomie_en_heures'] === null || $avion['autonomie_en_heures'] === '') {
+            return null;
+        }
+
+        $autonomie = floatval($avion['autonomie_en_heures']);
+
+        // Convertit HH:MM:SS en heures décimales
+        $parts = explode(':', $seance_data['duree']);
+        $duree_heures = intval($parts[0]) + intval($parts[1]) / 60.0;
+        if (isset($parts[2])) {
+            $duree_heures += intval($parts[2]) / 3600.0;
+        }
+
+        if ($duree_heures > $autonomie) {
+            return sprintf(
+                $this->lang->line('formation_seance_error_autonomie_depassee'),
+                $machine_id,
+                $autonomie
+            );
+        }
+        return null;
     }
 
     /**

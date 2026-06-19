@@ -59,6 +59,7 @@ $lang['gvv_vols_avion_error_pilote_au_sol'] = "The pilot is already flying at th
 $lang['gvv_vols_avion_error_instructeur_au_sol'] = "The instructor is already flying at that time (time slot conflict).";
 $lang['gvv_vols_avion_error_machine_au_sol'] = "The aircraft is already flying at that time (time slot conflict).";
 $lang['gvv_vols_avion_error_vol_trop_long'] = "The flight duration exceeds 8 hours.";
+$lang['gvv_vols_avion_error_autonomie_depassee'] = "The flight duration exceeds the aircraft %s endurance (%.1f h).";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per machine";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Hours per year";

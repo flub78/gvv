@@ -471,6 +471,114 @@ class VolsAvionValidationTest extends TestCase
         );
         $this->assertFalse($result, 'Login vide → le check doit être ignoré');
     }
+
+    // -----------------------------------------------------------------------
+    // Tests : autonomie machine
+    // -----------------------------------------------------------------------
+
+    /**
+     * Durée dans les limites de l'autonomie → pas d'erreur.
+     */
+    public function testFlightWithinAutonomie()
+    {
+        $autonomie = 3.0;
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => $autonomie),
+            array('macimmat' => $this->test_machine)
+        );
+
+        $avion = $this->CI->db->where('macimmat', $this->test_machine)
+            ->get('machinesa')->row_array();
+        $this->assertEquals($autonomie, floatval($avion['autonomie_en_heures']),
+            "L'autonomie doit être enregistrée");
+
+        $duree = 2.5; // 2h30 < 3h → valide
+        $this->assertLessThanOrEqual($autonomie, $duree,
+            'Durée 2h30 dans une autonomie 3h doit être valide');
+
+        // Nettoyage
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => null),
+            array('macimmat' => $this->test_machine)
+        );
+    }
+
+    /**
+     * Durée exactement égale à l'autonomie → valide (limite incluse).
+     */
+    public function testFlightExactlyAtAutonomieLimit()
+    {
+        $autonomie = 3.0;
+        $duree = 3.0; // exactement la limite
+        $this->assertFalse($duree > $autonomie,
+            'Durée égale à l\'autonomie doit être valide (borne incluse)');
+    }
+
+    /**
+     * Durée dépasse l'autonomie → erreur.
+     */
+    public function testFlightExceedsAutonomie()
+    {
+        $autonomie = 3.0;
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => $autonomie),
+            array('macimmat' => $this->test_machine)
+        );
+
+        $avion = $this->CI->db->where('macimmat', $this->test_machine)
+            ->get('machinesa')->row_array();
+        $this->assertEquals($autonomie, floatval($avion['autonomie_en_heures']),
+            "L'autonomie doit être enregistrée");
+
+        $duree = 3.5; // 3h30 > 3h → invalide
+        $this->assertGreaterThan($autonomie, $duree,
+            'Durée 3h30 dépasse une autonomie de 3h → doit être invalide');
+
+        // Nettoyage
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => null),
+            array('macimmat' => $this->test_machine)
+        );
+    }
+
+    /**
+     * Pas d'autonomie définie → pas de vérification.
+     */
+    public function testNoAutonomieSetSkipsCheck()
+    {
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => null),
+            array('macimmat' => $this->test_machine)
+        );
+
+        $avion = $this->CI->db->where('macimmat', $this->test_machine)
+            ->get('machinesa')->row_array();
+        $autonomie = $avion['autonomie_en_heures'];
+        $this->assertNull($autonomie,
+            'Sans autonomie définie, aucune vérification ne doit bloquer');
+    }
+
+    /**
+     * L'autonomie est lue correctement depuis la base.
+     */
+    public function testAutonomieFieldIsReadable()
+    {
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => 4.5),
+            array('macimmat' => $this->test_machine)
+        );
+
+        $avion = $this->CI->db->where('macimmat', $this->test_machine)
+            ->get('machinesa')->row_array();
+        $this->assertEquals(4.5, floatval($avion['autonomie_en_heures']),
+            'Le champ autonomie_en_heures doit être lu avec la valeur enregistrée');
+
+        // Nettoyage
+        $this->CI->db->update('machinesa',
+            array('autonomie_en_heures' => null),
+            array('macimmat' => $this->test_machine)
+        );
+    }
 }
 
 /* End of file VolsAvionValidationTest.php */

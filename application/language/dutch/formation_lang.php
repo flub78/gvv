@@ -351,6 +351,7 @@ $lang['formation_seance_delete_confirm']          = 'Weet u zeker dat u deze ses
 $lang['formation_seance_inscription_required']    = 'Selecteer een open opleiding.';
 $lang['formation_seance_inscription_not_open']    = 'De geselecteerde opleiding is niet open.';
 $lang['formation_seance_pilote_programme_required'] = 'Piloot en programma zijn verplicht voor een vrije sessie.';
+$lang['formation_seance_error_autonomie_depassee'] = "De sessieduur overschrijdt de vliegduur van toestel %s (%.1f u).";
 $lang['formation_seance_filtre_pilote']           = 'Filteren op piloot';
 $lang['formation_seance_filtre_instructeur']      = 'Filteren op instructeur';
 $lang['formation_seance_filtre_programme']        = 'Filteren op programma';

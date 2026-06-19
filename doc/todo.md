@@ -42,8 +42,6 @@
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Approbation de documents
-* 
-* [] ajout autonomie pour limiter la durée des vols et les séances de formation en vol
 
 * [] Informer le trésorier des renouvellement de cotisation par email
 

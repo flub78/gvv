@@ -424,6 +424,14 @@ class Vols_avion extends Gvv_Controller {
                 : 'callback_valid_vol_duration';
         }
 
+        // Vérification autonomie machine
+        $vamacid = $this->input->post('vamacid');
+        if (!empty($vamacid) && $vaduree > 0) {
+            $this->rules['vaduree'] = isset($this->rules['vaduree'])
+                ? $this->rules['vaduree'] . '|callback_valid_vol_autonomie'
+                : 'callback_valid_vol_autonomie';
+        }
+
         return parent::formValidation($action, $return_on_success);
     }
 
@@ -577,6 +585,35 @@ class Vols_avion extends Gvv_Controller {
         if ($duration > 8.0) {
             $this->form_validation->set_message('valid_vol_duration',
                 $this->lang->line('gvv_vols_avion_error_vol_trop_long'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Callback CI : vérifie que la durée du vol ne dépasse pas l'autonomie de la machine.
+     * vaduree est en heures décimales (ex : 3.5 = 3h30).
+     */
+    public function valid_vol_autonomie($vaduree) {
+        $duration = floatval($vaduree);
+        if ($duration <= 0) {
+            return true;
+        }
+
+        $vamacid = $this->input->post('vamacid');
+        if (empty($vamacid)) {
+            return true;
+        }
+
+        $avion = $this->avions_model->get_by_id('macimmat', $vamacid);
+        if (!$avion || !isset($avion['autonomie_en_heures']) || $avion['autonomie_en_heures'] === null || $avion['autonomie_en_heures'] === '') {
+            return true;
+        }
+
+        $autonomie = floatval($avion['autonomie_en_heures']);
+        if ($duration > $autonomie) {
+            $this->form_validation->set_message('valid_vol_autonomie',
+                sprintf($this->lang->line('gvv_vols_avion_error_autonomie_depassee'), $vamacid, $autonomie));
             return false;
         }
         return true;

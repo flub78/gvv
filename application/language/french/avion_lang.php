@@ -22,6 +22,8 @@ $lang['gvv_machinesa_field_actif'] = "Actif";
 $lang['gvv_machinesa_field_fabrication'] = "Année de mise en service";
 $lang['gvv_machinesa_field_comment'] = "Description";
 $lang['gvv_machinesa_field_club'] = "Section";
+$lang['gvv_machinesa_field_autonomie_en_heures'] = "Autonomie (heures)";
+$lang['gvv_avion_error_autonomie_invalide'] = "L'autonomie doit être comprise entre 1.0 et 8.0 heures.";
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructeur";
 $lang['gvv_machinesa_short_field_macmodele'] = "Modèle";
@@ -34,6 +36,7 @@ $lang['gvv_machinesa_short_field_actif'] = "Actif";
 $lang['gvv_machinesa_short_field_fabrication'] = "Année";
 $lang['gvv_machinesa_short_field_vols'] = "Vols";
 $lang['gvv_machinesa_short_field_section_name'] = "Section";
+$lang['gvv_machinesa_short_field_autonomie_en_heures'] = "Autonomie";
 
 $lang['avion_filter_active'] = "Actif";
 $lang['avion_filter_owner'] = "Propriétaire";

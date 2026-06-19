@@ -23,6 +23,8 @@ $lang['gvv_machinesa_field_actif'] = "Actief";
 $lang['gvv_machinesa_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesa_field_comment'] = "Omschrijving";
 $lang['gvv_machinesa_field_club'] = "Sectie";
+$lang['gvv_machinesa_field_autonomie_en_heures'] = "Vliegduur (uren)";
+$lang['gvv_avion_error_autonomie_invalide'] = "De vliegduur moet tussen 1.0 en 8.0 uur liggen.";
 
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructeur";
@@ -36,6 +38,7 @@ $lang['gvv_machinesa_short_field_actif'] = "Actief";
 $lang['gvv_machinesa_short_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesa_short_field_vols'] = "Vluchten";
 $lang['gvv_machinesa_short_field_section_name'] = "Sectie";
+$lang['gvv_machinesa_short_field_autonomie_en_heures'] = "Vliegduur";
 
 
 $lang['avion_filter_active'] = "Actief";

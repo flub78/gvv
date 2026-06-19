@@ -36,7 +36,8 @@ class Avion extends Gvv_Controller {
     protected $modification_level = 'ca';
     protected $rules = array(
         'macimmat' => "strtoupper",
-        'club' => "callback_section_selected"
+        'club' => "callback_section_selected",
+        'autonomie_en_heures' => "callback_valid_autonomie"
     );
     protected $filter_variables = array(
         'filter_active',
@@ -60,6 +61,22 @@ class Avion extends Gvv_Controller {
         $this->load->model('tarifs_model');
         $this->load->model('membres_model');
         $this->lang->load('avion');
+    }
+
+    /**
+     * Callback CI : vérifie que l'autonomie est vide ou comprise entre 1.0 et 8.0.
+     */
+    public function valid_autonomie($value) {
+        if ($value === '' || $value === null) {
+            return true;
+        }
+        $v = floatval($value);
+        if ($v < 1.0 || $v > 8.0) {
+            $this->form_validation->set_message('valid_autonomie',
+                $this->lang->line('gvv_avion_error_autonomie_invalide'));
+            return false;
+        }
+        return true;
     }
 
     /**

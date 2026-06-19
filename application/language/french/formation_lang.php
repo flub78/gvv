@@ -209,6 +209,7 @@ $lang['formation_seance_delete_confirm'] = 'Êtes-vous sûr de vouloir supprimer
 $lang['formation_seance_inscription_required'] = 'Veuillez sélectionner une formation ouverte.';
 $lang['formation_seance_inscription_not_open'] = 'La formation sélectionnée n\'est pas ouverte.';
 $lang['formation_seance_pilote_programme_required'] = 'Le pilote et le programme sont obligatoires pour une séance libre.';
+$lang['formation_seance_error_autonomie_depassee'] = "La durée de la séance dépasse l'autonomie de la machine %s (%.1f h).";
 
 // Séances - Filtres
 $lang['formation_seance_filtre_pilote'] = 'Filtrer par pilote';

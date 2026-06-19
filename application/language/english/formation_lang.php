@@ -351,6 +351,7 @@ $lang['formation_seance_delete_confirm']          = 'Are you sure you want to de
 $lang['formation_seance_inscription_required']    = 'Please select an open training.';
 $lang['formation_seance_inscription_not_open']    = 'The selected training is not open.';
 $lang['formation_seance_pilote_programme_required'] = 'Pilot and programme are required for a free session.';
+$lang['formation_seance_error_autonomie_depassee'] = "The session duration exceeds the aircraft %s endurance (%.1f h).";
 $lang['formation_seance_filtre_pilote']           = 'Filter by pilot';
 $lang['formation_seance_filtre_instructeur']      = 'Filter by instructor';
 $lang['formation_seance_filtre_programme']        = 'Filter by programme';

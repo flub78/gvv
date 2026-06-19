@@ -59,6 +59,7 @@ $lang['gvv_vols_avion_error_pilote_au_sol'] = "De piloot vliegt al op dit tijdst
 $lang['gvv_vols_avion_error_instructeur_au_sol'] = "De instructeur vliegt al op dit tijdstip (tijdslotconflict).";
 $lang['gvv_vols_avion_error_machine_au_sol'] = "Het vliegtuig vliegt al op dit tijdstip (tijdslotconflict).";
 $lang['gvv_vols_avion_error_vol_trop_long'] = "De vluchtduur overschrijdt 8 uur.";
+$lang['gvv_vols_avion_error_autonomie_depassee'] = "De vluchtduur overschrijdt de vliegduur van toestel %s (%.1f u).";
 
 $lang['gvv_vols_avion_tab_per_glider'] = "Per toestel";
 $lang['gvv_vols_avion_tab_yearly_hours'] = "Vlieguren per jaar";

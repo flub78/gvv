@@ -67,6 +67,7 @@ echo ($this->gvvmetadata->form('machinesa', array(
     'horametre_mode' => $current_horametre_mode,
     'actif' => $actif,
     'fabrication' => $fabrication,
+    'autonomie_en_heures' => isset($autonomie_en_heures) ? $autonomie_en_heures : null,
     'comment' => $comment
 )));
 if (!$has_modification_rights) echo '</fieldset>';

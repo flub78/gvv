@@ -23,6 +23,8 @@ $lang['gvv_machinesa_field_actif'] = "Active airplane";
 $lang['gvv_machinesa_field_fabrication'] = "First year of operation";
 $lang['gvv_machinesa_field_comment'] = "Description";
 $lang['gvv_machinesa_field_club'] = "Section";
+$lang['gvv_machinesa_field_autonomie_en_heures'] = "Endurance (hours)";
+$lang['gvv_avion_error_autonomie_invalide'] = "Endurance must be between 1.0 and 8.0 hours.";
 
 
 $lang['gvv_machinesa_short_field_macconstruc'] = "Constructor";
@@ -36,6 +38,7 @@ $lang['gvv_machinesa_short_field_actif'] = "Active";
 $lang['gvv_machinesa_short_field_fabrication'] = "Year";
 $lang['gvv_machinesa_short_field_vols'] = "Flights";
 $lang['gvv_machinesa_short_field_section_name'] = "Section";
+$lang['gvv_machinesa_short_field_autonomie_en_heures'] = "Endurance";
 
 
 $lang['avion_filter_active'] = "Active";

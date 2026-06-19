@@ -297,6 +297,7 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['maprixproprio']['Name'] = 'Prix Proprio';
                 $this->field['machinesa']['vols']['Name'] = 'Vols';
                 $this->field['machinesa']['fabrication']['Name'] = 'Mise en service';
+                $this->field['machinesa']['autonomie_en_heures']['Name'] = 'Autonomie (h)';
 
                 $this->field['machinesa']['macrem']['Subtype'] = 'boolean';
                 $this->field['machinesa']['maprive']['Subtype'] = 'boolean';
