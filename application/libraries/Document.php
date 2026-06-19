@@ -906,7 +906,8 @@ class Document {
         $pdf->SetTextColor(0, 0, 0);
     }
 
-    function generate() {
-        $this->pdf->Output('I', pdf_filename($this->pdf->title ?? ''));
+    function generate($filename = null) {
+        $fn = ($filename !== null) ? pdf_filename($filename) : pdf_filename($this->pdf->title ?? '');
+        $this->pdf->Output('I', $fn);
     }
 }

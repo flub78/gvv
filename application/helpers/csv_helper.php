@@ -28,8 +28,10 @@ if (!function_exists('pdf_filename')) {
         date_default_timezone_set('Europe/Paris');
         $dt = date("Y_m_d");
         $filename = "gvv_" . ($title ?: 'document') . "_$dt.pdf";
+        $filename = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $filename);
         $filename = strtolower($filename);
-        $filename = str_replace(' ', '_', $filename);
+        $filename = str_replace(["'", "'", ' ', '=', '-', ',', '/'], '_', $filename);
+        $filename = preg_replace('/_+/', '_', $filename);
         return $filename;
     }
 }
@@ -42,7 +44,7 @@ if (!function_exists('csv_file')) {
      * @param unknown_type $data
      * @param unknown_type $nodisplay
      */
-    function csv_file($title, $data, $download = true, $header = false) {
+    function csv_file($title, $data, $download = true, $header = false, $filename_title = null) {
         $CI = &get_instance();
 
         // Load the file helper and write the file to your server
@@ -53,7 +55,8 @@ if (!function_exists('csv_file')) {
 
         date_default_timezone_set('Europe/Paris');
         $dt =  date("Y_m_d");
-        $filename = "gvv_" . $title . "_$dt.csv";
+        $fn = ($filename_title !== null) ? $filename_title : $title;
+        $filename = "gvv_" . $fn . "_$dt.csv";
         $filename = strtolower($filename);
         $filename = str_replace(' ', '_', $filename);
 

@@ -190,7 +190,7 @@ $lang['gvv_comptes_error_411_requires_pilote'] = "Een klantenrekening (411) moet
 $lang['gvv_comptes_error_411_duplicate_in_section'] = "Dit lid heeft al een klantenrekening (411) in deze sectie";
 
 // Resultaat per secties
-$lang['gvv_comptes_title_resultat_par_sections'] = "Bedrijfsresultaat per secties";
+$lang['gvv_comptes_title_resultat_par_sections'] = "Bedrijfsresultaat";
 $lang['gvv_comptes_title_resultat_par_sections_detail'] = "Resultaatdetails per secties - %s";
 $lang['comptes_label_charges'] = "Kosten";
 $lang['comptes_label_produits'] = "Inkomsten";

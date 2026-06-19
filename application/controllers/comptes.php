@@ -765,11 +765,22 @@ class Comptes extends Gvv_Controller {
 
         $this->load->library('Document', array('year' => $year));
         $this->document->pagesResultatsAvecDepreciation($year);
-        $this->document->generate();
+        $section = $this->gvv_model->section();
+        $filename = "résultat_section";
+        if ($section) {
+            $filename .= "_" . $section['nom'];
+        }
+        $filename .= "_" . $year;
+        $this->document->generate($filename);
     }
 
     function csv_resultat_avec_depreciation() {
         $title   = $this->lang->line("gvv_comptes_title_resultat_avec_depreciation");
+        $section = $this->gvv_model->section();
+        $filename_title = "résultat_section";
+        if ($section) {
+            $filename_title .= "_" . $section['nom'];
+        }
         $resultat = $this->ecritures_model->select_resultat_avec_depreciation();
 
         $resultat_table = $this->ecritures_model->resultat_avec_depreciation_table($resultat, false, '', ',', 'csv');
@@ -786,7 +797,7 @@ class Comptes extends Gvv_Controller {
             $csv_data[] = $row;
         }
 
-        csv_file($title, $csv_data);
+        csv_file($title, $csv_data, true, false, $filename_title);
     }
 
     /**

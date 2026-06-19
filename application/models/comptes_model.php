@@ -879,8 +879,8 @@ class Comptes_model extends Common_Model {
             $title[] = $this->CI->lang->line('comptes_label_total_club');
         }
         $resultat[] = $title;
-        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_total_recettes')], $produits);
-        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_total_depenses')], $charges);
+        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_earnings')], $produits);
+        $resultat[] = $this->compute_total([$this->CI->lang->line('comptes_label_expenses')], $charges);
 
         $total_row = [$this->CI->lang->line('comptes_bilan_resultat')];
 
