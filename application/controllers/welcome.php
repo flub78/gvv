@@ -80,6 +80,14 @@ class Welcome extends Gvv_Controller {
             redirect('welcome');
         }
 
+        if ($name === 'dev') {
+            $username = $this->dx_auth->get_username();
+            $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+            if (!in_array($username, $dev_users)) {
+                redirect('welcome');
+            }
+        }
+
         // Mémoriser ce tableau de bord comme point de retour pour les pages de niveau inférieur
         $this->lang->load('tableaux_de_bord');
         $section_label_keys = array(

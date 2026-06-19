@@ -1375,6 +1375,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if (!empty($is_dev_authorized)): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-info">
                 <i class="fas fa-credit-card text-info"></i>
@@ -1383,6 +1384,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('payments/test_helloasso') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <?php if ($is_admin): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">

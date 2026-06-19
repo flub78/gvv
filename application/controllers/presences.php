@@ -39,8 +39,8 @@ class Presences extends MY_Controller {
         // Bouton retour → tableau de bord Développement
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
-            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/dev',
-            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_dev'),
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_btn_retour'),
         ]);
     }
 
