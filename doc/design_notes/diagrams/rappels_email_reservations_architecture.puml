@@ -1,0 +1,61 @@
+@startuml
+title Rappels et Notifications Email/SMS Reservations - Architecture logique
+
+skinparam componentStyle rectangle
+
+package "Reservations" {
+  [Reservation Source]
+  [My Reservations UI]
+}
+
+package "Rappels" {
+  [Reservation Event Adapter]
+  [Event Recipient Router]
+  [Hourly Reminder Scheduler]
+  [Notification Composer]
+  [Channel Selector]
+}
+
+package "Notifications" {
+  [Delivery Gateway]
+  [SMS Provider Adapter (Brevo)]
+  [reservation_reminder_log]
+  [gvv_error]
+}
+
+package "Administration" {
+  [Admin Configuration]
+  [User Reminder Preferences]
+}
+
+package "Triggers" {
+  [Cron Trigger]
+  [Public URL Trigger]
+}
+
+[Admin Configuration] --> [Hourly Reminder Scheduler] : activation section
+[Cron Trigger] --> [Hourly Reminder Scheduler] : lancement horaire
+[Public URL Trigger] --> [Hourly Reminder Scheduler] : lancement URL + secret
+[Reservation Source] --> [Reservation Event Adapter] : event create|update|cancel
+[My Reservations UI] --> [Reservation Source] : list user reservations\ndelete reservation\nopen add reservation
+[My Reservations UI] --> [User Reminder Preferences] : channel + reminder period
+[User Reminder Preferences] --> [Hourly Reminder Scheduler] : user period settings
+[Reservation Event Adapter] --> [Event Recipient Router] : event create|update|cancel
+[Event Recipient Router] --> [Notification Composer] : event_notification
+[Event Recipient Router] --> [Notification Composer] : creator in crew -> notify second member
+[Event Recipient Router] --> [Notification Composer] : creator third-party -> notify both crew
+[Hourly Reminder Scheduler] --> [Reservation Source] : reservations existantes\n< 48h (jour meme inclus)
+[Hourly Reminder Scheduler] --> [User Reminder Preferences] : read channel + period
+[Hourly Reminder Scheduler] --> [Notification Composer] : scheduled_reminder
+[Notification Composer] --> [Channel Selector] : canal=email|sms|email+sms
+
+[Channel Selector] --> [Delivery Gateway] : envoi email
+[Channel Selector] --> [SMS Provider Adapter (Brevo)] : envoi sms
+[Delivery Gateway] --> [reservation_reminder_log] : unique_key + sent_at + message\nsource=event_*|cron|public_url\ntype=scheduled_reminder|event_notification\nstatus
+[SMS Provider Adapter (Brevo)] --> [reservation_reminder_log] : unique_key + sent_at + message\nsource=event_*|cron|public_url\ntype=scheduled_reminder|event_notification\nstatus
+[Delivery Gateway] --> [gvv_error] : on send failure only\nno automatic retry
+[SMS Provider Adapter (Brevo)] --> [gvv_error] : on send failure only\nno automatic retry
+[Hourly Reminder Scheduler] --> [reservation_reminder_log] : trace scheduler reminders
+[Reservation Event Adapter] --> [reservation_reminder_log] : trace event intake
+
+@enduml

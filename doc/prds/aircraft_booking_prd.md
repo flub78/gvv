@@ -81,8 +81,8 @@ Ce document décrit les exigences pour un nouveau système de réservation d'aé
 *   Facturation automatisée ou traitement des paiements pour les vols.
 *   Une fonctionnalité de liste d'attente pour les aéronefs ou instructeurs complètement réservés.
 *   Notifications automatisées (email, SMS) pour les confirmations de réservation, rappels ou annulations.
+*   Les rappels email de réservation sont traités dans le PRD dédié : doc/prds/rappels_email_reservations_prd.md.
 *   Fonctionnalités avancées de réservation récurrente (ex. "réserver chaque mardi pendant 6 semaines").
-*
 
 ## 8. Maquettes et Idées
 
