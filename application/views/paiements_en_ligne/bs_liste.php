@@ -12,63 +12,79 @@
 <h3><?= $this->lang->line('gvv_liste_title') ?></h3>
 
 <!-- ── Filtres ────────────────────────────────────────────────── -->
-<form method="get" action="<?= controller_url('paiements_en_ligne/liste') ?>" class="mb-4">
-    <div class="row g-2 align-items-end">
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_from') ?></label>
-            <input type="date" name="date_from" class="form-control form-control-sm"
-                   value="<?= htmlspecialchars($filters['date_from']) ?>">
-        </div>
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_to') ?></label>
-            <input type="date" name="date_to" class="form-control form-control-sm"
-                   value="<?= htmlspecialchars($filters['date_to']) ?>">
-        </div>
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_statut') ?></label>
-            <select name="statut" class="form-select form-select-sm">
-                <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
-                <option value="pending"   <?= $filters['statut'] === 'pending'   ? 'selected' : '' ?>>
-                    <?= $this->lang->line('gvv_pel_statut_pending') ?></option>
-                <option value="completed" <?= $filters['statut'] === 'completed' ? 'selected' : '' ?>>
-                    <?= $this->lang->line('gvv_pel_statut_completed') ?></option>
-                <option value="failed"    <?= $filters['statut'] === 'failed'    ? 'selected' : '' ?>>
-                    <?= $this->lang->line('gvv_pel_statut_failed') ?></option>
-                <option value="cancelled" <?= $filters['statut'] === 'cancelled' ? 'selected' : '' ?>>
-                    <?= $this->lang->line('gvv_pel_statut_cancelled') ?></option>
-            </select>
-        </div>
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_plateforme') ?></label>
-            <select name="plateforme" class="form-select form-select-sm">
-                <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
-                <option value="helloasso" <?= $filters['plateforme'] === 'helloasso' ? 'selected' : '' ?>>HelloAsso</option>
-            </select>
-        </div>
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_type') ?></label>
-            <select name="type" class="form-select form-select-sm">
-                <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
-                <option value="paiement_generique" <?= $filters['type'] === 'paiement_generique' ? 'selected' : '' ?>>
-                    <?= $this->lang->line('gvv_liste_type_paiement_generique') ?></option>
-            </select>
-        </div>
-        <div class="col-6 col-md-2">
-            <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_section') ?></label>
-            <select name="club" class="form-select form-select-sm">
-                <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
-                <?php foreach ($sections as $s): ?>
-                <option value="<?= (int)$s['id'] ?>" <?= (int)$filters['club'] === (int)$s['id'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($s['nom']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-12 col-md-2 d-flex gap-1 align-items-end">
-            <button type="submit" class="btn btn-primary btn-sm"><?= $this->lang->line('gvv_liste_filter_apply') ?></button>
-            <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-outline-secondary btn-sm"><?= $this->lang->line('gvv_liste_filter_reset') ?></a>
-        </div>
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center gap-2"
+         data-bs-toggle="collapse"
+         data-bs-target="#pel-filter-collapse"
+         aria-expanded="true"
+         aria-controls="pel-filter-collapse"
+         style="cursor: pointer; user-select: none;">
+        <i class="fas fa-sliders-h"></i>
+        <strong><?= $this->lang->line('gvv_str_filter') ?></strong>
+        <i class="fas fa-chevron-down ms-auto pel-filter-chevron"></i>
     </div>
-</form>
+    <div class="collapse show" id="pel-filter-collapse">
+    <div class="card-body">
+        <form method="get" action="<?= controller_url('paiements_en_ligne/liste') ?>">
+            <div class="row g-2 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_from') ?></label>
+                    <input type="date" name="date_from" class="form-control form-control-sm"
+                           value="<?= htmlspecialchars($filters['date_from']) ?>">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_to') ?></label>
+                    <input type="date" name="date_to" class="form-control form-control-sm"
+                           value="<?= htmlspecialchars($filters['date_to']) ?>">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_statut') ?></label>
+                    <select name="statut" class="form-select form-select-sm">
+                        <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
+                        <option value="pending"   <?= $filters['statut'] === 'pending'   ? 'selected' : '' ?>>
+                            <?= $this->lang->line('gvv_pel_statut_pending') ?></option>
+                        <option value="completed" <?= $filters['statut'] === 'completed' ? 'selected' : '' ?>>
+                            <?= $this->lang->line('gvv_pel_statut_completed') ?></option>
+                        <option value="failed"    <?= $filters['statut'] === 'failed'    ? 'selected' : '' ?>>
+                            <?= $this->lang->line('gvv_pel_statut_failed') ?></option>
+                        <option value="cancelled" <?= $filters['statut'] === 'cancelled' ? 'selected' : '' ?>>
+                            <?= $this->lang->line('gvv_pel_statut_cancelled') ?></option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_plateforme') ?></label>
+                    <select name="plateforme" class="form-select form-select-sm">
+                        <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
+                        <option value="helloasso" <?= $filters['plateforme'] === 'helloasso' ? 'selected' : '' ?>>HelloAsso</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_type') ?></label>
+                    <select name="type" class="form-select form-select-sm">
+                        <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
+                        <option value="paiement_generique" <?= $filters['type'] === 'paiement_generique' ? 'selected' : '' ?>>
+                            <?= $this->lang->line('gvv_liste_type_paiement_generique') ?></option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small"><?= $this->lang->line('gvv_liste_filter_section') ?></label>
+                    <select name="club" class="form-select form-select-sm">
+                        <option value=""><?= $this->lang->line('gvv_liste_filter_all') ?></option>
+                        <?php foreach ($sections as $s): ?>
+                        <option value="<?= (int)$s['id'] ?>" <?= (int)$filters['club'] === (int)$s['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($s['nom']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-1 align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm"><?= $this->lang->line('gvv_liste_filter_apply') ?></button>
+                    <a href="<?= controller_url('paiements_en_ligne/liste') ?>" class="btn btn-outline-secondary btn-sm"><?= $this->lang->line('gvv_liste_filter_reset') ?></a>
+                </div>
+            </div>
+        </form>
+    </div>
+    </div><!-- /.collapse -->
+</div><!-- /.card -->
 
 <!-- ── Statistiques ───────────────────────────────────────────── -->
 <div class="row g-3 mb-4">
@@ -114,11 +130,10 @@ $sections_map = array();
 foreach ($sections as $s) {
     $sections_map[(int)$s['id']] = $s['nom'];
 }
+$show_description = !empty($filters['type']);
 ?>
-<div class="table-responsive">
-<table class="table table-sm table-hover table-bordered">
+<table id="pel-transactions-table" class="table table-sm table-hover table-bordered">
     <thead class="table-dark">
-        <?php $show_description = !empty($filters['type']); ?>
         <tr>
             <th><?= $this->lang->line('gvv_pel_col_date') ?></th>
             <th><?= $this->lang->line('gvv_liste_col_pilote') ?></th>
@@ -188,7 +203,45 @@ foreach ($sections as $s) {
     <?php endforeach; ?>
     </tbody>
 </table>
-</div>
 <?php endif; ?>
 
 </div>
+
+<style>
+.pel-filter-chevron { transition: transform 0.2s ease; }
+[data-bs-target="#pel-filter-collapse"][aria-expanded="false"] .pel-filter-chevron {
+    transform: rotate(-90deg);
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // ── DataTable ──────────────────────────────────────────────
+    $('#pel-transactions-table').dataTable({
+        "bFilter": true,
+        "bPaginate": true,
+        "iDisplayLength": 25,
+        "bStateSave": false,
+        "bSort": true,
+        "bInfo": true,
+        "bJQueryUI": true,
+        "bAutoWidth": true,
+        "sPaginationType": "full_numbers",
+        "search": { "caseInsensitive": true },
+        "oLanguage": olanguage,
+        "aLengthMenu": [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "Tous les"]
+        ],
+        "fnDrawCallback": highlightSearchCallback
+    });
+
+    // ── Filtre : replié par défaut sur smartphone ──────────────
+    if (window.innerWidth < 768) {
+        var collapseEl = document.getElementById('pel-filter-collapse');
+        if (collapseEl) {
+            bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false }).hide();
+        }
+    }
+});
+</script>

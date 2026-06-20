@@ -207,4 +207,6 @@
 
 * [x] Ajouter un mode remise en vol. Le supplément DC n'est pas facturé.
 
-* [] ajout autonomie pour limiter la durée des vols et les séances de formation en vol
+* [x] ajout autonomie pour limiter la durée des vols et les séances de formation en vol
+
+* [x] Searchbox datatable sur les paiements HelloAsso

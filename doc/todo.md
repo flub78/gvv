@@ -6,11 +6,11 @@
 
 ## Reste à faire
 
+* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
+
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
 
-* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
-   
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
@@ -28,8 +28,6 @@
 * [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
 
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa carte membre.
-
-* [] Searchbox datatable sur les paiements HelloAsso
      
 * [] Ajout de vrais export excel en sus des csv.
 
@@ -50,6 +48,8 @@
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
+
+* [] Page de relance mauvais payeurs. 
 
 * [] Passer à php8
 
