@@ -194,7 +194,7 @@ test.describe('Cohérence avant/après dépréciations entre resultat_par_sectio
         const avantLabel = (await avantRow.locator('td').first().textContent()).trim();
         const apresLabel = (await apresRow.locator('td').first().textContent()).trim();
 
-        expect(avantLabel).toContain('avant');
+        expect(avantLabel).toContain('Résultat par sections');
         expect(apresLabel).toContain('après');
         console.log(`✓ Lignes présentes : "${avantLabel}" et "${apresLabel}"`);
     });

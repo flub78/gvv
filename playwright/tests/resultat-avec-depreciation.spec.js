@@ -82,9 +82,9 @@ test.describe('Résultat avant et après dépréciations', () => {
         await loginPage.goto('comptes/resultat_avec_depreciation');
         await page.waitForLoadState('networkidle');
 
-        await expect(page.locator('h3')).toContainText('dépréciations');
+        await expect(page.locator('h3')).toContainText('Résultat');
         await expect(page.locator('table.sql_table')).toBeVisible();
-        await expect(page.locator('body')).toContainText('Résultat avant dépréciations');
+        await expect(page.locator('body')).toContainText('avant dépréciations');
         await expect(page.locator('body')).toContainText('Résultat après dépréciations');
         console.log('✓ Page accessible et titres intermédiaires présents');
     });

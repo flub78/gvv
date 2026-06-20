@@ -19,6 +19,7 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Gestion CRUD des messages par les administrateurs.
 - Affichage des messages actifs dans une section repliable sur le dashboard d'accueil.
 - Page de consultation listant tous les messages.
+- Rendu Markdown controle des messages avec support d'images referencees.
 
 ## Personae & rôles
 - Administrateur : crée, modifie, supprime et planifie des messages.
@@ -36,11 +37,17 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Les administrateurs peuvent créer, modifier et supprimer des messages.
 - Un message contient :
   - Titre (optionnel si souhaité).
-  - Contenu en texte simple ou Markdown.
+  - Contenu en Markdown (source de reference), rendu en HTML securise a l'affichage.
   - Date de début d’affichage.
   - Date de fin d’affichage.
   - Niveau "Urgent, Important, Info" (optionnel).
   - Type de destinataires (optionnel, ex. tous les utilisateurs, basé sur la gestion des rôles).
+
+### EF1bis — Rendu Markdown
+- Le contenu des messages est saisi en Markdown et stocke tel quel.
+- Le rendu HTML est produit a l'affichage via un pipeline de sanitation (pas de HTML arbitraire execute).
+- Les elements Markdown supportes incluent au minimum: titres, listes, liens, gras/italique, citations, tableaux simples, images.
+- Tout HTML dangereux ou non autorise est supprime avant rendu.
 
 ### EF2 — Période d’affichage
 - Un message est affiché uniquement si la date actuelle est comprise entre la date de début et la date de fin.
@@ -65,15 +72,33 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Seuls les administrateurs peuvent gérer les messages.
 - Tous les utilisateurs autorisés peuvent consulter les messages.
 
+### EF6 — Images referencees dans les messages
+- Les administrateurs peuvent televerser des images depuis l'interface d'edition du message.
+- Le televersement retourne une URL interne stable pouvant etre referencee dans le Markdown via `![alt](url)`.
+- Les images ne sont accessibles qu'aux utilisateurs authentifies autorises a voir les messages.
+- Les formats acceptes sont limites (PNG, JPG, WEBP) et la taille maximale est configurable.
+- Les metadonnees de fichier (nom d'origine, type MIME, taille, auteur, dates) sont journalisees.
+- Lorsqu'une image est supprimee ou remplacee, le systeme garantit un comportement explicite (erreur lisible ou image de remplacement).
+
+#### Conception proposee pour le chargement d'images
+- Stockage fichier: repertoire dedie `uploads/motd/` avec nommage serveur non predictible.
+- Service d'acces: endpoint applicatif `motd/media/{id}` qui verifie les droits puis sert le binaire.
+- Reference dans le contenu: insertion automatique du lien Markdown apres upload (copie en presse-papiers ou insertion curseur).
+- Integrite: hash SHA-256 du fichier stocke pour dedoublonnage optionnel et verification.
+- Traçabilite: liaison `message_id` <-> media pour faciliter nettoyage et audit.
+
 ## Exigences non fonctionnelles
 - Performance : la section repliable doit s’afficher rapidement à l’ouverture.
 - Utilisabilité : la suppression ou le masquage doit être explicite et visible.
 - Compatibilité : rendu correct sur navigateur moderne.
 - Responsive : la section repliable et la page dédiée doivent être utilisables sur mobile et tablette.
+- Le rendu Markdown + images doit rester performant sur dashboard (miniatures optimisees, chargement paresseux si necessaire).
 
 ## Contraintes & dépendances
 - Les messages doivent respecter les politiques de contenu (pas de HTML arbitraire).
 - Le rendu Markdown doit être compatible avec l’existant (si déjà utilisé).
+- Les images televersees doivent etre validees cote serveur (MIME reel, extension, taille) et protegees contre l'execution de contenu actif.
+- Les URL d'images doivent rester internes a l'application (pas d'injection d'URL non maitrisee par defaut).
 
 ## Mesures de succès
 - 80 % des utilisateurs voient au moins un message par semaine.
@@ -83,3 +108,4 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Le titre est-il obligatoire ?
 - Les messages expirés doivent-ils rester visibles sur la page dédiée ?
 - Y a-t-il un ordre de priorité (ex. messages urgents en premier) ?
+- Quelle limite de taille/frequence de televersement image retenir par club et par message ?
