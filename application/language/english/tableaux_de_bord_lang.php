@@ -248,3 +248,5 @@ $lang['db_card_lock_access']     = "Site access";
 $lang['db_desc_lock_access']     = "Member access control";
 $lang['db_lock_status_open']     = "Open";
 $lang['db_lock_status_locked']   = "Locked";
+$lang["db_card_mes_reservations"] = "My reservations";
+$lang["db_desc_mes_reservations"] = "View and manage your upcoming reservations";

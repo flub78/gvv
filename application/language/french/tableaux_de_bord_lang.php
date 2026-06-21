@@ -248,3 +248,5 @@ $lang['db_desc_fusion_membres'] = "Fusionner deux comptes membres en doublon";
 // Renommer un membre
 $lang['db_card_rename_member'] = "Renommer un utilisateur";
 $lang['db_desc_rename_member'] = "Modifier l'identifiant (mlogin) d'un membre existant";
+$lang['db_card_mes_reservations'] = "Mes réservations";
+$lang['db_desc_mes_reservations'] = "Consulter et gérer vos réservations à venir";

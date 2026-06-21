@@ -876,6 +876,10 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['show_on_member_card']['Type']    = 'int';
                 $this->field['sections']['show_on_member_card']['Subtype'] = 'boolean';
 
+                $this->field['sections']['reservation_reminders_enabled']['Name']    = $CI->lang->line('gvv_sections_field_reservation_reminders_enabled');
+                $this->field['sections']['reservation_reminders_enabled']['Type']    = 'int';
+                $this->field['sections']['reservation_reminders_enabled']['Subtype'] = 'boolean';
+
                 /**
                  * Vue sections
                  */
@@ -902,6 +906,9 @@ class GVVMetadata extends Metadata {
 
                 $this->field['vue_sections']['show_on_member_card']['Name']    = $CI->lang->line('gvv_sections_field_show_on_member_card');
                 $this->field['vue_sections']['show_on_member_card']['Subtype'] = 'boolean';
+
+                $this->field['vue_sections']['reservation_reminders_enabled']['Name']    = $CI->lang->line('gvv_sections_field_reservation_reminders_enabled');
+                $this->field['vue_sections']['reservation_reminders_enabled']['Subtype'] = 'boolean';
 
                 /**
                  * Document types (archivage documentaire)

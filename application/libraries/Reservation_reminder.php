@@ -46,6 +46,11 @@ class Reservation_reminder
     {
         $reservation = $this->_load_reservation($reservation_id);
 
+        if ($reservation && !$this->_reminders_enabled((int) $reservation['section_id'])) {
+            gvv_info("Reservation_reminder::handle_event reminders disabled for section {$reservation['section_id']}");
+            return false;
+        }
+
         if (empty($reservation)) {
             gvv_info("Reservation_reminder::handle_event reservation $reservation_id not found — skipped");
             $this->_log_skipped(
@@ -103,6 +108,10 @@ class Reservation_reminder
     public function run_scheduler($source = 'cron')
     {
         $pending   = $this->model->get_pending_reservations(48);
+        // Filter to sections where reminders are enabled
+        $pending = array_filter($pending, function($r) {
+            return $this->_reminders_enabled((int) $r['section_id']);
+        });
         $sent      = 0;
         $evaluated = 0;
 
@@ -351,10 +360,22 @@ class Reservation_reminder
             }
         }
 
-        // SMS delivery — stub for Phase 8
+        // SMS delivery via Brevo
         if ($channel === 'sms' || $channel === 'email+sms') {
-            gvv_info("Reservation_reminder: SMS not yet implemented for {$recipient['login']}");
-            $sms_result = null; // implemented in Phase 8
+            if (!empty($recipient['phone'])) {
+                $sms_body = $this->_compose_sms_body($reservation, $action_type, $recipient['role'], $event_type);
+                $this->CI->load->library('Brevo_sms_adapter');
+                $sms_res = $this->CI->brevo_sms_adapter->send($recipient['phone'], $sms_body);
+                $sms_result = $sms_res['ok'];
+                if (!$sms_result) {
+                    $sms_error = $sms_res['error'];
+                    $error_msg = $error_msg ? $error_msg . ' | ' . $sms_error : $sms_error;
+                    gvv_error("Reservation_reminder: SMS failed for {$recipient['login']}: $sms_error");
+                }
+            } else {
+                gvv_info("Reservation_reminder: no phone for {$recipient['login']} — SMS skipped");
+                $sms_result = null;
+            }
         }
 
         // Overall status
@@ -571,6 +592,26 @@ class Reservation_reminder
             'status'            => 'skipped',
             'error_message'     => $reason,
         ));
+    }
+
+    /**
+     * Check if reminders are enabled for a section.
+     *
+     * @param int $section_id
+     * @return bool
+     */
+    protected function _reminders_enabled($section_id)
+    {
+        if (!$this->CI || !$section_id) {
+            return true; // default enabled in test context or no section
+        }
+        $row = $this->CI->db
+            ->select('reservation_reminders_enabled')
+            ->from('sections')
+            ->where('id', $section_id)
+            ->get()
+            ->row_array();
+        return !empty($row) && !empty($row['reservation_reminders_enabled']);
     }
 
     /**

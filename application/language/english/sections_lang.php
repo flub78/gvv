@@ -21,6 +21,7 @@ $lang['gvv_sections_field_show_presences'] = "Attendance calendar";
 $lang['gvv_sections_field_has_bar'] = "Bar";
 $lang['gvv_sections_field_bar_account_id'] = "Bar revenue account";
 $lang['gvv_sections_field_show_on_member_card'] = "Show on member card";
+$lang['gvv_sections_field_reservation_reminders_enabled'] = "Reservation reminders enabled";
 
 $lang['gvv_vue_sections_short_field_nom'] = "Name";
 $lang['gvv_vue_sections_short_field_description'] = "Description";

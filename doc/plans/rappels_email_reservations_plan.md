@@ -478,16 +478,16 @@ Scénarios :
 | 1 | Infrastructure DB (migrations) | ✅ Terminé |
 | 2 | Modèle reservation_reminder_model | ✅ Terminé |
 | 3 | Bibliothèque Reservation_reminder | ✅ Terminé |
-| 4 | Page "Mes réservations" | ⬜ En attente |
-| 5 | Adaptateur événementiel (reservations.php) | ⬜ En attente |
-| 6 | Scheduler + contrôleur déclencheur | ⬜ En attente |
-| 7 | Envoi email | ⬜ En attente |
-| 8 | Envoi SMS (Brevo) | ⬜ En attente |
-| 9 | Configuration administration | ⬜ En attente |
-| 10 | Fichiers de langue FR/EN/NL | ⬜ En attente |
-| 11 | Tests PHPUnit | ⬜ En attente |
-| 12 | Tests Playwright | ⬜ En attente |
-| 13 | Documentation | ⬜ En attente |
+| 4 | Page "Mes réservations" | ✅ Terminé |
+| 5 | Adaptateur événementiel (reservations.php) | ✅ Terminé |
+| 6 | Scheduler + contrôleur déclencheur | ✅ Terminé |
+| 7 | Envoi email | ✅ Terminé |
+| 8 | Envoi SMS (Brevo) | ✅ Terminé |
+| 9 | Configuration administration | ✅ Terminé |
+| 10 | Fichiers de langue FR/EN/NL | ✅ Terminé |
+| 11 | Tests PHPUnit | ✅ Terminé |
+| 12 | Tests Playwright | ✅ Terminé |
+| 13 | Documentation | ✅ Terminé |
 
 ---
 

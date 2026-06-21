@@ -248,3 +248,5 @@ $lang['db_card_lock_access']     = "Sitetoegang";
 $lang['db_desc_lock_access']     = "Toegangscontrole leden";
 $lang['db_lock_status_open']     = "Open";
 $lang['db_lock_status_locked']   = "Vergrendeld";
+$lang["db_card_mes_reservations"] = "Mijn reserveringen";
+$lang["db_desc_mes_reservations"] = "Uw aankomende reserveringen bekijken en beheren";

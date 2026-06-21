@@ -740,6 +740,13 @@ class Reservations extends MY_Controller {
 
                 gvv_info("Reservation: User " . $username . " created reservation ID " . $new_id . " for " . $start_datetime);
 
+                try {
+                    $this->load->library('Reservation_reminder');
+                    $this->reservation_reminder->handle_event($new_id, 'create', $username);
+                } catch (Exception $re) {
+                    gvv_error("Reservation_reminder create event failed: " . $re->getMessage());
+                }
+
                 echo json_encode(array(
                     'success' => true,
                     'message' => 'Reservation created successfully',
@@ -772,6 +779,13 @@ class Reservations extends MY_Controller {
                 }
 
                 gvv_info("Reservation: User " . $username . " updated reservation ID " . $reservation_id . " for " . $start_datetime);
+
+                try {
+                    $this->load->library('Reservation_reminder');
+                    $this->reservation_reminder->handle_event((int) $reservation_id, 'update', $username);
+                } catch (Exception $re) {
+                    gvv_error("Reservation_reminder update event failed: " . $re->getMessage());
+                }
 
                 echo json_encode(array(
                     'success' => true,
@@ -825,6 +839,14 @@ class Reservations extends MY_Controller {
             // Fetch reservation data before deletion for logging
             $del_res_data = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
             $del_start = !empty($del_res_data['start_datetime']) ? $del_res_data['start_datetime'] : 'unknown';
+
+            // Fire cancel event BEFORE deletion (library needs the row to exist)
+            try {
+                $this->load->library('Reservation_reminder');
+                $this->reservation_reminder->handle_event($reservation_id, 'cancel', $del_username);
+            } catch (Exception $re) {
+                gvv_error("Reservation_reminder cancel event failed: " . $re->getMessage());
+            }
 
             // Delete the reservation
             $success = $this->reservations_model->delete_reservation($reservation_id);
