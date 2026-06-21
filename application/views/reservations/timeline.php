@@ -555,7 +555,8 @@ $this->load->view('bs_banner');
             canEditOthers: <?php echo $can_edit_others ? 'true' : 'false'; ?>,
             isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>,
             isMecano: <?php echo $is_mecano ? 'true' : 'false'; ?>,
-            canBook: <?php echo $can_book ? 'true' : 'false'; ?>
+            canBook: <?php echo $can_book ? 'true' : 'false'; ?>,
+            isClubAdmin: <?php echo $is_club_admin ? 'true' : 'false'; ?>
         };
         
         // State
@@ -784,7 +785,10 @@ $this->load->view('bs_banner');
             
             // Determine if current user can edit this event
             const pilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-            const canEditEvent = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser) || (CONFIG.isMecano && !pilotId));
+            const eventIsPast = event.start instanceof Date ? event.start < new Date() : (new Date(event.start) < new Date());
+            const canEditEvent = !eventIsPast || CONFIG.isClubAdmin
+                ? CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser) || (CONFIG.isMecano && !pilotId))
+                : false;
 
             // Add resize handle
             const resizeHandle = document.createElement('div');
@@ -1181,6 +1185,10 @@ $this->load->view('bs_banner');
             const resourceId = slotEl.getAttribute('data-resource-id');
             const clickedTime = String(hour).padStart(2, '0') + ':00:00';
 
+            // Non-admins cannot create reservations in the past
+            const slotDate = new Date(CONFIG.currentDate + 'T' + clickedTime);
+            if (!CONFIG.isClubAdmin && slotDate < new Date()) return;
+
             console.log('Slot clicked:', resourceId, clickedTime);
 
             // Send trace to server
@@ -1300,7 +1308,9 @@ $this->load->view('bs_banner');
 
                 // Determine edit permissions for this event
                 const eventPilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-                const isEventOwner = CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser) || (CONFIG.isMecano && !eventPilotId));
+                const isPastEvent = event.start instanceof Date ? event.start < new Date() : (new Date(event.start) < new Date());
+                const isLockedByPast = isPastEvent && !CONFIG.isClubAdmin;
+                const isEventOwner = !isLockedByPast && CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser) || (CONFIG.isMecano && !eventPilotId));
                 const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
                 
                 // Extract and safely prepare data

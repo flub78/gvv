@@ -424,6 +424,14 @@ Reservation Reminder Model
  [x] Save and reload member preferences
  [x] Save preferences rejects invalid channel
 
+Reservation Scheduler
+ [x] Scheduler includes flight reservations in window
+ [x] Scheduler excludes reservations outside window
+ [x] Scheduler excludes maintenance and unavailable
+ [x] No duplicate on double scheduler run
+ [x] Scheduler respects user reminder period
+ [x] Scheduler skips reservation not yet in reminder window
+
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
  [x] Correlation for bleuse against all images

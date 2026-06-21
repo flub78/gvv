@@ -132,6 +132,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     const BASE_URL = '<?php echo site_url(); ?>';
     const CONFIG = {
         currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
+        isClubAdmin:       <?php echo $is_club_admin       ? 'true' : 'false'; ?>,
         canEditOthers:     <?php echo $can_edit_others     ? 'true' : 'false'; ?>,
         isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>,
         isMecano:          <?php echo $is_mecano           ? 'true' : 'false'; ?>,
@@ -168,7 +169,10 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             cancelBtn.textContent = TRANSLATIONS.btn_cancel;
 
             // Members without booking rights are always read-only
-            const readOnly = !CONFIG.canBook;
+            // Past reservations are also read-only for non-admin users
+            const eventStart = (event && event.start) ? new Date(event.start) : null;
+            const isPast = eventStart && eventStart < new Date();
+            const readOnly = !CONFIG.canBook || (!isCreate && isPast && !CONFIG.isClubAdmin);
 
             // Show/hide save/delete buttons based on booking rights
             if (readOnly) {
@@ -572,6 +576,11 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 }
             },
             select: function(info) {
+                // Non-admins cannot create reservations in the past
+                if (!CONFIG.isClubAdmin && info.start < new Date()) {
+                    calendar.unselect();
+                    return;
+                }
                 // Open create modal with selected time range
                 try {
                     displayEventModal(null, info.start, info.end);
@@ -589,15 +598,16 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 let startDate, endDate;
 
                 if (info.allDay) {
-                    // If clicking on a day (month view), set default time to 9:00-10:00
                     startDate = new Date(info.date);
                     startDate.setHours(9, 0, 0, 0);
-                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
                 } else {
-                    // If clicking on a time slot (week/day view), use clicked time
                     startDate = info.date;
-                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                    endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
                 }
+
+                // Non-admins cannot create reservations in the past
+                if (!CONFIG.isClubAdmin && startDate < new Date()) return;
 
                 try {
                     displayEventModal(null, startDate, endDate);
