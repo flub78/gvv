@@ -27,6 +27,9 @@ class PaiementsEnLigneWebhookTest extends TestCase
     protected $db;
     protected $model;
 
+    /** Raison de skip si les prérequis sont absents (null = prérequis OK) */
+    protected static $skip_reason = null;
+
     /** IDs d'écritures créées (nettoyage tearDown) */
     protected $created_ecriture_ids = array();
     /** IDs de transactions créées (nettoyage tearDown) */
@@ -58,19 +61,22 @@ class PaiementsEnLigneWebhookTest extends TestCase
                AND TABLE_NAME IN ('paiements_en_ligne', 'paiements_en_ligne_config')"
         )->row_array();
         if ((int) $tables_ok['cnt'] < 2) {
-            self::markTestSkipped('Tables paiements_en_ligne manquantes — migration 097 non appliquée');
+            self::$skip_reason = 'Tables paiements_en_ligne manquantes — migration 097 non appliquée';
+            return;
         }
 
         // Vérifier compte pilote d'asterix dans club=4
         $cp = self::$CI->db->where('id', self::$compte_pilote_id)->get('comptes')->row_array();
         if (!$cp || (int) $cp['club'] !== self::$club_id) {
-            self::markTestSkipped('Compte pilote asterix (id=1472) introuvable dans club=4');
+            self::$skip_reason = 'Compte pilote asterix (id=1472) introuvable dans club=4';
+            return;
         }
 
         // Vérifier compte bar dans club=4
         $cb = self::$CI->db->where('id', self::$bar_account_id)->get('comptes')->row_array();
         if (!$cb || (int) $cb['club'] !== self::$club_id) {
-            self::markTestSkipped('Compte bar (id=763) introuvable dans club=4');
+            self::$skip_reason = 'Compte bar (id=763) introuvable dans club=4';
+            return;
         }
 
         // Premier compte 467 dans club=4 (ordre naturel par id)
@@ -80,13 +86,17 @@ class PaiementsEnLigneWebhookTest extends TestCase
             ->order_by('id', 'ASC')
             ->get('comptes')->row_array();
         if (!$c467) {
-            self::markTestSkipped('Aucun compte 467 dans club=4');
+            self::$skip_reason = 'Aucun compte 467 dans club=4';
+            return;
         }
         self::$compte_passage_id = (int) $c467['id'];
     }
 
     protected function setUp(): void
     {
+        if (self::$skip_reason !== null) {
+            $this->markTestSkipped(self::$skip_reason);
+        }
         $this->db    = self::$CI->db;
         $this->model = self::$CI->paiements_en_ligne_model;
         $this->created_ecriture_ids    = array();

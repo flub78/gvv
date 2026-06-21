@@ -187,10 +187,11 @@ run_suite() {
             failed=$(echo "$test_line" | grep -oP 'Failures: \K[0-9]+' || echo 0)
             local errors=$(echo "$test_line" | grep -oP 'Errors: \K[0-9]+' || echo 0)
             local incomplete=$(echo "$test_line" | grep -oP 'Incomplete: \K[0-9]+' || echo 0)
+            local skipped_count=$(echo "$test_line" | grep -oP 'Skipped: \K[0-9]+' || echo 0)
             risky=$(echo "$test_line" | grep -oP 'Risky: \K[0-9]+' || echo 0)
 
             failed=$((failed + errors))
-            skipped=$incomplete
+            skipped=$((incomplete + skipped_count))
             passed=$((tests - failed - risky - skipped))
         else
             # Try format: "OK (8 tests, 32 assertions)" or "FAILURES! Tests: 8, ..."
