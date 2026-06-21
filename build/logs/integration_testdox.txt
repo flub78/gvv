@@ -411,6 +411,19 @@ Rename Membre
  [x] Execute rename atomicity on error
  [x] Execute rename preserves business data
 
+Reservation Reminder Model
+ [x] Log attempt inserts record
+ [x] Already sent returns false for unknown key
+ [x] Already sent returns true after success insert
+ [x] Already sent ignores skipped status
+ [x] Unique constraint on idempotency key
+ [x] Get pending reservations returns active future reservations
+ [x] Get pending reservations excludes non flight status
+ [x] Get log for reservation returns entries for that reservation
+ [x] Get member preferences returns defaults
+ [x] Save and reload member preferences
+ [x] Save preferences rejects invalid channel
+
 Smart Adjustor Correlation Integration
  [x] Correlation for frison against all images
  [x] Correlation for bleuse against all images

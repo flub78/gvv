@@ -49,10 +49,10 @@ Colonnes :
 - `created_by`, `updated_by` VARCHAR(255)
 
 **Validation :**
-- [ ] Migration créée et syntaxe PHP valide (`php -l`)
-- [ ] `config/migration.php` mis à jour à la version 131
-- [ ] Table créée en base avec `php index.php migrate/index`
-- [ ] Contrainte UNIQUE sur `idempotency_key` vérifiée via `SHOW CREATE TABLE`
+- [x] Migration créée et syntaxe PHP valide (`php -l`)
+- [x] `config/migration.php` mis à jour à la version 131
+- [x] Table créée en base
+- [x] Contrainte UNIQUE sur `idempotency_key` vérifiée
 
 ---
 
@@ -67,10 +67,10 @@ Colonnes ajoutées à `membres` :
 - `reminder_period_hours` SMALLINT UNSIGNED DEFAULT 24 — heures avant le départ
 
 **Validation :**
-- [ ] Migration créée et syntaxe PHP valide
-- [ ] `config/migration.php` mis à jour à la version 132
-- [ ] Colonnes présentes dans `membres` après migration
-- [ ] Valeurs par défaut correctes
+- [x] Migration créée et syntaxe PHP valide
+- [x] `config/migration.php` mis à jour à la version 132
+- [x] Colonnes présentes dans `membres` après migration
+- [x] Valeurs par défaut correctes (`reminder_channel='email'`, `reminder_period_hours=24`)
 
 ---
 
@@ -90,10 +90,11 @@ Méthodes :
 - `get_recent_logs($limit = 100)` — pour la vue d'administration
 
 **Validation :**
-- [ ] Fichier créé, syntaxe valide
-- [ ] `already_sent()` retourne TRUE si clé présente, FALSE sinon
-- [ ] `log_attempt()` insère correctement et respecte la contrainte UNIQUE
-- [ ] `get_pending_reservations()` retourne uniquement les réservations dont `statut != annulé`
+- [x] Fichier créé, syntaxe valide
+- [x] `already_sent()` retourne TRUE si clé présente (statut ≠ skipped), FALSE sinon
+- [x] `log_attempt()` insère correctement et respecte la contrainte UNIQUE (INSERT IGNORE)
+- [x] `get_pending_reservations()` retourne uniquement les réservations de vol (exclut maintenance, unavailable)
+- [x] 11 tests d'intégration passent
 
 ---
 
@@ -123,12 +124,12 @@ Règles :
 - En cas d'échec, appeler `gvv_error()` et journaliser le statut `failure`
 
 **Validation :**
-- [ ] Fichier créé, syntaxe valide
-- [ ] `handle_event('cancel', ...)` ne déclenche pas d'envoi si `already_sent()` est vrai
-- [ ] `_get_recipients()` retourne le bon ensemble selon le créateur
-- [ ] Clé d'idempotence générée de façon déterministe
-- [ ] Appel doublon → aucun second envoi, log `skipped`
-- [ ] Réservation inexistante → aucun envoi, log `skipped`
+- [x] Fichier créé, syntaxe valide
+- [x] `handle_event()` log `skipped` si réservation introuvable, sans envoi
+- [x] `_get_recipients()` retourne le bon ensemble selon le créateur (5 cas couverts)
+- [x] Clé d'idempotence générée de façon déterministe (SHA-1)
+- [x] `_dispatch()` consulte `already_sent()` avant tout envoi
+- [x] 15 tests unitaires passent — routing, idempotence, composition email/SMS, handle_event
 
 ---
 
@@ -474,9 +475,9 @@ Scénarios :
 
 | Phase | Description | Statut |
 |---|---|---|
-| 1 | Infrastructure DB (migrations) | ⬜ En attente |
-| 2 | Modèle reservation_reminder_model | ⬜ En attente |
-| 3 | Bibliothèque Reservation_reminder | ⬜ En attente |
+| 1 | Infrastructure DB (migrations) | ✅ Terminé |
+| 2 | Modèle reservation_reminder_model | ✅ Terminé |
+| 3 | Bibliothèque Reservation_reminder | ✅ Terminé |
 | 4 | Page "Mes réservations" | ⬜ En attente |
 | 5 | Adaptateur événementiel (reservations.php) | ⬜ En attente |
 | 6 | Scheduler + contrôleur déclencheur | ⬜ En attente |

@@ -383,6 +383,23 @@ Helloasso Library
  [x] Create checkout fails when slug missing
  [x] Create checkout logs status pending
 
+Reservation Reminder
+ [x] Creator is pilot notifies instructor
+ [x] Creator is instructor notifies pilot
+ [x] Creator is third party notifies both crew
+ [x] Solo pilot creator yields no recipients
+ [x] Third party on solo pilot reservation notifies only pilot
+ [x] Idempotency key is deterministic
+ [x] Idempotency key differs on different date
+ [x] Idempotency key differs on different event type
+ [x] Email body contains all required fields
+ [x] Email body event notification labels modification
+ [x] Email body event cancel labels annulation
+ [x] Sms body fits in 160 chars
+ [x] Sms body mentions role and aircraft
+ [x] Handle event skips when reservation not found
+ [x] Handle event dispatches to recipients
+
 Widget
  [x] Instantiation empty
  [x] Instantiation with attributes
