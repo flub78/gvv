@@ -30,6 +30,7 @@ class Coverage_Mgr {
 	 *
 	 */
 	function start() {
+		if (is_cli()) return;
 		$this->CI =& get_instance();
 		gvv_debug("start coverage");
 		$this->CI->load->library('PersistentCoverage', '', "cov");
@@ -41,6 +42,7 @@ class Coverage_Mgr {
 	 * Niveau info à utiliser pour l'application
 	 */
 	function stop() {
+		if (is_cli()) return;
 		$this->CI =& get_instance();
 		gvv_debug("stop coverage");
 		$this->CI->load->library('PersistentCoverage', '', "cov");
