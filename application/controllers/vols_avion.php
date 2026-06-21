@@ -353,16 +353,9 @@ class Vols_avion extends Gvv_Controller {
             is_numeric($processed_data['vacfin'])
         ) {
             $mode = $this->get_horametre_mode($processed_data['vamacid']);
-            $debut = $this->horametre_to_decimal_hours($processed_data['vacdeb'], $mode);
-            $fin = $this->horametre_to_decimal_hours($processed_data['vacfin'], $mode);
-            $duree = intval(($fin - $debut) * 1000) / 1000;
-            $processed_data['vaduree'] = $duree;
-            // Store vacdeb/vacfin in centièmes (DB convention), rounded to 2dp to match
-            // decimal(8,2) precision and avoid float errors from to_hundredth().
-            // For mode=0 and mode=2, horametre_to_decimal_hours() returns the value as-is,
-            // so this assignment is a no-op for those modes.
-            $processed_data['vacdeb'] = round($debut, 2);
-            $processed_data['vacfin'] = round($fin, 2);
+            $debut = round($this->horametre_to_decimal_hours($processed_data['vacdeb'], $mode), 4);
+            $fin   = round($this->horametre_to_decimal_hours($processed_data['vacfin'], $mode), 4);
+            $processed_data['vaduree'] = round($fin - $debut, 2);
         }
 
         return $processed_data;
