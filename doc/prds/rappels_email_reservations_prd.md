@@ -66,7 +66,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 * EF-003 : Le mécanisme doit pouvoir être déclenché par une tâche cron.
 * EF-004 : Le mécanisme doit pouvoir être déclenché par une URL publique dédiée.
 * EF-005 : L'accès à l'URL publique doit être protégé par un secret technique pour empêcher les déclenchements non autorisés.
-* EF-006 : Le mécanisme ne doit pas reposer sur une planification préalable des envois ; la décision d'envoi est prise au déclenchement.
+* EF-006 : Le mécanisme ne doit pas reposer sur une planification préalable des envois ; la décision d'envoi est prise quand le scheduler est déclenché.
 * EF-007 : À chaque exécution, le scheduler doit analyser les réservations existantes dont le début est dans les 48 heures à venir.
 * EF-008 : Le rappel n'est envoyé que si la réservation existe toujours au moment du déclenchement.
 * EF-009 : Le système doit distinguer explicitement les rappels temporels et les notifications événementielles.
@@ -77,7 +77,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 * EF-033 : Aucune notification SMS ne doit être envoyée aux utilisateurs sans numéro de téléphone valide.
 * EF-034 : Le système doit permettre le choix du canal de notification : `email`, `sms` ou `email+sms`.
 * EF-035 : Le service SMS initial utilisé par le système doit être Brevo, via un adaptateur de fournisseur.
-* EF-045 : Si la réservation est créée par une tierce personne (ni pilote ni instructeur), la notification événementielle doit être envoyée aux deux membres d'équipage.
+* EF-045 : Si la réservation est créée ou modifiée par une tierce personne (ni pilote ni instructeur), la notification événementielle doit être envoyée aux deux membres d'équipage.
 * EF-038 : L'utilisateur connecté doit disposer d'une page "Mes réservations" listant ses réservations actives.
 * EF-039 : Depuis "Mes réservations", l'utilisateur doit pouvoir supprimer une réservation de la liste.
 * EF-040 : Depuis "Mes réservations", l'utilisateur doit voir un bouton "Ajouter une réservation".
@@ -86,12 +86,10 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 
 ### 6.2 Gestion des changements
 
-* EF-014 : Le scheduler ne doit jamais envoyer de rappel pour une réservation annulée, supprimée ou inexistante.
 * EF-015 : Le risque d'oubli est considéré réel dès lors que le rappel vise le second membre d'équipage, y compris pour le jour même.
 * EF-016 : Le module réservation peut appeler le mécanisme de rappel avec une description d'événement (`create`, `update`, `cancel`).
 * EF-017 : Les événements `create`, `update` et `cancel` déclenchent l'évaluation des notifications événementielles.
 * EF-018 : Les rappels temporels sont évalués indépendamment par le scheduler selon la période configurée.
-* EF-019 : Les règles de destinataires des notifications événementielles sont appliquées à chaque événement (second membre si créateur membre d'équipage, les deux membres si créateur tiers).
 
 ### 6.3 Préférences et configuration
 
@@ -104,7 +102,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 
 * EF-023 : Le rappel doit inclure au minimum : date/heure, aéronef, pilote, instructeur (si présent), statut de la réservation.
 * EF-024 : Le rappel doit utiliser des libellés compréhensibles et cohérents avec l'interface GVV.
-* EF-025 : Le message doit indiquer clairement s'il s'agit d'un rappel temporel ou d'une notification événementielle, ainsi que sa source de déclenchement.
+* EF-025 : Le message doit indiquer clairement s'il s'agit d'un rappel ou d'une notification, ainsi que sa source de déclenchement.
 * EF-036 : Le contenu SMS doit être concis et inclure au minimum la date/heure, l'aéronef et le rôle du destinataire.
 
 ### 6.5 Traçabilité et supervision
@@ -121,7 +119,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 
 ## 7. Exigences Non Fonctionnelles
 
-* ENF-001 : Les envois ne doivent pas dégrader l'expérience utilisateur lors de la création/modification d'une réservation.
+* ENF-001 : Les envois ne doivent pas dégrader l'expérience utilisateur lors de la création/modification d'une réservation. Néanmoins, on peut tolérer un délai de quelques secondes pour le traitement des notifications événementielles, surtout si cela évite un mécanisme complexe de mise en attente des notifications à envoyer.
 * ENF-002 : Les envois doivent respecter les autorisations et ne pas exposer des informations à des destinataires non concernés.
 * ENF-003 : Le format des emails doit rester lisible sur desktop et mobile.
 * ENF-004 : Les textes doivent rester compatibles avec le support multilingue de GVV (français, anglais, néerlandais).
@@ -141,7 +139,6 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 ## 9. Critères d'Acceptation
 
 * CA-001 : Le scheduler horaire envoie les rappels pour les réservations existantes dont le début est à moins de 48 heures.
-* CA-002 : Une annulation empêche tout rappel ultérieur.
 * CA-003 : Si la réservation est créée ou modifiée par un membre d'équipage, seule l'autre personne de l'équipage reçoit la notification événementielle.
 * CA-004 : Les erreurs d'envoi sont visibles dans la table `reservation_reminder_log` via un mécanisme de suivi consultable par l'administration.
 * CA-005 : La fonctionnalité peut être activée/désactivée au niveau section.
