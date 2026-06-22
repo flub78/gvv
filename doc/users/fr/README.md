@@ -145,6 +145,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - CSS compatible avec l'environnement GVV (Bootstrap 5)
 - Consultation et export des réponses
 
+#### [14. Rappels de Réservations](14_rappels_reservations.md)
+**Rappels email et SMS automatiques avant chaque réservation**
+- Installation et configuration serveur (cron, clé Brevo, secret URL)
+- Activation des rappels par section (Administration > Sections)
+- Configuration des préférences par le pilote (canal, délai)
+- Supervision des envois via les logs d'administration
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -184,7 +191,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 5. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
 6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
 7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données
-8. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
+9. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

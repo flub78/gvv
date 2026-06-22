@@ -64,6 +64,9 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 ### Forms & Documents
 - **[Forms Management](fr/13_formulaires.md)** - HTML forms, field types, CSS constraints, public submission
 
+### Notifications
+- **[Reservation Reminders](fr/14_rappels_reservations.md)** - Automated email/SMS reminders before flights, admin setup (cron, Brevo SMS), per-pilot preferences
+
 ---
 
 ## 🎯 Quick Navigation

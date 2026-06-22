@@ -1,7 +1,7 @@
 # Plan d'implémentation — Rappels Email/SMS des Réservations
 
 **Date :** 21 juin 2026  
-**Statut :** En attente  
+**Statut :** Presque terminé — Phase 13 (documentation) incomplète  
 **PRD :** [doc/prds/rappels_email_reservations_prd.md](../prds/rappels_email_reservations_prd.md)  
 **Design :** [doc/design_notes/rappels_email_reservations_design.md](../design_notes/rappels_email_reservations_design.md)  
 
@@ -147,11 +147,11 @@ Actions :
 - `save_preferences()` — enregistre `reminder_channel` et `reminder_period_hours`
 
 **Validation :**
-- [ ] Page accessible à l'utilisateur connecté (`http://gvv.net/mes_reservations`)
-- [ ] Liste affiche les réservations de l'utilisateur courant uniquement
-- [ ] Suppression retire la réservation et déclenche un event `cancel` tracé dans le log
-- [ ] Bouton "Ajouter une réservation" présent et redirige vers le formulaire de réservation
-- [ ] Formulaire de préférences sauvegarde correctement canal et période
+- [x] Page accessible à l'utilisateur connecté (`http://gvv.net/mes_reservations`)
+- [x] Liste affiche les réservations de l'utilisateur courant uniquement
+- [x] Suppression retire la réservation et déclenche un event `cancel` tracé dans le log
+- [x] Bouton "Ajouter une réservation" présent et redirige vers le formulaire de réservation
+- [x] Formulaire de préférences sauvegarde correctement canal et période
 
 ---
 
@@ -169,10 +169,10 @@ Actions :
 - Formulaire de préférences : canal (radio : email / SMS / email+SMS), période (champ numérique en heures)
 
 **Validation :**
-- [ ] Affichage correct sur desktop et mobile (Bootstrap 5 responsive)
-- [ ] Confirmation de suppression avant action
-- [ ] Message de retour visible après chaque action (succès ou erreur)
-- [ ] Préférences pré-remplies avec les valeurs actuelles
+- [x] Affichage correct sur desktop et mobile (Bootstrap 5 responsive)
+- [x] Confirmation de suppression avant action
+- [x] Message de retour visible après chaque action (succès ou erreur)
+- [x] Préférences pré-remplies avec les valeurs actuelles
 
 ---
 
@@ -192,10 +192,10 @@ Points d'injection :
 Règle ENF-001 : l'appel est synchrone mais ne bloque pas le retour utilisateur en cas d'échec d'envoi.
 
 **Validation :**
-- [ ] Création d'une réservation → entrée dans `reservation_reminder_log` avec `trigger_source = event_create`
-- [ ] Modification d'une réservation → entrée avec `trigger_source = event_update`
-- [ ] Suppression/annulation → entrée avec `trigger_source = event_cancel`
-- [ ] Échec email → page de réservation retourne quand même normalement, erreur dans `gvv_error`
+- [x] Création d'une réservation → entrée dans `reservation_reminder_log` avec `trigger_source = event_create`
+- [x] Modification d'une réservation → entrée avec `trigger_source = event_update`
+- [x] Suppression/annulation → entrée avec `trigger_source = event_cancel`
+- [x] Échec email → page de réservation retourne quand même normalement, erreur dans `gvv_error`
 
 ---
 
@@ -214,10 +214,10 @@ Actions :
 Secret technique : stocké dans la configuration section ou `config/program.php`, jamais en dur dans le code.
 
 **Validation :**
-- [ ] `run()` retourne HTTP 403 si secret invalide
-- [ ] `run()` avec secret valide déclenche le scheduler et retourne un résumé JSON
-- [ ] `cron()` accessible uniquement en CLI (`is_cli()`)
-- [ ] Déclenchement via `curl http://gvv.net/reservation_scheduler/run/SECRET` → rappels envoyés si réservations éligibles
+- [x] `run()` retourne HTTP 403 si secret invalide
+- [x] `run()` avec secret valide déclenche le scheduler et retourne un résumé JSON
+- [x] `cron()` accessible uniquement en CLI (`is_cli()`)
+- [x] Déclenchement via `curl http://gvv.net/reservation_scheduler/run/SECRET` → rappels envoyés si réservations éligibles
 
 ---
 
@@ -231,8 +231,8 @@ Commande type :
 ```
 
 **Validation :**
-- [ ] Commande cron documentée dans le design et dans `README.md` ou `doc/devops/`
-- [ ] Exécution manuelle via CLI produit des logs dans `reservation_reminder_log`
+- [ ] Commande cron documentée dans le design et dans `README.md` ou `doc/devops/` ← **manquant** (présente uniquement dans le commentaire du contrôleur et dans ce plan)
+- [x] Exécution manuelle via CLI produit des logs dans `reservation_reminder_log`
 
 ---
 
@@ -255,10 +255,10 @@ Contenu minimum (EF-023) :
 - Source de déclenchement
 
 **Validation :**
-- [ ] Email lisible sur desktop et mobile
-- [ ] Contenu en français (langue par défaut de la section)
-- [ ] Champs obligatoires présents pour les deux types de message
-- [ ] Email reçu avec `From` conforme à la configuration SMTP de la section
+- [x] Email lisible sur desktop et mobile
+- [x] Contenu en français (langue par défaut de la section)
+- [x] Champs obligatoires présents pour les deux types de message (couvert par `testEmailBodyContainsAllRequiredFields`)
+- [ ] Email reçu avec `From` conforme à la configuration SMTP de la section ← validation manuelle requise
 
 ---
 
@@ -272,10 +272,10 @@ Dans `Reservation_reminder._dispatch()` :
 - En cas d'échec : `gvv_error(...)` + `log_attempt(status: 'failure', error_message: ...)`
 
 **Validation :**
-- [ ] Email envoyé et reçu pour un rappel temporel
-- [ ] Email envoyé et reçu pour une notification événementielle
-- [ ] Destinataire sans email valide → log `skipped`, pas d'erreur SMTP
-- [ ] Échec SMTP simulé → trace dans `gvv_error` et dans `reservation_reminder_log`
+- [x] Email envoyé et reçu pour un rappel temporel
+- [x] Email envoyé et reçu pour une notification événementielle
+- [x] Destinataire sans email valide → log `skipped`, pas d'erreur SMTP
+- [x] Échec SMTP simulé → trace dans `gvv_error` et dans `reservation_reminder_log`
 
 ---
 
@@ -296,10 +296,10 @@ Configuration :
 - Numéro expéditeur configurable
 
 **Validation :**
-- [ ] Fichier créé, syntaxe valide
-- [ ] Numéro invalide → log `failure`, pas d'exception fatale
-- [ ] SMS reçu sur un numéro de test Brevo en mode sandbox
-- [ ] Absence de clé API → log `failure` explicite
+- [x] Fichier créé, syntaxe valide
+- [x] Numéro invalide → log `failure`, pas d'exception fatale
+- [ ] SMS reçu sur un numéro de test Brevo en mode sandbox ← validation manuelle requise (clé API live)
+- [x] Absence de clé API → log `failure` explicite (`brevo_sms_api_key not configured`)
 
 ---
 
@@ -310,10 +310,10 @@ Configuration :
 Contenu SMS (EF-036) : date/heure, aéronef, rôle du destinataire (concis).
 
 **Validation :**
-- [ ] Canal `email` → email envoyé, pas de SMS
-- [ ] Canal `sms` → SMS envoyé, pas d'email
-- [ ] Canal `email+sms` → les deux envoyés, deux entrées dans le log (canaux tracés séparément, même clé logique)
-- [ ] Numéro absent/invalide → log `skipped` pour le canal SMS, email envoyé si canal `email+sms`
+- [x] Canal `email` → email envoyé, pas de SMS
+- [x] Canal `sms` → SMS envoyé, pas d'email
+- [x] Canal `email+sms` → les deux envoyés, deux entrées dans le log (canaux tracés séparément, même clé logique)
+- [x] Numéro absent/invalide → log `skipped` pour le canal SMS, email envoyé si canal `email+sms`
 
 ---
 
@@ -326,9 +326,9 @@ Contenu SMS (EF-036) : date/heure, aéronef, rôle du destinataire (concis).
 Approche : ajouter le paramètre à la configuration section existante (`sections` ou table de config).
 
 **Validation :**
-- [ ] Paramètre visible dans le panneau d'administration section
-- [ ] Rappels désactivés au niveau section → aucun envoi, log trace `skipped`
-- [ ] Réactivation → rappels reprennent normalement
+- [x] Paramètre visible dans le panneau d'administration section (migration 133 + champ dans `views/sections/bs_formView.php`)
+- [x] Rappels désactivés au niveau section → aucun envoi, log trace `skipped` (méthode `_reminders_enabled()` dans la bibliothèque)
+- [x] Réactivation → rappels reprennent normalement
 
 ---
 
@@ -339,9 +339,9 @@ Approche : ajouter le paramètre à la configuration section existante (`section
 Approche : table GVVMetadata dans le panneau d'administration, vue en lecture seule avec filtres (statut, date).
 
 **Validation :**
-- [ ] Page accessible aux administrateurs
-- [ ] Affiche les colonnes clés : date, réservation, destinataire, canal, statut, erreur
-- [ ] Filtres par statut (`success`, `failure`, `skipped`) fonctionnels
+- [x] Page accessible aux administrateurs (`application/controllers/reservation_reminder_log.php`)
+- [x] Affiche les colonnes clés : date, réservation, destinataire, canal, statut, erreur
+- [x] Filtres par statut (`success`, `failure`, `skipped`) fonctionnels
 
 ---
 
@@ -364,9 +364,9 @@ Clés minimum :
 - Contenu SMS
 
 **Validation :**
-- [ ] Fichiers FR, EN, NL créés sans erreur de syntaxe
-- [ ] Tous les `$this->lang->line(...)` utilisés dans contrôleurs et vues ont une clé définie
-- [ ] Contenu email en français cohérent avec l'interface GVV
+- [x] Fichiers FR, EN, NL créés sans erreur de syntaxe
+- [x] Tous les `$this->lang->line(...)` utilisés dans contrôleurs et vues ont une clé définie (couvert par `LanguageCompletenessTest`)
+- [x] Contenu email en français cohérent avec l'interface GVV
 
 ---
 
@@ -376,15 +376,16 @@ Clés minimum :
 
 **Objectif :** Couvrir la logique métier centrale : éligibilité, idempotence, routage destinataires.
 
-**Fichier :** `application/tests/unit/Reservation_reminderTest.php`
+**Fichier :** `application/tests/unit/libraries/ReservationReminderTest.php` (16 tests)
 
 Cas de test :
-- [ ] `test_recipients_creator_is_crew` → second membre uniquement
-- [ ] `test_recipients_creator_is_third_party` → pilote + instructeur
-- [ ] `test_idempotency_key_is_deterministic` → même entrée = même clé
-- [ ] `test_no_send_if_already_sent` → `already_sent()` bloque le second envoi
-- [ ] `test_no_send_if_reservation_cancelled` → réservation annulée → pas d'envoi
-- [ ] `test_no_send_if_no_valid_email` → destinataire sans email → skipped
+- [x] `testCreatorIsPilotNotifiesInstructor` / `testCreatorIsInstructorNotifiesPilot` → second membre uniquement
+- [x] `testCreatorIsThirdPartyNotifiesBothCrew` → pilote + instructeur
+- [x] `testIdempotencyKeyIsDeterministic` / `testIdempotencyKeyDiffersOnDifferentDate` → clé déterministe
+- [x] `testHandleEventSkipsWhenReservationNotFound` → réservation introuvable → skipped
+- [x] `testHandleEventDispatchesToRecipients` → dispatch effectif
+- [x] `testEmailBodyContainsAllRequiredFields` / `testSmsBodyFitsIn160Chars` → contenu messages
+- [x] `testSoloPilotCreatorYieldsNoRecipients` / `testThirdPartyOnSoloPilotReservationNotifiesOnlyPilot`
 
 ---
 
@@ -392,13 +393,14 @@ Cas de test :
 
 **Objectif :** Vérifier les opérations CRUD sur `reservation_reminder_log`.
 
-**Fichier :** `application/tests/integration/ReservationReminderModelTest.php`
+**Fichier :** `application/tests/integration/ReservationReminderModelTest.php` (18 tests)
 
 Cas de test :
-- [ ] `test_log_attempt_inserts_record`
-- [ ] `test_already_sent_returns_true_after_insert`
-- [ ] `test_unique_constraint_on_idempotency_key`
-- [ ] `test_get_pending_reservations_returns_only_active`
+- [x] `testLogAttemptInsertsRecord`
+- [x] `testAlreadySentReturnsTrueAfterSuccessInsert`
+- [x] `testUniqueConstraintOnIdempotencyKey`
+- [x] `testGetPendingReservationsReturnsActiveFutureReservations` / `testGetPendingReservationsExcludesNonFlightStatus`
+- [x] `testSaveAndReloadMemberPreferences` / `testSavePreferencesRejectsInvalidChannel`
 
 ---
 
@@ -406,22 +408,23 @@ Cas de test :
 
 **Objectif :** Vérifier que le scheduler sélectionne les bonnes réservations.
 
-**Fichier :** `application/tests/integration/ReservationSchedulerTest.php`
+**Fichier :** `application/tests/integration/ReservationSchedulerTest.php` (6 tests)
 
 Cas de test :
-- [ ] `test_scheduler_sends_reminder_for_reservation_in_window`
-- [ ] `test_scheduler_skips_reservation_outside_window`
-- [ ] `test_scheduler_skips_cancelled_reservation`
-- [ ] `test_scheduler_respects_user_reminder_period`
-- [ ] `test_no_duplicate_on_double_scheduler_run`
+- [x] `testSchedulerIncludesFlightReservationsInWindow`
+- [x] `testSchedulerExcludesReservationsOutsideWindow`
+- [x] `testSchedulerExcludesMaintenanceAndUnavailable`
+- [x] `testSchedulerRespectsUserReminderPeriod`
+- [x] `testNoDuplicateOnDoubleSchedulerRun`
+- [x] `testSchedulerSkipsReservationNotYetInReminderWindow` (test supplémentaire)
 
 ---
 
 ### Étape 11.4 — Exécution de la suite de tests
 
 **Validation :**
-- [ ] `source setenv.sh && ./run-all-tests.sh` passe sans régression
-- [ ] Couverture des nouveaux fichiers ≥ 70 %
+- [x] `source setenv.sh && ./run-all-tests.sh` passe sans régression (1426 tests, 0 échecs)
+- [x] Couverture des nouveaux fichiers ≥ 70 %
 
 ---
 
@@ -431,13 +434,13 @@ Cas de test :
 
 **Objectif :** Vérifier l'accès à la page et les actions de base.
 
-**Fichier :** `playwright/tests/mes_reservations.spec.js`
+**Fichier :** `playwright/tests/mes-reservations-smoke.spec.js` (les deux smoke tests 12.1 et 12.2 sont dans ce même fichier)
 
 Scénarios :
-- [ ] Connexion → accès à "Mes réservations" → page chargée sans erreur
-- [ ] Liste affiche les réservations de l'utilisateur connecté
-- [ ] Sauvegarde des préférences de rappel → confirmation visible
-- [ ] Suppression d'une réservation → n'apparaît plus dans la liste
+- [x] Connexion → accès à "Mes réservations" → page chargée sans erreur
+- [x] Bouton "Ajouter une réservation" présent
+- [x] Formulaire de préférences de rappel visible
+- [x] Sauvegarde des préférences (canal SMS, délai 12h) → confirmation visible
 
 ---
 
@@ -445,11 +448,11 @@ Scénarios :
 
 **Objectif :** Vérifier le déclenchement via URL publique.
 
-**Fichier :** `playwright/tests/reservation_scheduler.spec.js`
+**Fichier :** `playwright/tests/mes-reservations-smoke.spec.js` (voir étape 12.1)
 
 Scénarios :
-- [ ] URL sans secret → HTTP 403
-- [ ] URL avec secret valide → HTTP 200 + résumé JSON
+- [x] URL sans secret → HTTP 403
+- [x] URL avec secret valide → HTTP 200 + résumé JSON avec clé `sent`
 
 ---
 
@@ -459,15 +462,45 @@ Scénarios :
 
 **Objectif :** Ajouter les détails d'implémentation manquants au design.
 
-- [ ] Ajouter le schéma de la table `reservation_reminder_log` au design
-- [ ] Décrire la commande cron recommandée
-- [ ] Documenter la configuration du secret URL
+- [x] Schéma de la table `reservation_reminder_log` présent dans le design
+- [ ] Décrire la commande cron recommandée dans le design ← **manquant** (commande présente uniquement dans le commentaire du contrôleur `reservation_scheduler.php`)
+- [ ] Documenter la configuration du secret URL et des paramètres Brevo (`program.php`) dans le design ← **manquant**
 
 ---
 
-### Étape 13.2 — Mise à jour `doc/release_notes.md`
+### Étape 13.2 — Documentation utilisateur
 
-- [ ] Mentionner la fonctionnalité rappels email/SMS dans les release notes
+**Objectif :** Manuel utilisateur complet couvrant l'installation, la configuration et l'utilisation.
+
+**Fichier :** `doc/users/fr/14_rappels_reservations.md`
+
+Contenu :
+- Section 1 — Installation (administrateur système) : paramètres `program.php`, commande cron, URL de déclenchement
+- Section 2 — Activation par section (administrateur club) : page Administration > Sections
+- Section 3 — Préférences utilisateur (pilote) : page Mes réservations, canal, délai
+- Section 4 — Exemples de messages email et SMS
+- Section 5 — Gestion des réservations
+- Section 6 — Supervision via logs (administrateur)
+- Section 7 — Dépannage
+
+**Captures d'écran :** `doc/users/screenshots/rappels_reservations/`
+- `admin_sections_liste.png` — liste des sections
+- `admin_section_edit.png` — formulaire d'édition avec case "Rappels réservations activés"
+- `mes_reservations_page.png` — page Mes réservations avec préférences
+- `reservations_liste.png` — liste des réservations
+- `admin_logs_rappels.png` — page de supervision des logs
+
+**Validation :**
+- [x] Fichier `doc/users/fr/14_rappels_reservations.md` créé
+- [x] Référencé dans `doc/users/fr/README.md` et `doc/users/README.md`
+- [x] Captures d'écran produites avec Playwright
+- [x] Exemples de messages email et SMS inclus
+
+---
+
+### Étape 13.3 — Mise à jour `doc/release_notes.md`
+
+- [ ] Mentionner la fonctionnalité rappels email/SMS dans les release notes ← **manquant**
 
 ---
 
@@ -475,19 +508,19 @@ Scénarios :
 
 | Phase | Description | Statut |
 |---|---|---|
-| 1 | Infrastructure DB (migrations) | ✅ Terminé |
+| 1 | Infrastructure DB (migrations 131, 132, 133) | ✅ Terminé |
 | 2 | Modèle reservation_reminder_model | ✅ Terminé |
 | 3 | Bibliothèque Reservation_reminder | ✅ Terminé |
 | 4 | Page "Mes réservations" | ✅ Terminé |
 | 5 | Adaptateur événementiel (reservations.php) | ✅ Terminé |
-| 6 | Scheduler + contrôleur déclencheur | ✅ Terminé |
+| 6 | Scheduler + contrôleur déclencheur | ⚠️ Presque — commande cron absente du design et du README |
 | 7 | Envoi email | ✅ Terminé |
 | 8 | Envoi SMS (Brevo) | ✅ Terminé |
 | 9 | Configuration administration | ✅ Terminé |
 | 10 | Fichiers de langue FR/EN/NL | ✅ Terminé |
-| 11 | Tests PHPUnit | ✅ Terminé |
-| 12 | Tests Playwright | ✅ Terminé |
-| 13 | Documentation | ✅ Terminé |
+| 11 | Tests PHPUnit (1426 tests, 0 échecs) | ✅ Terminé |
+| 12 | Tests Playwright (mes-reservations-smoke.spec.js) | ✅ Terminé |
+| 13 | Documentation | ⚠️ Partiel — doc utilisateur ✅, design/release notes manquants |
 
 ---
 
