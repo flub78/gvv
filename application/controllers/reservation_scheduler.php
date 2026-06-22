@@ -7,13 +7,13 @@ if (!defined('BASEPATH'))
  *
  * Deux points d'entrée :
  *   - run($secret) : URL publique, protégée par un secret technique
- *   - cron()       : entrée CLI uniquement (is_cli())
+ *   - cron()       : entrée CLI uniquement (php_sapi_name() === 'cli')
  *
  * Configuration :
  *   application/config/program.php → $config['reservation_scheduler_secret']
  *
  * Exemple cron (horaire) :
- *   0 * * * * /usr/bin/php7.4 /path/to/gvv/index.php reservation_scheduler cron
+ *   0 * * * * XDEBUG_MODE=off /usr/bin/php7.4 /path/to/gvv/index.php reservation_scheduler cron
  */
 class Reservation_scheduler extends CI_Controller
 {
@@ -50,7 +50,7 @@ class Reservation_scheduler extends CI_Controller
      */
     public function cron()
     {
-        if (!is_cli()) {
+        if (php_sapi_name() !== 'cli') {
             show_error('This action is only accessible via CLI.', 403);
             return;
         }

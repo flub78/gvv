@@ -25,6 +25,15 @@ const LoginPage = require('./helpers/LoginPage');
 const AVION_SECTION = '3';
 const TIMELINE_URL = '/index.php/reservations/timeline';
 
+// Use tomorrow's date so time slots are never in the past (past slots are locked
+// for non-admins since the past-reservation restriction was implemented).
+function tomorrowDate() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+}
+const TIMELINE_URL_TOMORROW = `${TIMELINE_URL}?date=${tomorrowDate()}`;
+
 async function loginAs(page, username, section) {
     const lp = new LoginPage(page);
     await lp.open();
@@ -55,7 +64,7 @@ test.describe('auto_planchiste (goudurix) — restrictions UI', () => {
 
     test('création : sélecteur pilote désactivé et pré-rempli avec son login', async ({ page }) => {
         await loginAs(page, 'goudurix', AVION_SECTION);
-        await page.goto(TIMELINE_URL);
+        await page.goto(TIMELINE_URL_TOMORROW);
         await page.waitForLoadState('networkidle');
         await page.waitForSelector('.time-slot', { timeout: 10000 });
 
@@ -99,7 +108,7 @@ test.describe('instructeur (abraracourcix) — accès complet', () => {
 
     test('création : sélecteur pilote libre (non désactivé)', async ({ page }) => {
         await loginAs(page, 'abraracourcix', AVION_SECTION);
-        await page.goto(TIMELINE_URL);
+        await page.goto(TIMELINE_URL_TOMORROW);
         await page.waitForLoadState('networkidle');
         await page.waitForSelector('.time-slot', { timeout: 10000 });
 

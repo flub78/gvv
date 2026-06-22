@@ -59,7 +59,8 @@ $this->lang->load('sections');
 					'show_presences' => $show_presences,
 					'has_bar' => $has_bar,
 					'bar_account_id' => $bar_account_id,
-					'show_on_member_card' => $show_on_member_card
+					'show_on_member_card' => $show_on_member_card,
+					'reservation_reminders_enabled' => $reservation_reminders_enabled
 				))); ?>
 
 				<?= validation_button($action); ?>

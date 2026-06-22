@@ -356,6 +356,8 @@ class Vols_avion extends Gvv_Controller {
             $debut = round($this->horametre_to_decimal_hours($processed_data['vacdeb'], $mode), 4);
             $fin   = round($this->horametre_to_decimal_hours($processed_data['vacfin'], $mode), 4);
             $processed_data['vaduree'] = round($fin - $debut, 2);
+            $processed_data['vacdeb'] = $debut;
+            $processed_data['vacfin'] = $fin;
         }
 
         return $processed_data;

@@ -267,7 +267,8 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const futureDateStr = tomorrow.toISOString().split('T')[0];
+    const d = tomorrow;
+    const futureDateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     await page.fill('input[name="date_vol"]', futureDateStr);
 
     await page.click('button[type="submit"], input[type="submit"]');

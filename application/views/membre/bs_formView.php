@@ -488,6 +488,11 @@ echo '</div>';
 
 if (!$has_modification_rights) echo '</fieldset>';
 
+// Reminder preferences are managed by the member themselves in "Mes réservations".
+// Hidden fields ensure the values are preserved through admin form submissions.
+echo form_hidden('reminder_channel', isset($reminder_channel) ? $reminder_channel : 'email');
+echo form_hidden('reminder_period_hours', isset($reminder_period_hours) ? $reminder_period_hours : 24);
+
 echo form_close();
 
 echo '</div>';
