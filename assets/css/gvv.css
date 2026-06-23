@@ -99,3 +99,9 @@
     font-weight: bold;
     padding: 0 2px;
 }
+
+/* Immatriculations : pas de retour à la ligne */
+td[data-field="vamacid"],
+td[data-field="macimmat"] {
+    white-space: nowrap;
+}

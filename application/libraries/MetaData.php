@@ -1188,6 +1188,10 @@ abstract class Metadata {
         } elseif ('centieme' == $subtype) {
             if ($mode == 'csv') return $value;
             return centieme_to_hhmm($value);
+        } elseif ('horametre' == $subtype) {
+            if ($mode == 'csv') return $value;
+            $hora_mode = isset($row['horametre_mode']) ? intval($row['horametre_mode']) : 0;
+            return horametre_display($value, $hora_mode);
         } elseif ('time' == $subtype) {
             return decimal_to_time($value);
         } elseif ('enumerate' == $subtype) {

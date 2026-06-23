@@ -502,7 +502,9 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_vols_avion']['instructeur']['Name'] = 'Instruct';
                 $this->field['vue_vols_avion']['vamacid']['Name'] = 'Immat';
                 $this->field['vue_vols_avion']['vacdeb']['Name'] = 'Début';
+                $this->field['vue_vols_avion']['vacdeb']['Subtype'] = 'horametre';
                 $this->field['vue_vols_avion']['vacfin']['Name'] = 'Fin';
+                $this->field['vue_vols_avion']['vacfin']['Subtype'] = 'horametre';
                 $this->field['vue_vols_avion']['vaduree']['Name'] = 'Durée';
                 $this->field['vue_vols_avion']['vaduree']['Subtype'] = 'centieme';
                 $this->field['vue_vols_avion']['vahdeb']['Subtype'] = 'centieme';

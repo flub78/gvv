@@ -167,7 +167,7 @@ class Vols_avion_model extends Common_Model {
         $where = "volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat";
 
         $select = 'vaid, vadate, vapilid, vamacid, vacdeb, vacfin, vaduree, vaatt, vaobs, vainst as instructeur, valieudeco, volsa.club';
-        $select .= ', concat(mprenom," ", mnom) as pilote, vacategorie, vadc, maprive as prive';
+        $select .= ', concat(mprenom," ", mnom) as pilote, vacategorie, vadc, maprive as prive, machinesa.horametre_mode';
         $select .= ", facture, mdaten, (mdaten > \"$date25\") as m25ans, payeur, essence, reappro";
 
         $from = 'volsa, membres, machinesa';

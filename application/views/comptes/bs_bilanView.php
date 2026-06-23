@@ -49,20 +49,6 @@ echo br(2);
 echo heading("date: $date", 3, "");
 echo br();
 
-if ((bool) $this->config->item('former_bilan_layout')) {
-	$table = new DataTable(array(
-			'title' => "",
-			'values' => $bilan_table,
-			'controller' => $controller,
-			'class' => "sql_table fixed_datatable table",
-			'create' => '',
-			'count' => '',
-			'first' => '',
-			'align' => array('left', 'right', 'right', 'right', 'right', 'center', 'left', 'right', 'right')
-	));
-	$table->display();
-}
-
 if (isset($actif_detail_n) && isset($actif_detail_n1)) {
 	$lbl_title_actif = $this->lang->line('comptes_bilan_title_actif');
 	$lbl_actif = $this->lang->line('comptes_bilan_actif');

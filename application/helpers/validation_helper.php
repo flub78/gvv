@@ -245,6 +245,21 @@ if (! function_exists('decimal_to_time')) {
     }
 }
 
+if (! function_exists('horametre_display')) {
+    /**
+     * Formate une valeur horamètre stockée en centième selon le mode de l'avion.
+     * Mode 0 (centième) et 2 (dixième) : affichage brut.
+     * Mode 1 (heures:minutes) : conversion centième → HH:MM sans zéro devant les heures.
+     * Ex: horametre_display(10692.32, 1) → "10692:19"
+     */
+    function horametre_display($value, $mode) {
+        if ($mode == 1) {
+            return centieme_to_hhmm($value);
+        }
+        return $value;
+    }
+}
+
 if (! function_exists('centieme_to_hhmm')) {
     /**
      * Convertit une valeur en centièmes d'heure (HH.CC) en HH:MM
