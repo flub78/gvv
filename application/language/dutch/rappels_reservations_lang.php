@@ -29,6 +29,7 @@ $lang['mes_reservations_prefs_error']    = "Fout bij opslaan voorkeuren.";
 $lang['mes_reservations_channel_email']  = "Alleen e-mail";
 $lang['mes_reservations_channel_sms']    = "Alleen SMS";
 $lang['mes_reservations_channel_both']   = "E-mail + SMS";
+$lang['mes_reservations_channel_none']   = "Geen meldingen";
 
 $lang['reminder_type_scheduled']   = "Reserveringsherinnering";
 $lang['reminder_intro_scheduled']  = "U heeft een aankomende reservering.";

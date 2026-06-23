@@ -31,6 +31,7 @@ $lang['mes_reservations_prefs_error']    = "Erreur lors de l'enregistrement des 
 $lang['mes_reservations_channel_email']  = "Email seulement";
 $lang['mes_reservations_channel_sms']    = "SMS seulement";
 $lang['mes_reservations_channel_both']   = "Email + SMS";
+$lang['mes_reservations_channel_none']   = "Aucune notification";
 
 // Messages email — contenu
 $lang['reminder_type_scheduled']   = "Rappel de réservation";

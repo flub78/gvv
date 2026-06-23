@@ -130,6 +130,7 @@ $confirm_msg = addslashes($this->lang->line('mes_reservations_confirm_delete'));
                 'email'     => $this->lang->line('mes_reservations_channel_email'),
                 'sms'       => $this->lang->line('mes_reservations_channel_sms'),
                 'email+sms' => $this->lang->line('mes_reservations_channel_both'),
+                'none'      => $this->lang->line('mes_reservations_channel_none'),
               );
               foreach ($channels as $val => $label):
                 $checked = ($prefs['reminder_channel'] === $val) ? 'checked' : '';

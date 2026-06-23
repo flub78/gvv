@@ -98,7 +98,7 @@ class Mes_reservations extends MY_Controller
         $channel  = $this->input->post('reminder_channel');
         $hours    = (int) $this->input->post('reminder_period_hours');
 
-        $allowed  = array('email', 'sms', 'email+sms');
+        $allowed  = array('email', 'sms', 'email+sms', 'none');
         if (!in_array($channel, $allowed)) {
             $channel = 'email';
         }

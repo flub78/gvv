@@ -29,6 +29,7 @@ $lang['mes_reservations_prefs_error']    = "Error saving preferences.";
 $lang['mes_reservations_channel_email']  = "Email only";
 $lang['mes_reservations_channel_sms']    = "SMS only";
 $lang['mes_reservations_channel_both']   = "Email + SMS";
+$lang['mes_reservations_channel_none']   = "No notifications";
 
 $lang['reminder_type_scheduled']   = "Reservation reminder";
 $lang['reminder_intro_scheduled']  = "You have an upcoming reservation.";

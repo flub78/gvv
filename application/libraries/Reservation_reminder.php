@@ -333,6 +333,12 @@ class Reservation_reminder
         }
 
         $channel      = $recipient['channel'] ?: 'email';
+
+        if ($channel === 'none') {
+            gvv_info("REMINDER _dispatch skipped (channel=none) for {$recipient['login']} reservation {$reservation['id']}");
+            return false;
+        }
+
         $notification = ($action_type === 'scheduled_reminder')
                       ? 'scheduled'
                       : ('event_' . ($event_type ?: 'unknown'));
