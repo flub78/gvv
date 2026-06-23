@@ -114,6 +114,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 * EF-030 : Les événements reçus depuis le module réservation (`create`, `update`, `cancel`) doivent être tracés, avec indication explicite de l'envoi effectif ou non.
 * EF-031 : En cas d'échec d'envoi email, l'erreur doit être tracée dans `gvv_error`.
 * EF-032 : Aucun mécanisme de relance/retry automatique ne doit être mis en place après un échec SMTP.
+* EF-046 : Toutes les entrées de log CI applicatif produites par la fonctionnalité de rappel (scheduler, envoi, échec, skip) doivent porter le préfixe `REMINDER` afin de permettre un filtrage fiable par `grep REMINDER`.
 * EF-037 : Chaque trace d'envoi doit inclure le canal utilisé (`email`, `sms`, `email+sms`) et le fournisseur effectif (`brevo` pour SMS initialement).
 * EF-044 : Les suppressions réalisées depuis "Mes réservations" doivent être tracées comme événements `cancel` dans le mécanisme de rappel.
 
@@ -150,6 +151,7 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 * CA-011 : Si le créateur de la réservation est une tierce personne, la notification événementielle est envoyée au pilote et à l'instructeur.
 * CA-012 : En cas d'échec SMTP, une trace d'erreur est présente dans `gvv_error` et dans `reservation_reminder_log`.
 * CA-013 : Après un échec SMTP, aucun retry automatique n'est exécuté.
+* CA-020 : Toutes les entrées de log de la fonctionnalité sont identifiables par `grep "GVV: REMINDER"` dans les fichiers `application/logs/log-YYYY-MM-DD.php`. Les appels du scheduler par le cron sont identifiables par `grep "REMINDER scheduler source=cron"`.
 * CA-014 : Si le canal `sms` est choisi, le rappel est envoyé via Brevo lorsque le numéro est valide.
 * CA-015 : Si le canal `email+sms` est choisi, le système envoie les deux notifications sans duplicata (même clé logique, canaux tracés séparément).
 * CA-016 : La page "Mes réservations" affiche les réservations de l'utilisateur connecté.

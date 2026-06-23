@@ -70,10 +70,10 @@ class Reservation_scheduler extends CI_Controller
         try {
             $this->load->library('Reservation_reminder');
             $sent = $this->reservation_reminder->run_scheduler($source);
-            gvv_info("reservation_scheduler::_execute source=$source sent=$sent");
+            gvv_info("REMINDER scheduler source=$source sent=$sent");
             return $sent;
         } catch (Exception $e) {
-            gvv_error("reservation_scheduler::_execute exception: " . $e->getMessage());
+            gvv_error("REMINDER scheduler exception: " . $e->getMessage());
             return 0;
         }
     }

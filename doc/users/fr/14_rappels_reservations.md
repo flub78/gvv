@@ -84,6 +84,44 @@ Réponse JSON attendue :
 
 Un secret invalide retourne HTTP 403.
 
+### 1.4 Vérification de l'activité dans les logs applicatifs
+
+Toutes les actions du mécanisme de rappel sont tracées dans les logs CI de l'application (`application/logs/log-YYYY-MM-DD.php`) avec le préfixe `REMINDER`. Ce préfixe permet de filtrer exclusivement les entrées liées à la fonctionnalité.
+
+**Afficher toutes les entrées rappel du jour :**
+
+```bash
+grep "REMINDER" application/logs/log-$(date +%Y-%m-%d).php
+```
+
+**Vérifier que le cron s'est bien exécuté :**
+
+```bash
+grep "REMINDER scheduler source=cron" application/logs/log-*.php
+```
+
+Résultat attendu (une ligne par exécution horaire) :
+
+```
+INFO  - 2026-06-22 21:00:01 --> GVV: REMINDER scheduler source=cron evaluated=3 sent=1
+```
+
+L'absence totale de ligne `source=cron` indique que le cron n'a jamais été déclenché sur cette machine.
+
+**Interpréter les entrées clés :**
+
+| Motif | Signification |
+|---|---|
+| `REMINDER scheduler source=cron evaluated=N sent=M` | Exécution horaire : N réservations évaluées, M rappels envoyés |
+| `REMINDER scheduler source=public_url ...` | Déclenchement manuel via URL |
+| `REMINDER run_scheduler source=... evaluated=N sent=M` | Détail interne du scheduler (même exécution) |
+| `REMINDER handle_event reminders disabled for section X` | Section X n'a pas les rappels activés |
+| `REMINDER no valid email for <login>` | Destinataire sans email valide |
+| `REMINDER email failed: SMTP send failed to <email>` | Échec d'envoi email |
+| `REMINDER SMS failed for <login>: ...` | Échec d'envoi SMS |
+
+> **Bon état** : des lignes `source=cron` apparaissent régulièrement (toutes les heures quand la machine est active), avec `sent=0` ou plus. L'absence de `failure` confirme qu'aucun envoi n'a échoué.
+
 ---
 
 ## 2. Activation par Section (Administrateur Club)

@@ -47,12 +47,12 @@ class Reservation_reminder
         $reservation = $this->_load_reservation($reservation_id);
 
         if ($reservation && !$this->_reminders_enabled((int) $reservation['section_id'])) {
-            gvv_info("Reservation_reminder::handle_event reminders disabled for section {$reservation['section_id']}");
+            gvv_info("REMINDER handle_event reminders disabled for section {$reservation['section_id']}");
             return false;
         }
 
         if (empty($reservation)) {
-            gvv_info("Reservation_reminder::handle_event reservation $reservation_id not found — skipped");
+            gvv_info("REMINDER handle_event reservation $reservation_id not found — skipped");
             $this->_log_skipped(
                 null,
                 $reservation_id,
@@ -66,7 +66,7 @@ class Reservation_reminder
         $recipients = $this->_get_recipients($reservation, $triggered_by);
 
         if (empty($recipients)) {
-            gvv_info("Reservation_reminder::handle_event no eligible recipients for reservation $reservation_id");
+            gvv_info("REMINDER handle_event no eligible recipients for reservation $reservation_id");
             $this->_log_skipped(
                 null,
                 $reservation_id,
@@ -130,7 +130,7 @@ class Reservation_reminder
             }
         }
 
-        gvv_info("Reservation_reminder::run_scheduler source=$source evaluated=$evaluated sent=$sent");
+        gvv_info("REMINDER run_scheduler source=$source evaluated=$evaluated sent=$sent");
         return $sent;
     }
 
@@ -328,7 +328,7 @@ class Reservation_reminder
         $reservation, $recipient, $action_type, $source, $event_type, $idempotency_key
     ) {
         if ($this->model->already_sent($idempotency_key)) {
-            gvv_debug("Reservation_reminder::_dispatch already sent key=$idempotency_key");
+            gvv_debug("REMINDER _dispatch already sent key=$idempotency_key");
             return false;
         }
 
@@ -352,10 +352,10 @@ class Reservation_reminder
                 );
                 if (!$email_result) {
                     $error_msg = 'SMTP send failed to ' . $recipient['email'];
-                    gvv_error("Reservation_reminder: $error_msg (reservation {$reservation['id']})");
+                    gvv_error("REMINDER email failed: $error_msg (reservation {$reservation['id']})");
                 }
             } else {
-                gvv_info("Reservation_reminder: no valid email for {$recipient['login']} — email skipped");
+                gvv_info("REMINDER no valid email for {$recipient['login']} — email skipped");
                 $email_result = null; // not applicable
             }
         }
@@ -370,10 +370,10 @@ class Reservation_reminder
                 if (!$sms_result) {
                     $sms_error = $sms_res['error'];
                     $error_msg = $error_msg ? $error_msg . ' | ' . $sms_error : $sms_error;
-                    gvv_error("Reservation_reminder: SMS failed for {$recipient['login']}: $sms_error");
+                    gvv_error("REMINDER SMS failed for {$recipient['login']}: $sms_error");
                 }
             } else {
-                gvv_info("Reservation_reminder: no phone for {$recipient['login']} — SMS skipped");
+                gvv_info("REMINDER no phone for {$recipient['login']} — SMS skipped");
                 $sms_result = null;
             }
         }
@@ -431,7 +431,7 @@ class Reservation_reminder
         $send_after_ts = $start_ts - ($period_hours * 3600);
 
         if (time() < $send_after_ts) {
-            gvv_debug("Reservation_reminder: not in window yet for {$recipient['login']} reservation {$reservation['id']}");
+            gvv_debug("REMINDER not in window yet for {$recipient['login']} reservation {$reservation['id']}");
             return false;
         }
 
@@ -565,13 +565,13 @@ class Reservation_reminder
             $result = @$this->CI->email->send();
 
             if (!$result) {
-                gvv_error("Reservation_reminder::_send_email failed to $to_email: "
+                gvv_error("REMINDER _send_email failed to $to_email: "
                          . $this->CI->email->print_debugger());
             }
 
             return (bool) $result;
         } catch (Exception $e) {
-            gvv_error("Reservation_reminder::_send_email exception: " . $e->getMessage());
+            gvv_error("REMINDER _send_email exception: " . $e->getMessage());
             return false;
         }
     }
