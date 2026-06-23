@@ -115,36 +115,6 @@ $config['categories_vol_planeur_short'] = array(
   5 => "BIA"
 );
 
-/*
- * Gestion des courriels
- */
-// Selection des destinataires, cette lsite définie les options qui sont
-// proposées dans le formulaire de mail. A chaque fois que le sélecteur est modifié
-// La liste des destinataires est remplacée.
-$config['listes_de_destinataires'] = array(
-  '0' => 'Tous les membres actif',
-  '1' => 'Tous les pilotes débiteurs',
-  '2' => 'Les instructeurs',
-  '3' => 'Les membres du conseil',
-  '4' => 'le conseil et les instructeurs',
-  '5' => 'les propriétaires'
-);
-
-/*
- * A chaque valeur de la liste ci-dessus doit correspondre un segment de requête SQL qui
- * selectionne les membres dont on veut garder les adresses emails
- *
- * Les champs disponibles : categorie (catégorie du pilote), solde, etc.
- * Les rôles sont dans user_roles_per_section (types_roles.nom : 'instructeur', 'ca', ...).
- */
-$config['listes_de_requetes'] = array(
-  '0' => '',
-  '1' => 'solde < 0',
-  '2' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom = 'instructeur' AND urps.revoked_at IS NULL)",
-  '3' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom = 'ca' AND urps.revoked_at IS NULL)",
-  '4' => "mlogin IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON u.id = urps.user_id INNER JOIN types_roles tr ON urps.types_roles_id = tr.id WHERE tr.nom IN ('ca', 'instructeur') AND urps.revoked_at IS NULL)",
-  '5' => 'categorie = 3'
-);
 
 /*
  * Copie systematique des emails envoyés
@@ -172,7 +142,6 @@ $config['use_standard_email_configuration_for_vd'] = false;
 $config['auto_planchiste'] = false;
 
 $config['new_layout'] = true;
-$config['former_bilan_layout'] = false;
 
 /*
  * Couleur de fond de la bannière principale (CSS color, ex: "#1f6f8b" ou "darkgreen")
@@ -208,6 +177,14 @@ $config['timeline_increment'] = "15";
 
 $config['reservation_balance_check'] = TRUE;
 
+// Secret protégeant l'URL de déclenchement manuel du scheduler
+$config['reservation_scheduler_secret'] = 'CHANGE_ME_IN_PRODUCTION';
+
+// Clé API Brevo pour l'envoi de SMS (laisser vide pour désactiver les SMS)
+$config['brevo_sms_api_key'] = '';
+
+// Nom de l'expéditeur SMS affiché sur le téléphone (11 caractères max)
+$config['brevo_sms_sender']  = 'GVV';
 
 /* End of file program.php */
 /* Location: .application/config/program.php */
