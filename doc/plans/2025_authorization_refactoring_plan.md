@@ -535,8 +535,7 @@ A second bitmap `membres.macces` ("Responsabilités") exists but is only display
 
 - [ ] **13.5** Migrer les requêtes de listes email (`program.php`) :
   - Remplacer `(mniveaux & ($instructeurs)) != 0` par JOIN sur `user_roles_per_section`
-  - Mettre à jour `listes_de_requetes` dans `program.php` et `program.example.php`
-
+  
 - [ ] **13.6** Mettre à jour la fiche membre :
   - Retirer des checkboxes les qualifications migrées (remorqueur, treuillard, mecano, chef_pilote, chef_de_piste)
   - Retirer les responsabilités déjà dans types_roles (CA, trésorier)

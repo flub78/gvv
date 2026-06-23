@@ -8,6 +8,10 @@
 
 * [] Rappel des réservations par email pour le pilote et l'instructeur.
 
+* [] Relances des débiteurs par email, avec un template configurable par le club.
+
+* [] Controle des carnets de route, avec un écran dédié pour les administrateurs club. 
+
 * [] Génération des certificats de formation et de pilotes VD.
 
 * [] Support des messages du jour, qui pourront inclure les alarmes.
