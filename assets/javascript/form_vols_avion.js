@@ -61,11 +61,19 @@ function buildHoraWidget(containerId, hiddenId, mode) {
     // "50" avec decWidth=1 → "5" (5 dixièmes)
     // "5"  avec decWidth=2 → "50" (50 centièmes = 0.5h)
     // "05" avec decWidth=2 → "05" (5 centièmes)
-    var decPart = parseInt((decStr + '00').substring(0, decWidth));
-    if (isNaN(decPart)) decPart = 0;
-    if (decPart > maxDec) {
-        console.warn('buildHoraWidget: decPart=' + decPart + ' > maxDec=' + maxDec + ' pour ' + hiddenId + '="' + fullValue + '" (mode=' + mode + ') → réinitialisé à 0');
-        decPart = 0;
+    var decPart;
+    if (mode == 1) {
+        // La BD stocke en centième d'heure; convertir en minutes pour l'affichage
+        // ex: "10692.32" → 0.32 × 60 = 19.2 → 19 minutes
+        var centHundredths = parseFloat('0.' + decStr) || 0;
+        decPart = Math.min(59, Math.round(centHundredths * 60));
+    } else {
+        decPart = parseInt((decStr + '00').substring(0, decWidth));
+        if (isNaN(decPart)) decPart = 0;
+        if (decPart > maxDec) {
+            console.warn('buildHoraWidget: decPart=' + decPart + ' > maxDec=' + maxDec + ' pour ' + hiddenId + '="' + fullValue + '" (mode=' + mode + ') → réinitialisé à 0');
+            decPart = 0;
+        }
     }
 
     var intInputId = hiddenId + '_int';
