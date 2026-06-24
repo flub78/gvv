@@ -898,3 +898,5 @@ $lang['not_available_for_this_section'] = "Cette fonctionnalité n'est pas dispo
 
 $lang['gvv_error_not_authorized'] = "Vous n'êtes pas autorisé à accéder à cette ressource.";
 $lang['gvv_error_not_found']      = "La ressource demandée est introuvable.";
+
+$lang['gvv_menu_carnets_route']   = "Carnets de route";

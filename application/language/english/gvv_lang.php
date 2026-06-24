@@ -887,3 +887,5 @@ $lang['not_available_for_this_section'] = "This feature is not available for thi
 
 $lang['gvv_error_not_authorized'] = "You are not authorized to access this resource.";
 $lang['gvv_error_not_found']      = "The requested resource was not found.";
+
+$lang['gvv_menu_carnets_route']   = "Flight logs";

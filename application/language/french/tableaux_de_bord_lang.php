@@ -250,3 +250,7 @@ $lang['db_card_rename_member'] = "Renommer un utilisateur";
 $lang['db_desc_rename_member'] = "Modifier l'identifiant (mlogin) d'un membre existant";
 $lang['db_card_mes_reservations'] = "Mes réservations";
 $lang['db_desc_mes_reservations'] = "Consulter et gérer vos réservations à venir";
+
+$lang['db_card_carnets_route']    = "Carnets de route";
+$lang['db_desc_carnets_route']    = "Contrôle de continuité horamètre";
+$lang['db_btn_controle']          = "Contrôler";

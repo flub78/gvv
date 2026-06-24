@@ -1001,6 +1001,17 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if ($show_avions && has_role('club-admin')): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-book text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_carnets_route') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_carnets_route') ?></div>
+                <a href="<?= controller_url('carnets_route/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_controle') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if ($show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">

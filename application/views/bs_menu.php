@@ -335,6 +335,9 @@ if ($CI->dx_auth->is_logged_in()) {
             <?php if ((has_role('admin')) &&  $this->config->item('gestion_pompes')) : ?>
               <li><a class="dropdown-item" href="<?= controller_url("pompes") ?>"><i class="fas fa-gas-pump text-warning"></i> <?= translation("Pompes") ?></a></li>
             <?php endif; ?>
+            <?php if (has_role('club-admin') || has_role('ca')) : ?>
+              <li><a class="dropdown-item" href="<?= controller_url('carnets_route/page') ?>"><i class="fas fa-book text-warning"></i> <?= translation('gvv_menu_carnets_route') ?></a></li>
+            <?php endif; ?>
           </ul>
         </li>
         <?php endif; ?>

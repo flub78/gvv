@@ -887,3 +887,5 @@ $lang['not_available_for_this_section'] = "Deze functie is niet beschikbaar voor
 
 $lang['gvv_error_not_authorized'] = "U bent niet bevoegd om toegang te krijgen tot deze resource.";
 $lang['gvv_error_not_found']      = "De gevraagde resource is niet gevonden.";
+
+$lang['gvv_menu_carnets_route']   = "Vluchtenlogboeken";

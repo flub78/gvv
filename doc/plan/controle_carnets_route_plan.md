@@ -14,15 +14,15 @@ Nouvelle fonctionnalité en lecture seule : pas de migration de base de données
 
 | Fichier | Action | État |
 |---|---|---|
-| `application/controllers/carnets_route.php` | Créer | ⬜ |
+| `application/controllers/carnets_route.php` | Créer | ✅ |
 | `application/models/carnets_route_model.php` | Créer | ✅ |
 | `application/helpers/carnets_route_helper.php` | Créer | ✅ |
-| `application/views/carnets_route/bs_page.php` | Créer | ⬜ |
-| `application/language/french/carnets_route_lang.php` | Créer | ⬜ |
-| `application/language/english/carnets_route_lang.php` | Créer | ⬜ |
-| `application/language/dutch/carnets_route_lang.php` | Créer | ⬜ |
-| `application/views/bs_menu.php` | Modifier — entrée menu Avion | ⬜ |
-| `application/views/bs_sub_dashboard.php` | Modifier — carte admin_club | ⬜ |
+| `application/views/carnets_route/bs_page.php` | Créer | ✅ |
+| `application/language/french/carnets_route_lang.php` | Créer | ✅ |
+| `application/language/english/carnets_route_lang.php` | Créer | ✅ |
+| `application/language/dutch/carnets_route_lang.php` | Créer | ✅ |
+| `application/views/bs_menu.php` | Modifier — entrée menu Avion | ✅ |
+| `application/views/bs_sub_dashboard.php` | Modifier — carte admin_club | ✅ |
 
 ---
 
@@ -69,7 +69,7 @@ Le résultat est un tableau plat `$rows` avec pour chaque entrée : `type` (`fli
 
 Calcul du résumé : compter les lignes intermédiaires par type pour l'encart en tête de page (QO-002 du PRD).
 
-### ⬜ Étape 3 — Contrôleur
+### ✅ Étape 3 — Contrôleur
 
 **Fichier** : `application/controllers/carnets_route.php`
 
@@ -85,7 +85,7 @@ Filtres gérés en session (pattern identique à `vols_avion`) :
 - `carnet_date_debut` — défaut : `date('Y') . '-01-01'`
 - `carnet_date_fin` — défaut : `date('Y-m-d')`
 
-### ⬜ Étape 4 — Vue
+### ✅ Étape 4 — Vue
 
 **Fichier** : `application/views/carnets_route/bs_page.php`
 
@@ -100,7 +100,7 @@ Structure :
 
 L'horamètre est affiché selon `horametre_mode` de la machine (décimal ou HH:MM), en réutilisant les helpers existants.
 
-### ⬜ Étape 5 — Entrée de menu
+### ✅ Étape 5 — Entrée de menu
 
 **Fichier** : `application/views/bs_menu.php` — dans le bloc `gestion_avions`, après la ligne `vols_avion/page`, sous condition `has_role('club-admin') || has_role('ca')` :
 
@@ -112,7 +112,7 @@ L'horamètre est affiché selon `horametre_mode` de la machine (décimal ou HH:M
 <?php endif; ?>
 ```
 
-### ⬜ Étape 6 — Carte dashboard
+### ✅ Étape 6 — Carte dashboard
 
 **Fichier** : `application/views/bs_sub_dashboard.php` — dans la section `admin_club`, sous condition `has_role('club-admin')` :
 
@@ -131,7 +131,7 @@ L'horamètre est affiché selon `horametre_mode` de la machine (décimal ou HH:M
 <?php endif; ?>
 ```
 
-### ⬜ Étape 7 — Fichiers de langue
+### ✅ Étape 7 — Fichiers de langue
 
 Clés à définir dans les trois langues :
 
@@ -186,7 +186,7 @@ Tester la fonction de calcul de continuité isolément (sans base de données) :
 - Date début > date fin → liste vide
 - Séquence longue avec plusieurs anomalies entremêlées
 
-### ⬜ Tests d'intégration (smoke)
+### ✅ Tests d'intégration (smoke)
 **Fichier** : `application/tests/integration/CarnetRouteSmokeTest.php`
 
 - Vérifier que `GET /carnets_route/page` répond 200 pour un utilisateur `club-admin`
@@ -194,7 +194,7 @@ Tester la fonction de calcul de continuité isolément (sans base de données) :
 - Vérifier que `GET /carnets_route/csv` retourne un Content-Type `text/csv`
 - Vérifier que `GET /carnets_route/pdf` retourne un Content-Type `application/pdf`
 
-### ⬜ Test Playwright (smoke)
+### ✅ Test Playwright (smoke)
 **Fichier** : `playwright/tests/carnets_route.spec.js`
 
 - Connexion en tant qu'admin
@@ -220,10 +220,6 @@ Voir CL-001 à CL-006 du PRD. Traitement prévu :
 ## 7. Ordre d'implémentation recommandé
 
 1. ✅ Modèle (`carnets_route_model.php`) + helper de continuité (`carnets_route_helper.php`) + tests unitaires
-2. ⬜ Contrôleur méthode `page()` + vue de base (filtres + tableau sans couleur)
-3. ⬜ Logique de continuité dans le contrôleur + coloration vue
-4. ⬜ Résumé anomalies en tête de page
-5. ⬜ Menu + dashboard card + langues
-6. ⬜ Export CSV
-7. ⬜ Export PDF
-8. ⬜ Tests smoke intégration + Playwright
+2. ✅ Contrôleur (`carnets_route.php`) + vue (`bs_page.php`) avec filtres, tableau coloré, résumé anomalies, export CSV/PDF + fichiers de langue (fr/en/nl)
+3. ✅ Menu + dashboard card
+4. ✅ Tests smoke intégration + Playwright

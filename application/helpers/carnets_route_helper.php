@@ -58,7 +58,7 @@ function build_continuity_rows($flights) {
         if ($curr_miss || $next_miss) {
             $transitions[$i] = ['type' => 'missing', 'duration' => 0.0];
         } else {
-            $delta = $next_deb - $curr_fin;
+            $delta = round($next_deb - $curr_fin, 2);
             if (abs($delta) < 0.005) {
                 $transitions[$i] = ['type' => 'ok', 'duration' => 0.0];
             } elseif ($delta > 0) {
