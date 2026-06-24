@@ -154,6 +154,29 @@ Email Helper
  [x] GenerateMarkdownExport NoDescription
  [x] GenerateMarkdownExport MissingName
 
+Horametre Helper
+ [x] Centieme to hhmm zero
+ [x] Centieme to hhmm docstring example
+ [x] Centieme to hhmm standard values
+ [x] Centieme to hhmm high decimal
+ [x] Centieme to hhmm from minutes conversion
+ [x] Centieme to hhmm invalid inputs
+ [x] Centieme to hhmm large value
+ [x] Horametre display mode centieme
+ [x] Horametre display mode minutes
+ [x] Horametre display mode dixieme
+ [x] To hundredth valid minute values
+ [x] To hundredth fifty nine minutes
+ [x] To hundredth zero
+ [x] Round trip mode centieme
+ [x] Round trip mode minutes
+ [x] Round trip mode dixieme
+ [x] Storage is not minutes format in db
+ [x] Storage one hour zero minutes
+ [x] All modes store one hour 30 as decimal
+ [x] List display modes centieme and dixieme
+ [x] List display mode minutes
+
 Log Helper
  [x] Current logfile
  [x] Gvv dump no die

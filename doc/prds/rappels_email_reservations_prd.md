@@ -75,13 +75,13 @@ Le PRD de réservation d'aéronefs existant exclut explicitement les notificatio
 * EF-012 : Si la réservation est créée ou modifiée par un membre d'équipage, la notification événementielle est envoyée uniquement au second membre d'équipage.
 * EF-013 : Aucune notification email ne doit être envoyée aux utilisateurs sans adresse email valide.
 * EF-033 : Aucune notification SMS ne doit être envoyée aux utilisateurs sans numéro de téléphone valide.
-* EF-034 : Le système doit permettre le choix du canal de notification : `email`, `sms` ou `email+sms`.
+* EF-034 : Le système doit permettre le choix du canal de notification : `email`, `sms`, `email+sms` ou `none` (aucune notification).
 * EF-035 : Le service SMS initial utilisé par le système doit être Brevo, via un adaptateur de fournisseur.
 * EF-045 : Si la réservation est créée ou modifiée par une tierce personne (ni pilote ni instructeur), la notification événementielle doit être envoyée aux deux membres d'équipage.
 * EF-038 : L'utilisateur connecté doit disposer d'une page "Mes réservations" listant ses réservations actives.
 * EF-039 : Depuis "Mes réservations", l'utilisateur doit pouvoir supprimer une réservation de la liste.
 * EF-040 : Depuis "Mes réservations", l'utilisateur doit voir un bouton "Ajouter une réservation".
-* EF-041 : Depuis "Mes réservations", l'utilisateur doit pouvoir configurer son canal de notification (`email`, `sms`, `email+sms`).
+* EF-041 : Depuis "Mes réservations", l'utilisateur doit pouvoir configurer son canal de notification (`email`, `sms`, `email+sms`) ou désactiver toutes les notifications (`none`).
 * EF-042 : Depuis "Mes réservations", l'utilisateur doit pouvoir définir sa période de rappel (en jours ou heures avant le départ).
 
 ### 6.2 Gestion des changements

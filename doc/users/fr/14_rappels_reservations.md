@@ -166,6 +166,7 @@ Choisissez comment vous souhaitez recevoir vos rappels :
 | **Email seulement** | Un email est envoyé à l'adresse renseignée dans votre fiche membre |
 | **SMS seulement** | Un SMS est envoyé au numéro de mobile de votre fiche membre |
 | **Email + SMS** | Les deux canaux sont utilisés simultanément |
+| **Aucune notification** | Vous ne recevez aucun rappel ni notification de réservation |
 
 > **Prérequis SMS** : Votre numéro de mobile doit être renseigné dans votre fiche membre (format `06XXXXXXXX`). Si le numéro est absent, le canal SMS est ignoré sans erreur.
 
