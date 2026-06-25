@@ -65,7 +65,7 @@ $this->lang->load('relances');
     <div class="alert alert-info"><?= $this->lang->line('relances_aucun_debiteur') ?></div>
   <?php else: ?>
   <div class="table-responsive">
-    <table class="table table-bordered table-hover table-sm align-middle" id="table-debiteurs">
+    <table class="datatable table table-bordered table-hover table-sm align-middle" id="table-debiteurs">
       <thead class="table-dark">
         <tr>
           <th><?= $this->lang->line('relances_col_nom') ?></th>
@@ -98,8 +98,8 @@ $this->lang->load('relances');
           <td class="text-end"><?= $solde != 0 ? euros($solde) : '' ?></td>
           <?php endforeach; ?>
           <td class="text-end fw-bold"><?= euros($total) ?></td>
-          <td class="text-end"><?= $d['total_6m'] != 0 ? euros($d['total_6m']) : '–' ?></td>
-          <td class="text-end"><?= $d['total_1an'] != 0 ? euros($d['total_1an']) : '–' ?></td>
+          <td class="text-end"><?= $d['total_6m'] != 0 ? euros($d['total_6m']) : '&ndash;' ?></td>
+          <td class="text-end"><?= $d['total_1an'] != 0 ? euros($d['total_1an']) : '&ndash;' ?></td>
           <td>
             <span class="badge bg-secondary">0</span>
           </td>
@@ -108,6 +108,13 @@ $this->lang->load('relances');
       </tbody>
     </table>
   </div>
+<?php
+$bar = array(
+    array('label' => "CSV",  'url' => "relances/export_csv"),
+    array('label' => "Pdf",  'url' => "relances/export_pdf"),
+);
+echo button_bar4($bar);
+?>
   <?php endif; ?>
 
 </div><!-- /#body -->
@@ -123,6 +130,35 @@ body.mode-anonyme .nom-membre {
 </style>
 
 <script>
+// Register currency-fr sort type for DataTables 1.9.x.
+// Must run BEFORE $(document).ready() so the type is registered when .datatable is initialized.
+// DataTables 1.9.x passes raw innerHTML to type detection, so we decode HTML entities here.
+// euros() outputs "&nbsp;€" so e.g. "-1 667,04 €" becomes "-1&nbsp;667,04&nbsp;€" in HTML.
+$.extend($.fn.dataTableExt.oSort, {
+    'currency-fr-pre': function(a) {
+        var s = a.replace(/<[^>]*>/g, '')   // strip HTML tags
+                  .replace(/&nbsp;/g, '')    // remove non-breaking space entity
+                  .replace(/&ndash;/g, '')   // remove en-dash entity
+                  .replace(/[^\d,\-]/g, '')  // keep only digits, comma, minus
+                  .replace(',', '.');         // comma to decimal point
+        return parseFloat(s) || 0;
+    },
+    'currency-fr-asc':  function(a, b) { return a - b; },
+    'currency-fr-desc': function(a, b) { return b - a; }
+});
+$.fn.dataTableExt.aTypes.unshift(function(sData) {
+    if (typeof sData !== 'string') return null;
+    var s = sData.replace(/<[^>]*>/g, '')   // strip HTML tags
+                  .replace(/&nbsp;/g, ' ')   // decode non-breaking space
+                  .replace(/&ndash;/g, '–') // decode en-dash entity
+                  .trim();
+    // Empty cell or en-dash placeholder: treat as zero, keep column type consistent
+    if (s === '' || s === '–') return 'currency-fr';
+    // "-987,22 €" or "-1 667,04 €"
+    if (/^-?[\d\s]+,\d{2}\s*€?$/.test(s)) return 'currency-fr';
+    return null;
+});
+
 (function () {
   var KEY = 'relances_mode_anonyme';
   var checkbox = document.getElementById('mode_anonyme');
