@@ -2,7 +2,7 @@
 
 ## 1. Objectif
 
-Permettre aux trésoriers de repérer rapidement les membres dont la dette devient importante, puis de préparer, envoyer et suivre des relances email à partir d’une interface dédiée.
+Permettre aux trésoriers de repérer rapidement les membres dont la dette devient importante, puis, selon la priorité du club, soit se limiter à un tableau de pilotage des débiteurs, soit aller plus loin avec un mécanisme de relance par email.
 
 ## 2. Contexte
 
@@ -12,12 +12,17 @@ Aujourd’hui, le suivi des mauvais payeurs repose principalement sur des consul
 - la préparation homogène des relances,
 - la conservation d’un historique clair des emails envoyés.
 
-Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une page de détail par membre et un système de template de relance configurable.
+Ce PRD est volontairement découpé en deux étapes :
+- une première étape, prioritaire, qui consiste à afficher les débiteurs dans l’ordre décroissant des dettes avec des seuils d’alerte ;
+- une deuxième étape, optionnelle, qui ajoute la préparation, l’envoi et le suivi des relances par email.
+
+Il est donc possible de se limiter à la première étape si le besoin de relance email n’est pas encore prévu ou prioritaire.
 
 ## 3. Périmètre
 
 ### 3.1 Inclus
 
+Phase 1 — Affichage des débiteurs :
 - Accès à la fonctionnalité depuis le menu comptable.
 - Accès à la fonctionnalité depuis une carte dédiée sur le dashboard Trésorerie.
 - Consultation d’une liste des dettes classées par dette totale décroissante.
@@ -26,6 +31,10 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
   - critique en rouge au-delà de 500 € de dette.
 - Possibilité de modifier ces seuils depuis la page.
 - Mise en évidence visuelle des dettes selon le seuil atteint.
+- Mode anonyme disponible pour la phase 1 : une case à cocher permet d’afficher la page avec les noms des débiteurs flouttés.
+- La case "mode anonyme" est activée par défaut.
+
+Phase 2 — Relance par email (optionnelle, à livrer ensuite) :
 - Accès au détail des relances par utilisateur.
 - Préparation d’un email de relance modifiable par l’opérateur.
 - Envoi de la relance au membre concerné avec copie aux trésoriers du club.
@@ -39,6 +48,7 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - Envoi de SMS ou de notifications push.
 - Calcul comptable des dettes lui-même si les données de dette existent déjà ailleurs dans GVV.
 - Règles avancées de segmentation par section au-delà des colonnes de dette affichées.
+- La phase 2 n’est pas obligatoire pour la livraison de la phase 1.
 
 ## 4. Parties prenantes
 
@@ -62,7 +72,9 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 
 ## 6. Exigences Fonctionnelles
 
-### 6.1 Accès et navigation
+Le PRD est découpé en deux itérations. La phase 1 couvre l’affichage des débiteurs et les seuils ; la phase 2 ajoute le mécanisme de relance par email. La phase 2 peut être reportée sans bloquer la phase 1.
+
+### 6.1 Étape 1 — Accès et navigation
 
 - EF-001 : La page Relances doit être accessible aux utilisateurs disposant d’un rôle trésorier, club-admin ou bureau.
 - EF-002 : Une entrée de menu doit être ajoutée dans le menu Compta.
@@ -84,7 +96,7 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - EF-020 : La colonne Relances doit afficher un bouton d’accès au détail et le nombre de relances déjà effectuées.
 - EF-021 : La colonne Date de la dernière relance doit afficher la dernière date d’envoi connue pour le membre.
 
-### 6.3 Seuils et mise en évidence
+### 6.3 Seuils, mise en évidence et mode anonyme
 
 - EF-030 : La page doit présenter deux champs de saisie pour définir les seuils d’alerte.
 - EF-031 : Le seuil critique par défaut doit être fixé à 500 €.
@@ -95,8 +107,11 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - EF-036 : Une dette inférieure au seuil alarme doit être affichée sur fond noir ou dans un style neutre équivalent.
 - EF-037 : Les règles de couleur doivent être appliquées à l’ensemble des dettes affichées dans la liste.
 - EF-038 : Les valeurs des seuils doivent être conservées comme paramètres configurables du club.
+- EF-039 : La page doit proposer un mode anonyme sous forme de case à cocher, activée par défaut.
+- EF-040 : Lorsque le mode anonyme est activé, les noms des débiteurs doivent être flouttés dans la vue principale.
+- EF-041 : Lorsque le mode anonyme est désactivé, les noms des débiteurs doivent être affichés normalement.
 
-### 6.4 Détail d’une relance utilisateur
+### 6.4 Étape 2 — Détail d’une relance utilisateur
 
 - EF-050 : Un clic sur la colonne Relances doit ouvrir la page de relance du membre.
 - EF-051 : La page de détail doit afficher la liste des relances déjà effectuées pour ce membre.
@@ -105,7 +120,7 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - EF-054 : Chaque entrée d’historique doit proposer un bouton de visualisation du contenu réellement envoyé.
 - EF-055 : Le contenu affiché dans la page de détail doit permettre de préparer une nouvelle relance vers le membre.
 
-### 6.5 Préparation et envoi d’un email
+### 6.5 Étape 2 — Préparation et envoi d’un email
 
 - EF-060 : La page de détail doit contenir des champs de saisie permettant de préparer l’email de relance.
 - EF-061 : Le texte de l’email proposé doit être modifiable par l’opérateur avant envoi.
@@ -117,7 +132,7 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - EF-067 : Le contenu réellement envoyé doit être stocké pour consultation ultérieure.
 - EF-068 : L’envoi doit être traçable dans l’historique du membre.
 
-### 6.6 Contenu par défaut du message
+### 6.6 Étape 2 — Contenu par défaut du message
 
 - EF-070 : Le message par défaut doit commencer par une formule d’appel personnalisée contenant le nom et le prénom du membre.
 - EF-071 : Le message doit mentionner la dette totale au club.
@@ -127,7 +142,7 @@ Ce PRD définit une page de relances avec un tableau de pilotage des dettes, une
 - EF-075 : Le message doit contenir les moyens de paiement autorisés par le club.
 - EF-076 : Le message doit rester éditable sans perdre la structure utile à la relance.
 
-### 6.7 Exemple de message par défaut
+### 6.7 Étape 2 — Exemple de message par défaut
 
 Le template de base doit proposer un contenu proche de l’exemple suivant, corrigé orthographiquement et linguistiquement avant utilisation :
 
@@ -208,6 +223,8 @@ L'équipe bénévole de gestion de l'aéroclub.
 
 ## 10. Critères d’Acceptation
 
+### 10.1 Phase 1 — Affichage des débiteurs et seuils
+
 - CA-001 : Un utilisateur trésorier, club-admin ou bureau peut accéder à la page Relances.
 - CA-002 : Une entrée de menu apparaît dans Compta et une carte apparaît sur le dashboard Trésorerie.
 - CA-003 : La liste principale affiche les colonnes attendues et reste triée par dette totale décroissante.
@@ -215,12 +232,19 @@ L'équipe bénévole de gestion de l'aéroclub.
 - CA-005 : Les dettes supérieures ou égales à 300 € et inférieures à 500 € apparaissent en jaune.
 - CA-006 : Les dettes inférieures à 300 € apparaissent dans un style neutre.
 - CA-007 : Les seuils jaune et rouge peuvent être modifiés par un utilisateur autorisé.
+- CA-008 : La page propose un mode anonyme avec une case à cocher activée par défaut.
+- CA-009 : Lorsque le mode anonyme est activé, les noms des débiteurs sont flouttés dans la liste.
+
+### 10.2 Phase 2 — Relance par email (optionnelle)
+
 - CA-008 : Un clic sur le bouton de relance ouvre la page de détail du membre.
 - CA-009 : La page de détail affiche l’historique des relances déjà envoyées.
 - CA-010 : Le texte de relance est modifiable avant envoi.
 - CA-011 : L’envoi crée une trace consultable avec la date, l’adresse email du destinataire principal et le texte réellement envoyé.
 - CA-012 : Le membre reçoit l’email de relance et les trésoriers du club sont en copie.
 - CA-013 : Le template email par défaut peut être sauvegardé et rechargé depuis la configuration.
+
+La phase 2 n’est pas nécessaire pour considérer la phase 1 comme livrable.
 
 ## 11. Dépendances Produit
 

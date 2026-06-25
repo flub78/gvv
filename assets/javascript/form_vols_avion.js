@@ -172,7 +172,6 @@ function updateDuree() {
         $("#duree_display").text(formatDuree(duree));
         $("#time_error").text('');
     } else if (fin > 0 && debut > 0) {
-        $('[name="vaduree"]').val('');
         $("#duree_display").text('');
         $("#time_error").text('Durée nulle ou négative');
     }

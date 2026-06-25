@@ -16,11 +16,23 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const fs   = require('fs');
+const path = require('path');
+
+function readSchedulerSecret() {
+  const configPath = path.resolve(__dirname, '../../application/config/program.php');
+  const content = fs.readFileSync(configPath, 'utf8');
+  const match = content.match(/\$config\['reservation_scheduler_secret'\]\s*=\s*'([^']+)'/);
+  if (!match) throw new Error('reservation_scheduler_secret not found in program.php');
+  return match[1];
+}
+
+const SCHEDULER_SECRET = readSchedulerSecret();
 
 const LOGIN_URL        = '/index.php/auth/login';
 const MES_RESA_URL     = '/index.php/mes_reservations';
 const SCHED_BAD_URL    = '/index.php/reservation_scheduler/run/BAD_SECRET';
-const SCHED_GOOD_URL   = '/index.php/reservation_scheduler/run/CHANGE_ME_IN_PRODUCTION';
+const SCHED_GOOD_URL   = `/index.php/reservation_scheduler/run/${SCHEDULER_SECRET}`;
 const SAVE_PREFS_URL   = '/index.php/mes_reservations/save_preferences';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
