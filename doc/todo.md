@@ -10,7 +10,9 @@
 
 * [] Relances des débiteurs par email, avec un template configurable par le club.
 
-* [] Controle des carnets de route, avec un écran dédié pour les administrateurs club. 
+* [x] Controle des carnets de route, avec un écran dédié pour les administrateurs club.
+
+* [ ] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. 
 
 * [] Génération des certificats de formation et de pilotes VD.
 
