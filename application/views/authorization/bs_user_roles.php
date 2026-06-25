@@ -95,7 +95,11 @@ $this->load->view('bs_banner');
                                           data-bs-toggle="tooltip" 
                                           data-bs-placement="top" 
                                           title="<?= !empty($tooltip_text) ? htmlspecialchars($tooltip_text) : '' ?>">
-                                            <?= htmlspecialchars($role['role_name']) ?>
+                                            <?= htmlspecialchars(
+                                                (!empty($role['translation_key']) && $this->lang->line($role['translation_key']) !== FALSE)
+                                                    ? $this->lang->line($role['translation_key'])
+                                                    : $role['role_name']
+                                            ) ?>
                                             <?php if ($role['scope'] === 'global'): ?>
                                                 <i class="fas fa-globe" title="Global"></i>
                                             <?php endif; ?>

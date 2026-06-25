@@ -145,8 +145,8 @@ $lang['gvv_no_upload_file'] = "Pas de fichier choisi";
 $lang['gvv_button_open'] = "Ouvrir";
 
 # Authorization - Roles
-$lang['role_user'] = "Utilisateur";
-$lang['role_auto_planchiste'] = "Auto-planchiste";
+$lang['role_user'] = "Actif";
+$lang['role_auto_planchiste'] = "Réservation";
 $lang['role_planchiste'] = "Planchiste";
 $lang['role_ca'] = "Conseil d'Administration";
 $lang['role_bureau'] = "Bureau";
