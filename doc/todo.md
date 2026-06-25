@@ -12,15 +12,11 @@
 
 * [] Relances des débiteurs par email, avec un template configurable par le club.
 
-* [x] Controle des carnets de route, avec un écran dédié pour les administrateurs club.
-
-* [ ] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. 
+* [ ] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.
 
 * [] Génération des certificats de formation et de pilotes VD.
 
 * [] Support des messages du jour, qui pourront inclure les alarmes.
-
-* [] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
 
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions

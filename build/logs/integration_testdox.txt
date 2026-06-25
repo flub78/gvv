@@ -109,6 +109,26 @@ Briefing Signature
  [x] MarkTokenUsed SetsUsedAt
  [x] MarkTokenUsed PreventReuse
 
+Carnet Route Smoke
+ [x] Controller file exists
+ [x] Model file exists
+ [x] Helper file exists
+ [x] View file exists
+ [x] Language files exist
+ [x] Controller extends my controller
+ [x] Controller requires admin roles
+ [x] Controller has page method
+ [x] Controller has csv method
+ [x] Controller has pdf method
+ [x] Menu entry exists
+ [x] Dashboard card exists
+ [x] View uses datatable class
+ [x] Model loads without error
+ [x] Get avions returns array
+ [x] Get flights returns array for valid period
+ [x] Helper runs on real flights
+ [x] Summary durations are rounded
+
 Cartes Member Model
  [x] Get membre returns null for unknown login
  [x] Get membre returns array for existing login
@@ -395,6 +415,19 @@ Ran Mode
  [ ] Ecriture avec compte 102 non compensee
  [ ] Saisir ecriture retrospective avec compte 102
  [ ] Ecriture avec compte 102 modifie solde sans erreur
+
+Relances
+ [x] Get debiteurs category structure
+ [x] Get debiteurs only negative balances
+ [x] Get debiteurs sorted descending
+ [x] Get debiteurs row has expected keys
+ [x] Get debiteurs sections match rows
+ [x] Config keys exist
+ [x] Controller file exists
+ [x] Model file exists
+ [x] View file exists
+ [x] Migration file exists
+ [x] Language files exist
 
 Rename Membre
  [x] Validate new mlogin empty

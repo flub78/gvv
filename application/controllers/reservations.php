@@ -1068,11 +1068,14 @@ class Reservations extends MY_Controller {
         $this->load->model('ecritures_model');
         $balance = (float) $this->ecritures_model->solde_compte($compte['id']);
 
-        if ($balance >= $total_cost) {
+        // Only 2/3 of the estimated cost is required to make a reservation.
+        $required = $total_cost * 2.0 / 3.0;
+
+        if ($balance >= $required) {
             return array('ok' => true);
         }
 
-        return array('ok' => false, 'balance' => $balance, 'cost' => $total_cost);
+        return array('ok' => false, 'balance' => $balance, 'cost' => $required);
     }
 
     /**

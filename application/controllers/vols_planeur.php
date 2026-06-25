@@ -159,12 +159,19 @@ class Vols_planeur extends Gvv_Controller {
         // For auto_planchiste (not planchiste), restrict pilot selector to themselves only
         $is_planchiste = $this->user_has_role('planchiste');
         $is_auto_planchiste = !$is_planchiste && $this->user_has_role('auto_planchiste');
-        if ($is_auto_planchiste) {
+        $is_mecano = !$is_planchiste && $this->user_has_role('mecano');
+        if ($is_auto_planchiste || $is_mecano) {
             $mlogin = $this->dx_auth->get_username();
             $pilote_selector = array($mlogin => $this->membres_model->image($mlogin));
-            $this->data['auto_planchiste'] = true;
+            $this->data['auto_planchiste'] = $is_auto_planchiste;
         } else {
             $this->data['auto_planchiste'] = false;
+        }
+
+        // Mecano: restrict category selector to Vol d'essai (2) only
+        if ($is_mecano) {
+            $all_categories = $this->config->item('categories_vol_planeur');
+            $this->gvvmetadata->field['volsp']['vpcategorie']['Enumerate'] = array(2 => $all_categories[2]);
         }
 
         // Avec les méta-données
@@ -226,7 +233,8 @@ class Vols_planeur extends Gvv_Controller {
         $can_create = $is_planchiste || $is_auto_planchiste
             || $this->user_has_role('ca')
             || $this->user_has_role('bureau')
-            || $this->user_has_role('tresorier');
+            || $this->user_has_role('tresorier')
+            || $this->user_has_role('mecano');
         if (! $can_create) {
             $this->dx_auth->deny_access();
             return;
@@ -314,9 +322,11 @@ class Vols_planeur extends Gvv_Controller {
     function edit($id= '', $load_view = true, $action = MODIFICATION) {
         // planchiste: full access to all flights
         // auto_planchiste: can modify their own flights only
+        // mecano: can modify their own Vol d'essai (category 2) flights only
         // other users: can view their own flights only
         $is_planchiste = $this->user_has_role('planchiste');
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        $is_mecano = !$is_planchiste && $this->user_has_role('mecano');
         if (! $is_planchiste) {
             $flight = $this->model->get_by_id('vpid', $id);
             $mlogin = $this->dx_auth->get_username();
@@ -325,11 +335,14 @@ class Vols_planeur extends Gvv_Controller {
                 $this->dx_auth->deny_access();
                 return;
             }
-            if (! $is_auto_planchiste) {
+            if ($is_auto_planchiste) {
+                // auto_planchiste with own flight: keep MODIFICATION (frozen check applies below)
+            } elseif ($is_mecano && !empty($flight) && (int)$flight['vpcategorie'] === 2) {
+                // mecano with own Vol d'essai flight: keep MODIFICATION
+            } else {
                 // Regular user: view only their own flight
                 $action = VISUALISATION;
             }
-            // auto_planchiste with own flight: keep MODIFICATION (frozen check applies below)
         }
         
         $this->load->model('ecritures_model');
@@ -376,13 +389,13 @@ class Vols_planeur extends Gvv_Controller {
      */
     function delete($id) {
         if (! $this->user_has_role('planchiste')) {
-            if ($this->user_has_role('auto_planchiste')) {
-                $flight = $this->gvv_model->get_by_id($this->kid, $id);
-                $mlogin = $this->dx_auth->get_username();
-                if (empty($flight) || $flight['vppilid'] != $mlogin) {
-                    $this->dx_auth->deny_access();
-                    return;
-                }
+            $flight = $this->gvv_model->get_by_id($this->kid, $id);
+            $mlogin = $this->dx_auth->get_username();
+            $is_own_flight = (!empty($flight) && $flight['vppilid'] == $mlogin);
+            if ($is_own_flight && $this->user_has_role('auto_planchiste')) {
+                // auto_planchiste can delete own flights
+            } elseif ($is_own_flight && $this->user_has_role('mecano') && !empty($flight) && (int)$flight['vpcategorie'] === 2) {
+                // mecano can delete own Vol d'essai flights
             } else {
                 $this->dx_auth->deny_access();
                 return;
@@ -1778,6 +1791,12 @@ class Vols_planeur extends Gvv_Controller {
         // Server-side enforcement: auto_planchiste can only create flights for themselves
         if (!$this->user_has_role('planchiste') && $this->user_has_role('auto_planchiste')) {
             $processed_data['vppilid'] = $this->dx_auth->get_username();
+        }
+
+        // Server-side enforcement: mecano can only create Vol d'essai (category 2) for themselves
+        if (!$this->user_has_role('planchiste') && $this->user_has_role('mecano')) {
+            $processed_data['vppilid'] = $this->dx_auth->get_username();
+            $processed_data['vpcategorie'] = 2;
         }
 
         return $processed_data;

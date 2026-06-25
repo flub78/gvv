@@ -280,6 +280,7 @@ class Vols_avion extends Gvv_Controller {
             'pilote_rem'      => $this->user_has_role('pilote_rem'),
             'auto_planchiste' => $this->user_has_role('auto_planchiste'),
             'owns_machine'    => $owns_machine,
+            'mecano'          => $this->user_has_role('mecano'),
         ));
     }
 
@@ -363,6 +364,12 @@ class Vols_avion extends Gvv_Controller {
         // (pilote_rem avec droits complets est exclu de cette restriction)
         if (!$this->can_write_airplane_flights() && $this->user_has_role('auto_planchiste')) {
             $processed_data['vapilid'] = $this->dx_auth->get_username();
+        }
+
+        // Server-side enforcement: mecano can only create Vol d'essai (category 2) for themselves
+        if (!$this->can_write_airplane_flights() && $this->user_has_role('mecano')) {
+            $processed_data['vapilid'] = $this->dx_auth->get_username();
+            $processed_data['vacategorie'] = 2;
         }
 
         if (
@@ -640,7 +647,8 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::create()
      */
     function create() {
-        if (! $this->can_write_airplane_flights() && ! $this->user_has_role('auto_planchiste')) {
+        if (! $this->can_write_airplane_flights() && ! $this->user_has_role('auto_planchiste')
+                && ! $this->user_has_role('mecano')) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -662,9 +670,11 @@ class Vols_avion extends Gvv_Controller {
         // Access rules:
         //   planchiste / pilote_rem  → full edit
         //   auto_planchiste + own flight → edit own
+        //   mecano + own Vol d'essai flight → edit own
         //   all other logged-in users → view-only (any flight)
         $is_planchiste = $this->can_write_airplane_flights();
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
+        $is_mecano = !$is_planchiste && $this->user_has_role('mecano');
         $bypass_modification_level = FALSE;
 
         if ($is_planchiste) {
@@ -675,6 +685,10 @@ class Vols_avion extends Gvv_Controller {
             $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
             if ($is_own_flight && $is_auto_planchiste) {
                 // auto_planchiste editing own flight: bypass level check
+                $action = MODIFICATION;
+                $bypass_modification_level = TRUE;
+            } elseif ($is_own_flight && $is_mecano && !empty($flight) && (int)$flight['vacategorie'] === 2) {
+                // mecano editing own Vol d'essai flight
                 $action = MODIFICATION;
                 $bypass_modification_level = TRUE;
             } else {
@@ -729,13 +743,13 @@ class Vols_avion extends Gvv_Controller {
      */
     function delete($id) {
         if (! $this->can_write_airplane_flights()) {
-            if ($this->user_has_role('auto_planchiste')) {
-                $flight = $this->gvv_model->get_by_id($this->kid, $id);
-                $mlogin = $this->dx_auth->get_username();
-                if (empty($flight) || $flight['vapilid'] != $mlogin) {
-                    $this->dx_auth->deny_access();
-                    return;
-                }
+            $flight = $this->gvv_model->get_by_id($this->kid, $id);
+            $mlogin = $this->dx_auth->get_username();
+            $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
+            if ($is_own_flight && $this->user_has_role('auto_planchiste')) {
+                // auto_planchiste can delete own flights
+            } elseif ($is_own_flight && $this->user_has_role('mecano') && !empty($flight) && (int)$flight['vacategorie'] === 2) {
+                // mecano can delete own Vol d'essai flights
             } else {
                 $this->dx_auth->deny_access();
                 return;

@@ -55,6 +55,24 @@ Bitfields Helper
  [x] Int 2 array keys match values
  [x] Powers of two
 
+Carnet Route Continuite
+ [x] Empty input returns empty array
+ [x] Single flight with valid horametre is ok
+ [x] Single flight with missing horametre is missing
+ [x] Two flights in exact continuity are both ok
+ [x] Continuity with floating point tolerance
+ [x] Two flights with gap produces intermediate gap row
+ [x] Gap flights are marked error
+ [x] Gap duration is correct
+ [x] Two flights with overlap produces intermediate overlap row
+ [x] Overlap flights are marked error
+ [x] Overlap duration is correct
+ [x] Flight with missing horametre in sequence inserts missing row
+ [x] Mixed sequence produces correct row types
+ [x] Summary on clean sequence is all zero
+ [x] Summary counts each anomaly type
+ [x] Summary counts missing horametre
+
 Crypto Helper
  [x] Transform integer with default keys
  [x] Transform integer with custom keys

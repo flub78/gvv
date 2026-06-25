@@ -210,3 +210,5 @@
 * [x] ajout autonomie pour limiter la durée des vols et les séances de formation en vol
 
 * [x] Searchbox datatable sur les paiements HelloAsso
+
+* [x] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.

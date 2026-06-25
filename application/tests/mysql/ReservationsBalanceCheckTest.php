@@ -278,9 +278,10 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         }
         $balance = (float)$this->CI->ecritures_model->solde_compte($compte['id']);
 
-        return $balance >= $total_cost
+        $required = $total_cost * 2.0 / 3.0;
+        return $balance >= $required
             ? ['ok' => true]
-            : ['ok' => false, 'balance' => $balance, 'cost' => $total_cost];
+            : ['ok' => false, 'balance' => $balance, 'cost' => $required];
     }
 
     // ================================================================== //
@@ -331,14 +332,14 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
 
     public function testInsufficientBalanceBlocksReservation()
     {
-        // Credit 50€, new reservation = 2h × 50€ = 100€ → blocked
+        // Credit 50€, new reservation = 2h × 50€ = 100€, required = 2/3 × 100€ = 66.67€ → blocked
         $this->_credit_account(50.00);
         $result = $this->_check_balance(2.0);
         $this->assertFalse($result['ok'], 'Should block reservation when balance is insufficient');
         $this->assertArrayHasKey('balance', $result);
         $this->assertArrayHasKey('cost', $result);
         $this->assertEquals(50.00, $result['balance'], 'Balance in error must match account balance');
-        $this->assertEquals(100.00, $result['cost'], 'Cost must be 2h × 50€');
+        $this->assertEqualsWithDelta(66.67, $result['cost'], 0.01, 'Cost must be 2/3 × (2h × 50€)');
     }
 
     public function testZeroBalanceBlocksReservation()
@@ -354,13 +355,13 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
 
     public function testExistingReservationsAddedToNewCost()
     {
-        // Existing: 1h (50€). New: 1h (50€). Total: 100€. Balance: 80€ → blocked.
-        $this->_credit_account(80.00);
+        // Existing: 1h (50€). New: 1h (50€). Total: 100€. Required: 2/3 × 100€ = 66.67€. Balance: 60€ → blocked.
+        $this->_credit_account(60.00);
         $this->_create_future_reservation(1.0); // 1h existing
 
         $result = $this->_check_balance(1.0); // 1h new
         $this->assertFalse($result['ok'], 'Existing + new hours must be combined');
-        $this->assertEqualsWithDelta(100.00, $result['cost'], 0.01, 'Cost must be (1+1)h × 50€');
+        $this->assertEqualsWithDelta(66.67, $result['cost'], 0.01, 'Cost must be 2/3 × (1+1)h × 50€');
     }
 
     public function testExactBalanceSufficient()
@@ -389,11 +390,11 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
 
     public function testDoublCommandAddedWhenInstructor()
     {
-        // New: 2h × (50 + 10)€ = 120€. Balance: 110€ → blocked.
-        $this->_credit_account(110.00);
+        // New: 2h × (50 + 10)€ = 120€. Required: 2/3 × 120€ = 80€. Balance: 70€ → blocked.
+        $this->_credit_account(70.00);
         $result = $this->_check_balance(2.0, true);
         $this->assertFalse($result['ok'], 'DC surcharge must push total over balance');
-        $this->assertEqualsWithDelta(120.00, $result['cost'], 0.01, 'Cost = 2h × 50€ + 2h × 10€ DC');
+        $this->assertEqualsWithDelta(80.00, $result['cost'], 0.01, 'Cost = 2/3 × (2h × 50€ + 2h × 10€ DC)');
     }
 
     public function testDoublCommandNotAddedWithoutInstructor()
@@ -413,11 +414,11 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         // Set pilot as owner of aircraft
         $this->CI->db->update('machinesa', ['proprio' => $this->pilot], ['macimmat' => $this->aircraft_id]);
 
-        // 2h × 20€ (proprio rate) = 40€. Balance: 35€ → blocked.
-        $this->_credit_account(35.00);
+        // 2h × 20€ (proprio rate) = 40€. Required: 2/3 × 40€ = 26.67€. Balance: 20€ → blocked.
+        $this->_credit_account(20.00);
         $result = $this->_check_balance(2.0);
         $this->assertFalse($result['ok'], 'Owner should use proprio rate');
-        $this->assertEqualsWithDelta(40.00, $result['cost'], 0.01, 'Cost = 2h × 20€ (proprio rate)');
+        $this->assertEqualsWithDelta(26.67, $result['cost'], 0.01, 'Cost = 2/3 × 2h × 20€ (proprio rate)');
     }
 
     public function testOwnerWithSufficientBalanceAllowed()
@@ -432,11 +433,11 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
 
     public function testNonOwnerUsesRegularRate()
     {
-        // No proprio set → regular rate 50€
-        $this->_credit_account(90.00);
-        $result = $this->_check_balance(2.0); // 2h × 50€ = 100€, balance 90€ → blocked
+        // No proprio set → regular rate 50€. 2h × 50€ = 100€. Required: 2/3 × 100€ = 66.67€. Balance: 60€ → blocked.
+        $this->_credit_account(60.00);
+        $result = $this->_check_balance(2.0);
         $this->assertFalse($result['ok'], 'Non-owner must use regular rate (50€)');
-        $this->assertEqualsWithDelta(100.00, $result['cost'], 0.01);
+        $this->assertEqualsWithDelta(66.67, $result['cost'], 0.01);
     }
 
     // ================================================================== //

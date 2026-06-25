@@ -12,11 +12,12 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *   - pilote_vd                : Standard, VD, PO, BIA
  *   - pilote_rem               : Standard, Remorquage, Convoyage (JS filtre selon machine)
  *   - propriétaire de machine  : Standard, Vol propriétaire (JS filtre selon machine)
+ *   - mecano                   : Vol d'essai uniquement
  *   - auto_planchiste seul     : Standard uniquement
  *
  * @param array $all   Tableau complet [int => string] (config categories_vol_avion)
  * @param array $roles Drapeaux booléens : admin, planchiste, instructeur,
- *                     pilote_vd, pilote_rem, auto_planchiste, owns_machine
+ *                     pilote_vd, pilote_rem, auto_planchiste, owns_machine, mecano
  * @return array       Sous-tableau des catégories autorisées (clés préservées)
  */
 function compute_vols_avion_categories(array $all, array $roles)
@@ -29,6 +30,7 @@ function compute_vols_avion_categories(array $all, array $roles)
         'pilote_rem'      => false,
         'auto_planchiste' => false,
         'owns_machine'    => false,
+        'mecano'          => false,
     ), $roles);
 
     if ($r['admin'] || $r['planchiste']) {
@@ -50,7 +52,7 @@ function compute_vols_avion_categories(array $all, array $roles)
     }
 
     // Vol d'essai (2)
-    if ($r['instructeur']) {
+    if ($r['instructeur'] || $r['mecano']) {
         $allowed[2] = $all[2];
     }
 

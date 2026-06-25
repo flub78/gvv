@@ -52,7 +52,7 @@ $lang['reservations_error_end_before_start'] = "Eindtijd moet na begintijd ligge
 $lang['reservations_error_not_authorized'] = "U bent niet bevoegd om deze reservering te wijzigen";
 $lang['reservations_error_past_reservation'] = "Verouderde reserveringen kunnen niet worden gewijzigd of verwijderd";
 $lang['reservations_error_no_cotisation'] = "U heeft geen geldige lidmaatschapsbijdrage voor dit jaar";
-$lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Geschatte totale kosten van uw reserveringen: %s";
+$lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Minimaal vereist saldo (2/3 van de kosten): %s";
 $lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages
