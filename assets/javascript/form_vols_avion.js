@@ -30,6 +30,10 @@ var currentMachineXhr = null;
 var $detachedRemorquageOpt = null;
 var $detachedProprioOpt    = null;
 
+// true uniquement pendant l'appel initial setTimeout (page load).
+// false dès que l'utilisateur a changé la machine manuellement.
+var _hora_initial_load = true;
+
 /**
  * Construit le widget de saisie d'horamètre
  * @param {string} containerId - ID du div conteneur
@@ -334,11 +338,17 @@ function hora_unit_label(unit) {
 
 function update_hora_format(machine) {
 	var selected_machine = machine || $("#vamacid").val();
+
 	if (!selected_machine) {
+		// Aucune machine sélectionnée : vider les horamètres et les widgets
 		$("#hora_format").text('');
-		buildHoraWidgets(0);
+		$("#debut").val('');
+		$("#fin").val('');
+		$('#debut_widget').empty();
+		$('#fin_widget').empty();
 		return;
 	}
+
 	var mode = 0;
 	if (typeof horametres_modes_data !== 'undefined' &&
 	    horametres_modes_data.hasOwnProperty(selected_machine)) {
@@ -349,7 +359,13 @@ function update_hora_format(machine) {
 	var label = horametre + " " + selected_machine + " " + hora_unit_label(unit);
 	$("#hora_format").text(label);
 
-	if (typeof is_new_vol !== 'undefined' && is_new_vol) {
+	// Initialiser les horamètres avec la dernière valeur de la machine quand :
+	// - c'est un nouveau vol (is_new_vol=true : première ouverture du formulaire de création), OU
+	// - l'utilisateur vient de changer la machine manuellement (!_hora_initial_load)
+	// Ne pas écraser les horamètres en cas de ré-affichage après erreur (_hora_initial_load=true et is_new_vol=false)
+	// ni lors de l'édition d'un vol existant (_hora_initial_load=true et is_new_vol=false).
+	var should_init_hora = (typeof is_new_vol !== 'undefined' && is_new_vol) || !_hora_initial_load;
+	if (should_init_hora) {
 		var lastHora = (typeof horametres_last_data !== 'undefined' &&
 		                horametres_last_data.hasOwnProperty(selected_machine))
 		               ? horametres_last_data[selected_machine] : 0;
@@ -372,8 +388,15 @@ $(document).ready(function(){
 
 	$("#debut, #fin").on('change', updateDuree);
 
-	$("#vamacid").change(update_machine);
-	setTimeout(update_machine, 0);
+	$("#vamacid").change(function() {
+		_hora_initial_load = false;  // L'utilisateur change la machine manuellement
+		update_machine();
+	});
+	setTimeout(function() {
+		_hora_initial_load = true;   // Marquer comme chargement initial
+		update_machine();
+		_hora_initial_load = false;  // Reset après l'appel initial
+	}, 0);
 
 	$("#vacategorie").change(update_vd_required);
 	update_vd_required();

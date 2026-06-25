@@ -8,6 +8,8 @@
 
 * [] Rappel des réservations par email pour le pilote et l'instructeur.
 
+* [] export csv et pdf des relances. 
+
 * [] Relances des débiteurs par email, avec un template configurable par le club.
 
 * [x] Controle des carnets de route, avec un écran dédié pour les administrateurs club.

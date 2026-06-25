@@ -140,8 +140,28 @@ class Vols_avion extends Gvv_Controller {
         $this->data['saisie_par'] = $this->dx_auth->get_username();
         $is_fresh_creation = ($action == CREATION && $this->input->post('vacdeb') === false);
         $this->data['is_new_vol'] = $is_fresh_creation;
-        if ($is_fresh_creation) {
-            $this->data['vacdeb'] = $this->gvv_model->latest_horametre();
+        // Pour une création fraîche, le JS initialise les horamètres via horametres_last_data
+        // (par machine sélectionnée). On ne force pas de valeur par défaut globale ici
+        // afin que le widget reste vide tant qu'aucune machine n'est choisie.
+        if ($this->input->post('vacdeb') !== false) {
+            // Ré-affichage après échec de validation : $this->data['vacdeb/vacfin'] contient
+            // la valeur saisie par l'utilisateur (format heures.minutes pour mode MINUTES).
+            // Le widget JS attend toujours des centièmes d'heure (format DB).
+            // → Convertir en centièmes pour que le widget reconstitue correctement les minutes.
+            $machine = isset($this->data['vamacid']) ? $this->data['vamacid'] : null;
+            if ($machine) {
+                $mode = $this->get_horametre_mode($machine);
+                if ($mode == self::HORAMETRE_MINUTES) {
+                    foreach (['vacdeb', 'vacfin'] as $field) {
+                        if (isset($this->data[$field]) && is_numeric($this->data[$field])) {
+                            $this->data[$field] = round(
+                                $this->horametre_to_decimal_hours(floatval($this->data[$field]), $mode),
+                                4
+                            );
+                        }
+                    }
+                }
+            }
         }
 
         if ($action == CREATION) {

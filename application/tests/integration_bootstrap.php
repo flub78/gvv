@@ -497,6 +497,13 @@ class RealDatabase {
     }
     
     public function update($table, $data = null, $where = null) {
+        // Apply inline where conditions if provided as array (mirrors delete() behavior)
+        if (is_array($where) && !empty($where)) {
+            foreach ($where as $key => $value) {
+                $this->where($key, $value);
+            }
+        }
+
         $set_clauses = [];
 
         // Use data array if provided, otherwise use accumulated set() clauses
@@ -516,7 +523,7 @@ class RealDatabase {
         if (empty($set_clauses)) {
             return TRUE;
         }
-        
+
         $sql = "UPDATE " . $table . " SET " . implode(', ', $set_clauses);
 
         if (!empty($this->where_conditions)) {
