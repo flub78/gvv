@@ -254,3 +254,6 @@ $lang['db_desc_mes_reservations'] = "Consulter et gérer vos réservations à ve
 $lang['db_card_carnets_route']    = "Carnets de route";
 $lang['db_desc_carnets_route']    = "Contrôle de continuité horamètre";
 $lang['db_btn_controle']          = "Contrôler";
+
+$lang['db_card_relances']         = "Relances débiteurs";
+$lang['db_desc_relances']         = "Suivi des comptes membres débiteurs";

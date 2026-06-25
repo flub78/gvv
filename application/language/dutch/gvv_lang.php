@@ -67,6 +67,7 @@ $lang['gvv_menu_accounting_results'] = "Resultaten";
 $lang['gvv_menu_accounting_results_by_sections'] = "Resultaten per sectie";
 $lang['gvv_menu_accounting_results_avec_depreciation'] = "Clubresultaat";
 $lang['gvv_menu_accounting_bilan'] = "Jaarrekening";
+$lang['gvv_menu_relances'] = "Debiteuren aanmaningen";
 $lang['gvv_menu_accounting_sales'] = "Verkoop";
 $lang['gvv_menu_accounting_cash'] = "Cash";
 

@@ -85,6 +85,7 @@ $lang['gvv_menu_accounting_results'] = "Résultats section courante";
 $lang['gvv_menu_accounting_results_by_sections'] = "Résultats club";
 $lang['gvv_menu_accounting_results_avec_depreciation'] = "Résultat par sections";
 $lang['gvv_menu_accounting_bilan'] = "Bilan";
+$lang['gvv_menu_relances'] = "Relances débiteurs";
 $lang['gvv_menu_accounting_sales'] = "Ventes";
 $lang['gvv_menu_accounting_cash'] = "Trésorerie";
 $lang['gvv_menu_accounting_dashboard'] = "Tableau de bord";

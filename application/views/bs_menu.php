@@ -364,27 +364,12 @@ if ($CI->dx_auth->is_logged_in()) {
                 <li>
                   <hr class="dropdown-divider">
                 </li>
+                <li><a class="dropdown-item" href="<?= controller_url("relances/index") ?>"><i class="fas fa-exclamation-circle text-danger"></i> <?= translation("gvv_menu_relances") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url("achats/list_per_year") ?>"><i class="fas fa-shopping-bag text-success"></i> <?= translation("gvv_menu_accounting_sales") ?></a></li>
                 <li><a class="dropdown-item" href="<?= controller_url('attachments') ?>"><i class="fas fa-paperclip text-info"></i> <?= translation("gvv_attachments_title") ?></a></li>
               <?php endif; ?>
 
               <?php if (has_role('tresorier')) : ?>
-                <?php if ($this->config->item('gestion_of')) : ?>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-
-                  <li><a class="dropdown-item" href="#"><i class="fas fa-sync text-info"></i> Synchronisation OpenFlyers</a>
-                    <ul class="submenu dropdown-menu">
-
-                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_operations") ?>"><i class="fas fa-download text-success"></i> Import des opérations</a></li>
-
-                      <li><a class="dropdown-item" href="<?= controller_url("openflyers/select_soldes") ?>"><i class="fas fa-check-double text-success"></i> Import/vérification des soldes</a></li>
-
-                      <li><a class="dropdown-item" href="<?= controller_url("associations_of/page") ?>"><i class="fas fa-link text-primary"></i> Associations des comptes OpenFlyers</a></li>
-                    </ul>
-                  </li>
-                <?php endif; ?>
                 <?php if ($this->config->item('gestion_rapprochements')) : ?>
                   <li><a class="dropdown-item" href="<?= controller_url('rapprochements/select_releve') ?>"><i class="fas fa-list-check text-warning"></i> <?= translation("gvv_menu_rapprochements") ?></a></li>
                 <?php endif; ?>

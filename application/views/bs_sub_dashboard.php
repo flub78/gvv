@@ -477,6 +477,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('comptes/balance') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-exclamation-circle text-danger"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_relances') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_relances') ?></div>
+                <a href="<?= controller_url('relances/index') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
+            </div>
+        </div>
         <?php endif; ?>
 
         <?php if (has_role('ca') || has_role('bureau')) : ?>
@@ -553,33 +562,6 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
 
         <?php if (has_role('tresorier')) : ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-download text-success"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_import_operations') ?></div>
-                <div class="card-text text-muted">OpenFlyers</div>
-                <a href="<?= controller_url('openflyers/select_operations') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_importer') ?></a>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-check-double text-success"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_import_balances') ?></div>
-                <div class="card-text text-muted">OpenFlyers</div>
-                <a href="<?= controller_url('openflyers/select_soldes') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_importer') ?></a>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-link text-primary"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_account_assoc') ?></div>
-                <div class="card-text text-muted">OpenFlyers</div>
-                <a href="<?= controller_url('associations_of/page') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-list-check text-warning"></i>

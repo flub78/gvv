@@ -254,3 +254,6 @@ $lang["db_desc_mes_reservations"] = "Uw aankomende reserveringen bekijken en beh
 $lang['db_card_carnets_route']    = "Vluchtenlogboeken";
 $lang['db_desc_carnets_route']    = "Hobbs-continuïteitscontrole";
 $lang['db_btn_controle']          = "Controleren";
+
+$lang['db_card_relances']         = "Debiteuren aanmaningen";
+$lang['db_desc_relances']         = "Bijhouden van debiteuren ledenrekeningen";
