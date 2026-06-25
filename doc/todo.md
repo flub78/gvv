@@ -8,8 +8,6 @@
 
 * [] Rappel des réservations par email pour le pilote et l'instructeur.
 
-* [] export csv et pdf des relances. 
-
 * [] Relances des débiteurs par email, avec un template configurable par le club.
 
 * [ ] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.
@@ -52,8 +50,6 @@
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
-
-* [] Page de relance mauvais payeurs. 
 
 * [] Passer à php8
 
