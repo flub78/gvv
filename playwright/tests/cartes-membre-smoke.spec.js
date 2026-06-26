@@ -64,10 +64,11 @@ test.describe('Cartes de membre — smoke tests', () => {
         await page.goto('/index.php/cartes_membre/generation');
         await page.waitForLoadState('networkidle');
 
-        const tableExists = await page.locator('table').count() > 0;
-        if (tableExists) {
-            await expect(page.locator('table')).toBeVisible();
-            const checkboxes = page.locator('input[type="checkbox"].membre-cb');
+        const membresCard = page.locator('#membres-card');
+        const tableVisible = await membresCard.isVisible();
+        if (tableVisible) {
+            await expect(membresCard.locator('table')).toBeVisible();
+            const checkboxes = membresCard.locator('input[type="checkbox"].membre-cb');
             const count = await checkboxes.count();
             expect(count).toBeGreaterThan(0);
         }

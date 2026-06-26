@@ -265,7 +265,7 @@ test('Share button visible in VD list for testadmin', async ({ page }) => {
     await login(page, ADMIN_USER);
 
     await page.goto(VD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     await checkNoPhpErrors(page);
     await expect(page).not.toHaveURL(/error|403|404/);

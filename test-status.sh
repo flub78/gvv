@@ -287,7 +287,7 @@ LEFT, TOP, LABEL_H = 10, 10, 55
 def _svg_bars(bars, max_t):
     """Render a list of {date, total, fail, skip, passed, tip} dicts as SVG rects."""
     BOTTOM = TOP + CHART_H
-    recent = bars[-50:]
+    recent = bars[-20:]
     svg_w  = max(300, LEFT + len(recent) * (BAR_W + BAR_GAP) + 20)
     svg_h  = CHART_H + TOP + LABEL_H
 

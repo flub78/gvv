@@ -408,9 +408,24 @@ class Email_lists_model extends CI_Model
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($active_member === 'active') {
-            $this->db->where('m.actif', 1);
+            // Active = has 'Utilisateur' role in the same section as the criteria.
+            // If section_id is NULL (all sections), active in at least one section.
+            $this->db->join('user_roles_per_section urps_actif',
+                'urps_actif.user_id = u.id AND urps_actif.revoked_at IS NULL', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'Utilisateur');
+            if ($section_id !== NULL) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
+            $this->db->group_by('m.mlogin');
         } elseif ($active_member === 'inactive') {
-            $this->db->where('m.actif', 0);
+            // Inactive = does NOT have 'Utilisateur' role in the criteria section.
+            $section_id_safe = ($section_id !== NULL) ? (int)$section_id : NULL;
+            if ($section_id_safe !== NULL) {
+                $this->db->where("u.id NOT IN (SELECT urps_i.user_id FROM user_roles_per_section urps_i JOIN types_roles tr_i ON tr_i.id = urps_i.types_roles_id WHERE tr_i.nom = 'Utilisateur' AND urps_i.section_id = $section_id_safe AND urps_i.revoked_at IS NULL)", NULL, FALSE);
+            } else {
+                $this->db->where("u.id NOT IN (SELECT urps_i.user_id FROM user_roles_per_section urps_i JOIN types_roles tr_i ON tr_i.id = urps_i.types_roles_id WHERE tr_i.nom = 'Utilisateur' AND urps_i.revoked_at IS NULL)", NULL, FALSE);
+            }
         }
         // 'all' - no filter
 

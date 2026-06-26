@@ -25,9 +25,10 @@ class Cartes_membre_model extends CI_Model {
         $activites_subquery = '(SELECT GROUP_CONCAT(s.nom ORDER BY s.nom SEPARATOR \', \')
             FROM users u
             JOIN user_roles_per_section urps ON u.id = urps.user_id
+            JOIN types_roles tr ON tr.id = urps.types_roles_id
             JOIN sections s ON urps.section_id = s.id
             WHERE u.username = membres.mlogin
-              AND urps.types_roles_id = 1
+              AND tr.nom = \'Utilisateur\'
               AND s.show_on_member_card = 1)';
 
         $row = $this->db
@@ -69,7 +70,11 @@ class Cartes_membre_model extends CI_Model {
             ->select('m.mlogin, m.mnom, m.mprenom, m.mnumero, m.photo')
             ->from('membres m')
             ->join('licences l', 'l.pilote = m.mlogin AND l.type = 0 AND l.year = ' . (int)$year, 'inner')
-            ->where('m.actif', 1)
+            ->join('users u', 'u.username = m.mlogin', 'inner')
+            ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
+            ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
+            ->where('tr.nom', 'Utilisateur')
+            ->group_by('m.mlogin')
             ->order_by('m.mnom')
             ->order_by('m.mprenom')
             ->get()->result_array();
@@ -88,7 +93,10 @@ class Cartes_membre_model extends CI_Model {
             ->select('m.mlogin, m.mnom, m.mprenom, m.mnumero, m.photo')
             ->from('membres m')
             ->join('licences l', "l.pilote = m.mlogin AND l.type = 0 AND (l.year = $y OR l.year = $y1)", 'inner')
-            ->where('m.actif', 1)
+            ->join('users u', 'u.username = m.mlogin', 'inner')
+            ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
+            ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
+            ->where('tr.nom', 'Utilisateur')
             ->group_by('m.mlogin')
             ->order_by('m.mnom')
             ->order_by('m.mprenom')
@@ -177,11 +185,15 @@ class Cartes_membre_model extends CI_Model {
      */
     public function get_all_membres_actifs() {
         return $this->db
-            ->select('mlogin, mnom, mprenom, mnumero')
-            ->from('membres')
-            ->where('actif', 1)
-            ->order_by('mnom')
-            ->order_by('mprenom')
+            ->select('m.mlogin, m.mnom, m.mprenom, m.mnumero')
+            ->from('membres m')
+            ->join('users u', 'u.username = m.mlogin', 'inner')
+            ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
+            ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
+            ->where('tr.nom', 'Utilisateur')
+            ->group_by('m.mlogin')
+            ->order_by('m.mnom')
+            ->order_by('m.mprenom')
             ->get()->result_array();
     }
 

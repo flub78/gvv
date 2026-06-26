@@ -464,15 +464,12 @@ if ($CI->dx_auth->is_logged_in()) {
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
 
-              <?php if ($this->config->item('gestion_reservations')) : ?>
-              <li><a class="dropdown-item" href="<?= controller_url("reservations") ?>"><i class="fas fa-calendar-alt text-primary"></i> Réservations (FullCalendar)</a></li>
-              <?php endif; ?>
-              <li><a class="dropdown-item" href="<?= controller_url("presences") ?>"><i class="fas fa-calendar-check text-success"></i> Présences (FullCalendar v6)</a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
+<li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
               <li><a class="dropdown-item" href="https://legacy.datatables.net/api.html"><i class="fas fa-file-alt text-info"></i> Datatable 1.9.4</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('oneshot') ?>"><i class="fas fa-bolt text-danger"></i> Opérations One-Shot</a></li>
+              <li><a class="dropdown-item" href="http://gvv.net/build/test-dashboard.html"><i class="fas fa-vial text-success"></i> Test Dashboard</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="<?= controller_url('membres_fusion') ?>"><i class="fas fa-code-branch text-danger"></i> Fusion de membres</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('membre/renommer') ?>"><i class="fas fa-edit text-warning"></i> Renommer un utilisateur</a></li>

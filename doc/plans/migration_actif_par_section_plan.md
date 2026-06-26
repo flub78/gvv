@@ -80,16 +80,35 @@ public function selector($where = array(), $order = "asc", $filter_section = FAL
 
 La section courante est récupérée via `$this->session` (pattern déjà utilisé dans le modèle).
 
-### [ ] Étape 4 — `cartes_membre_model`
+### [x] Étape 4 — `cartes_membre_model`
 
-Ce modèle joint déjà `user_roles_per_section`. Vérifier la cohérence et adapter le filtre `m.actif = 1` en s'appuyant sur la jointure existante.
+Trois méthodes filtrent encore sur `actif = 1` sans jointure sur les rôles :
+
+- `get_membres_actifs_annee($year)` (ligne 72)
+- `get_membres_actifs_deux_annees($year)` (ligne 91)
+- `get_all_membres_actifs()` (ligne 182)
+
+Aucune de ces méthodes n'a de contexte section : appliquer la règle "actif dans au moins une section" (JOIN sans filtre `section_id`).
+
+Remplacer `WHERE m.actif = 1` / `WHERE actif = 1` par :
+```php
+->join('users u', 'u.username = m.mlogin', 'inner')
+->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
+->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
+->where('tr.nom', 'Utilisateur')
+->group_by('m.mlogin')   // évite les doublons si plusieurs sections actives
+```
+
+Note : `get_membres_actifs_annee` et `get_membres_actifs_deux_annees` joignent déjà `licences` via `m.mlogin` — utiliser l'alias `m` cohérent avec les requêtes existantes. `get_all_membres_actifs` n'a pas d'alias — en ajouter un (`membres m`).
+
+Point de vigilance : la sous-requête `activites` dans `get_membre()` (ligne 30) utilise `urps.types_roles_id = 1` en dur. À corriger en même temps pour utiliser `tr.nom = 'Utilisateur'` via une sous-requête imbriquée, pour cohérence et robustesse.
 
 ### [ ] Étape 5 — Autres modèles (licences, email_lists, comptes)
 
 Traitement cas par cas. Règle commune pour le mode sans section : actif dans au moins une section.
 
 - [ ] `licences_model.php` : contexte liste des licences de l'année — appliquer la règle "au moins une section"
-- [ ] `email_lists_model.php` : envoi emails — même règle
+- [x] `email_lists_model.php` : `get_users_by_role_and_section()` — filtre `active` remplacé par un second JOIN sur `user_roles_per_section` vérifiant le rôle 'Utilisateur' dans **la même section que le critère** ; si `section_id` est NULL, actif dans au moins une section. Filtre `inactive` remplacé par NOT IN subquery sur le même périmètre.
 - [ ] `comptes_model.php` : contexte comptable — même règle
 
 ### [ ] Étape 6 — `admin.php` controller

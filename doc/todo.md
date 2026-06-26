@@ -8,7 +8,7 @@
 
 * [] Rappel des réservations par email pour le pilote et l'instructeur.
 
-* [] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.
+* [~] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.
 
 * [] Génération des certificats de formation et de pilotes VD.
 
