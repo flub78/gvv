@@ -185,9 +185,16 @@ class Membres_model extends Common_Model {
      * @return objet La liste
      */
     public function select_licences() {
-        $select = $this->db->select("mlogin, mprenom, mnom, madresse, cp, ville, mdaten, CONCAT(mnom, ' ', mprenom) as nom_prenom", FALSE)->from($this->table)->order_by('mnom, mprenom')->where(array (
-                'actif' => 1
-        ))->get()->result_array();
+        $this->db->distinct();
+        $this->db->select("membres.mlogin, mprenom, mnom, madresse, cp, ville, mdaten, CONCAT(mnom, ' ', mprenom) as nom_prenom", FALSE);
+        $this->db->from($this->table);
+        $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');
+        $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = u_actif.id', 'inner');
+        $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+        $this->db->where('tr_actif.nom', 'user');
+        $this->db->where('urps_actif.revoked_at IS NULL');
+        $this->db->order_by('mnom, mprenom');
+        $select = $this->db->get()->result_array();
 
         $this->gvvmetadata->store_table($this->table, $select);
 
@@ -494,7 +501,14 @@ class Membres_model extends Common_Model {
         $this->db->where('comptes.masked', 0);
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = u_actif.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
         }
 
         $this->db->order_by('membres.mnom', 'ASC');
@@ -547,7 +561,13 @@ class Membres_model extends Common_Model {
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = users.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
         }
 
         $this->db->order_by('membres.mnom', 'ASC');
@@ -587,7 +607,13 @@ class Membres_model extends Common_Model {
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = users.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
         }
 
         $this->db->order_by('membres.mnom', 'ASC');
@@ -616,7 +642,11 @@ class Membres_model extends Common_Model {
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = users.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            // No section filter: active in at least one section
         }
 
         $this->db->order_by('membres.mnom', 'ASC');
@@ -655,7 +685,13 @@ class Membres_model extends Common_Model {
         $this->db->where('urps.revoked_at IS NULL');
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = users.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
         }
 
         $this->db->order_by('membres.mnom', 'ASC');
@@ -718,6 +754,27 @@ class Membres_model extends Common_Model {
     }
 
     /**
+     * Override common_model::selector() to intercept actif=>1 and translate it
+     * into a user_roles_per_section filter ('user' role).
+     * The 23 controllers that call selector(array('actif'=>1)) are unchanged.
+     */
+    public function selector($where = array(), $order = "asc", $filter_section = FALSE) {
+        if (array_key_exists('actif', $where)) {
+            unset($where['actif']);
+            $section_id = $this->section_id();
+            $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = u_actif.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
+        }
+        return parent::selector($where, $order, $filter_section);
+    }
+
+    /**
      * Get a selector array for all active members
      *
      * @param int $section_id Section ID (0 = current section)
@@ -741,7 +798,14 @@ class Membres_model extends Common_Model {
         $this->db->where('comptes.masked', 0);
 
         if ($only_actif) {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = u_actif.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            if ($section_id) {
+                $this->db->where('urps_actif.section_id', $section_id);
+            }
         }
 
         $this->db->order_by('membres.mnom', 'ASC');

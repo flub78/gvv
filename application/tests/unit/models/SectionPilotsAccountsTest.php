@@ -37,14 +37,15 @@ class SectionPilotsAccountsTest extends TestCase
         $this->assertContains(['comptes.club', 2], $db->wheres, 'Should filter on active section ID');
         $this->assertContains(['comptes.actif', 1], $db->wheres, 'Should filter on active accounts');
         $this->assertContains(['comptes.masked', 0], $db->wheres, 'Should exclude masked accounts');
-        $this->assertContains(['membres.actif', 1], $db->wheres, 'Should filter on active members');
+        $this->assertContains(['tr_actif.nom', 'user'], $db->wheres, 'Should filter on user role');
+        $this->assertContains(['urps_actif.section_id', 2], $db->wheres, 'Should filter by active section');
 
         // Vérifier que le sélecteur contient une entrée vide
         $this->assertArrayHasKey('', $result, 'Selector should have empty option');
 
-        // Vérifier les jointures
-        $this->assertCount(1, $db->joins, 'Should have one join');
-        $this->assertEquals('comptes', $db->joins[0][0], 'Should join with comptes table');
+        // Vérifier les jointures: comptes + users u_actif + urps_actif + tr_actif
+        $this->assertCount(4, $db->joins, 'Should have four joins');
+        $this->assertEquals('comptes', $db->joins[0][0], 'First join should be with comptes table');
     }
 
     /**

@@ -207,10 +207,10 @@ class Vols_avion extends Gvv_Controller {
         $section = $this->gvv_model->section();
 
         $certificats = array();
-        $select = $this->events_types_model->select_all(array(
+        $select = !empty($section) ? $this->events_types_model->select_all(array(
             'activite' => $section['id'],
             'en_vol' => 1
-        ));
+        )) : array();
 
         $date_values = array();
         foreach ($select as $row) {

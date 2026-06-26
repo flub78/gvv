@@ -210,12 +210,14 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
         // Select a type_seance_id (first available option)
         const typeSelect = page.locator('select[name="type_seance_id"]');
         await expect(typeSelect).toBeVisible();
-        const options = await typeSelect.locator('option').all();
-        const firstNonEmpty = options.find(async o => (await o.getAttribute('value')) !== '');
-        if (firstNonEmpty) {
-            const val = await (await typeSelect.locator('option').nth(1)).getAttribute('value');
-            await typeSelect.selectOption(val);
+        const optionValues = await typeSelect.locator('option').evaluateAll(
+            opts => opts.map(o => o.value).filter(v => v !== '')
+        );
+        if (optionValues.length === 0) {
+            test.skip('Aucun type de séance théorique actif en base – configurer formation_types_seance.actif=1');
+            return;
         }
+        await typeSelect.selectOption(optionValues[0]);
 
         // Add at least one participant via the hidden input
         // Use the AJAX endpoint to confirm it works, then inject a participant

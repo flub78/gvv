@@ -39,18 +39,18 @@ Modification uniquement dans la couche d'affichage, **sans changer les noms en b
 - [x] Remplacer l'affichage par "Actif" dans les fichiers de langue (français, anglais, néerlandais)
 - [x] Vérifier que la valeur `types_roles.nom = 'Utilisateur'` reste inchangée en base
 
-### [ ] Étape 2 — Méthodes spécialisées de `membres_model`
+### [x] Étape 2 — Méthodes spécialisées de `membres_model`
 
 Ces méthodes reçoivent déjà un `$section_id` et font déjà le JOIN `membres → users`. C'est le point le plus facile et le moins risqué.
 
 Méthodes à modifier :
-- [ ] `section_pilots($section_id, $only_actif)`
-- [ ] `inst_selector($section_id, $only_actif)`
-- [ ] `treuillard_selector($section_id, $only_actif)`
-- [ ] `inst_selector_all($only_actif)`
-- [ ] `pilrem_selector($section_id, $only_actif)`
-- [ ] `get_selector($section_id, $only_actif)`
-- [ ] `select_licences()`
+- [x] `section_pilots($section_id, $only_actif)`
+- [x] `inst_selector($section_id, $only_actif)`
+- [x] `treuillard_selector($section_id, $only_actif)`
+- [x] `inst_selector_all($only_actif)`
+- [x] `pilrem_selector($section_id, $only_actif)`
+- [x] `get_selector($section_id, $only_actif)`
+- [x] `select_licences()`
 
 Remplacer `$this->db->where('membres.actif', 1)` par la jointure :
 ```php
@@ -64,7 +64,7 @@ if ($section_id) {
 // (le DISTINCT sur mlogin est déjà assuré par la structure des sélecteurs)
 ```
 
-### [ ] Étape 3 — Override de `selector()` dans `membres_model`
+### [x] Étape 3 — Override de `selector()` dans `membres_model`
 
 Surcharger `selector()` hérité de `common_model` pour intercepter `array('actif' => 1)` et le traduire en filtre `user_roles_per_section`. Les 23 controllers restent inchangés.
 
