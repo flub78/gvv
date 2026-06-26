@@ -12,7 +12,7 @@ Un membre est considéré **actif** s'il possède le rôle "Utilisateur" dans la
 
 ```
 membres.mlogin = users.username → users.id = user_roles_per_section.user_id
-user_roles_per_section.types_roles_id = types_roles.id WHERE types_roles.nom = 'Utilisateur'
+user_roles_per_section.types_roles_id = types_roles.id WHERE types_roles.nom = 'user'
 ```
 
 ### Périmètre des usages de `actif` sur la table `membres`
@@ -103,25 +103,32 @@ Note : `get_membres_actifs_annee` et `get_membres_actifs_deux_annees` joignent d
 
 Point de vigilance : la sous-requête `activites` dans `get_membre()` (ligne 30) utilise `urps.types_roles_id = 1` en dur. À corriger en même temps pour utiliser `tr.nom = 'Utilisateur'` via une sous-requête imbriquée, pour cohérence et robustesse.
 
-### [ ] Étape 5 — Autres modèles (licences, email_lists, comptes)
+### [x] Étape 5 — Autres modèles (licences, email_lists, comptes)
 
 Traitement cas par cas. Règle commune pour le mode sans section : actif dans au moins une section.
 
-- [ ] `licences_model.php` : contexte liste des licences de l'année — appliquer la règle "au moins une section"
+- [x] `licences_model.php` : `per_year()` et `per_year_detail()` — filtre `active` remplacé par JOIN `users → user_roles_per_section → types_roles` sans filtre section (au moins une section) + DISTINCT ; filtre `inactive` remplacé par NOT IN subquery. `membres.actif` retiré du SELECT.
 - [x] `email_lists_model.php` : `get_users_by_role_and_section()` — filtre `active` remplacé par un second JOIN sur `user_roles_per_section` vérifiant le rôle 'Utilisateur' dans **la même section que le critère** ; si `section_id` est NULL, actif dans au moins une section. Filtre `inactive` remplacé par NOT IN subquery sur le même périmètre.
-- [ ] `comptes_model.php` : contexte comptable — même règle
+- [x] `comptes_model.php` : `section_client_accounts()` — filtre `membres.actif = 1` remplacé par JOIN `users → user_roles_per_section → types_roles` avec filtre sur `section_id` (section toujours connue dans ce contexte).
 
-### [ ] Étape 6 — `admin.php` controller
+### [x] Étape 6 — `admin.php` controller
 
-Requêtes SQL brutes avec vue admin globale (toutes sections). À traiter en dernier avec tests explicites. Le comportement admin bypass les sections par définition.
+Requêtes SQL brutes avec vue admin globale (toutes sections). Le comportement admin bypass les sections par définition.
+
+- Ligne 1674 (raw SQL) : `WHERE m.actif = 1` remplacé par `INNER JOIN users/user_roles_per_section/types_roles WHERE tr.nom = 'Utilisateur'` + `GROUP BY m.mlogin` pour dédoublonner. `m.actif` retiré du SELECT.
+- Lignes 1710, 1761 (CI Active Record) : `->where('actif', 1)` supprimés — redondants car `inst_selector_all()` (étape 2) filtre déjà sur les rôles.
+- Lignes 1809, 1839, 1868, 1896 : `machinesp.actif`, `machinesa.actif`, `comptes.actif` — non modifiés (hors périmètre).
 
 ---
 
 ## Stratégie de tests
 
-- [ ] Tests unitaires sur les méthodes spécialisées modifiées (étape 2) : vérifier que les sélecteurs retournent les bons membres selon la section
-- [ ] Test d'intégration sur `selector()` surchargé (étape 3) : vérifier que les controllers ne voient aucune régression
-- [ ] Smoke test Playwright : accéder à une page avec sélecteur de pilote en mode section et en mode toutes sections
+- [x] Tests unitaires sur les méthodes spécialisées modifiées (étape 2) : `SectionPilotsAccountsTest.php` couvre `section_pilots()` et `section_client_accounts()` (FakeDb, vérifie les jointures rôles)
+- [x] Test d'intégration sur `selector()` surchargé (étape 3) : `MembresSelectorActifTest.php` (MySQL) vérifie que `selector(array('actif'=>1))` retourne uniquement les membres avec le rôle 'user', exclut les membres sans ce rôle, et inclut les membres avec `membres.actif=0` qui ont quand même le rôle
+- [x] Tests MySQL sur `licences_model.per_year()` et `per_year_detail()` avec `member_status` : `LicencesActifRoleTest.php` vérifie le filtre rôle pour active/inactive/all
+- [x] Smoke test Playwright : `actif-par-section-smoke.spec.js` — accès au formulaire de vol planeur avec `testplanchiste` (section Planeur), vérifie que `jjmonvoisin` (actif=0 mais rôle user) apparaît et que `9992` (sans rôle user) n'apparaît pas
+
+**Note** : Correction transversale — la valeur en base est `types_roles.nom = 'user'` (non `'Utilisateur'`). Tous les modèles (étapes 4, 5, 6) et `integration_bootstrap.php` (`distinct()` ajouté à `RealDatabase`) ont été corrigés en conséquence.
 
 ---
 

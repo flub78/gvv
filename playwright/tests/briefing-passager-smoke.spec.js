@@ -61,13 +61,15 @@ test('UC1: VLD list shows briefing icon column', async ({ page }) => {
 test('UC1: briefing icon opens upload form for that VLD', async ({ page }) => {
     await login(page, ADMIN_USER);
     await page.goto(VLD_LIST_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
+    // DataTables makes continuous AJAX requests — wait for the briefing link instead of networkidle
+    await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
 
     // Click first briefing icon
     const firstLink = page.locator('a[href*="briefing_passager/upload"]').first();
     const href = await firstLink.getAttribute('href');
     await firstLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     await expect(page).not.toHaveURL(/error|403|404/);
     // Upload form should expose the visible drop zone and keep file input in DOM

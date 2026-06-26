@@ -135,7 +135,7 @@ Cartes Member Model
  [x] Get years with cotisation returns array
  [x] Get years with cotisation returned in descending order
  [x] Get membres actifs annee returns array
- [ ] Get membres actifs annee rows have required fields
+ [x] Get membres actifs annee rows have required fields
  [x] Get photo path returns null for empty input
  [x] Get photo path returns null for non existent file
  [x] Get fond path returns null for unconfigured year

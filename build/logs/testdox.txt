@@ -314,7 +314,7 @@ Section Pilots Accounts
  [x] Section client accounts returns accounts from active section
  [x] Section client accounts returns accounts from specific section
  [x] Section client accounts includes inactive members when only actif false
- [x] Section client accounts joins with membres when only actif true
+ [x] Section client accounts joins with roles when only actif true
 
 Bitfield
  [x] Constructor

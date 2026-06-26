@@ -39,7 +39,7 @@ class Licences_model extends Common_Model {
 
         // Liste de pilotes selon le statut demandé
         $this->db->distinct();
-        $this->db->select('membres.mlogin, membres.mnom, membres.mprenom, membres.m25ans, membres.actif');
+        $this->db->select('membres.mlogin, membres.mnom, membres.mprenom, membres.m25ans');
         $this->db->from("membres");
 
         // Si un filtre de section est appliqué, joindre avec la table comptes
@@ -49,13 +49,16 @@ class Licences_model extends Common_Model {
             $this->db->where('comptes.codec', '411');
         }
 
-        // Filtrer selon le statut des membres
+        // Filtrer selon le statut des membres (actif = rôle "Utilisateur" dans au moins une section)
         if ($member_status === 'active') {
-            $this->db->where('membres.actif', 1);
+            $this->db->join('users u_lic', 'u_lic.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_lic', 'urps_lic.user_id = u_lic.id', 'inner');
+            $this->db->join('types_roles tr_lic', 'tr_lic.id = urps_lic.types_roles_id', 'inner');
+            $this->db->where('tr_lic.nom', 'user');
         } elseif ($member_status === 'inactive') {
-            $this->db->where('membres.actif', 0);
+            $this->db->where('membres.mlogin NOT IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON urps.user_id = u.id INNER JOIN types_roles tr ON tr.id = urps.types_roles_id WHERE tr.nom = \'user\')', NULL, FALSE);
         }
-        // Si 'all', pas de filtre sur actif
+        // Si 'all', pas de filtre
 
         $actifs = $this->db->order_by("membres.mnom, membres.mprenom")->get()->result_array();
 
@@ -258,15 +261,19 @@ class Licences_model extends Common_Model {
         }
 
         // Membres
-        $this->db->select('mlogin, mnom, mprenom, memail');
+        $this->db->select('membres.mlogin, membres.mnom, membres.mprenom, membres.memail');
         $this->db->from('membres');
         if ($member_status === 'active') {
-            $this->db->where('actif', 1);
+            $this->db->distinct();
+            $this->db->join('users u_det', 'u_det.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_det', 'urps_det.user_id = u_det.id', 'inner');
+            $this->db->join('types_roles tr_det', 'tr_det.id = urps_det.types_roles_id', 'inner');
+            $this->db->where('tr_det.nom', 'user');
         } elseif ($member_status === 'inactive') {
-            $this->db->where('actif', 0);
+            $this->db->where('membres.mlogin NOT IN (SELECT u.username FROM users u INNER JOIN user_roles_per_section urps ON urps.user_id = u.id INNER JOIN types_roles tr ON tr.id = urps.types_roles_id WHERE tr.nom = \'user\')', NULL, FALSE);
         }
-        $this->db->order_by('mnom', 'asc');
-        $this->db->order_by('mprenom', 'asc');
+        $this->db->order_by('membres.mnom', 'asc');
+        $this->db->order_by('membres.mprenom', 'asc');
         $members_raw = $this->db->get()->result_array();
 
         // Licences de l'année

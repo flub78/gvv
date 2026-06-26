@@ -87,8 +87,11 @@ function getRoutePattern(url) {
             if (/^\d+$/.test(seg)) return '{id}';
             // Aircraft/glider registrations (F-XXXX pattern)
             if (/^F-[A-Z]{3,4}$/i.test(seg)) return '{registration}';
-            // Usernames in event/create/username or vols_planeur/vols_du_pilote/username
+            // Usernames or string IDs after action segments
             if (i >= 2 && (segments[i - 1] === 'create'
+                || segments[i - 1] === 'edit'
+                || segments[i - 1] === 'details'
+                || segments[i - 1] === 'certificats'
                 || segments[i - 1] === 'vols_du_pilote'
                 || segments[i - 1] === 'vols_de_la_machine'
                 || segments[i - 1] === 'journal_compte'

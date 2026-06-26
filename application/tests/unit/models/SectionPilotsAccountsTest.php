@@ -183,9 +183,9 @@ class SectionPilotsAccountsTest extends TestCase
     }
 
     /**
-     * Test de la méthode section_client_accounts filtre avec membres actifs
+     * Test de la méthode section_client_accounts filtre avec membres actifs via rôles
      */
-    public function test_section_client_accounts_joins_with_membres_when_only_actif_true()
+    public function test_section_client_accounts_joins_with_roles_when_only_actif_true()
     {
         // Arrange
         $rows = [
@@ -201,10 +201,13 @@ class SectionPilotsAccountsTest extends TestCase
         // Act - Appeler section_client_accounts() avec only_actif = true
         $result = $model->section_client_accounts(3, true);
 
-        // Assert - Vérifier qu'il y a une jointure avec membres et un filtre sur actif
-        $this->assertCount(1, $db->joins, 'Should join with membres when only_actif=true');
-        $this->assertEquals('membres', $db->joins[0][0], 'Should join with membres table');
-        $this->assertContains(['membres.actif', 1], $db->wheres, 'Should filter on active membres');
+        // Assert - Vérifier les jointures sur les rôles (users, user_roles_per_section, types_roles)
+        $this->assertCount(3, $db->joins, 'Should have 3 joins for role-based actif filter');
+        $this->assertEquals('users u_ca', $db->joins[0][0], 'First join should be with users');
+        $this->assertEquals('user_roles_per_section urps_ca', $db->joins[1][0], 'Second join should be with user_roles_per_section');
+        $this->assertEquals('types_roles tr_ca', $db->joins[2][0], 'Third join should be with types_roles');
+        $this->assertContains(['tr_ca.nom', 'user'], $db->wheres, 'Should filter on user role');
+        $this->assertContains(['urps_ca.section_id', 3], $db->wheres, 'Should filter on section_id');
     }
 }
 

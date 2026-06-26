@@ -260,13 +260,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
 
             <!-- Active Status & Exemption solde -->
             <div class="col-md-6">
-                <label class="form-label d-block"><?php echo $this->lang->line("gvv_membres_field_actif"); ?></label>
-                <div class="form-check">
-                    <?php echo form_checkbox(array('name' => 'actif', 'class' => 'form-check-input', 'id' => 'actif', 'value' => 1, 'checked' => ($actif == 1))); ?>
-                    <label class="form-check-label" for="actif" title="<?php echo $this->lang->line("membre_tooltip_active"); ?>">
-                        <?php echo $this->lang->line("gvv_membres_field_actif"); ?>
-                    </label>
-                </div>
+                <?php echo form_hidden('actif', $actif); ?>
                 <?php if ($has_modification_rights): ?>
                 <div class="form-check mt-1">
                     <?php echo form_checkbox(array('name' => 'exemption_solde', 'class' => 'form-check-input', 'id' => 'exemption_solde', 'value' => 1, 'checked' => (!empty($exemption_solde)))); ?>

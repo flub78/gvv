@@ -1666,14 +1666,17 @@ class Admin extends MY_Controller {
                 CONCAT(m.mnom, ' ', m.mprenom) as full_name,
                 m.mprenom as first_name,
                 m.mnom as last_name,
-                m.actif,
                 c.id as account_id,
                 CONCAT('(411) ', m.mnom, ' ', m.mprenom) as account_label
             FROM membres m
+            INNER JOIN users u ON u.username = m.mlogin
+            INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
+            INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
             LEFT JOIN comptes c ON c.pilote = m.mlogin AND c.codec LIKE '411%'
-            WHERE m.actif = 1
+            WHERE tr.nom = 'user'
                 AND m.ext = 0
                 AND c.id IS NOT NULL
+            GROUP BY m.mlogin
             ORDER BY m.mnom, m.mprenom
             LIMIT 10
         ");
@@ -1707,7 +1710,6 @@ class Admin extends MY_Controller {
                 ->select('mlogin, mnom, mprenom, inst_glider')
                 ->from('membres')
                 ->where('mlogin', $login)
-                ->where('actif', 1)
                 ->where('ext', 0)
                 ->get()
                 ->row();
@@ -1758,7 +1760,6 @@ class Admin extends MY_Controller {
                 ->select('mlogin, mnom, mprenom, inst_airplane')
                 ->from('membres')
                 ->where('mlogin', $login)
-                ->where('actif', 1)
                 ->where('ext', 0)
                 ->get()
                 ->row();

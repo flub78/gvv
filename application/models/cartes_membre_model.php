@@ -28,7 +28,7 @@ class Cartes_membre_model extends CI_Model {
             JOIN types_roles tr ON tr.id = urps.types_roles_id
             JOIN sections s ON urps.section_id = s.id
             WHERE u.username = membres.mlogin
-              AND tr.nom = \'Utilisateur\'
+              AND tr.nom = \'user\'
               AND s.show_on_member_card = 1)';
 
         $row = $this->db
@@ -73,7 +73,7 @@ class Cartes_membre_model extends CI_Model {
             ->join('users u', 'u.username = m.mlogin', 'inner')
             ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
             ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
-            ->where('tr.nom', 'Utilisateur')
+            ->where('tr.nom', 'user')
             ->group_by('m.mlogin')
             ->order_by('m.mnom')
             ->order_by('m.mprenom')
@@ -96,7 +96,7 @@ class Cartes_membre_model extends CI_Model {
             ->join('users u', 'u.username = m.mlogin', 'inner')
             ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
             ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
-            ->where('tr.nom', 'Utilisateur')
+            ->where('tr.nom', 'user')
             ->group_by('m.mlogin')
             ->order_by('m.mnom')
             ->order_by('m.mprenom')
@@ -190,7 +190,7 @@ class Cartes_membre_model extends CI_Model {
             ->join('users u', 'u.username = m.mlogin', 'inner')
             ->join('user_roles_per_section urps', 'urps.user_id = u.id', 'inner')
             ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
-            ->where('tr.nom', 'Utilisateur')
+            ->where('tr.nom', 'user')
             ->group_by('m.mlogin')
             ->order_by('m.mnom')
             ->order_by('m.mprenom')

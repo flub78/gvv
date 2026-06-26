@@ -148,7 +148,7 @@ if ($this->session->flashdata('error')) {
     $attrs = array(
         'controller' => $controller,
         'actions' => array('edit', 'delete'),
-        'fields' => array('photo_with_badges', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe', 'actif'),
+        'fields' => array('photo_with_badges', 'mnom', 'mprenom', 'ville', 'mtelf', 'mtelm', 'memail', 'mdaten', 'm25ans', 'msexe'),
         'mode' => ($has_modification_rights) ? "rw" : "ro",
         'class' => "datatable_style $table_style table table-striped"
     );
@@ -179,88 +179,6 @@ if ($this->session->flashdata('error')) {
         $(document).ready(function() {
             // notre code ici
 
-            // Replace actif icon with checkbox for admins
-            <?php if ($this->dx_auth->is_role('admin', true, true)): ?>
-            function replaceActifWithCheckbox() {
-                $('.table_membre tbody tr, .table_membre_ro tbody tr').each(function() {
-                    var $row = $(this);
-
-                    // Get mlogin from edit link in the row
-                    var $editLink = $row.find('a[href*="/membre/edit/"]').first();
-                    if (!$editLink.length) return;
-
-                    var href = $editLink.attr('href');
-                    var mlogin = href.split('/').pop();
-
-                    // Find the actif column by its data-field attribute (set by MetaData table renderer)
-                    var $actifCell = $row.find('td[data-field="actif"]');
-                    if (!$actifCell.length) return;
-                    if ($actifCell.find('.actif-checkbox').length) return; // Already has checkbox
-
-                    var isActif = $actifCell.text().trim() !== '';
-
-                    var $checkbox = $('<input type="checkbox" class="actif-checkbox form-check-input" data-mlogin="' + mlogin + '" ' + (isActif ? 'checked' : '') + '>');
-                    $actifCell.html($checkbox);
-                });
-            }
-
-            // Initial replacement after page load
-            replaceActifWithCheckbox();
-
-            // Also replace after a short delay to catch any late-rendered rows
-            setTimeout(function() {
-                replaceActifWithCheckbox();
-            }, 500);
-
-            // Monitor for any new icons being added (MutationObserver)
-            var observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.addedNodes.length) {
-                        replaceActifWithCheckbox();
-                    }
-                });
-            });
-
-            // Start observing the table body for changes
-            var tableBody = document.querySelector('.table_membre tbody, .table_membre_ro tbody');
-            if (tableBody) {
-                observer.observe(tableBody, {
-                    childList: true,
-                    subtree: true
-                });
-            }
-
-            // Handle checkbox change
-            $(document).on('change', '.actif-checkbox', function() {
-                var $checkbox = $(this);
-                var mlogin = $checkbox.data('mlogin');
-                var newActif = $checkbox.is(':checked') ? 1 : 0;
-                var oldActif = newActif ? 0 : 1;
-
-                $.ajax({
-                    url: '<?= site_url('membre/ajax_toggle_actif') ?>',
-                    type: 'POST',
-                    data: {
-                        mlogin: mlogin,
-                        actif: newActif
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (!response.success) {
-                            alert('Error: ' + (response.error || 'Unknown error'));
-                            // Revert checkbox state
-                            $checkbox.prop('checked', oldActif == 1);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log('Ajax error:', xhr.responseText);
-                        alert('Error updating member status: ' + error + '\nCheck console for details');
-                        // Revert checkbox state
-                        $checkbox.prop('checked', oldActif == 1);
-                    }
-                });
-            });
-            <?php endif; ?>
 
             var table_membre = $('.table_membre').dataTable({
                 "bFilter": true,
@@ -303,12 +221,6 @@ if ($this->session->flashdata('error')) {
                         "bSortable": false
                     },
                     {
-                        "bSortable": true
-                    },
-                    {
-                        "bSortable": false
-                    },
-                    {
                         "bSortable": false
                     }
                 ],
@@ -317,9 +229,6 @@ if ($this->session->flashdata('error')) {
                 "sPaginationType": "full_numbers",
                 "oLanguage": olanguage,
                 "fnDrawCallback": function() {
-                    <?php if ($this->dx_auth->is_role('admin', true, true)): ?>
-                    replaceActifWithCheckbox();
-                    <?php endif; ?>
                     highlightSearchCallback.call(this);
                 }
             });
@@ -363,9 +272,6 @@ if ($this->session->flashdata('error')) {
                     },
                     {
                         "bSortable": false
-                    },
-                    {
-                        "bSortable": true
                     }
                 ],
                 "bInfo": true,
@@ -373,9 +279,6 @@ if ($this->session->flashdata('error')) {
                 "sPaginationType": "full_numbers",
                 "oLanguage": olanguage,
                 "fnDrawCallback": function() {
-                    <?php if ($this->dx_auth->is_role('admin', true, true)): ?>
-                    replaceActifWithCheckbox();
-                    <?php endif; ?>
                     highlightSearchCallback.call(this);
                 }
             });

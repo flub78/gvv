@@ -240,6 +240,12 @@ class RealDatabase {
     private $from_table = '';
     private $from_alias = '';
     private $last_executed_query;
+    private $distinct = false;
+
+    public function distinct($val = TRUE) {
+        $this->distinct = (bool)$val;
+        return $this;
+    }
 
     public function select($fields, $escape = NULL) {
         $this->select_fields[] = $fields;
@@ -432,7 +438,8 @@ class RealDatabase {
         }
 
         $select_expr = empty($this->select_fields) ? '*' : implode(', ', $this->select_fields);
-        $sql = "SELECT " . $select_expr . " FROM " . $table_name . $table_alias;
+        $distinct_kw = $this->distinct ? 'DISTINCT ' : '';
+        $sql = "SELECT " . $distinct_kw . $select_expr . " FROM " . $table_name . $table_alias;
 
         foreach ($this->join_clauses as $join) {
             $sql .= " " . $join;
@@ -457,6 +464,7 @@ class RealDatabase {
         $this->join_clauses = [];
         $this->from_table = '';
         $this->from_alias = '';
+        $this->distinct = false;
 
         return $this->query($sql);
     }

@@ -132,8 +132,10 @@ test.describe.serial('Rapprochements Tab Persistence', () => {
     // Reload
     console.log('Reloading...');
     await page.reload();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('load');
+    // Rapprochements page makes background requests — wait for tabs then give JS time to restore active tab
+    await page.waitForSelector('[role="tablist"]', { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     // Should be on Bank tab
     expect(await rapprochementsPage.isTabActive('openflyers-tab')).toBeTruthy();
@@ -145,8 +147,9 @@ test.describe.serial('Rapprochements Tab Persistence', () => {
     // Reload again
     console.log('Reloading again...');
     await page.reload();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('load');
+    await page.waitForSelector('[role="tablist"]', { timeout: 10000 });
+    await page.waitForTimeout(500);
 
     // Should be on GVV tab now
     expect(await rapprochementsPage.isTabActive('gvv-tab')).toBeTruthy();

@@ -467,7 +467,7 @@ class Comptes_model extends Common_Model {
      */
     public function compte_pilote_id($pilote, $section = null) {
         $res = $this->compte_pilote($pilote, $section);
-        return $res['id'];
+        return $res ? $res['id'] : null;
     }
 
     /**
@@ -1264,10 +1264,13 @@ class Comptes_model extends Common_Model {
         $this->db->where('comptes.actif', 1);
         $this->db->where('comptes.masked', 0);
 
-        // Si on filtre sur les membres actifs, on joint la table membres
+        // Si on filtre sur les membres actifs, filtrer par rôle "Utilisateur" dans la section
         if ($only_actif) {
-            $this->db->join('membres', 'membres.mlogin = comptes.pilote', 'inner');
-            $this->db->where('membres.actif', 1);
+            $this->db->join('users u_ca', 'u_ca.username = comptes.pilote', 'inner');
+            $this->db->join('user_roles_per_section urps_ca', 'urps_ca.user_id = u_ca.id', 'inner');
+            $this->db->join('types_roles tr_ca', 'tr_ca.id = urps_ca.types_roles_id', 'inner');
+            $this->db->where('tr_ca.nom', 'user');
+            $this->db->where('urps_ca.section_id', $section_id);
         }
 
         $this->db->order_by('comptes.codec', 'ASC');

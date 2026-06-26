@@ -243,41 +243,6 @@ class Membre extends Gvv_Controller {
     }
 
     /**
-     * AJAX: Toggle member actif status (admin only)
-     */
-    public function ajax_toggle_actif()
-    {
-        header('Content-Type: application/json');
-
-        // Admin only
-        if (!$this->user_has_role('club-admin')) {
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            return;
-        }
-
-        $mlogin = $this->input->post('mlogin');
-        $actif = $this->input->post('actif');
-
-        if (empty($mlogin) || !isset($actif)) {
-            echo json_encode(['success' => false, 'error' => 'Missing parameters']);
-            return;
-        }
-
-        // Update the actif field
-        $data = array(
-            'mlogin' => $mlogin,
-            'actif' => $actif ? '1' : '0'
-        );
-
-        try {
-            $this->gvv_model->update('mlogin', $data, $mlogin);
-            echo json_encode(['success' => true, 'actif' => $actif]);
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'error' => 'Database update failed: ' . $e->getMessage()]);
-        }
-    }
-
-    /**
      * Active ou désactive le filtrage
      */
     public function filterValidation() {
@@ -408,16 +373,12 @@ class Membre extends Gvv_Controller {
             return;
         }
 
-        $this->load->model('comptes_model');
         $this->load->model('sections_model');
         $sections = $this->sections_model->section_list();
-        $member_sections = array();
-        foreach ($sections as $section) {
-            $account = $this->comptes_model->get_by_pilote_codec($this->data['mlogin'], '411', $section['id']);
-            if ($account) {
-                $member_sections[] = $section;
-            }
-        }
+        $registered_ids = $this->gvv_model->registered_in_sections($this->data['mlogin']);
+        $member_sections = array_values(array_filter($sections, function($s) use ($registered_ids) {
+            return in_array($s['id'], $registered_ids);
+        }));
         $this->data['member_sections'] = $member_sections;
         $this->data['has_sections'] = count($sections) > 0;
 
