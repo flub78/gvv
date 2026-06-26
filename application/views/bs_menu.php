@@ -36,6 +36,12 @@ $this->lang->load('paiements_en_ligne');
 $this->lang->load('email_lists');
 
 $CI = &get_instance();
+$CI->config->load('program');
+$banner_color = trim((string) $CI->config->item('banner_color'));
+if ($banner_color === '') {
+    $banner_color = 'green';
+}
+
 $CI->load->model('sections_model');
 $section = $CI->sections_model->section();
 $current_section_id = (int) $CI->session->userdata('section');
@@ -69,7 +75,7 @@ if ($CI->dx_auth->is_logged_in()) {
   <nav class="navbar navbar-expand-sm navbar-dark bg-dark pb-3 sticky-top">
     <div class="container-fluid">
 
-      <a class="navbar-brand btn btn-outline-light btn-sm" href="<?= controller_url("welcome") ?>"><i class="fa fa-home me-1"></i>Accueil GVV</a>
+      <a class="navbar-brand btn btn-sm" href="<?= controller_url("welcome") ?>" style="background-color:<?= htmlspecialchars($banner_color, ENT_QUOTES, 'UTF-8') ?>;border-color:<?= htmlspecialchars($banner_color, ENT_QUOTES, 'UTF-8') ?>;color:white;"><i class="fa fa-home me-1"></i>Accueil GVV</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
         <span class="" role="button"><i class="fa fa-bars" aria-hidden="true" style="color:#e6e6ff"></i></span>
       </button>
