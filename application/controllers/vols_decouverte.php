@@ -714,6 +714,7 @@ class Vols_decouverte extends Gvv_Controller {
      */
     function send_email_with_pdf($vd, $pdf_content, $id, $validity_date) {
         $this->load->library('email');
+        $this->load->helper('email');
 
         $sender      = $this->configuration_model->get_param('vd.email.sender_email') ?: 'noreply@gvv.net';
         $sender_name = $this->configuration_model->get_param('vd.email.sender_name')  ?: "Aéroclub d'Abbeville";
@@ -725,13 +726,16 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->set_crlf("\r\n");
 
         // Set email parameters
+        $subject = 'Votre bon de vol de découverte';
+        $to = test_intercept_email($vd['beneficiaire_email'], $subject);
+
         $this->email->from($sender, $sender_name);
-        $this->email->to($vd['beneficiaire_email']);
+        $this->email->to($to);
         if ($sender !== 'noreply@gvv.net') {
             $this->email->bcc($sender);
         }
 
-        $this->email->subject('Votre bon de vol de découverte');
+        $this->email->subject($subject);
 
         // Get operator name
         $username = $this->dx_auth->get_username();

@@ -32,7 +32,7 @@ Chaque point d'envoi appelle ces helpers avant de passer l'adresse à la librair
 
 ## Étapes
 
-### [ ] Étape 1 — Configuration
+### [x] Étape 1 — Configuration
 
 Fichiers : `application/config/program.php` et `application/config/program.example.php`
 
@@ -49,7 +49,7 @@ $config['test_email'] = '';
 $config['test_phone'] = '';
 ```
 
-### [ ] Étape 2 — Helpers de redirection
+### [x] Étape 2 — Helpers de redirection
 
 Fichier : `application/helpers/email_helper.php`
 
@@ -78,7 +78,7 @@ function test_intercept_phone($phone) {
 }
 ```
 
-### [ ] Étape 3 — Rappels de réservation (email)
+### [x] Étape 3 — Rappels de réservation (email)
 
 Fichier : `application/libraries/Reservation_reminder.php`, méthode `_send_email()` (ligne ~556)
 
@@ -89,7 +89,7 @@ $to_email = test_intercept_email($to_email, $subject);
 
 Le helper étant chargé via `$this->CI->load->helper('email')` dans `_load_dependencies()` (déjà présent).
 
-### [ ] Étape 4 — Rappels de réservation (SMS)
+### [x] Étape 4 — Rappels de réservation (SMS)
 
 Fichier : `application/libraries/Reservation_reminder.php`, méthode `_dispatch()` (ligne ~370)
 
@@ -99,7 +99,7 @@ $phone = test_intercept_phone($recipient['phone']);
 $sms_res = $this->CI->brevo_sms_adapter->send($phone, $sms_body);
 ```
 
-### [ ] Étape 5 — Bon de vol de découverte
+### [x] Étape 5 — Bon de vol de découverte
 
 Fichier : `application/controllers/vols_decouverte.php`, méthode `send_email_with_pdf()` (ligne ~729)
 
@@ -113,7 +113,7 @@ $this->email->subject($subject);
 
 Le helper `email` doit être chargé en tête de méthode si ce n'est pas déjà le cas dans le constructeur.
 
-### [ ] Étape 6 — Lien de paiement HelloAsso
+### [x] Étape 6 — Lien de paiement HelloAsso
 
 Fichier : `application/controllers/paiements_en_ligne.php`, méthode `send_payment_link_email()` (ligne ~336)
 

@@ -509,6 +509,45 @@ if (!function_exists('parse_csv_emails')) {
 }
 
 /**
+ * Redirect email to test address if test_email is configured in program.php.
+ * Returns the effective destination and prefixes the subject with the original address.
+ *
+ * @param string $to_email  Original recipient
+ * @param string &$subject  Email subject (modified in place when redirected)
+ * @return string           Effective recipient address
+ */
+if (!function_exists('test_intercept_email')) {
+    function test_intercept_email($to_email, &$subject) {
+        $CI =& get_instance();
+        $test_email = $CI->config->item('test_email');
+        if (empty($test_email)) {
+            return $to_email;
+        }
+        $subject = '[TEST → ' . $to_email . '] ' . $subject;
+        gvv_info("TEST INTERCEPT email: $to_email → $test_email");
+        return $test_email;
+    }
+}
+
+/**
+ * Redirect SMS to test phone number if test_phone is configured in program.php.
+ *
+ * @param string $phone  Original phone number
+ * @return string        Effective phone number
+ */
+if (!function_exists('test_intercept_phone')) {
+    function test_intercept_phone($phone) {
+        $CI =& get_instance();
+        $test_phone = $CI->config->item('test_phone');
+        if (empty($test_phone)) {
+            return $phone;
+        }
+        gvv_info("TEST INTERCEPT SMS: $phone → $test_phone");
+        return $test_phone;
+    }
+}
+
+/**
  * Detect duplicate emails in a list
  *
  * @param array $new_emails New emails to check

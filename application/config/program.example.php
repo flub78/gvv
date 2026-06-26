@@ -186,5 +186,10 @@ $config['brevo_sms_api_key'] = '';
 // Nom de l'expéditeur SMS affiché sur le téléphone (11 caractères max)
 $config['brevo_sms_sender']  = 'GVV';
 
+// Redirection test : si défini, tous les emails/SMS sortants sont redirigés vers ces adresses.
+// Laisser vide en production.
+$config['test_email'] = '';
+$config['test_phone'] = '';
+
 /* End of file program.php */
 /* Location: .application/config/program.php */

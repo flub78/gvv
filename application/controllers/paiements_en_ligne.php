@@ -327,11 +327,14 @@ class Paiements_en_ligne extends MY_Controller {
             $sender_name  = $this->configuration_model->get_param('vd.email.sender_name')  ?: $nom_club;
 
             $this->load->library('email');
+            $this->load->helper('email');
             $this->email->initialize(array(
                 'wordwrap' => true,
                 'mailtype' => 'html',
                 'charset'  => 'utf-8',
             ));
+            $to = test_intercept_email($to, $subject);
+
             $this->email->from($sender_email, $sender_name);
             $this->email->to($to);
             $this->email->subject($subject);

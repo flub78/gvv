@@ -371,7 +371,8 @@ class Reservation_reminder
             if (!empty($recipient['phone'])) {
                 $sms_body = $this->_compose_sms_body($reservation, $action_type, $recipient['role'], $event_type);
                 $this->CI->load->library('Brevo_sms_adapter');
-                $sms_res = $this->CI->brevo_sms_adapter->send($recipient['phone'], $sms_body);
+                $sms_phone = test_intercept_phone($recipient['phone']);
+                $sms_res = $this->CI->brevo_sms_adapter->send($sms_phone, $sms_body);
                 $sms_result = $sms_res['ok'];
                 if (!$sms_result) {
                     $sms_error = $sms_res['error'];
@@ -561,6 +562,8 @@ class Reservation_reminder
 
             $from_email = $this->CI->config->item('email_club') ?: $this->CI->config->item('smtp_user');
             $from_name  = $this->CI->config->item('nom_club')   ?: 'GVV';
+
+            $to_email = test_intercept_email($to_email, $subject);
 
             $this->CI->email->clear(true);
             $this->CI->email->from($from_email, $from_name);
