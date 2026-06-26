@@ -31,26 +31,26 @@ user_roles_per_section.types_roles_id = types_roles.id WHERE types_roles.nom = '
 
 ## Étapes du plan
 
-### Étape 1 — Renommage UI "Utilisateur" → "Actif"
+### [x] Étape 1 — Renommage UI "Utilisateur" → "Actif"
 
 Modification uniquement dans la couche d'affichage, **sans changer les noms en base de données**.
 
-- Localiser dans les vues et les fichiers de langue l'affichage du type de rôle "Utilisateur"
-- Remplacer l'affichage par "Actif" dans les fichiers de langue (français, anglais, néerlandais)
-- Vérifier que la valeur `types_roles.nom = 'Utilisateur'` reste inchangée en base
+- [x] Localiser dans les vues et les fichiers de langue l'affichage du type de rôle "Utilisateur"
+- [x] Remplacer l'affichage par "Actif" dans les fichiers de langue (français, anglais, néerlandais)
+- [x] Vérifier que la valeur `types_roles.nom = 'Utilisateur'` reste inchangée en base
 
-### Étape 2 — Méthodes spécialisées de `membres_model`
+### [ ] Étape 2 — Méthodes spécialisées de `membres_model`
 
-Ces méthodes reçoivent déjà un `$section_id` et font déjà le JOIN `membres → users`. C'est le delta le plus faible.
+Ces méthodes reçoivent déjà un `$section_id` et font déjà le JOIN `membres → users`. C'est le point le plus facile et le moins risqué.
 
 Méthodes à modifier :
-- `section_pilots($section_id, $only_actif)`
-- `inst_selector($section_id, $only_actif)`
-- `treuillard_selector($section_id, $only_actif)`
-- `inst_selector_all($only_actif)`
-- `pilrem_selector($section_id, $only_actif)`
-- `get_selector($section_id, $only_actif)`
-- `select_licences()`
+- [ ] `section_pilots($section_id, $only_actif)`
+- [ ] `inst_selector($section_id, $only_actif)`
+- [ ] `treuillard_selector($section_id, $only_actif)`
+- [ ] `inst_selector_all($only_actif)`
+- [ ] `pilrem_selector($section_id, $only_actif)`
+- [ ] `get_selector($section_id, $only_actif)`
+- [ ] `select_licences()`
 
 Remplacer `$this->db->where('membres.actif', 1)` par la jointure :
 ```php
@@ -64,7 +64,7 @@ if ($section_id) {
 // (le DISTINCT sur mlogin est déjà assuré par la structure des sélecteurs)
 ```
 
-### Étape 3 — Override de `selector()` dans `membres_model`
+### [ ] Étape 3 — Override de `selector()` dans `membres_model`
 
 Surcharger `selector()` hérité de `common_model` pour intercepter `array('actif' => 1)` et le traduire en filtre `user_roles_per_section`. Les 23 controllers restent inchangés.
 
@@ -80,19 +80,19 @@ public function selector($where = array(), $order = "asc", $filter_section = FAL
 
 La section courante est récupérée via `$this->session` (pattern déjà utilisé dans le modèle).
 
-### Étape 4 — `cartes_membre_model`
+### [ ] Étape 4 — `cartes_membre_model`
 
 Ce modèle joint déjà `user_roles_per_section`. Vérifier la cohérence et adapter le filtre `m.actif = 1` en s'appuyant sur la jointure existante.
 
-### Étape 5 — Autres modèles (licences, email_lists, comptes)
+### [ ] Étape 5 — Autres modèles (licences, email_lists, comptes)
 
 Traitement cas par cas. Règle commune pour le mode sans section : actif dans au moins une section.
 
-- `licences_model.php` : contexte liste des licences de l'année — appliquer la règle "au moins une section"
-- `email_lists_model.php` : envoi emails — même règle
-- `comptes_model.php` : contexte comptable — même règle
+- [ ] `licences_model.php` : contexte liste des licences de l'année — appliquer la règle "au moins une section"
+- [ ] `email_lists_model.php` : envoi emails — même règle
+- [ ] `comptes_model.php` : contexte comptable — même règle
 
-### Étape 6 — `admin.php` controller
+### [ ] Étape 6 — `admin.php` controller
 
 Requêtes SQL brutes avec vue admin globale (toutes sections). À traiter en dernier avec tests explicites. Le comportement admin bypass les sections par définition.
 
@@ -100,9 +100,9 @@ Requêtes SQL brutes avec vue admin globale (toutes sections). À traiter en der
 
 ## Stratégie de tests
 
-- Tests unitaires sur les méthodes spécialisées modifiées (étape 2) : vérifier que les sélecteurs retournent les bons membres selon la section
-- Test d'intégration sur `selector()` surchargé (étape 3) : vérifier que les controllers ne voient aucune régression
-- Smoke test Playwright : accéder à une page avec sélecteur de pilote en mode section et en mode toutes sections
+- [ ] Tests unitaires sur les méthodes spécialisées modifiées (étape 2) : vérifier que les sélecteurs retournent les bons membres selon la section
+- [ ] Test d'intégration sur `selector()` surchargé (étape 3) : vérifier que les controllers ne voient aucune régression
+- [ ] Smoke test Playwright : accéder à une page avec sélecteur de pilote en mode section et en mode toutes sections
 
 ---
 

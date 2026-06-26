@@ -455,4 +455,150 @@ class VolsAvionHorametreTest extends TestCase
         $this->assertEqualsWithDelta(0.50, floatval($row['vaduree']), 0.01,
             'La durée doit être de 0.50 centièmes (30 minutes en décimal)');
     }
+
+    // =========================================================================
+    // Validation de la plage d'horamètre (valid_horametre_range)
+    // Reproduit la logique du contrôleur pour démontrer le bug de précision.
+    // =========================================================================
+
+    /**
+     * Convertit une valeur centième vers la valeur canonique de la minute entière la plus proche.
+     * Réplique normalize_to_minutes() du contrôleur (correctif du bug de précision).
+     * Exemple : 10634.71 → 0.71×60=42.6 → 43 min → 43/60 → round(2) = 10634.72
+     */
+    private function normalize_to_minutes($centieme)
+    {
+        $hours   = intval($centieme);
+        $minutes = round(($centieme - $hours) * 60);
+        return round($hours + $minutes / 60, 2);
+    }
+
+    /**
+     * Reproduit la logique de valid_horametre_range() du contrôleur vols_avion
+     * avec le correctif de normalisation centième→minutes appliqué aux valeurs DB.
+     *
+     * @param string $vacdeb_submitted Valeur soumise par le widget (format HH.MM en mode minutes)
+     * @param string $vacfin_submitted Valeur soumise par le widget
+     * @param int    $mode             0=centième, 1=minutes, 2=dixième
+     * @param string $vamacid          Immatriculation machine
+     * @param int    $vaid             ID du vol modifié (0 pour création)
+     * @return string 'valid' | 'prev_overlap' | 'next_overlap'
+     */
+    private function validate_range($vacdeb_submitted, $vacfin_submitted, $mode, $vamacid, $vaid)
+    {
+        $vacdeb = round($this->to_decimal(floatval($vacdeb_submitted), $mode), 2);
+        $vacfin = round($this->to_decimal(floatval($vacfin_submitted), $mode), 2);
+
+        $prev = $this->CI->db
+            ->select('vacdeb, vacfin')->from('volsa')
+            ->where('vamacid', $vamacid)->where('vacdeb <', $vacdeb)->where('vaid !=', $vaid)
+            ->order_by('vacdeb', 'DESC')->limit(1)->get()->row_array();
+        if ($prev) {
+            $prev_vacfin = floatval($prev['vacfin']);
+            if ($mode == 1) {
+                $prev_vacfin = $this->normalize_to_minutes($prev_vacfin);
+            }
+            if ($prev_vacfin > $vacdeb) {
+                return 'prev_overlap';
+            }
+        }
+
+        $next = $this->CI->db
+            ->select('vacdeb, vacfin')->from('volsa')
+            ->where('vamacid', $vamacid)->where('vacdeb >', $vacdeb)->where('vaid !=', $vaid)
+            ->order_by('vacdeb', 'ASC')->limit(1)->get()->row_array();
+        if ($next) {
+            $next_vacdeb = floatval($next['vacdeb']);
+            if ($mode == 1) {
+                $next_vacdeb = $this->normalize_to_minutes($next_vacdeb);
+            }
+            if ($next_vacdeb < $vacfin) {
+                return 'next_overlap';
+            }
+        }
+
+        return 'valid';
+    }
+
+    /**
+     * BUG : En mode minutes, modifier un vol dont vacfin coïncide avec le vacdeb
+     * du vol suivant provoque une erreur à cause de la perte de précision centième→min→centième.
+     *
+     * Exemple réel : vol 16398 (F-GSRP) vacfin=10634.71, vol 16399 vacdeb=10634.71.
+     * Le widget affiche 43 min (0.71×60=42.6→43), soumet "10634.43",
+     * le serveur calcule to_hundredth → 10634.72 ≠ 10634.71 → faux positif « next_overlap ».
+     *
+     * Ce test ÉCHOUE avant le correctif.
+     */
+    public function testBugPrecisionLossModeMinutes_NextFlightFalsePositive()
+    {
+        // Vol A : vacdeb=10634.65, vacfin=10634.71 (43 min dans le widget)
+        $vaid_a = $this->insertFlight($this->machine_min, 10634.65, 10634.71);
+        // Vol B (suivant) : vacdeb=10634.71 — même jonction
+        $this->insertFlight($this->machine_min, 10634.71, 10635.00);
+
+        // Le widget reconvertit :
+        //   vacdeb 10634.65 → 39 min → soumet "10634.39" → to_hundredth → 10634.65 (sans perte)
+        //   vacfin 10634.71 → 43 min → soumet "10634.43" → to_hundredth → 10634.72 (perte !)
+        // Comparaison bugguée : next.vacdeb (10634.71) < vacfin_canonique (10634.72) → faux positif
+        $result = $this->validate_range('10634.39', '10634.43', 1, $this->machine_min, $vaid_a);
+
+        $this->assertEquals('valid', $result,
+            'BUG : la modification du vol A (vacfin=10634.71 = 43 min) est rejetée à tort. ' .
+            'Le vol suivant (vacdeb=10634.71) représente la même minute (43 min) mais ' .
+            'la conversion centième→min→centième donne 10634.72 ≠ 10634.71.');
+    }
+
+    /**
+     * Un chevauchement réel (vacdeb du vol suivant représente une minute INFÉRIEURE
+     * à la minute de vacfin) doit toujours être rejeté, même si l'écart en centièmes
+     * n'est que d'une unité.
+     *
+     * Ce test RÉUSSIT avant ET après le correctif.
+     */
+    public function testConstraintGenuineOverlapIsAlwaysRejected()
+    {
+        $vaid_a = $this->insertFlight($this->machine_min, 10634.00, 10634.72);
+        // Vol suivant : vacdeb=10634.70 = 42 min, genuinement avant la fin à 43 min
+        $this->insertFlight($this->machine_min, 10634.70, 10635.00);
+
+        // vacfin soumis "10634.43" (43 min) → canonique 10634.72
+        // next vacdeb 10634.70 → normalize → 0.70×60=42 min → 10634.70 < 10634.72 → overlap (correct)
+        $result = $this->validate_range('10634.00', '10634.43', 1, $this->machine_min, $vaid_a);
+
+        $this->assertEquals('next_overlap', $result,
+            'Un chevauchement réel (vol suivant à 42 min, fin à 43 min) doit être rejeté ' .
+            'même si l\'écart n\'est que d\'une unité de centième (10634.70 < 10634.72).');
+    }
+
+    /**
+     * Modifier un vol encadré par deux autres vols doit être accepté,
+     * même lorsque les horamètres de jonction souffrent de perte de précision.
+     *
+     * Encadrement :
+     *   A.vacfin = B.vacdeb = 10634.71 (43 min, perte : 43/60=0.717→0.72≠0.71)
+     *   B.vacfin = C.vacdeb = 10635.31 (0.31×60=18.6→19 min, 19/60=0.317→0.32≠0.31)
+     *
+     * Ce test ÉCHOUE avant le correctif (next_overlap sur la jonction B–C).
+     */
+    public function testSurroundedFlightEditIsAccepted()
+    {
+        // Vol A
+        $this->insertFlight($this->machine_min, 10634.00, 10634.71);
+        // Vol B (celui qu'on modifie)
+        $vaid_b = $this->insertFlight($this->machine_min, 10634.71, 10635.31);
+        // Vol C
+        $this->insertFlight($this->machine_min, 10635.31, 10636.00);
+
+        // Soumission sans modification :
+        //   vacdeb 10634.71 → 43 min → "10634.43" → to_hundredth → 10634.72
+        //   vacfin 10635.31 → 0.31×60=18.6 → 19 min → "10635.19" → to_hundredth → 10635.32 ≠ 10635.31
+        // Comparaison bugguée : C.vacdeb (10635.31) < vacfin_canonique (10635.32) → faux positif
+        $result = $this->validate_range('10634.43', '10635.19', 1, $this->machine_min, $vaid_b);
+
+        $this->assertEquals('valid', $result,
+            'La modification du vol B encadré par A et C doit être acceptée. ' .
+            'Jonction B–C : 10635.31 (base) → 19 min → 10635.32 (canonique), ' .
+            'old logic : 10635.31 < 10635.32 → faux positif.');
+    }
 }

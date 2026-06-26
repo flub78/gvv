@@ -312,6 +312,17 @@ class Vols_avion extends Gvv_Controller {
         return $result;
     }
 
+    /**
+     * Normalise une valeur centième vers la valeur canonique de la minute entière la plus proche.
+     * Corrige la perte de précision centième→minutes→centième en mode HORAMETRE_MINUTES.
+     * Exemple : 10634.71 (42.6 min → 43 min → 43/60 → round 2) = 10634.72
+     */
+    private function normalize_to_minutes($centieme) {
+        $hours   = intval($centieme);
+        $minutes = round(($centieme - $hours) * 60);
+        return round($hours + $minutes / 60, 2);
+    }
+
     private function get_horametre_mode($machine) {
         if (!$machine) {
             return self::HORAMETRE_CENTIEME;
@@ -488,10 +499,16 @@ class Vols_avion extends Gvv_Controller {
         }
         $prev = $this->db->order_by('vacdeb', 'DESC')->limit(1)->get()->row_array();
 
-        if ($prev && floatval($prev['vacfin']) > $vacdeb) {
-            $this->form_validation->set_message('valid_horametre_range',
-                $this->lang->line('gvv_vols_avion_error_horametre_prev'));
-            return false;
+        if ($prev) {
+            $prev_vacfin = floatval($prev['vacfin']);
+            if ($mode == self::HORAMETRE_MINUTES) {
+                $prev_vacfin = $this->normalize_to_minutes($prev_vacfin);
+            }
+            if ($prev_vacfin > $vacdeb) {
+                $this->form_validation->set_message('valid_horametre_range',
+                    $this->lang->line('gvv_vols_avion_error_horametre_prev'));
+                return false;
+            }
         }
 
         // Vol immédiatement suivant : plus petit vacdeb > vacdeb courant
@@ -504,10 +521,16 @@ class Vols_avion extends Gvv_Controller {
         }
         $next = $this->db->order_by('vacdeb', 'ASC')->limit(1)->get()->row_array();
 
-        if ($next && floatval($next['vacdeb']) < $vacfin) {
-            $this->form_validation->set_message('valid_horametre_range',
-                $this->lang->line('gvv_vols_avion_error_horametre_next'));
-            return false;
+        if ($next) {
+            $next_vacdeb = floatval($next['vacdeb']);
+            if ($mode == self::HORAMETRE_MINUTES) {
+                $next_vacdeb = $this->normalize_to_minutes($next_vacdeb);
+            }
+            if ($next_vacdeb < $vacfin) {
+                $this->form_validation->set_message('valid_horametre_range',
+                    $this->lang->line('gvv_vols_avion_error_horametre_next'));
+                return false;
+            }
         }
 
         return true;
