@@ -246,16 +246,23 @@ def composite_latest(records, suite_names):
     return total, fail, skip, passed
 
 def header_badges(total, fail, skip, passed):
+    C1, C2, C3 = '155px', '80px', '80px'
     if total == 0:
-        return '<span class="badge bg-secondary ms-2">—</span>'
-    pct   = passed / total * 100
-    color = 'danger' if fail > 0 else 'success'
-    parts = [f'<span class="badge bg-{color} ms-2">{passed}/{total} ({pct:.0f}%)</span>']
-    if skip > 0:
-        parts.append(f'<span class="badge bg-warning text-dark ms-1">{skip} skipped</span>')
-    if fail > 0:
-        parts.append(f'<span class="badge bg-danger ms-1">{fail} échoués</span>')
-    return ' '.join(parts)
+        c1 = '<span class="badge bg-secondary">—</span>'
+        c2 = c3 = '<span class="text-muted">—</span>'
+    else:
+        pct   = passed / total * 100
+        color = 'danger' if fail > 0 else 'success'
+        c1 = f'<span class="badge bg-{color}">{passed}/{total}&nbsp;({pct:.0f}%)</span>'
+        c2 = (f'<span class="badge bg-warning text-dark">{skip}</span>'
+              if skip > 0 else '<span class="text-muted">—</span>')
+        c3 = (f'<span class="badge bg-danger">{fail}</span>'
+              if fail > 0 else '<span class="text-muted">—</span>')
+    return (
+        f'<span class="col-badge" style="width:{C1}">{c1}</span>'
+        f'<span class="col-badge" style="width:{C2}">{c2}</span>'
+        f'<span class="col-badge" style="width:{C3}">{c3}</span>'
+    )
 
 def unc_cell(data):
     count = data.get('uncommitted', 0)
@@ -468,7 +475,7 @@ def make_section(sec_id, title, suite_name=None, is_open=False):
       <button class="accordion-button {collapsed}" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-{sec_id}"
               aria-expanded="{expanded}" aria-controls="col-{sec_id}">
-        <strong>{esc.escape(title)}</strong>{badges}
+        <span class="acc-row"><strong class="acc-name">{esc.escape(title)}</strong>{badges}</span>
       </button>
     </h2>
     <div id="col-{sec_id}" class="accordion-collapse collapse {shown}"
@@ -508,14 +515,23 @@ html_out = f"""<!DOCTYPE html>
     code  {{ font-size: 12px; }}
     .table td, .table th {{ font-size: 12px; padding: 3px 6px; vertical-align: middle; }}
     .chart-scroll {{
-      overflow-x: auto;
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
-      padding: 8px;
+      overflow-x: auto; background: #f8f9fa;
+      border: 1px solid #dee2e6; border-radius: 4px; padding: 8px;
     }}
+    /* Accordion column alignment */
     .accordion-button {{ padding: 8px 12px; }}
     .accordion-body   {{ padding: 12px; }}
+    .acc-row  {{ display: flex; align-items: center; flex: 1; min-width: 0; }}
+    .acc-name {{ flex: 1; min-width: 0; overflow: hidden;
+                 text-overflow: ellipsis; white-space: nowrap; padding-right: 10px; }}
+    .col-badge {{ display: inline-block; text-align: center;
+                  flex-shrink: 0; padding: 0 2px; }}
+    .acc-col-hdr {{
+      display: flex; align-items: center;
+      padding: 3px 12px; font-size: 11px; color: #6c757d;
+      background: #e9ecef; border: 1px solid rgba(0,0,0,.125);
+      border-bottom: 0; border-radius: .375rem .375rem 0 0;
+    }}
     details summary   {{ list-style: none; }}
     details summary::-webkit-details-marker {{ display: none; }}
   </style>
@@ -525,6 +541,13 @@ html_out = f"""<!DOCTYPE html>
 <h5 class="mb-1">GVV Test Dashboard</h5>
 <p class="text-muted mb-3" style="font-size:11px">Généré le {generated_at}</p>
 
+<div class="acc-col-hdr">
+  <span class="acc-name" style="font-weight:600">Suite</span>
+  <span class="col-badge" style="width:155px;font-weight:600">Réussis</span>
+  <span class="col-badge" style="width:80px;font-weight:600">Skipped</span>
+  <span class="col-badge" style="width:80px;font-weight:600">Échoués</span>
+  <span style="min-width:28px"></span>
+</div>
 <div class="accordion" id="mainAccordion">
 {accordion}
 </div>

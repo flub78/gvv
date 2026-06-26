@@ -12,14 +12,23 @@
     code  { font-size: 12px; }
     .table td, .table th { font-size: 12px; padding: 3px 6px; vertical-align: middle; }
     .chart-scroll {
-      overflow-x: auto;
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
-      padding: 8px;
+      overflow-x: auto; background: #f8f9fa;
+      border: 1px solid #dee2e6; border-radius: 4px; padding: 8px;
     }
+    /* Accordion column alignment */
     .accordion-button { padding: 8px 12px; }
     .accordion-body   { padding: 12px; }
+    .acc-row  { display: flex; align-items: center; flex: 1; min-width: 0; }
+    .acc-name { flex: 1; min-width: 0; overflow: hidden;
+                 text-overflow: ellipsis; white-space: nowrap; padding-right: 10px; }
+    .col-badge { display: inline-block; text-align: center;
+                  flex-shrink: 0; padding: 0 2px; }
+    .acc-col-hdr {
+      display: flex; align-items: center;
+      padding: 3px 12px; font-size: 11px; color: #6c757d;
+      background: #e9ecef; border: 1px solid rgba(0,0,0,.125);
+      border-bottom: 0; border-radius: .375rem .375rem 0 0;
+    }
     details summary   { list-style: none; }
     details summary::-webkit-details-marker { display: none; }
   </style>
@@ -27,8 +36,15 @@
 <body class="p-3">
 
 <h5 class="mb-1">GVV Test Dashboard</h5>
-<p class="text-muted mb-3" style="font-size:11px">Généré le 2026-06-26 15:31:27</p>
+<p class="text-muted mb-3" style="font-size:11px">Généré le 2026-06-26 17:01:03</p>
 
+<div class="acc-col-hdr">
+  <span class="acc-name" style="font-weight:600">Suite</span>
+  <span class="col-badge" style="width:155px;font-weight:600">Réussis</span>
+  <span class="col-badge" style="width:80px;font-weight:600">Skipped</span>
+  <span class="col-badge" style="width:80px;font-weight:600">Échoués</span>
+  <span style="min-width:28px"></span>
+</div>
 <div class="accordion" id="mainAccordion">
 
   <div class="accordion-item">
@@ -36,15 +52,15 @@
       <button class="accordion-button " type="button"
               data-bs-toggle="collapse" data-bs-target="#col-global"
               aria-expanded="true" aria-controls="col-global">
-        <strong>Synthèse globale</strong><span class="badge bg-danger ms-2">2179/2260 (96%)</span> <span class="badge bg-warning text-dark ms-1">69 skipped</span> <span class="badge bg-danger ms-1">12 échoués</span>
+        <span class="acc-row"><strong class="acc-name">Synthèse globale</strong><span class="col-badge" style="width:155px"><span class="badge bg-danger">2178/2260&nbsp;(96%)</span></span><span class="col-badge" style="width:80px"><span class="badge bg-warning text-dark">70</span></span><span class="col-badge" style="width:80px"><span class="badge bg-danger">12</span></span></span>
       </button>
     </h2>
     <div id="col-global" class="accordion-collapse collapse show"
          aria-labelledby="hdr-global" data-bs-parent="#mainAccordion">
       <div class="accordion-body pt-2">
         <p class="mb-1 fw-semibold" style="font-size:12px">Historique <span class="ms-2 fw-normal" style="font-size:11px"><svg width="11" height="11"><rect width="11" height="11" fill="#28a745"/></svg>&nbsp;Réussis&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#ffc107"/></svg>&nbsp;Skipped&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#dc3545"/></svg>&nbsp;Échoués</span></p>
-        <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="750" height="225" style="font-family:monospace;font-size:9px;display:block">
-<line x1="10" y1="170" x2="745" y2="170" stroke="#999" stroke-width="1"/>
+        <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="966" height="225" style="font-family:monospace;font-size:9px;display:block">
+<line x1="10" y1="170" x2="961" y2="170" stroke="#999" stroke-width="1"/>
 <g><title>2025-10-04 08:18 +MySQLIntegrationTests | 9/9 (100%)</title>
 <rect x="10" y="169" width="32" height="1" fill="#28a745"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2025-10-04</text>
@@ -149,9 +165,75 @@
 <rect x="694" y="10" width="32" height="5" fill="#ffc107"/>
 <text x="710" y="174" text-anchor="end" fill="#555" transform="rotate(45 710 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:43 +IntegrationTests | 428/447 (96%)</title>
+<rect x="730" y="139" width="32" height="31" fill="#28a745"/>
+<rect x="730" y="138" width="32" height="1" fill="#ffc107"/>
+<text x="746" y="174" text-anchor="end" fill="#555" transform="rotate(45 746 174)">2026-06-26</text>
+</g>
+<g><title>2026-06-26 15:43 +WorkingTests | 827/851 (97%)</title>
+<rect x="766" y="110" width="32" height="60" fill="#28a745"/>
+<rect x="766" y="108" width="32" height="2" fill="#ffc107"/>
+<text x="782" y="174" text-anchor="end" fill="#555" transform="rotate(45 782 174)">2026-06-26</text>
+</g>
+<g><title>2026-06-26 15:43 +EnhancedTests | 839/863 (97%)</title>
+<rect x="802" y="109" width="32" height="61" fill="#28a745"/>
+<rect x="802" y="107" width="32" height="2" fill="#ffc107"/>
+<text x="818" y="174" text-anchor="end" fill="#555" transform="rotate(45 818 174)">2026-06-26</text>
+</g>
+<g><title>2026-06-26 15:43 +UrlHelperTests | 847/871 (97%)</title>
+<rect x="838" y="109" width="32" height="61" fill="#28a745"/>
+<rect x="838" y="107" width="32" height="2" fill="#ffc107"/>
+<text x="854" y="174" text-anchor="end" fill="#555" transform="rotate(45 854 174)">2026-06-26</text>
+</g>
+<g><title>2026-06-26 15:44 +MySQLTests | 1469/1509 (97%)</title>
+<rect x="874" y="64" width="32" height="106" fill="#28a745"/>
+<rect x="874" y="61" width="32" height="3" fill="#ffc107"/>
+<text x="890" y="174" text-anchor="end" fill="#555" transform="rotate(45 890 174)">2026-06-26</text>
+</g>
+<g><title>2026-06-26 15:57 +Playwright | 2141/2211 (97%)</title>
+<rect x="910" y="15" width="32" height="155" fill="#28a745"/>
+<rect x="910" y="10" width="32" height="5" fill="#ffc107"/>
+<text x="926" y="174" text-anchor="end" fill="#555" transform="rotate(45 926 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Suite</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:44</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Suite</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:57</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>Playwright</small></td><td class="text-center"><span class="badge bg-success">672</span><span class="badge bg-warning text-dark ms-1">30</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:44</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>MySQLTests</small></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>IntegrationTests</small></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>WorkingTests</small></td><td class="text-center"><span class="badge bg-success">399</span><span class="badge bg-warning text-dark ms-1">5</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>EnhancedTests</small></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="5"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:44</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -276,107 +358,31 @@
 ?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
 ?? build/test-dashboard.html
 ?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:12</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>MySQLTests</small></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:11</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>IntegrationTests</small></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:11</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>EnhancedTests</small></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2026-06-26 14:10</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>WorkingTests</small></td><td class="text-center"><span class="badge bg-success">398</span><span class="badge bg-warning text-dark ms-1">5</span><span class="badge bg-danger ms-1">1</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:10</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 13:02</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>Playwright</small></td><td class="text-center"><span class="badge bg-success">673</span><span class="badge bg-warning text-dark ms-1">29</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:06</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>MySQLTests</small></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>IntegrationTests</small></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>WorkingTests</small></td><td class="text-center"><span class="badge bg-success">399</span><span class="badge bg-warning text-dark ms-1">5</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>EnhancedTests</small></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="5"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-12-22 08:56</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td><small>ControllerTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2025-10-30 18:45</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td><small>AuthorizationSmokeTests</small></td><td class="text-center"><span class="badge bg-success">2</span><span class="badge bg-danger ms-1">12</span><small class="text-muted ms-1">(14%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-16 18:49</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td><small>ExportTests</small></td><td class="text-center"><span class="badge bg-success">18</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-04 08:18</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td><small>MySQLIntegrationTests</small></td><td class="text-center"><span class="badge bg-success">9</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
+?? test-status.sh</pre></details></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:12</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>MySQLTests</small></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:11</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>IntegrationTests</small></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:11</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>EnhancedTests</small></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2026-06-26 14:10</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>WorkingTests</small></td><td class="text-center"><span class="badge bg-success">398</span><span class="badge bg-warning text-dark ms-1">5</span><span class="badge bg-danger ms-1">1</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:10</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 13:02</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td><small>Playwright</small></td><td class="text-center"><span class="badge bg-success">673</span><span class="badge bg-warning text-dark ms-1">29</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:06</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>MySQLTests</small></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>IntegrationTests</small></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>WorkingTests</small></td><td class="text-center"><span class="badge bg-success">399</span><span class="badge bg-warning text-dark ms-1">5</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>EnhancedTests</small></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 11:05</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">17</span></td><td><small>UrlHelperTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="5"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-12-22 08:56</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>ControllerTests</small></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2025-10-30 18:45</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>AuthorizationSmokeTests</small></td><td class="text-center"><span class="badge bg-success">2</span><span class="badge bg-danger ms-1">12</span><small class="text-muted ms-1">(14%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-16 18:49</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>ExportTests</small></td><td class="text-center"><span class="badge bg-success">18</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-04 08:18</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td><small>MySQLIntegrationTests</small></td><td class="text-center"><span class="badge bg-success">9</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
@@ -386,7 +392,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-AuthorizationSmokeTests"
               aria-expanded="false" aria-controls="col-AuthorizationSmokeTests">
-        <strong>AuthorizationSmokeTests</strong><span class="badge bg-danger ms-2">2/14 (14%)</span> <span class="badge bg-danger ms-1">12 échoués</span>
+        <span class="acc-row"><strong class="acc-name">AuthorizationSmokeTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-danger">2/14&nbsp;(14%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="badge bg-danger">12</span></span></span>
       </button>
     </h2>
     <div id="col-AuthorizationSmokeTests" class="accordion-collapse collapse "
@@ -395,39 +401,20 @@
         <p class="mb-1 fw-semibold" style="font-size:12px">Historique <span class="ms-2 fw-normal" style="font-size:11px"><svg width="11" height="11"><rect width="11" height="11" fill="#28a745"/></svg>&nbsp;Réussis&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#ffc107"/></svg>&nbsp;Skipped&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#dc3545"/></svg>&nbsp;Échoués</span></p>
         <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="300" height="225" style="font-family:monospace;font-size:9px;display:block">
 <line x1="10" y1="170" x2="295" y2="170" stroke="#999" stroke-width="1"/>
-<g><title>2025-10-30 18:45 | 8bc6600f | 2/14 (14%)</title>
+<g><title>2025-10-30 18:45 | 7536ca90 | 2/14 (14%)</title>
 <rect x="10" y="147" width="32" height="23" fill="#28a745"/>
 <rect x="10" y="10" width="32" height="137" fill="#dc3545"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2025-10-30</text>
 </g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2025-10-30 18:45</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td class="text-center"><span class="badge bg-success">2</span><span class="badge bg-danger ms-1">12</span><small class="text-muted ms-1">(14%)</small></td></tr></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class="table-danger"><td style="white-space:nowrap"><small>2025-10-30 18:45</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">2</span><span class="badge bg-danger ms-1">12</span><small class="text-muted ms-1">(14%)</small></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
@@ -437,7 +424,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-IntegrationTests"
               aria-expanded="false" aria-controls="col-IntegrationTests">
-        <strong>IntegrationTests</strong><span class="badge bg-success ms-2">428/447 (96%)</span> <span class="badge bg-warning text-dark ms-1">19 skipped</span>
+        <span class="acc-row"><strong class="acc-name">IntegrationTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">428/447&nbsp;(96%)</span></span><span class="col-badge" style="width:80px"><span class="badge bg-warning text-dark">19</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-IntegrationTests" class="accordion-collapse collapse "
@@ -461,9 +448,20 @@
 <rect x="82" y="10" width="32" height="7" fill="#ffc107"/>
 <text x="98" y="174" text-anchor="end" fill="#555" transform="rotate(45 98 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:43 | 7536ca90 | 428/447 (96%)</title>
+<rect x="118" y="17" width="32" height="153" fill="#28a745"/>
+<rect x="118" y="10" width="32" height="7" fill="#ffc107"/>
+<text x="134" y="174" text-anchor="end" fill="#555" transform="rotate(45 134 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">428</span><span class="badge bg-warning text-dark ms-1">19</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -498,7 +496,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-WorkingTests"
               aria-expanded="false" aria-controls="col-WorkingTests">
-        <strong>WorkingTests</strong><span class="badge bg-success ms-2">399/404 (99%)</span> <span class="badge bg-warning text-dark ms-1">5 skipped</span>
+        <span class="acc-row"><strong class="acc-name">WorkingTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">399/404&nbsp;(99%)</span></span><span class="col-badge" style="width:80px"><span class="badge bg-warning text-dark">5</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-WorkingTests" class="accordion-collapse collapse "
@@ -523,9 +521,20 @@
 <rect x="82" y="10" width="32" height="2" fill="#ffc107"/>
 <text x="98" y="174" text-anchor="end" fill="#555" transform="rotate(45 98 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:43 | 7536ca90 | 399/404 (99%)</title>
+<rect x="118" y="12" width="32" height="158" fill="#28a745"/>
+<rect x="118" y="10" width="32" height="2" fill="#ffc107"/>
+<text x="134" y="174" text-anchor="end" fill="#555" transform="rotate(45 134 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">399</span><span class="badge bg-warning text-dark ms-1">5</span><small class="text-muted ms-1">(99%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -560,7 +569,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-ControllerTests"
               aria-expanded="false" aria-controls="col-ControllerTests">
-        <strong>ControllerTests</strong><span class="badge bg-success ms-2">8/8 (100%)</span>
+        <span class="acc-row"><strong class="acc-name">ControllerTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">8/8&nbsp;(100%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-ControllerTests" class="accordion-collapse collapse "
@@ -569,38 +578,19 @@
         <p class="mb-1 fw-semibold" style="font-size:12px">Historique <span class="ms-2 fw-normal" style="font-size:11px"><svg width="11" height="11"><rect width="11" height="11" fill="#28a745"/></svg>&nbsp;Réussis&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#ffc107"/></svg>&nbsp;Skipped&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#dc3545"/></svg>&nbsp;Échoués</span></p>
         <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="300" height="225" style="font-family:monospace;font-size:9px;display:block">
 <line x1="10" y1="170" x2="295" y2="170" stroke="#999" stroke-width="1"/>
-<g><title>2025-12-22 08:56 | 8bc6600f | 8/8 (100%)</title>
+<g><title>2025-12-22 08:56 | 7536ca90 | 8/8 (100%)</title>
 <rect x="10" y="10" width="32" height="160" fill="#28a745"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2025-12-22</text>
 </g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-12-22 08:56</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-12-22 08:56</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
@@ -610,7 +600,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-EnhancedTests"
               aria-expanded="false" aria-controls="col-EnhancedTests">
-        <strong>EnhancedTests</strong><span class="badge bg-success ms-2">12/12 (100%)</span>
+        <span class="acc-row"><strong class="acc-name">EnhancedTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">12/12&nbsp;(100%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-EnhancedTests" class="accordion-collapse collapse "
@@ -631,9 +621,19 @@
 <rect x="82" y="10" width="32" height="160" fill="#28a745"/>
 <text x="98" y="174" text-anchor="end" fill="#555" transform="rotate(45 98 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:43 | 7536ca90 | 12/12 (100%)</title>
+<rect x="118" y="10" width="32" height="160" fill="#28a745"/>
+<text x="134" y="174" text-anchor="end" fill="#555" transform="rotate(45 134 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class=""><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">12</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -668,7 +668,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-ExportTests"
               aria-expanded="false" aria-controls="col-ExportTests">
-        <strong>ExportTests</strong><span class="badge bg-success ms-2">18/18 (100%)</span>
+        <span class="acc-row"><strong class="acc-name">ExportTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">18/18&nbsp;(100%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-ExportTests" class="accordion-collapse collapse "
@@ -677,38 +677,19 @@
         <p class="mb-1 fw-semibold" style="font-size:12px">Historique <span class="ms-2 fw-normal" style="font-size:11px"><svg width="11" height="11"><rect width="11" height="11" fill="#28a745"/></svg>&nbsp;Réussis&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#ffc107"/></svg>&nbsp;Skipped&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#dc3545"/></svg>&nbsp;Échoués</span></p>
         <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="300" height="225" style="font-family:monospace;font-size:9px;display:block">
 <line x1="10" y1="170" x2="295" y2="170" stroke="#999" stroke-width="1"/>
-<g><title>2025-10-16 18:49 | 8bc6600f | 18/18 (100%)</title>
+<g><title>2025-10-16 18:49 | 7536ca90 | 18/18 (100%)</title>
 <rect x="10" y="10" width="32" height="160" fill="#28a745"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2025-10-16</text>
 </g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-16 18:49</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td class="text-center"><span class="badge bg-success">18</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-16 18:49</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">18</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
@@ -718,7 +699,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-MySQLIntegrationTests"
               aria-expanded="false" aria-controls="col-MySQLIntegrationTests">
-        <strong>MySQLIntegrationTests</strong><span class="badge bg-success ms-2">9/9 (100%)</span>
+        <span class="acc-row"><strong class="acc-name">MySQLIntegrationTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">9/9&nbsp;(100%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-MySQLIntegrationTests" class="accordion-collapse collapse "
@@ -727,38 +708,19 @@
         <p class="mb-1 fw-semibold" style="font-size:12px">Historique <span class="ms-2 fw-normal" style="font-size:11px"><svg width="11" height="11"><rect width="11" height="11" fill="#28a745"/></svg>&nbsp;Réussis&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#ffc107"/></svg>&nbsp;Skipped&ensp;<svg width="11" height="11"><rect width="11" height="11" fill="#dc3545"/></svg>&nbsp;Échoués</span></p>
         <div class="mb-3 chart-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="300" height="225" style="font-family:monospace;font-size:9px;display:block">
 <line x1="10" y1="170" x2="295" y2="170" stroke="#999" stroke-width="1"/>
-<g><title>2025-10-04 08:18 | 8bc6600f | 9/9 (100%)</title>
+<g><title>2025-10-04 08:18 | 7536ca90 | 9/9 (100%)</title>
 <rect x="10" y="10" width="32" height="160" fill="#28a745"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2025-10-04</text>
 </g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-04 08:18</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
- M application/models/membres_model.php
- M application/tests/unit/models/SectionPilotsAccountsTest.php
- M application/third_party/phpqrcode/errors.txt
- M doc/plans/migration_actif_par_section_plan.md
- M playwright/tests/formation/seances_theoriques.spec.js
-?? .claude/commands/fix-phpunit.md
-?? GVV:
-?? application/third_party/phpqrcode/bp_qr_0e95a71de28afb0e204b4934d2025299.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_2bb239f09bfdd6bcc04c6b86be02825d.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_553411e6ec2a34658e9808ccf6d7a0b0.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_55b4911c194f7b52cf11eddae5646e82.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_7b95c4e76ef0449d6284417b158dbab1.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_84fcd00fc7470f06767c3d09e5386631.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_991bffb403ef9f8e6fb9273899315226.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_a5c564e257227f2efcd9502f284b2650.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_d23389416cef52e5438b6193666a0a73.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_dd6c58a8068f4a637c258b49f023ac29.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_f453dfbe2c4e5564a7dec19e5377d7b5.png-errors.txt
-?? application/third_party/phpqrcode/bp_qr_fdb413b74e39d25e01fcaea09a15783e.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260038.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260067.png-errors.txt
-?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt
-?? build/test-dashboard.html
-?? build/test-history.jsonl
-?? test-status.sh</pre></details></td><td class="text-center"><span class="badge bg-success">9</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2025-10-04 08:18</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">9</span><small class="text-muted ms-1">(100%)</small></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
@@ -768,7 +730,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-MySQLTests"
               aria-expanded="false" aria-controls="col-MySQLTests">
-        <strong>MySQLTests</strong><span class="badge bg-success ms-2">622/638 (97%)</span> <span class="badge bg-warning text-dark ms-1">16 skipped</span>
+        <span class="acc-row"><strong class="acc-name">MySQLTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">622/638&nbsp;(97%)</span></span><span class="col-badge" style="width:80px"><span class="badge bg-warning text-dark">16</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-MySQLTests" class="accordion-collapse collapse "
@@ -792,9 +754,20 @@
 <rect x="82" y="10" width="32" height="4" fill="#ffc107"/>
 <text x="98" y="174" text-anchor="end" fill="#555" transform="rotate(45 98 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:44 | 7536ca90 | 622/638 (97%)</title>
+<rect x="118" y="14" width="32" height="156" fill="#28a745"/>
+<rect x="118" y="10" width="32" height="4" fill="#ffc107"/>
+<text x="134" y="174" text-anchor="end" fill="#555" transform="rotate(45 134 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:44</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:44</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">622</span><span class="badge bg-warning text-dark ms-1">16</span><small class="text-muted ms-1">(97%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 14:44</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -829,7 +802,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-UrlHelperTests"
               aria-expanded="false" aria-controls="col-UrlHelperTests">
-        <strong>UrlHelperTests</strong><span class="badge bg-success ms-2">8/8 (100%)</span>
+        <span class="acc-row"><strong class="acc-name">UrlHelperTests</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">8/8&nbsp;(100%)</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-UrlHelperTests" class="accordion-collapse collapse "
@@ -850,9 +823,19 @@
 <rect x="82" y="10" width="32" height="160" fill="#28a745"/>
 <text x="98" y="174" text-anchor="end" fill="#555" transform="rotate(45 98 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:43 | 7536ca90 | 8/8 (100%)</title>
+<rect x="118" y="10" width="32" height="160" fill="#28a745"/>
+<text x="134" y="174" text-anchor="end" fill="#555" transform="rotate(45 134 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class=""><td style="white-space:nowrap"><small>2026-06-26 15:43</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">8</span><small class="text-muted ms-1">(100%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class=""><td style="white-space:nowrap"><small>2026-06-26 14:42</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">26</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/controllers/vols_avion.php
  M application/models/membres_model.php
  M application/tests/unit/models/SectionPilotsAccountsTest.php
  M application/third_party/phpqrcode/errors.txt
@@ -887,7 +870,7 @@
       <button class="accordion-button collapsed" type="button"
               data-bs-toggle="collapse" data-bs-target="#col-Playwright"
               aria-expanded="false" aria-controls="col-Playwright">
-        <strong>Playwright</strong><span class="badge bg-success ms-2">673/702 (96%)</span> <span class="badge bg-warning text-dark ms-1">29 skipped</span>
+        <span class="acc-row"><strong class="acc-name">Playwright</strong><span class="col-badge" style="width:155px"><span class="badge bg-success">672/702&nbsp;(96%)</span></span><span class="col-badge" style="width:80px"><span class="badge bg-warning text-dark">30</span></span><span class="col-badge" style="width:80px"><span class="text-muted">—</span></span></span>
       </button>
     </h2>
     <div id="col-Playwright" class="accordion-collapse collapse "
@@ -901,9 +884,20 @@
 <rect x="10" y="10" width="32" height="7" fill="#ffc107"/>
 <text x="26" y="174" text-anchor="end" fill="#555" transform="rotate(45 26 174)">2026-06-26</text>
 </g>
+<g><title>2026-06-26 15:57 | 7536ca90 | 672/702 (96%)</title>
+<rect x="46" y="17" width="32" height="153" fill="#28a745"/>
+<rect x="46" y="10" width="32" height="7" fill="#ffc107"/>
+<text x="62" y="174" text-anchor="end" fill="#555" transform="rotate(45 62 174)">2026-06-26</text>
+</g>
 </svg></div>
         <p class="mb-1 fw-semibold" style="font-size:12px">Journal des exécutions</p>
-        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 13:02</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td class="text-center"><span class="badge bg-success">673</span><span class="badge bg-warning text-dark ms-1">29</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr></tbody></table></div>
+        <div class="table-responsive"><table class="table table-bordered table-sm mb-0"><thead class="table-dark"><tr><th>Date</th><th>Commit / Migr.</th><th title="Fichiers non commités">Δ</th><th>Résultats</th></tr></thead><tbody><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 15:57</small></td><td><code>7536ca90</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><details style="display:inline-block"><summary style="cursor:pointer"><span class="badge bg-warning text-dark">7</span></summary><pre style="font-size:10px;margin:4px 0 0"> M application/third_party/phpqrcode/errors.txt
+ M build/test-dashboard.html
+ M build/test-history.jsonl
+ M test-status.sh
+?? application/third_party/phpqrcode/bp_qr_6476ae4188ee1079fcb5837da4a70fba.png-errors.txt
+?? application/third_party/phpqrcode/bp_qr_ea23a29c1e2c5ffa7f7c6996529d127d.png-errors.txt
+?? application/third_party/phpqrcode/qrcode_260096.png-errors.txt</pre></details></td><td class="text-center"><span class="badge bg-success">672</span><span class="badge bg-warning text-dark ms-1">30</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>7536ca90</code><span class="ms-2">Actif par section MVP</span><span class="float-end text-muted">2026-06-26 15:42</span></td></tr><tr class="table-warning"><td style="white-space:nowrap"><small>2026-06-26 13:02</small></td><td><code>8bc6600f</code><small class="text-muted ms-1">migr.136</small></td><td class="text-center"><span class="badge bg-warning text-dark">19</span></td><td class="text-center"><span class="badge bg-success">673</span><span class="badge bg-warning text-dark ms-1">29</span><small class="text-muted ms-1">(96%)</small></td></tr><tr class="table-secondary" style="font-size:11px"><td colspan="4"><span class="badge bg-dark me-1">commit</span><code>8bc6600f</code><span class="ms-2">Correction pb arrondi horamètre</span><span class="float-end text-muted">2026-06-26 09:07</span></td></tr></tbody></table></div>
       </div>
     </div>
   </div>
