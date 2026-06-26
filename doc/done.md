@@ -214,3 +214,5 @@
 * [x] Ajouter une page de recherche des trous dans les vols, cette page affiche tous les cas ou l'horamètre de début ne correspond pas à l'horamètre de fin du vol précédent. Cette page permet de corriger les vols manquants.
 
 * [x] export csv et pdf des relances. 
+
+* [x] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.

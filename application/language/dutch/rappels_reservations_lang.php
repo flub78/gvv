@@ -39,3 +39,16 @@ $lang['reminder_event_cancel']     = "Reservering geannuleerd";
 $lang['reminder_intro_event']      = "Een reservering betreft u.";
 $lang['reminder_role_pilot']       = "Piloot";
 $lang['reminder_role_instructor']  = "Instructeur";
+
+// Testpagina herinneringen
+$lang['test_rappel_titre']             = "Test reserveringsherinneringen";
+$lang['test_rappel_form_title']        = "Testparameters";
+$lang['test_rappel_label_reservation'] = "Reservering";
+$lang['test_rappel_select_resa']       = "Selecteer een reservering";
+$lang['test_rappel_no_resa']           = "Geen reserveringen beschikbaar.";
+$lang['test_rappel_label_canal']       = "Kanaal";
+$lang['test_rappel_label_type']        = "Meldingstype";
+$lang['test_rappel_label_destinataire']= "Ontvanger";
+$lang['test_rappel_btn_envoyer']       = "Testherinnering verzenden";
+$lang['test_rappel_redirection_info']  = "Berichten worden omgeleid naar:";
+$lang['test_rappel_no_redirection']    = "Geen testomleiding geconfigureerd — berichten worden naar echte ontvangers gestuurd.";

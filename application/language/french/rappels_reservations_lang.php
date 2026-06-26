@@ -42,3 +42,16 @@ $lang['reminder_event_cancel']     = "Réservation annulée";
 $lang['reminder_intro_event']      = "Une réservation vous concerne.";
 $lang['reminder_role_pilot']       = "Pilote";
 $lang['reminder_role_instructor']  = "Instructeur";
+
+// Page de test des rappels
+$lang['test_rappel_titre']             = "Test des rappels de réservation";
+$lang['test_rappel_form_title']        = "Paramètres du test";
+$lang['test_rappel_label_reservation'] = "Réservation";
+$lang['test_rappel_select_resa']       = "Sélectionner une réservation";
+$lang['test_rappel_no_resa']           = "Aucune réservation disponible.";
+$lang['test_rappel_label_canal']       = "Canal";
+$lang['test_rappel_label_type']        = "Type de notification";
+$lang['test_rappel_label_destinataire']= "Destinataire";
+$lang['test_rappel_btn_envoyer']       = "Envoyer le rappel de test";
+$lang['test_rappel_redirection_info']  = "Les messages sont redirigés vers :";
+$lang['test_rappel_no_redirection']    = "Aucune redirection de test configurée — les messages seront envoyés aux vrais destinataires.";

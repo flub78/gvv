@@ -1401,6 +1401,17 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if (!empty($is_dev_authorized)): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-warning">
+                <i class="fas fa-bell text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_test_rappel') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_test_rappel') ?></div>
+                <a href="<?= controller_url('reservation_reminder_test') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if ($is_admin && !empty($is_dev_authorized)): ?>
         <div class="col-12 mt-3">
             <h6 class="text-muted mb-2"><i class="fas fa-wrench"></i> <?= $this->lang->line('db_sub_dev_tools') ?></h6>
