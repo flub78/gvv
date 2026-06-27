@@ -222,6 +222,9 @@ if ($this->session->flashdata('error')) {
                     },
                     {
                         "bSortable": false
+                    },
+                    {
+                        "bSortable": false
                     }
                 ],
                 "bInfo": true,
