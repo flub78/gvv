@@ -1185,10 +1185,6 @@ $this->load->view('bs_banner');
             const resourceId = slotEl.getAttribute('data-resource-id');
             const clickedTime = String(hour).padStart(2, '0') + ':00:00';
 
-            // Non-admins cannot create reservations in the past
-            const slotDate = new Date(CONFIG.currentDate + 'T' + clickedTime);
-            if (!CONFIG.isClubAdmin && slotDate < new Date()) return;
-
             console.log('Slot clicked:', resourceId, clickedTime);
 
             // Send trace to server
@@ -1216,6 +1212,12 @@ $this->load->view('bs_banner');
          */
         function showCreateReservationModal(resourceId, startTime, endTime = null) {
             console.log('Opening create reservation modal for aircraft:', resourceId, 'from:', startTime, 'to:', endTime);
+
+            // Non-admins cannot create reservations in the past
+            const startHourCheck = parseInt(startTime.split(':')[0]);
+            const startMinCheck = parseInt(startTime.split(':')[1]) || 0;
+            const slotDate = new Date(state.currentDate + 'T' + String(startHourCheck).padStart(2, '0') + ':' + String(startMinCheck).padStart(2, '0') + ':00');
+            if (!CONFIG.isClubAdmin && slotDate < new Date()) return;
 
             // Parse start time
             const startTimeParts = startTime.split(':');
