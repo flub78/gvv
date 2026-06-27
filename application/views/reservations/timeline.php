@@ -69,16 +69,6 @@ $this->load->view('bs_banner');
             white-space: nowrap;
         }
         
-        .current-date-display {
-            min-width: 200px;
-            text-align: center;
-            padding: 8px 16px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            font-weight: 600;
-            color: #333;
-        }
-
         @media (max-width: 1200px) {
             .timeline-header {
                 align-items: stretch;
@@ -91,10 +81,6 @@ $this->load->view('bs_banner');
             .timeline-controls {
                 width: 100%;
                 justify-content: flex-start;
-            }
-
-            .current-date-display {
-                min-width: 150px;
             }
         }
         
@@ -434,38 +420,21 @@ $this->load->view('bs_banner');
                 flex-shrink: 0;
             }
 
-            /* Rangée 1 : ← Précédent | date formatée | Suivant → */
-            #btnPrevious {
-                order: 10;
-                flex: 0 0 auto;
-            }
-            .current-date-display {
+            /* Rangée 1 : ← | datePicker | → */
+            #btnPrevious { order: 10; flex: 0 0 auto; }
+            #datePicker  {
                 order: 11;
-                flex: 1 1 auto;
-                min-width: 0;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                text-align: center;
-                font-size: 14px;
-            }
-            #btnNext {
-                order: 12;
-                flex: 0 0 auto;
-            }
-
-            /* Rangée 2 : input date | Mois | Semaine | Liste */
-            #datePicker {
-                order: 30;
                 flex: 1 1 auto;
                 min-width: 120px;
                 width: auto !important;
-                display: block !important;
                 margin: 0 !important;
             }
-            #btnMonth { order: 31; flex: 0 0 auto; }
-            #btnWeek  { order: 32; flex: 0 0 auto; }
-            #btnList  { order: 33; flex: 0 0 auto; }
+            #btnNext     { order: 12; flex: 0 0 auto; }
+
+            /* Rangée 2 : Mois | Semaine | Liste */
+            #btnMonth { order: 30; flex: 0 0 auto; }
+            #btnWeek  { order: 31; flex: 0 0 auto; }
+            #btnList  { order: 32; flex: 0 0 auto; }
         }
     </style>
 
@@ -482,9 +451,9 @@ $this->load->view('bs_banner');
                     <i class="fas fa-chevron-left"></i> <span class="btn-label"><?php echo $this->lang->line('previous') ?: 'Précédent'; ?></span>
                 </button>
                 <input type="date" class="form-control form-control-sm mx-2" id="datePicker" style="width: auto; display: inline-block;" value="<?php echo $current_date; ?>" title="Sélectionner une date">
-                <div class="current-date-display" id="currentDateDisplay">
-                    <?php echo $current_date_formatted; ?>
-                </div>
+                <button class="btn btn-outline-secondary btn-sm" id="btnNext" title="Next day">
+                    <span class="btn-label"><?php echo $this->lang->line('next') ?: 'Suivant'; ?></span> <i class="fas fa-chevron-right"></i>
+                </button>
                 <a id="btnMonth" class="btn btn-outline-secondary btn-sm" href="<?php echo site_url('reservations'); ?>?view=dayGridMonth" title="Vue mois">
                     <?php echo $this->lang->line('month') ?: 'Mois'; ?>
                 </a>
@@ -496,9 +465,6 @@ $this->load->view('bs_banner');
                 </a>
                 <button class="btn btn-outline-secondary btn-sm" id="btnToday" title="Go to today">
                     <i class="fas fa-calendar-day"></i> <?php echo $this->lang->line('today') ?: "Aujourd'hui"; ?>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" id="btnNext" title="Next day">
-                    <span class="btn-label"><?php echo $this->lang->line('next') ?: 'Suivant'; ?></span> <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -1702,12 +1668,6 @@ $this->load->view('bs_banner');
          * Update date display
          */
         function updateDateDisplay() {
-            const date = new Date(state.currentDate + 'T12:00:00');
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formatted = date.toLocaleDateString('<?php echo $this->lang->line("lang") ?: "en"; ?>', options);
-            document.getElementById('currentDateDisplay').textContent = formatted;
-            
-            // Update date picker value
             document.getElementById('datePicker').value = state.currentDate;
         }
         
