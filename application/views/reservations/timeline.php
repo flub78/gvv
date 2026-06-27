@@ -595,9 +595,27 @@ $this->load->view('bs_banner');
             loadTimelineData();
             setupDateNavigation();
 
+            // Back button closes the modal instead of navigating away.
+            // When the modal opens we push a history entry; popstate fires when
+            // the user presses back, and we close the modal instead of leaving.
+            let modalHistoryPushed = false;
+
+            window.addEventListener('popstate', function() {
+                const modalEl = document.getElementById('eventModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) {
+                    modalHistoryPushed = false; // prevent hidden.bs.modal from calling history.back()
+                    modal.hide();
+                }
+            });
+
             // On touch devices, absorb the ghost click that fires ~300ms after touchend
             // when the modal is already closed, to prevent it from hitting navigation links.
             document.getElementById('eventModal').addEventListener('hidden.bs.modal', function() {
+                if (modalHistoryPushed) {
+                    modalHistoryPushed = false;
+                    history.back(); // clean up the history entry we pushed on modal open
+                }
                 if (!window.matchMedia('(pointer: coarse)').matches) return;
                 const absorbGhostClick = function(e) {
                     e.stopPropagation();
@@ -609,6 +627,12 @@ $this->load->view('bs_banner');
                     document.removeEventListener('click', absorbGhostClick, true);
                 }, 350);
             });
+
+            // Expose flag setter so displayEventModal can push history
+            window._modalHistoryPush = function() {
+                history.pushState({ gvvModal: true }, '');
+                modalHistoryPushed = true;
+            };
         });
 
         // Global options storage - will be initialized from PHP
@@ -1471,6 +1495,7 @@ $this->load->view('bs_banner');
                 
                 console.log('Modal setup complete, showing modal');
                 modal.show();
+                if (window._modalHistoryPush) window._modalHistoryPush();
 
                 // Initialize Select2 on dynamically created selects
                 $('#eventPilot, #eventInstructor').select2({
