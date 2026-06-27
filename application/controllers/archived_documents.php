@@ -1204,7 +1204,13 @@ class Archived_documents extends Gvv_Controller {
         }
 
         $this->load->library('email');
+        $this->load->helper('email');
         $from = $this->config->item('email_club');
+
+        $valid_recipients = array_map(function ($addr) use (&$subject) {
+            return test_intercept_email($addr, $subject);
+        }, $valid_recipients);
+        $valid_recipients = array_unique($valid_recipients);
 
         $this->email->clear(true);
         $this->email->set_mailtype('html');

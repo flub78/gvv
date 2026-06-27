@@ -113,6 +113,7 @@ class Briefing_sign extends CI_Controller {
             $this->email->subject($this->lang->line('briefing_passager_public_share_subject'));
             $this->email->message($body);
 
+            gvv_info("MAIL briefing_sign share to=$to");
             if (@$this->email->send()) {
                 $this->session->set_flashdata('success', $this->lang->line('briefing_passager_public_share_sent'));
             } else {
@@ -515,6 +516,7 @@ class Briefing_sign extends CI_Controller {
         if (file_exists(FCPATH . $pdf_path)) {
             $this->email->attach(FCPATH . $pdf_path);
         }
+        gvv_info("MAIL briefing_sign pdf to=$to");
         @$this->email->send(); // Silent fail — don't crash if email is not configured
     }
 }

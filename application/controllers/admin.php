@@ -3234,6 +3234,7 @@ SQL;
 
                 $this->email->clear(true);
                 $this->email->from($from, $from_name);
+                gvv_info("MAIL admin test_email to=$to subject=$subject");
                 $this->email->to($to);
                 $this->email->subject($subject);
                 $this->email->message(nl2br(htmlspecialchars($body)));

@@ -760,6 +760,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->email->attach($temp_file, 'attachment', "vol_decouverte_acs_" . $id . ".pdf", 'application/pdf');
 
         // Send email
+        gvv_info("MAIL send_email_with_pdf to=$to subject=$subject");
         if ($this->email->send()) {
             unlink($temp_file); // Clean up after sending
             $msg = '<div class="alert alert-success alert-dismissible fade show">'
@@ -1155,6 +1156,7 @@ EOD;
             $this->email->subject($subject);
             $this->email->message($message);
 
+            gvv_info("MAIL send_public_link to=$to subject=$subject");
             if (@$this->email->send()) {
                 $this->session->set_flashdata('success', $this->lang->line('gvv_vd_share_link_sent'));
             } else {

@@ -1949,6 +1949,7 @@ class Paiements_en_ligne extends MY_Controller {
                 'charset'  => 'utf-8',
             ));
             $this->email->from('noreply@gvv.net', $nom_club);
+            gvv_info("MAIL helloasso cotisation to={$user['memail']} subject=$subject");
             $this->email->to($user['memail']);
             $this->email->subject($subject);
             $this->email->message($message);
@@ -1993,6 +1994,7 @@ class Paiements_en_ligne extends MY_Controller {
                 'charset'  => 'utf-8',
             ));
             $this->email->from('noreply@gvv.net', $nom_club);
+            gvv_info("MAIL helloasso bar_externe to=$email subject=$subject");
             $this->email->to($email);
             $this->email->subject($subject);
             $this->email->message($message);
@@ -2130,6 +2132,7 @@ class Paiements_en_ligne extends MY_Controller {
                 'charset'  => 'utf-8',
             ));
             $this->email->from($sender_email, $sender_name);
+            gvv_info("MAIL helloasso decouverte to=$email subject=$subject");
             $this->email->to($email);
             $this->email->subject($subject);
             $this->email->message($message);
@@ -2343,6 +2346,7 @@ EOD;
                 'charset'  => 'utf-8',
             ));
             $this->email->from('noreply@gvv.net', $nom_club);
+            gvv_info("MAIL helloasso notify_tresorier to=$email_club subject=$subject");
             $this->email->to($email_club);
             $this->email->subject($subject);
             $this->email->message($message);
