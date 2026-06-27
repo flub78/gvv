@@ -53,6 +53,8 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     transition: all 0.2s ease;
     height: 100%;
     background-color: #fff;
+    position: relative;
+    cursor: pointer;
 }
 
 .sub-card:hover {
@@ -1535,3 +1537,12 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     <?php endif; ?>
 
 </div>
+
+<script>
+document.querySelectorAll('.sub-card').forEach(function(card) {
+    var link = card.querySelector('a[href]');
+    if (link) {
+        link.classList.add('stretched-link');
+    }
+});
+</script>
