@@ -1,4 +1,8 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+$this->load->view('bs_header');
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
+?>
 
 <div class="container mt-4" style="max-width:700px;">
 
