@@ -410,6 +410,7 @@ $this->load->view('bs_banner');
             /* Masqués sur mobile */
             .timeline-title { display: none; }
             #btnToday       { display: none; }
+            .btn-label      { display: none; }
 
             /* Barre de navigation compacte en 2 lignes */
             .timeline-controls {
@@ -478,7 +479,7 @@ $this->load->view('bs_banner');
             </div>
             <div class="timeline-controls">
                 <button class="btn btn-outline-secondary btn-sm" id="btnPrevious" title="Previous day">
-                    <i class="fas fa-chevron-left"></i> <?php echo $this->lang->line('previous') ?: 'Précédent'; ?>
+                    <i class="fas fa-chevron-left"></i> <span class="btn-label"><?php echo $this->lang->line('previous') ?: 'Précédent'; ?></span>
                 </button>
                 <input type="date" class="form-control form-control-sm mx-2" id="datePicker" style="width: auto; display: inline-block;" value="<?php echo $current_date; ?>" title="Sélectionner une date">
                 <div class="current-date-display" id="currentDateDisplay">
@@ -497,7 +498,7 @@ $this->load->view('bs_banner');
                     <i class="fas fa-calendar-day"></i> <?php echo $this->lang->line('today') ?: "Aujourd'hui"; ?>
                 </button>
                 <button class="btn btn-outline-secondary btn-sm" id="btnNext" title="Next day">
-                    <?php echo $this->lang->line('next') ?: 'Suivant'; ?> <i class="fas fa-chevron-right"></i>
+                    <span class="btn-label"><?php echo $this->lang->line('next') ?: 'Suivant'; ?></span> <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </div>
