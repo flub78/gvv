@@ -216,3 +216,5 @@
 * [x] export csv et pdf des relances. 
 
 * [x] remplacement de l'actif/inactif global par un actif/inactif par section, pour permettre à un pilote d'être actif dans une section et inactif dans une autre. Renommage auto_planchiste réservation.
+
+* [x] Rappel des réservations par email pour le pilote et l'instructeur.

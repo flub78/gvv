@@ -6,7 +6,6 @@
 
 ## Reste à faire
 
-* [] Rappel des réservations par email pour le pilote et l'instructeur.
 
 * [] Génération des certificats de formation et de pilotes VD.
 

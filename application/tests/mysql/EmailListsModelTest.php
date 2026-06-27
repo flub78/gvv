@@ -498,19 +498,19 @@ class EmailListsModelTest extends TestCase
         // Verify query executed successfully (returns array even if empty)
         $this->assertIsArray($active_users, 'Should return array for active users');
 
-        // All returned users must have the 'Utilisateur' role in the criteria section
+        // All returned users must have the 'user' role in the criteria section
         foreach ($active_users as $user) {
             $count = $this->CI->db
                 ->from('user_roles_per_section urps')
                 ->join('users u', 'u.id = urps.user_id', 'inner')
                 ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
                 ->where('u.username', $user['mlogin'])
-                ->where('tr.nom', 'Utilisateur')
+                ->where('tr.nom', 'user')
                 ->where('urps.section_id', $sections[0]['id'])
                 ->where('urps.revoked_at IS NULL')
                 ->count_all_results();
             $this->assertGreaterThan(0, $count,
-                'Active user ' . $user['mlogin'] . ' should have Utilisateur role in the criteria section');
+                'Active user ' . $user['mlogin'] . ' should have user role in the criteria section');
         }
 
         // Get inactive users
@@ -523,19 +523,19 @@ class EmailListsModelTest extends TestCase
         // Verify query executed successfully (returns array even if empty)
         $this->assertIsArray($inactive_users, 'Should return array for inactive users');
 
-        // All returned users must NOT have the 'Utilisateur' role in the criteria section
+        // All returned users must NOT have the 'user' role in the criteria section
         foreach ($inactive_users as $user) {
             $count = $this->CI->db
                 ->from('user_roles_per_section urps')
                 ->join('users u', 'u.id = urps.user_id', 'inner')
                 ->join('types_roles tr', 'tr.id = urps.types_roles_id', 'inner')
                 ->where('u.username', $user['mlogin'])
-                ->where('tr.nom', 'Utilisateur')
+                ->where('tr.nom', 'user')
                 ->where('urps.section_id', $sections[0]['id'])
                 ->where('urps.revoked_at IS NULL')
                 ->count_all_results();
             $this->assertEquals(0, $count,
-                'Inactive user ' . $user['mlogin'] . ' should NOT have Utilisateur role in the criteria section');
+                'Inactive user ' . $user['mlogin'] . ' should NOT have user role in the criteria section');
         }
     }
 
@@ -592,7 +592,7 @@ class EmailListsModelTest extends TestCase
              INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
              INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
              WHERE m.memailparent IS NOT NULL AND m.memailparent != ''
-               AND tr.nom = 'Utilisateur' AND urps.revoked_at IS NULL
+               AND tr.nom = 'user' AND urps.revoked_at IS NULL
              LIMIT 1"
         );
         $membre_with_parent = $result->row_array();
@@ -655,7 +655,7 @@ class EmailListsModelTest extends TestCase
              INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
              INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
              WHERE m.memailparent IS NOT NULL AND m.memailparent != ''
-               AND tr.nom = 'Utilisateur' AND urps.revoked_at IS NULL
+               AND tr.nom = 'user' AND urps.revoked_at IS NULL
              LIMIT 1"
         );
         $membre_with_parent = $result->row_array();
@@ -703,7 +703,7 @@ class EmailListsModelTest extends TestCase
              INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
              INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
              WHERE m.memailparent IS NOT NULL AND m.memailparent != ''
-               AND tr.nom = 'Utilisateur' AND urps.revoked_at IS NULL
+               AND tr.nom = 'user' AND urps.revoked_at IS NULL
              LIMIT 1"
         );
         $membre_with_parent = $result->row_array();
@@ -763,7 +763,7 @@ class EmailListsModelTest extends TestCase
                AND EXISTS (
                    SELECT 1 FROM user_roles_per_section urps2
                    INNER JOIN types_roles tr2 ON tr2.id = urps2.types_roles_id
-                   WHERE urps2.user_id = u.id AND tr2.nom = 'Utilisateur'
+                   WHERE urps2.user_id = u.id AND tr2.nom = 'user'
                      AND urps2.section_id = urps.section_id AND urps2.revoked_at IS NULL
                )
                AND NOT EXISTS (
@@ -834,7 +834,7 @@ class EmailListsModelTest extends TestCase
                AND EXISTS (
                    SELECT 1 FROM user_roles_per_section urps2
                    INNER JOIN types_roles tr2 ON tr2.id = urps2.types_roles_id
-                   WHERE urps2.user_id = u.id AND tr2.nom = 'Utilisateur'
+                   WHERE urps2.user_id = u.id AND tr2.nom = 'user'
                      AND urps2.section_id = urps.section_id AND urps2.revoked_at IS NULL
                )
              LIMIT 1"
@@ -875,7 +875,7 @@ class EmailListsModelTest extends TestCase
              INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
              INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
              WHERE m.memailparent IS NOT NULL AND m.memailparent != ''
-               AND tr.nom = 'Utilisateur' AND urps.revoked_at IS NULL
+               AND tr.nom = 'user' AND urps.revoked_at IS NULL
              LIMIT 1"
         );
         $membre_with_parent = $result->row_array();
