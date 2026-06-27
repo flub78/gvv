@@ -395,7 +395,7 @@ $this->load->view('bs_banner');
 
             /* Masqués sur mobile */
             .timeline-title { display: none; }
-            #btnToday       { display: none; }
+            #btnToday       { order: 29; flex: 0 0 auto; }
             .btn-label      { display: none; }
 
             /* Barre de navigation compacte en 2 lignes */
