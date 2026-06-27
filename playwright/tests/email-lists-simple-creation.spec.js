@@ -5,7 +5,11 @@ const { test, expect } = require('@playwright/test');
  * Tests the simple form without JavaScript complexity
  */
 test.describe('Email Lists - Simple Creation Workflow', () => {
+    let createdListIds = [];
+
     test.beforeEach(async ({ page }) => {
+        createdListIds = [];
+
         // Login as testadmin
         await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
@@ -14,6 +18,13 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
 
         // Wait for login to complete
         await page.waitForLoadState('networkidle');
+    });
+
+    test.afterEach(async ({ request }) => {
+        for (const id of createdListIds) {
+            await request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+        }
+        createdListIds = [];
     });
 
     test('should create new email list with simple form', async ({ page }) => {
@@ -35,6 +46,10 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
 
         // Wait for redirect to edit page
         await page.waitForURL(/email_lists\/edit\/\d+/);
+
+        // Capture the created list ID for cleanup
+        const match = page.url().match(/\/edit\/(\d+)/);
+        if (match) createdListIds.push(match[1]);
 
         // Verify we're now in edit mode
         await expect(page.locator('h3')).toContainText('Modifier la liste');

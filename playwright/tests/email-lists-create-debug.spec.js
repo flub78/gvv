@@ -2,6 +2,15 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Email Lists Creation Debug', () => {
+    let createdListIds = [];
+
+    test.afterEach(async ({ request }) => {
+        for (const id of createdListIds) {
+            await request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+        }
+        createdListIds = [];
+    });
+
     test('should create a list and show any errors', async ({ page }) => {
         // Enable console logging
         page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
@@ -100,6 +109,7 @@ test.describe('Email Lists Creation Debug', () => {
             if (matches) {
                 const listId = matches[1];
                 console.log('   Created list ID:', listId);
+                createdListIds.push(listId);
 
                 // Verify the list name is shown
                 const nameValue = await page.locator('input[name="name"]').inputValue();

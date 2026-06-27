@@ -2,7 +2,11 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Email Lists Workflow v1.4', () => {
+    let createdListIds = [];
+
     test.beforeEach(async ({ page }) => {
+        createdListIds = [];
+
         // Login via dx_auth (use testadmin which has proper test permissions)
         await page.goto('/index.php/auth/login');
         await page.fill('input[name="username"]', 'testadmin');
@@ -19,6 +23,13 @@ test.describe('Email Lists Workflow v1.4', () => {
                 await page.waitForTimeout(500);
             }
         }
+    });
+
+    test.afterEach(async ({ request }) => {
+        for (const id of createdListIds) {
+            await request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+        }
+        createdListIds = [];
     });
 
     test('should show disabled address section in creation mode', async ({ page }) => {
@@ -62,6 +73,10 @@ test.describe('Email Lists Workflow v1.4', () => {
         // Wait for redirect to edit page
         await page.waitForURL(/\/email_lists\/edit\/\d+/);
 
+        // Capture the created list ID for cleanup
+        const match = page.url().match(/\/edit\/(\d+)/);
+        if (match) createdListIds.push(match[1]);
+
         // Check that we're now in edit mode
         await expect(page.locator('h3')).toContainText('Modifier la liste');
 
@@ -92,6 +107,10 @@ test.describe('Email Lists Workflow v1.4', () => {
         await page.fill('input[name="name"]', listName);
         await page.click('button[type="submit"], input[type="submit"]');
         await page.waitForURL(/\/email_lists\/edit\/\d+/);
+
+        // Capture the created list ID for cleanup
+        const match = page.url().match(/\/edit\/(\d+)/);
+        if (match) createdListIds.push(match[1]);
 
         // Now we're in edit mode
         // Modify metadata
