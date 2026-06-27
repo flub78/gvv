@@ -117,6 +117,14 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         color: #ffffff !important;
         box-shadow: none !important;
     }
+
+    #fc-view-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 8px 6px;
+        flex-wrap: wrap;
+    }
 </style>
 
 <script>
@@ -530,21 +538,22 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
         var timelineIncrement = <?php echo isset($timeline_increment) ? $timeline_increment : 15; ?>;
         
         var calendarEl = document.getElementById('calendar');
+        var fcViewControls = null;
+
+        function updateViewControls(viewType) {
+            if (!fcViewControls) return;
+            fcViewControls.querySelectorAll('button[data-view]').forEach(function(btn) {
+                btn.classList.toggle('fc-button-active', btn.dataset.view === viewType);
+            });
+        }
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: '<?= $fullcalendar_locale ?>',
             initialView: savedView,
-            customButtons: {
-                timelineView: {
-                    text: buttonTexts.day,
-                    click: function() {
-                        window.location.href = '<?= site_url('reservations/timeline') ?>';
-                    }
-                }
-            },
             headerToolbar: {
-                left: 'prev,next today',
+                left: 'prev',
                 center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timelineView,listWeek'
+                right: 'next'
             },
             buttonText: {
                 today: buttonTexts.today,
@@ -676,12 +685,44 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 info.el.title = info.event.title;
             },
             viewDidMount: function(info) {
-                // Save view preference to localStorage
                 localStorage.setItem('reservationsCalendarView', info.view.type);
+                updateViewControls(info.view.type);
             }
         });
-        
+
         calendar.render();
+
+        // Inject view controls row between FC toolbar and calendar grid
+        fcViewControls = document.createElement('div');
+        fcViewControls.id = 'fc-view-controls';
+        fcViewControls.innerHTML =
+            '<button class="fc-button fc-button-primary" data-view="today">' + buttonTexts.today + '</button>' +
+            '<div class="fc-button-group">' +
+            '<button class="fc-button fc-button-primary" data-view="dayGridMonth">' + buttonTexts.month + '</button>' +
+            '<button class="fc-button fc-button-primary" data-view="timeGridWeek">' + buttonTexts.week + '</button>' +
+            '<button class="fc-button fc-button-primary" data-view="timelineView">' + buttonTexts.day + '</button>' +
+            '<button class="fc-button fc-button-primary" data-view="listWeek">' + buttonTexts.list + '</button>' +
+            '</div>';
+
+        var fcViewHarness = calendarEl.querySelector('.fc-view-harness');
+        if (fcViewHarness) {
+            fcViewHarness.parentNode.insertBefore(fcViewControls, fcViewHarness);
+        }
+
+        updateViewControls(calendar.view.type);
+
+        fcViewControls.addEventListener('click', function(e) {
+            var btn = e.target.closest('button[data-view]');
+            if (!btn) return;
+            var view = btn.dataset.view;
+            if (view === 'today') {
+                calendar.today();
+            } else if (view === 'timelineView') {
+                window.location.href = '<?= site_url('reservations/timeline') ?>';
+            } else {
+                calendar.changeView(view);
+            }
+        });
 
         // Add event listener for save button
         document.getElementById('saveEventBtn').addEventListener('click', function() {
