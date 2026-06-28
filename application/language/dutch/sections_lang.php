@@ -21,6 +21,8 @@ $lang['gvv_sections_field_libelle_menu_avions'] = "Menulabel vliegtuig";
 $lang['gvv_sections_field_show_presences'] = "Aanwezigheidskalender";
 $lang['gvv_sections_field_has_bar'] = "Bar";
 $lang['gvv_sections_field_bar_account_id'] = "Opbrengstrekening bar";
+$lang['gvv_sections_field_has_vd_par_cb'] = "Ontdekkingsvluchten per kaart (beheerd via HelloAsso config)";
+$lang['gvv_sections_field_has_approvisio_par_cb'] = "Rekeningopwaardering per kaart (beheerd via HelloAsso config)";
 $lang['gvv_sections_field_show_on_member_card'] = "Weergeven op lidkaart";
 $lang['gvv_sections_field_reservation_reminders_enabled'] = "Reserveringsherinneringen ingeschakeld";
 

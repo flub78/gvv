@@ -78,6 +78,18 @@ class Sections extends Gvv_Controller {
 
 
     /**
+     * Exclut les flags HelloAsso de la sauvegarde via le formulaire sections.
+     * Ces champs sont gérés exclusivement par paiements_en_ligne/admin_config
+     * et ne doivent pas être écrasés à 0 lorsque le formulaire sections est soumis.
+     */
+    function form2database($action = '') {
+        $data = parent::form2database($action);
+        unset($data['has_vd_par_cb']);
+        unset($data['has_approvisio_par_cb']);
+        return $data;
+    }
+
+    /**
      * Supprime un élément
      * TODO: interdire la suppression d'une section qui a des éléments
      */
