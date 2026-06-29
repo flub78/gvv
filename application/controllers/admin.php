@@ -3266,6 +3266,52 @@ SQL;
     }
 
     /**
+     * Test SMS sending form and handler.
+     * GET: display the form (with optional flash messages)
+     * POST: send SMS via Brevo and redirect back with success/error flash
+     */
+    public function test_sms() {
+        $data = array(
+            'title'   => 'Test SMS',
+            'success' => $this->session->flashdata('sms_test_success'),
+            'error'   => $this->session->flashdata('sms_test_error'),
+            'phone'   => '',
+            'message' => '',
+        );
+
+        if ($this->input->post('send')) {
+            $phone   = trim($this->input->post('phone'));
+            $message = trim($this->input->post('message'));
+
+            $data['phone']   = $phone;
+            $data['message'] = $message;
+
+            if (empty($phone) || empty($message)) {
+                $data['error'] = 'Tous les champs sont obligatoires.';
+            } else {
+                $this->load->library('brevo_sms_adapter');
+                gvv_info("SMS admin test_sms to=$phone");
+                $result = $this->brevo_sms_adapter->send($phone, $message);
+                if ($result['ok']) {
+                    $this->session->set_flashdata('sms_test_success',
+                        'SMS envoyé avec succès au <strong>' . htmlspecialchars($phone) . '</strong>.');
+                } else {
+                    $this->session->set_flashdata('sms_test_error',
+                        htmlspecialchars($result['error']));
+                }
+                redirect('admin/test_sms');
+                return;
+            }
+        }
+
+        $this->load->view('bs_header');
+        $this->load->view('bs_menu');
+        $this->load->view('bs_banner');
+        $this->load->view('admin/bs_test_sms', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
      * Sauvegarde la base de données sur le serveur (sans téléchargement).
      * Utilisé par le bouton "Sauvegarder maintenant" de la page ressources système.
      */

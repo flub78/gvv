@@ -1401,6 +1401,14 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/test_email') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-warning">
+                <i class="fas fa-mobile-alt text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_test_sms') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_test_sms') ?></div>
+                <a href="<?= controller_url('admin/test_sms') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
         <?php endif; ?>
 
         <?php if (!empty($is_dev_authorized)): ?>
