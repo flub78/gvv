@@ -1227,6 +1227,7 @@ class Archived_documents extends Gvv_Controller {
             $this->email->attach($doc['file_path'], 'attachment', $doc['original_filename'], $mime);
         }
 
+        gvv_info("MAIL archived_documents to=" . implode(',', $valid_recipients) . " subject=$subject");
         if ($this->email->send()) {
             $recipients_display = implode(', ', array_map(function ($a) {
                 return '&lt;' . htmlspecialchars($a) . '&gt;';

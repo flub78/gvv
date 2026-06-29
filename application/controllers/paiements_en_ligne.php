@@ -340,6 +340,7 @@ class Paiements_en_ligne extends MY_Controller {
             $this->email->subject($subject);
             $this->email->message(nl2br($body));
 
+            gvv_info("MAIL helloasso payment_link to=$to subject=$subject");
             if (@$this->email->send()) {
                 $this->session->set_flashdata('success', $this->lang->line('gvv_decouverte_qr_email_success'));
             } else {

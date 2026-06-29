@@ -159,8 +159,9 @@ class DX_Auth {
         $email->subject($subject);
         $email->message($message);
 
+        gvv_info("MAIL auth to=$to subject=$subject");
         $result = $email->send();
-        
+
         if (!$result) {
             gvv_error("Erreur lors de l'envoi d'email à " . $to . ": " . $email->print_debugger());
         }

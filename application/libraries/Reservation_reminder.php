@@ -359,6 +359,8 @@ class Reservation_reminder
                 if (!$email_result) {
                     $error_msg = 'SMTP send failed to ' . $recipient['email'];
                     gvv_error("REMINDER email failed: $error_msg (reservation {$reservation['id']})");
+                } else {
+                    gvv_info("REMINDER email sent to {$recipient['email']} login={$recipient['login']} reservation={$reservation['id']}");
                 }
             } else {
                 gvv_info("REMINDER no valid email for {$recipient['login']} — email skipped");
@@ -378,6 +380,8 @@ class Reservation_reminder
                     $sms_error = $sms_res['error'];
                     $error_msg = $error_msg ? $error_msg . ' | ' . $sms_error : $sms_error;
                     gvv_error("REMINDER SMS failed for {$recipient['login']}: $sms_error");
+                } else {
+                    gvv_info("REMINDER SMS sent to {$recipient['login']} phone={$sms_phone} reservation={$reservation['id']}");
                 }
             } else {
                 gvv_info("REMINDER no phone for {$recipient['login']} — SMS skipped");
