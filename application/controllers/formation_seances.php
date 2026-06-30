@@ -879,7 +879,12 @@ class Formation_seances extends MY_Controller {
      * Redirige vers la vue principale avec le filtre type=libre
      */
     public function libres() {
-        $seances = $this->formation_seance_model->select_page(array('type' => 'libre'));
+        $filters = array('type' => 'libre');
+        $section_id = $this->formation_seance_model->section_id();
+        if ($section_id) {
+            $filters['section_id'] = $section_id;
+        }
+        $seances = $this->formation_seance_model->select_page($filters);
 
         $data = array(
             'controller' => 'formation_seances',

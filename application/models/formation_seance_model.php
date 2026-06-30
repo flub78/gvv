@@ -331,6 +331,10 @@ class Formation_seance_model extends Common_Model {
             $escaped = $this->db->escape_str($filters['participant_id']);
             $this->db->where("s.id IN (SELECT seance_id FROM formation_seances_participants WHERE pilote_id = '$escaped')", NULL, FALSE);
         }
+        if (!empty($filters['section_id'])) {
+            $sid = (int)$filters['section_id'];
+            $this->db->where("(s.machine_id IS NULL OR mp.club = $sid OR ma.club = $sid)", NULL, FALSE);
+        }
 
         $this->db->order_by('s.date_seance', 'desc')
             ->limit($limit, $offset);
