@@ -567,6 +567,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             slotDuration: '00:' + String(timelineIncrement).padStart(2, '0') + ':00',
             snapDuration: '00:' + String(timelineIncrement).padStart(2, '0') + ':00',
             slotMinTime: '06:00:00',
+            eventDisplay: 'block',
             events: {
                 url: '<?= site_url('reservations/get_events') ?>',
                 failure: function() {
