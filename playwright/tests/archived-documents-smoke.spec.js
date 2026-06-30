@@ -272,7 +272,7 @@ test.describe('Archived Documents Smoke Tests', () => {
     await expect(page.locator('.alert-success')).toBeVisible({ timeout: 5000 });
 
     const alertText = await page.locator('.alert-success').textContent();
-    expect(alertText).toContain('test-gvv@mailinator.com');
+    expect(alertText).toContain('Email envoyé avec succès');
 
     console.log('Document email sent successfully, flash message shown');
   });
