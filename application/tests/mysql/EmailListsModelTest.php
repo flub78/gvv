@@ -585,12 +585,15 @@ class EmailListsModelTest extends TestCase
 
     public function testParentEmail_IncludedInRoleSelection()
     {
-        // Find a member with a parent email or create test data
+        // Find a member with a parent email AND a current-year licence so they
+        // pass the require_cotisation=1 filter applied by the list model by default
+        $year = (int) date('Y');
         $result = $this->CI->db->query(
             "SELECT m.mlogin, m.memail, m.memailparent FROM membres m
              INNER JOIN users u ON u.username = m.mlogin
              INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
              INNER JOIN types_roles tr ON tr.id = urps.types_roles_id
+             INNER JOIN licences lic ON lic.pilote = m.mlogin AND lic.type = 0 AND lic.year = $year
              WHERE m.memailparent IS NOT NULL AND m.memailparent != ''
                AND tr.nom = 'user' AND urps.revoked_at IS NULL
              LIMIT 1"
@@ -598,7 +601,7 @@ class EmailListsModelTest extends TestCase
         $membre_with_parent = $result->row_array();
 
         if (empty($membre_with_parent)) {
-            $this->markTestSkipped('No active member with parent email found in database');
+            $this->markTestSkipped('No active member with parent email and current-year licence found in database');
         }
 
         // Get roles and sections for this member
