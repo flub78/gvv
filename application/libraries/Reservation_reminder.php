@@ -253,7 +253,7 @@ class Reservation_reminder
 
         $nom_club = ($this->CI) ? ($this->CI->config->item('nom_club') ?: 'GVV') : 'GVV';
 
-        $body  = '<html><body>';
+        $body  = '<html><head><meta charset="UTF-8"></head><body>';
         $body .= '<h2 style="color:#0d6efd;">' . htmlspecialchars($type_label, ENT_QUOTES, 'UTF-8') . '</h2>';
         $body .= '<p>' . htmlspecialchars($intro, ENT_QUOTES, 'UTF-8') . '</p>';
         $body .= '<table style="border-collapse:collapse;width:100%;max-width:500px;">';
@@ -570,6 +570,8 @@ class Reservation_reminder
             $to_email = test_intercept_email($to_email, $subject);
 
             $this->CI->email->clear(true);
+            $this->CI->email->set_mailtype('html');
+            $this->CI->email->set_charset('UTF-8');
             $this->CI->email->from($from_email, $from_name);
             $this->CI->email->to($to_email);
             $this->CI->email->subject($subject);
