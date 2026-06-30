@@ -101,7 +101,7 @@
                             <div>
                                 <strong><?= html_escape((string) $file['original_name']) ?></strong>
                                 <div class="text-muted small">
-                                    <?= $this->lang->line('forms_label_field') ?>: <?= html_escape((string) $file['field_label']) ?>
+                                    <?= $this->lang->line('forms_label_field') ?>: <?= html_escape((string) ($file['field_label'] ?: ($file['widget_name'] ?: $file['field_name'] ?: '—'))) ?>
                                     <?php if (!empty($file['size_bytes'])): ?>
                                         - <?= (int) $file['size_bytes'] ?> <?= $this->lang->line('forms_unit_bytes') ?>
                                     <?php endif; ?>

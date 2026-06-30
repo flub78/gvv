@@ -201,14 +201,18 @@ class Form_submissions_model extends CI_Model {
 
         $now = date('Y-m-d H:i:s');
         foreach ($files as $file) {
-            $field_id = isset($file['field_id']) ? (int) $file['field_id'] : 0;
-            if ($field_id <= 0 || empty($file['storage_path']) || empty($file['stored_name'])) {
+            $field_id = isset($file['field_id']) && $file['field_id'] !== null ? (int) $file['field_id'] : null;
+            if ($field_id !== null && $field_id <= 0) {
+                continue;
+            }
+            if (empty($file['storage_path']) || empty($file['stored_name'])) {
                 continue;
             }
 
             $this->db->insert($this->files_table, array(
                 'submission_id' => (int) $submission_id,
                 'field_id'      => $field_id,
+                'widget_name'   => isset($file['widget_name']) ? (string) $file['widget_name'] : null,
                 'original_name' => isset($file['original_name']) ? $file['original_name'] : '',
                 'stored_name'   => $file['stored_name'],
                 'mime_type'     => isset($file['mime_type']) ? $file['mime_type'] : null,
@@ -233,7 +237,7 @@ class Form_submissions_model extends CI_Model {
 
     public function get_submission_files($submission_id) {
         return $this->db
-            ->select('sf.*, f.name as field_name, f.label as field_label')
+            ->select('sf.id, sf.submission_id, sf.field_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, COALESCE(f.name, sf.widget_name) as field_name, f.label as field_label', false)
             ->from($this->files_table . ' sf')
             ->join('form_fields f', 'f.id = sf.field_id', 'left')
             ->where('sf.submission_id', (int) $submission_id)
@@ -244,7 +248,7 @@ class Form_submissions_model extends CI_Model {
 
     public function get_submission_file_by_id($file_id) {
         $row = $this->db
-            ->select('sf.*, s.form_id, f.name as field_name, f.label as field_label')
+            ->select('sf.id, sf.submission_id, sf.field_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, s.form_id, COALESCE(f.name, sf.widget_name) as field_name, f.label as field_label', false)
             ->from($this->files_table . ' sf')
             ->join($this->table . ' s', 's.id = sf.submission_id', 'inner')
             ->join('form_fields f', 'f.id = sf.field_id', 'left')

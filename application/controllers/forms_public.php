@@ -197,6 +197,10 @@ class Forms_public extends CI_Controller {
         // Capture signature widgets defined only in content_html (no form_fields record).
         // These are <div data-gvv-type="signature" data-gvv-name="..."> elements whose
         // POST value is submitted but not iterated above because there is no form_fields row.
+        // $html_sig_canvas_save: queued for file saving on successful submission (canvas/text types)
+        // $html_sig_file_save:   queued for upload processing on successful submission (file type)
+        $html_sig_canvas_save = array();
+        $html_sig_file_save   = array();
         $page_html_raw = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
         preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $page_html_raw, $html_sig_divs);
         foreach ($html_sig_divs[1] as $sig_div_attrs) {
@@ -211,10 +215,13 @@ class Forms_public extends CI_Controller {
             if (!in_array($html_sig_type, array('canvas', 'text', 'file'), true)) {
                 $html_sig_type = 'canvas';
             }
-            if ($html_sig_type !== 'file') {
+            if ($html_sig_type === 'file') {
+                $html_sig_file_save[] = array('widget_name' => $html_sig_name, 'file_key' => $html_sig_name . '_file');
+            } else {
                 $html_sig_b64 = trim((string) $this->input->post($html_sig_name));
                 if ($html_sig_b64 !== '') {
                     $signature_canvas_by_name[$html_sig_name] = $html_sig_b64;
+                    $html_sig_canvas_save[] = array('widget_name' => $html_sig_name, 'base64' => $html_sig_b64);
                 }
             }
         }
@@ -273,6 +280,48 @@ class Forms_public extends CI_Controller {
             if ($result) {
                 $uploaded_files[] = $result;
                 $submitted_values[$field_id] = $result['original_name'];
+            }
+        }
+
+        // Process HTML-only signature widgets (canvas/text) — no form_fields record
+        foreach ($html_sig_canvas_save as $html_sig) {
+            $result = $this->save_signature_canvas(null, $html_sig['base64'], $html_sig['widget_name']);
+            if ($result) {
+                $uploaded_files[] = $result;
+            }
+        }
+
+        // Process HTML-only signature widgets (file upload) — no form_fields record
+        if (!empty($html_sig_file_save)) {
+            $relative_dir = $this->upload_base_dir . '/' . date('Y/m');
+            $absolute_dir = FCPATH . $relative_dir;
+            if (!is_dir($absolute_dir)) {
+                @mkdir($absolute_dir, 0775, true);
+            }
+            foreach ($html_sig_file_save as $html_file) {
+                $file_key = $html_file['file_key'];
+                if (!isset($_FILES[$file_key]) || empty($_FILES[$file_key]['name'])) {
+                    continue;
+                }
+                $config = array(
+                    'upload_path'   => $absolute_dir,
+                    'allowed_types' => 'jpg|jpeg|png|gif|webp',
+                    'max_size'      => 10240,
+                    'encrypt_name'  => true,
+                );
+                $this->upload->initialize($config);
+                if ($this->upload->do_upload($file_key)) {
+                    $udata = $this->upload->data();
+                    $uploaded_files[] = array(
+                        'field_id'      => null,
+                        'widget_name'   => $html_file['widget_name'],
+                        'original_name' => isset($udata['client_name']) ? $udata['client_name'] : $udata['orig_name'],
+                        'stored_name'   => $udata['file_name'],
+                        'mime_type'     => isset($udata['file_type']) ? $udata['file_type'] : null,
+                        'size_bytes'    => isset($udata['file_size']) ? (int) round($udata['file_size'] * 1024) : null,
+                        'storage_path'  => $relative_dir . '/' . $udata['file_name'],
+                    );
+                }
             }
         }
 
@@ -431,7 +480,7 @@ class Forms_public extends CI_Controller {
      * Decode a base64 PNG string and save it as a file in the signatures upload dir.
      * Returns a file descriptor array compatible with save_submission_files(), or null on failure.
      */
-    private function save_signature_canvas($field_id, $base64) {
+    private function save_signature_canvas($field_id, $base64, $widget_name = null) {
         $png_data = @base64_decode($base64, true);
         if ($png_data === false || strlen($png_data) < 67) { // 67 bytes = minimal valid PNG header
             return null;
@@ -457,7 +506,8 @@ class Forms_public extends CI_Controller {
         }
 
         return array(
-            'field_id'      => (int) $field_id,
+            'field_id'      => ($field_id !== null && (int) $field_id > 0) ? (int) $field_id : null,
+            'widget_name'   => $widget_name,
             'original_name' => 'signature.png',
             'stored_name'   => $stored_name,
             'mime_type'     => 'image/png',
