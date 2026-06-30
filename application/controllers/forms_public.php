@@ -194,6 +194,31 @@ class Forms_public extends CI_Controller {
             $submitted_values[(int) $field['id']] = $value;
         }
 
+        // Capture signature widgets defined only in content_html (no form_fields record).
+        // These are <div data-gvv-type="signature" data-gvv-name="..."> elements whose
+        // POST value is submitted but not iterated above because there is no form_fields row.
+        $page_html_raw = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $page_html_raw, $html_sig_divs);
+        foreach ($html_sig_divs[1] as $sig_div_attrs) {
+            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $sig_div_attrs, $sig_name_match)) {
+                continue;
+            }
+            $html_sig_name = trim($sig_name_match[1]);
+            if ($html_sig_name === '' || isset($signature_canvas_by_name[$html_sig_name])) {
+                continue;
+            }
+            $html_sig_type = trim((string) $this->input->post($html_sig_name . '_type'));
+            if (!in_array($html_sig_type, array('canvas', 'text', 'file'), true)) {
+                $html_sig_type = 'canvas';
+            }
+            if ($html_sig_type !== 'file') {
+                $html_sig_b64 = trim((string) $this->input->post($html_sig_name));
+                if ($html_sig_b64 !== '') {
+                    $signature_canvas_by_name[$html_sig_name] = $html_sig_b64;
+                }
+            }
+        }
+
         // Apply server-side lock: override submitted values for GVV-prefilled locked fields.
         $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
         $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);

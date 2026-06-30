@@ -25,7 +25,9 @@ if ($banner_color === '') {
         $('form').on('submit', function(e) {
             var $btns = $(this).find('button[type="submit"], input[type="submit"]');
             setTimeout(function() {
-                if (!e.isDefaultPrevented()) {
+                var prevented = e.isDefaultPrevented() ||
+                    (e.originalEvent && e.originalEvent.defaultPrevented);
+                if (!prevented) {
                     $btns.prop('disabled', true);
                 }
             }, 0);

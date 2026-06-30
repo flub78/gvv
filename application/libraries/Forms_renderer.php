@@ -432,10 +432,19 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
                     el.classList.remove('is-invalid');
                     var fb = el.parentNode.querySelector('.gvv-invalid-feedback');
                     if (fb) fb.remove();
+                    var f = el.closest('form[action*="forms/submit"]');
+                    if (f) checkAllClear(f);
                 }
             };
             el.addEventListener('input',  clear);
             el.addEventListener('change', clear);
+        }
+    }
+
+    function checkAllClear(form) {
+        if (form.querySelectorAll('.is-invalid, .gvv-sig-invalid').length === 0) {
+            var s = form.querySelector('.gvv-validation-summary');
+            if (s) s.remove();
         }
     }
 
@@ -474,6 +483,8 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
         widget.classList.remove('gvv-sig-invalid');
         var fb = widget.querySelector('.gvv-sig-error');
         if (fb) fb.remove();
+        var f = widget.closest('form[action*="forms/submit"]');
+        if (f) checkAllClear(f);
     }
 
     function showSummary(form, labels) {
@@ -573,16 +584,21 @@ VALJS;
         }
 
         // --- Restore prefill (signature kept after a validation failure) ---
-        if (valueInput && valueInput.getAttribute('data-sig-prefill') === '1' && valueInput.value && drawCanvas) {
+        if (valueInput && valueInput.getAttribute('data-sig-prefill') === '1' && valueInput.value) {
             var prefillB64 = valueInput.value;
-            requestAnimationFrame(function () {
-                var img = new Image();
-                img.onload = function () {
-                    var ctx = drawCanvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, drawCanvas.offsetWidth, drawCanvas.offsetHeight);
-                };
-                img.src = 'data:image/png;base64,' + prefillB64;
-            });
+            if (pad) {
+                // Use SignaturePad v4 API so internal state matches the canvas
+                pad.fromDataURL('data:image/png;base64,' + prefillB64);
+            } else if (drawCanvas) {
+                requestAnimationFrame(function () {
+                    var img = new Image();
+                    img.onload = function () {
+                        var ctx = drawCanvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, drawCanvas.offsetWidth, drawCanvas.offsetHeight);
+                    };
+                    img.src = 'data:image/png;base64,' + prefillB64;
+                });
+            }
         }
 
         // --- Tab switching ---
