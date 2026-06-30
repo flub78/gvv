@@ -53,6 +53,8 @@ $lang['reservations_error_not_authorized'] = "Vous n'êtes pas autorisé à modi
 $lang['reservations_error_past_reservation'] = "Les réservations passées ne peuvent pas être modifiées ou supprimées";
 $lang['reservations_error_no_cotisation'] = "Vous n'avez pas de cotisation valide pour cette année";
 $lang['reservations_error_insufficient_balance'] = "Solde insuffisant (%s). Solde minimum requis (2/3 du coût) : %s";
+$lang['reservations_error_pilot_is_instructor'] = "Le pilote et l'instructeur ne peuvent pas être la même personne";
+$lang['reservations_error_server'] = "Erreur serveur inattendue";
 $lang['reservations_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cette réservation ?";
 
 // Success messages

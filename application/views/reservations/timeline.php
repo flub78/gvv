@@ -1552,7 +1552,13 @@ $this->load->view('bs_banner');
                 },
                 body: requestBody
             })
-            .then(response => response.json())
+            .then(response => {
+                const ct = response.headers.get('content-type');
+                if (!ct || !ct.includes('application/json')) {
+                    throw new Error(TRANSLATIONS.error_server || 'Unexpected server error');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     console.log('Reservation saved successfully');
@@ -1565,7 +1571,7 @@ $this->load->view('bs_banner');
             })
             .catch(error => {
                 console.error('Error saving reservation:', error);
-                alert(TRANSLATIONS.error_saving + ': ' + error.message);
+                alert(TRANSLATIONS.error_prefix + ': ' + (error.message || TRANSLATIONS.error_unknown));
             });
         }
 
@@ -1593,7 +1599,13 @@ $this->load->view('bs_banner');
                 },
                 body: 'reservation_id=' + encodeURIComponent(reservationId)
             })
-            .then(response => response.json())
+            .then(response => {
+                const ct = response.headers.get('content-type');
+                if (!ct || !ct.includes('application/json')) {
+                    throw new Error(TRANSLATIONS.error_server || 'Unexpected server error');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     console.log('Reservation deleted successfully');
@@ -1606,7 +1618,7 @@ $this->load->view('bs_banner');
             })
             .catch(error => {
                 console.error('Error deleting reservation:', error);
-                alert(TRANSLATIONS.error_deleting + ': ' + error.message);
+                alert(TRANSLATIONS.error_prefix + ': ' + (error.message || TRANSLATIONS.error_unknown));
             });
         }
 

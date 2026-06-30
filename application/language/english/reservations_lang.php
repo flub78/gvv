@@ -53,6 +53,8 @@ $lang['reservations_error_not_authorized'] = "You are not authorized to modify t
 $lang['reservations_error_past_reservation'] = "Past reservations cannot be modified or deleted";
 $lang['reservations_error_no_cotisation'] = "You do not have a valid membership subscription for this year";
 $lang['reservations_error_insufficient_balance'] = "Insufficient balance (%s). Minimum required balance (2/3 of cost): %s";
+$lang['reservations_error_pilot_is_instructor'] = "The pilot and instructor cannot be the same person";
+$lang['reservations_error_server'] = "Unexpected server error";
 $lang['reservations_confirm_delete'] = "Are you sure you want to delete this reservation?";
 
 // Success messages

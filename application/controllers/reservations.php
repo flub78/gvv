@@ -95,6 +95,7 @@ class Reservations extends MY_Controller {
             'error_saving' => $this->lang->line('reservations_error_saving'),
             'error_deleting' => $this->lang->line('reservations_error_deleting'),
             'error_prefix' => $this->lang->line('reservations_error_prefix'),
+            'error_server' => $this->lang->line('reservations_error_server'),
             'success_saved' => $this->lang->line('reservations_success_saved'),
             'success_deleted' => $this->lang->line('reservations_success_deleted'),
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
@@ -225,6 +226,7 @@ class Reservations extends MY_Controller {
             'error_saving' => $this->lang->line('reservations_error_saving'),
             'error_deleting' => $this->lang->line('reservations_error_deleting'),
             'error_prefix' => $this->lang->line('reservations_error_prefix'),
+            'error_server' => $this->lang->line('reservations_error_server'),
             'success_saved' => $this->lang->line('reservations_success_saved'),
             'success_deleted' => $this->lang->line('reservations_success_deleted'),
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
@@ -607,6 +609,11 @@ class Reservations extends MY_Controller {
             }
             if ($instructor_member_id === '') {
                 $instructor_member_id = null;
+            }
+
+            // Validate that pilot and instructor are not the same person
+            if ($pilot_member_id !== null && $instructor_member_id !== null && $pilot_member_id === $instructor_member_id) {
+                throw new Exception($this->lang->line('reservations_error_pilot_is_instructor'));
             }
 
             // Validate required fields

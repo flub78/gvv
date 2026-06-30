@@ -53,6 +53,8 @@ $lang['reservations_error_not_authorized'] = "U bent niet bevoegd om deze reserv
 $lang['reservations_error_past_reservation'] = "Verouderde reserveringen kunnen niet worden gewijzigd of verwijderd";
 $lang['reservations_error_no_cotisation'] = "U heeft geen geldige lidmaatschapsbijdrage voor dit jaar";
 $lang['reservations_error_insufficient_balance'] = "Onvoldoende saldo (%s). Minimaal vereist saldo (2/3 van de kosten): %s";
+$lang['reservations_error_pilot_is_instructor'] = "De piloot en instructeur kunnen niet dezelfde persoon zijn";
+$lang['reservations_error_server'] = "Onverwachte serverfout";
 $lang['reservations_confirm_delete'] = "Weet u zeker dat u deze reservering wilt verwijderen?";
 
 // Success messages

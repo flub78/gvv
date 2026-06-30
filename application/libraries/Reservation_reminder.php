@@ -571,7 +571,6 @@ class Reservation_reminder
 
             $this->CI->email->clear(true);
             $this->CI->email->set_mailtype('html');
-            $this->CI->email->set_charset('UTF-8');
             $this->CI->email->from($from_email, $from_name);
             $this->CI->email->to($to_email);
             $this->CI->email->subject($subject);
