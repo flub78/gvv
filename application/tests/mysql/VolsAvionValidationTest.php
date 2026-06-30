@@ -456,6 +456,44 @@ class VolsAvionValidationTest extends TestCase
     }
 
     /**
+     * Instructeur déjà en vol comme instructeur dans un autre vol → conflit.
+     */
+    public function testInstructorAlreadyInFlightAsInstructor()
+    {
+        // Vol existant où test_instructor est instructeur
+        $this->insertTestFlight($this->test_pilot, $this->test_machine, 11.00, 12.00, $this->test_instructor);
+
+        // Nouveau vol qui voudrait avoir test_instructor comme instructeur au même créneau
+        $result = $this->model->is_person_in_flight(
+            $this->test_instructor,
+            $this->test_date,
+            11.30,
+            12.30,
+            0
+        );
+        $this->assertTrue($result, 'Instructeur déjà en vol comme instructeur → conflit attendu');
+    }
+
+    /**
+     * Instructeur déjà pilote dans un autre vol → conflit quand assigné comme instructeur.
+     */
+    public function testInstructorAlreadyInFlightAsPilot()
+    {
+        // Vol existant où test_instructor est pilote
+        $this->insertTestFlight($this->test_instructor, $this->test_machine, 13.00, 14.00);
+
+        // Nouveau vol avec test_instructor comme instructeur dans le même créneau
+        $result = $this->model->is_person_in_flight(
+            $this->test_instructor,
+            $this->test_date,
+            13.30,
+            14.30,
+            0
+        );
+        $this->assertTrue($result, 'Instructeur déjà pilote dans un autre vol → conflit attendu');
+    }
+
+    /**
      * Instructeur : vérification quand login vide → pas de check.
      */
     public function testSkipCheckWhenInstructorIsEmpty()
