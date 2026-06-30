@@ -61,7 +61,7 @@ if (isset($current_external_emails) && is_array($current_external_emails)) {
                     <div>
                         <input type="hidden" name="manual_members[]" value="<?= htmlspecialchars($member_id) ?>">
                         <i class="bi bi-person"></i>
-                        <strong><?= htmlspecialchars($member['name'] ?? $member_id) ?></strong>
+                        <strong><?= htmlspecialchars(isset($member['mnom']) ? trim($member['mprenom'] . ' ' . $member['mnom']) : $member_id) ?></strong>
                         <?php if (!empty($member['email'])): ?>
                             - <code><?= htmlspecialchars($member['email']) ?></code>
                         <?php endif; ?>

@@ -209,7 +209,7 @@ if ($this->session->flashdata('success')) {
                 <div class="accordion-body">
                     <ul>
                         <?php foreach ($manual_members as $member): ?>
-                        <li><?= htmlspecialchars($member['name']) ?> - <code><?= htmlspecialchars($member['email']) ?></code></li>
+                        <li><?= htmlspecialchars(trim($member['mprenom'] . ' ' . $member['mnom'])) ?> - <code><?= htmlspecialchars($member['email']) ?></code></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
@@ -240,9 +240,9 @@ if ($this->session->flashdata('success')) {
                     <ul>
                         <?php foreach ($external_emails as $ext): ?>
                         <li>
-                            <code><?= htmlspecialchars($ext['external_email']) ?></code>
-                            <?php if (!empty($ext['external_name'])): ?>
-                                - <?= htmlspecialchars($ext['external_name']) ?>
+                            <code><?= htmlspecialchars($ext['email']) ?></code>
+                            <?php if (!empty($ext['name'])): ?>
+                                - <?= htmlspecialchars($ext['name']) ?>
                             <?php endif; ?>
                         </li>
                         <?php endforeach; ?>
