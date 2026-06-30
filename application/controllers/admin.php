@@ -1115,8 +1115,10 @@ class Admin extends MY_Controller {
         // Remove any remaining non-ASCII characters and replace with underscore
         $result = preg_replace('/[^\x20-\x7E]/', '_', $result);
         
-        // Clean up quotes, control characters, and multiple underscores
+        // Clean up quotes and control characters
         $result = preg_replace('/[\'\"\x00-\x1F\x7F-\x9F]+/', '_', $result);
+        // Replace any remaining non-alphanumeric character (hyphens, dots, etc.) with underscore
+        $result = preg_replace('/[^a-zA-Z0-9_]/', '_', $result);
         $result = preg_replace('/_+/', '_', $result);
         $result = trim($result, '_');
 
