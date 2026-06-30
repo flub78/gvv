@@ -150,13 +150,14 @@ class DX_Auth {
         // Return FALSE if none of the values from $needle are found in $haystack
         return FALSE;
     }
-    function _email($to, $from, $subject, $message) {
+    function _email($to, $from, $subject, $message, $mailtype = 'text') {
         $this->ci->load->library('Email');
         $email = $this->ci->email;
 
         $email->from($from);
         $email->to($to);
         $email->subject($subject);
+        $email->set_mailtype($mailtype);
         $email->message($message);
 
         gvv_info("MAIL auth to=$to subject=$subject");
@@ -1003,7 +1004,7 @@ class DX_Auth {
 
         $this->ci->dx_auth_event->sending_forgot_password_email($data, $message);
 
-        $result = $this->_email($row->email, $from, $subject, $message);
+        $result = $this->_email($row->email, $from, $subject, $message, 'html');
         if (!$result) {
             $this->_auth_error = $this->ci->lang->line('auth_forgot_password_email_error');
         }

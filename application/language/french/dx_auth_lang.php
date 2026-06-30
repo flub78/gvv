@@ -69,7 +69,7 @@ Ce lien est valable %d minutes. Passé ce délai, vous devrez refaire une demand
 En cas de problème, contactez %s.
 
 Cordialement,
-L'équipe du site
+L'équipe GVV
 ";
 
 /* End of file dx_auth_lang.php */

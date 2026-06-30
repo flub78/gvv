@@ -83,15 +83,26 @@ class DX_Auth_Event {
 
     // This event occurs right before dx auth send forgot password request email
     // $data is an array, containing password, key, and reset_password_uri
-    // $content is email content, passed by reference	
+    // $content is email content, passed by reference
     // You can customize email content here
     function sending_forgot_password_email($data, & $content) {
-        $content = sprintf(
+        $uri      = $data['reset_password_uri'];
+        $expire   = (int)($this->ci->config->item('DX_forgot_password_expire') / 60);
+        $webmaster = $this->ci->config->item('DX_webmaster_email');
+
+        $text = sprintf(
             $this->ci->lang->line('auth_forgot_password_content'),
-            $data['reset_password_uri'],
-            $this->ci->config->item('DX_forgot_password_expire') / 60,
-            $this->ci->config->item('DX_webmaster_email')
+            $uri,
+            $expire,
+            $webmaster
         );
+
+        $html = nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+        $link = '<a href="' . $uri . '">' . $uri . '</a>';
+        $html = str_replace(htmlspecialchars($uri, ENT_QUOTES, 'UTF-8'), $link, $html);
+        $mailto = '<a href="mailto:' . $webmaster . '">' . $webmaster . '</a>';
+        $html = str_replace(htmlspecialchars($webmaster, ENT_QUOTES, 'UTF-8'), $mailto, $html);
+        $content = '<html><body>' . $html . '</body></html>';
     }
 }
 ?>
