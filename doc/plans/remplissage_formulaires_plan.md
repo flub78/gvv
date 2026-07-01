@@ -18,6 +18,33 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - La première mise en production vise un socle autonome de formulaires HTML, sans pré-remplissage GVV.
 - Évolution probable: ajouter une surcouche minimale d'orchestration (validation des documents + acceptation/rejet global) au-dessus des formulaires, plutôt qu'un moteur de procédures complet.
 
+## Décisions différées
+
+### Simplification : supprimer le mécanisme A au profit du mécanisme B seul
+
+**Contexte** : deux mécanismes de pré-remplissage coexistent actuellement :
+- **Mécanisme A** : attributs `data-gvv-source` dans le HTML de la page ; résolution serveur depuis les tables GVV.
+- **Mécanisme B** : paramètres URL directs (`?champ=valeur&lock[]=champ`) ; stockage session par slug.
+
+**Conclusion de la discussion (juillet 2026)** : le mécanisme A pourrait être supprimé sans perte fonctionnelle significative, car :
+
+1. **Données sensibles** — les deux cas d'usage réels ne posent pas de problème de confidentialité dans les URLs :
+   - Formulaires standalone/semi-privés : pré-remplissage minimal, question sans objet.
+   - Formulaires en workflow GVV : l'opérateur est connecté et admin/instructeur, il a déjà accès aux données.
+
+2. **Cas `date.today`, `config.*`, `club.*`** — pour les formulaires en workflow, il y a toujours un contrôleur de génération qui peut résoudre et injecter ces valeurs dans l'URL B. Pour les formulaires standalone, ces champs ne sont généralement pas pré-remplis.
+
+3. **Complexité utilisateur** — deux mécanismes = double complexité pour des utilisateurs non-techniques. Un seul mécanisme (B, visible et prévisible dans l'URL) simplifie la compréhension, la mise en œuvre et le débogage.
+
+**Décision** : différée à la fin du Lot 6, quand les workflows concrets (`briefing_passager_ulm`) seront opérationnels et permettront de valider que le mécanisme B couvre tous les cas réels avant de retirer A.
+
+**Impact si décision prise** :
+- Supprimer `_apply_gvv_prefill()`, `_collect_locked_gvv_fields()`, `_resolve_gvv_source()` dans `forms_public.php`.
+- Les contrôleurs de génération (`generate_link`, page de génération admin) construisent des URLs B complètes en résolvant eux-mêmes membre/instructeur/date/config.
+- Mettre à jour Lot 8 documentation (ne décrire que le mécanisme B).
+
+---
+
 ## Tâches à réaliser
 
 ### Séquencement opérationnel (suite immédiate)

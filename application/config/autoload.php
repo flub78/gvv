@@ -81,7 +81,7 @@ $autoload['helper'] = array('url', 'assets', 'html', 'form', 'form_elements', 'a
 |
 */
 
-$autoload['config'] = array('club', 'program', 'dx_auth', 'facturation');
+$autoload['config'] = array('club', 'program', 'dx_auth', 'facturation', 'gvv_config');
 
 
 /*

@@ -91,6 +91,8 @@ test.describe.serial('Rapprochements Tab Persistence', () => {
     const rapprochementsPage = new RapprochementsPage(page);
     await rapprochementsPage.uploadAndNavigate();
 
+    test.skip(!(await rapprochementsPage.hasTab('openflyers-tab')), 'OpenFlyers feature is disabled: skipping OpenFlyers tab test');
+
     // The default tab should be "Relevé de banque"
     expect(await rapprochementsPage.isTabActive('openflyers-tab')).toBeTruthy();
 
@@ -118,6 +120,8 @@ test.describe.serial('Rapprochements Tab Persistence', () => {
 
     const rapprochementsPage = new RapprochementsPage(page);
     await rapprochementsPage.uploadAndNavigate();
+
+    test.skip(!(await rapprochementsPage.hasTab('openflyers-tab')), 'OpenFlyers feature is disabled: skipping OpenFlyers tab switching test');
 
     // Switch to GVV tab
     console.log('Switching to GVV tab...');

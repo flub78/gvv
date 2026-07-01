@@ -26,6 +26,13 @@ class OpenFlyers extends MY_Controller {
 
     function __construct() {
         parent::__construct();
+
+        // Feature flag: keep code available but disable runtime access by default.
+        if (!$this->config->item('openflyers_enabled')) {
+            show_404();
+            return;
+        }
+
         // Check if user is logged in or not
         $this->dx_auth->check_login();
 

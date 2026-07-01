@@ -75,6 +75,15 @@ class RapprochementsPage extends BasePage {
   }
 
   /**
+   * Check whether a tab exists in the current page.
+   * @param {string} tabId - Tab ID to check
+   * @returns {Promise<boolean>} True when tab exists
+   */
+  async hasTab(tabId) {
+    return (await this.page.locator(`#${tabId}`).count()) > 0;
+  }
+
+  /**
    * Get the active tab ID
    * @returns {Promise<string>} The ID of the active tab
    */

@@ -130,6 +130,17 @@ $config['gestion_of'] = true;
 $config['gestion_rapprochements'] = true;
 
 /*
+ * OpenFlyers feature flag
+ *
+ * NOTE: The runtime feature flag is defined in application/config/gvv_config.php
+ * using $config['openflyers_enabled'].
+ *
+ * Behavior:
+ * - if FALSE: OpenFlyers controller is blocked (404) and related UI is hidden.
+ * - if not defined: treated as disabled (same behavior as FALSE).
+ */
+
+/*
  * Unification de l'envoi des emails pour les vols de découverte (VD)
  * Si TRUE, le contrôleur VD utilisera la configuration standard `application/config/email.php`
  * Si FALSE ou si le paramètre n'existe pas, VD continue d'utiliser sa configuration SMTP dédiée
