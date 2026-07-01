@@ -60,6 +60,9 @@ function loadAttachments(ecritureId) {
         success: function(response) {
             $('#attachmentsContent').html(response);
             initializeAttachmentHandlers();
+            if (typeof triggerPdfThumbnails === 'function') {
+                triggerPdfThumbnails($('#attachmentsContent'));
+            }
         },
         error: function(xhr, status, error) {
             console.error('AJAX Error:', status, error);
