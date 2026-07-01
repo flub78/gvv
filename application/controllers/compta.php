@@ -57,8 +57,9 @@ class Compta extends Gvv_Controller {
         }
 
         // mon_compte, journal_compte, export, pdf, new_year, datatable_journal_compte and filterValidation are accessible to regular users (own data only)
+        // get_attachments_section is also accessible to account owners (authorization checked inside the method)
         $method = $this->router->fetch_method();
-        if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte'])) {
+        if (!in_array($method, ['mon_compte', 'journal_compte', 'export', 'pdf', 'new_year', 'datatable_journal_compte', 'filterValidation', 'transfert', 'export_ecritures', 'preview_export_ecritures', 'import_ecritures', 'confirm_import', 'ajax_ecritures_for_transfer', 'create_missing_compte', 'get_attachments_section'])) {
             $this->require_roles(['tresorier', 'bureau']);
         }
 
@@ -3251,6 +3252,23 @@ class Compta extends Gvv_Controller {
             // Load necessary models and language
             $this->load->model('attachments_model');
             $this->lang->load('attachments');
+
+            // Authorization: tresorier/bureau have full access.
+            // Regular users may only view attachments on their own account's ecritures.
+            if (!$this->has_modification_rights() && !$this->user_has_role('bureau')) {
+                $ecriture = $this->db->where('id', $ecriture_id)->get('ecritures')->row_array();
+                if (!$ecriture) {
+                    $this->_deny_access();
+                    return;
+                }
+                $mlogin = $this->dx_auth->get_username();
+                $owner1 = $this->comptes_model->user($ecriture['compte1']);
+                $owner2 = $this->comptes_model->user($ecriture['compte2']);
+                if ($owner1 !== $mlogin && $owner2 !== $mlogin) {
+                    $this->_deny_access();
+                    return;
+                }
+            }
 
             // Get existing attachments directly from database
             $this->db->where('referenced_table', 'ecritures');
