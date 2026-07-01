@@ -66,10 +66,12 @@ test.describe.serial('Rapprochements Tab Persistence', () => {
     expect(await rapprochementsPage.isTabActive('gvv-tab')).toBeTruthy();
     await expect(page.locator('#gvv')).toHaveClass(/show/);
 
-    // Reload the page
+    // Reload the page — use 'load' instead of 'networkidle' because the rapprochements
+    // page makes background AJAX requests that can delay networkidle indefinitely.
     console.log('Reloading page...');
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
+    await page.waitForSelector('[role="tablist"]', { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     // Check that "Ecritures GVV" tab is still active after reload

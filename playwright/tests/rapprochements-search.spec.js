@@ -32,6 +32,12 @@ test.describe('Rapprochements Bank Statement Search', () => {
     const rapprochementsPage = new RapprochementsPage(page);
     await rapprochementsPage.uploadAndNavigate();
 
+    // #searchReleveBanque is only rendered when the OpenFlyers tab is enabled
+    const openFlyersTabExists = await rapprochementsPage.hasTab('openflyers-tab');
+    if (!openFlyersTabExists) {
+      test.skip(true, 'OpenFlyers feature is disabled — onglet Relevé de banque absent, #searchReleveBanque non rendu');
+    }
+
     // Check if search box exists (the main point of this test)
     console.log('Checking for search box...');
     const searchBox = await page.locator('#searchReleveBanque');

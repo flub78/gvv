@@ -114,8 +114,8 @@ test('Vol avion créé depuis le dashboard : retour au dashboard', async ({ page
         const cdeb  = document.querySelector('input[name="vacdeb"]');
         const cfin  = document.querySelector('input[name="vacfin"]');
         const duree = document.querySelector('input[name="vaduree"]');
-        if (cdeb)  { cdeb.value  = '100'; cdeb.dispatchEvent(new Event('change', { bubbles: true })); }
-        if (cfin)  { cfin.value  = '101'; cfin.dispatchEvent(new Event('change', { bubbles: true })); }
+        if (cdeb)  { cdeb.value  = '999000'; cdeb.dispatchEvent(new Event('change', { bubbles: true })); }
+        if (cfin)  { cfin.value  = '999001'; cfin.dispatchEvent(new Event('change', { bubbles: true })); }
         if (duree) { duree.value = '1';   duree.dispatchEvent(new Event('change', { bubbles: true })); }
     });
 
