@@ -204,6 +204,118 @@ class Forms_renderer {
     }
 
     /**
+     * Inject prefill values into HTML fields by name (Mechanism B — URL params).
+     *
+     * $name_value_map : field_name => string value to inject
+     * $lock_names     : list of field names to mark readonly
+     *
+     * Priority is lower than repopulate_html_fields (validation-error re-display),
+     * so this must be called BEFORE repopulate_html_fields.
+     */
+    public function inject_prefill_by_name($html, array $name_value_map, array $lock_names = array()) {
+        if (empty($name_value_map)) {
+            return $html;
+        }
+
+        $lock_set = array_flip($lock_names);
+
+        // --- <input> ---
+        $html = preg_replace_callback(
+            '/<input(\s[^>]*)>/is',
+            function ($m) use ($name_value_map, $lock_set) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) return $m[0];
+                $name = $nm[1];
+                if (!array_key_exists($name, $name_value_map)) return $m[0];
+
+                $input_type = 'text';
+                if (preg_match('/\btype=["\']([^"\']+)["\']/', $attrs, $tm)) {
+                    $input_type = strtolower($tm[1]);
+                }
+                if (in_array($input_type, array('hidden', 'file', 'submit', 'reset', 'button'), true)) return $m[0];
+
+                $value  = $name_value_map[$name];
+                $locked = isset($lock_set[$name]);
+
+                if ($input_type === 'checkbox') {
+                    $checkbox_val = '';
+                    if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $attrs, $vm)) $checkbox_val = $vm[1];
+                    $clean = preg_replace('/\s+checked(?:=["\'][^"\']*["\'])?/i', '', $attrs);
+                    if ((string) $value === $checkbox_val) $clean .= ' checked';
+                    if ($locked) $clean .= ' readonly';
+                    return '<input' . $clean . '>';
+                }
+
+                if ($input_type === 'radio') {
+                    $radio_val = '';
+                    if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $attrs, $vm)) $radio_val = $vm[1];
+                    $clean = preg_replace('/\s+checked(?:=["\'][^"\']*["\'])?/i', '', $attrs);
+                    if ((string) $value === $radio_val) $clean .= ' checked';
+                    if ($locked) $clean .= ' readonly';
+                    return '<input' . $clean . '>';
+                }
+
+                $clean = preg_replace('/\s+value=["\'][^"\']*["\']/', '', $attrs);
+                if ($locked) {
+                    $clean = preg_replace('/\s+readonly(?:=["\'][^"\']*["\'])?/i', '', $clean) . ' readonly';
+                }
+                $esc = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+                return '<input' . $clean . ' value="' . $esc . '">';
+            },
+            $html
+        );
+
+        // --- <textarea> ---
+        $html = preg_replace_callback(
+            '/<textarea(\s[^>]*)>(.*?)<\/textarea>/is',
+            function ($m) use ($name_value_map, $lock_set) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) return $m[0];
+                $name = $nm[1];
+                if (!array_key_exists($name, $name_value_map)) return $m[0];
+                $locked = isset($lock_set[$name]);
+                $clean  = $locked
+                    ? preg_replace('/\s+readonly(?:=["\'][^"\']*["\'])?/i', '', $attrs) . ' readonly'
+                    : $attrs;
+                $esc = htmlspecialchars((string) $name_value_map[$name], ENT_QUOTES, 'UTF-8');
+                return '<textarea' . $clean . '>' . $esc . '</textarea>';
+            },
+            $html
+        );
+
+        // --- <select> ---
+        $html = preg_replace_callback(
+            '/<select(\s[^>]*)>(.*?)<\/select>/is',
+            function ($m) use ($name_value_map, $lock_set) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) return $m[0];
+                $name = $nm[1];
+                if (!array_key_exists($name, $name_value_map)) return $m[0];
+                $selected_val = (string) $name_value_map[$name];
+                $locked = isset($lock_set[$name]);
+                $clean  = $locked
+                    ? preg_replace('/\s+readonly(?:=["\'][^"\']*["\'])?/i', '', $attrs) . ' readonly'
+                    : $attrs;
+                $inner = preg_replace_callback(
+                    '/<option(\s[^>]*)>/is',
+                    function ($om) use ($selected_val) {
+                        $oc = preg_replace('/\s+selected(?:=["\'][^"\']*["\'])?/i', '', $om[1]);
+                        $opt_val = '';
+                        if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $om[1], $vm)) $opt_val = $vm[1];
+                        if ($opt_val === $selected_val) $oc .= ' selected';
+                        return '<option' . $oc . '>';
+                    },
+                    $m[2]
+                );
+                return '<select' . $clean . '>' . $inner . '</select>';
+            },
+            $html
+        );
+
+        return $html;
+    }
+
+    /**
      * Replace <div data-gvv-type="signature"> elements in page HTML with the
      * interactive signature widget.  Returns the modified HTML string and sets
      * $has_signature_widget to true when at least one widget was injected.

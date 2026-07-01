@@ -126,7 +126,7 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 - [x] Lire les paramètres URL (`pilot_login`, `instructor_login`) en GET, les stocker en session par slug.
 - [x] Injecter les valeurs résolues dans le rendu public avant affichage.
 - [x] Appliquer le lock côté serveur : ignorer la valeur soumise pour les champs `data-gvv-lock="true"` et réinjecter la valeur GVV.
-- [ ] Permettre l'utilisation des liens formulaire dans les workflows GVV (paramètres encodés dans le lien).
+- [x] Permettre l'utilisation des liens formulaire dans les workflows GVV (paramètres encodés dans le lien).
 - [ ] Ajouter la sauvegarde/reprise de saisie multi-session pour les utilisateurs externes (mode brouillon, token de reprise).
 - [ ] Ajouter des règles de visibilité des pages/sections selon les réponses (conditions simples, liste blanche d'opérateurs).
 - [ ] Recalculer la séquence des pages visibles à chaque étape côté serveur.
@@ -147,7 +147,7 @@ Voir : [Design table events](../design_notes/remplissage_formulaires_design.md#8
 
 - [x] Vérifier que `events_types` est accessible depuis le tableau de bord admin (liste des types, ajout de nouvelles entrées).
 - [x] Vérifier que le formulaire membre permet d'ajouter/modifier des événements de tous les types pertinents (ITP, ITV, FI Sailplane, FI ULM, FE Sailplane, FE ULM, visite médicale, contrôle de compétence).
-- [ ] Vérifier que les champs `ecomment` (numéro de qualification) et `date_expiration` sont bien éditables pour les types `expirable=1`.
+- [x] Vérifier que les champs `ecomment` (numéro de qualification) et `date_expiration` sont bien éditables pour les types `expirable=1` (les deux champs sont toujours affichés dans le formulaire de saisie d'événement).
 - [x] Corriger le formulaire membre si des types sont absents ou si les champs numéro/expiration ne sont pas proposés.
 
 #### Extension taxonomie — sources events
@@ -185,11 +185,13 @@ Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..
 - [x] Mode upload : `<input type="file" accept="image/*" name="{field}_file">` → pipeline standard `form_submission_files`.
 - [x] Mode clavier : texte rendu sur canvas avec fonte Caveat → export PNG base64 → pipeline identique au mode canvas.
 - [x] Côté serveur `forms_public::submit()` : détecter les champs `signature`, dispatcher selon le type (`canvas|text` → `save_signature_canvas()` ; `file` → pipeline upload standard).
-- [x] Affichage graphique des signatures dans l'admin (`bs_submission.php`) : pour chaque champ `signature`, chercher le fichier associé dans `form_submission_files` et afficher l'image en ligne.
-- [ ] Migration : ajouter `signature_path VARCHAR(255) NULL` à la table `membres`.
-- [ ] Ajouter les sources `member.signature` et `instructor.signature` (depuis `membres.signature_path`) à la taxonomie `form_prefill_service`.
-- [ ] Ajouter la source `instructor.event.{type_key}.signature` (depuis `events.signature_path`) à la taxonomie — prérequis : migration Lot 5-ter.
-- [ ] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` ou `events.signature_path` selon la source déclarée ; remplaçable si `data-gvv-lock="false"`.
+- [x] Repopulation du widget après échec de validation serveur : `pad.fromDataURL()` (API async SignaturePad v4) pour restaurer le canvas ; scan de `content_html` pour capturer les valeurs POST des widgets HTML-only dans la flashdata.
+- [x] Support des widgets signature définis uniquement dans `content_html` (sans enregistrement `form_fields`) : migration 137 (`field_id` nullable + colonne `widget_name VARCHAR(100)` sur `form_submission_files`), capture des POST HTML-only dans `submit()`, stockage avec `widget_name` au lieu de `field_id`, `get_submission_files()` retourne `COALESCE(f.name, sf.widget_name) as field_name`.
+- [x] Affichage graphique des signatures dans l'admin (`bs_submission.php`) : pour chaque champ `signature`, chercher le fichier associé dans `form_submission_files` et afficher l'image en ligne ; fallback libellé `widget_name` → `field_name` pour les fichiers sans `field_id`.
+- [x] Migration : ajouter `signature_path VARCHAR(255) NULL` à la table `membres` (migration 121).
+- [x] Ajouter les sources `member.signature` et `instructor.signature` (depuis `membres.signature_path`) à la taxonomie `form_prefill_service`.
+- [x] Ajouter la source `instructor.event.{type_key}.signature` (depuis `events.signature_path`) à la taxonomie — prérequis : migration Lot 5-ter.
+- [x] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` ou `events.signature_path` selon la source déclarée ; remplaçable si `data-gvv-lock="false"` (`_collect_gvv_sig_prefill` + merge avec flashdata).
 
 ### Lot 6 — Intégration workflow GVV (handlers post-soumission)
 
@@ -201,10 +203,10 @@ Chaque étape est conclue par une vérification de non-régression sur les formu
 
 Prérequis : Lot 5 terminé.
 
-- [ ] Étendre `forms_public/index` : lire tous les paramètres GET, séparer les noms réservés (`token`, `vld_id`, `lock`, `page`, `pilot_login`, `instructor_login`) des noms de champs, stocker les deux groupes en session par slug.
-- [ ] Injecter les valeurs de pré-remplissage dans les champs HTML dont le `name=` correspond (via `repopulate_html_fields` existant ou nouveau helper).
-- [ ] Appliquer `readonly` et enforcement serveur sur les champs listés dans `lock[]`.
-- [ ] **Validation non-régression** : PHPUnit existant vert + Playwright smoke `inscription_club` (soumission anonyme) + `attestation_de_formation_ulm` (pré-remplissage mécanisme A) → comportement inchangé.
+- [x] Étendre `forms_public/index` : lire tous les paramètres GET, séparer les noms réservés (`token`, `vld_id`, `lock`, `page`, `pilot_login`, `instructor_login`) des noms de champs, stocker les deux groupes en session par slug (`forms_b_prefill_*`, `forms_b_lock_*`).
+- [x] Injecter les valeurs de pré-remplissage dans les champs HTML dont le `name=` correspond (`Forms_renderer::inject_prefill_by_name`).
+- [x] Appliquer `readonly` et enforcement serveur sur les champs listés dans `lock[]`.
+- [x] **Validation non-régression** : PHPUnit 1528 tests verts + Playwright smoke `inscription_club` (soumission anonyme) + `briefing-passager-ulm` avec 5 champs pré-remplis dont 3 verrouillés → comportement correct.
 
 #### Étape 6.2 — Stockage du contexte GVV sur les soumissions
 

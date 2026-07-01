@@ -9,8 +9,10 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 3. [Types de champs](#types-de-champs)
 4. [Règles CSS](#règles-css)
 5. [Rôles de champs GVV](#rôles-de-champs-gvv)
-6. [Pré-remplissage depuis GVV](#pré-remplissage-depuis-gvv)
-7. [Exemples de formulaires](#exemples-de-formulaires)
+6. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
+7. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
+8. [Page de génération](#page-de-génération)
+9. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -286,41 +288,218 @@ Quand un utilisateur GVV connecté soumet un formulaire, GVV complète ces méta
 
 ---
 
-## Pré-remplissage depuis GVV
+## Pré-remplissage — mécanisme A (attributs `data-gvv-source`)
 
-> Cette fonctionnalité est prévue dans une version ultérieure du module.
+Le mécanisme A permet de pré-remplir des champs HTML avec des données issues de GVV (membres, événements, configuration club, date du jour) en déclarant des attributs `data-gvv-*` directement sur les éléments `<input>`, `<textarea>`, `<select>` ou sur les `<div data-gvv-type="signature">`.
 
-Certains champs peuvent être pré-remplis avec des données issues de GVV via des attributs `data-gvv-*` :
+### Attributs
 
 | Attribut | Rôle |
 |---|---|
-| `data-gvv-source` | Source de la donnée à injecter |
-| `data-gvv-param` | Nom du paramètre URL qui identifie la personne |
-| `data-gvv-lock` | `true` = champ verrouillé (non modifiable) |
+| `data-gvv-source` | Source de la donnée à injecter (voir taxonomie ci-dessous) |
+| `data-gvv-lock` | `true` = champ readonly à l'affichage **et** valeur GVV imposée à la soumission |
 
-```html
-<input name="candidat_nom" type="text"
-       data-gvv-source="member.nom_prenom"
-       data-gvv-param="pilot_login"
-       data-gvv-lock="true">
-
-<input name="date_signature" type="date"
-       data-gvv-source="date.today">
+Le login du pilote et de l'instructeur sont transmis dans l'URL :
+```
+…/forms/mon-formulaire?pilot_login=dupont_j&instructor_login=martin_p
 ```
 
-Les paramètres sont passés dans l'URL : `…/forms/mon-formulaire?pilot_login=dupont_j`
+### Exemple
 
-### Sources disponibles
+```html
+<!-- Nom du candidat (verrouillé) -->
+<input name="candidat_nom" type="text"
+       data-gvv-source="member.nom_prenom"
+       data-gvv-lock="true">
+
+<!-- Numéro ITP de l'instructeur (verrouillé) -->
+<input name="num_itp" type="text"
+       data-gvv-source="instructor.event.itp.numero"
+       data-gvv-lock="true">
+
+<!-- Organisme de formation (paramètre de configuration) -->
+<input name="organisme" type="text"
+       data-gvv-source="config.organisme_formation">
+
+<!-- Date du jour (automatique, pas de paramètre URL) -->
+<input name="date_signature" type="date"
+       data-gvv-source="date.today">
+
+<!-- Signature de l'instructeur (pré-remplie, remplaçable) -->
+<div data-gvv-type="signature"
+     data-gvv-name="signature_instructeur"
+     data-gvv-source="instructor.event.itp.signature"
+     data-gvv-lock="false">Signature instructeur</div>
+```
+
+### Taxonomie des sources
+
+#### Configuration et données club
 
 | Source | Donnée |
 |---|---|
-| `club.nom` / `club.ville` / `club.email` | Informations du club |
-| `member.nom_prenom` / `member.email` / `member.telephone` | Données du membre (`pilot_login`) |
-| `member.adresse_complete` / `member.date_naissance` / `member.lieu_naissance` | Suite données membre |
+| `config.<cle>` | Paramètre de configuration club (table `form_config_params`) |
+| `club.nom` | Nom du club |
+| `club.sigle` | Sigle du club |
+| `club.adresse` | Adresse |
+| `club.ville` | Ville |
+| `club.email` | Email du club |
+
+#### Membre / pilote — table `membres` (nécessite `pilot_login` dans l'URL)
+
+| Source | Donnée |
+|---|---|
+| `member.nom` | Nom de famille |
+| `member.prenom` | Prénom |
+| `member.nom_prenom` | "Nom Prénom" |
+| `member.email` | Email |
+| `member.telephone` | Téléphone fixe, ou mobile si vide |
+| `member.adresse` | Adresse |
+| `member.code_postal` | Code postal |
+| `member.ville` | Ville |
+| `member.adresse_complete` | "Adresse, CP Ville" |
+| `member.date_naissance` | Date de naissance (JJ/MM/AAAA) |
+| `member.lieu_naissance` | Lieu de naissance |
 | `member.date_lieu_naissance` | "JJ/MM/AAAA à Ville" |
-| `instructor.nom_prenom` | Nom de l'instructeur (`instructor_login`) |
-| `user.nom_prenom` | Membre connecté (session) |
-| `date.today` / `date.today_fr` | Date du jour (YYYY-MM-DD ou JJ/MM/AAAA) |
+| `member.signature` | Signature enregistrée dans le profil |
+
+#### Événements / qualifications du pilote — table `events` (nécessite `pilot_login`)
+
+| Source | Donnée |
+|---|---|
+| `member.event.{type_key}.numero` | Numéro de qualification (`ecomment`) |
+| `member.event.{type_key}.expiry` | Date d'expiration |
+| `member.event.{type_key}.date` | Date de l'événement |
+| `member.event.{type_key}.signature` | Signature associée à l'événement |
+
+#### Instructeur — table `membres` (nécessite `instructor_login` dans l'URL)
+
+Mêmes sources que `member.*`, préfixées par `instructor.*` :
+`instructor.nom_prenom`, `instructor.email`, `instructor.signature`, etc.
+
+#### Événements / qualifications de l'instructeur — table `events`
+
+| Source | Donnée |
+|---|---|
+| `instructor.event.{type_key}.numero` | Numéro de qualification |
+| `instructor.event.{type_key}.expiry` | Date d'expiration |
+| `instructor.event.{type_key}.date` | Date de l'événement |
+| `instructor.event.{type_key}.signature` | Signature associée à l'événement |
+
+#### Utilisateur connecté — même champs que `member.*` sans paramètre URL
+
+Préfixe `user.*` : résolu depuis la session GVV courante.
+
+#### Dates calculées
+
+| Source | Donnée |
+|---|---|
+| `date.today` | Date du jour au format `YYYY-MM-DD` |
+| `date.today_fr` | Date du jour au format `JJ/MM/AAAA` |
+| `date.year` | Année en cours |
+
+#### Clés `{type_key}` disponibles
+
+| `{type_key}` | Qualification |
+|---|---|
+| `itp` | ITP (Instructeur de Planeur) |
+| `itv` | ITV |
+| `fi_spl` | FI Sailplane |
+| `fe_spl` | FE Sailplane |
+| `fi_ulm` | FI ULM |
+| `fe_ulm` | FE ULM |
+| `controle_competence` | Contrôle de compétence |
+| `visite_medicale` | Visite médicale |
+| `bpp` | BPP |
+| `spl` | SPL |
+
+---
+
+## Pré-remplissage — mécanisme B (paramètres d'URL)
+
+Le mécanisme B permet de pré-remplir des champs à partir de **valeurs passées directement dans l'URL**, sans aucun attribut `data-gvv-*` dans le HTML. C'est le mécanisme naturel quand le contexte vient d'une entité GVV autre qu'un membre (vol de découverte, réservation, dossier).
+
+### Principe
+
+Tout paramètre d'URL dont le nom correspond à un `name=` d'un champ du formulaire est injecté comme valeur par défaut. Les valeurs sont stockées en session par slug et persistent sur toutes les pages du formulaire.
+
+```
+/forms/{slug}
+  ?{nom_champ}={valeur}    ← injecté dans le champ correspondant
+  &lock[]={nom_champ}      ← champ readonly + valeur imposée à la soumission
+```
+
+**Noms réservés** (jamais injectés dans un champ) : `page`, `token`, `vld_id`, `pilot_login`, `instructor_login`, `lock`.
+
+### Rôle de `lock[]`
+
+Sans `lock[]`, la valeur est une **suggestion** : le champ est pré-rempli mais l'utilisateur peut le modifier.
+
+Avec `lock[]`, la protection est double :
+- **Affichage** : le champ reçoit l'attribut `readonly` — l'utilisateur voit la valeur mais ne peut pas la changer.
+- **Soumission** : même si la valeur POST est falsifiée (modification du HTML côté client), le serveur réinjecte la valeur stockée en session. Il est impossible de soumettre une valeur différente.
+
+### Exemple — briefing passager ULM
+
+Un workflow GVV (vol de découverte) génère ce lien et l'envoie au passager :
+
+```
+/forms/briefing-passager-ulm
+  ?date_vol=2026-07-15
+  &site_decollage=Abbeville
+  &identification_ulm=F-JXXX
+  &nom=Dupont
+  &personne_a_prevenir=Marie+Dupont
+  &lock[]=date_vol
+  &lock[]=site_decollage
+  &lock[]=identification_ulm
+```
+
+Résultat :
+
+| Champ | Valeur | Comportement |
+|---|---|---|
+| `date_vol` | 2026-07-15 | Readonly — valeur imposée (données VLD) |
+| `site_decollage` | Abbeville | Readonly — valeur imposée |
+| `identification_ulm` | F-JXXX | Readonly — valeur imposée |
+| `nom` | Dupont | Pré-rempli — modifiable (suggestion) |
+| `personne_a_prevenir` | Marie Dupont | Pré-rempli — modifiable (suggestion) |
+
+### Coexistence avec le mécanisme A
+
+Les deux mécanismes peuvent coexister dans le même formulaire. Les sources automatiques (`date.today`, `config.*`, `club.*`) utilisent toujours le mécanisme A. Le mécanisme B cible les champs par `name=` sans aucun attribut HTML supplémentaire.
+
+Priorité appliquée (du plus au moins prioritaire) :
+1. **Erreur de validation** (re-affichage après soumission refusée)
+2. **Mécanisme A** (`data-gvv-source`)
+3. **Mécanisme B** (paramètres d'URL)
+
+---
+
+## Page de génération
+
+Pour les formulaires qui nécessitent un contexte GVV (membre, instructeur), l'administrateur peut utiliser la **page de génération** plutôt que de construire l'URL manuellement.
+
+La page de génération est accessible via le bouton **"Générer"** dans la liste des formulaires, disponible uniquement pour les formulaires dont le champ `Paramètres requis` est différent de `aucun`.
+
+### Configuration du formulaire
+
+Dans la fiche admin du formulaire, le champ **Paramètres requis** définit quels sélecteurs apparaissent sur la page de génération :
+
+| Valeur | Sélecteurs affichés |
+|---|---|
+| `aucun` | Aucun — pas de bouton "Générer" |
+| `pilote` | Sélecteur membre (pilote) |
+| `instructeur` | Sélecteur membre (instructeur) |
+| `pilote + instructeur` | Les deux sélecteurs |
+
+### Utilisation
+
+1. Cliquer sur **"Générer"** dans la liste des formulaires.
+2. Sélectionner le pilote et/ou l'instructeur selon la configuration.
+3. Cliquer sur **"Ouvrir le formulaire"** : GVV construit l'URL avec `pilot_login` et/ou `instructor_login` et ouvre le formulaire pré-rempli.
+
+Le mécanisme A (`data-gvv-source`) est alors actif : tous les champs annotés sont pré-remplis depuis les données GVV des membres sélectionnés.
 
 ---
 

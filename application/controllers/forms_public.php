@@ -75,7 +75,10 @@ class Forms_public extends CI_Controller {
 
         $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
         $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);
+        $session_key_b_prefill  = 'forms_b_prefill_'       . md5($slug);
+        $session_key_b_lock     = 'forms_b_lock_'           . md5($slug);
 
+        // Mechanism A — pilot/instructor login
         $get_pilot      = trim((string) $this->input->get('pilot_login'));
         $get_instructor = trim((string) $this->input->get('instructor_login'));
         if ($get_pilot      !== '') $this->session->set_userdata($session_key_pilot, $get_pilot);
@@ -84,16 +87,45 @@ class Forms_public extends CI_Controller {
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
 
+        // Mechanism B — arbitrary field values from URL query string
+        // Reserved names that are never injected as field values.
+        $b_reserved = array('page', 'token', 'vld_id', 'lock', 'pilot_login', 'instructor_login');
+        $all_get    = $this->input->get();
+        if (is_array($all_get)) {
+            $new_prefill = array();
+            $new_lock    = array();
+            foreach ($all_get as $key => $val) {
+                $key = (string) $key;
+                if (in_array($key, $b_reserved, true)) continue;
+                $new_prefill[$key] = (string) $val;
+            }
+            $lock_raw = $this->input->get('lock');
+            if ($lock_raw !== false && $lock_raw !== null) {
+                $new_lock = is_array($lock_raw) ? array_values($lock_raw) : array((string) $lock_raw);
+            }
+            if (!empty($new_prefill)) $this->session->set_userdata($session_key_b_prefill, $new_prefill);
+            if (!empty($new_lock))    $this->session->set_userdata($session_key_b_lock,    $new_lock);
+        }
+
+        $b_prefill = $this->session->userdata($session_key_b_prefill) ?: array();
+        $b_lock    = $this->session->userdata($session_key_b_lock)    ?: array();
+
         // Inject signature widgets and apply GVV prefill into page HTML.
         // The view applies html_entity_decode to content_html before rendering,
         // so we work on raw HTML here and store raw HTML back.
+        $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
         $has_signature_widget = false;
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, $sig_canvas_data);
+            // GVV-sourced signature prefill; flash data (validation error) takes priority.
+            $gvv_sig_prefill = $this->_collect_gvv_sig_prefill($raw, $pilot_login, $instructor_login, $club_id);
+            $merged_sig = array_merge($gvv_sig_prefill, $sig_canvas_data);
+            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, $merged_sig);
             $injected = $this->forms_renderer->inject_validation_script($injected);
-            $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
             list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
+            if (!empty($b_prefill)) {
+                $injected = $this->forms_renderer->inject_prefill_by_name($injected, $b_prefill, $b_lock);
+            }
             if (!empty($old_values)) {
                 $injected = $this->forms_renderer->repopulate_html_fields($injected, $fields, $old_values);
             }
@@ -260,6 +292,19 @@ class Forms_public extends CI_Controller {
             }
         }
 
+        // Mechanism B server-side lock: override submitted values for URL-prefilled locked fields.
+        $b_prefill = $this->session->userdata('forms_b_prefill_' . md5($slug)) ?: array();
+        $b_lock    = $this->session->userdata('forms_b_lock_'    . md5($slug)) ?: array();
+        if (!empty($b_prefill) && !empty($b_lock)) {
+            $b_lock_set = array_flip($b_lock);
+            foreach ($fields as $field) {
+                $fname = (string) $field['name'];
+                if (isset($b_lock_set[$fname]) && array_key_exists($fname, $b_prefill)) {
+                    $submitted_values[(int) $field['id']] = $b_prefill[$fname];
+                }
+            }
+        }
+
         $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
 
         if (!empty($errors)) {
@@ -399,6 +444,10 @@ class Forms_public extends CI_Controller {
             redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
         }
+
+        // Clear mechanism B session after successful submission.
+        $this->session->unset_userdata('forms_b_prefill_' . md5($slug));
+        $this->session->unset_userdata('forms_b_lock_'    . md5($slug));
 
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
         $uploaded_names = array();
@@ -683,6 +732,41 @@ class Forms_public extends CI_Controller {
         }
 
         return $locked;
+    }
+
+    /**
+     * Collect GVV-sourced signature prefill values for signature widgets.
+     *
+     * Finds <div data-gvv-type="signature" data-gvv-name="..." data-gvv-source="...">
+     * elements in raw page HTML, resolves the source to a file path, reads the file
+     * from disk, and returns array(field_name => base64_string).
+     */
+    private function _collect_gvv_sig_prefill($raw_html, $pilot_login, $instructor_login, $club_id) {
+        $sig_prefill = array();
+        if (strpos($raw_html, 'data-gvv-source') === false) {
+            return $sig_prefill;
+        }
+
+        $this->load->model('form_config_params_model');
+
+        preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $raw_html, $matches);
+        foreach ($matches[1] as $attrs) {
+            if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) continue;
+            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
+
+            $path = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $club_id);
+            if ($path === null || $path === '') continue;
+
+            $abs_path = FCPATH . ltrim((string) $path, '/');
+            if (!file_exists($abs_path)) continue;
+
+            $data = @file_get_contents($abs_path);
+            if ($data === false || $data === '') continue;
+
+            $sig_prefill[$nm[1]] = base64_encode($data);
+        }
+
+        return $sig_prefill;
     }
 
     /**
