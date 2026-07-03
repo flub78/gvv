@@ -85,6 +85,17 @@ $lang['gvv_vols_avion_label_payer'] = "Payeur";
 $lang['gvv_vols_avion_label_whincher_towing_hours'] = "Heures remorquage";
 $lang['gvv_vols_avion_label_whincher_towing_flights'] = "Nombre de remorqués";
 $lang['gvv_vols_avion_label_whincher_dual_flights'] = "Vols DC";
+$lang['gvv_vols_avion_totaux_by_type'] = "Par type de vol";
+$lang['gvv_vols_avion_totaux_dc']      = "Double commande";
+$lang['gvv_vols_avion_totaux_age']     = "Âge pilote (PG)";
+$lang['gvv_vols_avion_col_type']       = "Type";
+$lang['gvv_vols_avion_col_flights']    = "Vols";
+$lang['gvv_vols_avion_col_hours']      = "Heures";
+$lang['gvv_vols_avion_row_dc']         = "DC";
+$lang['gvv_vols_avion_row_non_dc']     = "Non DC";
+$lang['gvv_vols_avion_row_m25']        = "&minus;25 ans";
+$lang['gvv_vols_avion_row_p25']        = "+25 ans";
+$lang['gvv_vols_avion_row_total']      = "Total";
 
 # $this->lang->line("")
 $lang['gvv_volsa_field_vadate'] = "Date";

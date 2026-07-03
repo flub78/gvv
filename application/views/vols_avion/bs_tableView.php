@@ -134,25 +134,165 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
         </h2>
         <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
             <div class="accordion-body">
-                <div class="d-md-flex flex-row">
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flight_number") . " = " . (int)$count ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_hours") . " = "   . centieme_to_hhmm($total) ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_junior") . " = "  . centieme_to_hhmm($m25ans) ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_flights_junior") . " = "  . (int)$count_m25ans ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_hours") . " = "  . centieme_to_hhmm($remorquage) ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_towing_flights") . " = "  . (int)$count_remorquage ?></div>
-                </div>
+<style>
+.gvv-totaux-table thead th { font-size: .8rem; }
+.gvv-totaux-table td, .gvv-totaux-table th { padding: .3rem .5rem; white-space: nowrap; }
+.gvv-totaux-table tfoot td { border-top: 2px solid #dee2e6; }
+.gvv-totaux-title { font-size: .85rem; font-weight: 600; color: #495057; margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+<?php
+$vol_categories = $this->config->item('categories_vol_avion');
+$_total   = floatval($total);
+$_count   = intval($count);
+$_dc      = floatval($dc);
+$_count_dc = intval($count_dc);
+$_m25     = floatval($m25ans);
+$_cnt_m25 = intval($count_m25ans);
+$_pct = function($part, $total) { return ($total > 0) ? round(100 * $part / $total, 1) : 0; };
+?>
+<div class="row g-3">
 
-                <div class="d-md-flex flex-row">
-                    <?php if ($by_pilote) : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . centieme_to_hhmm($dc) ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_captain") . " = " . centieme_to_hhmm($cdb) ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_instruction") . " = " . centieme_to_hhmm($inst) ?></div>
-                    <?php else : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_total_dual") . " = " . centieme_to_hhmm($dc) ?></div>
-                    <?php endif; ?>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_avion_label_whincher_dual_flights") . " = " . (int)$count_dc ?></div>
-                </div>
+    <!-- Tableau 1 : Par type de vol -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_avion_totaux_by_type') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th><?= $this->lang->line('gvv_vols_avion_col_type') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($vol_categories as $cat_id => $cat_name): ?>
+                    <?php if (!isset($by_category[$cat_id])) continue; ?>
+                    <?php $c = $by_category[$cat_id]; ?>
+                    <tr>
+                        <td><?= htmlspecialchars($cat_name) ?></td>
+                        <td class="text-end"><?= $c['flights'] ?></td>
+                        <td class="text-end"><?= centieme_to_hhmm($c['hours']) ?></td>
+                        <td class="text-end"><?= $_pct($c['hours'], $_total) ?>%</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr class="table-secondary fw-semibold">
+                    <td><?= $this->lang->line('gvv_vols_avion_row_total') ?></td>
+                    <td class="text-end"><?= $_count ?></td>
+                    <td class="text-end"><?= centieme_to_hhmm($_total) ?></td>
+                    <td class="text-end">100%</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Tableau 2 : Double commande -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_avion_totaux_dc') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $non_dc_flights = max(0, $_count - $_count_dc);
+                $non_dc_hours   = max(0.0, $_total - $_dc);
+                ?>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_avion_row_dc') ?></td>
+                    <td class="text-end"><?= $_count_dc ?></td>
+                    <td class="text-end"><?= centieme_to_hhmm($_dc) ?></td>
+                    <td class="text-end"><?= $_pct($_dc, $_total) ?>%</td>
+                </tr>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_avion_row_non_dc') ?></td>
+                    <td class="text-end"><?= $non_dc_flights ?></td>
+                    <td class="text-end"><?= centieme_to_hhmm($non_dc_hours) ?></td>
+                    <td class="text-end"><?= $_pct($non_dc_hours, $_total) ?>%</td>
+                </tr>
+                <?php if ($by_pilote): ?>
+                <tr class="table-light">
+                    <td><?= $this->lang->line('gvv_vols_avion_label_total_captain') ?></td>
+                    <td class="text-end">—</td>
+                    <td class="text-end"><?= centieme_to_hhmm($cdb) ?></td>
+                    <td class="text-end"><?= $_pct($cdb, $_total) ?>%</td>
+                </tr>
+                <tr class="table-light">
+                    <td><?= $this->lang->line('gvv_vols_avion_label_total_instruction') ?></td>
+                    <td class="text-end">—</td>
+                    <td class="text-end"><?= centieme_to_hhmm($inst) ?></td>
+                    <td class="text-end"><?= $_pct($inst, $_total) ?>%</td>
+                </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tableau 3 : Âge pilote (PG) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_avion_totaux_age') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_avion_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $p25_flights = max(0, $_count - $_cnt_m25);
+                $p25_hours   = max(0.0, $_total - $_m25);
+                ?>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_avion_row_m25') ?></td>
+                    <td class="text-end"><?= $_cnt_m25 ?></td>
+                    <td class="text-end"><?= centieme_to_hhmm($_m25) ?></td>
+                    <td class="text-end"><?= $_pct($_m25, $_total) ?>%</td>
+                </tr>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_avion_row_p25') ?></td>
+                    <td class="text-end"><?= $p25_flights ?></td>
+                    <td class="text-end"><?= centieme_to_hhmm($p25_hours) ?></td>
+                    <td class="text-end"><?= $_pct($p25_hours, $_total) ?>%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tableau 4 : Consommations -->
+    <?php if (count($conso) > 1 && (!$by_pilote)): ?>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_avion_fieldset_conso') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <?php foreach ($conso[0] as $cell): ?>
+                    <th><?= htmlspecialchars($cell) ?></th>
+                    <?php endforeach; ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php for ($i = 1; $i < count($conso); $i++): ?>
+                <tr>
+                    <?php foreach ($conso[$i] as $cell): ?>
+                    <td><?= htmlspecialchars($cell) ?></td>
+                    <?php endforeach; ?>
+                </tr>
+                <?php endfor; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+
+</div>
             </div>
         </div>
     </div>
@@ -160,19 +300,6 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
 </div>
 
 <?php
-
-// -----------------------------------------------------------------------------------------
-// Consomations
-if (count($conso) > 1 && (!$by_pilote)) {
-    echo form_fieldset($this->lang->line("gvv_vols_avion_fieldset_conso"), array(
-        'class' => 'coolfieldset filtre',
-        'title' => $this->lang->line("gvv_vols_avion_tooltip_conso")
-    ));
-    echo "<div>";
-    display_form_table($conso);
-    echo "<div>";
-    echo form_fieldset_close();
-}
 
 // -----------------------------------------------------------------------------------------
 // Liste des vols

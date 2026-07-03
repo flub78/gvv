@@ -352,6 +352,63 @@ if ($where) {
     }
 
     /**
+     * Retourne vols, heures et km par catégorie de vol (vpcategorie)
+     *
+     * @param mixed $selection  Condition WHERE string ou array (filtre année/user)
+     * @return array [cat_id => ['flights'=>int, 'hours'=>int, 'kms'=>int]]
+     */
+    public function stats_by_category($selection = array()) {
+        $where = "volsp.vppilid = membres.mlogin and volsp.vpmacid = machinesp.mpimmat";
+
+        $this->db->select('vpcategorie, count(*) as total_flights, SUM(vpduree) as total_hours, SUM(vpnbkm) as total_kms', false)
+            ->from('volsp, membres, machinesp')
+            ->where($where)
+            ->where($selection)
+            ->group_by('vpcategorie');
+
+        $result = $this->db->get()->result_array();
+        gvv_debug("sql: stats_by_category: " . $this->db->last_query());
+
+        $stats = array();
+        foreach ($result as $row) {
+            $stats[intval($row['vpcategorie'])] = array(
+                'flights' => intval($row['total_flights']),
+                'hours'   => intval($row['total_hours']),
+                'kms'     => intval($row['total_kms'])
+            );
+        }
+        return $stats;
+    }
+
+    /**
+     * Retourne vols et heures par mode de lancement (vpautonome)
+     *
+     * @param mixed $selection  Condition WHERE string ou array
+     * @return array [vpautonome => ['flights'=>int, 'hours'=>int]]
+     */
+    public function hours_by_launch($selection = array()) {
+        $where = "volsp.vppilid = membres.mlogin and volsp.vpmacid = machinesp.mpimmat";
+
+        $this->db->select('vpautonome, count(*) as total_flights, SUM(vpduree) as total_hours', false)
+            ->from('volsp, membres, machinesp')
+            ->where($where)
+            ->where($selection)
+            ->group_by('vpautonome');
+
+        $result = $this->db->get()->result_array();
+        gvv_debug("sql: hours_by_launch: " . $this->db->last_query());
+
+        $stats = array();
+        foreach ($result as $row) {
+            $stats[intval($row['vpautonome'])] = array(
+                'flights' => intval($row['total_flights']),
+                'hours'   => intval($row['total_hours'])
+            );
+        }
+        return $stats;
+    }
+
+    /**
      * select count(*) as count, sum(vpduree) as minutes, sum(vpnbkm) as kms, month(vpdate) as month
      * from volsp group by month;
      */

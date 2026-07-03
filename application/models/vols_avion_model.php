@@ -96,6 +96,40 @@ class Vols_avion_model extends Common_Model {
     }
 
     /**
+     * Retourne les vols et heures par catégorie de vol
+     *
+     * @param mixed $where   Condition WHERE (string ou array)
+     * @param array $extra   Conditions supplémentaires
+     * @return array [cat_id => ['flights' => int, 'hours' => float]]
+     */
+    public function stats_by_category($where = array(), $extra = array()) {
+        $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
+
+        $this->db->select('vacategorie, SUM(vaatt) as total_flights, SUM(vaduree) as total_hours', false)
+            ->from('volsa, membres, machinesa')
+            ->where($where2)
+            ->where($where)
+            ->where($extra)
+            ->group_by('vacategorie');
+
+        if ($this->section) {
+            $this->db->where('volsa.club', $this->section_id);
+        }
+
+        $result = $this->db->get()->result_array();
+        gvv_debug("sql: stats_by_category: " . $this->db->last_query());
+
+        $stats = array();
+        foreach ($result as $row) {
+            $stats[intval($row['vacategorie'])] = array(
+                'flights' => intval($row['total_flights']),
+                'hours'   => floatval($row['total_hours'])
+            );
+        }
+        return $stats;
+    }
+
+    /**
      * return the latest value for the horameter
      */
     public function latest_horametre($where = array()) {

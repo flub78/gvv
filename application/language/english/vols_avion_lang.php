@@ -85,6 +85,17 @@ $lang['gvv_vols_avion_label_payer'] = "Payer";
 $lang['gvv_vols_avion_label_whincher_towing_hours'] = "Towing hours";
 $lang['gvv_vols_avion_label_whincher_towing_flights'] = "Number of tow flights";
 $lang['gvv_vols_avion_label_whincher_dual_flights'] = "Instruction flights";
+$lang['gvv_vols_avion_totaux_by_type'] = "By flight type";
+$lang['gvv_vols_avion_totaux_dc']      = "Dual control";
+$lang['gvv_vols_avion_totaux_age']     = "Pilot age (left seat)";
+$lang['gvv_vols_avion_col_type']       = "Type";
+$lang['gvv_vols_avion_col_flights']    = "Flights";
+$lang['gvv_vols_avion_col_hours']      = "Hours";
+$lang['gvv_vols_avion_row_dc']         = "Dual";
+$lang['gvv_vols_avion_row_non_dc']     = "Solo";
+$lang['gvv_vols_avion_row_m25']        = "Under 25";
+$lang['gvv_vols_avion_row_p25']        = "Over 25";
+$lang['gvv_vols_avion_row_total']      = "Total";
 
 # $this->lang->line("")
 $lang['gvv_volsa_field_vadate'] = "Date of flight";

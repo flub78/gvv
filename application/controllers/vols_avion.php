@@ -919,6 +919,7 @@ class Vols_avion extends Gvv_Controller {
         // calcul des consommations
         // Doit être appelé avant le select_page
         $this->data['conso'] = $this->gvv_model->conso($year, $selection);
+        $this->data['by_category'] = $this->gvv_model->stats_by_category($selection);
 
         $this->data['select_result'] = $this->gvv_model->select_page($year, $per_page, $premier, $selection, $order);
         $this->data['kid'] = $this->kid;

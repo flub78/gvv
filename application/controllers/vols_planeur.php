@@ -622,6 +622,9 @@ class Vols_planeur extends Gvv_Controller {
         $this->data ['m25ans'] = $this->gvv_model->sum('vpduree', $selection, array (
                 'mdaten >' => $date25
         ));
+        $this->data ['count_m25ans'] = $this->gvv_model->count($selection, array ('mdaten >' => $date25));
+        $this->data ['by_category']  = $this->gvv_model->stats_by_category($selection);
+        $this->data ['hours_by_launch'] = $this->gvv_model->hours_by_launch($selection);
         $this->data ['premier'] = $premier;
         $this->data ['message'] = $message;
 
@@ -629,6 +632,10 @@ class Vols_planeur extends Gvv_Controller {
             // Calcul aussi les heures CDB, et instructeurs
             $this->data ['by_pilote'] = 1;
             $this->data ['dc'] = $this->gvv_model->sum('vpduree', $selection, array (
+                    'vpdc' => 1,
+                    'vppilid' => $filter_pilote
+            ));
+            $this->data ['count_dc'] = $this->gvv_model->count($selection, array (
                     'vpdc' => 1,
                     'vppilid' => $filter_pilote
             ));
@@ -641,12 +648,13 @@ class Vols_planeur extends Gvv_Controller {
                     'vppilid' => $filter_pilote
             ));
             $this->data ['filter_aero'] = "all";
-    
+
         } else {
             $this->data ['by_pilote'] = 0;
             $this->data ['dc'] = $this->gvv_model->sum('vpduree', $selection, array (
                     'vpdc' => 1
             ));
+            $this->data ['count_dc'] = $this->gvv_model->count($selection, array ('vpdc' => 1));
             $this->data ['inst'] = 0;
             $this->data ['cdb'] = 0;
         }

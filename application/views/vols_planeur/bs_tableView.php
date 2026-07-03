@@ -136,23 +136,179 @@ $ext = $launch[4];
         </h2>
         <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
             <div class="accordion-body">
-                <div class="d-md-flex flex-row">
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_flight_number") . " = " . $count ?></div>
-                    <div class="me-3 mb-3"><?= "$towing=$rems, $winch=$treuils, $auto=$autonomes, $ext=$exts" ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_hours") . " = "   . minute_to_time($total) ?></div>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_junior") . " = "  . minute_to_time($m25ans) ?></div>
-                </div>
+<style>
+.gvv-totaux-table thead th { font-size: .8rem; }
+.gvv-totaux-table td, .gvv-totaux-table th { padding: .3rem .5rem; white-space: nowrap; }
+.gvv-totaux-table tfoot td { border-top: 2px solid #dee2e6; }
+.gvv-totaux-title { font-size: .85rem; font-weight: 600; color: #495057; margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+<?php
+$vol_categories = $this->config->item('categories_vol_planeur');
+$launch_types   = $this->lang->line('gvv_launch_type');  // [1=>'Treuil', 2=>'Autonome', 3=>'Remorqué', 4=>'Extérieur']
+$_total    = intval($total);
+$_count    = intval($count);
+$_dc       = intval($dc);
+$_count_dc = intval($count_dc);
+$_m25      = intval($m25ans);
+$_cnt_m25  = intval($count_m25ans);
+$_pct = function($part, $total) { return ($total > 0) ? round(100 * $part / $total, 1) : 0; };
+?>
+<div class="row g-3">
 
-                <div class="d-md-flex flex-row">
-                    <?php if ($by_pilote) : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_dual") . " = " . minute_to_time($dc) ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_captain") . " = " . minute_to_time($cdb) ?></div>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_instruction") . " = " . minute_to_time($inst) ?></div>
-                    <?php else : ?>
-                        <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_dual") . " = " . minute_to_time($dc) ?></div>
-                    <?php endif; ?>
-                    <div class="me-3 mb-3"><?= $this->lang->line("gvv_vols_planeur_label_total_distance") . " = " . $kms  ?></div>
-                </div>
+    <!-- Tableau 1 : Par type de vol -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_planeur_totaux_by_type') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th><?= $this->lang->line('gvv_vols_planeur_col_type') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_hours') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_km') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($vol_categories as $cat_id => $cat_name): ?>
+                    <?php if (!isset($by_category[$cat_id])) continue; ?>
+                    <?php $c = $by_category[$cat_id]; ?>
+                    <tr>
+                        <td><?= htmlspecialchars($cat_name) ?></td>
+                        <td class="text-end"><?= $c['flights'] ?></td>
+                        <td class="text-end"><?= minute_to_time($c['hours']) ?></td>
+                        <td class="text-end"><?= $c['kms'] ?></td>
+                        <td class="text-end"><?= $_pct($c['hours'], $_total) ?>%</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr class="table-secondary fw-semibold">
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_total') ?></td>
+                    <td class="text-end"><?= $_count ?></td>
+                    <td class="text-end"><?= minute_to_time($_total) ?></td>
+                    <td class="text-end"><?= $kms ?></td>
+                    <td class="text-end">100%</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Tableau 2 : Double commande -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_planeur_totaux_dc') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $non_dc_flights = max(0, $_count - $_count_dc);
+                $non_dc_hours   = max(0, $_total - $_dc);
+                ?>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_dc') ?></td>
+                    <td class="text-end"><?= $_count_dc ?></td>
+                    <td class="text-end"><?= minute_to_time($_dc) ?></td>
+                    <td class="text-end"><?= $_pct($_dc, $_total) ?>%</td>
+                </tr>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_non_dc') ?></td>
+                    <td class="text-end"><?= $non_dc_flights ?></td>
+                    <td class="text-end"><?= minute_to_time($non_dc_hours) ?></td>
+                    <td class="text-end"><?= $_pct($non_dc_hours, $_total) ?>%</td>
+                </tr>
+                <?php if ($by_pilote): ?>
+                <tr class="table-light">
+                    <td><?= $this->lang->line('gvv_vols_planeur_label_total_captain') ?></td>
+                    <td class="text-end">—</td>
+                    <td class="text-end"><?= minute_to_time($cdb) ?></td>
+                    <td class="text-end"><?= $_pct($cdb, $_total) ?>%</td>
+                </tr>
+                <tr class="table-light">
+                    <td><?= $this->lang->line('gvv_vols_planeur_label_total_instruction') ?></td>
+                    <td class="text-end">—</td>
+                    <td class="text-end"><?= minute_to_time($inst) ?></td>
+                    <td class="text-end"><?= $_pct($inst, $_total) ?>%</td>
+                </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tableau 3 : Âge pilote (PG) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_planeur_totaux_age') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $p25_flights = max(0, $_count - $_cnt_m25);
+                $p25_hours   = max(0, $_total - $_m25);
+                ?>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_m25') ?></td>
+                    <td class="text-end"><?= $_cnt_m25 ?></td>
+                    <td class="text-end"><?= minute_to_time($_m25) ?></td>
+                    <td class="text-end"><?= $_pct($_m25, $_total) ?>%</td>
+                </tr>
+                <tr>
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_p25') ?></td>
+                    <td class="text-end"><?= $p25_flights ?></td>
+                    <td class="text-end"><?= minute_to_time($p25_hours) ?></td>
+                    <td class="text-end"><?= $_pct($p25_hours, $_total) ?>%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tableau 4 : Mode de lancement -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <p class="gvv-totaux-title"><?= $this->lang->line('gvv_vols_planeur_totaux_launch') ?></p>
+        <table class="table table-sm table-bordered table-hover gvv-totaux-table mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_flights') ?></th>
+                    <th class="text-end"><?= $this->lang->line('gvv_vols_planeur_col_hours') ?></th>
+                    <th class="text-end">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($launch_types as $lid => $lname): ?>
+                    <?php if (!isset($hours_by_launch[$lid])) continue; ?>
+                    <?php $l = $hours_by_launch[$lid]; ?>
+                    <tr>
+                        <td><?= htmlspecialchars($lname) ?></td>
+                        <td class="text-end"><?= $l['flights'] ?></td>
+                        <td class="text-end"><?= minute_to_time($l['hours']) ?></td>
+                        <td class="text-end"><?= $_pct($l['hours'], $_total) ?>%</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr class="table-secondary fw-semibold">
+                    <td><?= $this->lang->line('gvv_vols_planeur_row_total') ?></td>
+                    <td class="text-end"><?= $_count ?></td>
+                    <td class="text-end"><?= minute_to_time($_total) ?></td>
+                    <td class="text-end">100%</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+</div>
             </div>
         </div>
     </div>

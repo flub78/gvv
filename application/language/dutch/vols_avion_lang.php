@@ -85,6 +85,17 @@ $lang['gvv_vols_avion_label_payer'] = "Op rekening van";
 $lang['gvv_vols_avion_label_whincher_towing_hours'] = "Uren sleep";
 $lang['gvv_vols_avion_label_whincher_towing_flights'] = "Aantal sleeps";
 $lang['gvv_vols_avion_label_whincher_dual_flights'] = "Vluchten dubbelstuur";
+$lang['gvv_vols_avion_totaux_by_type'] = "Per vluchttype";
+$lang['gvv_vols_avion_totaux_dc']      = "Dubbelstuur";
+$lang['gvv_vols_avion_totaux_age']     = "Leeftijd piloot (links)";
+$lang['gvv_vols_avion_col_type']       = "Type";
+$lang['gvv_vols_avion_col_flights']    = "Vluchten";
+$lang['gvv_vols_avion_col_hours']      = "Uren";
+$lang['gvv_vols_avion_row_dc']         = "Dubbel";
+$lang['gvv_vols_avion_row_non_dc']     = "Solo";
+$lang['gvv_vols_avion_row_m25']        = "&minus;25 jaar";
+$lang['gvv_vols_avion_row_p25']        = "+25 jaar";
+$lang['gvv_vols_avion_row_total']      = "Totaal";
 
 # $this->lang->line("")
 $lang['gvv_volsa_field_vadate'] = "Datum vlucht";
