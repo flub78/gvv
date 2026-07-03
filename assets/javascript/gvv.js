@@ -318,16 +318,30 @@ function per_page() {
  * Selection d'un nouveau compte sur la page journal
  */
 function compte_selection() {
+	var selected;
 
-	var selector = document.getElementById('selector');
-	var selected = selector.options[selector.selectedIndex].value;
+	if (window._s2_compte_clearing) {
+		// User clicked × to clear the compte selector.
+		// Select2 fires select2:clearing (caught in bs_footer.php) before firing change,
+		// but the native selectedIndex still holds the old value at change time.
+		// The flag tells us to treat this as "no account selected".
+		window._s2_compte_clearing = false;
+		selected = null;
+	} else {
+		var sel = document.getElementById('selector');
+		selected = (sel && sel.selectedIndex >= 0)
+			? sel.options[sel.selectedIndex].value
+			: null;
+	}
 
 	var controllers = document.getElementsByName('controller_url');
 	if (controllers.length < 1) {
 		alert('controller_url not found');
 	} else {
-		var url = controllers[0].value + "/journal_compte/" + selected;
-		// alert('controller_url found: ' + url);
+		var base = controllers[0].value;
+		var url = (!selected || selected === 'all')
+			? base + "/page"
+			: base + "/journal_compte/" + selected;
 		window.location.href = url;
 	}
 }

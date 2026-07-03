@@ -211,6 +211,14 @@ $('.datatable').dataTable({
             allowClear: true
         });
 
+        // When the user clicks × on the compte selector, Select2 fires `select2:clearing`
+        // BEFORE firing `change` (with the stale old value). We set a flag here so that
+        // compte_selection() can detect the clear and navigate to the grand journal page
+        // instead of reading the outdated native selectedIndex value.
+        $(document).on('select2:clearing', '#selector', function () {
+            window._s2_compte_clearing = true;
+        });
+
         // to replace the select by an input that select values in the dropdown
         $('.big_select_large').select2({
             placeholder: 'Filtre...',

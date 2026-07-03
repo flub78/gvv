@@ -1516,7 +1516,9 @@ class Compta extends Gvv_Controller {
         $this->data['year_selector'] = $this->gvv_model->getYearSelector("date_op");
         $this->data['year'] = $year;
 
-        $this->data['compte_selector'] = $this->comptes_model->selector_with_all([], "asc", true);
+        // Prepend an empty option so Select2 shows its placeholder ("Filtre...") when
+        // no account is selected, instead of auto-selecting the first account in the list.
+        $this->data['compte_selector'] = array('' => '') + $this->comptes_model->selector_with_all([], "asc", true);
 
         $this->selection_filter();
         $this->data['select_result'] = $this->gvv_model->select_journal('', $this->session->userdata('per_page'), $premier);
