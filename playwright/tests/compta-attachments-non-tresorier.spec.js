@@ -11,9 +11,9 @@
  *  - panoramix: club-admin (trésorier de fait) dans toutes les sections
  *
  * Données de test :
- *  - beforeAll crée une écriture pour le compte asterix (ID 1532, section Planeur=1)
+ *  - beforeAll crée une écriture pour le compte asterix (ID 1512, section Planeur=1)
  *    via l'interface panoramix, et supprime l'écriture en afterAll.
- *  - SFRISON_ECRITURE_ID (40677) : écriture appartenant à sfrison — pas à asterix.
+ *  - SFRISON_ECRITURE_ID (25035) : écriture appartenant à sfrison — pas à asterix.
  *
  * Usage :
  *   cd playwright && npx playwright test tests/compta-attachments-non-tresorier.spec.js --reporter=line
@@ -23,8 +23,8 @@ const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
 
 const PLANEUR_SECTION     = '1';
-const SFRISON_ECRITURE_ID = 40677; // écriture sfrison (compte 323) — PAS asterix
-const ASTERIX_COMPTE_ID   = 1532;  // compte 411 d'asterix en section Planeur
+const SFRISON_ECRITURE_ID = 25035; // écriture sfrison (compte 323) — PAS asterix
+const ASTERIX_COMPTE_ID   = 1512;  // compte 411 d'asterix en section Planeur
 const TEST_DESCRIPTION    = 'TEST-non-tresorier-justificatifs';
 
 let asterixEcritureId = null;
@@ -54,8 +54,8 @@ test.describe('Justificatifs — accès non trésorier', () => {
 
             // Remplir le formulaire
             // compte1 = asterix (411), compte2 = "Remorqués" (706, ID 168)
-            await page.selectOption('select[name="compte1"]', String(ASTERIX_COMPTE_ID));
-            await page.selectOption('select[name="compte2"]', '168');
+            await page.selectOption('select[name="compte1"]', String(ASTERIX_COMPTE_ID), { force: true });
+            await page.selectOption('select[name="compte2"]', '168', { force: true });
             await page.fill('input[name="montant"]', '1.00');
             await page.fill('input[name="date_op"]', '01/07/2026');
             const descInput = page.locator('input[name="description"], textarea[name="description"]');

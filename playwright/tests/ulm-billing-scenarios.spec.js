@@ -268,8 +268,8 @@ async function createUlmFlight(page, machine, scenario, flightDate, uniqueTag) {
   await page.selectOption('select[name="vacategorie"]', String(scenario.category));
 
   // Keep explicit wall-clock values for UI readability.
-  await page.fill('input[name="vahdeb"]', '10:00');
-  await page.fill('input[name="vahfin"]', '11:00');
+  await page.fill('input[name="vahdeb"]', '22:00');
+  await page.fill('input[name="vahfin"]', '23:00');
   await page.fill('input[name="vaatt"]', '1');
 
   // Read the starting horametre from the DB rather than from the hidden input.
