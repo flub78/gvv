@@ -583,26 +583,32 @@ class Gvv_Authorization
      */
     private function _role_has_permission($types_roles_id, $controller, $action, $section_id)
     {
+        // Build section condition: match the given section OR global permissions (section_id IS NULL)
+        $section_cond = ($section_id !== NULL)
+            ? '(section_id = ' . (int) $section_id . ' OR section_id IS NULL)'
+            : 'section_id IS NULL';
+
         // Check exact match (controller + action)
         if ($action !== NULL) {
-            $exact = $this->CI->db->get_where('role_permissions', [
-                'types_roles_id' => $types_roles_id,
-                'controller' => $controller,
-                'action' => $action,
-                'section_id' => $section_id
-            ])->row_array();
+            $exact = $this->CI->db
+                ->where('types_roles_id', $types_roles_id)
+                ->where('controller', $controller)
+                ->where('action', $action)
+                ->where($section_cond)
+                ->get('role_permissions')
+                ->row_array();
 
             if ($exact) {
                 return TRUE;
             }
         }
 
-        // Check wildcard (controller + NULL action means all actions)
+        // Check wildcard: controller + NULL action means all actions
         $wildcard = $this->CI->db
             ->where('types_roles_id', $types_roles_id)
             ->where('controller', $controller)
             ->where('action IS NULL')
-            ->where('section_id', $section_id)
+            ->where($section_cond)
             ->get('role_permissions')
             ->row_array();
 

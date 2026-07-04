@@ -11,6 +11,26 @@
 
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
+* [] Rappels de réservation, cumuler les rappels de réservation dans un seul message.
+  Pour l'instant, lorsqu'une réservation est établie par un élève, l'instructeur reçoit une notification de nouvelle réservation et un rappel, les deux établis au même moment.
+
+  Il faudrait que les messages soit groupés.
+
+  De plus, si le scheduleur envoie les messages 24 heures avant le vol et qu'il y a a plusieurs vols dans la journée, il faudrait que le message de rappel contienne tous les vols de la journée. 
+
+  Le message devrait devenir: Rappels de réservation pour la journée du jj/mm/26.
+  10:00 F-JHRV Vol de découverte, pilote: X.
+  11:00 F-JHRV DC avec Alandre Zorglub.
+  15:30 F-JHRV Vol de découverte, pilote: Y.
+
+  Et le notifications des vols associés sont inutiles.
+
+  Même chose pour les SMS.
+
+  Un seul message, détail du message dans le SMS.
+
+  Plusieurs messages: Vous avez des réservations pour la journée du jj/mm/26. Détails sur https://{domain}/mes_reservations.
+
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
 

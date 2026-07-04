@@ -103,8 +103,8 @@ class ReservationsConflictTest extends TestCase
      */
     public function testCreateReservationWithoutConflict()
     {
-        $start = date('Y-m-d 10:00:00', strtotime('+7 days'));
-        $end = date('Y-m-d 11:00:00', strtotime('+7 days'));
+        $start = date('Y-m-d 10:00:00', strtotime('+2 years'));
+        $end = date('Y-m-d 11:00:00', strtotime('+2 years'));
 
         $result = $this->model->check_reservation_conflicts(
             $this->test_aircraft_id,

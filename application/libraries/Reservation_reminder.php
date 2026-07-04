@@ -97,34 +97,70 @@ class Reservation_reminder
     }
 
     /**
-     * Evaluate all active reservations in the next 48 hours and send temporal
-     * reminders according to each user's reminder_period_hours preference.
+     * Evaluate all active reservations in the next 48 hours and send a single
+     * daily summary per recipient per flight day, grouping all flights of the
+     * day into one message.
      *
      * Called either by the cron entry-point or the public URL trigger.
      *
      * @param string $source 'cron' | 'public_url'
-     * @return int   Number of messages dispatched
+     * @return int   Number of daily summaries dispatched
      */
     public function run_scheduler($source = 'cron')
     {
-        $pending   = $this->model->get_pending_reservations(48);
-        // Filter to sections where reminders are enabled
+        $pending = $this->model->get_pending_reservations(48);
         $pending = array_filter($pending, function($r) {
             return $this->_reminders_enabled((int) $r['section_id']);
         });
-        $sent      = 0;
-        $evaluated = 0;
+
+        // Group reservations by (member_login, flight_date)
+        // groups[login][date] = array('recipient' => ..., 'reservations' => [...])
+        $groups = array();
 
         foreach ($pending as $reservation) {
-            if (!empty($reservation['pilot_member_id'])) {
-                $evaluated++;
-                if ($this->_check_and_dispatch_scheduled($reservation, 'pilot', $source)) {
-                    $sent++;
+            $start_ts = strtotime($reservation['start_datetime']);
+            $date     = date('Y-m-d', $start_ts);
+
+            foreach (array('pilot', 'instructor') as $role) {
+                $id_field = $role . '_member_id';
+                if (empty($reservation[$id_field])) {
+                    continue;
+                }
+
+                $recipient = $this->_build_recipient($reservation, $role);
+                if (!$recipient) {
+                    continue;
+                }
+
+                $period_hours = ($role === 'pilot')
+                    ? (int) ($reservation['pilot_reminder_period_hours'] ?: 24)
+                    : (int) ($reservation['instructor_reminder_period_hours'] ?: 24);
+
+                if (time() < $start_ts - ($period_hours * 3600)) {
+                    gvv_debug("REMINDER not in window yet for {$recipient['login']} reservation {$reservation['id']}");
+                    continue;
+                }
+
+                $login = $recipient['login'];
+                if (!isset($groups[$login][$date])) {
+                    $groups[$login][$date] = array(
+                        'recipient'    => $recipient,
+                        'reservations' => array(),
+                    );
+                }
+                $already = array_column($groups[$login][$date]['reservations'], 'id');
+                if (!in_array($reservation['id'], $already)) {
+                    $groups[$login][$date]['reservations'][] = $reservation;
                 }
             }
-            if (!empty($reservation['instructor_member_id'])) {
+        }
+
+        $sent      = 0;
+        $evaluated = 0;
+        foreach ($groups as $login => $dates) {
+            foreach ($dates as $date => $group) {
                 $evaluated++;
-                if ($this->_check_and_dispatch_scheduled($reservation, 'instructor', $source)) {
+                if ($this->_dispatch_daily_summary($group['recipient'], $date, $group['reservations'], $source)) {
                     $sent++;
                 }
             }
@@ -309,6 +345,100 @@ class Reservation_reminder
         return "$label réservation $immat le $date – rôle: $role – GVV";
     }
 
+    /**
+     * Compose an HTML email body for a daily summary grouping all reservations
+     * of a given day for one recipient.
+     *
+     * @param array  $recipient
+     * @param string $date         'Y-m-d'
+     * @param array  $reservations Sorted by start_datetime ASC
+     * @param string $source
+     * @return string HTML body
+     */
+    public function _compose_daily_email_body($recipient, $date, $reservations, $source = '')
+    {
+        $date_label = date('d/m/Y', strtotime($date));
+        $nom_club   = ($this->CI) ? ($this->CI->config->item('nom_club') ?: 'GVV') : 'GVV';
+
+        $body  = '<html><head><meta charset="UTF-8"></head><body>';
+        $body .= '<h2 style="color:#0d6efd;">Rappels de réservation pour la journée du '
+               . htmlspecialchars($date_label, ENT_QUOTES, 'UTF-8') . '</h2>';
+        $body .= '<table style="border-collapse:collapse;width:100%;max-width:640px;">';
+        $body .= '<tr style="background:#0d6efd;color:white;">'
+               . '<th style="padding:8px 12px;text-align:left;">Heure</th>'
+               . '<th style="padding:8px 12px;text-align:left;">Aéronef</th>'
+               . '<th style="padding:8px 12px;text-align:left;">Pilote</th>'
+               . '<th style="padding:8px 12px;text-align:left;">Instructeur</th>'
+               . '<th style="padding:8px 12px;text-align:left;">Statut</th>'
+               . '</tr>';
+
+        foreach ($reservations as $i => $r) {
+            $heure     = date('H:i', strtotime($r['start_datetime']));
+            $heure_fin = date('H:i', strtotime($r['end_datetime']));
+            $aeronef   = $r['macimmat'];
+            $pilote    = trim($r['pilot_prenom'] . ' ' . $r['pilot_nom']);
+            $instr     = (!empty($r['instructor_member_id']))
+                       ? trim($r['instructor_prenom'] . ' ' . $r['instructor_nom'])
+                       : '–';
+            $status    = $r['status'] ?: '–';
+            $bg        = ($i % 2 === 0) ? '#f8f9fa' : '#ffffff';
+
+            $body .= '<tr style="background:' . $bg . ';">';
+            $body .= '<td style="padding:6px 12px;border:1px solid #dee2e6;">'
+                   . htmlspecialchars("$heure – $heure_fin", ENT_QUOTES, 'UTF-8') . '</td>';
+            $body .= '<td style="padding:6px 12px;border:1px solid #dee2e6;">'
+                   . htmlspecialchars($aeronef, ENT_QUOTES, 'UTF-8') . '</td>';
+            $body .= '<td style="padding:6px 12px;border:1px solid #dee2e6;">'
+                   . htmlspecialchars($pilote, ENT_QUOTES, 'UTF-8') . '</td>';
+            $body .= '<td style="padding:6px 12px;border:1px solid #dee2e6;">'
+                   . htmlspecialchars($instr, ENT_QUOTES, 'UTF-8') . '</td>';
+            $body .= '<td style="padding:6px 12px;border:1px solid #dee2e6;">'
+                   . htmlspecialchars($status, ENT_QUOTES, 'UTF-8') . '</td>';
+            $body .= '</tr>';
+        }
+
+        $body .= '</table>';
+        $body .= '<p style="color:#6c757d;font-size:0.85em;margin-top:24px;">'
+               . 'Message automatique envoyé par ' . htmlspecialchars($nom_club, ENT_QUOTES, 'UTF-8')
+               . ' – GVV. Ne pas répondre à cet email.</p>';
+        $body .= '</body></html>';
+
+        return $body;
+    }
+
+    /**
+     * Compose a SMS for a daily summary.
+     *
+     * One flight  → full detail in the SMS (≤160 chars).
+     * Several flights → short notice with link to mes_reservations.
+     *
+     * @param array  $recipient
+     * @param string $date         'Y-m-d'
+     * @param array  $reservations Sorted by start_datetime ASC
+     * @return string Plain text
+     */
+    public function _compose_daily_sms_body($recipient, $date, $reservations)
+    {
+        $date_label = date('d/m/y', strtotime($date));
+
+        if (count($reservations) === 1) {
+            $r      = $reservations[0];
+            $heure  = date('H:i', strtotime($r['start_datetime']));
+            $immat  = $r['macimmat'];
+            $pilote = trim($r['pilot_prenom'] . ' ' . $r['pilot_nom']);
+            $extra  = '';
+            if (!empty($r['instructor_member_id'])) {
+                $instr = trim($r['instructor_prenom'] . ' ' . $r['instructor_nom']);
+                $extra = ', instr: ' . $instr;
+            }
+            return "Rappel vol $date_label $heure $immat – $pilote$extra – GVV";
+        }
+
+        $base_url = ($this->CI) ? rtrim($this->CI->config->item('base_url'), '/') : '';
+        $count    = count($reservations);
+        return "Vous avez $count réservations pour la journée du $date_label. Détails sur $base_url/mes_reservations";
+    }
+
     // =========================================================================
     // Dispatch and delivery
     // =========================================================================
@@ -420,40 +550,101 @@ class Reservation_reminder
     // =========================================================================
 
     /**
-     * Check if a given crew member is in their reminder window and dispatch if so.
+     * Send a single daily summary grouping all reservations on a given date for
+     * one recipient.
      *
-     * @param array  $reservation
-     * @param string $role    'pilot' | 'instructor'
+     * @param array  $recipient   From _build_recipient()
+     * @param string $date        'Y-m-d'
+     * @param array  $reservations  Sorted list of reservations for that day
      * @param string $source
      * @return bool
      */
-    protected function _check_and_dispatch_scheduled($reservation, $role, $source)
+    protected function _dispatch_daily_summary($recipient, $date, $reservations, $source)
     {
-        $recipient = $this->_build_recipient($reservation, $role);
-        if (empty($recipient)) {
+        $key = $this->_build_idempotency_key('daily_summary', $recipient['login'], $date);
+
+        if ($this->model->already_sent($key)) {
+            gvv_debug("REMINDER daily_summary already sent key=$key");
             return false;
         }
 
-        $period_hours = ($role === 'pilot')
-            ? (int) ($reservation['pilot_reminder_period_hours'] ?: 24)
-            : (int) ($reservation['instructor_reminder_period_hours'] ?: 24);
+        $channel = $recipient['channel'] ?: 'email';
 
-        $start_ts      = strtotime($reservation['start_datetime']);
-        $send_after_ts = $start_ts - ($period_hours * 3600);
-
-        if (time() < $send_after_ts) {
-            gvv_debug("REMINDER not in window yet for {$recipient['login']} reservation {$reservation['id']}");
+        if ($channel === 'none') {
+            gvv_info("REMINDER daily_summary skipped (channel=none) for {$recipient['login']} date=$date");
             return false;
         }
 
-        $key = $this->_build_idempotency_key(
-            'scheduled',
-            $reservation['id'],
-            $recipient['login'],
-            date('Y-m-d', $start_ts)
-        );
+        usort($reservations, function($a, $b) {
+            return strcmp($a['start_datetime'], $b['start_datetime']);
+        });
 
-        return $this->_dispatch($reservation, $recipient, 'scheduled_reminder', $source, null, $key);
+        $date_label   = date('d/m/Y', strtotime($date));
+        $subject      = "[GVV] Rappels de réservation pour le $date_label";
+        $email_body   = $this->_compose_daily_email_body($recipient, $date, $reservations, $source);
+
+        $email_result = null;
+        $sms_result   = null;
+        $error_msg    = null;
+
+        if ($channel === 'email' || $channel === 'email+sms') {
+            if (!empty($recipient['email']) && validate_email($recipient['email'])) {
+                $email_result = $this->_send_email(
+                    $recipient['email'], $recipient['name'], $subject, $email_body
+                );
+                if (!$email_result) {
+                    $error_msg = 'SMTP send failed to ' . $recipient['email'];
+                    gvv_error("REMINDER daily email failed: $error_msg (date $date)");
+                } else {
+                    gvv_info("REMINDER daily email sent to {$recipient['email']} login={$recipient['login']} date=$date reservations=" . count($reservations));
+                }
+            } else {
+                gvv_info("REMINDER no valid email for {$recipient['login']} — email skipped");
+            }
+        }
+
+        if ($channel === 'sms' || $channel === 'email+sms') {
+            if (!empty($recipient['phone'])) {
+                $sms_body  = $this->_compose_daily_sms_body($recipient, $date, $reservations);
+                $this->CI->load->library('Brevo_sms_adapter');
+                $sms_phone = test_intercept_phone($recipient['phone']);
+                $sms_res   = $this->CI->brevo_sms_adapter->send($sms_phone, $sms_body);
+                $sms_result = $sms_res['ok'];
+                if (!$sms_result) {
+                    $sms_error = $sms_res['error'];
+                    $error_msg = $error_msg ? $error_msg . ' | ' . $sms_error : $sms_error;
+                    gvv_error("REMINDER daily SMS failed for {$recipient['login']}: $sms_error");
+                } else {
+                    gvv_info("REMINDER daily SMS sent to {$recipient['login']} phone={$sms_phone} date=$date");
+                }
+            } else {
+                gvv_info("REMINDER no phone for {$recipient['login']} — SMS skipped");
+            }
+        }
+
+        if ($email_result === false || $sms_result === false) {
+            $status = 'failure';
+        } elseif ($email_result === null && $sms_result === null) {
+            $status = 'skipped';
+        } else {
+            $status = 'success';
+        }
+
+        $this->model->log_attempt(array(
+            'idempotency_key'   => $key,
+            'reservation_id'    => $reservations[0]['id'],
+            'trigger_source'    => $source,
+            'action_type'       => 'scheduled_reminder',
+            'notification_type' => 'daily_summary',
+            'recipients'        => json_encode(array($recipient['login'])),
+            'channel'           => $channel,
+            'provider'          => (strpos($channel, 'email') !== false) ? 'smtp' : 'brevo',
+            'status'            => $status,
+            'message_body'      => $email_body,
+            'error_message'     => $error_msg,
+        ));
+
+        return ($status === 'success');
     }
 
     /**

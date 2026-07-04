@@ -277,6 +277,104 @@ class ReservationReminderTest extends TestCase
     }
 
     // =========================================================================
+    // _compose_daily_email_body — daily summary
+    // =========================================================================
+
+    public function testDailyEmailBodyContainsDateHeader()
+    {
+        $body = $this->lib->_compose_daily_email_body(
+            array('login' => 'pilote1', 'role' => 'pilot'),
+            '2026-07-04',
+            array($this->reservation_with_instructor)
+        );
+
+        $this->assertStringContainsString('04/07/2026', $body);
+        $this->assertStringContainsString('F-GSRP',     $body);
+        $this->assertStringContainsString('Jean',       $body);
+        $this->assertStringContainsString('Marie',      $body);
+    }
+
+    public function testDailyEmailBodyListsMultipleFlights()
+    {
+        $second = $this->reservation_with_instructor;
+        $second['id']             = 43;
+        $second['start_datetime'] = '2026-07-04 14:00:00';
+        $second['end_datetime']   = '2026-07-04 16:00:00';
+        $second['pilot_prenom']   = 'Pierre';
+        $second['pilot_nom']      = 'Leclerc';
+
+        $body = $this->lib->_compose_daily_email_body(
+            array('login' => 'instr1', 'role' => 'instructor'),
+            '2026-07-04',
+            array($this->reservation_with_instructor, $second)
+        );
+
+        $this->assertStringContainsString('Jean',   $body);
+        $this->assertStringContainsString('Pierre', $body);
+    }
+
+    public function testDailyEmailBodyShowsDashWhenNoInstructor()
+    {
+        $body = $this->lib->_compose_daily_email_body(
+            array('login' => 'pilote1', 'role' => 'pilot'),
+            '2026-07-04',
+            array($this->reservation_pilot_only)
+        );
+
+        $this->assertStringContainsString('–', $body, 'Cellule instructeur doit afficher –');
+    }
+
+    // =========================================================================
+    // _compose_daily_sms_body — single vs multiple flights
+    // =========================================================================
+
+    public function testDailySmsBodySingleFlightContainsDetails()
+    {
+        $recipient = array('login' => 'pilote1', 'role' => 'pilot');
+        $body = $this->lib->_compose_daily_sms_body(
+            $recipient,
+            '2026-07-04',
+            array($this->reservation_with_instructor)
+        );
+
+        $this->assertLessThanOrEqual(160, strlen($body), 'SMS doit tenir en 160 chars');
+        $this->assertStringContainsString('F-GSRP', $body);
+        $this->assertStringContainsString('04/07',  $body);
+        $this->assertStringContainsString('10:00',  $body);
+    }
+
+    public function testDailySmsBodySingleFlightWithInstructorMentionsInstructor()
+    {
+        $recipient = array('login' => 'pilote1', 'role' => 'pilot');
+        $body = $this->lib->_compose_daily_sms_body(
+            $recipient,
+            '2026-07-04',
+            array($this->reservation_with_instructor)
+        );
+
+        $this->assertStringContainsString('Marie', $body);
+    }
+
+    public function testDailySmsBodyMultipleFlightsContainsLinkNotDetails()
+    {
+        $second = $this->reservation_with_instructor;
+        $second['id']             = 43;
+        $second['start_datetime'] = '2026-07-04 14:00:00';
+        $second['end_datetime']   = '2026-07-04 16:00:00';
+
+        $recipient = array('login' => 'instr1', 'role' => 'instructor');
+        $body = $this->lib->_compose_daily_sms_body(
+            $recipient,
+            '2026-07-04',
+            array($this->reservation_with_instructor, $second)
+        );
+
+        $this->assertStringContainsString('2 réservations', $body);
+        $this->assertStringContainsString('mes_reservations', $body);
+        $this->assertStringNotContainsString('F-GSRP', $body, 'Le SMS multi ne doit pas lister les aéronefs');
+    }
+
+    // =========================================================================
     // handle_event — guard: missing reservation
     // =========================================================================
 
