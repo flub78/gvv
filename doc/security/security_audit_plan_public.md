@@ -67,7 +67,7 @@ Cette version publique ne contient ni preuves d'exploitation, ni détails techni
 - [ ] Lister les dépendances et intégrations externes.
 
 ### Phase C - Audit code
-- [ ] Revue des validations d'entrée et échappements de sortie.
+- [ ] Revue des validations d'entrée et échappements de sortie (corrections initiales appliquées sur attributs HTML à risque, revue exhaustive restante).
 - [ ] Revue des contrôles d'accès serveur par action.
 - [ ] Revue des mécanismes sessions/authentification.
 - [ ] Revue des traitements de fichiers (upload/download).

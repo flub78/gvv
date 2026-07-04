@@ -54,7 +54,7 @@ echo validation_errors();
 	<!-- -->
 	<div class="me-3 mb-2">
 		<?= $this->lang->line("gvv_events_types_field_name") . ": " ?>
-		<input type="text" name="name" value="<?= $name ?>" id="name" size="64" />
+		<input type="text" name="name" value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>" id="name" size="64" />
 	</div>
 
 	<div class="me-3 mb-2">
@@ -81,7 +81,7 @@ echo validation_errors();
 	</div>
 	<div class="me-3 mb-2">
 		<?= $this->lang->line("gvv_events_types_field_ordre") . ": " ?>
-		<input type="text" name="ordre" value="<?= $ordre ?>" id="ordre" size="2" />
+		<input type="text" name="ordre" value="<?= htmlspecialchars($ordre, ENT_QUOTES, 'UTF-8') ?>" id="ordre" size="2" />
 	</div>
 	<div class="me-3 mb-2">
 		<?= $this->lang->line("gvv_events_types_field_annual") . ": " ?>

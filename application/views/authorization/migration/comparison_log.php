@@ -114,7 +114,7 @@
                         <select class="form-select" name="user_id" id="user_id">
                             <option value="">Tous</option>
                             <?php foreach ($pilot_users as $user): ?>
-                                <option value="<?php echo $user['id']; ?>" <?php echo ($this->input->get('user_id') == $user['id']) ? 'selected' : ''; ?>>
+                                <option value="<?php echo htmlspecialchars((string) $user['id'], ENT_QUOTES, 'UTF-8'); ?>" <?php echo ($this->input->get('user_id') == $user['id']) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($user['username']); ?>
                                 </option>
                             <?php endforeach; ?>
