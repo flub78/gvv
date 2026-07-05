@@ -263,6 +263,109 @@ $errors  = [];
 $notices = [];
 
 // ═══════════════════════════════════════════════════════════
+// Sauvegarde des champs par étape — appelée qu'on avance ou qu'on
+// recule, pour ne jamais perdre une saisie lors de la navigation.
+// ═══════════════════════════════════════════════════════════
+
+/** Étape 2 : enregistre les champs de connexion base de données (sans tester la connexion). */
+function save_db_fields(): array {
+    $h = trim($_POST['db_host'] ?? 'localhost');
+    $u = trim($_POST['db_user'] ?? '');
+    $p = trim($_POST['db_pass'] ?? '');
+    $d = trim($_POST['db_name'] ?? '');
+    ensure_example('database');
+    $f = CFG_DIR . '/database.php';
+    db_cfg_write($f, 'hostname', $h);
+    db_cfg_write($f, 'username', $u);
+    db_cfg_write($f, 'password', $p);
+    db_cfg_write($f, 'database', $d);
+    $_SESSION['install'] = array_merge($_SESSION['install'],
+        ['db_host'=>$h,'db_user'=>$u,'db_pass'=>$p,'db_name'=>$d]);
+    return [$h, $u, $p, $d];
+}
+
+/** Étape 3 : enregistre l'URL de base et la langue (si l'URL est renseignée). */
+function save_url_fields(): string {
+    $base_url = trim($_POST['base_url'] ?? '');
+    $language = trim($_POST['language'] ?? 'french');
+    if ($base_url === '') return '';
+    if (substr($base_url, -1) !== '/') $base_url .= '/';
+    ensure_example('config');
+    $f = CFG_DIR . '/config.php';
+    // Supprimer le bloc if/else auto-detect s'il existe
+    $c = file_get_contents($f);
+    $c = preg_replace('/\/\/ Auto-detect base URL.*?}\s*else\s*\{[^}]*\}\s*/s', '', $c);
+    file_put_contents($f, $c);
+    cfg_write($f, 'base_url', $base_url);
+    cfg_write($f, 'index_page', '');
+    cfg_write($f, 'uri_protocol', 'REQUEST_URI');
+    cfg_write($f, 'language', $language);
+    return $base_url;
+}
+
+/** Étape 4 : enregistre les informations du club. */
+function save_club_fields(): void {
+    ensure_example('club');
+    $f = CFG_DIR . '/club.php';
+    cfg_write($f, 'sigle_club',    trim($_POST['sigle_club']   ?? ''));
+    cfg_write($f, 'email_club',    trim($_POST['email_club']   ?? ''));
+    cfg_write($f, 'url_club',      trim($_POST['url_club']     ?? ''));
+    cfg_write($f, 'ffvv_product',  trim($_POST['ffvv_product'] ?? ''));
+    cfg_write($f, 'copie_a',       trim($_POST['copie_a']      ?? ''));
+    // mod : multi-ligne, remplacement spécifique
+    $mod     = trim($_POST['mod'] ?? '');
+    $escaped = str_replace(["\\","'"],["\\\\","\\'"], $mod);
+    $c = file_get_contents($f);
+    $pat = '/\$config\[\'mod\'\]\s*=\s*(?:"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')\s*;/s';
+    $rep = "\$config['mod'] = '" . $escaped . "';";
+    $c2 = preg_replace($pat, $rep, $c, 1, $n);
+    if ($n === 0) $c2 = rtrim($c) . "\n" . $rep . "\n";
+    file_put_contents($f, $c2);
+}
+
+/** Étape 5 : enregistre les champs d'authentification. */
+function save_auth_fields(): void {
+    ensure_example('dx_auth');
+    $f = CFG_DIR . '/dx_auth.php';
+    cfg_write($f, 'DX_website_name',   trim($_POST['dx_website'] ?? ''));
+    cfg_write($f, 'DX_webmaster_email', trim($_POST['dx_email']   ?? ''));
+    cfg_write_int($f, 'DX_max_login_attempts', 15);
+}
+
+/** Étape 6 : enregistre le titre, la couleur de bannière et les modules actifs. */
+function save_program_fields(): void {
+    ensure_example('program');
+    $f = CFG_DIR . '/program.php';
+    cfg_write($f, 'program_title', trim($_POST['program_title'] ?? 'GVV'));
+    cfg_write($f, 'banner_color',  trim($_POST['banner_color'] ?? 'green'));
+    cfg_write($f, 'copie_a',       trim($_POST['copie_a2']      ?? ''));
+    $flags = ['gestion_tickets','gestion_pompes','gestion_vd','gestion_of',
+              'gestion_formations','gestion_paiements','gestion_reservations',
+              'gestion_documentaire','gestion_ulm','auto_planchiste'];
+    foreach ($flags as $flag)
+        cfg_write_bool($f, $flag, isset($_POST[$flag]));
+}
+
+/** Étape 7 (optionnelle) : enregistre les identifiants Google. */
+function save_google_fields(): void {
+    if (isset($_POST['skip'])) return;
+    ensure_example('google');
+    $f = CFG_DIR . '/google.php';
+    cfg_write($f, 'client_id',     trim($_POST['google_client_id']     ?? ''));
+    cfg_write($f, 'client_secret', trim($_POST['google_client_secret'] ?? ''));
+    cfg_write($f, 'api_key',       trim($_POST['google_api_key']       ?? ''));
+}
+
+/** Étape 8 (optionnelle) : enregistre les identifiants SMTP Brevo. */
+function save_email_fields(): void {
+    if (isset($_POST['skip'])) return;
+    ensure_example('email');
+    $f = CFG_DIR . '/email.php';
+    cfg_write($f, 'smtp_user', trim($_POST['brevo_smtp_user'] ?? ''));
+    cfg_write($f, 'smtp_pass', trim($_POST['brevo_smtp_pass'] ?? ''));
+}
+
+// ═══════════════════════════════════════════════════════════
 // Traitement POST
 // ═══════════════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -270,6 +373,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'next';
 
     if ($action === 'prev') {
+        // Persiste les champs de l'étape courante avant de reculer, sans validation
+        // (l'étape 9 — identifiants admin — n'est pas persistée pour des raisons de sécurité).
+        switch ($posted) {
+            case 2: save_db_fields();      break;
+            case 3: save_url_fields();     break;
+            case 4: save_club_fields();    break;
+            case 5: save_auth_fields();    break;
+            case 6: save_program_fields(); break;
+            case 7: save_google_fields();  break;
+            case 8: save_email_fields();   break;
+        }
         $step = max(1, $posted - 1);
     } else {
         switch ($posted) {
@@ -281,10 +395,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // ── Étape 2 : base de données
             case 2:
-                $h = trim($_POST['db_host'] ?? 'localhost');
-                $u = trim($_POST['db_user'] ?? '');
-                $p = trim($_POST['db_pass'] ?? '');
-                $d = trim($_POST['db_name'] ?? '');
+                [$h, $u, $p, $d] = save_db_fields();
                 if (!$h || !$u || !$d) {
                     $errors[] = 'Hôte, utilisateur et nom de base sont requis.';
                 } else {
@@ -292,14 +403,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$r['ok']) {
                         $errors[] = 'Connexion impossible : ' . htmlspecialchars($r['error']);
                     } else {
-                        ensure_example('database');
-                        $f = CFG_DIR . '/database.php';
-                        db_cfg_write($f, 'hostname', $h);
-                        db_cfg_write($f, 'username', $u);
-                        db_cfg_write($f, 'password', $p);
-                        db_cfg_write($f, 'database', $d);
-                        $_SESSION['install'] = array_merge($_SESSION['install'],
-                            ['db_host'=>$h,'db_user'=>$u,'db_pass'=>$p,'db_name'=>$d]);
                         $step = 3;
                     }
                 }
@@ -307,23 +410,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // ── Étape 3 : URL / config.php
             case 3:
-                $base_url = trim($_POST['base_url'] ?? '');
-                $language = trim($_POST['language'] ?? 'french');
+                $base_url = save_url_fields();
                 if (!$base_url) {
                     $errors[] = 'L\'URL de base est requise.';
                 } else {
-                    if (substr($base_url, -1) !== '/') $base_url .= '/';
-                    ensure_example('config');
-                    $f = CFG_DIR . '/config.php';
-                    // Remplace le bloc auto-detect ou la valeur simple
-                    $c = file_get_contents($f);
-                    // Supprimer le bloc if/else auto-detect s'il existe
-                    $c = preg_replace('/\/\/ Auto-detect base URL.*?}\s*else\s*\{[^}]*\}\s*/s', '', $c);
-                    file_put_contents($f, $c);
-                    cfg_write($f, 'base_url', $base_url);
-                    cfg_write($f, 'index_page', '');
-                    cfg_write($f, 'uri_protocol', 'REQUEST_URI');
-                    cfg_write($f, 'language', $language);
                     // Copie point.htaccess → .htaccess si point.htaccess existe
                     $src_ht  = ROOT . '/point.htaccess';
                     $dest_ht = ROOT . '/.htaccess';
@@ -338,71 +428,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // ── Étape 4 : club.php
             case 4:
-                ensure_example('club');
-                $f = CFG_DIR . '/club.php';
-                cfg_write($f, 'sigle_club',    trim($_POST['sigle_club']   ?? ''));
-                cfg_write($f, 'email_club',    trim($_POST['email_club']   ?? ''));
-                cfg_write($f, 'url_club',      trim($_POST['url_club']     ?? ''));
-                cfg_write($f, 'ffvv_product',  trim($_POST['ffvv_product'] ?? ''));
-                cfg_write($f, 'copie_a',       trim($_POST['copie_a']      ?? ''));
-                cfg_write($f, 'banner_color',  trim($_POST['banner_color'] ?? 'green'));
-                // mod : multi-ligne, remplacement spécifique
-                $mod     = trim($_POST['mod'] ?? '');
-                $escaped = str_replace(["\\","'"],["\\\\","\\'"], $mod);
-                $c = file_get_contents($f);
-                $pat = '/\$config\[\'mod\'\]\s*=\s*(?:"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')\s*;/s';
-                $rep = "\$config['mod'] = '" . $escaped . "';";
-                $c2 = preg_replace($pat, $rep, $c, 1, $n);
-                if ($n === 0) $c2 = rtrim($c) . "\n" . $rep . "\n";
-                file_put_contents($f, $c2);
+                save_club_fields();
                 $step = 5;
                 break;
 
             // ── Étape 5 : dx_auth.php
             case 5:
-                ensure_example('dx_auth');
-                $f = CFG_DIR . '/dx_auth.php';
-                cfg_write($f, 'DX_website_name',   trim($_POST['dx_website'] ?? ''));
-                cfg_write($f, 'DX_webmaster_email', trim($_POST['dx_email']   ?? ''));
-                cfg_write_int($f, 'DX_max_login_attempts', 15);
+                save_auth_fields();
                 $step = 6;
                 break;
 
             // ── Étape 6 : program.php
             case 6:
-                ensure_example('program');
-                $f = CFG_DIR . '/program.php';
-                cfg_write($f, 'program_title', trim($_POST['program_title'] ?? 'GVV'));
-                cfg_write($f, 'banner_color',  trim($_POST['banner_color2'] ?? 'green'));
-                cfg_write($f, 'copie_a',       trim($_POST['copie_a2']      ?? ''));
-                $flags = ['gestion_tickets','gestion_pompes','gestion_vd','gestion_of',
-                          'gestion_formations','gestion_paiements','gestion_reservations',
-                          'gestion_documentaire','gestion_ulm','auto_planchiste'];
-                foreach ($flags as $flag)
-                    cfg_write_bool($f, $flag, isset($_POST[$flag]));
+                save_program_fields();
                 $step = 7;
                 break;
 
             // ── Étape 7 : Google (optionnel)
             case 7:
-                if (!isset($_POST['skip'])) {
-                    ensure_example('google');
-                    $f = CFG_DIR . '/google.php';
-                    cfg_write($f, 'client_id',     trim($_POST['google_client_id']     ?? ''));
-                    cfg_write($f, 'client_secret', trim($_POST['google_client_secret'] ?? ''));
-                    cfg_write($f, 'api_key',       trim($_POST['google_api_key']       ?? ''));
-                }
+                save_google_fields();
                 $step = 8;
                 break;
 
             // ── Étape 8 : Email Brevo (optionnel)
             case 8:
-                if (!isset($_POST['skip'])) {
-                    ensure_example('email');
-                    $f = CFG_DIR . '/email.php';
-                    cfg_write($f, 'smtp_user', trim($_POST['brevo_smtp_user'] ?? ''));
-                    cfg_write($f, 'smtp_pass', trim($_POST['brevo_smtp_pass'] ?? ''));
-                }
+                save_email_fields();
                 $step = 9;
                 break;
 
@@ -549,7 +599,6 @@ $d_club = [
     'mod'          => pre_read('club','mod',''),
     'ffvv_product' => pre_read('club','ffvv_product',''),
     'copie_a'      => pre_read('club','copie_a',''),
-    'banner_color' => pre_read('club','banner_color','green'),
 ];
 $d_auth = [
     'website' => pre_read('dx_auth','DX_website_name',''),
@@ -557,7 +606,10 @@ $d_auth = [
 ];
 $d_prog = [
     'title'        => pre_read('program','program_title','GVV'),
-    'banner_color' => pre_read('program','banner_color','green'),
+    // program.php est chargé après club.php dans l'autoload : sa valeur de
+    // banner_color est celle réellement utilisée par l'application. On la
+    // pré-remplit ici, avec repli sur club.php pour les installations existantes.
+    'banner_color' => pre_read('program','banner_color', pre_read('club','banner_color','green')),
     'copie_a'      => pre_read('program','copie_a',''),
 ];
 $flags_list = ['gestion_tickets','gestion_pompes','gestion_vd','gestion_of',
@@ -675,6 +727,9 @@ body { background: #f0f4f8; }
 .wizard-nav .step-item.active .bubble { background: #0d6efd; color: #fff; }
 .wizard-nav .step-item.active        { color: #0d6efd; font-weight: 600; }
 .wizard-nav .step-item.done::before  { background: #198754; }
+.wizard-nav a.step-item              { text-decoration: none; cursor: pointer; }
+.wizard-nav a.step-item.done:hover .bubble { background: #146c43; }
+.wizard-nav a.step-item.done:hover    { color: #198754; }
 .card { border: none; border-radius: 1rem; }
 .step-title { font-size: 1.3rem; font-weight: 700; color: #212529; }
 .badge-req { font-size: .85rem; padding: .4em .8em; }
@@ -696,8 +751,9 @@ body { background: #f0f4f8; }
   <div class="d-flex wizard-nav mb-4 overflow-auto pb-2">
   <?php foreach ($STEPS as $n => $info):
     $cls = $n < $step ? 'done' : ($n === $step ? 'active' : '');
+    $tag = $cls === 'done' ? 'a' : 'div';
   ?>
-    <div class="step-item <?= $cls ?>">
+    <<?= $tag ?> class="step-item <?= $cls ?>"<?= $tag === 'a' ? ' href="index.php?step=' . $n . '"' : '' ?>>
       <div class="bubble">
         <?php if ($n < $step): ?>
           <i class="fas fa-check"></i>
@@ -706,7 +762,7 @@ body { background: #f0f4f8; }
         <?php endif; ?>
       </div>
       <span class="d-none d-md-block text-center" style="line-height:1.2"><?= $info['label'] ?></span>
-    </div>
+    </<?= $tag ?>>
   <?php endforeach; ?>
   </div>
 
@@ -956,20 +1012,10 @@ body { background: #f0f4f8; }
     <label class="form-label fw-semibold">URL du site du club</label>
     <input type="text" name="url_club" class="form-control" value="<?= h($d_club['url_club']) ?>">
   </div>
-  <div class="col-md-6">
+  <div class="col-12">
     <label class="form-label fw-semibold">Produit cotisation FFVV</label>
     <input type="text" name="ffvv_product" class="form-control" value="<?= h($d_club['ffvv_product']) ?>">
-  </div>
-  <div class="col-md-6">
-    <label class="form-label fw-semibold">Couleur de la bannière <span class="text-muted small">(CSS)</span></label>
-    <div class="input-group">
-      <input type="color" id="bcolor" class="form-control form-control-color"
-             value="<?= preg_match('/^#/',$d_club['banner_color'])?h($d_club['banner_color']):'#008080' ?>"
-             oninput="document.getElementById('bc_text').value=this.value">
-      <input type="text" name="banner_color" id="bc_text" class="form-control" value="<?= h($d_club['banner_color']) ?>"
-             oninput="try{document.getElementById('bcolor').value=this.value}catch(e){}">
-    </div>
-    <div class="form-text">Ex : <code>green</code>, <code>#1a237e</code>, <code>darkblue</code></div>
+    <div class="form-text">La couleur de la bannière se configure à l'étape suivante (Fonctionnalités).</div>
   </div>
   <div class="col-12">
     <label class="form-label fw-semibold">Copie systématique des emails (<code>copie_a</code>)</label>
@@ -1036,12 +1082,12 @@ body { background: #f0f4f8; }
   <div class="col-md-6">
     <label class="form-label fw-semibold">Couleur de bannière <span class="text-muted small">(CSS)</span></label>
     <div class="input-group">
-      <input type="color" id="bcolor2" class="form-control form-control-color"
+      <input type="color" id="bcolor" class="form-control form-control-color"
              value="<?= preg_match('/^#/',$d_prog['banner_color'])?h($d_prog['banner_color']):'#008080' ?>"
-             oninput="document.getElementById('bc2_text').value=this.value">
-      <input type="text" name="banner_color2" id="bc2_text" class="form-control"
+             oninput="document.getElementById('bc_text').value=this.value">
+      <input type="text" name="banner_color" id="bc_text" class="form-control"
              value="<?= h($d_prog['banner_color']) ?>"
-             oninput="try{document.getElementById('bcolor2').value=this.value}catch(e){}">
+             oninput="try{document.getElementById('bcolor').value=this.value}catch(e){}">
     </div>
   </div>
   <div class="col-12">
