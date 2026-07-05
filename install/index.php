@@ -591,13 +591,37 @@ $d_brevo = [
     'smtp_pass' => file_exists($email_prod) ? (cfg_read($email_prod, 'smtp_pass', '') ?? '') : '',
 ];
 
+/**
+ * Détecte si le module Apache mod_rewrite est actif.
+ * Retourne true/false si déterminable, null si indéterminable
+ * (Nginx, shell_exec désactivé, hébergement mutualisé restrictif…).
+ */
+function detect_mod_rewrite(): ?bool {
+    if (function_exists('apache_get_modules')) {
+        return in_array('mod_rewrite', apache_get_modules(), true);
+    }
+    if (function_exists('shell_exec')) {
+        foreach (['apache2ctl -M', 'apachectl -M', 'httpd -M'] as $cmd) {
+            $out = @shell_exec($cmd . ' 2>&1');
+            if (is_string($out) && stripos($out, 'rewrite_module') !== false) {
+                return true;
+            }
+            if (is_string($out) && stripos($out, 'Loaded Modules') !== false) {
+                return false; // Liste des modules obtenue, rewrite absent
+            }
+        }
+    }
+    return null;
+}
+
 // ── Prérequis (calculés pour l'affichage étape 1)
 $php_ok     = version_compare(PHP_VERSION, '7.4.0', '>=');
 $ext_ok     = array_map(fn($e) => extension_loaded($e),
                 ['mysqli','json','mbstring','gd','openssl']);
 $ext_names  = ['mysqli','json','mbstring','gd','openssl'];
 $cfg_write_ok = is_writable(CFG_DIR);
-$overall_ok = $php_ok && !in_array(false, $ext_ok) && $cfg_write_ok;
+$rewrite_status = detect_mod_rewrite(); // true | false | null
+$overall_ok = $php_ok && !in_array(false, $ext_ok) && $cfg_write_ok && $rewrite_status !== false;
 
 // ── Répertoires à vérifier (pour l'affichage étape 10)
 $required_dirs = [
@@ -748,8 +772,36 @@ body { background: #f0f4f8; }
       </span>
     </td>
   </tr>
+  <tr>
+    <td>Module Apache <code>mod_rewrite</code> <span class="text-muted">(réécriture d'URL, requis par <code>.htaccess</code>)</span></td>
+    <td class="text-center">
+      <?php if ($rewrite_status === true): ?>
+      <span class="badge badge-req bg-success">OK</span>
+      <?php elseif ($rewrite_status === false): ?>
+      <span class="badge badge-req bg-danger">Manquant</span>
+      <?php else: ?>
+      <span class="badge badge-req bg-warning text-dark">Indéterminé</span>
+      <?php endif; ?>
+    </td>
+  </tr>
   </tbody>
   </table>
+
+  <?php if ($rewrite_status === false): ?>
+  <div class="alert alert-danger">
+    <i class="fas fa-ban me-2"></i>
+    <code>mod_rewrite</code> n'est pas activé. Le fichier <code>.htaccess</code> de GVV utilise <code>RewriteEngine</code>
+    et provoquera une erreur serveur (<code>Invalid command 'RewriteEngine'</code>) tant que le module n'est pas actif.<br>
+    Sur Apache/Debian/Ubuntu : <code>sudo a2enmod rewrite &amp;&amp; sudo systemctl reload apache2</code>.
+  </div>
+  <?php elseif ($rewrite_status === null): ?>
+  <div class="alert alert-warning">
+    <i class="fas fa-triangle-exclamation me-2"></i>
+    Impossible de vérifier automatiquement l'état de <code>mod_rewrite</code> sur cet hébergement
+    (hébergement mutualisé, Nginx, ou fonctions shell désactivées). Assurez-vous manuellement que la réécriture
+    d'URL est active avant de continuer, sous peine d'erreur serveur une fois le <code>.htaccess</code> installé.
+  </div>
+  <?php endif; ?>
 
   <?php if (!$overall_ok): ?>
   <div class="alert alert-danger">
