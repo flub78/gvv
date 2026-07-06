@@ -200,6 +200,42 @@ class Briefing_passager extends Gvv_Controller {
             return;
         }
 
+        if ($action === 'link2' && $this->config->item('testing_form')) {
+            $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
+            $errors2 = array();
+            if (empty($vld['date_vol']))       $errors2[] = $this->lang->line('briefing_passager_field_date_vol');
+            if (empty($vld['aerodrome']))       $errors2[] = $this->lang->line('briefing_passager_field_aerodrome');
+            if (empty($vld['airplane_immat']))  $errors2[] = $this->lang->line('briefing_passager_field_appareil');
+            if (empty($vld['beneficiaire']))    $errors2[] = $this->lang->line('briefing_passager_field_nom');
+            if (empty($vld['pilote']))          $errors2[] = $this->lang->line('briefing_passager_field_pilote');
+
+            if (!empty($errors2)) {
+                $fields = implode(', ', $errors2);
+                $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
+                    . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
+                    . '</div>';
+                $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+                $this->data['title']           = $this->lang->line('briefing_passager_upload');
+                $this->data['vld']             = $vld;
+                $this->data['vld_id']          = $vld_id;
+                $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
+                $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
+                $this->_load_upload_selectors();
+                load_last_view('briefing_passager/uploadView', $this->data);
+                return;
+            }
+
+            $params = http_build_query(array(
+                'date_vol'           => $vld['date_vol'],
+                'site_decollage'     => $vld['aerodrome'],
+                'identification_ulm' => $vld['airplane_immat'],
+                'nom'                => $vld['beneficiaire'],
+                'pilot_login'        => $vld['pilote'],
+            ));
+            redirect('forms/briefing-passager-ulm?' . $params);
+            return;
+        }
+
         // Get briefing_passager document type
         $doc_type = $this->document_types_model->get_by_code('briefing_passager');
         if (!$doc_type) {

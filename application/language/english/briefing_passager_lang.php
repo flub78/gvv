@@ -9,6 +9,7 @@ $lang['briefing_passager_new']                = 'New briefing';
 $lang['briefing_passager_upload']             = 'Upload signed document';
 $lang['briefing_passager_generate_link']      = 'Generate digital signature link';
 $lang['briefing_passager_sign_online']        = 'Sign online';
+$lang['briefing_passager_sign_online_2']      = 'Sign online 2';
 $lang['briefing_passager_public_share_title'] = 'Share signature page';
 $lang['briefing_passager_public_share_email_label'] = 'Recipient email';
 $lang['briefing_passager_public_share_message_label'] = 'Comment';
