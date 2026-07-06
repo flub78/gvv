@@ -156,7 +156,7 @@ echo '</div>';
 
 <script>
     // Configuration variables for the JavaScript module
-    window.APP_BASE_URL = '<?php echo site_url(); ?>/';
+    window.APP_BASE_URL = '<?php echo base_url(); ?>';
     window.STRING_RELEVE = '<?php echo $string_releve; ?>';
     window.OPERATION_AMOUNT = <?php echo $amount ?? 0; ?>;
 </script>

@@ -368,7 +368,7 @@ function initReconciliation() {
             const ecritureId = badge.getAttribute('data-ecriture-id');
             const currentGel = parseInt(badge.getAttribute('data-gel') || '0');
             const newGel = currentGel ? 0 : 1;
-            const originalIcon = currentGel ? '🔒' : '🔓';
+            const originalIcon = currentGel ? '❄️' : '🔓';
 
             badge.textContent = '...';
             badge.style.pointerEvents = 'none';

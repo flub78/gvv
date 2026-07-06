@@ -324,6 +324,7 @@ class Rapprochements extends MY_Controller {
             }
             $data['smartMode'] = $this->session->userdata('rapprochement_smart_mode') ?? false;
 
+            $data['releve_tab_visible'] = true;
             $data['status'] = "";
             $data['errors'] = $this->session->userdata('errors');
             $this->session->unset_userdata('errors');
@@ -766,7 +767,7 @@ class Rapprochements extends MY_Controller {
             $gel = isset($line['gel']) ? (int)$line['gel'] : 0;
             if ($gel) {
                 $elt[] = '<span class="gel-ecriture-badge" data-ecriture-id="' . $line['id'] . '" data-gel="1"'
-                    . ' title="Cliquez pour dégeler" style="cursor:pointer">🔒</span>';
+                    . ' title="Cliquez pour dégeler" style="cursor:pointer">❄️</span>';
             } else {
                 $elt[] = '<span class="gel-ecriture-badge" data-ecriture-id="' . $line['id'] . '" data-gel="0"'
                     . ' title="Cliquez pour geler" style="cursor:pointer">🔓</span>';

@@ -30,9 +30,6 @@ $this->load->view('bs_banner');
 
 $this->lang->load('openflyers');
 
-$CI = &get_instance();
-$openflyers_enabled = (bool) $CI->config->item('openflyers_enabled');
-
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_rapprochements_title", 3);
@@ -143,7 +140,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 
 <!-- Onglets -->
 <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
-    <?php if ($openflyers_enabled): ?>
+    <?php if ($releve_tab_visible): ?>
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="openflyers-tab" data-bs-toggle="tab" data-bs-target="#openflyers"
             type="button" role="tab" aria-controls="openflyers" aria-selected="true">
@@ -152,8 +149,8 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     </li>
     <?php endif; ?>
     <li class="nav-item" role="presentation">
-        <button class="nav-link <?= $openflyers_enabled ? '' : 'active' ?>" id="gvv-tab" data-bs-toggle="tab" data-bs-target="#gvv" type="button" role="tab"
-            aria-controls="gvv" aria-selected="<?= $openflyers_enabled ? 'false' : 'true' ?>">
+        <button class="nav-link <?= $releve_tab_visible ? '' : 'active' ?>" id="gvv-tab" data-bs-toggle="tab" data-bs-target="#gvv" type="button" role="tab"
+            aria-controls="gvv" aria-selected="<?= $releve_tab_visible ? 'false' : 'true' ?>">
             Ecritures GVV
         </button>
     </li>
@@ -168,7 +165,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 </ul>
 
 <script>
-    window.APP_BASE_URL = '<?php echo site_url(); ?>/';
+    window.APP_BASE_URL = '<?php echo base_url(); ?>';
 </script>
 
 <style>
@@ -196,7 +193,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 <script src="<?= base_url('assets/javascript/tab_persistence.js'); ?>"></script>
 
 <div class="tab-content" id="myTabContent">
-    <?php if ($openflyers_enabled): ?>
+    <?php if ($releve_tab_visible): ?>
     <!-- Onglet Relevé de banque -->
     <div class="tab-pane fade show active" id="openflyers" role="tabpanel" aria-labelledby="openflyers-tab">
 
@@ -276,7 +273,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
     <?php endif; ?>
 
     <!-- Onglet GVV -->
-    <div class="tab-pane fade <?= $openflyers_enabled ? '' : 'show active' ?>" id="gvv" role="tabpanel" aria-labelledby="gvv-tab">
+    <div class="tab-pane fade <?= $releve_tab_visible ? '' : 'show active' ?>" id="gvv" role="tabpanel" aria-labelledby="gvv-tab">
         <?php
         echo form_open_multipart('rapprochements/delete_all');
         ?>
