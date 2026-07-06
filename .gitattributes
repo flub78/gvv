@@ -1,0 +1,1 @@
+doc/audit-securite/** filter=git-crypt diff=git-crypt
