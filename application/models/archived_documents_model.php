@@ -171,14 +171,18 @@ class Archived_documents_model extends Common_Model {
      * @param bool $current_only Only return current versions
      * @return array
      */
-    public function get_pilot_documents($pilot_login, $current_only = true) {
+    public function get_pilot_documents($pilot_login, $current_only = true, $include_admin_only = false) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code, document_types.required,
             document_types.has_expiration, document_types.alert_days_before,
-            document_types.is_private');
+            document_types.is_private, document_types.is_admin_only');
         $this->db->from($this->table);
         $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.pilot_login', $pilot_login);
+
+        if (!$include_admin_only) {
+            $this->db->where('(document_types.is_admin_only = 0 OR document_types.is_admin_only IS NULL)', null, false);
+        }
 
         if ($current_only) {
             $this->db->where('archived_documents.is_current_version', 1);
@@ -202,15 +206,21 @@ class Archived_documents_model extends Common_Model {
      * Returns documents for a specific section
      * @param int $section_id Section ID
      * @param bool $current_only Only return current versions
+     * @param bool $include_admin_only Include documents from admin-only types (default: false)
      * @return array
      */
-    public function get_section_documents($section_id, $current_only = true) {
+    public function get_section_documents($section_id, $current_only = true, $include_admin_only = false) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
-            document_types.code as type_code, document_types.is_private');
+            document_types.code as type_code, document_types.is_private,
+            document_types.is_admin_only');
         $this->db->from($this->table);
             $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->where('archived_documents.section_id', $section_id);
             $this->db->where('(document_types.scope = "section" OR archived_documents.document_type_id IS NULL)', null, false);
+
+        if (!$include_admin_only) {
+            $this->db->where('(document_types.is_admin_only = 0 OR document_types.is_admin_only IS NULL)', null, false);
+        }
 
         if ($current_only) {
             $this->db->where('archived_documents.is_current_version', 1);
@@ -231,16 +241,21 @@ class Archived_documents_model extends Common_Model {
     /**
      * Returns section documents for all sections (used when no active section is selected)
      * @param bool $current_only Only return current versions
+     * @param bool $include_admin_only Include documents from admin-only types (default: false)
      * @return array
      */
-    public function get_all_section_documents($current_only = true) {
+    public function get_all_section_documents($current_only = true, $include_admin_only = false) {
         $this->db->select('archived_documents.*, document_types.name as type_name,
             document_types.code as type_code, document_types.is_private,
-            sections.nom as section_name');
+            document_types.is_admin_only, sections.nom as section_name');
         $this->db->from($this->table);
         $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
         $this->db->join('sections', 'archived_documents.section_id = sections.id', 'left');
         $this->db->where('document_types.scope', 'section');
+
+        if (!$include_admin_only) {
+            $this->db->where('(document_types.is_admin_only = 0 OR document_types.is_admin_only IS NULL)', null, false);
+        }
 
         if ($current_only) {
             $this->db->where('archived_documents.is_current_version', 1);

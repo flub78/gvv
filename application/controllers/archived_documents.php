@@ -282,7 +282,7 @@ class Archived_documents extends Gvv_Controller {
 
         $this->push_return_url("archived_documents pilot_documents");
 
-        $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login);
+        $this->data['documents'] = $this->gvv_model->get_pilot_documents($pilot_login, true, true);
         $this->data['missing'] = $this->gvv_model->get_missing_documents($pilot_login);
         $this->data['controller'] = $this->controller;
         $this->data['is_admin'] = true;
