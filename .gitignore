@@ -50,3 +50,4 @@ application/config/email.php
 application/config/gvv_config.php
 
 .claude/worktrees/*
+.aider*

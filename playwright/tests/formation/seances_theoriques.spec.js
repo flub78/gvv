@@ -161,6 +161,7 @@ test.describe('Formation – Pièces jointes aux séances théoriques', () => {
         expect(seanceId).not.toBeNull();
 
         await page.goto(`/index.php/formation_seances_theoriques/detail/${seanceId}`);
+        await expect(page.locator('#formationAttachments')).toBeVisible();
 
         // Upload a document and capture the attachment ID from the AJAX response
         await page.click('#showUploadForm');
