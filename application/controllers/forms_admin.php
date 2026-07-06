@@ -1102,11 +1102,11 @@ class Forms_admin extends MY_Controller {
                 $is_checked      = ($submitted === $effective_value)
                                 || (strpos(',' . $submitted . ',', ',' . $effective_value . ',') !== false);
                 $box = $dom->createElement('span');
+                $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;position:relative;background:#fff;');
                 if ($is_checked) {
-                    $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;text-align:center;line-height:13px;font-size:11px;font-weight:bold;');
-                    $box->appendChild($dom->createTextNode('x'));
-                } else {
-                    $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;background:#fff;');
+                    $tick = $dom->createElement('span');
+                    $tick->setAttribute('style', 'display:block;position:absolute;left:2px;top:-1px;width:5px;height:9px;border-right:2px solid #000;border-bottom:2px solid #000;-webkit-transform:rotate(42deg);transform:rotate(42deg);');
+                    $box->appendChild($tick);
                 }
                 $input->parentNode->replaceChild($box, $input);
                 continue;
@@ -1549,16 +1549,55 @@ class Forms_admin extends MY_Controller {
 
         $options_json = $this->options_text_to_json((string) $this->input->post('options_text'));
 
+        $old_name    = $field['name'];
+        $new_name    = trim($this->input->post('name'));
+        $is_required = (int) (bool) $this->input->post('is_required');
+
         $this->form_fields_model->update_field((int) $field['id'], array(
             'label'            => trim($this->input->post('label')),
-            'name'             => trim($this->input->post('name')),
+            'name'             => $new_name,
             'field_type'       => trim($this->input->post('field_type')),
-            'is_required'      => (int) (bool) $this->input->post('is_required'),
+            'is_required'      => $is_required,
             'is_identifier'    => (int) (bool) $this->input->post('is_identifier'),
             'sort_order'       => (int) $this->input->post('sort_order') ?: $field['sort_order'],
             'options_json'     => $options_json,
             'updated_by'       => $this->dx_auth->get_username(),
         ));
+
+        // Propagate required/name changes back to the page HTML so that
+        // sync_fields_from_html does not overwrite is_required on next page save.
+        $raw_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (trim($raw_html) !== '') {
+            $dom = new DOMDocument('1.0', 'UTF-8');
+            libxml_use_internal_errors(true);
+            $dom->loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $raw_html . '</body></html>');
+            libxml_clear_errors();
+            $xpath = new DOMXPath($dom);
+            $nodes = iterator_to_array($xpath->query(
+                '//input[@name="' . $old_name . '"] | //select[@name="' . $old_name . '"] | //textarea[@name="' . $old_name . '"]'
+            ));
+            if (!empty($nodes)) {
+                foreach ($nodes as $node) {
+                    if ($new_name !== '' && $new_name !== $old_name) {
+                        $node->setAttribute('name', $new_name);
+                    }
+                    if ($is_required) {
+                        $node->setAttribute('required', 'required');
+                    } else {
+                        $node->removeAttribute('required');
+                    }
+                }
+                $body = $dom->getElementsByTagName('body')->item(0);
+                $updated = '';
+                foreach ($body->childNodes as $child) {
+                    $updated .= $dom->saveHTML($child);
+                }
+                $this->form_pages_model->update_page((int) $page['id'], array(
+                    'content_html' => $updated,
+                    'updated_by'   => $this->dx_auth->get_username(),
+                ));
+            }
+        }
 
         $this->session->set_flashdata('forms_success', 'Champ mis à jour.');
         redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
