@@ -991,10 +991,11 @@ class Forms_admin extends MY_Controller {
             }
 
             if ($type === 'checkbox') {
-                $checked_value = $input->getAttribute('value');
-                $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
-                $is_checked    = ($submitted === $checked_value)
-                              || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
+                $checked_value   = $input->getAttribute('value');
+                $effective_value = ($checked_value === '') ? 'on' : $checked_value;
+                $submitted       = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $is_checked      = ($submitted === $effective_value)
+                                || (strpos(',' . $submitted . ',', ',' . $effective_value . ',') !== false);
                 if ($is_checked) {
                     $input->setAttribute('checked', 'checked');
                 } else {
@@ -1094,13 +1095,19 @@ class Forms_admin extends MY_Controller {
 
             if ($type === 'checkbox') {
                 // CSS-drawn box — Unicode ☑/☐ are unreliable in wkhtmltopdf (font gaps)
-                $checked_value = $input->getAttribute('value');
-                $submitted     = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
-                $is_checked    = ($submitted === $checked_value)
-                              || (strpos(',' . $submitted . ',', ',' . $checked_value . ',') !== false);
+                $checked_value   = $input->getAttribute('value');
+                // Browsers submit 'on' when a checkbox has no value attribute
+                $effective_value = ($checked_value === '') ? 'on' : $checked_value;
+                $submitted       = isset($values_by_name[$base_name]) ? $values_by_name[$base_name] : '';
+                $is_checked      = ($submitted === $effective_value)
+                                || (strpos(',' . $submitted . ',', ',' . $effective_value . ',') !== false);
                 $box = $dom->createElement('span');
-                $bg  = $is_checked ? 'background:#222;' : 'background:#fff;';
-                $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;' . $bg);
+                if ($is_checked) {
+                    $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;text-align:center;line-height:13px;font-size:11px;font-weight:bold;');
+                    $box->appendChild($dom->createTextNode('x'));
+                } else {
+                    $box->setAttribute('style', 'display:inline-block;width:13px;height:13px;border:1.5px solid #333;vertical-align:middle;margin-right:3px;background:#fff;');
+                }
                 $input->parentNode->replaceChild($box, $input);
                 continue;
             }
