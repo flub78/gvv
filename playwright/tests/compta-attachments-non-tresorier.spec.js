@@ -11,7 +11,9 @@
  *  - panoramix: club-admin (trésorier de fait) dans toutes les sections
  *
  * Données de test :
- *  - beforeAll crée une écriture pour le compte asterix (ID 1512, section Planeur=1)
+ *  - beforeAll résout l'ID du compte 411 d'asterix (section Planeur=1) depuis le
+ *    sélecteur du formulaire — cet ID est un auto-increment qui dérive au fil des
+ *    resets de données, donc il n'est pas codé en dur — puis crée une écriture
  *    via l'interface panoramix, et supprime l'écriture en afterAll.
  *  - SFRISON_ECRITURE_ID (25035) : écriture appartenant à sfrison — pas à asterix.
  *
@@ -24,7 +26,6 @@ const LoginPage = require('./helpers/LoginPage');
 
 const PLANEUR_SECTION     = '1';
 const SFRISON_ECRITURE_ID = 25035; // écriture sfrison (compte 323) — PAS asterix
-const ASTERIX_COMPTE_ID   = 1512;  // compte 411 d'asterix en section Planeur
 const TEST_DESCRIPTION    = 'TEST-non-tresorier-justificatifs';
 
 let asterixEcritureId = null;
@@ -52,9 +53,17 @@ test.describe('Justificatifs — accès non trésorier', () => {
             await page.goto('/index.php/compta/create');
             await page.waitForLoadState('networkidle');
 
+            // compte1 = asterix (411) — résolu par libellé, l'ID auto-increment n'étant pas stable
+            const asterixOption = page.locator('select[name="compte1"] option', { hasText: 'Asterix' }).first();
+            await asterixOption.waitFor({ state: 'attached' });
+            const asterixCompteId = await asterixOption.getAttribute('value');
+            if (!asterixCompteId) {
+                throw new Error('Compte asterix (411) introuvable dans le sélecteur compte1');
+            }
+
             // Remplir le formulaire
-            // compte1 = asterix (411), compte2 = "Remorqués" (706, ID 168)
-            await page.selectOption('select[name="compte1"]', String(ASTERIX_COMPTE_ID), { force: true });
+            // compte2 = "Remorqués" (706, ID 168)
+            await page.selectOption('select[name="compte1"]', asterixCompteId, { force: true });
             await page.selectOption('select[name="compte2"]', '168', { force: true });
             await page.fill('input[name="montant"]', '1.00');
             await page.fill('input[name="date_op"]', '01/07/2026');
@@ -76,7 +85,7 @@ test.describe('Justificatifs — accès non trésorier', () => {
 
             // Appel direct à l'endpoint datatable pour récupérer les écritures du compte asterix
             const response = await page.request.get(
-                `/index.php/compta/datatable_journal_compte/${ASTERIX_COMPTE_ID}`,
+                `/index.php/compta/datatable_journal_compte/${asterixCompteId}`,
                 { params: { sEcho: '1', iDisplayStart: '0', iDisplayLength: '10' } }
             );
 
