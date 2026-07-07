@@ -96,6 +96,7 @@ class Reservations extends MY_Controller {
             'error_deleting' => $this->lang->line('reservations_error_deleting'),
             'error_prefix' => $this->lang->line('reservations_error_prefix'),
             'error_server' => $this->lang->line('reservations_error_server'),
+            'error_past_reservation' => $this->lang->line('reservations_error_past_reservation'),
             'success_saved' => $this->lang->line('reservations_success_saved'),
             'success_deleted' => $this->lang->line('reservations_success_deleted'),
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
@@ -402,10 +403,17 @@ class Reservations extends MY_Controller {
                 throw new Exception($this->lang->line('reservations_error_not_authorized'));
             }
 
-            // Past reservations locked for non-admin users
-            if (!$drop_is_club_admin && $this->_is_past_reservation($reservation['start_datetime'])) {
-                $this->lang->load('reservations');
-                throw new Exception($this->lang->line('reservations_error_past_reservation'));
+            // Past reservations locked for non-admin users, and non-admins
+            // cannot drag/resize a reservation to make it start in the past.
+            if (!$drop_is_club_admin) {
+                if ($this->_is_past_reservation($reservation['start_datetime'])) {
+                    $this->lang->load('reservations');
+                    throw new Exception($this->lang->line('reservations_error_past_reservation'));
+                }
+                if ($this->_is_past_reservation($start_datetime)) {
+                    $this->lang->load('reservations');
+                    throw new Exception($this->lang->line('reservations_error_past_reservation'));
+                }
             }
 
             $drop_no_pilot = empty($reservation['pilot_member_id']);
@@ -667,9 +675,10 @@ class Reservations extends MY_Controller {
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
 
-            // Past reservations are locked for non-admin users (create and edit)
+            // Past reservations are locked for non-admin users (create and edit),
+            // and non-admins cannot edit a reservation to make it start in the past.
             if (!$is_club_admin) {
-                if ($is_create && $this->_is_past_reservation($start_datetime)) {
+                if ($this->_is_past_reservation($start_datetime)) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }

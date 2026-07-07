@@ -642,6 +642,43 @@ Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être
 - Depuis le détail d'une réponse, un bouton ouvre ce formulaire avec le PDF imprimable déjà pré-rempli à la place du sélecteur de fichier.
 - Journalisation dans les fichiers de logs.
 
+## Réflexion en cours — Notification post-soumission et archivage générique
+
+**Statut : discussion ouverte, non tranchée — à reprendre.**
+
+Point de départ : l'expérimentation d'un second bouton de signature sur `briefing_passager/upload` (derrière le flag `testing_form`) qui redirige vers `/forms/briefing-passager-ulm` a fait remonter deux questions non résolues par la section 13 (handler post-soumission) : comment le contrôleur initiateur (`briefing_passager`) apprend-il la fin du remplissage, et faut-il systématiquement matérialiser un `archived_documents` pour chaque formulaire de catégorie 3 ?
+
+### Notification du contrôleur initiateur
+
+Deux mécanismes envisagés :
+
+- **Handler synchrone** (celui déjà décrit en section 13) : le handler s'exécute dans la requête de soumission elle-même et écrit directement l'état en base (archivage, mise à jour VLD, invalidation token). Ne dépend pas de la survie d'un navigateur jusqu'à la fin — important si le passager termine sur son propre appareil (QR code) sans le pilote présent.
+- **Callback URL fournie par le contrôleur initiateur** : redirection du navigateur en fin de soumission vers une URL construite par `briefing_passager` (avec form_id/submission_id/erreur). Plus générique côté moteur de formulaires, mais pose un problème de sécurité (ids séquentiels devinables dans `forms_admin/submission_pdf/{form_id}/{submission_id}`, nécessiterait un token signé façon `briefing_tokens`) et suppose qu'un navigateur est encore présent à la fin.
+
+**Piste retenue pour poursuivre** : garder le handler synchrone comme source de vérité (section 13), et traiter un éventuel retour visuel vers `briefing_passager` comme un simple confort UX (`return_url` de redirection, sans porter de données), pas comme le mécanisme de fiabilité.
+
+### Faut-il toujours archiver dans `archived_documents` ?
+
+Argument pour : cohérence avec UC1 (upload) et l'existant `briefing_passager/admin_list` + `export_pdf`, qui listent déjà les briefings passagers via `archived_documents_model->get_briefings_recent()` — un formulaire non archivé y serait invisible. Cohérence aussi avec la carte "briefing existant" de `bs_uploadView.php`, alimentée par `get_briefing_by_vld()`.
+
+Argument contre : tendance du projet à créer des `document_type` à la volée à chaque nouveau besoin, ce qui brouille la recherche admin. `forms` est au contraire un ensemble restreint et explicitement géré (chaque formulaire est créé/publié par un admin) — s'appuyer dessus plutôt que sur une nouvelle prolifération de types.
+
+**Piste retenue pour poursuivre** : ajouter un flag générique plutôt qu'un handler métier par formulaire pour la seule partie archivage :
+
+```sql
+ALTER TABLE forms ADD COLUMN generate_archived_document TINYINT(1) DEFAULT 0
+    COMMENT 'Si vrai, chaque soumission génère automatiquement un archived_documents';
+ALTER TABLE forms ADD COLUMN document_type_id INT NULL
+    COMMENT 'FK document_types, type utilisé pour l''archivage automatique';
+```
+
+Avec ce flag, l'archivage (rendu PDF + création de la ligne `archived_documents`, identique à un upload normal) devient un comportement générique du moteur de formulaires, déclenché pour tout formulaire qui l'active — sans écrire de classe PHP dédiée. Le `handler_class` de la section 13 se recentrerait alors sur les seuls effets de bord non couverts par l'archivage générique (ex. invalidation de `briefing_tokens`).
+
+Points volontairement non tranchés :
+
+- **Rattachement à l'entité GVV** : `archived_documents.vld_id` reste une colonne dédiée pour ce cas d'usage. Pas de généralisation vers un couple polymorphe (`subject_type`/`subject_id`) tant qu'un seul cas d'usage (VLD) existe — à reconsidérer si un deuxième cas apparaît.
+- **Exclusif vs cumulatif** : une fois un `archived_documents` existant pour un contexte donné, faut-il remplacer entièrement le bouton de remplissage par un lien de téléchargement (exclusif), ou conserver les deux comme c'est le cas aujourd'hui dans `bs_uploadView.php` (cumulatif) ?
+
 ## API interne proposee
 
 ### Service formulaire

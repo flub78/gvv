@@ -460,6 +460,26 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     }
 
     /**
+     * Determine whether a click/select date should be treated as "in the past"
+     * for the purpose of blocking reservation creation by non-admins.
+     *
+     * For allDay dates (dayGridMonth cells), the date carries no real time of
+     * day (it's midnight, or a fixed default such as 09:00), so only the day
+     * itself is compared to today - this is what keeps the current day
+     * bookable regardless of the current time. For non-allDay dates (specific
+     * time slots in timeGridWeek), the exact date/time is compared.
+     */
+    function isPastForCreation(date, allDay) {
+        if (allDay) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            return day < today;
+        }
+        return date < new Date();
+    }
+
+    /**
      * Format Date to datetime-local input format
      */
     function formatDateTimeLocal(date) {
@@ -586,8 +606,12 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 }
             },
             select: function(info) {
-                // Non-admins cannot create reservations in the past
-                if (!CONFIG.isClubAdmin && info.start < new Date()) {
+                // Non-admins cannot create reservations in the past.
+                // Month view selections are allDay (midnight-to-midnight) and carry
+                // no meaningful time of day, so compare by day only to avoid
+                // blocking the current day once midnight has passed.
+                if (!CONFIG.isClubAdmin && isPastForCreation(info.start, info.allDay)) {
+                    alert(TRANSLATIONS.error_past_reservation || 'Past reservations cannot be created');
                     calendar.unselect();
                     return;
                 }
@@ -616,8 +640,14 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                     endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
                 }
 
-                // Non-admins cannot create reservations in the past
-                if (!CONFIG.isClubAdmin && startDate < new Date()) return;
+                // Non-admins cannot create reservations in the past.
+                // Month view clicks are allDay with a fixed 09:00 default time,
+                // so compare by day only to avoid blocking the current day once
+                // 09:00 has passed.
+                if (!CONFIG.isClubAdmin && isPastForCreation(startDate, info.allDay)) {
+                    alert(TRANSLATIONS.error_past_reservation || 'Past reservations cannot be created');
+                    return;
+                }
 
                 try {
                     displayEventModal(null, startDate, endDate);

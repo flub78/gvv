@@ -1,49 +1,52 @@
 {
-    "mcpServers": {
-        "serena": {
-            "type": "stdio",
-            "command": "uvx",
-            "args": [
-                "--from",
-                "git+https://github.com/oraios/serena",
-                "serena",
-                "start-mcp-server",
-                "--context",
-                "ide-assistant",
-                "--project",
-                "."
-            ]
-        },
-        "filesystem": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "-y",
-                "@modelcontextprotocol/server-filesystem",
-                "/home/frederic/git/gvv"
-            ]
-        },
-        "mysql": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "-y",
-                "mcp-mysql-server"
-            ],
-            "env": {
-                "MYSQL_HOST": "localhost",
-                "MYSQL_USER": "gvv_user",
-                "MYSQL_PASSWORD": "lfoyfgbj",
-                "MYSQL_DATABASE": "gvv2"
-            }
-        },
-        "playwright": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "-y",
-                "@playwright/mcp"
-            ]
-        }
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/frederic/git/gvv"
+      ]
+    },
+    "mysql": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-mysql-server"
+      ],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_USER": "gvv_user",
+        "MYSQL_PASSWORD": "lfoyfgbj",
+        "MYSQL_DATABASE": "gvv2"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp"
+      ]
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "tool",
+        "run",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "."
+      ],
+      "env": {}
     }
+  }
 }
