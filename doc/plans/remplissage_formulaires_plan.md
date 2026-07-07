@@ -302,6 +302,89 @@ Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design
 - [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, pré-remplissage GVV, signatures canvas et upload, workflow briefing end-to-end.
 - [ ] Vérification sécurité : uploads, contrôle d'accès, anti-spam.
 
+### Lot 9 — Soumission par téléchargement (formulaire scanné)
+
+Objectif : permettre, en alternative au remplissage en ligne, de télécharger un formulaire imprimé puis rempli à la main (scan ou photo). Un seul fichier par réponse. Dépend de Lot 2 (réponses et fichiers) ; réutilise l'infrastructure de Lot 3 (impression/archivage) par analogie avec `archived_documents`. Indépendant des lots 4 à 7.
+
+Voir : [Design soumission par téléchargement](../design_notes/remplissage_formulaires_design.md#15-soumission-par-téléchargement-scan)
+
+Décisions retenues :
+- Fonctionnalité opt-in par formulaire (`forms.allow_upload_response`), désactivée par défaut.
+- Un seul fichier par réponse, nommé `reponses/{form_id}/reponse_{submission_id}.{ext}` (id de soumission, pas de compteur séquentiel à gérer).
+- Types acceptés : PDF, jpg, jpeg, png, gif, webp (formats supportant rotation et miniature).
+- Rotation via une librairie partagée `File_rotator`, extraite de la logique déjà présente dans `archived_documents::rotate()` (qpdf pour PDF, ImageMagick `convert` pour image), réutilisée par les deux contrôleurs.
+- Réutilisation stricte de l'existant : `File_compressor` (compression), `Pdf_thumbnail` (miniature PDF), helper `attachment()` (rendu miniature cliquable image/PDF), pattern drag&drop natif de `archived_documents/bs_formView.php`, endpoint sécurisé `forms_admin/submission_file` (`?inline=1`).
+- Pas de nouvelle table : le fichier est stocké dans `form_submission_files` avec `field_id = NULL` et `widget_name = 'uploaded_response'` (mécanisme déjà en place depuis la migration 137 pour les signatures HTML-only).
+
+#### Étape 1 — Migration et modèles ✅
+
+- [x] Migration `139_forms_upload_response.php` (idempotente, pattern `add_column_if_missing`/`drop_column_if_exists` de la migration 095) :
+  - `forms.allow_upload_response TINYINT(1) NOT NULL DEFAULT 0`
+  - `form_submissions.submission_method ENUM('online','upload') NOT NULL DEFAULT 'online'`
+  - `form_submissions.upload_comment VARCHAR(255) NULL`
+- [x] Mettre à jour `application/config/migration.php` à la version 139.
+- [x] `forms_model.php` : gérer `allow_upload_response` en création/modification + case à cocher dans `bs_form.php` (`forms_admin.php` store()/update() transmettent le champ POST).
+- [x] `form_submissions_model.php` :
+  - `create_submission()` accepte `submission_method` et `upload_comment`.
+  - `get_form_submissions()` : `response_identifier` devient `COALESCE(GROUP_CONCAT(...is_identifier...), s.upload_comment)`.
+  - Nouvelle méthode `get_uploaded_response_file($submission_id)` (fetch par `widget_name = 'uploaded_response'`).
+  - `delete_submission()` : supprime aussi la miniature associée (`Pdf_thumbnail::delete_thumbnail()`) quand le fichier supprimé est une réponse uploadée.
+- [x] Test PHPUnit `FormsUploadResponseMigrationTest` : colonnes créées, up() idempotent, défauts corrects, down/up roundtrip (3 tests, 15 assertions, verts).
+- [x] **Validation** : suite MySQL complète (660 tests) et suite unitaire (410 tests) exécutées sans régression après les changements.
+
+#### Étape 2 — Extraction `File_rotator` (refactor à filet de sécurité) ✅
+
+- [x] Créer `application/libraries/File_rotator.php` : `rotate($absolute_path, $mime, $direction)` retournant `['success','error_code','tool','detail']`, reprise exacte de la logique qpdf/convert précédemment inline dans `archived_documents::rotate()`.
+- [x] Test PHPUnit `FileRotatorTest` (6 tests, 19 assertions) : direction invalide, fichier manquant, mime non supporté, rotation image cw/ccw (dimensions inversées vérifiées), rotation PDF avec skip gracieux constaté (qpdf absent dans cet environnement de dev).
+- [x] Refactorer `archived_documents::rotate()` pour déléguer à `File_rotator` — messages, contrôle d'accès, redirections inchangés (switch sur `error_code`).
+- [x] **Validation** : suite PHPUnit complète (5 suites : unit 416, url_helper 8, integration 451, enhanced 12, mysql 660) verte, mêmes skips pré-existants qu'avant le refactor. Vérification fonctionnelle réelle sur gvv.net via nouveau test Playwright `archived-documents-rotate-smoke.spec.js` : rotation d'un document image existant (id=1, GIF 500×377 → 377×500 confirmé), message de succès affiché, fichier restauré bit-à-bit après coup (checksum identique).
+
+#### Étape 3 — Endpoint public de téléchargement ✅
+
+- [x] `forms_public::upload_submit($slug)` (POST) :
+  - vérifie formulaire publié + `allow_upload_response = 1` (sinon `forms_upload_error_disabled`, jamais un échec silencieux) ;
+  - crée la ligne `form_submissions` (`submission_method='upload'`, `upload_comment` = commentaire du dialogue) avant l'upload, pour disposer de l'id de soumission ;
+  - upload CI (`pdf|jpg|jpeg|png|gif|webp`) vers `uploads/reponses/{form_id}/reponse_{submission_id}.{ext}` (répertoire créé avec `umask(0)` + mode 0775, pattern repris de `archived_documents::_ensure_directory()`, pour rester réellement group-writable malgré l'umask du process web) ;
+  - `File_compressor::compress()` puis, si PDF, `Pdf_thumbnail::generate()` ;
+  - insère `form_submission_files` (`field_id=NULL`, `widget_name='uploaded_response'`) ;
+  - upload refusé ou échoué → `delete_submission()` nettoie la ligne créée puis message d'erreur explicite ;
+  - en cas de succès, rend directement la page de confirmation existante (`bs_thanks`), comme le fait déjà `submit()` pour la soumission en ligne (pas de redirect intermédiaire).
+- [x] Route `forms/upload/(:any)` → `forms_public/upload_submit/$1` (avant la route catch-all `forms/(:any)`).
+- [x] Vue `bs_show.php` : bouton "Télécharger un formulaire prérempli" à côté de "Envoyer ma réponse" (dernière page uniquement), visible seulement si `allow_upload_response` ; modale Bootstrap avec zone drag&drop (pattern `initDropZone` d'`archived_documents`) + champ commentaire + bouton de validation.
+- [x] Clés de langue fr/en/nl : `forms_button_upload_response`, `forms_upload_modal_*`, `forms_upload_error_*`.
+- [x] Test PHPUnit `FormsUploadSubmitTest` (mysql, 3 tests, 14 assertions) : upload valide (soumission + fichier `form_submission_files` créés, nom de fichier `reponse_{id}.pdf` vérifié), type de fichier refusé (aucune soumission orpheline en base), formulaire avec `allow_upload_response=0` (upload refusé, aucune soumission créée). Le contrôleur n'étant testable qu'en HTTP (redirect()/show_404()/$_FILES), les tests postent en multipart vers le vrai endpoint sur gvv.net via le wrapper `http` de PHP (pas de `curl` dans cet environnement).
+- [x] Test Playwright `forms-upload-response-smoke.spec.js` : formulaire de test créé en base (comme le fait déjà `global-setup.js` du projet), upload d'un PDF avec commentaire depuis la page publique, puis vérification que la soumission apparaît dans `forms_admin/submissions` avec le commentaire comme identifiant.
+- [x] **Validation** : suite PHPUnit complète (5 suites, 1550 tests) verte, mêmes 46 skips pré-existants. Test Playwright ci-dessus exécuté avec succès contre le vrai serveur de dev gvv.net (validation fonctionnelle réelle, pas seulement les tests automatisés).
+
+#### Étape 4 — Liste admin des réponses ✅
+
+- [x] Bouton "Télécharger un formulaire prérempli" en haut de `bs_submissions.php` (même modale drag&drop, même endpoint public `forms/upload/{slug}`), affiché seulement si `allow_upload_response`.
+- [x] Par ligne, si `submission_method === 'upload'` :
+  - bouton "Ouvrir" masqué ;
+  - bouton "Générer PDF" remplacé par la miniature (helper `attachment()` + URL `submission_file?inline=1`), cliquable pour ouvrir en grand ;
+  - deux boutons rotation (↺/↻, réutilisant les libellés/messages `archived_documents_rotate_*`) appelant la nouvelle méthode `forms_admin::submission_rotate($form_id, $submission_id, $direction)` (délègue à `File_rotator`, régénère la miniature PDF après rotation) ;
+  - colonne "Identification" = `upload_comment` (déjà en place depuis l'étape 1).
+  - requête groupée `get_uploaded_response_files_for_submissions()` pour éviter le N+1 sur la liste.
+- [x] Suppression : réutilise `submission_delete` existant, complété à l'étape 1 pour la miniature.
+- [x] Garde-fou : `submission()`, `submission_view()`, `submission_pdf()` redirigent directement vers le fichier (`_redirect_to_uploaded_response_file()`) si `submission_method === 'upload'`.
+- [x] Test PHPUnit `FormsAdminSubmissionRotateTest` (mysql, 3 tests, 16 assertions) : rotation par un admin authentifié (dimensions inversées vérifiées), requête non authentifiée refusée (redirection login, fichier non modifié), direction invalide refusée. Authentification testée en HTTP réel (cookie de session capturé manuellement, pas de `curl` dans cet environnement).
+- [x] Test Playwright `forms-upload-response-smoke.spec.js` étendu (Lot 9, étapes 3+4 dans un seul test — `fullyParallel` empêcherait le partage d'état entre tests séparés du même fichier) : absence du bouton "Ouvrir", présence de la miniature cliquable, clic sur rotation (tolérant à l'absence de `qpdf` dans cet environnement, comme `FileRotatorTest`), suppression puis vérification que le fichier a bien disparu du disque.
+- [x] **Bug découvert et corrigé pendant cette étape** : `File_rotator::rotate_pdf()/rotate_image()` ne vérifiaient pas la valeur de retour de `rename()` — un échec (ex. `EXDEV`, rename cross-filesystem entre `sys_get_temp_dir()` et le répertoire cible) était rapporté comme un succès silencieux, laissant le fichier original inchangé. Corrigé en (1) vérifiant `rename()` et retournant `rotate_failed` en cas d'échec, et (2) créant le fichier temporaire dans le **même répertoire** que la cible (`dirname($absolute_path)`) plutôt que dans `sys_get_temp_dir()`, ce qui élimine structurellement le risque de rename cross-filesystem. Découvert via ce nouveau test PHPUnit puis confirmé en conditions réelles : la rotation d'un document existant (`archived_documents`, id=1) échouait silencieusement après le premier correctif (vérification seule) à cause d'un `/tmp` sur un filesystem différent de `uploads/` dans cet environnement de dev ; le second correctif (tmp file colocalisé) résout le problème pour de bon. Non-régression : `FileRotatorTest` (7 tests, ajout d'un test dédié à ce cas), suite complète (1554 tests) et les 13 tests Playwright concernés (dont `archived-documents-rotate-smoke.spec.js` re-vérifié en conditions réelles sur le document existant, restauré à son orientation d'origine ensuite).
+- [x] **Validation** : suite PHPUnit complète (5 suites, 1554 tests) verte, mêmes 46 skips pré-existants. Parcours complet vérifié sur gvv.net via Playwright (upload public → miniature/rotation/suppression en admin) et via `archived-documents-rotate-smoke.spec.js` (régression du module documents archivés, dont dépend `File_rotator`).
+
+#### Étape 5 — Traductions ✅
+
+- [x] Nouvelles clés `forms_button_upload_response`, `forms_upload_modal_*`, `forms_upload_error_*` (français, anglais, néerlandais) — ajoutées dès l'étape 3, vérifiées complètes (9 clés × 3 langues) lors de cette étape.
+- [x] Réutilisation directe des clés `archived_documents_rotate_*` existantes pour les messages de rotation (pas de duplication) — confirmée présente en fr/en/nl.
+
+#### Étape 6 — Documentation ✅
+
+- [x] Mettre à jour `doc/design_notes/remplissage_formulaires_design.md` (section 15, déjà ajoutée).
+- [x] Mettre à jour `doc/prds/remplissage_formulaires_prd.md` (EF12, déjà ajoutée).
+- [x] Mettre à jour `doc/users/fr/13_formulaires.md` : nouvelle section "Soumission par téléchargement (scan)" (sommaire, case à cocher admin, bouton/modale public, colonne Identification/miniature/rotation/suppression en admin), avec 3 captures d'écran (`admin_upload_checkbox.png`, `form_upload_modal.png`, `submissions_upload_thumbnail.png`) prises via un script Playwright temporaire (supprimé après capture).
+
+**Lot 9 terminé.**
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -352,7 +435,8 @@ Lots inclus : 8.
 8. Lot 5-ter (page de génération + évolutions events)
 9. Lot 6 (intégration workflow GVV — handlers + migration briefing_passager)
 10. Lot 7 (cartes dynamiques dans les dashboards) — indépendant, réalisable dès Lot 1 terminé
-11. Lot 8 (documentation et validation)
+11. Lot 9 (soumission par téléchargement) — dépend de Lot 2, indépendant des lots 4 à 7
+12. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -363,6 +447,7 @@ Lots inclus : 8.
 - Les fichiers sont supportés dès la première phase de livraison.
 - Un PDF imprimable est générable depuis une réponse.
 - Une réponse est archivable dans `archived_documents` pour un pilote.
+- Sur un formulaire où l'option est activée, un utilisateur peut télécharger un scan/photo du formulaire imprimé à la place du remplissage en ligne ; l'admin la retrouve dans la liste des réponses avec miniature, rotation et suppression fonctionnelles.
 
 ### Catégorie 2 (contextuel GVV)
 - Pré-remplissage mécanisme A (`data-gvv-source`) opérationnel et sécurisé.

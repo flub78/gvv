@@ -144,6 +144,7 @@ class Forms_admin extends MY_Controller {
             'css_scope'       => trim($this->input->post('css_scope')),
             'global_css'      => (string) $this->input->post('global_css'),
             'required_params' => $this->input->post('required_params') ?: 'none',
+            'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'created_by'      => $this->dx_auth->get_username(),
         ));
 
@@ -230,6 +231,7 @@ class Forms_admin extends MY_Controller {
             'css_scope'       => trim($this->input->post('css_scope')),
             'global_css'      => (string) $this->input->post('global_css'),
             'required_params' => $this->input->post('required_params') ?: $current['required_params'],
+            'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'status'          => $status,
             'updated_by'      => $this->dx_auth->get_username(),
         ));
@@ -657,12 +659,22 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $submissions = $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0);
+
+        $upload_submission_ids = array();
+        foreach ($submissions as $submission) {
+            if ($submission['submission_method'] === 'upload') {
+                $upload_submission_ids[] = (int) $submission['id'];
+            }
+        }
+
         $data = array(
-            'controller'  => $this->controller,
-            'form'        => $form,
-            'submissions' => $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0),
-            'success'     => $this->session->flashdata('forms_success') ?: '',
-            'error'       => $this->session->flashdata('forms_error') ?: '',
+            'controller'    => $this->controller,
+            'form'          => $form,
+            'submissions'   => $submissions,
+            'upload_files'  => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
+            'success'       => $this->session->flashdata('forms_success') ?: '',
+            'error'         => $this->session->flashdata('forms_error') ?: '',
         );
 
         $this->render_view('forms_admin/bs_submissions', $data);
@@ -686,6 +698,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        if ($submission['submission_method'] === 'upload') {
+            $this->_redirect_to_uploaded_response_file($form, $submission);
+            return;
+        }
+
         $data = array(
             'controller' => $this->controller,
             'form'       => $form,
@@ -696,6 +713,21 @@ class Forms_admin extends MY_Controller {
         );
 
         $this->render_view('forms_admin/bs_submission', $data);
+    }
+
+    /**
+     * Réponses par téléchargement (submission_method='upload') : pas de vue "champs",
+     * on redirige directement vers le fichier téléversé.
+     */
+    private function _redirect_to_uploaded_response_file($form, $submission) {
+        $file = $this->form_submissions_model->get_uploaded_response_file((int) $submission['id']);
+        if (!$file) {
+            $this->session->set_flashdata('forms_error', 'Fichier introuvable pour cette soumission.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        redirect('forms_admin/submission_file/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $file['id'] . '?inline=1');
     }
 
     public function submission_view($form_id = 0, $submission_id = 0) {
@@ -712,6 +744,11 @@ class Forms_admin extends MY_Controller {
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
         if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
             show_404();
+            return;
+        }
+
+        if ($submission['submission_method'] === 'upload') {
+            $this->_redirect_to_uploaded_response_file($form, $submission);
             return;
         }
 
@@ -812,6 +849,11 @@ class Forms_admin extends MY_Controller {
         if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
             $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
             redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        if ($submission['submission_method'] === 'upload') {
+            $this->_redirect_to_uploaded_response_file($form, $submission);
             return;
         }
 
@@ -1311,6 +1353,79 @@ class Forms_admin extends MY_Controller {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer cette réponse.');
         }
 
+        redirect('forms_admin/submissions/' . (int) $form['id']);
+    }
+
+    public function submission_rotate($form_id = 0, $submission_id = 0, $direction = '') {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $this->lang->load('archived_documents');
+
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        if (!in_array($direction, array('cw', 'ccw'), true)) {
+            $this->session->set_flashdata('forms_error', 'Direction invalide.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $file = $this->form_submissions_model->get_uploaded_response_file((int) $submission['id']);
+        if (!$file) {
+            $this->session->set_flashdata('forms_error', 'Fichier introuvable pour cette soumission.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $relative_path = ltrim((string) $file['storage_path'], '/');
+        $full_path = FCPATH . $relative_path;
+        $uploads_root = realpath(FCPATH . 'uploads');
+        $real = realpath($full_path);
+
+        if ($real === false || $uploads_root === false || strpos($real, $uploads_root) !== 0 || !is_file($real)) {
+            $this->session->set_flashdata('forms_error', 'Fichier introuvable sur le stockage.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $mime = !empty($file['mime_type']) ? $file['mime_type'] : (string) @mime_content_type($real);
+
+        $this->load->library('file_rotator');
+        $result = $this->file_rotator->rotate($real, $mime, $direction);
+
+        if (!$result['success']) {
+            switch ($result['error_code']) {
+                case 'tool_missing':
+                    $this->session->set_flashdata('forms_error', $this->lang->line('archived_documents_rotate_tool_missing') . ' (' . $result['tool'] . ')');
+                    break;
+                case 'rotate_failed':
+                    $this->session->set_flashdata('forms_error', $this->lang->line('archived_documents_rotate_error') . ': ' . htmlspecialchars($result['detail']));
+                    break;
+                case 'not_supported':
+                    $this->session->set_flashdata('forms_error', $this->lang->line('archived_documents_rotate_not_supported'));
+                    break;
+                default:
+                    $this->session->set_flashdata('forms_error', 'Direction invalide.');
+                    break;
+            }
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        if ($mime === 'application/pdf') {
+            $this->load->library('pdf_thumbnail');
+            $this->pdf_thumbnail->delete_thumbnail($real);
+            $this->pdf_thumbnail->generate($real);
+        }
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('archived_documents_rotate_success'));
         redirect('forms_admin/submissions/' . (int) $form['id']);
     }
 

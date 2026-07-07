@@ -94,6 +94,17 @@ $lang['forms_button_previous_page']       = 'Page précédente';
 $lang['forms_button_next_page']           = 'Page suivante';
 $lang['forms_button_submit']              = 'Envoyer ma réponse';
 $lang['forms_button_pages']               = 'Pages';
+$lang['forms_button_upload_response']     = 'Télécharger un formulaire prérempli';
+
+// Upload response modal
+$lang['forms_upload_modal_title']         = 'Télécharger un formulaire prérempli';
+$lang['forms_upload_modal_comment_label'] = 'Commentaire (optionnel)';
+$lang['forms_upload_modal_submit']        = 'Valider';
+$lang['forms_upload_error_disabled']      = 'Ce formulaire n\'accepte pas les réponses par téléchargement.';
+$lang['forms_upload_error_no_file']       = 'Veuillez sélectionner un fichier à téléverser.';
+$lang['forms_upload_error_storage']       = 'Impossible de préparer le répertoire de stockage.';
+$lang['forms_upload_error_generic']       = 'Impossible d\'enregistrer votre réponse pour le moment.';
+$lang['forms_upload_error_file_type']     = 'Fichier refusé (formats acceptés : PDF, JPG, PNG, GIF, WEBP).';
 
 // Titles
 $lang['forms_title_new_form']             = 'Nouveau formulaire';
@@ -171,6 +182,8 @@ $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Formulaire global (non rattaché à une section)';
+$lang['forms_checkbox_allow_upload_response'] = 'Autoriser la soumission par téléchargement (scan)';
+$lang['forms_help_allow_upload_response'] = 'Permet à l\'utilisateur de télécharger un scan ou une photo du formulaire imprimé et rempli à la main, à la place de la saisie en ligne.';
 $lang['forms_checkbox_required']          = 'Champ obligatoire';
 $lang['forms_subtitle_form_container']    = 'Création du conteneur formulaire avant ajout des pages et champs.';
 $lang['forms_placeholder_select']         = 'Sélectionner...';

@@ -94,6 +94,17 @@ $lang['forms_button_previous_page']       = 'Previous page';
 $lang['forms_button_next_page']           = 'Next page';
 $lang['forms_button_submit']              = 'Send my response';
 $lang['forms_button_pages']               = 'Pages';
+$lang['forms_button_upload_response']     = 'Upload a filled-in form';
+
+// Upload response modal
+$lang['forms_upload_modal_title']         = 'Upload a filled-in form';
+$lang['forms_upload_modal_comment_label'] = 'Comment (optional)';
+$lang['forms_upload_modal_submit']        = 'Submit';
+$lang['forms_upload_error_disabled']      = 'This form does not accept upload responses.';
+$lang['forms_upload_error_no_file']       = 'Please select a file to upload.';
+$lang['forms_upload_error_storage']       = 'Unable to prepare the storage directory.';
+$lang['forms_upload_error_generic']       = 'Unable to save your response at this time.';
+$lang['forms_upload_error_file_type']     = 'File rejected (accepted formats: PDF, JPG, PNG, GIF, WEBP).';
 
 // Titles
 $lang['forms_title_new_form']             = 'New form';
@@ -171,6 +182,8 @@ $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Global form (not attached to a section)';
+$lang['forms_checkbox_allow_upload_response'] = 'Allow submission by upload (scan)';
+$lang['forms_help_allow_upload_response'] = 'Lets the user upload a scan or photo of the printed and hand-filled form instead of filling it in online.';
 $lang['forms_checkbox_required']          = 'Required field';
 $lang['forms_subtitle_form_container']    = 'Create the form container before adding pages and fields.';
 $lang['forms_placeholder_select']         = 'Select...';

@@ -60,6 +60,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Génération d'un PDF imprimable de la réponse.
 - Import d'un PDF formulaire pour produire une base HTML éditable.
 - Création d'un document archivé depuis une réponse via le formulaire documentaire existant, avec PDF imprimable pré-rempli.
+- Soumission par téléchargement d'un scan/photo du formulaire imprimé, en alternative au remplissage en ligne, activable par formulaire (EF12).
 
 ### Exclu
 
@@ -290,6 +291,19 @@ Un mécanisme de configuration piloté par données permet aux club-admins d'ajo
 7. Les dashboards instrumentés au premier déploiement sont : `accueil`, `pilote`, `instructeur`, `formations`. Tout nouveau dashboard peut être instrumenté sans modification de la table.
 8. Dans chaque dashboard instrumenté, les raccourcis actifs et visibles pour l'utilisateur courant sont récupérés via un appel modèle unique et rendus dans la section correspondante.
 9. Les tests Playwright qui vérifient l'accessibilité de toutes les URLs visibles doivent être mis à jour pour couvrir les raccourcis dynamiques : soit en les excluant du test d'accessibilité automatique, soit en les testant séparément avec les paramètres d'authentification appropriés.
+
+### EF12 : Soumission par téléchargement (scan)
+
+Sur un formulaire où l'option est explicitement activée par l'admin, l'utilisateur peut télécharger un scan ou une photo du formulaire imprimé puis rempli à la main, à la place de la saisie en ligne. Un seul fichier par réponse. GVV n'a pas accès au contenu du fichier et ne peut pas vérifier qu'il s'agit du bon formulaire.
+
+1. L'admin active l'option de téléchargement individuellement par formulaire (désactivée par défaut).
+2. Sur la page publique du formulaire, un bouton "Télécharger un formulaire prérempli" apparaît à côté du bouton d'envoi lorsque l'option est activée ; il ouvre une fenêtre de dépôt de fichier (glisser-déposer ou sélection sur le disque) avec un champ commentaire et un bouton de validation.
+3. Le fichier est compressé selon le même mécanisme que les documents archivés (image : redimensionnement + recompression au format d'origine ; PDF : Ghostscript).
+4. Dans la liste admin des réponses d'un formulaire, une réponse de ce type n'affiche pas de bouton "Ouvrir" ; le bouton "Générer PDF" est remplacé par une miniature du fichier, cliquable pour l'ouvrir en grand.
+5. Le commentaire saisi lors du téléchargement est affiché dans la colonne "Identification" de la liste des réponses.
+6. La suppression d'une réponse de ce type supprime également le fichier téléchargé (et sa miniature) du stockage.
+7. Il est possible de faire pivoter une image ou un PDF téléchargé qui n'a pas été numérisé verticalement.
+8. Le bouton "Télécharger un formulaire prérempli" est également disponible depuis la vue liste des réponses, en plus de la page publique du formulaire.
 
 ## Exigences non fonctionnelles
 

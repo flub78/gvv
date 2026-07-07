@@ -31,6 +31,8 @@ class Form_submissions_model extends CI_Model {
             'form_id'         => (int) $data['form_id'],
             'submission_uuid' => $uuid,
             'status'          => isset($data['status']) ? $data['status'] : 'submitted',
+            'submission_method' => isset($data['submission_method']) ? $data['submission_method'] : 'online',
+            'upload_comment'  => isset($data['upload_comment']) ? $data['upload_comment'] : null,
             'submitter_email' => isset($data['submitter_email']) ? $data['submitter_email'] : null,
             'submitter_name'  => isset($data['submitter_name']) ? $data['submitter_name'] : null,
             'source_ip'       => isset($data['source_ip']) ? $data['source_ip'] : null,
@@ -96,11 +98,14 @@ class Form_submissions_model extends CI_Model {
 
     public function get_form_submissions($form_id, $limit = 100, $offset = 0) {
         $sql = "SELECT s.*,
-                  (
-                    SELECT GROUP_CONCAT(sv.value_text ORDER BY ff.sort_order SEPARATOR ' ')
-                    FROM form_submission_values sv
-                    JOIN form_fields ff ON ff.id = sv.field_id
-                    WHERE sv.submission_id = s.id AND ff.is_identifier = 1
+                  COALESCE(
+                    (
+                      SELECT GROUP_CONCAT(sv.value_text ORDER BY ff.sort_order SEPARATOR ' ')
+                      FROM form_submission_values sv
+                      JOIN form_fields ff ON ff.id = sv.field_id
+                      WHERE sv.submission_id = s.id AND ff.is_identifier = 1
+                    ),
+                    s.upload_comment
                   ) AS response_identifier
                 FROM {$this->table} s
                 WHERE s.form_id = ?
@@ -259,6 +264,43 @@ class Form_submissions_model extends CI_Model {
         return $row ?: false;
     }
 
+    /**
+     * Return the single uploaded-response file for a submission (widget_name = 'uploaded_response'),
+     * or false if this submission has no such file.
+     */
+    public function get_uploaded_response_file($submission_id) {
+        $row = $this->db
+            ->where('submission_id', (int) $submission_id)
+            ->where('widget_name', 'uploaded_response')
+            ->get($this->files_table)
+            ->row_array();
+
+        return $row ?: false;
+    }
+
+    /**
+     * Return uploaded-response files (widget_name='uploaded_response') for several
+     * submissions at once, keyed by submission_id. Used by the admin submissions
+     * list to render thumbnails without one query per row.
+     */
+    public function get_uploaded_response_files_for_submissions(array $submission_ids) {
+        if (empty($submission_ids)) {
+            return array();
+        }
+
+        $rows = $this->db
+            ->where_in('submission_id', $submission_ids)
+            ->where('widget_name', 'uploaded_response')
+            ->get($this->files_table)
+            ->result_array();
+
+        $by_submission = array();
+        foreach ($rows as $row) {
+            $by_submission[(int) $row['submission_id']] = $row;
+        }
+        return $by_submission;
+    }
+
     public function delete_submission($submission_id) {
         $submission_id = (int) $submission_id;
         $submission = $this->get_by_id($submission_id);
@@ -271,9 +313,15 @@ class Form_submissions_model extends CI_Model {
             ->get($this->files_table)
             ->result_array();
 
+        $CI =& get_instance();
+        $CI->load->library('pdf_thumbnail');
+
         foreach ($files as $file) {
             $path = FCPATH . ltrim((string) $file['storage_path'], '/');
             if (is_file($path)) {
+                if ($file['widget_name'] === 'uploaded_response') {
+                    $CI->pdf_thumbnail->delete_thumbnail($path);
+                }
                 @unlink($path);
             }
         }

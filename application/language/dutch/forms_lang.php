@@ -94,6 +94,17 @@ $lang['forms_button_previous_page']       = 'Vorige pagina';
 $lang['forms_button_next_page']           = 'Volgende pagina';
 $lang['forms_button_submit']              = 'Mijn reactie versturen';
 $lang['forms_button_pages']               = 'Pagina\'s';
+$lang['forms_button_upload_response']     = 'Een ingevuld formulier uploaden';
+
+// Upload response modal
+$lang['forms_upload_modal_title']         = 'Een ingevuld formulier uploaden';
+$lang['forms_upload_modal_comment_label'] = 'Opmerking (optioneel)';
+$lang['forms_upload_modal_submit']        = 'Bevestigen';
+$lang['forms_upload_error_disabled']      = 'Dit formulier aanvaardt geen upload-reacties.';
+$lang['forms_upload_error_no_file']       = 'Selecteer een bestand om te uploaden.';
+$lang['forms_upload_error_storage']       = 'Kan de opslagmap niet voorbereiden.';
+$lang['forms_upload_error_generic']       = 'Uw reactie kan momenteel niet worden opgeslagen.';
+$lang['forms_upload_error_file_type']     = 'Bestand geweigerd (toegestane formaten: PDF, JPG, PNG, GIF, WEBP).';
 
 // Titles
 $lang['forms_title_new_form']             = 'Nieuw formulier';
@@ -171,6 +182,8 @@ $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Globaal formulier (niet gekoppeld aan een sectie)';
+$lang['forms_checkbox_allow_upload_response'] = 'Antwoord via upload toestaan (scan)';
+$lang['forms_help_allow_upload_response'] = 'Laat de gebruiker een scan of foto van het afgedrukte en handmatig ingevulde formulier uploaden in plaats van online invullen.';
 $lang['forms_checkbox_required']          = 'Verplicht veld';
 $lang['forms_subtitle_form_container']    = 'Maak de formuliercontainer aan voordat u pagina\'s en velden toevoegt.';
 $lang['forms_placeholder_select']         = 'Selecteren...';

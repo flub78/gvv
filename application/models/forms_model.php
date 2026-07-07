@@ -38,6 +38,7 @@ class Forms_model extends CI_Model {
             'css_scope'       => isset($data['css_scope']) ? $data['css_scope'] : null,
             'global_css'      => isset($data['global_css']) ? $data['global_css'] : null,
             'required_params' => isset($data['required_params']) ? $data['required_params'] : 'none',
+            'allow_upload_response' => !empty($data['allow_upload_response']) ? 1 : 0,
             'created_at'  => $now,
             'updated_at'  => $now,
             'created_by'  => isset($data['created_by']) ? $data['created_by'] : null,
@@ -109,6 +110,9 @@ class Forms_model extends CI_Model {
             'css_scope'       => array_key_exists('css_scope', $data) ? $data['css_scope'] : $current['css_scope'],
             'global_css'      => array_key_exists('global_css', $data) ? $data['global_css'] : (isset($current['global_css']) ? $current['global_css'] : null),
             'required_params' => isset($data['required_params']) ? $data['required_params'] : (isset($current['required_params']) ? $current['required_params'] : 'none'),
+            'allow_upload_response' => array_key_exists('allow_upload_response', $data)
+                ? (!empty($data['allow_upload_response']) ? 1 : 0)
+                : (isset($current['allow_upload_response']) ? (int) $current['allow_upload_response'] : 0),
             'updated_at'  => date('Y-m-d H:i:s'),
             'updated_by'  => isset($data['updated_by']) ? $data['updated_by'] : null,
         );

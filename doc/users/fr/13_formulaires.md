@@ -12,7 +12,8 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 6. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
 7. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
 8. [Page de génération](#page-de-génération)
-9. [Exemples de formulaires](#exemples-de-formulaires)
+9. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
+10. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -54,6 +55,7 @@ Navigation : **Formulaires → Nouveau formulaire**
 | **Description** | Texte optionnel affiché sous le titre |
 | **CSS global** | Styles injectés dans la page publique (voir [Règles CSS](#règles-css)) |
 | **Statut** | `brouillon` : non accessible ; `publié` : accessible via le lien public |
+| **Autoriser la soumission par téléchargement (scan)** | Active le bouton "Télécharger un formulaire prérempli" — voir [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan) |
 
 ### Gérer les pages
 
@@ -500,6 +502,45 @@ Dans la fiche admin du formulaire, le champ **Paramètres requis** définit quel
 3. Cliquer sur **"Ouvrir le formulaire"** : GVV construit l'URL avec `pilot_login` et/ou `instructor_login` et ouvre le formulaire pré-rempli.
 
 Le mécanisme A (`data-gvv-source`) est alors actif : tous les champs annotés sont pré-remplis depuis les données GVV des membres sélectionnés.
+
+---
+
+## Soumission par téléchargement (scan)
+
+Pour certains formulaires (attestations à signer, documents administratifs), il est plus simple pour l'utilisateur d'imprimer le formulaire, de le remplir à la main, puis de téléverser une photo ou un scan de la page remplie plutôt que de ressaisir chaque champ en ligne. GVV propose cette alternative en complément — jamais à la place — de la saisie en ligne habituelle.
+
+### Activer la fonctionnalité sur un formulaire
+
+Dans la fiche admin du formulaire (création ou modification), cocher **"Autoriser la soumission par téléchargement (scan)"** :
+
+![Case à cocher "Autoriser la soumission par téléchargement"](../screenshots/formulaires/admin_upload_checkbox.png)
+
+Cette option est désactivée par défaut : chaque formulaire décide individuellement s'il accepte ce mode de réponse.
+
+### Côté public
+
+Quand l'option est active, un bouton **"Télécharger un formulaire prérempli"** apparaît à côté du bouton d'envoi habituel, sur la dernière page du formulaire. Il ouvre une fenêtre de dépôt de fichier (glisser-déposer ou sélection sur le disque) avec un champ de commentaire libre :
+
+![Modale de téléchargement d'un formulaire prérempli](../screenshots/formulaires/form_upload_modal.png)
+
+- **Formats acceptés** : PDF, JPG, PNG, GIF, WEBP.
+- **Un seul fichier par réponse.**
+- Le commentaire est optionnel ; il sert d'**identifiant** de la réponse dans la liste admin (voir ci-dessous).
+- Cette soumission est indépendante de la saisie en ligne : les champs de la page ne sont pas utilisés pour ce mode.
+
+### Côté admin — liste des réponses
+
+Le bouton "Télécharger un formulaire prérempli" est aussi disponible en haut de la liste des réponses, pour qu'un administrateur puisse déposer une réponse au nom d'un usager.
+
+Dans la liste, une réponse envoyée par téléchargement se distingue des réponses classiques :
+
+![Réponse par téléchargement dans la liste admin — miniature et rotation](../screenshots/formulaires/submissions_upload_thumbnail.png)
+
+- **Colonne Identification** : le commentaire saisi lors du dépôt.
+- **Miniature cliquable** à la place du bouton "Générer PDF" — un clic ouvre le fichier en grand.
+- **Rotation** (boutons ↺ / ↻) : pour redresser un scan ou une photo qui n'a pas été prise droite. La rotation modifie le fichier stocké.
+- Pas de bouton "Ouvrir" : il n'y a pas de champs à afficher pour ce type de réponse, seulement le fichier déposé.
+- La **suppression** de la réponse supprime aussi le fichier et sa miniature.
 
 ---
 

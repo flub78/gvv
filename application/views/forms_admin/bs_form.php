@@ -103,6 +103,19 @@
                     <label class="form-check-label" for="is_global"><?= $this->lang->line('forms_checkbox_global_form') ?></label>
                 </div>
 
+                <div class="form-check mb-3">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="allow_upload_response"
+                        name="allow_upload_response"
+                        value="1"
+                        <?= !empty($form['allow_upload_response']) ? 'checked' : '' ?>
+                    >
+                    <label class="form-check-label" for="allow_upload_response"><?= $this->lang->line('forms_checkbox_allow_upload_response') ?></label>
+                    <div class="form-text"><?= $this->lang->line('forms_help_allow_upload_response') ?></div>
+                </div>
+
                 <?php if (isset($form_mode) && $form_mode === 'edit'): ?>
                     <?php $current_status = isset($form['status']) ? $form['status'] : 'draft'; ?>
                     <?php if ($current_status === 'published'): ?>

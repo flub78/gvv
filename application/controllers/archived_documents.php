@@ -1438,56 +1438,28 @@ class Archived_documents extends Gvv_Controller {
             ? $doc['mime_type']
             : @mime_content_type($real);
 
-        $tmp_base = sys_get_temp_dir() . '/gvv_rotate_' . uniqid();
+        $this->load->library('file_rotator');
+        $result = $this->file_rotator->rotate($real, $mime, $direction);
 
-        if ($mime === 'application/pdf') {
-            $qpdf = trim(@shell_exec('which qpdf 2>/dev/null'));
-            if (!$qpdf || !file_exists($qpdf)) {
-                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('archived_documents_rotate_tool_missing') . ' (qpdf)</div>');
-                redirect('archived_documents/view/' . $id);
-                return;
+        if (!$result['success']) {
+            switch ($result['error_code']) {
+                case 'tool_missing':
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">'
+                        . $this->lang->line('archived_documents_rotate_tool_missing') . ' (' . $result['tool'] . ')</div>');
+                    break;
+                case 'rotate_failed':
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">'
+                        . $this->lang->line('archived_documents_rotate_error') . ': '
+                        . htmlspecialchars($result['detail']) . '</div>');
+                    break;
+                case 'not_supported':
+                    $this->session->set_flashdata('message', '<div class="alert alert-warning">'
+                        . $this->lang->line('archived_documents_rotate_not_supported') . '</div>');
+                    break;
+                default:
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger">Direction invalide</div>');
+                    break;
             }
-            $angle = ($direction === 'cw') ? '+90' : '-90';
-            $tmp_file = $tmp_base . '.pdf';
-            $cmd = escapeshellcmd($qpdf) . ' --rotate=' . $angle . ':1-z '
-                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
-            exec($cmd, $output, $return_code);
-            if ($return_code !== 0 || !file_exists($tmp_file)) {
-                @unlink($tmp_file);
-                $this->session->set_flashdata('message', '<div class="alert alert-danger">'
-                    . $this->lang->line('archived_documents_rotate_error') . ': '
-                    . htmlspecialchars(implode(' ', $output)) . '</div>');
-                redirect('archived_documents/view/' . $id);
-                return;
-            }
-            rename($tmp_file, $real);
-
-        } elseif (strpos($mime, 'image/') === 0) {
-            $convert = trim(@shell_exec('which convert 2>/dev/null'));
-            if (!$convert || !file_exists($convert)) {
-                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('archived_documents_rotate_tool_missing') . ' (convert)</div>');
-                redirect('archived_documents/view/' . $id);
-                return;
-            }
-            $degrees = ($direction === 'cw') ? '90' : '-90';
-            $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
-            $tmp_file = $tmp_base . '.' . $ext;
-            $cmd = escapeshellcmd($convert) . ' -rotate ' . escapeshellarg($degrees) . ' '
-                 . escapeshellarg($real) . ' ' . escapeshellarg($tmp_file) . ' 2>&1';
-            exec($cmd, $output, $return_code);
-            if ($return_code !== 0 || !file_exists($tmp_file)) {
-                @unlink($tmp_file);
-                $this->session->set_flashdata('message', '<div class="alert alert-danger">'
-                    . $this->lang->line('archived_documents_rotate_error') . ': '
-                    . htmlspecialchars(implode(' ', $output)) . '</div>');
-                redirect('archived_documents/view/' . $id);
-                return;
-            }
-            rename($tmp_file, $real);
-
-        } else {
-            $this->session->set_flashdata('message', '<div class="alert alert-warning">'
-                . $this->lang->line('archived_documents_rotate_not_supported') . '</div>');
             redirect('archived_documents/view/' . $id);
             return;
         }

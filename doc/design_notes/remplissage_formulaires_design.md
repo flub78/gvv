@@ -4,7 +4,7 @@ Date : 30 mai 2026
 
 ## Contexte
 
-Le module passe d'une logique centrée « template PDF » à une logique « formulaires HTML natifs » avec lien public anonyme, pré-remplissage GVV et archivage documentaire.
+Le remplissage de formulaire est basé sur une logique « formulaires HTML natifs » avec lien public anonyme, pré-remplissage GVV et archivage documentaire. Cela a été préféré à l'approche initiale basée sur des formulaires pdf.
 
 La stratégie d'implémentation privilégie d'abord un socle autonome de formulaires HTML avec gestion des fichiers, puis ajoute dans un second temps le pré-remplissage GVV et l'intégration workflow avancée.
 
@@ -43,6 +43,8 @@ Pipeline principal :
 ## Note d'évolution probable
 
 Le module formulaires est la base fonctionnelle retenue. Pour les cas d'usage proches des procédures, l'orientation privilégiée est d'ajouter une orchestration légère (état de dossier, validation documentaire, décision finale) au-dessus des soumissions de formulaires, sans séparer prématurément deux moteurs techniques.
+
+Il est probable qu'on ajoute un support pour le téléchargement des formulaires sous forme pdf ou image. Les formulaires pourront être remplis en ligne ou scanné et téléchargés. Bien sûr dans le second, ce ne seront que des images et ils ne pourront pas être intégrés dans les workflow GVV. L'application n'aura pas accès au contenu. Et elle ne sera même pas capable de vérifier que c'est bien un formulaire qui a été téléchargé.
 
 ## Phasage recommandé
 
@@ -641,6 +643,139 @@ Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être
 - Réutiliser le formulaire existant de création de document archivé.
 - Depuis le détail d'une réponse, un bouton ouvre ce formulaire avec le PDF imprimable déjà pré-rempli à la place du sélecteur de fichier.
 - Journalisation dans les fichiers de logs.
+
+## Comparaison forms vs archived_documents
+
+**Statut : analyse de cadrage, sert de base à la section suivante.**
+
+### Points communs
+
+- Rattachement à une entité GVV via FK (`archived_documents` : `pilot_login`/`section_id`/`vld_id`/`machine_immat` ; `forms`/`form_submissions` : `club` sur le formulaire, contexte porté par `context_params`).
+- Champs d'audit complets (`created_at`/`updated_at`/`created_by`/`updated_by`).
+- Support de fichiers et consultation admin (listes, filtres, prévisualisation).
+- Peuvent aboutir à un PDF affichable/imprimable.
+
+### Différences
+
+| Dimension | `archived_documents` | `forms` / `form_submissions` |
+|---|---|---|
+| Cardinalité fichier | 1 fichier courant, avec chaîne de versions (`previous_version_id`, `is_current_version`) | N fichiers par soumission (`form_submission_files`), sans notion de version |
+| Rapport au temps | Objet vivant : `valid_from`/`valid_until` + `alarm_disabled` → rappels d'expiration | Objet instantané : `submitted_at` fige un état, pas d'expiration |
+| Remplacement | Explicite et exclusif : une nouvelle version remplace la précédente comme « courante » | Aucune relation entre soumissions : deux soumissions coexistent sans hiérarchie |
+| Circuit de validation | `validation_status` (pending/approved/rejected) + `validated_by/at` + `rejection_reason` | Statut purement technique (`started`/`submitted`/`archived`), pas de circuit métier natif |
+| Portée/confidentialité | `document_types.scope` (pilot/section/club) + `is_private` + `is_admin_only` | Rattachement club/section simple sur `forms`, pas de notion de propriétaire individuel |
+| Nature de la donnée | Fichier opaque (scan/photo), contenu non interprété par GVV | Données structurées champ par champ (`form_submission_values`), interrogeables individuellement |
+| Recherche | Transversale par type de document × entité | Par formulaire × soumission |
+| Fréquence typique | Rare, longue durée de vie (licence, certificat médical) | Peut être fréquente et éphémère (un briefing par vol) |
+
+Point de cohérence avec l'existant : les qualifications (`events` + `events.date_expiration`, `events.signature_path`) constituent déjà une troisième représentation, indépendante d'`archived_documents` — la donnée structurée (numéro, expiration) vit dans `events`, la preuve scannée optionnelle dans `archived_documents`. C'est déjà le pattern « donnée structurée / preuve documentaire découplées » que l'idée d'image optionnelle pour les qualifications appelle de ses vœux.
+
+### Stratégie d'utilisation
+
+**Utiliser `archived_documents` quand :**
+- le document a une durée de validité et doit déclencher une alerte d'expiration ;
+- le document provient de l'extérieur (autorité, scan papier) sans besoin de contenu structuré ;
+- une notion de version courante remplaçant la précédente a du sens (renouvellement) ;
+- un circuit d'approbation admin (pending/approved/rejected) est nécessaire ;
+- le document est attaché à une entité durable (pilote, machine, section) plutôt qu'à un événement ponctuel.
+
+**Utiliser `forms` quand :**
+- la donnée doit être exploitée champ par champ (recherche, export, alimentation d'une autre table GVV) ;
+- le parcours de collecte a de la valeur en soi (multi-pages, validation de saisie, signature, pré-remplissage GVV) ;
+- il n'y a pas de notion d'expiration — événement transactionnel instantané (inscription, déclaration, engagement) ;
+- plusieurs soumissions successives et indépendantes sont normales, sans notion de remplacement.
+
+### Association dans les workflows GVV
+
+`archived_documents` est le référentiel de vérité documentaire durable ; `forms` est un mécanisme de collecte parmi d'autres (à côté de l'upload direct). Trois patterns d'association :
+
+1. **Formulaire comme mode de saisie alternatif d'un document archivé** — cas déjà en place sur `bs_uploadView.php` : bouton « upload » (scan) et bouton « signer en ligne » (`forms`) aboutissent tous deux, in fine, au même `archived_documents` rattaché au VLD. C'est le pattern que couvre la piste `generate_archived_document` de la section suivante — le formulaire devient une façade de saisie, `archived_documents` reste l'unique source de vérité consultable en admin.
+2. **Formulaire comme flux transactionnel autonome, jamais archivé** — catégories 1/2 (inscription club, demande interne) : pas de document durable à produire.
+3. **Formulaire référençant un document archivé en lecture** — composant 4 (`form_document_refs`) : le document est affiché *dans* le formulaire (ex. règlement intérieur à lire avant signature) sans que le formulaire ne le génère.
+
+Ces trois rôles ne sont pas concurrents : un même formulaire de catégorie 3 peut à la fois référencer un document existant (pattern 3) et produire un nouveau document archivé à la soumission (pattern 1).
+
+### Grille de décision
+
+| Besoin métier | Mécanisme recommandé |
+|---|---|
+| Certificat médical, licence fédérale, assurance | `archived_documents` seul — upload direct, alerte d'expiration native |
+| Attestation générée par GVV après une formation | `forms` (catégorie 3) → `archived_documents` généré automatiquement (flag) |
+| Inscription club, demande de contact | `forms` seul (catégorie 1) — pas d'archivage |
+| Briefing passager VLD | `forms` (catégorie 3) → `archived_documents` généré automatiquement (flag), cohérent avec le flux upload existant |
+| Règlement intérieur à consulter avant signature | `archived_documents` référencé en lecture dans une page de formulaire (composant 4) |
+| Qualification (ITP, FI, brevet…) | `events` pour la donnée structurée (déjà en place) + `archived_documents` optionnel pour la preuve scannée |
+
+Le fil conducteur : `forms` répond à « comment collecter », `archived_documents` répond à « où vit la vérité durable et consultable ». Un formulaire de catégorie 3 n'est pas une alternative à `archived_documents`, c'est une deuxième porte d'entrée vers lui.
+
+### 15. Soumission par téléchargement (scan)
+
+#### Principe
+
+Alternative au remplissage en ligne : sur un formulaire où l'option est activée, l'utilisateur peut télécharger un scan ou une photo du formulaire imprimé puis rempli à la main, à la place de la saisie champ par champ. GVV n'a pas accès au contenu de ce fichier et ne peut pas vérifier qu'il s'agit effectivement du bon formulaire — cohérent avec la limite déjà anticipée en "Note d'évolution probable".
+
+Un seul fichier par réponse.
+
+#### Activation par formulaire
+
+Colonne `forms.allow_upload_response` (booléen, défaut faux). Le bouton "Télécharger un formulaire prérempli" n'apparaît sur la page publique et dans la liste admin que si cette option est activée. Choix délibéré d'un opt-in plutôt qu'une disponibilité systématique : un formulaire de catégorie 3 qui met à jour une entité GVV à la soumission (ex. `briefing_passager_ulm`) n'a pas nécessairement de sens à accepter un simple scan opaque.
+
+#### Modèle de données
+
+Pas de nouvelle table. Réutilisation de `form_submissions` et `form_submission_files` :
+
+```sql
+ALTER TABLE forms ADD COLUMN allow_upload_response TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE form_submissions ADD COLUMN submission_method ENUM('online','upload') NOT NULL DEFAULT 'online';
+ALTER TABLE form_submissions ADD COLUMN upload_comment VARCHAR(255) NULL;
+```
+
+Le fichier téléchargé est stocké comme une ligne `form_submission_files` avec `field_id = NULL` et `widget_name = 'uploaded_response'` — le même mécanisme que celui introduit en migration 137 pour les widgets de signature définis uniquement en HTML (sans `form_fields` associé). Aucune valeur n'est stockée dans `form_submission_values` : une réponse de type `upload` n'a pas de champs remplis.
+
+`response_identifier` (calculé dans `form_submissions_model::get_form_submissions()`) devient :
+
+```sql
+COALESCE(
+  (SELECT GROUP_CONCAT(...) FROM form_submission_values ... WHERE is_identifier = 1),
+  s.upload_comment
+) AS response_identifier
+```
+
+Le commentaire saisi dans la modale de téléchargement sert donc directement de colonne "Identification" dans la liste des réponses.
+
+#### Stockage fichier
+
+```
+uploads/reponses/{form_id}/reponse_{submission_id}.{ext}
+```
+
+L'identifiant de soumission (auto-increment, déjà unique) sert de numéro de séquence — pas de compteur par formulaire à gérer, pas de risque de collision en cas de téléchargements concurrents.
+
+Types acceptés : `pdf`, `jpg`, `jpeg`, `png`, `gif`, `webp` — les seuls formats supportant à la fois la rotation et la génération de miniature dans l'existant.
+
+#### Réutilisation stricte de l'infrastructure `archived_documents`
+
+| Besoin | Composant réutilisé |
+|---|---|
+| Compression | `File_compressor` (GD pour image, Ghostscript pour PDF) — inchangé |
+| Miniature PDF | `Pdf_thumbnail` (`thumb_<nom>.jpg` à côté du fichier) — inchangé |
+| Miniature cliquable dans la liste | Helper `attachment($id, $filename, $url)` — inchangé, gère déjà image/PDF/fallback |
+| Zone de dépôt drag&drop | Pattern natif `initDropZone()` de `archived_documents/bs_formView.php` — dupliqué dans la modale de téléchargement |
+| Service sécurisé du fichier | `forms_admin/submission_file/{form_id}/{submission_id}/{file_id}?inline=1` — déjà protégé contre le path traversal, déjà existant |
+
+#### Rotation — extraction de `File_rotator`
+
+La rotation (qpdf pour PDF page 1, ImageMagick `convert` pour image) existe déjà, mais inline dans `Archived_documents::rotate()`. Elle est extraite dans une librairie partagée `application/libraries/File_rotator.php` (`rotate($absolute_path, $mime, $direction)`), utilisée à la fois par `archived_documents` (refactor, comportement inchangé) et par le nouveau `forms_admin::submission_rotate()`. Un test PHPUnit est ajouté pour cette librairie avant le refactor, aucun test ne couvrant la rotation aujourd'hui.
+
+#### Liste admin des réponses
+
+Pour une ligne dont `submission_method = 'upload'` :
+- bouton "Ouvrir" masqué (pas de vue "champs" pertinente — aucune valeur structurée) ;
+- bouton "Générer PDF" remplacé par la miniature cliquable (ouvre le fichier en grand dans un nouvel onglet) ;
+- boutons de rotation (↺/↻), visibles uniquement pour ce type de réponse ;
+- suppression : supprime aussi le fichier et sa miniature du disque.
+
+Accès direct par URL aux vues `submission()`/`submission_view()`/`submission_pdf()` pour une réponse de type `upload` : redirection directe vers le fichier (pas de gabarit de champs à remplir).
 
 ## Réflexion en cours — Notification post-soumission et archivage générique
 
