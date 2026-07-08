@@ -152,6 +152,8 @@ $lang['forms_message_no_preview']         = 'Aperçu inline non disponible pour 
 
 // Confirmations
 $lang['forms_confirm_delete_form']        = 'Supprimer ce formulaire ?';
+$lang['forms_confirm_delete_workflow_form'] = 'Attention : ce formulaire est utilisé par un workflow GVV (briefing passager). Le supprimer rendra cette fonctionnalité indisponible. Continuer ?';
+$lang['forms_confirm_unpublish_workflow_form'] = 'Attention : ce formulaire est utilisé par un workflow GVV (briefing passager). Le dépublier ou l\'archiver rendra cette fonctionnalité indisponible. Continuer ?';
 $lang['forms_confirm_delete_page']        = 'Supprimer cette page ?';
 $lang['forms_confirm_delete_field']       = 'Supprimer ce champ ?';
 $lang['forms_modal_title_delete']         = 'Supprimer la réponse';

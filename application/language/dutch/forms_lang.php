@@ -152,6 +152,8 @@ $lang['forms_message_no_preview']         = 'Inline voorbeeld niet beschikbaar v
 
 // Confirmations
 $lang['forms_confirm_delete_form']        = 'Dit formulier verwijderen?';
+$lang['forms_confirm_delete_workflow_form'] = 'Let op: dit formulier wordt gebruikt door een GVV-workflow (briefing passagier). Verwijderen maakt deze functie onbeschikbaar. Doorgaan?';
+$lang['forms_confirm_unpublish_workflow_form'] = 'Let op: dit formulier wordt gebruikt door een GVV-workflow (briefing passagier). Depubliceren of archiveren maakt deze functie onbeschikbaar. Doorgaan?';
 $lang['forms_confirm_delete_page']        = 'Deze pagina verwijderen?';
 $lang['forms_confirm_delete_field']       = 'Dit veld verwijderen?';
 $lang['forms_modal_title_delete']         = 'Reactie verwijderen';

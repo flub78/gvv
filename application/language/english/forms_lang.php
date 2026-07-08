@@ -152,6 +152,8 @@ $lang['forms_message_no_preview']         = 'Inline preview not available for th
 
 // Confirmations
 $lang['forms_confirm_delete_form']        = 'Delete this form?';
+$lang['forms_confirm_delete_workflow_form'] = 'Warning: this form is used by a GVV workflow (passenger briefing). Deleting it will make that feature unavailable. Continue?';
+$lang['forms_confirm_unpublish_workflow_form'] = 'Warning: this form is used by a GVV workflow (passenger briefing). Unpublishing or archiving it will make that feature unavailable. Continue?';
 $lang['forms_confirm_delete_page']        = 'Delete this page?';
 $lang['forms_confirm_delete_field']       = 'Delete this field?';
 $lang['forms_modal_title_delete']         = 'Delete response';

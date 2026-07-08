@@ -77,7 +77,7 @@ Les formulaires se répartissent en trois catégories selon leur degré d'intég
 |---|---|---|---|---|
 | **1 — Autonome** | Formulaire public sans contexte GVV | Aucun | Stockage `form_submissions` uniquement | `inscription_club` |
 | **2 — Contextuel GVV** | Formulaire pré-rempli depuis les données GVV | `data-gvv-source` ou params URL | Stockage `form_submissions` uniquement, PDF manuel | `attestation_de_formation_ulm` |
-| **3 — Intégré workflow** | Formulaire déclenche des actions GVV à la soumission | Params URL (valeurs VLD) | Handler post-soumission (archivage, mise à jour entité, token) | `briefing_passager_ulm` |
+| **3 — Intégré workflow** | Formulaire rattaché à une entité GVV, déclenche optionnellement une action à la soumission | Params URL (valeurs VLD) | Rattachement générique (`subject_type`/`subject_id`) + handler optionnel (mise à jour entité) | `briefing_passager_ulm` |
 
 Cette taxonomie guide les décisions d'architecture : les formulaires de catégorie 1 ne sont jamais affectés par les évolutions d'intégration GVV.
 
@@ -264,19 +264,26 @@ Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-s
 3. L'association au pilote reste gérée par le formulaire documentaire existant.
 4. Journalisation dans les fichiers de logs.
 
-### EF10 : Intégration workflow GVV — handler post-soumission
+### EF10 : Intégration workflow GVV — rattachement à une entité et handler post-soumission
 
-Pour les formulaires de catégorie 3 (intégrés dans un workflow GVV), la soumission doit déclencher des actions GVV spécifiques au-delà du simple stockage.
+Pour les formulaires de catégorie 3 (intégrés dans un workflow GVV), deux besoins distincts :
 
-1. Chaque formulaire peut déclarer un handler de post-soumission via un champ de configuration `handler_class`.
-2. Le handler est instancié par `forms_public` après la création de la soumission et appelé avec l'identifiant de la soumission et les paramètres de contexte GVV.
-3. Les paramètres de contexte (token, identifiant d'entité GVV, etc.) sont transmis dans l'URL d'ouverture du formulaire, distincts des valeurs de champs, et stockés avec la soumission dans un champ `context_params` JSON.
-4. Actions typiques d'un handler : génération et archivage automatique du PDF, mise à jour d'une entité GVV (vol de découverte, dossier pilote), invalidation d'un token one-time.
-5. Le handler retourne une URL de redirection pour personnaliser la page de confirmation.
-6. Sur erreur du handler, la soumission reste stockée et peut être retraitée ; l'erreur est journalisée.
-7. Les handlers sont des classes PHP localisées dans `application/libraries/form_handlers/` implémentant une interface commune.
+**A. Rattachement générique à une entité GVV** — savoir, pour une entité GVV donnée (ex. un vol de découverte), si une réponse a déjà été soumise, et faire disparaître cet état si la réponse est supprimée. Ce besoin est couvert nativement par le module `forms`, sans dépendre du système documentaire (`archived_documents`) ni d'un handler.
 
-**Cas d'usage de référence** : le formulaire `briefing_passager_ulm` est intégré dans le workflow de vol de découverte. Actuellement géré par le contrôleur `briefing_sign`, il migre progressivement vers le moteur de formulaires générique avec un handler `BriefingPassagerUlmHandler` qui gère la génération PDF, l'archivage dans `archived_documents`, la mise à jour du vol de découverte et l'invalidation du token one-time.
+1. Une soumission peut être rattachée à une entité GVV via une référence générique (type + identifiant), transmise dans l'URL d'ouverture du formulaire et stockée avec la soumission.
+2. Ce rattachement est générique : un même mécanisme sert n'importe quel workflow GVV qui intègre un formulaire, sans ajout de champ spécifique à ce workflow dans le module formulaires.
+3. La suppression d'une réponse fait immédiatement redevenir l'entité GVV d'origine "sans réponse" — sans action de synchronisation supplémentaire à prévoir.
+
+**B. Handler post-soumission (optionnel)** — pour les formulaires qui doivent en plus déclencher un effet de bord métier léger après soumission (ex. reporter une valeur saisie sur l'entité GVV d'origine).
+
+4. Chaque formulaire peut déclarer un handler de post-soumission via un champ de configuration `handler_class` ; un formulaire sans besoin métier particulier n'en a pas.
+5. Le handler est instancié par `forms_public` après la création de la soumission et appelé avec l'identifiant de la soumission et la référence d'entité (A).
+6. Le handler retourne une URL de redirection pour personnaliser la page de confirmation.
+7. Sur erreur du handler, la soumission reste stockée et peut être retraitée ; l'erreur est journalisée.
+8. Les handlers sont des classes PHP localisées dans `application/libraries/form_handlers/` implémentant une interface commune.
+9. La génération et l'archivage automatique d'un document (`archived_documents`) depuis une soumission n'est pas une action de handler : si ce besoin est retenu un jour, ce sera une option générique du module `forms` (activable par formulaire), pas une responsabilité codée dans un handler métier.
+
+**Cas d'usage de référence** : le formulaire `briefing_passager_ulm` est intégré dans le workflow de vol de découverte, en remplacement complet, à terme, de l'actuel mécanisme (contrôleur `briefing_passager`, upload/signature, `archived_documents`). Il utilise le rattachement générique (A) pour piloter l'indicateur "briefing fait" du vol de découverte, et un handler `BriefingPassagerUlmHandler` (B) pour reporter les valeurs saisies (date du vol, etc.) sur le vol de découverte. Ni génération PDF, ni archivage automatique, ni protection du lien de transfert vers le passager ne sont couverts par cette migration (voir Questions ouvertes).
 
 ### EF11 : Cartes dynamiques dans les dashboards
 
@@ -330,6 +337,10 @@ Sur un formulaire où l'option est explicitement activée par l'admin, l'utilisa
 
 - V1 : éditeur strictement HTML structuré ou blocs UI intermédiaires ?
 - Politique de conservation des fichiers uploadés non archivés ?
-- Niveau d'automatisation d'archivage depuis les workflows ?
-- Stratégie de migration `briefing_sign` → handler : remplacement complet ou cohabitation prolongée ?
+- Niveau d'automatisation d'archivage depuis les workflows ? *(Tranché pour le briefing passager, juillet 2026 : pas d'archivage automatique — reste une option générique future du module `forms` si le besoin réapparaît pour un autre workflow.)*
 - Autres entités GVV à intégrer en catégorie 3 au-delà du briefing passager ?
+- Protection du lien public envoyé au passager (remplace le `briefing_tokens` actuel) : l'utilité même du transfert par QR code/SMS est remise en question (juillet 2026). Si confirmée plus tard, ce sera une fonctionnalité générique de formulaires "transférables", pas propre au briefing passager. Non traitée dans la migration en cours.
+
+### Résolues
+
+- **Stratégie de migration `briefing_sign` → handler** *(juillet 2026)* : remplacement complet, pas de cohabitation prolongée. Séquencement : construire et valider le nouveau mécanisme (`forms` + rattachement générique) sans toucher à l'ancien, ressaisir manuellement les briefings existants (peu nombreux) au moment de la bascule, puis basculer la détection d'un coup. La suppression effective du code de l'ancien mécanisme documentaire reste une décision séparée, ultérieure à la validation en conditions réelles.

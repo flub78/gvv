@@ -58,6 +58,7 @@ $lang['briefing_passager_delete_protected']   = 'Ce briefing ne peut pas être s
 $lang['briefing_passager_not_found']          = 'Briefing introuvable.';
 $lang['briefing_passager_dir_error']          = 'Impossible de créer le répertoire de stockage.';
 $lang['briefing_passager_type_error']         = 'Type de document briefing_passager introuvable.';
+$lang['briefing_passager_form_unavailable']   = 'Le formulaire « %s » n\'existe pas ou n\'est pas publié, la fonctionnalité n\'est pas disponible.';
 
 $lang['briefing_passager_sign_title']         = 'Déclaration d\'acceptation des risques';
 $lang['briefing_passager_sign_scan_qr']       = 'Scannez pour ouvrir sur votre téléphone';

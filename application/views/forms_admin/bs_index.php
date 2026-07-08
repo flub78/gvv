@@ -48,7 +48,9 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $workflow_form_slugs = isset($workflow_form_slugs) ? $workflow_form_slugs : array(); ?>
                         <?php foreach ($forms as $form): ?>
+                                <?php $is_workflow_form = !empty($form['public_slug']) && in_array($form['public_slug'], $workflow_form_slugs, true); ?>
                                 <tr>
                                     <td><code><?= html_escape($form['code']) ?></code></td>
                                     <td><?= html_escape($form['title']) ?></td>
@@ -88,7 +90,8 @@
                                                 <button type="submit" class="btn btn-sm btn-outline-success"><?= $this->lang->line('forms_button_publish') ?></button>
                                             </form>
                                         <?php endif; ?>
-                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_form') ?>');">
+                                        <?php $delete_confirm_msg = $is_workflow_form ? $this->lang->line('forms_confirm_delete_workflow_form') : $this->lang->line('forms_confirm_delete_form'); ?>
+                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $delete_confirm_msg ?>');">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
                                         </form>
                                         </div>

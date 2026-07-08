@@ -235,39 +235,53 @@ Prérequis : Lot 5 terminé.
 - [x] Appliquer `readonly` et enforcement serveur sur les champs listés dans `lock[]`.
 - [x] **Validation non-régression** : PHPUnit 1528 tests verts + Playwright smoke `inscription_club` (soumission anonyme) + `briefing-passager-ulm` avec 5 champs pré-remplis dont 3 verrouillés → comportement correct.
 
-#### Étape 6.2 — Stockage du contexte GVV sur les soumissions
+#### Étape 6.2 — Référence générique au sujet (subject_type / subject_id)
 
-- [ ] Migration : ajouter `context_params TEXT NULL` à `form_submissions`.
-- [ ] Dans `forms_public/submit` : extraire les paramètres contexte de la session, les sérialiser en JSON et les stocker dans `context_params` à la création de la soumission.
-- [ ] **Validation non-régression** : PHPUnit migration up/down + smoke tests catégorie 1 et 2.
+Remplace l'approche `context_params` JSON initialement prévue (abandonnée, voir [Design — décisions actées](../design_notes/remplissage_formulaires_design.md#décisions-actées-juillet-2026--remplacement-du-briefing-passager)) : un couple générique, indexé et interrogeable, plutôt qu'un contexte opaque. Aucune colonne métier (`vld_id`) n'est ajoutée au module `forms`.
 
-#### Étape 6.3 — Infrastructure handler post-soumission
+- [ ] Migration : ajouter `subject_type VARCHAR(50) NULL` et `subject_id INT NULL` à `form_submissions`, index composite `(subject_type, subject_id)`.
+- [ ] Étendre `$b_reserved` dans `forms_public::index()` : remplacer le nom réservé `vld_id` par `subject_type`/`subject_id` génériques ; mémoriser en session par slug (même pattern que `pilot_login`/`instructor_login`).
+- [ ] Dans `forms_public::submit()` : relire `subject_type`/`subject_id` de la session, les transmettre à `Form_submissions_model::create_submission()`.
+- [ ] Nouvelle méthode `Form_submissions_model::get_current_for_subject($subject_type, $subject_id, $form_id = null)` : dernière soumission `status='submitted'` pour ce sujet, `ORDER BY created_at DESC LIMIT 1` (même logique que `archived_documents_model::get_briefing_by_vld()`).
+- [ ] **Validation non-régression** : PHPUnit migration up/down + smoke tests catégorie 1 et 2 (le couple `subject_type`/`subject_id` reste `NULL` pour ces catégories, sans impact).
+
+#### Étape 6.3 — Infrastructure handler post-soumission (optionnel, par formulaire)
 
 - [ ] Migration : ajouter `handler_class VARCHAR(100) NULL` à `forms`.
-- [ ] Créer `application/libraries/form_handlers/GvvFormHandlerInterface.php`.
-- [ ] Dans `forms_public/submit` : après création de la soumission, instancier le handler si `handler_class` est défini, appeler `after_submit($submission_id, $context_params)`, rediriger selon le retour.
+- [ ] Créer `application/libraries/form_handlers/GvvFormHandlerInterface.php` (`after_submit(int $submission_id, ?string $subject_type, ?int $subject_id): array`).
+- [ ] Dans `forms_public/submit` : après création de la soumission, instancier le handler si `handler_class` est défini, appeler `after_submit($submission_id, $subject_type, $subject_id)`, rediriger selon le retour.
 - [ ] Journaliser les erreurs handler sans crasher (la soumission reste accessible en admin).
 - [ ] **Validation non-régression** : smoke tests catégorie 1 et 2 — le `handler_class` NULL ne change rien au comportement existant.
 
-#### Étape 6.4 — BriefingPassagerUlmHandler
+#### Étape 6.4 — BriefingPassagerUlmHandler (périmètre réduit)
+
+Périmètre volontairement réduit par rapport à la V0 de cette étape (décision juillet 2026, voir [Design — décisions actées](../design_notes/remplissage_formulaires_design.md#décisions-actées-juillet-2026--remplacement-du-briefing-passager)) : ni génération PDF, ni archivage `archived_documents`, ni invalidation de token — la détection d'existence est déjà couverte par l'étape 6.2 (`subject_type`/`subject_id`), et la protection du lien public est hors périmètre (voir étape 6.5).
 
 - [ ] Créer `application/libraries/form_handlers/BriefingPassagerUlmHandler.php`.
-- [ ] Implémenter `after_submit` : validation token, génération PDF (réutilise logique `submission_pdf`), archivage dans `archived_documents` (lié à `vld_id`), mise à jour `vols_decouverte`, invalidation `briefing_tokens`.
+- [ ] Implémenter `after_submit` : vérifie `$subject_type === 'vols_decouverte'`, récupère le VLD (`$subject_id`), met à jour `vols_decouverte` depuis les valeurs soumises (`date_vol`, `beneficiaire`, `participation`, `urgence`, ...).
 - [ ] Configurer `handler_class = 'BriefingPassagerUlmHandler'` sur le formulaire `briefing_passager_ulm` en base.
-- [ ] **Tests PHPUnit** : BriefingPassagerUlmHandlerTest — token valide → PDF archivé + VLD mis à jour + token invalidé ; token expiré → erreur journalisée.
+- [ ] **Tests PHPUnit** : BriefingPassagerUlmHandlerTest — soumission valide → VLD mis à jour ; sujet absent/invalide → erreur journalisée, pas de crash.
 
-#### Étape 6.5 — Migration briefing_passager/generate_link
+#### Étape 6.5 — Point d'entrée depuis briefing_passager/upload
 
-- [ ] Modifier `briefing_passager/generate_link` : construire l'URL `/forms/fiche-passager?token=...&vld_id=...&date_vol=...&...&lock[]=...` au lieu de `briefing_sign/{token}`.
-- [ ] Vérifier que le QR code et le lien email utilisent la nouvelle URL.
-- [ ] **Playwright** : smoke test briefing complet — génération lien → formulaire pré-rempli → soumission → PDF archivé → confirmation.
+Le bouton `link2` expérimental (derrière le flag `testing_form`) devient le seul point d'entrée vers le briefing passager, remplaçant `link` (ancien flux `briefing_sign`/`briefing_tokens`).
 
-#### Étape 6.6 — Validation finale et retrait briefing_sign
+- [ ] Retirer le flag `testing_form` : le bouton vers `forms/briefing-passager-ulm` devient permanent, l'ancien bouton « signer en ligne » (`briefing_sign`) est retiré de `bs_uploadView.php`.
+- [ ] Construire l'URL avec `subject_type=vols_decouverte&subject_id={vld_id}` + champs de pré-remplissage (voir étape 6.2), sans `token`.
+- [ ] **Hors périmètre** : transfert du lien par QR code/email vers l'appareil du passager (`generate_link`, `briefing_tokens`) — utilité non confirmée (voir Design). Le lien reste ouvert depuis une session GVV authentifiée pour l'instant ; `generate_link`/`briefing_tokens` n'est ni supprimé ni modifié dans cette étape.
+- [ ] **Playwright** : smoke test — bouton briefing depuis `briefing_passager/upload` → formulaire pré-rempli → soumission → VLD mis à jour → confirmation.
 
-- [ ] Vérifier que `briefing_sign` peut être retiré sans casser d'autres dépendances (routes, vues, tests).
-- [ ] Archiver ou supprimer `briefing_sign.php` et ses vues si aucun autre consommateur.
+#### Étape 6.6 — Bascule de la détection « briefing fait » et retrait de l'ancien mécanisme
+
+- [ ] Ressaisir dans le nouveau formulaire les briefings existants encore actifs dans l'ancien mécanisme (peu nombreux, de l'ordre de 4 constatés en juillet 2026 — pas de script de migration de données, ressaisie manuelle).
+- [ ] Basculer `vols_decouverte_model::select_page()` : remplacer la sous-requête `has_briefing` sur `archived_documents`/`document_types` par une sous-requête sur `form_submissions` (`subject_type='vols_decouverte' AND subject_id = vols_decouverte.id`, formulaire `briefing-passager-ulm`, `status='submitted'`).
+- [ ] Adapter la cible du bouton `briefing_vd` (`MetaData::action()`) et/ou la page `briefing_passager/upload` pour refléter le nouveau mécanisme de détection.
+- [ ] Adapter `briefing_passager/admin_list` et `export_pdf` pour lire `form_submissions` (ils dépendaient jusqu'ici de `archived_documents_model->get_briefings_recent()`).
+- [ ] Vérifier que `briefing_sign` peut être retiré sans casser d'autres dépendances (routes, vues, tests) — plus aucun flux ne l'utilise une fois l'étape 6.5 en place.
+- [ ] Archiver ou supprimer `briefing_sign.php` et ses vues si aucun autre consommateur ; laisser `briefing_tokens` en base (pas de suppression de table tant que la question du transfert de lien n'est pas tranchée).
 - [ ] Mettre à jour `routes.php` si nécessaire.
-- [ ] **Playwright non-régression globale** : `inscription_club`, `attestation_de_formation_ulm`, `briefing_passager_ulm`.
+- [ ] **L'ancien mécanisme documentaire** (`briefing_passager::upload/delete`, `archived_documents` type `briefing_passager`) n'est retiré qu'une fois cette bascule validée en conditions réelles — décision de suppression effective traitée séparément, hors de ce lot.
+- [ ] **Playwright non-régression globale** : `inscription_club`, `attestation_de_formation_ulm`, `briefing_passager_ulm` (dont bascule de l'icône : soumission → icône verte, suppression de la réponse → icône grise).
 - [ ] **PHPUnit non-régression** : suite complète verte.
 
 ### Lot 7 — Cartes dynamiques dans les dashboards
@@ -456,8 +470,9 @@ Lots inclus : 8.
 - La signature d'un profil GVV peut pré-remplir le widget.
 
 ### Catégorie 3 (intégré workflow)
-- `BriefingPassagerUlmHandler` opérationnel : PDF archivé, VLD mis à jour, token invalidé.
-- `briefing_passager/generate_link` construit l'URL mécanisme B vers `forms/fiche-passager`.
+- `subject_type`/`subject_id` opérationnel sur `form_submissions` : détection « réponse existante » et bascule à la suppression fonctionnelles sans dépendre d'`archived_documents`.
+- `BriefingPassagerUlmHandler` opérationnel : VLD mis à jour depuis la réponse soumise.
+- Icône « briefing fait » de `vols_decouverte` basée sur `form_submissions`, ancien mécanisme documentaire retiré du chemin de détection (mais pas supprimé du code tant que non décidé séparément).
 - Non-régression catégorie 1 et 2 vérifiée à chaque étape du Lot 6.
 - PHPUnit et Playwright verts sur les trois catégories.
 

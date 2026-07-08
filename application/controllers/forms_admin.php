@@ -14,6 +14,14 @@ class Forms_admin extends MY_Controller {
 
     protected $controller = 'forms_admin';
 
+    /**
+     * public_slug values referenced by GVV workflows outside the forms module
+     * (e.g. briefing_passager.php redirects here). Used to strengthen the
+     * delete/unpublish confirmation for these forms, since removing or
+     * unpublishing them silently breaks the workflow that depends on them.
+     */
+    private $workflow_form_slugs = array('briefing-passager-ulm');
+
     public function __construct() {
         parent::__construct();
 
@@ -53,12 +61,13 @@ class Forms_admin extends MY_Controller {
         $counts     = $this->form_submissions_model->count_by_form($form_ids);
 
         $data = array(
-            'controller'       => $this->controller,
-            'forms'            => $forms,
-            'submission_counts'=> $counts,
-            'section_id'       => $section_id,
-            'success'          => $this->session->flashdata('forms_success') ?: '',
-            'error'            => $this->session->flashdata('forms_error') ?: '',
+            'controller'          => $this->controller,
+            'forms'               => $forms,
+            'submission_counts'   => $counts,
+            'section_id'          => $section_id,
+            'workflow_form_slugs' => $this->workflow_form_slugs,
+            'success'             => $this->session->flashdata('forms_success') ?: '',
+            'error'               => $this->session->flashdata('forms_error') ?: '',
         );
 
         $this->render_view('forms_admin/bs_index', $data);
@@ -100,13 +109,15 @@ class Forms_admin extends MY_Controller {
         $row['is_global'] = empty($row['club']) ? 1 : 0;
 
         $data = array(
-            'controller' => $this->controller,
-            'form_mode'  => 'edit',
-            'form_action'=> site_url('forms_admin/update/' . $id),
-            'submit_label' => 'Enregistrer',
-            'form'       => $row,
-            'section_id' => $section_id,
-            'error'      => '',
+            'controller'       => $this->controller,
+            'form_mode'        => 'edit',
+            'form_action'      => site_url('forms_admin/update/' . $id),
+            'submit_label'     => 'Enregistrer',
+            'form'             => $row,
+            'section_id'       => $section_id,
+            'is_workflow_form' => in_array($row['public_slug'], $this->workflow_form_slugs, true),
+            'is_currently_published' => $row['status'] === 'published',
+            'error'            => '',
         );
 
         $this->render_view('forms_admin/bs_form', $data);
@@ -192,6 +203,8 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'       => $form,
                 'section_id' => $section_id,
+                'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
+                'is_currently_published' => $current['status'] === 'published',
                 'error'      => validation_errors(),
             );
             $this->render_view('forms_admin/bs_form', $data);
@@ -216,6 +229,8 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'         => $form,
                 'section_id'   => $section_id,
+                'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
+                'is_currently_published' => $current['status'] === 'published',
                 'error'        => 'Ce code est déjà utilisé par un autre formulaire.',
             );
             $this->render_view('forms_admin/bs_form', $data);

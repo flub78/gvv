@@ -58,6 +58,7 @@ $lang['briefing_passager_delete_protected']   = 'This briefing cannot be deleted
 $lang['briefing_passager_not_found']          = 'Briefing not found.';
 $lang['briefing_passager_dir_error']          = 'Unable to create storage directory.';
 $lang['briefing_passager_type_error']         = 'Document type briefing_passager not found.';
+$lang['briefing_passager_form_unavailable']   = 'The form "%s" does not exist or is not published, this feature is not available.';
 
 $lang['briefing_passager_sign_title']         = 'Risk acceptance declaration';
 $lang['briefing_passager_sign_scan_qr']       = 'Scan to open on your phone';

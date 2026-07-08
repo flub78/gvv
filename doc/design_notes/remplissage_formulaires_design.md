@@ -22,10 +22,13 @@ Catégorie 2 — Contextuel GVV
   Exemples : attestation_de_formation_ulm
 
 Catégorie 3 — Intégré workflow
-  Lien pré-rempli + token → forms_public → form_submissions + handler
-  Handler → archivage PDF + mise à jour entité GVV + invalidation token
+  Lien pré-rempli, rattaché à une entité GVV (subject_type/subject_id) → forms_public → form_submissions [+ handler optionnel]
+  Détection générique : « une réponse soumise existe-t-elle pour ce sujet ? » sans dépendre d'archived_documents.
+  Handler (optionnel) → effets de bord métier légers (ex. mise à jour d'une entité GVV existante)
   Exemples : briefing_passager_ulm
 ```
+
+**Refactoring en cours (juillet 2026)** : le mécanisme de rattachement à une entité GVV (`subject_type`/`subject_id`, voir section 13) est conçu comme un **socle standalone du module `forms`**, indépendant de tout workflow particulier — n'importe quel formulaire catégorie 3 futur s'en sert de la même manière. `briefing_passager_ulm` en est le premier consommateur, dans le cadre du remplacement complet, à terme, de l'actuel mécanisme de briefing passager (`briefing_passager` controller, upload/signature, `archived_documents` type `briefing_passager`). L'archivage automatique d'un document depuis une soumission reste une **extension future optionnelle** du module `forms` (voir section 13 et « Réflexion en cours ») — elle ne conditionne pas la bascule du briefing passager vers `forms`.
 
 **Invariant de non-régression** : toute évolution d'intégration GVV (mécanisme B, handlers) est additive. Les formulaires de catégorie 1 ne sont jamais impactés.
 
@@ -215,11 +218,12 @@ Pour les formulaires dont le contexte provient d'une entité GVV autre qu'un mem
 /forms/{slug}
   ?{field_name}={valeur}     ← pré-remplissage du champ correspondant
   &lock[]={field_name}       ← verrouillage serveur de ce champ
-  &{context_key}={valeur}    ← paramètre de contexte GVV (token, vld_id, etc.)
+  &subject_type={valeur}     ← référence générique à l'entité GVV d'origine (section 13)
+  &subject_id={valeur}
 ```
 
 `forms_public` sépare les paramètres en trois catégories :
-- **Contexte** : noms réservés (`token`, `vld_id`, `lock`, `page`, `pilot_login`, `instructor_login`) → stockés dans `context_params` JSON de la soumission, jamais injectés dans les champs
+- **Contexte** : noms réservés (`subject_type`, `subject_id`, `lock`, `page`, `pilot_login`, `instructor_login`) → mémorisés en session par slug, jamais injectés dans les champs ; `subject_type`/`subject_id` sont stockés avec la soumission (section 13), les autres ne sont pas persistés au-delà de la session de remplissage
 - **Pré-remplissage** : tout paramètre dont le nom correspond à un `form_fields.name` → injecté comme valeur par défaut dans le champ HTML
 - **Verrouillage** : paramètres listés dans `lock[]` → champ `readonly` + enforcement serveur à la soumission
 
@@ -484,56 +488,81 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 | 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
 | 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
 
-### 13. Intégration workflow GVV — handler post-soumission
+### 13. Intégration workflow GVV — référence générique au sujet et handler post-soumission
 
 #### Principe
 
-Pour les formulaires de catégorie 3, `forms_public/submit` appelle un handler après avoir créé la soumission. Le handler exécute les actions GVV métier.
+Deux mécanismes distincts, l'un générique et systématique, l'autre optionnel :
 
-#### Évolutions de schéma
+1. **Référence au sujet (`subject_type`/`subject_id`)** — rattache une soumission à l'entité GVV qui l'a fait naître (ex. un vol de découverte). C'est un socle standalone du module `forms` : n'importe quel contrôleur GVV peut l'utiliser pour poser la question « existe-t-il une réponse soumise pour cette entité ? » et pour faire retomber cet état à la suppression de la réponse — sans dépendre d'un handler ni d'`archived_documents`.
+2. **Handler post-soumission (optionnel)** — pour les formulaires qui doivent déclencher un effet de bord métier léger après soumission (ex. mettre à jour un champ de l'entité GVV d'origine). Un formulaire sans besoin métier particulier n'a pas de handler.
+
+Ces deux mécanismes sont indépendants : un formulaire catégorie 3 peut n'utiliser que la référence au sujet (détection + retour de suppression), sans aucun handler.
+
+#### Référence générique au sujet
 
 ```sql
--- Déclarer un handler sur un formulaire
-ALTER TABLE forms ADD COLUMN handler_class VARCHAR(100) NULL
-    COMMENT 'Classe PHP du handler post-soumission, NULL = aucun';
-
--- Stocker le contexte GVV avec la soumission
-ALTER TABLE form_submissions ADD COLUMN context_params TEXT NULL
-    COMMENT 'JSON : token, vld_id, etc. — paramètres de contexte non liés aux champs';
+ALTER TABLE form_submissions ADD COLUMN subject_type VARCHAR(50) NULL
+    COMMENT 'Type d''entité GVV rattachée, ex. vols_decouverte — générique, aucun sens métier propre au module forms';
+ALTER TABLE form_submissions ADD COLUMN subject_id INT NULL
+    COMMENT 'Identifiant de l''entité GVV rattachée';
+-- index composite (subject_type, subject_id)
 ```
 
-#### Interface des handlers
+Référence polymorphe classique, volontairement portée par `form_submissions` (et non par `forms`) : chaque *soumission* est rattachée à une entité, pas le formulaire lui-même (un même formulaire catégorie 3 peut être réutilisé par plusieurs types de sujets si le besoin apparaît). Aucune colonne métier (`vld_id`, `stage_id`, ...) n'est ajoutée au module `forms` — c'est précisément ce que ce couple générique évite.
+
+`forms_public` traite `subject_type`/`subject_id` comme des paramètres de contexte réservés (au même titre que `pilot_login`/`instructor_login`) : lus en GET sur la première page, mémorisés en session par slug, jamais injectés comme valeur de champ, transmis à `Form_submissions_model::create_submission()` à la soumission finale.
+
+Détection et retour de suppression :
+
+```php
+// Form_submissions_model
+public function get_current_for_subject($subject_type, $subject_id, $form_id = null) {
+    // dernière soumission status='submitted' pour ce sujet (et ce formulaire si précisé)
+    // ORDER BY created_at DESC LIMIT 1 — même logique que archived_documents_model::get_briefing_by_vld()
+}
+```
+
+Cette méthode est une requête *live*, pas un indicateur mis en cache : la suppression d'une soumission (`delete_submission()`, déjà existant) fait automatiquement disparaître le résultat, sans code de synchronisation supplémentaire à écrire. C'est le même principe que l'actuelle sous-requête `has_briefing` sur `archived_documents`.
+
+**Décision (juillet 2026)** : ce couple remplace l'usage initialement envisagé d'un `context_params TEXT` JSON pour porter `vld_id`. `context_params` est abandonné — la seule autre valeur de contexte envisagée (`token`, pour protéger le lien public) est elle-même hors périmètre actuel (voir « Décisions actées » ci-dessous). Si un besoin de contexte non structuré et non interrogeable réapparaît, il pourra être réintroduit à ce moment-là.
+
+#### Interface des handlers (optionnel, par formulaire)
 
 ```php
 // application/libraries/form_handlers/GvvFormHandlerInterface.php
 interface GvvFormHandlerInterface {
-    // Appelé après création de la soumission.
+    // Appelé après création de la soumission, uniquement si forms.handler_class est défini.
     // Retourne : ['redirect_url' => string|null, 'error' => string|null]
-    public function after_submit(int $submission_id, array $context_params): array;
+    public function after_submit(int $submission_id, ?string $subject_type, ?int $subject_id): array;
 }
+```
+
+```sql
+ALTER TABLE forms ADD COLUMN handler_class VARCHAR(100) NULL
+    COMMENT 'Classe PHP du handler post-soumission, NULL = aucun';
 ```
 
 Les handlers sont placés dans `application/libraries/form_handlers/`. `forms_public` instancie la classe déclarée dans `forms.handler_class` si elle implémente l'interface.
 
 #### Handler de référence : BriefingPassagerUlmHandler
 
-```
-BriefingPassagerUlmHandler::after_submit($submission_id, $context)
-  ├── Valide le token ($context['token']) → non expiré, non utilisé
-  ├── Récupère le VLD ($context['vld_id'])
-  ├── Génère le PDF (réutilise la logique submission_pdf)
-  ├── Archive dans archived_documents (lié au vld_id)
-  ├── Met à jour vols_decouverte (beneficiaire, participation, urgence)
-  ├── Marque briefing_tokens.used_at
-  └── Retourne redirect_url → page de confirmation briefing
-```
-
-#### Construction de l'URL par briefing_passager/generate_link
+Périmètre volontairement réduit par rapport à la V0 de cette section : plus de génération PDF, plus d'archivage, plus d'invalidation de token — ces responsabilités sont retirées du handler (voir « Réflexion en cours »).
 
 ```
-/forms/fiche-passager
-  ?token=<64hex>                    ← contexte (→ context_params)
-  &vld_id=<id>                      ← contexte (→ context_params)
+BriefingPassagerUlmHandler::after_submit($submission_id, $subject_type, $subject_id)
+  ├── Vérifie $subject_type === 'vols_decouverte'
+  ├── Récupère le VLD ($subject_id)
+  ├── Met à jour vols_decouverte depuis les valeurs soumises (date_vol, beneficiaire, participation, urgence, ...)
+  └── Retourne redirect_url → page de confirmation générique du module forms
+```
+
+#### Construction de l'URL par briefing_passager
+
+```
+/forms/briefing-passager-ulm
+  ?subject_type=vols_decouverte     ← référence générique (→ form_submissions.subject_type/subject_id)
+  &subject_id=<vld_id>
   &date_vol=2024-06-10              ← pré-remplissage mécanisme B
   &site_decollage=LFOG
   &identification_ulm=F-JXXX
@@ -545,6 +574,8 @@ BriefingPassagerUlmHandler::after_submit($submission_id, $context)
   &lock[]=site_decollage
   &lock[]=identification_ulm
 ```
+
+Pas de `token` dans cette URL : le lien n'est pas protégé contre le devinage/rejeu à ce stade (voir « Réflexion en cours »). Utilisable tel quel pour un usage interne (pilote/instructeur connecté qui ouvre le formulaire depuis `briefing_passager/upload`), pas encore pour un envoi externe non supervisé (SMS/QR code au passager).
 
 #### Comportement en cas d'erreur handler
 
@@ -650,7 +681,7 @@ Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être
 
 ### Points communs
 
-- Rattachement à une entité GVV via FK (`archived_documents` : `pilot_login`/`section_id`/`vld_id`/`machine_immat` ; `forms`/`form_submissions` : `club` sur le formulaire, contexte porté par `context_params`).
+- Rattachement à une entité GVV via FK (`archived_documents` : `pilot_login`/`section_id`/`vld_id`/`machine_immat` ; `forms`/`form_submissions` : `club` sur le formulaire, rattachement générique `subject_type`/`subject_id` sur la soumission).
 - Champs d'audit complets (`created_at`/`updated_at`/`created_by`/`updated_by`).
 - Support de fichiers et consultation admin (listes, filtres, prévisualisation).
 - Peuvent aboutir à un PDF affichable/imprimable.
@@ -687,13 +718,14 @@ Point de cohérence avec l'existant : les qualifications (`events` + `events.dat
 
 ### Association dans les workflows GVV
 
-`archived_documents` est le référentiel de vérité documentaire durable ; `forms` est un mécanisme de collecte parmi d'autres (à côté de l'upload direct). Trois patterns d'association :
+`archived_documents` est le référentiel de vérité documentaire durable ; `forms` est un mécanisme de collecte parmi d'autres (à côté de l'upload direct). Quatre patterns d'association :
 
-1. **Formulaire comme mode de saisie alternatif d'un document archivé** — cas déjà en place sur `bs_uploadView.php` : bouton « upload » (scan) et bouton « signer en ligne » (`forms`) aboutissent tous deux, in fine, au même `archived_documents` rattaché au VLD. C'est le pattern que couvre la piste `generate_archived_document` de la section suivante — le formulaire devient une façade de saisie, `archived_documents` reste l'unique source de vérité consultable en admin.
-2. **Formulaire comme flux transactionnel autonome, jamais archivé** — catégories 1/2 (inscription club, demande interne) : pas de document durable à produire.
-3. **Formulaire référençant un document archivé en lecture** — composant 4 (`form_document_refs`) : le document est affiché *dans* le formulaire (ex. règlement intérieur à lire avant signature) sans que le formulaire ne le génère.
+1. **Formulaire comme mode de saisie alternatif d'un document archivé** — pattern historique, encore en place sur l'actuel `bs_uploadView.php` (`briefing_passager`, mécanisme appelé à disparaître) : bouton « upload » (scan) et bouton « signer en ligne » aboutissaient tous deux, in fine, au même `archived_documents` rattaché au VLD.
+2. **Formulaire comme détecteur d'état autonome, rattaché à une entité GVV** — pattern retenu pour `briefing_passager_ulm` (juillet 2026) : la soumission porte `subject_type`/`subject_id` (section 13), interrogeable directement pour savoir « une réponse existe-t-elle pour cette entité ? », sans passer par `archived_documents`. C'est le pattern par défaut pour tout futur formulaire catégorie 3 qui n'a pas de besoin d'archivage documentaire durable.
+3. **Formulaire comme flux transactionnel autonome, jamais rattaché** — catégories 1/2 (inscription club, demande interne) : pas d'entité GVV à rattacher, pas de document durable à produire.
+4. **Formulaire référençant un document archivé en lecture** — composant 4 (`form_document_refs`) : le document est affiché *dans* le formulaire (ex. règlement intérieur à lire avant signature) sans que le formulaire ne le génère.
 
-Ces trois rôles ne sont pas concurrents : un même formulaire de catégorie 3 peut à la fois référencer un document existant (pattern 3) et produire un nouveau document archivé à la soumission (pattern 1).
+Ces rôles ne sont pas concurrents : un même formulaire de catégorie 3 peut cumuler plusieurs patterns (ex. référencer un document existant en lecture tout en étant rattaché à une entité via `subject_type`/`subject_id`). Le pattern 1 reste documenté pour mémoire le temps que l'ancien mécanisme de briefing passager soit effectivement retiré ; il n'est plus le modèle à suivre pour de nouveaux formulaires.
 
 ### Grille de décision
 
@@ -702,7 +734,7 @@ Ces trois rôles ne sont pas concurrents : un même formulaire de catégorie 3 p
 | Certificat médical, licence fédérale, assurance | `archived_documents` seul — upload direct, alerte d'expiration native |
 | Attestation générée par GVV après une formation | `forms` (catégorie 3) → `archived_documents` généré automatiquement (flag) |
 | Inscription club, demande de contact | `forms` seul (catégorie 1) — pas d'archivage |
-| Briefing passager VLD | `forms` (catégorie 3) → `archived_documents` généré automatiquement (flag), cohérent avec le flux upload existant |
+| Briefing passager VLD | `forms` (catégorie 3), détection via `subject_type`/`subject_id` ; archivage vers `archived_documents` non requis (option future générique, non activée pour ce cas) |
 | Règlement intérieur à consulter avant signature | `archived_documents` référencé en lecture dans une page de formulaire (composant 4) |
 | Qualification (ITP, FI, brevet…) | `events` pour la donnée structurée (déjà en place) + `archived_documents` optionnel pour la preuve scannée |
 
@@ -777,28 +809,23 @@ Pour une ligne dont `submission_method = 'upload'` :
 
 Accès direct par URL aux vues `submission()`/`submission_view()`/`submission_pdf()` pour une réponse de type `upload` : redirection directe vers le fichier (pas de gabarit de champs à remplir).
 
-## Réflexion en cours — Notification post-soumission et archivage générique
+## Décisions actées (juillet 2026) — remplacement du briefing passager
 
-**Statut : discussion ouverte, non tranchée — à reprendre.**
+**Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**
 
-Point de départ : l'expérimentation d'un second bouton de signature sur `briefing_passager/upload` (derrière le flag `testing_form`) qui redirige vers `/forms/briefing-passager-ulm` a fait remonter deux questions non résolues par la section 13 (handler post-soumission) : comment le contrôleur initiateur (`briefing_passager`) apprend-il la fin du remplissage, et faut-il systématiquement matérialiser un `archived_documents` pour chaque formulaire de catégorie 3 ?
+Point de départ : l'expérimentation d'un second bouton de signature sur `briefing_passager/upload` (derrière le flag `testing_form`) qui redirige vers `/forms/briefing-passager-ulm` a fait remonter plusieurs questions non résolues par la V0 de la section 13. Discussion tranchée comme suit.
 
-### Notification du contrôleur initiateur
+### Rattachement à l'entité GVV
 
-Deux mécanismes envisagés :
+**Décision** : couple générique `subject_type`/`subject_id` sur `form_submissions` (section 13), pas de colonne métier dédiée. Renversement de la position précédente (« `archived_documents.vld_id` reste dédié, pas de généralisation tant qu'un seul cas d'usage existe ») : le module `forms` doit rester intégrable dans d'autres workflows futurs sans jamais avoir à ajouter de colonne spécifique à chacun. `briefing_passager_ulm` est le premier cas d'usage de ce socle générique, pas un cas particulier qui le justifierait a posteriori.
 
-- **Handler synchrone** (celui déjà décrit en section 13) : le handler s'exécute dans la requête de soumission elle-même et écrit directement l'état en base (archivage, mise à jour VLD, invalidation token). Ne dépend pas de la survie d'un navigateur jusqu'à la fin — important si le passager termine sur son propre appareil (QR code) sans le pilote présent.
-- **Callback URL fournie par le contrôleur initiateur** : redirection du navigateur en fin de soumission vers une URL construite par `briefing_passager` (avec form_id/submission_id/erreur). Plus générique côté moteur de formulaires, mais pose un problème de sécurité (ids séquentiels devinables dans `forms_admin/submission_pdf/{form_id}/{submission_id}`, nécessiterait un token signé façon `briefing_tokens`) et suppose qu'un navigateur est encore présent à la fin.
+### Faut-il archiver dans `archived_documents` à chaque soumission ?
 
-**Piste retenue pour poursuivre** : garder le handler synchrone comme source de vérité (section 13), et traiter un éventuel retour visuel vers `briefing_passager` comme un simple confort UX (`return_url` de redirection, sans porter de données), pas comme le mécanisme de fiabilité.
+**Décision : non, pas pour cette migration.** L'archivage automatique (flag `generate_archived_document` + `document_type_id`, esquissé ci-dessous) reste une extension future possible du module `forms`, mais elle est retirée du chemin critique de la migration du briefing passager :
+- la détection « une réponse existe pour ce sujet » ne dépend plus d'`archived_documents` (voir `subject_type`/`subject_id` ci-dessus) ;
+- `briefing_passager/admin_list` et `export_pdf`, qui listent aujourd'hui les briefings via `archived_documents_model->get_briefings_recent()`, seront adaptés pour lire `form_submissions` directement lors de la bascule — pas de dépendance à un archivage automatique pour rester fonctionnels.
 
-### Faut-il toujours archiver dans `archived_documents` ?
-
-Argument pour : cohérence avec UC1 (upload) et l'existant `briefing_passager/admin_list` + `export_pdf`, qui listent déjà les briefings passagers via `archived_documents_model->get_briefings_recent()` — un formulaire non archivé y serait invisible. Cohérence aussi avec la carte "briefing existant" de `bs_uploadView.php`, alimentée par `get_briefing_by_vld()`.
-
-Argument contre : tendance du projet à créer des `document_type` à la volée à chaque nouveau besoin, ce qui brouille la recherche admin. `forms` est au contraire un ensemble restreint et explicitement géré (chaque formulaire est créé/publié par un admin) — s'appuyer dessus plutôt que sur une nouvelle prolifération de types.
-
-**Piste retenue pour poursuivre** : ajouter un flag générique plutôt qu'un handler métier par formulaire pour la seule partie archivage :
+Si le besoin d'archivage réapparaît plus tard (pour ce formulaire ou un autre), l'esquisse reste valable et **doit rester générique** — pas de logique spécifique au briefing passager dans le module `forms` :
 
 ```sql
 ALTER TABLE forms ADD COLUMN generate_archived_document TINYINT(1) DEFAULT 0
@@ -807,12 +834,19 @@ ALTER TABLE forms ADD COLUMN document_type_id INT NULL
     COMMENT 'FK document_types, type utilisé pour l''archivage automatique';
 ```
 
-Avec ce flag, l'archivage (rendu PDF + création de la ligne `archived_documents`, identique à un upload normal) devient un comportement générique du moteur de formulaires, déclenché pour tout formulaire qui l'active — sans écrire de classe PHP dédiée. Le `handler_class` de la section 13 se recentrerait alors sur les seuls effets de bord non couverts par l'archivage générique (ex. invalidation de `briefing_tokens`).
+### Handler synchrone vs callback URL
 
-Points volontairement non tranchés :
+**Décision : handler synchrone** (section 13), conservé mais recentré sur le seul effet de bord retenu pour ce cas d'usage : la mise à jour de `vols_decouverte` depuis les valeurs soumises (ex. `date_vol`). Le handler s'exécute dans la requête de soumission elle-même — il n'y a pas de callback URL séparé à construire, et pas de dépendance à la survie d'un navigateur après la soumission.
 
-- **Rattachement à l'entité GVV** : `archived_documents.vld_id` reste une colonne dédiée pour ce cas d'usage. Pas de généralisation vers un couple polymorphe (`subject_type`/`subject_id`) tant qu'un seul cas d'usage (VLD) existe — à reconsidérer si un deuxième cas apparaît.
-- **Exclusif vs cumulatif** : une fois un `archived_documents` existant pour un contexte donné, faut-il remplacer entièrement le bouton de remplissage par un lien de téléchargement (exclusif), ou conserver les deux comme c'est le cas aujourd'hui dans `bs_uploadView.php` (cumulatif) ?
+### Protection du lien public (transfert vers le passager)
+
+**Hors périmètre de cette migration (juillet 2026).** L'utilité même du transfert du lien de briefing par QR code/SMS vers l'appareil du passager (mécanisme actuel `briefing_passager/generate_link` + `briefing_tokens`) est remise en question — le besoin réel n'est pas confirmé. `briefing_tokens` n'est pas touché par cette migration et continue, si nécessaire, de protéger l'ancien flux `briefing_sign` le temps qu'il existe encore.
+
+**Si le besoin est confirmé plus tard**, la protection de lien devra être une **fonctionnalité générique du module `forms`** (ex. `forms.is_transferable` ou équivalent, avec un mécanisme de token générique commun à tous les formulaires marqués transférables) — pas un mécanisme propre au briefing passager. Non conçu ni chiffré ici, faute de besoin confirmé.
+
+### Exclusif vs cumulatif (ancien mécanisme upload vs nouveau formulaire)
+
+Sans objet pour la migration : le nouveau mécanisme ne produit plus d'`archived_documents`, donc pas de concurrence à arbitrer entre bouton d'upload et lien de formulaire sur le même document. Le remplacement se fait par bascule nette de la détection (voir plan, Lot 6 étape 6.6), pas par cumul des deux sources.
 
 ## API interne proposee
 

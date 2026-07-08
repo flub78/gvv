@@ -29,6 +29,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->load->model('membres_model');
         $this->load->model('sections_model');
         $this->load->model('configuration_model');
+        $this->load->model('forms_model');
         $this->lang->load('briefing_passager');
         $this->lang->load('vols_decouverte');
         $this->load->library('upload');
@@ -225,6 +226,23 @@ class Briefing_passager extends Gvv_Controller {
                 return;
             }
 
+            $form_slug = 'briefing-passager-ulm';
+            $target_form = $this->forms_model->get_by_public_slug($form_slug);
+            if (!$target_form || $target_form['status'] !== 'published') {
+                $this->data['message'] = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> '
+                    . sprintf($this->lang->line('briefing_passager_form_unavailable'), $form_slug)
+                    . '</div>';
+                $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+                $this->data['title']           = $this->lang->line('briefing_passager_upload');
+                $this->data['vld']             = $vld;
+                $this->data['vld_id']          = $vld_id;
+                $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
+                $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
+                $this->_load_upload_selectors();
+                load_last_view('briefing_passager/uploadView', $this->data);
+                return;
+            }
+
             $params = http_build_query(array(
                 'date_vol'           => $vld['date_vol'],
                 'site_decollage'     => $vld['aerodrome'],
@@ -232,7 +250,7 @@ class Briefing_passager extends Gvv_Controller {
                 'nom'                => $vld['beneficiaire'],
                 'pilot_login'        => $vld['pilote'],
             ));
-            redirect('forms/briefing-passager-ulm?' . $params);
+            redirect('forms/' . $form_slug . '?' . $params);
             return;
         }
 

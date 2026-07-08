@@ -18,7 +18,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="post" action="<?= isset($form_action) ? $form_action : site_url('forms_admin/store') ?>">
+            <form method="post" id="gvv-form-admin-form" action="<?= isset($form_action) ? $form_action : site_url('forms_admin/store') ?>">
                 <?php if (!empty($section_id) && (int) $section_id > 0): ?>
                     <div class="alert alert-info">
                         <?= $this->lang->line('forms_alert_section_active') ?> <strong><?= (int) $section_id ?></strong>
@@ -131,6 +131,22 @@
                             <option value="archived"  <?= $current_status === 'archived'  ? 'selected' : '' ?>><?= $this->lang->line('forms_status_archived') ?></option>
                         </select>
                     </div>
+                    <?php if (!empty($is_workflow_form) && !empty($is_currently_published)): ?>
+                    <script>
+                    (function () {
+                        var formEl = document.getElementById('gvv-form-admin-form');
+                        var statusEl = document.getElementById('status');
+                        if (!formEl || !statusEl) return;
+                        formEl.addEventListener('submit', function (e) {
+                            if (statusEl.value !== 'published') {
+                                if (!confirm("<?= $this->lang->line('forms_confirm_unpublish_workflow_form') ?>")) {
+                                    e.preventDefault();
+                                }
+                            }
+                        });
+                    })();
+                    </script>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div class="d-flex gap-2">

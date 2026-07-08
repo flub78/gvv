@@ -58,6 +58,7 @@ $lang['briefing_passager_delete_protected']   = 'Deze briefing kan niet worden v
 $lang['briefing_passager_not_found']          = 'Briefing niet gevonden.';
 $lang['briefing_passager_dir_error']          = 'Kan de opslagmap niet aanmaken.';
 $lang['briefing_passager_type_error']         = 'Documenttype briefing_passager niet gevonden.';
+$lang['briefing_passager_form_unavailable']   = 'Het formulier "%s" bestaat niet of is niet gepubliceerd, deze functie is niet beschikbaar.';
 
 $lang['briefing_passager_sign_title']         = 'Risicoaanvaardingsverklaring';
 $lang['briefing_passager_sign_scan_qr']       = 'Scan om te openen op uw telefoon';
