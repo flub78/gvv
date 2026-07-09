@@ -33,6 +33,8 @@ class Form_submissions_model extends CI_Model {
             'status'          => isset($data['status']) ? $data['status'] : 'submitted',
             'submission_method' => isset($data['submission_method']) ? $data['submission_method'] : 'online',
             'upload_comment'  => isset($data['upload_comment']) ? $data['upload_comment'] : null,
+            'subject_type'    => isset($data['subject_type']) ? $data['subject_type'] : null,
+            'subject_id'      => isset($data['subject_id']) ? $data['subject_id'] : null,
             'submitter_email' => isset($data['submitter_email']) ? $data['submitter_email'] : null,
             'submitter_name'  => isset($data['submitter_name']) ? $data['submitter_name'] : null,
             'source_ip'       => isset($data['source_ip']) ? $data['source_ip'] : null,
@@ -76,6 +78,30 @@ class Form_submissions_model extends CI_Model {
             ->row_array();
 
         return $row ?: false;
+    }
+
+    /**
+     * Returns the current (latest submitted) submission for a generic subject
+     * reference (subject_type / subject_id), or null if none exists.
+     * Same lookup logic as archived_documents_model::get_briefing_by_vld().
+     *
+     * @param string   $subject_type
+     * @param int      $subject_id
+     * @param int|null $form_id Optional filter on a specific form.
+     * @return array|null
+     */
+    public function get_current_for_subject($subject_type, $subject_id, $form_id = null) {
+        $this->db->where('subject_type', (string) $subject_type);
+        $this->db->where('subject_id', (int) $subject_id);
+        $this->db->where('status', 'submitted');
+        if ($form_id !== null) {
+            $this->db->where('form_id', (int) $form_id);
+        }
+        $this->db->order_by('created_at', 'desc');
+        $this->db->limit(1);
+        $row = $this->db->get($this->table)->row_array();
+
+        return $row ?: null;
     }
 
     public function count_by_form(array $form_ids) {

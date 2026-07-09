@@ -239,11 +239,11 @@ Prérequis : Lot 5 terminé.
 
 Remplace l'approche `context_params` JSON initialement prévue (abandonnée, voir [Design — décisions actées](../design_notes/remplissage_formulaires_design.md#décisions-actées-juillet-2026--remplacement-du-briefing-passager)) : un couple générique, indexé et interrogeable, plutôt qu'un contexte opaque. Aucune colonne métier (`vld_id`) n'est ajoutée au module `forms`.
 
-- [ ] Migration : ajouter `subject_type VARCHAR(50) NULL` et `subject_id INT NULL` à `form_submissions`, index composite `(subject_type, subject_id)`.
-- [ ] Étendre `$b_reserved` dans `forms_public::index()` : remplacer le nom réservé `vld_id` par `subject_type`/`subject_id` génériques ; mémoriser en session par slug (même pattern que `pilot_login`/`instructor_login`).
-- [ ] Dans `forms_public::submit()` : relire `subject_type`/`subject_id` de la session, les transmettre à `Form_submissions_model::create_submission()`.
-- [ ] Nouvelle méthode `Form_submissions_model::get_current_for_subject($subject_type, $subject_id, $form_id = null)` : dernière soumission `status='submitted'` pour ce sujet, `ORDER BY created_at DESC LIMIT 1` (même logique que `archived_documents_model::get_briefing_by_vld()`).
-- [ ] **Validation non-régression** : PHPUnit migration up/down + smoke tests catégorie 1 et 2 (le couple `subject_type`/`subject_id` reste `NULL` pour ces catégories, sans impact).
+- [x] Migration : ajouter `subject_type VARCHAR(50) NULL` et `subject_id INT NULL` à `form_submissions`, index composite `(subject_type, subject_id)`.
+- [x] Étendre `$b_reserved` dans `forms_public::index()` : remplacer le nom réservé `vld_id` par `subject_type`/`subject_id` génériques ; mémoriser en session par slug (même pattern que `pilot_login`/`instructor_login`).
+- [x] Dans `forms_public::submit()` : relire `subject_type`/`subject_id` de la session, les transmettre à `Form_submissions_model::create_submission()`.
+- [x] Nouvelle méthode `Form_submissions_model::get_current_for_subject($subject_type, $subject_id, $form_id = null)` : dernière soumission `status='submitted'` pour ce sujet, `ORDER BY created_at DESC LIMIT 1` (même logique que `archived_documents_model::get_briefing_by_vld()`).
+- [x] **Validation non-régression** : PHPUnit migration up/down + smoke tests catégorie 1 et 2 (le couple `subject_type`/`subject_id` reste `NULL` pour ces catégories, sans impact). Suite complète (5 suites, 1558 tests) verte, mêmes 46 skips pré-existants. Validation fonctionnelle réelle sur gvv.net (curl + session `ci_sessions`) : `inscription-club` (catégorie 1) et `attestation-de-formation-ulm` (catégorie 2, chargement pré-rempli) inchangés ; `briefing-passager-ulm` avec `subject_type=vols_decouverte&subject_id=16143` en URL → capturé en session → transmis à la soumission → `form_submissions.subject_type`/`subject_id` correctement renseignés.
 
 #### Étape 6.3 — Infrastructure handler post-soumission (optionnel, par formulaire)
 

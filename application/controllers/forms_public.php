@@ -73,10 +73,12 @@ class Forms_public extends CI_Controller {
             $old_values
         );
 
-        $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
-        $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);
-        $session_key_b_prefill  = 'forms_b_prefill_'       . md5($slug);
-        $session_key_b_lock     = 'forms_b_lock_'           . md5($slug);
+        $session_key_pilot        = 'forms_gvv_pilot_'      . md5($slug);
+        $session_key_instructor   = 'forms_gvv_instructor_'  . md5($slug);
+        $session_key_b_prefill    = 'forms_b_prefill_'       . md5($slug);
+        $session_key_b_lock       = 'forms_b_lock_'           . md5($slug);
+        $session_key_subject_type = 'forms_subject_type_'     . md5($slug);
+        $session_key_subject_id   = 'forms_subject_id_'       . md5($slug);
 
         // Mechanism A — pilot/instructor login
         $get_pilot      = trim((string) $this->input->get('pilot_login'));
@@ -87,9 +89,15 @@ class Forms_public extends CI_Controller {
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
 
+        // Generic subject reference (subject_type / subject_id) — same pattern as pilot/instructor login.
+        $get_subject_type = trim((string) $this->input->get('subject_type'));
+        $get_subject_id   = trim((string) $this->input->get('subject_id'));
+        if ($get_subject_type !== '') $this->session->set_userdata($session_key_subject_type, $get_subject_type);
+        if ($get_subject_id   !== '') $this->session->set_userdata($session_key_subject_id, $get_subject_id);
+
         // Mechanism B — arbitrary field values from URL query string
         // Reserved names that are never injected as field values.
-        $b_reserved = array('page', 'token', 'vld_id', 'lock', 'pilot_login', 'instructor_login');
+        $b_reserved = array('page', 'token', 'subject_type', 'subject_id', 'lock', 'pilot_login', 'instructor_login');
         $all_get    = $this->input->get();
         if (is_array($all_get)) {
             $new_prefill = array();
@@ -264,6 +272,10 @@ class Forms_public extends CI_Controller {
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
 
+        // Generic subject reference (subject_type / subject_id), set in index() from the URL.
+        $subject_type = $this->session->userdata('forms_subject_type_' . md5($slug)) ?: null;
+        $subject_id   = $this->session->userdata('forms_subject_id_'   . md5($slug)) ?: null;
+
         // Fallback: read from hidden POST inputs (set by bs_show.php) and refresh session.
         $post_pilot      = trim((string) $this->input->post('gvv_pilot_login'));
         $post_instructor = trim((string) $this->input->post('gvv_instructor_login'));
@@ -419,6 +431,8 @@ class Forms_public extends CI_Controller {
         $submission_id = $this->form_submissions_model->create_submission(array(
             'form_id'         => (int) $form['id'],
             'status'          => 'submitted',
+            'subject_type'    => $subject_type,
+            'subject_id'      => $subject_id !== null ? (int) $subject_id : null,
             'submitter_email' => $submitter_email,
             'submitter_name'  => $submitter_name,
             'source_ip'       => $this->input->ip_address(),
