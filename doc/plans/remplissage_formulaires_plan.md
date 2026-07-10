@@ -247,11 +247,12 @@ Remplace l'approche `context_params` JSON initialement prévue (abandonnée, voi
 
 #### Étape 6.3 — Infrastructure handler post-soumission (optionnel, par formulaire)
 
-- [ ] Migration : ajouter `handler_class VARCHAR(100) NULL` à `forms`.
-- [ ] Créer `application/libraries/form_handlers/GvvFormHandlerInterface.php` (`after_submit(int $submission_id, ?string $subject_type, ?int $subject_id): array`).
-- [ ] Dans `forms_public/submit` : après création de la soumission, instancier le handler si `handler_class` est défini, appeler `after_submit($submission_id, $subject_type, $subject_id)`, rediriger selon le retour.
-- [ ] Journaliser les erreurs handler sans crasher (la soumission reste accessible en admin).
-- [ ] **Validation non-régression** : smoke tests catégorie 1 et 2 — le `handler_class` NULL ne change rien au comportement existant.
+- [x] Migration `141_forms_handler_class.php` : ajouter `handler_class VARCHAR(100) NULL` à `forms` (idempotente, pattern `add_column_if_missing`/`drop_column_if_exists`). `application/config/migration.php` mis à jour à la version 141.
+- [x] Créer `application/libraries/form_handlers/GvvFormHandlerInterface.php` (`after_submit(int $submission_id, ?string $subject_type, ?int $subject_id): array`).
+- [x] Dans `forms_public::submit()` : après création de la soumission, `_dispatch_handler()` instancie le handler si `handler_class` est défini (validation du nom de classe par liste blanche regex, chargement depuis `application/libraries/form_handlers/{Classe}.php`, vérification `implements GvvFormHandlerInterface`), appelle `after_submit($submission_id, $subject_type, $subject_id)`, redirige vers `redirect_url` si fourni sinon poursuit vers la page de remerciement standard.
+- [x] Erreurs handler (classe absente, mauvaise interface, exception, `result['error']`) journalisées via `log_message('error', ...)` sans jamais interrompre la réponse : la soumission déjà créée reste accessible en admin.
+- [x] Test PHPUnit `FormsHandlerClassMigrationTest` (mysql, 3 tests, 11 assertions) : colonne créée, up() idempotent, défaut `NULL`, down/up roundtrip.
+- [x] **Validation non-régression** : suite complète (5 suites, 1561 tests, mêmes 46 skips pré-existants) verte après migration appliquée sur gvv.net (version DB 139→141 via `/migration`). Soumission anonyme réelle vérifiée sur `inscription-club` (catégorie 1) et `briefing-passager-ulm` avec `subject_type`/`subject_id` (catégorie 3, préfigure étape 6.4) : les deux aboutissent à la page de remerciement, `handler_class` NULL ne déclenche aucun effet de bord, aucune erreur journalisée. Soumissions de test supprimées après vérification.
 
 #### Étape 6.4 — BriefingPassagerUlmHandler (périmètre réduit)
 

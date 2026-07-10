@@ -464,6 +464,18 @@ class Forms_public extends CI_Controller {
         $this->session->unset_userdata('forms_b_lock_'    . md5($slug));
 
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+
+        $handler_result = $this->_dispatch_handler(
+            $form,
+            (int) $submission_id,
+            $subject_type,
+            $subject_id !== null ? (int) $subject_id : null
+        );
+        if (!empty($handler_result['redirect_url'])) {
+            redirect($handler_result['redirect_url']);
+            return;
+        }
+
         $uploaded_names = array();
         foreach ($uploaded_files as $uploaded_file) {
             if (!empty($uploaded_file['original_name'])) {
@@ -592,6 +604,56 @@ class Forms_public extends CI_Controller {
         );
 
         $this->render_view('forms_public/bs_thanks', $data);
+    }
+
+    /**
+     * Instantiate and invoke the optional post-submission handler declared on
+     * forms.handler_class (Lot 6, étape 6.3). No-op if handler_class is empty.
+     * Errors (missing class, wrong interface, exception) are logged and
+     * swallowed: the submission is already saved and stays reachable from admin.
+     *
+     * @return array|null ['redirect_url' => string|null, 'error' => string|null]
+     */
+    private function _dispatch_handler($form, $submission_id, $subject_type, $subject_id) {
+        $class = isset($form['handler_class']) ? trim((string) $form['handler_class']) : '';
+        if ($class === '') {
+            return null;
+        }
+
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $class)) {
+            log_message('error', 'forms_public: invalid handler_class "' . $class . '" for form ' . $form['id']);
+            return null;
+        }
+
+        $interface_path = APPPATH . 'libraries/form_handlers/GvvFormHandlerInterface.php';
+        $handler_path   = APPPATH . 'libraries/form_handlers/' . $class . '.php';
+
+        if (!is_file($interface_path) || !is_file($handler_path)) {
+            log_message('error', 'forms_public: handler class file not found for "' . $class . '" (form ' . $form['id'] . ')');
+            return null;
+        }
+
+        require_once $interface_path;
+        require_once $handler_path;
+
+        if (!class_exists($class, false) || !in_array('GvvFormHandlerInterface', class_implements($class), true)) {
+            log_message('error', 'forms_public: handler class "' . $class . '" does not implement GvvFormHandlerInterface');
+            return null;
+        }
+
+        try {
+            $handler = new $class();
+            $result = $handler->after_submit((int) $submission_id, $subject_type, $subject_id);
+        } catch (\Throwable $e) {
+            log_message('error', 'forms_public: handler "' . $class . '" threw an exception: ' . $e->getMessage());
+            return null;
+        }
+
+        if (!empty($result['error'])) {
+            log_message('error', 'forms_public: handler "' . $class . '" reported an error for submission ' . $submission_id . ': ' . $result['error']);
+        }
+
+        return is_array($result) ? $result : null;
     }
 
     private function find_page_by_number(array $pages, $page_number) {
