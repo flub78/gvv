@@ -83,6 +83,7 @@ define('PO', 5);        // Vol porte ouverte
 define('BIA', 6);       // Vol BIA
 define('CONVOYAGE', 7);      // Vol de convoyage (facturé à demi-tarif)
 define('REMISE_EN_VOL', 8);  // Remise en vol (heures facturées, pas de supplément DC)
+define('STANDARDISATION', 9); // Vol de standardisation (gratuit)
 
 define('PROPRIO_PRIVE', 1);
 

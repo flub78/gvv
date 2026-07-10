@@ -373,6 +373,15 @@ Button
  [x] Multiple button instances
  [x] Button with empty controller and action
 
+File Rotator
+ [x] Invalid direction is rejected
+ [x] Missing file is not supported
+ [x] Unsupported mime type is rejected
+ [x] Rotate image cw swaps dimensions
+ [x] Rotate image ccw swaps dimensions
+ [x] Rotate pdf reports tool missing or succeeds
+ [x] Rotate image reports failure when target directory is not writable
+
 Formation Progression
  [ ] Calculer return structure
  [ ] Pourcentage acquis calculation
@@ -438,6 +447,12 @@ Reservation Reminder
  [x] Email body event cancel labels annulation
  [x] Sms body fits in 160 chars
  [x] Sms body mentions role and aircraft
+ [x] Daily email body contains date header
+ [x] Daily email body lists multiple flights
+ [x] Daily email body shows dash when no instructor
+ [x] Daily sms body single flight contains details
+ [x] Daily sms body single flight with instructor mentions instructor
+ [x] Daily sms body multiple flights contains link not details
  [x] Handle event skips when reservation not found
  [x] Handle event dispatches to recipients
 

@@ -154,6 +154,12 @@ Categorie Model Integration
  [x] Multiple categories and search
  [x] Transaction rollback
 
+Compta Attachments Authorization
+ [x] Get attachments section is in non tresorier whitelist
+ [x] Get attachments section checks account ownership
+ [x] Non tresorier does not see create button
+ [x] Non tresorier does not see edit delete buttons
+
 Compta Edit Authorization
  [x] Shared modification rights helper supports section context
  [x] Edit paths use has modification rights helper
@@ -466,12 +472,12 @@ Reservation Scheduler
  [x] Scheduler skips reservation not yet in reminder window
 
 Smart Adjustor Correlation Integration
- [x] Correlation for frison against all images
- [x] Correlation for bleuse against all images
- [x] Correlation for lobry against all images
- [x] Correlation for prelevement against all images
- [x] Correlation for frais bancaire against all images
- [x] Correlation for virement emis against all images
+ [ ] Correlation for frison against all images
+ [ ] Correlation for bleuse against all images
+ [ ] Correlation for lobry against all images
+ [ ] Correlation for prelevement against all images
+ [ ] Correlation for frais bancaire against all images
+ [ ] Correlation for virement emis against all images
 
 Users Coherence
  [x] User exists with data set "asterix"

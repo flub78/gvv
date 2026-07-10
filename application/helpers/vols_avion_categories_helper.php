@@ -8,7 +8,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *
  * Règles :
  *   - admin / planchiste       : toutes les catégories
- *   - instructeur              : Standard, VD, Essai, Propriétaire, PO, BIA, Convoyage
+ *   - instructeur              : Standard, VD, Essai, Propriétaire, PO, BIA, Convoyage, Standardisation
  *   - pilote_vd                : Standard, VD, PO, BIA
  *   - pilote_rem               : Standard, Remorquage, Convoyage (JS filtre selon machine)
  *   - propriétaire de machine  : Standard, Vol propriétaire (JS filtre selon machine)
@@ -69,6 +69,11 @@ function compute_vols_avion_categories(array $all, array $roles)
     // Remise en vol (8)
     if ($r['instructeur'] && isset($all[8])) {
         $allowed[8] = $all[8];
+    }
+
+    // Vol de standardisation (9)
+    if ($r['instructeur'] && isset($all[9])) {
+        $allowed[9] = $all[9];
     }
 
     // Vol propriétaire (4) : instructeur OU propriétaire d'au moins une machine

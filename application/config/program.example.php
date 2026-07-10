@@ -74,7 +74,8 @@ $config['categories_vol_avion'] = array(
   4 => "Vol propriétaire",
   5 => "Vol porte ouverte",
   6 => "Vol BIA",
-  7 => "Convoyage"
+  7 => "Convoyage",
+  9 => "Vol de standardisation"
 );
 
 /*
@@ -88,7 +89,8 @@ $config['categories_vol_avion_short'] = array(
   4 => "PROP",
   5 => "PO",
   6 => "BIA",
-  7 => "Conv"
+  7 => "Conv",
+  9 => "Stdz"
 );
 
 /*

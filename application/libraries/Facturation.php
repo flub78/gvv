@@ -354,6 +354,10 @@ class Facturation {
             // Remise en vol : heures facturées au tarif normal, pas de supplément DC
             $desc .= " Remise en vol";
             $dc_a_facturer = FALSE;
+        } elseif ($vol['vacategorie'] == STANDARDISATION) {
+            // Vol de standardisation
+            $desc .= " Standardisation";
+            $free = TRUE;
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol
