@@ -258,10 +258,11 @@ Remplace l'approche `context_params` JSON initialement prévue (abandonnée, voi
 
 Périmètre volontairement réduit par rapport à la V0 de cette étape (décision juillet 2026, voir [Design — décisions actées](../design_notes/remplissage_formulaires_design.md#décisions-actées-juillet-2026--remplacement-du-briefing-passager)) : ni génération PDF, ni archivage `archived_documents`, ni invalidation de token — la détection d'existence est déjà couverte par l'étape 6.2 (`subject_type`/`subject_id`), et la protection du lien public est hors périmètre (voir étape 6.5).
 
-- [ ] Créer `application/libraries/form_handlers/BriefingPassagerUlmHandler.php`.
-- [ ] Implémenter `after_submit` : vérifie `$subject_type === 'vols_decouverte'`, récupère le VLD (`$subject_id`), met à jour `vols_decouverte` depuis les valeurs soumises (`date_vol`, `beneficiaire`, `participation`, `urgence`, ...).
-- [ ] Configurer `handler_class = 'BriefingPassagerUlmHandler'` sur le formulaire `briefing_passager_ulm` en base.
-- [ ] **Tests PHPUnit** : BriefingPassagerUlmHandlerTest — soumission valide → VLD mis à jour ; sujet absent/invalide → erreur journalisée, pas de crash.
+- [x] Créer `application/libraries/form_handlers/BriefingPassagerUlmHandler.php`.
+- [x] Implémenter `after_submit` : vérifie `$subject_type === 'vols_decouverte'`, récupère le VLD (`$subject_id`), met à jour `vols_decouverte` depuis les valeurs soumises (`beneficiaire` = `nom`+`prenom`, `participation` = `poids_declare`, `urgence` = `personne_a_prevenir`, `beneficiaire_tel` = `telephone`, `date_vol`), uniquement si la valeur soumise est non vide et diffère de la valeur actuelle (même garde que l'ancien `briefing_sign::submit()`). `site_decollage`/`identification_ulm` ne sont pas réécrits : verrouillés côté formulaire (pré-remplis depuis `aerodrome`/`airplane_immat`), donc déjà identiques.
+- [x] Configurer `handler_class = 'BriefingPassagerUlmHandler'` sur le formulaire `briefing_passager_ulm` en base (pas d'UI admin pour ce champ — mis à jour directement en base sur gvv2, comme prévu par cette étape).
+- [x] **Tests PHPUnit** : `BriefingPassagerUlmHandlerTest` (mysql, 3 tests, 10 assertions) — soumission valide → VLD mis à jour (`beneficiaire`, `participation`, `urgence`, `beneficiaire_tel`, `date_vol`) ; `subject_type` incorrect → erreur retournée, VLD inchangé ; VLD introuvable → erreur retournée, pas de crash.
+- [x] **Validation non-régression** : suite complète (5 suites, 1564 tests, mêmes 46 skips pré-existants) verte. Soumission réelle sur gvv.net (curl + session, VLD de test dédié) : `briefing-passager-ulm?subject_type=vols_decouverte&subject_id=...` → soumission → `vols_decouverte` mis à jour (`beneficiaire`, `participation`, `urgence`, `beneficiaire_tel`, `date_vol`), page de remerciement affichée, aucune erreur journalisée. `inscription-club` (catégorie 1) et `attestation-de-formation-ulm` (catégorie 2) inchangés. Données de test supprimées après vérification.
 
 #### Étape 6.5 — Point d'entrée depuis briefing_passager/upload
 
