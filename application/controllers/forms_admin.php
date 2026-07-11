@@ -87,9 +87,11 @@ class Forms_admin extends MY_Controller {
                 'public_slug' => '',
                 'css_scope'   => '',
                 'global_css'  => '',
+                'handler_class' => '',
                 'is_global'   => ($section_id <= 0) ? 1 : 0,
             ),
             'section_id' => $section_id,
+            'handler_classes' => $this->_available_handler_classes(),
             'error'      => '',
         );
 
@@ -115,12 +117,56 @@ class Forms_admin extends MY_Controller {
             'submit_label'     => 'Enregistrer',
             'form'             => $row,
             'section_id'       => $section_id,
+            'handler_classes'  => $this->_available_handler_classes(),
             'is_workflow_form' => in_array($row['public_slug'], $this->workflow_form_slugs, true),
             'is_currently_published' => $row['status'] === 'published',
             'error'            => '',
         );
 
         $this->render_view('forms_admin/bs_form', $data);
+    }
+
+    /**
+     * Handler classes declarable via forms.handler_class (Lot 6, étape 6.3/6.4).
+     * Scans application/libraries/form_handlers/ for classes implementing
+     * GvvFormHandlerInterface, excluding the interface file itself.
+     *
+     * @return string[] Class names.
+     */
+    private function _available_handler_classes() {
+        $interface_path = APPPATH . 'libraries/form_handlers/GvvFormHandlerInterface.php';
+        if (!is_file($interface_path)) {
+            return array();
+        }
+        require_once $interface_path;
+
+        $classes = array();
+        foreach (glob(APPPATH . 'libraries/form_handlers/*.php') as $path) {
+            $class = basename($path, '.php');
+            if ($class === 'GvvFormHandlerInterface') {
+                continue;
+            }
+            require_once $path;
+            if (class_exists($class, false) && in_array('GvvFormHandlerInterface', class_implements($class), true)) {
+                $classes[] = $class;
+            }
+        }
+        sort($classes);
+
+        return $classes;
+    }
+
+    /**
+     * Only accept a handler_class value that is actually a known handler
+     * (or empty, to clear it) — the select is the only intended input path,
+     * this guards against a forged POST setting an arbitrary string.
+     */
+    private function _validated_handler_class($value) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        return in_array($value, $this->_available_handler_classes(), true) ? $value : null;
     }
 
     public function store() {
@@ -137,6 +183,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'handler_classes' => $this->_available_handler_classes(),
                 'error'      => validation_errors(),
             );
             $this->render_view('forms_admin/bs_form', $data);
@@ -156,6 +203,7 @@ class Forms_admin extends MY_Controller {
             'global_css'      => (string) $this->input->post('global_css'),
             'required_params' => $this->input->post('required_params') ?: 'none',
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
+            'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
             'created_by'      => $this->dx_auth->get_username(),
         ));
 
@@ -164,6 +212,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'handler_classes' => $this->_available_handler_classes(),
                 'error'      => 'Impossible de creer le formulaire.',
             );
             $this->render_view('forms_admin/bs_form', $data);
@@ -203,6 +252,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'       => $form,
                 'section_id' => $section_id,
+                'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
                 'is_currently_published' => $current['status'] === 'published',
                 'error'      => validation_errors(),
@@ -229,6 +279,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'         => $form,
                 'section_id'   => $section_id,
+                'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
                 'is_currently_published' => $current['status'] === 'published',
                 'error'        => 'Ce code est déjà utilisé par un autre formulaire.',
@@ -247,6 +298,7 @@ class Forms_admin extends MY_Controller {
             'global_css'      => (string) $this->input->post('global_css'),
             'required_params' => $this->input->post('required_params') ?: $current['required_params'],
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
+            'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
             'status'          => $status,
             'updated_by'      => $this->dx_auth->get_username(),
         ));

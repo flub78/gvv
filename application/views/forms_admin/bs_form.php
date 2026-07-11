@@ -116,6 +116,18 @@
                     <div class="form-text"><?= $this->lang->line('forms_help_allow_upload_response') ?></div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label" for="handler_class"><?= $this->lang->line('forms_label_handler_class') ?></label>
+                    <?php $handler_current = isset($form['handler_class']) ? $form['handler_class'] : ''; ?>
+                    <select class="form-select" id="handler_class" name="handler_class" style="max-width:320px;">
+                        <option value="" <?= $handler_current === '' || $handler_current === null ? 'selected' : '' ?>><?= $this->lang->line('forms_handler_class_none') ?></option>
+                        <?php foreach ((isset($handler_classes) ? $handler_classes : array()) as $handler_class_option): ?>
+                            <option value="<?= html_escape($handler_class_option) ?>" <?= $handler_current === $handler_class_option ? 'selected' : '' ?>><?= html_escape($handler_class_option) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text"><?= $this->lang->line('forms_help_handler_class') ?></div>
+                </div>
+
                 <?php if (isset($form_mode) && $form_mode === 'edit'): ?>
                     <?php $current_status = isset($form['status']) ? $form['status'] : 'draft'; ?>
                     <?php if ($current_status === 'published'): ?>

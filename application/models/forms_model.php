@@ -39,6 +39,7 @@ class Forms_model extends CI_Model {
             'global_css'      => isset($data['global_css']) ? $data['global_css'] : null,
             'required_params' => isset($data['required_params']) ? $data['required_params'] : 'none',
             'allow_upload_response' => !empty($data['allow_upload_response']) ? 1 : 0,
+            'handler_class' => isset($data['handler_class']) && $data['handler_class'] !== '' ? $data['handler_class'] : null,
             'created_at'  => $now,
             'updated_at'  => $now,
             'created_by'  => isset($data['created_by']) ? $data['created_by'] : null,
@@ -113,6 +114,9 @@ class Forms_model extends CI_Model {
             'allow_upload_response' => array_key_exists('allow_upload_response', $data)
                 ? (!empty($data['allow_upload_response']) ? 1 : 0)
                 : (isset($current['allow_upload_response']) ? (int) $current['allow_upload_response'] : 0),
+            'handler_class' => array_key_exists('handler_class', $data)
+                ? ($data['handler_class'] !== '' ? $data['handler_class'] : null)
+                : (isset($current['handler_class']) ? $current['handler_class'] : null),
             'updated_at'  => date('Y-m-d H:i:s'),
             'updated_by'  => isset($data['updated_by']) ? $data['updated_by'] : null,
         );

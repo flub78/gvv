@@ -232,6 +232,11 @@ $lang['forms_required_pilot']         = 'Ledselectie (kandidaat/piloot)';
 $lang['forms_required_instructor']    = 'Instructeurselectie';
 $lang['forms_required_both']          = 'Lid + instructeurselectie';
 
+/* handler_class */
+$lang['forms_label_handler_class']    = 'Actie na indiening';
+$lang['forms_help_handler_class']     = 'Activeert een GVV-actie (bijv. een kennismakingsvlucht bijwerken) net na het opslaan van het antwoord.';
+$lang['forms_handler_class_none']     = 'Geen';
+
 /* generate page */
 $lang['forms_button_generate']          = 'Genereren';
 $lang['forms_generate_title']           = 'Voorgevuld formulier genereren';

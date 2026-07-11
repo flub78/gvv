@@ -232,6 +232,11 @@ $lang['forms_required_pilot']         = 'Sélection d\'un membre (candidat/pilot
 $lang['forms_required_instructor']    = 'Sélection d\'un instructeur';
 $lang['forms_required_both']          = 'Sélection membre + instructeur';
 
+/* handler_class */
+$lang['forms_label_handler_class']    = 'Traitement après soumission';
+$lang['forms_help_handler_class']     = 'Déclenche une action GVV (ex. mise à jour d\'un vol de découverte) juste après l\'enregistrement de la réponse.';
+$lang['forms_handler_class_none']     = 'Aucun';
+
 /* generate page */
 $lang['forms_button_generate']          = 'Générer';
 $lang['forms_generate_title']           = 'Générer un formulaire pré-rempli';
