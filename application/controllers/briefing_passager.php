@@ -30,6 +30,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->load->model('sections_model');
         $this->load->model('configuration_model');
         $this->load->model('forms_model');
+        $this->load->model('form_submissions_model');
         $this->lang->load('briefing_passager');
         $this->lang->load('vols_decouverte');
         $this->load->library('upload');
@@ -90,6 +91,11 @@ class Briefing_passager extends Gvv_Controller {
 
         $existing = $this->archived_documents_model->get_briefing_by_vld($vld_id);
 
+        $target_form = $this->forms_model->get_by_public_slug('briefing-passager-ulm');
+        $form_submission = $target_form
+            ? $this->form_submissions_model->get_current_for_subject('vols_decouverte', $vld_id, (int) $target_form['id'])
+            : null;
+
         $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
         $current_user   = $this->session->userdata('DX_username');
 
@@ -108,6 +114,7 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['vld']             = $vld;
         $this->data['vld_id']          = $vld_id;
         $this->data['briefing']        = $existing;
+        $this->data['form_submission'] = $form_submission;
         $this->data['is_dev_user']     = in_array($current_user, $dev_users);
         $this->data['message']         = '';
         $this->_load_upload_selectors();
@@ -249,6 +256,8 @@ class Briefing_passager extends Gvv_Controller {
                 'identification_ulm' => $vld['airplane_immat'],
                 'nom'                => $vld['beneficiaire'],
                 'pilot_login'        => $vld['pilote'],
+                'subject_type'       => 'vols_decouverte',
+                'subject_id'         => $vld_id,
             ));
             redirect('forms/' . $form_slug . '?' . $params);
             return;
@@ -496,7 +505,7 @@ class Briefing_passager extends Gvv_Controller {
             $days = 90;
         }
 
-        $briefings = $this->archived_documents_model->get_briefings_recent($days);
+        $briefings = $this->_merged_briefings_recent($days);
 
         $this->data['title']    = $this->lang->line('briefing_passager_list_title');
         $this->data['briefings'] = $briefings;
@@ -524,7 +533,7 @@ class Briefing_passager extends Gvv_Controller {
             $days = 90;
         }
 
-        $briefings = $this->archived_documents_model->get_briefings_recent($days);
+        $briefings = $this->_merged_briefings_recent($days);
 
         $this->load->library('tcpdf');
         $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8');
@@ -561,7 +570,7 @@ class Briefing_passager extends Gvv_Controller {
             $pdf->Cell($widths[2], 6, $b['airplane_immat'] ?? '', 1);
             $pdf->Cell($widths[3], 6, $b['pilote'] ?? '', 1);
             $pdf->Cell($widths[4], 6, $b['beneficiaire'] ?? '', 1);
-            $pdf->Cell($widths[5], 6, $b['type_code'] === 'briefing_passager' ? $this->lang->line('briefing_passager_mode_upload') : '', 1);
+            $pdf->Cell($widths[5], 6, $this->lang->line('briefing_passager_mode_' . $b['mode']), 1);
             $pdf->Cell($widths[6], 6, $b['uploaded_at'] ? date('d/m/Y', strtotime($b['uploaded_at'])) : '', 1);
             $pdf->Ln();
         }
@@ -653,6 +662,38 @@ class Briefing_passager extends Gvv_Controller {
 
     private function _is_admin() {
         return $this->user_has_role('instructeur') || $this->user_has_role('pilote_vd') || $this->user_has_role('club-admin');
+    }
+
+    /**
+     * Merges briefings from both mechanisms (legacy archived_documents and
+     * the new forms-based briefing-passager-ulm submissions) for admin_list
+     * and export_pdf, sorted by date descending. Transitional (Lot 6, étape
+     * 6.6) : à simplifier à la seule seconde source une fois l'étape 6.5 faite.
+     * @param int $days
+     * @return array
+     */
+    private function _merged_briefings_recent($days) {
+        $legacy = $this->archived_documents_model->get_briefings_recent($days);
+        foreach ($legacy as &$b) {
+            $b['mode'] = ($b['type_code'] === 'briefing_passager') ? 'upload' : 'digital';
+            $b['previewable'] = true;
+        }
+        unset($b);
+
+        $from_forms = $this->form_submissions_model->get_briefing_submissions_recent($days);
+        foreach ($from_forms as &$b) {
+            $b['mode'] = 'form';
+            $b['uploaded_at'] = $b['created_at'];
+            $b['previewable'] = false;
+        }
+        unset($b);
+
+        $briefings = array_merge($legacy, $from_forms);
+        usort($briefings, function ($a, $b) {
+            return strtotime($b['uploaded_at']) <=> strtotime($a['uploaded_at']);
+        });
+
+        return $briefings;
     }
 
     private function _ensure_directory($dirname) {

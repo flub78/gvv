@@ -93,6 +93,19 @@ $this->lang->load('vols_decouverte');
 </div>
 <?php endif; ?>
 
+<?php if (!empty($form_submission)): ?>
+<div class="alert alert-warning d-flex align-items-center gap-3 mb-3">
+    <div class="flex-grow-1">
+        <i class="fas fa-clipboard-check"></i>
+        <?= $this->lang->line('briefing_passager_already_exists') ?>
+        <div class="text-muted small mt-1">
+            <?= htmlspecialchars($form_submission['submitter_name'] ?? '') ?>
+            <?= !empty($form_submission['created_at']) ? '— ' . date('d/m/Y H:i', strtotime($form_submission['created_at'])) : '' ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card">
     <div class="card-body">
         <div class="mb-3">

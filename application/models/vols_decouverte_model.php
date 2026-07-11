@@ -24,9 +24,16 @@ class Vols_decouverte_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
+        // Detection combines both mechanisms during the transition (Lot 6, étape 6.6) :
+        // legacy archived_documents (upload/signature en ligne, encore actif) and the
+        // new forms-based submission (briefing-passager-ulm). Sera simplifié à la seule
+        // seconde source une fois l'étape 6.5 (retrait du bouton "signer en ligne") faite.
         $to_select = 'id, date_vente, date_validite, club, product, beneficiaire, de_la_part, beneficiaire_email, date_vol, pilote, airplane_immat, aerodrome, urgence, cancelled, paiement, participation, prix, saisie_par, created_at, updated_at,'
             . ' (SELECT COUNT(*) FROM archived_documents ad JOIN document_types dt ON ad.document_type_id = dt.id'
-            . '  WHERE ad.vld_id = vols_decouverte.id AND dt.code = \'briefing_passager\' AND ad.is_current_version = 1) AS has_briefing';
+            . '  WHERE ad.vld_id = vols_decouverte.id AND dt.code = \'briefing_passager\' AND ad.is_current_version = 1)'
+            . ' + (SELECT COUNT(*) FROM form_submissions fs JOIN forms f ON fs.form_id = f.id'
+            . '  WHERE f.public_slug = \'briefing-passager-ulm\' AND fs.subject_type = \'vols_decouverte\''
+            . '  AND fs.subject_id = vols_decouverte.id AND fs.status = \'submitted\') AS has_briefing';
 
         // Prepare filter data for the view
         $year = $this->session->userdata('vd_year') ?: date('Y');

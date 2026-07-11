@@ -104,6 +104,33 @@ class Form_submissions_model extends CI_Model {
         return $row ?: null;
     }
 
+    /**
+     * Returns briefing-passager-ulm submissions from the last N days, joined
+     * with the vols_decouverte they are attached to (subject_type/subject_id).
+     * Same shape/purpose as archived_documents_model::get_briefings_recent(),
+     * for the new forms-based briefing mechanism (Lot 6, étape 6.6).
+     * @param int $days
+     * @return array
+     */
+    public function get_briefing_submissions_recent($days = 90) {
+        $this->db->select(
+            'form_submissions.id, form_submissions.created_at,
+             vols_decouverte.date_vol, vols_decouverte.aerodrome,
+             vols_decouverte.airplane_immat, vols_decouverte.beneficiaire,
+             vols_decouverte.pilote'
+        );
+        $this->db->from('form_submissions');
+        $this->db->join('forms', 'form_submissions.form_id = forms.id', 'inner');
+        $this->db->join('vols_decouverte',
+            "form_submissions.subject_id = vols_decouverte.id AND form_submissions.subject_type = 'vols_decouverte'",
+            'inner');
+        $this->db->where('forms.public_slug', 'briefing-passager-ulm');
+        $this->db->where('form_submissions.status', 'submitted');
+        $this->db->where("form_submissions.created_at >= DATE_SUB(NOW(), INTERVAL " . (int) $days . " DAY)", null, false);
+        $this->db->order_by('form_submissions.created_at', 'desc');
+        return $this->db->get()->result_array();
+    }
+
     public function count_by_form(array $form_ids) {
         if (empty($form_ids)) {
             return array();

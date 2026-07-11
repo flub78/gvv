@@ -40,6 +40,7 @@ $lang['briefing_passager_field_statut']       = 'Statut';
 
 $lang['briefing_passager_mode_upload']        = 'Document scanné';
 $lang['briefing_passager_mode_digital']       = 'Signature numérique';
+$lang['briefing_passager_mode_form']          = 'Formulaire en ligne';
 
 $lang['briefing_passager_statut_present']     = 'Présent';
 $lang['briefing_passager_statut_absent']      = 'Absent';

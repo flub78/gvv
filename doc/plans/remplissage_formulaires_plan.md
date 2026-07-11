@@ -275,16 +275,18 @@ Le bouton `link2` expérimental (derrière le flag `testing_form`) devient le se
 
 #### Étape 6.6 — Bascule de la détection « briefing fait » et retrait de l'ancien mécanisme
 
-- [ ] Ressaisir dans le nouveau formulaire les briefings existants encore actifs dans l'ancien mécanisme (peu nombreux, de l'ordre de 4 constatés en juillet 2026 — pas de script de migration de données, ressaisie manuelle).
-- [ ] Basculer `vols_decouverte_model::select_page()` : remplacer la sous-requête `has_briefing` sur `archived_documents`/`document_types` par une sous-requête sur `form_submissions` (`subject_type='vols_decouverte' AND subject_id = vols_decouverte.id`, formulaire `briefing-passager-ulm`, `status='submitted'`).
-- [ ] Adapter la cible du bouton `briefing_vd` (`MetaData::action()`) et/ou la page `briefing_passager/upload` pour refléter le nouveau mécanisme de détection.
-- [ ] Adapter `briefing_passager/admin_list` et `export_pdf` pour lire `form_submissions` (ils dépendaient jusqu'ici de `archived_documents_model->get_briefings_recent()`).
-- [ ] Vérifier que `briefing_sign` peut être retiré sans casser d'autres dépendances (routes, vues, tests) — plus aucun flux ne l'utilise une fois l'étape 6.5 en place.
-- [ ] Archiver ou supprimer `briefing_sign.php` et ses vues si aucun autre consommateur ; laisser `briefing_tokens` en base (pas de suppression de table tant que la question du transfert de lien n'est pas tranchée).
-- [ ] Mettre à jour `routes.php` si nécessaire.
+Réalisée en mode transitoire (juillet 2026) : l'étape 6.5 n'étant pas encore faite (bouton « signer en ligne »/`briefing_sign` toujours actif en prod), la détection combine les deux mécanismes plutôt que de remplacer purement l'un par l'autre — pas de régression pour un briefing signé via l'ancien flux pendant la transition. Le retrait effectif de `briefing_sign` et la bascule pure (une seule source) restent à faire une fois l'étape 6.5 réalisée.
+
+- [x] Ressaisie des briefings actifs anciens : vérifié en base gvv2, 0 cas — les 4 `archived_documents` de type `briefing_passager` existants ont tous `vld_id` NULL (non rattachés à un VLD actif). Rien à ressaisir.
+- [x] `vols_decouverte_model::select_page()` : `has_briefing` additionne désormais la sous-requête historique (`archived_documents`/`document_types`) et une nouvelle sous-requête sur `form_submissions` (`subject_type='vols_decouverte' AND subject_id = vols_decouverte.id`, formulaire `briefing-passager-ulm`, `status='submitted'`) — combinaison transitoire, pas un remplacement pur.
+- [x] Bouton `briefing_vd` (`MetaData::action()`) : inchangé, consomme directement `has_briefing` donc bascule automatiquement avec la requête ci-dessus. Page `briefing_passager/upload` : nouvelle détection via `Form_submissions_model::get_current_for_subject()`, affichée dans un second encart à côté de l'encart existant (`archived_documents`), sans les remplacer.
+- [x] `briefing_passager/admin_list` et `export_pdf` : fusionnent désormais `archived_documents_model->get_briefings_recent()` et `Form_submissions_model::get_briefing_submissions_recent()` (nouvelle méthode), avec un badge « Formulaire en ligne » pour la nouvelle source.
+- [ ] Vérifier que `briefing_sign` peut être retiré sans casser d'autres dépendances (routes, vues, tests) — reporté : le bouton « signer en ligne » reste actif tant que l'étape 6.5 n'est pas faite.
+- [ ] Archiver ou supprimer `briefing_sign.php` et ses vues — reporté, dépend du point précédent.
+- [ ] Mettre à jour `routes.php` — sans objet tant que `briefing_sign` est conservé.
 - [ ] **L'ancien mécanisme documentaire** (`briefing_passager::upload/delete`, `archived_documents` type `briefing_passager`) n'est retiré qu'une fois cette bascule validée en conditions réelles — décision de suppression effective traitée séparément, hors de ce lot.
-- [ ] **Playwright non-régression globale** : `inscription_club`, `attestation_de_formation_ulm`, `briefing_passager_ulm` (dont bascule de l'icône : soumission → icône verte, suppression de la réponse → icône grise).
-- [ ] **PHPUnit non-régression** : suite complète verte.
+- [x] **Playwright non-régression globale** : `briefing-passager-smoke.spec.js` étendu avec un test dédié (soumission → icône verte, suppression de la réponse via `forms_admin/submission_delete` → icône grise) ; 11 tests du fichier verts. `inscription-club` et `attestation-de-formation-ulm` vérifiés sans erreur (accès public 200, pas de fatal error) — non touchés par cette étape, pas de test dédié existant.
+- [x] **PHPUnit non-régression** : `./run-all-tests.sh` — 1568 tests, 1522 passés, 0 échec, 46 skips (préexistants, identiques à avant).
 
 ### Lot 7 — Cartes dynamiques dans les dashboards
 

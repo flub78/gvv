@@ -40,6 +40,7 @@ $lang['briefing_passager_field_statut']       = 'Status';
 
 $lang['briefing_passager_mode_upload']        = 'Gescand document';
 $lang['briefing_passager_mode_digital']       = 'Digitale handtekening';
+$lang['briefing_passager_mode_form']          = 'Online formulier';
 
 $lang['briefing_passager_statut_present']     = 'Aanwezig';
 $lang['briefing_passager_statut_absent']      = 'Afwezig';

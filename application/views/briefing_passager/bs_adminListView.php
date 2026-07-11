@@ -56,17 +56,21 @@ $this->lang->load('briefing_passager');
         <td><?= htmlspecialchars($b['pilote'] ?? '—') ?></td>
         <td><?= htmlspecialchars($b['beneficiaire'] ?? '—') ?></td>
         <td>
-            <?php if ($b['type_code'] === 'briefing_passager'): ?>
+            <?php if ($b['mode'] === 'upload'): ?>
                 <span class="badge bg-secondary"><?= $this->lang->line('briefing_passager_mode_upload') ?></span>
+            <?php elseif ($b['mode'] === 'form'): ?>
+                <span class="badge bg-success"><?= $this->lang->line('briefing_passager_mode_form') ?></span>
             <?php else: ?>
                 <span class="badge bg-primary"><?= $this->lang->line('briefing_passager_mode_digital') ?></span>
             <?php endif; ?>
         </td>
         <td><?= $b['uploaded_at'] ? date('d/m/Y H:i', strtotime($b['uploaded_at'])) : '—' ?></td>
         <td>
+            <?php if (!empty($b['previewable'])): ?>
             <a href="<?= site_url('archived_documents/preview/' . $b['id']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('briefing_passager_view') ?>">
                 <i class="fas fa-eye"></i>
             </a>
+            <?php endif; ?>
         </td>
     </tr>
     <?php endforeach; ?>

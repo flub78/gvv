@@ -9,14 +9,24 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 
 const LOGIN_URL        = '/index.php/auth/login';
 const VLD_LIST_URL     = '/index.php/vols_decouverte';
+const VLD_LIST_PAGE_URL = '/index.php/vols_decouverte/page';
+const VD_CREATE_URL    = '/index.php/vols_decouverte/create';
 const BRIEFING_URL     = '/index.php/briefing_passager';
 const ADMIN_LIST_URL   = '/index.php/briefing_passager/admin_list';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const BRIEFING_USER = { username: 'agecanonix',  password: 'password' };
+
+const DB_CONFIG = {
+    host: 'localhost',
+    user: 'gvv_user',
+    password: 'lfoyfgbj',
+    database: 'gvv2',
+};
 
 async function login(page, user) {
     await page.goto(LOGIN_URL);
@@ -25,6 +35,19 @@ async function login(page, user) {
     await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
+}
+
+async function selectFirstNonEmptyOption(page, selector) {
+    const options = page.locator(`${selector} option`);
+    const count = await options.count();
+    for (let i = 0; i < count; i++) {
+        const value = (await options.nth(i).getAttribute('value')) || '';
+        if (value.trim() !== '') {
+            await page.selectOption(selector, value);
+            return value;
+        }
+    }
+    throw new Error(`Aucune option disponible pour ${selector}`);
 }
 
 // --- UC1: Access standalone briefing form ---
@@ -178,4 +201,108 @@ test('UC2: invalid token shows error page', async ({ page }) => {
 
     // Should show error page with an h3 containing error text
     await expect(page.locator('h3')).toBeVisible();
+});
+
+// --- Lot 6, étape 6.6: icon toggles green on submission, grey again on deletion ---
+
+test('briefing_vd icon turns green after briefing-passager-ulm submission, grey again after deletion', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    let vdId;
+    let submissionId;
+
+    try {
+        // --- Create a throwaway VLD as testadmin (club-admin: full VD + briefing rights) ---
+        await login(page, ADMIN_USER);
+
+        const ts = Date.now();
+        const benef = `PW BRIEFING BASCULE ${ts}`;
+
+        await page.goto(VD_CREATE_URL);
+        await page.waitForLoadState('domcontentloaded');
+        await expect(page.locator('form[name="saisie"]')).toBeVisible({ timeout: 10000 });
+        await selectFirstNonEmptyOption(page, 'select[name="product"]');
+        await page.fill('input[name="beneficiaire"]', benef);
+        await page.fill('input[name="de_la_part"]', 'Test bascule icone');
+        await page.fill('input[name="beneficiaire_email"]', `pw-briefing-bascule-${ts}@example.test`);
+        await page.click('button[type="submit"], input[type="submit"]');
+        await page.waitForLoadState('domcontentloaded');
+
+        await page.goto(VLD_LIST_PAGE_URL);
+        await page.waitForLoadState('load');
+        await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
+        const row = page.locator('table tr', { hasText: benef }).first();
+        await expect(row).toBeVisible({ timeout: 10000 });
+        const editHref = await row.locator('a[href*="/vols_decouverte/edit/"]').first().getAttribute('href');
+        const m = editHref.match(/\/vols_decouverte\/edit\/(\d+)/);
+        expect(m).toBeTruthy();
+        vdId = m[1];
+
+        // --- Icon is grey (btn-outline-secondary) before any briefing ---
+        const briefingLink = row.locator(`a[href*="briefing_passager/upload/${vdId}"]`);
+        await expect(briefingLink).toHaveClass(/btn-outline-secondary/);
+
+        // --- Fill and submit the VLD-side upload form, then the public form (link2) ---
+        await page.goto(`/index.php/briefing_passager/upload/${vdId}`);
+        await page.waitForLoadState('domcontentloaded');
+        await selectFirstNonEmptyOption(page, 'select[name="aerodrome"]');
+        await selectFirstNonEmptyOption(page, 'select[name="airplane_immat"]');
+        await selectFirstNonEmptyOption(page, 'select[name="pilote"]');
+        await page.click('button[type="submit"][name="action"][value="link2"]');
+        await page.waitForLoadState('domcontentloaded');
+
+        await expect(page).toHaveURL(/forms\/briefing-passager-ulm/);
+        await page.fill('input[name="prenom"]', 'Jean');
+        await page.fill('input[name="nom"]', 'Testeur');
+        await page.fill('input[name="date_naissance"]', '1990-01-01');
+        await page.fill('input[name="poids_declare"]', '70');
+        await page.fill('input[name="personne_a_prevenir"]', 'Marie Testeur');
+        await page.fill('input[name="telephone"]', '0600000000');
+
+        // Typed signature (easier to automate than canvas drawing)
+        await page.click('button[data-sig-tab="text"]');
+        await page.fill('.gvv-sig-text-input', 'Jean Testeur');
+
+        await page.click('button[type="submit"].btn-success');
+        await page.waitForLoadState('domcontentloaded');
+
+        const thanksBody = await page.textContent('body');
+        expect(thanksBody).not.toContain('Fatal error');
+
+        const [submissionRows] = await connection.execute(
+            "SELECT id FROM form_submissions WHERE form_id = 2 AND subject_type = 'vols_decouverte' AND subject_id = ? ORDER BY id DESC LIMIT 1",
+            [vdId]
+        );
+        expect(submissionRows.length).toBe(1);
+        submissionId = submissionRows[0].id;
+
+        // --- Icon is now green (btn-success) ---
+        await page.goto(VLD_LIST_PAGE_URL);
+        await page.waitForLoadState('load');
+        await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
+        const rowAfter = page.locator('table tr', { has: page.locator(`a[href*="/vols_decouverte/edit/${vdId}"]`) }).first();
+        const briefingLinkAfter = rowAfter.locator(`a[href*="briefing_passager/upload/${vdId}"]`);
+        await expect(briefingLinkAfter).toHaveClass(/btn-success/);
+
+        // --- Delete the submission via forms_admin (real endpoint, already logged in as club-admin) ---
+        const del = await page.request.post(`/index.php/forms_admin/submission_delete/2/${submissionId}`);
+        expect(del.ok()).toBeTruthy();
+        submissionId = null; // already deleted, skip cleanup
+
+        // --- Icon is grey again ---
+        await page.goto(VLD_LIST_PAGE_URL);
+        await page.waitForLoadState('load');
+        await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
+        const rowFinal = page.locator('table tr', { has: page.locator(`a[href*="/vols_decouverte/edit/${vdId}"]`) }).first();
+        const briefingLinkFinal = rowFinal.locator(`a[href*="briefing_passager/upload/${vdId}"]`);
+        await expect(briefingLinkFinal).toHaveClass(/btn-outline-secondary/);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [submissionId]);
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        if (vdId) {
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        await connection.end();
+    }
 });
