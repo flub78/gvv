@@ -208,7 +208,7 @@ class Briefing_passager extends Gvv_Controller {
             return;
         }
 
-        if ($action === 'link2' && $this->config->item('testing_form')) {
+        if ($action === 'link2') {
             $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
             $errors2 = array();
             if (empty($vld['date_vol']))       $errors2[] = $this->lang->line('briefing_passager_field_date_vol');

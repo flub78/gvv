@@ -157,14 +157,9 @@ $this->lang->load('vols_decouverte');
             <button type="submit" name="action" value="upload" class="btn btn-primary">
                 <i class="fas fa-upload"></i> <?= $this->lang->line('briefing_passager_upload') ?>
             </button>
-            <button type="submit" name="action" value="link" class="btn btn-outline-secondary">
+            <button type="submit" name="action" value="link2" class="btn btn-outline-secondary">
                 <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_sign_online') ?>
             </button>
-            <?php if ($this->config->item('testing_form')): ?>
-            <button type="submit" name="action" value="link2" class="btn btn-outline-info">
-                <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_sign_online_2') ?>
-            </button>
-            <?php endif; ?>
             <button type="submit" name="action" value="save" class="btn btn-outline-primary">
                 <i class="fas fa-save"></i> <?= $this->lang->line('gvv_button_save') ?>
             </button>

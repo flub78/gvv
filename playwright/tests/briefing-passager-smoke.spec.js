@@ -203,7 +203,24 @@ test('UC2: invalid token shows error page', async ({ page }) => {
     await expect(page.locator('h3')).toBeVisible();
 });
 
-// --- Lot 6, étape 6.6: icon toggles green on submission, grey again on deletion ---
+// --- Lot 6, étape 6.5: "link2" is the sole, permanent entry point (no testing_form flag) ---
+
+test('upload form exposes a single permanent signature button (old "signer en ligne" removed)', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await page.goto(VLD_LIST_PAGE_URL);
+    await page.waitForLoadState('load');
+    await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
+    const firstLink = page.locator('a[href*="briefing_passager/upload"]').first();
+    await firstLink.click();
+    await page.waitForLoadState('domcontentloaded');
+
+    // Only one signature button, always visible (no testing_form flag gate)
+    const signatureButtons = page.locator('button[name="action"][value="link2"]');
+    await expect(signatureButtons).toHaveCount(1);
+    await expect(page.locator('button[name="action"][value="link"]')).toHaveCount(0);
+});
+
+// --- Lot 6, étape 6.5 + 6.6: bouton briefing depuis upload -> formulaire pré-rempli -> soumission -> VLD mis à jour ; icon toggles green on submission, grey again on deletion ---
 
 test('briefing_vd icon turns green after briefing-passager-ulm submission, grey again after deletion', async ({ page }) => {
     const connection = await mysql.createConnection(DB_CONFIG);
@@ -274,6 +291,17 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         );
         expect(submissionRows.length).toBe(1);
         submissionId = submissionRows[0].id;
+
+        // --- VLD fields updated by BriefingPassagerUlmHandler (étape 6.5) ---
+        const [vldRows] = await connection.execute(
+            'SELECT beneficiaire, participation, urgence, beneficiaire_tel FROM vols_decouverte WHERE id = ?',
+            [vdId]
+        );
+        expect(vldRows.length).toBe(1);
+        expect(vldRows[0].beneficiaire).toBe('Testeur Jean');
+        expect(String(vldRows[0].participation)).toBe('70');
+        expect(vldRows[0].urgence).toBe('Marie Testeur');
+        expect(vldRows[0].beneficiaire_tel).toBe('0600000000');
 
         // --- Icon is now green (btn-success) ---
         await page.goto(VLD_LIST_PAGE_URL);

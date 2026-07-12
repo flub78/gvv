@@ -9,7 +9,6 @@ $lang['briefing_passager_new']                = 'Nieuwe briefing';
 $lang['briefing_passager_upload']             = 'Ondertekend document uploaden';
 $lang['briefing_passager_generate_link']      = 'Digitale handtekeninglink genereren';
 $lang['briefing_passager_sign_online']        = 'Online ondertekenen';
-$lang['briefing_passager_sign_online_2']      = 'Online ondertekenen 2';
 $lang['briefing_passager_public_share_title'] = 'Ondertekeningspagina delen';
 $lang['briefing_passager_public_share_email_label'] = 'E-mail ontvanger';
 $lang['briefing_passager_public_share_message_label'] = 'Commentaar';
