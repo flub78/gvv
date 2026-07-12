@@ -235,6 +235,18 @@ class Common_Model extends CI_Model {
             if (in_array('created_by', $columns, TRUE) && $this->is_audit_value_missing($data, 'created_by') && $username !== NULL) {
                 $data['created_by'] = $username;
             }
+        } else {
+            // created_at/created_by must never change on update. form2database() still
+            // carries a poisoned FALSE/'' for these columns (they have no matching HTML
+            // input, see is_audit_value_missing()); left in place, that value would
+            // overwrite the real creation record on every edit. Drop the key instead so
+            // the UPDATE statement simply doesn't touch that column.
+            if (in_array('created_at', $columns, TRUE) && $this->is_audit_value_missing($data, 'created_at')) {
+                unset($data['created_at']);
+            }
+            if (in_array('created_by', $columns, TRUE) && $this->is_audit_value_missing($data, 'created_by')) {
+                unset($data['created_by']);
+            }
         }
 
         if (in_array('updated_at', $columns, TRUE) && $this->is_audit_value_missing($data, 'updated_at')) {

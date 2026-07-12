@@ -89,76 +89,126 @@ async function selectOptionIfExists(page, selector, value) {
     await page.selectOption(selector, String(value));
 }
 
+async function createFlightViaForm(page, uniqueTag) {
+    await page.goto(CREATE_URL);
+    await page.locator('input[name="vadate"]').waitFor();
+
+    const today = new Date().toISOString().slice(0, 10);
+    const dateFr = today.split('-').reverse().join('/');
+    await page.fill('input[name="vadate"]', dateFr);
+
+    await selectOptionIfExists(page, 'select[name="vamacid"]', MACHINE);
+    await selectOptionIfExists(page, 'select[name="vapilid"]', PILOT_LOGIN);
+    await page.selectOption('select[name="vacategorie"]', '0');
+
+    await page.fill('input[name="vahdeb"]', '10:00');
+    await page.fill('input[name="vahfin"]', '11:00');
+    await page.fill('input[name="vaatt"]', '1');
+
+    // Base the horamètre on the machine's last recorded value, like the ULM billing spec does,
+    // to satisfy any consistency validation on vacdeb/vacfin.
+    const lastVacfin = mysqlRows(
+        `SELECT IFNULL(MAX(vacfin), 0) FROM volsa WHERE vamacid = '${escapeSqlString(MACHINE)}'`
+    );
+    const vacdeb = Number.parseFloat(lastVacfin[0][0]) || 0;
+    const vacfin = Math.round((vacdeb + 1) * 100) / 100;
+
+    await page.evaluate((args) => {
+        const debut = document.querySelector('input[name="vacdeb"]');
+        const fin = document.querySelector('input[name="vacfin"]');
+        const duree = document.querySelector('input[name="vaduree"]');
+        if (debut) debut.value = args.vacdeb;
+        if (fin) fin.value = args.vacfin;
+        if (duree) duree.value = '1';
+    }, { vacdeb: String(vacdeb), vacfin: String(vacfin) });
+
+    await page.fill('textarea[name="vaobs"], input[name="vaobs"]', uniqueTag);
+
+    await page.click('button[type="submit"], input[type="submit"]');
+    await page.waitForLoadState('domcontentloaded');
+
+    const bodyText = await page.textContent('body');
+    expect(bodyText).not.toContain('Fatal error');
+    expect(bodyText).not.toContain('A PHP Error was encountered');
+    expect(bodyText).not.toContain('An uncaught Exception was encountered');
+
+    let row = [];
+    await expect.poll(
+        () => {
+            row = mysqlRows(
+                `SELECT vaid, created_by, CAST(created_at AS CHAR) FROM volsa WHERE vaobs = '${escapeSqlString(uniqueTag)}'`
+            );
+            return row.length;
+        },
+        { message: `Flight not found in volsa for vaobs=${uniqueTag}`, timeout: 5000 }
+    ).toBeGreaterThan(0);
+
+    return { vaid: row[0][0], createdBy: row[0][1], createdAt: row[0][2] };
+}
+
 test.describe('Lot 5 - created_at/created_by on real vols_avion form submission', () => {
+    // Both tests submit a flight for the same pilot/machine/time slot; running them
+    // in parallel workers trips the is_person_in_flight()/is_machine_in_flight()
+    // overlap check and one submission gets silently rejected.
+    test.describe.configure({ mode: 'serial' });
 
     test('a flight entered through the real create form gets real audit fields, not zero-date/0', async ({ page }) => {
         await login(page, ADMIN);
 
-        await page.goto(CREATE_URL);
-        await page.locator('input[name="vadate"]').waitFor();
-
-        const today = new Date().toISOString().slice(0, 10);
-        const dateFr = today.split('-').reverse().join('/');
-        await page.fill('input[name="vadate"]', dateFr);
-
-        await selectOptionIfExists(page, 'select[name="vamacid"]', MACHINE);
-        await selectOptionIfExists(page, 'select[name="vapilid"]', PILOT_LOGIN);
-        await page.selectOption('select[name="vacategorie"]', '0');
-
-        await page.fill('input[name="vahdeb"]', '10:00');
-        await page.fill('input[name="vahfin"]', '11:00');
-        await page.fill('input[name="vaatt"]', '1');
-
-        // Base the horamètre on the machine's last recorded value, like the ULM billing spec does,
-        // to satisfy any consistency validation on vacdeb/vacfin.
-        const lastVacfin = mysqlRows(
-            `SELECT IFNULL(MAX(vacfin), 0) FROM volsa WHERE vamacid = '${escapeSqlString(MACHINE)}'`
-        );
-        const vacdeb = Number.parseFloat(lastVacfin[0][0]) || 0;
-        const vacfin = Math.round((vacdeb + 1) * 100) / 100;
-
-        await page.evaluate((args) => {
-            const debut = document.querySelector('input[name="vacdeb"]');
-            const fin = document.querySelector('input[name="vacfin"]');
-            const duree = document.querySelector('input[name="vaduree"]');
-            if (debut) debut.value = args.vacdeb;
-            if (fin) fin.value = args.vacfin;
-            if (duree) duree.value = '1';
-        }, { vacdeb: String(vacdeb), vacfin: String(vacfin) });
-
         const uniqueTag = `PW_AUDIT_LOT5_${Date.now()}`;
-        await page.fill('textarea[name="vaobs"], input[name="vaobs"]', uniqueTag);
-
-        await page.click('button[type="submit"], input[type="submit"]');
-        await page.waitForLoadState('domcontentloaded');
-
-        const bodyText = await page.textContent('body');
-        expect(bodyText).not.toContain('Fatal error');
-        expect(bodyText).not.toContain('A PHP Error was encountered');
-        expect(bodyText).not.toContain('An uncaught Exception was encountered');
-
-        let row = [];
-        await expect.poll(
-            () => {
-                row = mysqlRows(
-                    `SELECT vaid, created_at, created_by, CAST(created_at AS CHAR) FROM volsa WHERE vaobs = '${escapeSqlString(uniqueTag)}'`
-                );
-                return row.length;
-            },
-            { message: `Flight not found in volsa for vaobs=${uniqueTag}`, timeout: 5000 }
-        ).toBeGreaterThan(0);
-
-        const [vaid, , createdBy, createdAtStr] = row[0];
+        const { vaid, createdBy, createdAt } = await createFlightViaForm(page, uniqueTag);
 
         try {
-            expect(createdAtStr, 'created_at must not be the zero-date sentinel').not.toBe('0000-00-00 00:00:00');
-            expect(createdAtStr, 'created_at must not be empty/NULL').toBeTruthy();
+            expect(createdAt, 'created_at must not be the zero-date sentinel').not.toBe('0000-00-00 00:00:00');
+            expect(createdAt, 'created_at must not be empty/NULL').toBeTruthy();
             expect(createdBy, 'created_by must not be the placeholder "0"').not.toBe('0');
             expect(createdBy, 'created_by must not be empty/NULL').toBeTruthy();
         } finally {
             // Clean up through the application endpoint (not a raw DELETE) so any
             // billing cascade this flight triggered is properly reversed.
             await page.goto(`/index.php/vols_avion/delete/${vaid}`);
+            await page.waitForLoadState('domcontentloaded');
+        }
+    });
+
+    /**
+     * Regression test: found in production after the Lot 5 fix shipped. Editing
+     * vols_avion vaid=16631 as its own auto_planchiste owner reset created_by
+     * from 'fpeignot' back to '0' and created_at back to the zero-date. The fix
+     * only guarded the create() branch of inject_audit_fields(); on update(),
+     * form2database() supplies the same poisoned FALSE for created_at/created_by
+     * (no HTML input for them either), and it sailed straight into the UPDATE.
+     */
+    test('editing an existing flight through the real form preserves its original created_at/created_by', async ({ page }) => {
+        await login(page, ADMIN);
+
+        const uniqueTag = `PW_AUDIT_LOT5_EDIT_${Date.now()}`;
+        const created = await createFlightViaForm(page, uniqueTag);
+
+        try {
+            await page.goto(`/index.php/vols_avion/edit/${created.vaid}`);
+            await page.locator('input[name="vadate"]').waitFor();
+
+            const editedObs = `${uniqueTag}_edited`;
+            await page.fill('textarea[name="vaobs"], input[name="vaobs"]', editedObs);
+            await page.click('button[type="submit"], input[type="submit"]');
+            await page.waitForLoadState('domcontentloaded');
+
+            const bodyText = await page.textContent('body');
+            expect(bodyText).not.toContain('Fatal error');
+            expect(bodyText).not.toContain('A PHP Error was encountered');
+
+            const row = mysqlRows(
+                `SELECT created_by, CAST(created_at AS CHAR), vaobs FROM volsa WHERE vaid = ${Number(created.vaid)}`
+            );
+            expect(row.length, 'Flight should still exist after edit').toBeGreaterThan(0);
+            const [createdByAfter, createdAtAfter, vaobsAfter] = row[0];
+
+            expect(vaobsAfter, 'the edit itself must have been applied').toBe(editedObs);
+            expect(createdAtAfter, 'created_at must survive an edit unchanged').toBe(created.createdAt);
+            expect(createdByAfter, 'created_by must survive an edit unchanged').toBe(created.createdBy);
+        } finally {
+            await page.goto(`/index.php/vols_avion/delete/${created.vaid}`);
             await page.waitForLoadState('domcontentloaded');
         }
     });

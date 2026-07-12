@@ -147,6 +147,55 @@ class CommonModelAuditMySqlTest extends TransactionalTestCase
         $this->assertEquals('test_user', $row['updated_by'], 'updated_by should be set even when explicitly FALSE');
     }
 
+    /**
+     * Regression test for a bug introduced by the Lot 5 fix itself: guarding
+     * created_at/created_by only inside the create() branch left the poisoned
+     * FALSE value untouched in $data on update() — form2database() supplies it
+     * on every edit, since the HTML form never has an input for these columns
+     * either. That FALSE then sailed straight into the UPDATE statement,
+     * silently wiping the real creation record on every single edit of any row
+     * (found in production: editing vols_avion vaid=16631 reset its created_by
+     * from 'fpeignot' back to '0' and created_at back to the zero-date).
+     */
+    public function testUpdateNeverOverwritesCreatedFieldsWhenFalseValuesPresent(): void
+    {
+        $aircraft = $this->findActiveAircraft();
+        $pilot = $this->findActivePilot();
+
+        if (empty($aircraft) || empty($pilot)) {
+            $this->markTestSkipped('Missing active aircraft or pilot for reservation test');
+        }
+
+        $data = array(
+            'aircraft_id' => $aircraft,
+            'pilot_member_id' => $pilot,
+            'start_datetime' => date('Y-m-d H:i:s', strtotime('+6 days 10:00:00')),
+            'end_datetime' => date('Y-m-d H:i:s', strtotime('+6 days 11:00:00')),
+            'purpose' => 'Lot5 regression: created fields must survive an edit',
+            'status' => 'reservation'
+        );
+        $id = $this->reservations_model->create_reservation($data);
+        $this->assertGreaterThan(0, $id, 'Reservation should be created');
+
+        $original = $this->ci->db->where('id', $id)->get('reservations')->row_array();
+        $this->assertNotEmpty($original['created_at']);
+        $this->assertEquals('test_user', $original['created_by']);
+
+        // Exactly what form2database() produces for a field absent from the HTML form.
+        $this->reservations_model->update('id', array(
+            'id' => $id,
+            'purpose' => 'Lot5 regression: edited',
+            'created_at' => false,
+            'created_by' => false,
+        ), $id);
+
+        $after = $this->ci->db->where('id', $id)->get('reservations')->row_array();
+
+        $this->assertEquals($original['created_at'], $after['created_at'], 'created_at must never change on update');
+        $this->assertEquals($original['created_by'], $after['created_by'], 'created_by must never change on update');
+        $this->assertEquals('Lot5 regression: edited', $after['purpose']);
+    }
+
     public function testUpdateInjectsUpdatedAtWhenMissing(): void
     {
         $aircraft = $this->findActiveAircraft();
