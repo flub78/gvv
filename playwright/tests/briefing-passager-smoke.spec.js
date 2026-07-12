@@ -95,9 +95,12 @@ test('UC1: briefing icon opens upload form for that VLD', async ({ page }) => {
     await page.waitForLoadState('load');
 
     await expect(page).not.toHaveURL(/error|403|404/);
-    // Upload form should expose the visible drop zone and keep file input in DOM
-    await expect(page.locator('#drop-zone')).toBeVisible();
-    await expect(page.locator('input[name="userfile"]')).toHaveCount(1);
+    // Legacy upload mechanism (drop zone, file input, "Déposer un document signé" button)
+    // has been removed — only the forms-based "Formulaire en ligne" path remains.
+    await expect(page.locator('#drop-zone')).toHaveCount(0);
+    await expect(page.locator('input[name="userfile"]')).toHaveCount(0);
+    await expect(page.locator('button[name="action"][value="upload"]')).toHaveCount(0);
+    await expect(page.locator('button[name="action"][value="link2"]')).toBeVisible();
 });
 
 // --- UC1: AJAX search returns results ---

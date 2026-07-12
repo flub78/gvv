@@ -16,7 +16,7 @@ $this->lang->load('vols_decouverte');
 <?php if ($vld): ?>
 
 <!-- Single unified form: VLD fields + action buttons -->
-<form method="post" action="<?= site_url('briefing_passager/upload_submit/' . $vld_id) ?>" enctype="multipart/form-data">
+<form method="post" action="<?= site_url('briefing_passager/upload_submit/' . $vld_id) ?>">
 
 <div class="card mb-3">
     <div class="card-header"><i class="fas fa-plane"></i> <?= $this->lang->line('briefing_passager_field_vld') ?> #<?= htmlspecialchars($vld['id']) ?></div>
@@ -108,55 +108,7 @@ $this->lang->load('vols_decouverte');
 
 <div class="card">
     <div class="card-body">
-        <div class="mb-3">
-            <label class="form-label"><?= $this->lang->line('archived_documents_file') ?></label>
-            <div id="drop-zone" class="border border-2 border-dashed rounded p-4 text-center text-muted"
-                 style="cursor:pointer; transition: background .2s;"
-                 onclick="document.getElementById('userfile').click()">
-                <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
-                <div id="drop-label">Glissez-déposez un fichier ici, ou cliquez pour sélectionner</div>
-                <div class="form-text mt-1">PDF, JPG ou PNG — 10 Mo max</div>
-            </div>
-            <input type="file" id="userfile" name="userfile" class="d-none" accept=".pdf,.jpg,.jpeg,.png">
-        </div>
-        <script>
-        (function() {
-            var zone  = document.getElementById('drop-zone');
-            var input = document.getElementById('userfile');
-            var label = document.getElementById('drop-label');
-
-            input.addEventListener('change', function() {
-                if (input.files.length) {
-                    label.textContent = input.files[0].name;
-                    zone.classList.add('border-primary', 'text-primary');
-                }
-            });
-
-            zone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                zone.style.background = '#e9f3ff';
-            });
-            zone.addEventListener('dragleave', function() {
-                zone.style.background = '';
-            });
-            zone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                zone.style.background = '';
-                var files = e.dataTransfer.files;
-                if (files.length) {
-                    var dt = new DataTransfer();
-                    dt.items.add(files[0]);
-                    input.files = dt.files;
-                    label.textContent = files[0].name;
-                    zone.classList.add('border-primary', 'text-primary');
-                }
-            });
-        })();
-        </script>
         <div class="d-flex gap-2 flex-wrap">
-            <button type="submit" name="action" value="upload" class="btn btn-primary">
-                <i class="fas fa-upload"></i> <?= $this->lang->line('briefing_passager_upload') ?>
-            </button>
             <button type="submit" name="action" value="link2" class="btn btn-outline-secondary">
                 <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_sign_online') ?>
             </button>
