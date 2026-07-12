@@ -62,6 +62,91 @@ class CommonModelAuditMySqlTest extends TransactionalTestCase
         $this->assertEquals('test_user', $row['updated_by'], 'updated_by should use current user on create');
     }
 
+    /**
+     * Regression test for the isset(FALSE) bug (Lot 5, see doc/plans/journalisation_crud_plan.md §2.3).
+     *
+     * CodeIgniter's $this->input->post($field) returns boolean FALSE (not NULL) for a
+     * field that has no matching HTML input, which is exactly the case for audit columns
+     * in every generic gvvmetadata form. Gvv_Controller::form2database() then puts that
+     * FALSE straight into the data array passed to create()/update(). A plain isset()
+     * check treats FALSE as "present" and silently skips the auto-population.
+     */
+    public function testCreateInjectsAuditFieldsWhenFalseValuesPresent(): void
+    {
+        $aircraft = $this->findActiveAircraft();
+        $pilot = $this->findActivePilot();
+
+        if (empty($aircraft) || empty($pilot)) {
+            $this->markTestSkipped('Missing active aircraft or pilot for reservation test');
+        }
+
+        $data = array(
+            'aircraft_id' => $aircraft,
+            'pilot_member_id' => $pilot,
+            'start_datetime' => date('Y-m-d H:i:s', strtotime('+4 days 10:00:00')),
+            'end_datetime' => date('Y-m-d H:i:s', strtotime('+4 days 11:00:00')),
+            'purpose' => 'Lot5 false-value create audit test',
+            'status' => 'reservation',
+            // What form2database() actually produces for fields absent from the HTML form.
+            'created_at' => false,
+            'created_by' => false,
+            'updated_at' => false,
+            'updated_by' => false,
+        );
+
+        // create_reservation() only fills created_by/section_id/status when the key is
+        // absent (isset() check) — our explicit FALSE values survive through to create().
+        $id = $this->reservations_model->create_reservation($data);
+        $this->assertGreaterThan(0, $id, 'Reservation should be created');
+
+        $row = $this->ci->db->where('id', $id)->get('reservations')->row_array();
+
+        $this->assertNotEmpty($row['created_at'], 'created_at should be auto-populated even when explicitly FALSE');
+        $this->assertNotEquals('0000-00-00 00:00:00', $row['created_at']);
+        $this->assertEquals('test_user', $row['created_by'], 'created_by should be auto-populated even when explicitly FALSE');
+        $this->assertNotEmpty($row['updated_at']);
+        $this->assertEquals('test_user', $row['updated_by']);
+    }
+
+    public function testUpdateInjectsAuditFieldsWhenFalseValuesPresent(): void
+    {
+        $aircraft = $this->findActiveAircraft();
+        $pilot = $this->findActivePilot();
+
+        if (empty($aircraft) || empty($pilot)) {
+            $this->markTestSkipped('Missing active aircraft or pilot for reservation test');
+        }
+
+        $data = array(
+            'aircraft_id' => $aircraft,
+            'pilot_member_id' => $pilot,
+            'start_datetime' => date('Y-m-d H:i:s', strtotime('+5 days 10:00:00')),
+            'end_datetime' => date('Y-m-d H:i:s', strtotime('+5 days 11:00:00')),
+            'purpose' => 'Lot5 false-value update audit test',
+            'status' => 'reservation'
+        );
+        $id = $this->reservations_model->create_reservation($data);
+        $this->assertGreaterThan(0, $id, 'Reservation should be created');
+
+        $old_timestamp = '2000-01-01 00:00:00';
+        $this->ci->db->where('id', $id)->update('reservations', array(
+            'updated_at' => $old_timestamp,
+            'updated_by' => 'legacy_user'
+        ));
+
+        $this->reservations_model->update('id', array(
+            'id' => $id,
+            'purpose' => 'Lot5 false-value update audit test changed',
+            'updated_at' => false,
+            'updated_by' => false,
+        ), $id);
+
+        $row = $this->ci->db->where('id', $id)->get('reservations')->row_array();
+
+        $this->assertNotEquals($old_timestamp, $row['updated_at'], 'updated_at should be refreshed even when explicitly FALSE');
+        $this->assertEquals('test_user', $row['updated_by'], 'updated_by should be set even when explicitly FALSE');
+    }
+
     public function testUpdateInjectsUpdatedAtWhenMissing(): void
     {
         $aircraft = $this->findActiveAircraft();

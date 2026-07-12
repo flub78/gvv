@@ -229,20 +229,32 @@ class Common_Model extends CI_Model {
         $username = $this->current_username();
 
         if ($is_create) {
-            if (in_array('created_at', $columns, TRUE) && !isset($data['created_at'])) {
+            if (in_array('created_at', $columns, TRUE) && $this->is_audit_value_missing($data, 'created_at')) {
                 $data['created_at'] = $now;
             }
-            if (in_array('created_by', $columns, TRUE) && !isset($data['created_by']) && $username !== NULL) {
+            if (in_array('created_by', $columns, TRUE) && $this->is_audit_value_missing($data, 'created_by') && $username !== NULL) {
                 $data['created_by'] = $username;
             }
         }
 
-        if (in_array('updated_at', $columns, TRUE) && !isset($data['updated_at'])) {
+        if (in_array('updated_at', $columns, TRUE) && $this->is_audit_value_missing($data, 'updated_at')) {
             $data['updated_at'] = $now;
         }
-        if (in_array('updated_by', $columns, TRUE) && !isset($data['updated_by']) && $username !== NULL) {
+        if (in_array('updated_by', $columns, TRUE) && $this->is_audit_value_missing($data, 'updated_by') && $username !== NULL) {
             $data['updated_by'] = $username;
         }
+    }
+
+    /**
+     * True when $data[$field] carries no usable value for an audit column.
+     *
+     * A field submitted through a form but absent from the HTML (e.g. audit
+     * columns, which are never rendered as inputs) comes back from
+     * CodeIgniter's $this->input->post() as boolean FALSE rather than NULL,
+     * which defeats a plain isset() check.
+     */
+    private function is_audit_value_missing($data, $field) {
+        return !isset($data[$field]) || $data[$field] === FALSE || $data[$field] === '';
     }
 
     /**

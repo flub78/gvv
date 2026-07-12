@@ -113,6 +113,21 @@ class Vols_avion extends Gvv_Controller {
     }
 
     /**
+     * Un auto_planchiste ne peut modifier/supprimer un de ses vols que dans les
+     * AUTO_PLANCHISTE_EDIT_WINDOW_DAYS jours suivant sa saisie (created_at).
+     * Au-delà, seul un planchiste peut corriger le vol.
+     */
+    const AUTO_PLANCHISTE_EDIT_WINDOW_DAYS = 7;
+
+    private function auto_planchiste_can_still_edit($created_at) {
+        if (empty($created_at)) {
+            return false;
+        }
+        $limite = strtotime('-' . self::AUTO_PLANCHISTE_EDIT_WINDOW_DAYS . ' days');
+        return strtotime($created_at) >= $limite;
+    }
+
+    /**
      * Surcharge de has_modification_rights() pour inclure pilote_rem dans les sections planeurs.
      *
      * @param int|null $section_id Non utilisé (hérité), la section est déduite du modèle.
@@ -706,8 +721,8 @@ class Vols_avion extends Gvv_Controller {
             $flight = $this->gvv_model->get_by_id('vaid', $id);
             $mlogin = $this->dx_auth->get_username();
             $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
-            if ($is_own_flight && $is_auto_planchiste) {
-                // auto_planchiste editing own flight: bypass level check
+            if ($is_own_flight && $is_auto_planchiste && $this->auto_planchiste_can_still_edit($flight['created_at'])) {
+                // auto_planchiste editing own flight, within the edit window: bypass level check
                 $action = MODIFICATION;
                 $bypass_modification_level = TRUE;
             } elseif ($is_own_flight && $is_mecano && !empty($flight) && (int)$flight['vacategorie'] === 2) {
@@ -769,8 +784,8 @@ class Vols_avion extends Gvv_Controller {
             $flight = $this->gvv_model->get_by_id($this->kid, $id);
             $mlogin = $this->dx_auth->get_username();
             $is_own_flight = (!empty($flight) && $flight['vapilid'] == $mlogin);
-            if ($is_own_flight && $this->user_has_role('auto_planchiste')) {
-                // auto_planchiste can delete own flights
+            if ($is_own_flight && $this->user_has_role('auto_planchiste') && $this->auto_planchiste_can_still_edit($flight['created_at'])) {
+                // auto_planchiste can delete own flights, within the edit window
             } elseif ($is_own_flight && $this->user_has_role('mecano') && !empty($flight) && (int)$flight['vacategorie'] === 2) {
                 // mecano can delete own Vol d'essai flights
             } else {
@@ -985,6 +1000,19 @@ class Vols_avion extends Gvv_Controller {
             );
         } else {
             $this->data['auto_planchiste'] = false;
+        }
+
+        if ($this->data['auto_planchiste']) {
+            // Marque les vols que l'auto_planchiste peut encore modifier/supprimer
+            // (les siens, saisis il y a moins de AUTO_PLANCHISTE_EDIT_WINDOW_DAYS jours)
+            // pour permettre à la vue d'afficher les actions modifier/supprimer sur ces lignes.
+            $mlogin = $this->dx_auth->get_username();
+            foreach ($this->data['select_result'] as &$row) {
+                $row['auto_planchiste_editable'] = ($row['vapilid'] == $mlogin
+                        && $this->auto_planchiste_can_still_edit($row['created_at']));
+            }
+            unset($row);
+            $this->gvvmetadata->store_table('vue_vols_avion', $this->data['select_result']);
         }
     }
 

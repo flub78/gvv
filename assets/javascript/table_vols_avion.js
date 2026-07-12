@@ -34,6 +34,8 @@ $(document).ready(function () {
         "bAutoWidth": true,
         "sPaginationType": "full_numbers",
         "aoColumns": [
+            { "bSortable": false },       // change (action column, rendered before data fields)
+            { "bSortable": false },       // delete (action column, rendered before data fields)
             { "sType": "date-uk" },      // date "asSorting": [ "desc", "asc" ]
             { "bSortable": true },        // pilote
             { "bSortable": true },        // inst
@@ -50,8 +52,6 @@ $(document).ready(function () {
             { "bSortable": false },       // cat
             { "bSortable": false },       // Prv
             { "bSortable": false },       // Ess
-            { "bSortable": false },       // change
-            { "bSortable": false }        // delete
         ],
         "oLanguage": olanguage,
         "fnDrawCallback": highlightSearchCallback
@@ -73,7 +73,7 @@ $(document).ready(function () {
             { "bSortable": true },        // inst
             { "bSortable": true },        // immat
             { "bSortable": true },        // Section
-            { "bSortable": false },       // debut
+            { "bSortable": true },        // debut
             { "bSortable": false },       // fin
             { "bSortable": false },       // durée
             { "bSortable": false },       // att

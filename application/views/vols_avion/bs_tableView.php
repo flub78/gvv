@@ -303,13 +303,19 @@ $_pct = function($part, $total) { return ($total > 0) ? round(100 * $part / $tot
 
 // -----------------------------------------------------------------------------------------
 // Liste des vols
-if ($has_modification_rights) {
+// auto_planchiste : pas de droit d'écriture général, mais peut modifier/supprimer
+// ses propres vols récents (cf. vue_vols_avion.auto_planchiste_editable, calculé
+// dans le contrôleur). Il faut donc afficher les colonnes d'actions pour lui aussi,
+// le blocage par vol se fait ligne par ligne via l'attribut 'autoplanchiste'.
+$show_actions = $has_modification_rights || $auto_planchiste;
+
+if ($show_actions) {
     $classes = "datatable_style datedtable table table-striped";
 } else {
     $classes = "datatable_style datedtable_ro table table-striped";
 }
 
-$mode = $has_modification_rights ? "rw" : "ro";
+$mode = $show_actions ? "rw" : "ro";
 $actions = ($mode == "rw") ? array('edit', 'delete') : [];
 $attrs = array(
     'controller' => $controller,
@@ -317,6 +323,10 @@ $attrs = array(
     'mode' => $mode,
     'class' => $classes,
 );
+if ($auto_planchiste && !$has_modification_rights) {
+    $attrs['autoplanchiste'] = true;
+    $attrs['autoplanchiste_id'] = 'auto_planchiste_editable';
+}
 
 // Create button above the table (only for planchiste role)
 if ($has_modification_rights) {
