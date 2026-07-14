@@ -39,7 +39,7 @@ class Forms_admin extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin')) {
+        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin') && !$this->_can_access_workflow_pdf()) {
             show_error('Acces reserve aux administrateurs.', 403);
         }
 
@@ -48,6 +48,27 @@ class Forms_admin extends MY_Controller {
             'nav_back_url'   => 'forms_admin',
             'nav_back_label' => 'Liste des formulaires',
         ]);
+    }
+
+    /**
+     * Narrow bypass of the ca/club-admin guard: the "briefing_vd" icon on
+     * vols_decouverte (visible to instructeur/pilote_vd, not just admins,
+     * see MetaData::action()) links straight to submission_pdf for workflow
+     * forms. Restricted to this one method/form list, not a general relaxation.
+     */
+    private function _can_access_workflow_pdf() {
+        if ($this->router->fetch_method() !== 'submission_pdf') {
+            return false;
+        }
+        if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
+            return false;
+        }
+        $form_id = (int) $this->uri->segment(3);
+        if ($form_id <= 0) {
+            return false;
+        }
+        $form = $this->forms_model->get_by_id($form_id);
+        return $form && in_array($form['public_slug'], $this->workflow_form_slugs, true);
     }
 
     public function index() {

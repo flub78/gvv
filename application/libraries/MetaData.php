@@ -611,7 +611,11 @@ abstract class Metadata {
                     $url = "$base_controller/$action";  // Use base_controller (relative path) not $controller (full URL)
                     $elt_image = isset($row['image']) ? $row['image'] : $row[$this->table_key($table)];
                     if ($action === 'briefing_vd' && array_key_exists('has_briefing', $row)) {
-                        $elt_image = $row['has_briefing'];
+                        $elt_image = array(
+                            'has_briefing'  => $row['has_briefing'],
+                            'submission_id' => isset($row['briefing_submission_id']) ? $row['briefing_submission_id'] : null,
+                            'form_id'       => isset($row['briefing_form_id']) ? $row['briefing_form_id'] : null,
+                        );
                     }
                     $confirm = ($action == 'delete');
                     
@@ -1360,11 +1364,20 @@ abstract class Metadata {
                  . '</a>';
             return $btn;
         } elseif ($action == 'briefing_vd') {
-            // Link to briefing_passager/upload/{vld_id} — uses vld_id directly (not obfuscated)
-            // $elt_image holds has_briefing (1 = briefing exists → green, 0 → outline)
+            // $elt_image holds has_briefing/submission_id/form_id (see MetaData::table()).
+            // When a form_submissions-based briefing exists, link straight to its PDF
+            // instead of the upload/replace page (vols_decouverte_model::select_page()).
+            $briefing_data = is_array($elt_image) ? $elt_image : array('has_briefing' => $elt_image, 'submission_id' => null, 'form_id' => null);
+            $has_briefing  = !empty($briefing_data['has_briefing']);
+            $submission_id = !empty($briefing_data['submission_id']) ? (int) $briefing_data['submission_id'] : 0;
+            $form_id       = !empty($briefing_data['form_id']) ? (int) $briefing_data['form_id'] : 0;
+
             $label_briefing = $this->CI->lang->line('briefing_passager_title') ?: 'Briefing';
-            $btn_class = $elt_image ? 'btn-success' : 'btn-outline-secondary';
-            $btn = '<a href="' . site_url('briefing_passager/upload/' . (int)$elt_id) . '" class="btn btn-sm ' . $btn_class . '" title="' . htmlspecialchars($label_briefing, ENT_QUOTES, 'UTF-8') . '">'
+            $btn_class = $has_briefing ? 'btn-success' : 'btn-outline-secondary';
+            $href = ($submission_id && $form_id)
+                ? site_url('forms_admin/submission_pdf/' . $form_id . '/' . $submission_id)
+                : site_url('briefing_passager/upload/' . (int)$elt_id);
+            $btn = '<a href="' . $href . '" class="btn btn-sm ' . $btn_class . '" title="' . htmlspecialchars($label_briefing, ENT_QUOTES, 'UTF-8') . '">'
                  . '<i class="fas fa-clipboard-check" aria-hidden="true"></i>'
                  . '</a>';
             return $btn;

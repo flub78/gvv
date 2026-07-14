@@ -33,7 +33,15 @@ class Vols_decouverte_model extends Common_Model {
             . '  WHERE ad.vld_id = vols_decouverte.id AND dt.code = \'briefing_passager\' AND ad.is_current_version = 1)'
             . ' + (SELECT COUNT(*) FROM form_submissions fs JOIN forms f ON fs.form_id = f.id'
             . '  WHERE f.public_slug = \'briefing-passager-ulm\' AND fs.subject_type = \'vols_decouverte\''
-            . '  AND fs.subject_id = vols_decouverte.id AND fs.status = \'submitted\') AS has_briefing';
+            . '  AND fs.subject_id = vols_decouverte.id AND fs.status = \'submitted\') AS has_briefing,'
+            . ' (SELECT fs.id FROM form_submissions fs JOIN forms f ON fs.form_id = f.id'
+            . '  WHERE f.public_slug = \'briefing-passager-ulm\' AND fs.subject_type = \'vols_decouverte\''
+            . '  AND fs.subject_id = vols_decouverte.id AND fs.status = \'submitted\''
+            . '  ORDER BY fs.created_at DESC LIMIT 1) AS briefing_submission_id,'
+            . ' (SELECT fs.form_id FROM form_submissions fs JOIN forms f ON fs.form_id = f.id'
+            . '  WHERE f.public_slug = \'briefing-passager-ulm\' AND fs.subject_type = \'vols_decouverte\''
+            . '  AND fs.subject_id = vols_decouverte.id AND fs.status = \'submitted\''
+            . '  ORDER BY fs.created_at DESC LIMIT 1) AS briefing_form_id';
 
         // Prepare filter data for the view
         $year = $this->session->userdata('vd_year') ?: date('Y');

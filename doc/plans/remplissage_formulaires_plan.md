@@ -98,6 +98,8 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 
 ### Lot 2-bis — Synchronisation fichiers disque (option)
 
+A analyser, pas sûr que ce soit vraiment utile.
+
 - [ ] Migration : ajouter `content_hash VARCHAR(32) NULL` sur `form_pages` et `css_hash VARCHAR(32) NULL` sur `forms`.
 - [ ] Créer le répertoire `application/forms_templates/` avec `.htaccess` de protection (si nécessaire selon config serveur).
 - [ ] Lors de la sauvegarde web d'une page (`page_create` / `page_update`) : calculer MD5, stocker `content_hash`, écrire le fichier disque.
@@ -116,6 +118,8 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [x] Journalisation dans les fichiers de logs (considérée implémentée si déjà présente lors de la création d'un document archivé).
 
 ### Lot 4 — Documents inline dans les formulaires
+
+A analyser, pas sûr que ce soit vraiment utile. C'était surtout prévu pour permettre la visualisation de document avant approbation. Si on décide d'utiliser des formulaires pour faire approuver des documents, ce lot devient inutile.
 
 - [ ] Migration de début de lot : créer `09X_forms_documents.php` avec les tables complémentaires :
   - `form_document_refs` (références documents archivés)
@@ -293,6 +297,8 @@ Réalisée en mode transitoire (juillet 2026) : l'étape 6.5 n'étant pas encore
 
 Objectif : permettre aux club-admins d'ajouter des raccourcis de navigation dans les dashboards GVV sans développement. Indépendant des lots de formulaires — peut être réalisé dès que le socle (Lot 1) est terminé.
 
+A faire lorsque le premier cas d'utilisation se présentera.
+
 Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design.md#14-cartes-dynamiques-dans-les-dashboards)
 
 - [ ] Migration `1XX_dashboard_shortcuts.php` : table `dashboard_shortcuts` (id, dashboard, section, title_key, title, description_key, description, url, icon, color, role_required, sort_order, active, club_id, audit fields).
@@ -309,7 +315,6 @@ Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design
 
 ### Lot 8 — Documentation et validation finale
 
-- [ ] Migration de début de lot : vérifier et consolider les migrations précédentes dans un scénario complet (install from scratch + upgrade).
 - [ ] Documenter le socle formulaire autonome et les fichiers uploadés.
 - [ ] Documenter la taxonomie des formulaires (catégories 1, 2, 3) et les exemples.
 - [ ] Ajouter exemples complets de formulaires et de CSS global.

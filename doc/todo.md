@@ -6,16 +6,14 @@
 
 ## Reste à faire
 
-* [] Génération des certificats de formation et de pilotes VD.
-
+* [] Gestion de l'inscription, y compris les autorisations parentales (wip). Ce sont essentiellement des création de formulaires.
+  
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
 * [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
 
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
-
-* [] Gestion de l'inscription, y compris les autorisations parentales (wip)
   
 * [] Page archived_documents/view/154 il suffit modifier le lien pour afficher les documents archivés d'un autre pilote. Faire une étude globale sur les vulnérabilités.
 

@@ -219,4 +219,6 @@
 
 * [x] Rappel des réservations par email pour le pilote et l'instructeur.
 
-* [] Rappels de réservation, cumuler les rappels de réservation dans un seul message.
+* [x] Rappels de réservation, cumuler les rappels de réservation dans un seul message.
+
+* [x] Génération des certificats de formation et de pilotes VD.
