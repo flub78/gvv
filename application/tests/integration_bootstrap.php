@@ -911,6 +911,20 @@ class MockSession {
             unset($this->userdata[$key]);
         }
     }
+
+    public function set_flashdata($key, $value = null) {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->userdata['flash:new:' . $k] = $v;
+            }
+        } else {
+            $this->userdata['flash:new:' . $key] = $value;
+        }
+    }
+
+    public function flashdata($key) {
+        return isset($this->userdata['flash:old:' . $key]) ? $this->userdata['flash:old:' . $key] : null;
+    }
 }
 
 // Create minimal gvvmetadata mock

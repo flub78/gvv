@@ -13,21 +13,26 @@ if (!defined('BASEPATH'))
 class BriefingPassagerUlmHandler implements GvvFormHandlerInterface {
 
     public function after_submit(int $submission_id, ?string $subject_type, ?int $subject_id): array {
+        $CI = &get_instance();
+        $CI->lang->load('briefing_passager');
+        $redirect_url = site_url('vols_decouverte/page');
+
         if ($subject_type !== 'vols_decouverte' || empty($subject_id)) {
+            $CI->session->set_flashdata('message', $this->_alert('danger', $CI->lang->line('briefing_passager_upload_error')));
             return array(
-                'redirect_url' => null,
+                'redirect_url' => $redirect_url,
                 'error'        => 'BriefingPassagerUlmHandler: subject_type/subject_id manquant ou invalide pour la soumission ' . $submission_id,
             );
         }
 
-        $CI = &get_instance();
         $CI->load->model('vols_decouverte_model');
         $CI->load->model('form_submissions_model');
 
         $vld = $CI->vols_decouverte_model->get_by_id('id', $subject_id);
         if (!$vld) {
+            $CI->session->set_flashdata('message', $this->_alert('danger', $CI->lang->line('briefing_passager_not_found')));
             return array(
-                'redirect_url' => null,
+                'redirect_url' => $redirect_url,
                 'error'        => 'BriefingPassagerUlmHandler: vols_decouverte #' . $subject_id . ' introuvable (soumission ' . $submission_id . ')',
             );
         }
@@ -68,6 +73,18 @@ class BriefingPassagerUlmHandler implements GvvFormHandlerInterface {
             $CI->vols_decouverte_model->update('id', $update, $subject_id);
         }
 
-        return array('redirect_url' => null, 'error' => null);
+        $CI->session->set_flashdata('message', $this->_alert('success', $CI->lang->line('briefing_passager_upload_success')));
+        return array('redirect_url' => $redirect_url, 'error' => null);
+    }
+
+    /**
+     * Alerte Bootstrap 5 fermable, au même format que celles déjà utilisées
+     * sur la page vols_decouverte (voir vols_decouverte::send_email_with_pdf()).
+     */
+    private function _alert(string $type, string $message): string {
+        return '<div class="alert alert-' . $type . ' alert-dismissible fade show" role="alert">'
+             . htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+             . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+             . '</div>';
     }
 }

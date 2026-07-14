@@ -8,12 +8,11 @@ use PHPUnit\Framework\TestCase;
  * uniquement si date_vol n'était pas déjà renseignée.
  *
  * Couvre la méthode Archived_documents_model::create_briefing_and_update_date_vol()
- * appelée par les contrôleurs briefing_passager (UC1) et briefing_sign (UC2).
+ * appelée par le contrôleur briefing_passager (UC1).
  *
  * @package tests
  * @see application/models/archived_documents_model.php
  * @see application/controllers/briefing_passager.php
- * @see application/controllers/briefing_sign.php
  */
 class BriefingDateVolUpdateTest extends TestCase
 {

@@ -1,7 +1,8 @@
 /**
  * Playwright smoke tests for Briefing Passager feature
  *
- * Tests UC1 (upload), UC3 (admin list) and UC2 (digital signature).
+ * Tests UC1 (upload) and UC3 (admin list). UC2 (digital signature via
+ * briefing_sign/briefing_tokens) was retired in Lot 6, étape 6.6.
  *
  * Usage:
  *   cd playwright
@@ -28,11 +29,17 @@ const DB_CONFIG = {
     database: 'gvv2',
 };
 
-async function login(page, user) {
+async function login(page, user, section = null) {
     await page.goto(LOGIN_URL);
     await page.waitForLoadState('networkidle');
     await page.fill('input[name="username"]', user.username);
     await page.fill('input[name="password"]', user.password);
+    if (section !== null) {
+        const sectionSelect = page.locator('select[name="section"]');
+        if (await sectionSelect.count() > 0) {
+            await sectionSelect.selectOption(String(section));
+        }
+    }
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 }
@@ -153,60 +160,9 @@ test('UC3: PDF export link is present on admin list', async ({ page }) => {
     await expect(pdfLink).toBeVisible();
 });
 
-// --- UC2: Generate digital signature link ---
-
-test('UC2: admin can generate a digital signature link for a VLD', async ({ page }) => {
-    await login(page, ADMIN_USER);
-
-    // Navigate to generate_link for a known VLD
-    await page.goto('/index.php/briefing_passager/generate_link/16143');
-    await page.waitForLoadState('networkidle');
-
-    await expect(page).not.toHaveURL(/error|403|404/);
-    // QR code image should be present
-    await expect(page.locator('img[src^="data:image/png;base64,"]')).toBeVisible();
-    // Sign URL input should be present and contain briefing_sign
-    const signUrlInput = page.locator('#sign_url');
-    await expect(signUrlInput).toBeVisible();
-    const signUrl = await signUrlInput.inputValue();
-    expect(signUrl).toContain('briefing_sign');
-});
-
-test('UC2: anonymous user can access sign page via token link', async ({ browser }) => {
-    // First generate a token as admin
-    const adminCtx = await browser.newContext();
-    const adminPage = await adminCtx.newPage();
-    await login(adminPage, ADMIN_USER);
-    await adminPage.goto('/index.php/briefing_passager/generate_link/16143');
-    await adminPage.waitForLoadState('networkidle');
-
-    const signUrl = await adminPage.locator('#sign_url').inputValue();
-    await adminCtx.close();
-
-    expect(signUrl).toMatch(/briefing_sign\//);
-
-    // Now access sign URL as anonymous user (new context = no cookies)
-    const anonCtx = await browser.newContext();
-    const anonPage = await anonCtx.newPage();
-    await anonPage.goto(signUrl);
-    await anonPage.waitForLoadState('networkidle');
-
-    // Should show sign page (not login redirect)
-    await expect(anonPage).not.toHaveURL(/auth\/login/);
-    await expect(anonPage.locator('canvas#signature-pad')).toBeVisible();
-    await anonCtx.close();
-});
-
-test('UC2: invalid token shows error page', async ({ page }) => {
-    const fakeToken = 'a'.repeat(64);
-    await page.goto('/index.php/briefing_sign/' + fakeToken);
-    await page.waitForLoadState('networkidle');
-
-    // Should show error page with an h3 containing error text
-    await expect(page.locator('h3')).toBeVisible();
-});
-
 // --- Lot 6, étape 6.5: "link2" is the sole, permanent entry point (no testing_form flag) ---
+// UC2 (digital signature via briefing_sign/briefing_tokens) was retired in étape 6.6:
+// the controller, routes and views no longer exist.
 
 test('upload form exposes a single permanent signature button (old "signer en ligne" removed)', async ({ page }) => {
     await login(page, ADMIN_USER);
@@ -232,7 +188,9 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
 
     try {
         // --- Create a throwaway VLD as testadmin (club-admin: full VD + briefing rights) ---
-        await login(page, ADMIN_USER);
+        // Section 2 (ULM) must be selected: the briefing-passager-ulm form is scoped to
+        // that club, and forms_admin denies submission_delete on a section mismatch.
+        await login(page, ADMIN_USER, 2);
 
         const ts = Date.now();
         const benef = `PW BRIEFING BASCULE ${ts}`;
@@ -285,6 +243,12 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         await page.click('button[type="submit"].btn-success');
         await page.waitForLoadState('domcontentloaded');
 
+        // --- Submission redirects to vols_decouverte/page with a dismissible success message
+        // (étape 6.6: no more generic "thank you" page for this handler) ---
+        await expect(page).toHaveURL(/vols_decouverte\/page/);
+        const successAlert = page.locator('.alert-success.alert-dismissible');
+        await expect(successAlert).toBeVisible();
+        await expect(successAlert.locator('button.btn-close')).toBeVisible();
         const thanksBody = await page.textContent('body');
         expect(thanksBody).not.toContain('Fatal error');
 

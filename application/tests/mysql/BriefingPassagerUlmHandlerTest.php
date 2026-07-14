@@ -67,6 +67,9 @@ class BriefingPassagerUlmHandlerTest extends TestCase
 
     protected function tearDown(): void
     {
+        $CI = &get_instance();
+        $CI->session->unset_userdata('flash:new:message');
+
         foreach ($this->submission_ids as $submission_id) {
             $this->db->where('submission_id', $submission_id)->delete('form_submission_values');
             $this->db->where('id', $submission_id)->delete('form_submissions');
@@ -116,7 +119,7 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         $result = $handler->after_submit($submission_id, 'vols_decouverte', $this->vld_id);
 
         $this->assertNull($result['error']);
-        $this->assertNull($result['redirect_url']);
+        $this->assertStringContainsString('vols_decouverte/page', $result['redirect_url']);
 
         $vld = $this->db->where('id', $this->vld_id)->get('vols_decouverte')->row_array();
         $this->assertSame('Dupont Jean', $vld['beneficiaire']);
@@ -124,6 +127,11 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         $this->assertSame('Marie Dupont', $vld['urgence']);
         $this->assertSame('0600000000', $vld['beneficiaire_tel']);
         $this->assertSame('2026-08-01', $vld['date_vol']);
+
+        $message = $this->flashMessage();
+        $this->assertStringContainsString('alert-success', $message);
+        $this->assertStringContainsString('alert-dismissible', $message);
+        $this->assertStringContainsString('btn-close', $message);
     }
 
     public function testAfterSubmitWithWrongSubjectTypeLogsErrorWithoutCrashing()
@@ -134,6 +142,8 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         $result = $handler->after_submit($submission_id, 'membres', $this->vld_id);
 
         $this->assertNotEmpty($result['error']);
+        $this->assertStringContainsString('vols_decouverte/page', $result['redirect_url']);
+        $this->assertStringContainsString('alert-danger', $this->flashMessage());
 
         $vld = $this->db->where('id', $this->vld_id)->get('vols_decouverte')->row_array();
         $this->assertSame('Ancien Nom', $vld['beneficiaire']);
@@ -147,5 +157,17 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         $result = $handler->after_submit($submission_id, 'vols_decouverte', 999999999);
 
         $this->assertNotEmpty($result['error']);
+        $this->assertStringContainsString('vols_decouverte/page', $result['redirect_url']);
+        $this->assertStringContainsString('alert-danger', $this->flashMessage());
+    }
+
+    /**
+     * Le handler positionne la flashdata via set_flashdata(), lue en 'flash:new:'
+     * tant que la requête courante n'est pas terminée (voir Session::set_flashdata()).
+     */
+    private function flashMessage()
+    {
+        $CI = &get_instance();
+        return (string) $CI->session->userdata('flash:new:message');
     }
 }

@@ -203,11 +203,6 @@ class Briefing_passager extends Gvv_Controller {
             return;
         }
 
-        if ($action === 'link') {
-            redirect('briefing_passager/generate_link/' . $vld_id . '?direct=1');
-            return;
-        }
-
         if ($action === 'link2') {
             $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
             $errors2 = array();
@@ -579,52 +574,6 @@ class Briefing_passager extends Gvv_Controller {
     }
 
     // -----------------------------------------------------------------------
-    // UC2 — Generate digital signature link
-    // -----------------------------------------------------------------------
-
-    /**
-     * Generate a one-time signature token for a VLD and redirect to the sign page.
-     * @param int $vld_id Discovery flight ID
-     */
-    function generate_link($vld_id = 0) {
-        if (!$this->dx_auth->is_logged_in()) {
-            redirect('welcome/login');
-            return;
-        }
-        if (!$this->ensure_modification_rights()) return;
-
-        $vld_id = (int)$vld_id;
-        $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
-        if (!$vld) {
-            show_404();
-            return;
-        }
-
-        $token = bin2hex(random_bytes(32)); // 64 hex chars
-
-        $this->db->insert('briefing_tokens', array(
-            'vld_id'     => $vld_id,
-            'token'      => $token,
-            'created_at' => date('Y-m-d H:i:s'),
-            'expires_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
-        ));
-
-        $this->data['title']   = $this->lang->line('briefing_passager_link_title');
-        $this->data['vld']     = $vld;
-        $this->data['vld_id']  = $vld_id;
-        $this->data['token']   = $token;
-        $this->data['sign_url'] = $this->_build_public_sign_url($token);
-        $this->data['message'] = '';
-
-        if ((int) $this->input->get('direct') === 1) {
-            redirect($this->data['sign_url']);
-            return;
-        }
-
-        load_last_view('briefing_passager/linkView', $this->data);
-    }
-
-    // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
 
@@ -727,97 +676,6 @@ class Briefing_passager extends Gvv_Controller {
         return $abs_path;
     }
 
-    /**
-     * Build the public signature URL used by QR code.
-     * When qrcode_raw_ip is enabled, force server IP instead of configured hostname.
-     */
-    private function _build_public_sign_url($token) {
-        $url = site_url('briefing_sign/' . $token);
-        if (!$this->config->item('qrcode_raw_ip')) {
-            return $url;
-        }
-
-        $server_addr = $this->_resolve_qrcode_ip();
-        if ($server_addr === '') {
-            return $url;
-        }
-
-        $parts = parse_url($url);
-        if (!is_array($parts) || empty($parts['host'])) {
-            return $url;
-        }
-
-        $scheme = isset($parts['scheme']) ? $parts['scheme'] : 'http';
-        $path   = isset($parts['path']) ? $parts['path'] : '';
-        $query  = isset($parts['query']) ? '?' . $parts['query'] : '';
-        $port   = isset($parts['port']) ? ':' . $parts['port'] : '';
-
-        return $scheme . '://' . $server_addr . $port . $path . $query;
-    }
-
-    /**
-     * Resolve the best local network IP for QR code links.
-     */
-    private function _resolve_qrcode_ip() {
-        // Most reliable on Linux: ip route gives the preferred outgoing interface IP
-        $route_output = @shell_exec('ip route get 1.1.1.1 2>/dev/null');
-        if ($route_output) {
-            if (preg_match('/src\s+([\d.]+)/', $route_output, $m)) {
-                if ($this->_is_usable_qrcode_ip($m[1])) {
-                    return $m[1];
-                }
-            }
-        }
-
-        $server_addr = isset($_SERVER['SERVER_ADDR']) ? trim($_SERVER['SERVER_ADDR']) : '';
-        if ($this->_is_usable_qrcode_ip($server_addr)) {
-            return $server_addr;
-        }
-
-        $http_host = isset($_SERVER['HTTP_HOST']) ? trim($_SERVER['HTTP_HOST']) : '';
-        if ($http_host !== '') {
-            $host = preg_replace('/:\\d+$/', '', $http_host);
-            if ($this->_is_usable_qrcode_ip($host)) {
-                return $host;
-            }
-        }
-
-        $hostname = gethostname();
-        if ($hostname) {
-            $candidates = @gethostbynamel($hostname);
-            if (is_array($candidates)) {
-                foreach ($candidates as $candidate) {
-                    if ($this->_is_usable_qrcode_ip($candidate)) {
-                        return $candidate;
-                    }
-                }
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * Keep only IPv4 addresses that are reachable from a local network.
-     */
-    private function _is_usable_qrcode_ip($ip) {
-        if (empty($ip)) {
-            return false;
-        }
-        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            return false;
-        }
-        if (strpos($ip, '127.') === 0) {
-            return false;
-        }
-        if (strpos($ip, '169.254.') === 0) {
-            return false;
-        }
-        if ($ip === '0.0.0.0') {
-            return false;
-        }
-        return true;
-    }
 }
 
 /* End of file briefing_passager.php */
