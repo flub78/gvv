@@ -271,12 +271,17 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         expect(vldRows[0].beneficiaire_tel).toBe('0600000000');
 
         // --- Icon is now green (btn-success) ---
+        // Once has_briefing is true, MetaData::table() points the icon straight at the
+        // submission PDF (forms_admin/submission_pdf/{form_id}/{submission_id}) instead of
+        // briefing_passager/upload/{vdId} (see MetaData.php action 'briefing_vd') — so it must
+        // be located by its stable title, not by the upload href used before submission.
         await page.goto(VLD_LIST_PAGE_URL);
         await page.waitForLoadState('load');
         await page.waitForSelector('a[href*="briefing_passager/upload"]', { timeout: 10000 });
         const rowAfter = page.locator('table tr', { has: page.locator(`a[href*="/vols_decouverte/edit/${vdId}"]`) }).first();
-        const briefingLinkAfter = rowAfter.locator(`a[href*="briefing_passager/upload/${vdId}"]`);
+        const briefingLinkAfter = rowAfter.locator('a[title="Briefing passager"]');
         await expect(briefingLinkAfter).toHaveClass(/btn-success/);
+        await expect(briefingLinkAfter).toHaveAttribute('href', /forms_admin\/submission_pdf\/2\//);
 
         // --- Delete the submission via forms_admin (real endpoint, already logged in as club-admin) ---
         const del = await page.request.post(`/index.php/forms_admin/submission_delete/2/${submissionId}`);

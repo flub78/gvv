@@ -106,7 +106,7 @@ Le patch CI2 résout le problème immédiat (coût hébergeur, runtime EOL) mais
 
 Pour un projet en maintenance mode utilisé par 5-6 associations, **l'option C** est la plus réaliste à court terme :
 
-1. Tester GVV sur PHP 8.1 ou 8.2 dans un environnement de développement
+1. Tester GVV sur PHP 8.4 dans un environnement de développement
 2. Corriger les erreurs dans `system/` (CI2 core) et `application/` qui remontent
 3. Valider avec la suite de tests existante (~120 tests PHPUnit + Playwright)
 4. Déployer
@@ -119,8 +119,7 @@ Si l'application doit continuer au-delà de cet horizon ou si des exigences de c
 
 ### 6.1 Compatibilité cible
 
-- PHP 8.1 minimum (LTS jusqu'en décembre 2025)
-- PHP 8.2 souhaitable (LTS jusqu'en décembre 2026)
+- PHP 8.4 (LTS jusqu'en décembre 2028)
 - Maintien de la compatibilité avec MySQL 5.x / MariaDB existant
 
 ### 6.2 Périmètre
