@@ -1,4 +1,5 @@
 <?php
+#[AllowDynamicProperties]
 class Permissions Extends CI_Model {
 
     function __construct() {

@@ -28,6 +28,7 @@
  * @author		ExpressionEngine Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
+#[AllowDynamicProperties]
 class CI_DB_mysqli_driver extends CI_DB {
 
 	var $dbdriver = 'mysqli';
@@ -67,6 +68,17 @@ class CI_DB_mysqli_driver extends CI_DB {
 	 */
 	function db_connect()
 	{
+		// PHP 8.1+ changed mysqli's default error mode from silent (MYSQLI_REPORT_OFF,
+		// PHP 7.4's behavior) to throwing mysqli_sql_exception on every SQL error
+		// (MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT). This driver (like the rest of
+		// CI2) expects query() to return FALSE on error and reports it via
+		// $this->conn_id->error — an uncaught exception instead crashes the whole
+		// request. Restore the PHP 7.4-compatible silent mode explicitly.
+		if (function_exists('mysqli_report'))
+		{
+			mysqli_report(MYSQLI_REPORT_OFF);
+		}
+
 		if ($this->port != '')
 		{
 			return @mysqli_connect($this->hostname, $this->username, $this->password, $this->database, $this->port);

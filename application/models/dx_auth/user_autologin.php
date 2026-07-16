@@ -1,4 +1,5 @@
 <?php
+#[AllowDynamicProperties]
 class User_Autologin extends CI_Model {
     function __construct() {
         parent :: __construct();

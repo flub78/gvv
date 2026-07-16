@@ -35,6 +35,7 @@ if (!defined('BASEPATH'))
  * Subtypes: email, password, boolean, currency, enumerate, selector, key, image, minute, etc.
  * Defaults: today, current_year, current_user (dynamic PHP-generated values)
  */
+#[AllowDynamicProperties]
 abstract class Metadata {
     protected $db = array();
     protected $keys = array();
@@ -1737,7 +1738,7 @@ abstract class Metadata {
      * @param
      *            action CREATION | MODIFICATION
      */
-    function set_rules($table, $fields = array(), $ext_rules = array(), $action) {
+    function set_rules($table, $fields, $ext_rules, $action) {
         foreach ($fields as $field) {
             $rules = $this->rules($table, $field, $action);
             if (isset($ext_rules[$field])) {

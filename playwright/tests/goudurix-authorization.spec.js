@@ -99,6 +99,13 @@ test.describe('Goudurix Authorization - New Auth System', () => {
             await expectAccessGranted(page, 'avion/page');
         });
 
+        // vols_planeur/statistic no longer requires the planchiste role since
+        // commit a3ea57af ("accès au statistiques planeur") — open to any user.
+        test('vols_planeur/statistic - flight statistics', async ({ page }) => {
+            await loginAndGoto(page, 'vols_planeur/statistic', '3');
+            await expectAccessGranted(page, 'vols_planeur/statistic');
+        });
+
         test('sections/page - sections list', async ({ page }) => {
             await loginAndGoto(page, 'sections/page');
             await expectAccessGranted(page, 'sections/page');
@@ -256,11 +263,6 @@ test.describe('Goudurix Authorization - New Auth System', () => {
     // Goudurix has no planchiste role
     // ============================================================
     test.describe('Denied routes - planchiste stats pages', () => {
-
-        test('vols_planeur/statistic - flight statistics', async ({ page }) => {
-            await loginAndGoto(page, 'vols_planeur/statistic', '3');
-            await expectAccessDenied(page, 'vols_planeur/statistic');
-        });
 
         test('vols_planeur/cumuls - cumulative stats', async ({ page }) => {
             await loginAndGoto(page, 'vols_planeur/cumuls', '3');

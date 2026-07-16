@@ -307,7 +307,7 @@ if (!function_exists('show_404')) {
  * @return	void
  */
 if (!function_exists('log_message')) {
-	function log_message($level = 'error', $message, $php_error = FALSE) {
+	function log_message($level, $message, $php_error = FALSE) {
 		static $_log;
 
 		if (config_item('log_threshold') == 0) {
@@ -420,7 +420,9 @@ if (!function_exists('_exception_handler')) {
 		// For example, if you are running PHP 5 and you use version 4 style
 		// class functions (without prefixes like "public", "private", etc.)
 		// you'll get notices telling you that these have been deprecated.
-		if ($severity == E_STRICT) {
+		// E_STRICT's value (2048) is hardcoded because referencing the
+		// E_STRICT constant itself is deprecated as of PHP 8.4.
+		if ($severity == 2048) {
 			return;
 		}
 

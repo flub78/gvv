@@ -16,6 +16,7 @@ if (! defined('BASEPATH'))
  * Dans les cas simple les enfants n'ont besoin que de déclarer le nom de la table
  * sur laquelle ils travaillent.
  */
+#[AllowDynamicProperties]
 class Common_Model extends CI_Model {
     public $table;
     protected $primary_key;

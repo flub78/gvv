@@ -928,7 +928,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submission_pdf($form_id = 0, $submission_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }
@@ -2050,12 +2050,23 @@ class Forms_admin extends MY_Controller {
         return implode("\n", $arr);
     }
 
-    private function load_form_or_redirect($form_id) {
+    /**
+     * $allow_workflow_bypass: skip the club-scoping check for workflow forms
+     * (see $workflow_form_slugs). These are shared across all clubs by design
+     * (e.g. briefing-passager-ulm can be attached to a VLD of any section), so
+     * viewing their submission_pdf must not be restricted to the form's own
+     * club, unlike the regular admin actions (edit/delete/list).
+     */
+    private function load_form_or_redirect($form_id, $allow_workflow_bypass = false) {
         $form = $this->forms_model->get_by_id((int) $form_id);
         if (!$form) {
             $this->session->set_flashdata('forms_error', 'Formulaire introuvable.');
             redirect('forms_admin');
             return false;
+        }
+
+        if ($allow_workflow_bypass && in_array($form['public_slug'], $this->workflow_form_slugs, true)) {
+            return $form;
         }
 
         $section_id = (int) $this->session->userdata('section');

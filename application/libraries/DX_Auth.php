@@ -14,6 +14,7 @@ if (! defined('BASEPATH'))
  * @license MIT License Copyright (c) 2008 Erick Hartanto
  *          @credits http://dexcell.shinsengumiteam.com/dx_auth/general/credits.html
  */
+#[AllowDynamicProperties]
 class DX_Auth {
     // Private
     var $_banned;
@@ -133,6 +134,25 @@ class DX_Auth {
         // encrypts the string combinations of every single encrypted letter
         // and finally returns the encrypted password
         return md5($majorsalt);
+    }
+
+    /**
+     * Generates an explicit MD5-crypt salt ("$1$" + 8 chars + "$") for crypt().
+     *
+     * PHP 7.4 let crypt($hash) auto-pick a salt (deprecated fallback, MD5-crypt
+     * on this server); PHP 8.0 made the salt argument mandatory, throwing
+     * ArgumentCountError otherwise. We generate the same MD5-crypt format
+     * explicitly so crypt() keeps producing a 34-char hash — the users.password
+     * column is varchar(34), and password_hash()'s bcrypt output (60 chars)
+     * would silently fail to insert (or get rejected under strict SQL mode).
+     */
+    function _crypt_salt() {
+        $chars = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        $salt = '$1$';
+        for ($i = 0; $i < 8; $i++) {
+            $salt .= $chars[random_int(0, 63)];
+        }
+        return $salt . '$';
     }
     function _array_in_array($needle, $haystack) {
         // Make sure $needle is an array for foreach
@@ -842,7 +862,7 @@ class DX_Auth {
         // New user array
         $new_user = array (
                 'username' => $username,
-                'password' => crypt($this->_encode($password)),
+                'password' => crypt($this->_encode($password), $this->_crypt_salt()),
                 'email' => $email,
                 'last_ip' => $this->ci->input->ip_address()
         );
@@ -1024,7 +1044,7 @@ class DX_Auth {
         $this->ci->load->model('dx_auth/user_autologin', 'user_autologin');
         if ($query = $this->ci->users->get_user_by_username($username) and $query->num_rows() == 1) {
             $user_id = $query->row()->id;
-            $encoded = crypt($this->_encode($new_password));
+            $encoded = crypt($this->_encode($new_password), $this->_crypt_salt());
             if ($this->ci->users->set_password_with_key($user_id, $key, $encoded)) {
                 $this->ci->user_autologin->clear_keys($user_id);
                 return TRUE;
@@ -1113,7 +1133,7 @@ class DX_Auth {
             // Check if old password correct
             if (crypt($pass, $row->password) === $row->password) {
                 // Crypt and encode new password
-                $new_pass = crypt($this->_encode($new_pass));
+                $new_pass = crypt($this->_encode($new_pass), $this->_crypt_salt());
 
                 // Replace old password with new password
                 $this->ci->users->change_password($this->ci->session->userdata('DX_user_id'), $new_pass);
@@ -1134,7 +1154,7 @@ class DX_Auth {
         $this->ci->load->model('dx_auth/users', 'users');
 
         // Crypt and encode new password
-        $new_pass = crypt($this->_encode($new_pass));
+        $new_pass = crypt($this->_encode($new_pass), $this->_crypt_salt());
 
         // Replace old password with new password
         $this->ci->users->change_password($id, $new_pass);
