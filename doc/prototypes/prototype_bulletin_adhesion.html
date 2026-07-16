@@ -234,6 +234,16 @@
             color: var(--gvv-text-secondary);
         }
 
+        /* Les champs de saisie de date doivent rester blancs, comme les autres champs.
+           color-scheme: light force le widget natif du navigateur (icône calendrier
+           comprise) à rester clair même si l'OS/le navigateur est en mode sombre.
+           Sélecteur non scopé à .bulletin : cette classe vit sur le <form> englobant,
+           retiré à l'import dans le moteur de formulaire GVV (qui fournit son propre <form>). */
+        input[type="date"] {
+            background-color: white !important;
+            color-scheme: light;
+        }
+
         /* Section titres soulignés, comme "Loi du 31 mai 1924" */
         .section-title {
             font-size: var(--gvv-text-lg);
@@ -268,6 +278,16 @@
             padding: 0.15rem 0.25rem;
             font-family: var(--gvv-font-primary);
             width: 100%;
+        }
+
+        /* "N°"/"du"/"validité :" et leur champ partagent la même cellule :
+           largeur fixe pour rester juste à côté du texte, sans passer à la ligne. */
+        .licences-table td.inline-field {
+            white-space: nowrap;
+        }
+
+        .licences-table td.inline-field input {
+            width: 120px;
         }
 
         .licences-table input:focus {
@@ -315,12 +335,8 @@
             justify-content: flex-end;
         }
 
-        .signature-hint {
-            text-align: right;
-            font-size: var(--gvv-text-sm);
-            color: var(--gvv-text-secondary);
-            font-style: italic;
-            margin-top: 0.25rem;
+        .signature-widget-block {
+            margin: 1rem 0 1.5rem;
         }
 
         .minor-authorization {
@@ -396,8 +412,10 @@
                 <div class="field-help">Formats acceptés : JPG, PNG. Taille maximale : 5 Mo.</div>
             </div>
             <div class="field-line">
-                <label for="nom_prenoms">Nom et prénoms</label>
-                <input type="text" id="nom_prenoms" name="nom_prenoms" required>
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" required>
+                <label class="sep" for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" required>
             </div>
             <div class="field-line">
                 <label for="adresse">Adresse</label>
@@ -442,33 +460,24 @@
                     <label><input type="radio" name="bia" value="non"> NON</label>
                 </span>
             </td>
-            <td>Année</td>
-            <td><label for="bia_annee" class="visually-hidden">BIA - Année</label><input type="text" id="bia_annee" name="bia_annee" placeholder="Année"></td>
-            <td></td>
-            <td></td>
+            <td class="inline-field">Année <label for="bia_annee" class="visually-hidden">BIA - Année</label><input type="text" id="bia_annee" name="bia_annee" placeholder="Année"></td>
         </tr>
 
         <tr>
             <td class="label">PPL</td>
-            <td>N°</td>
-            <td><label for="ppl_numero" class="visually-hidden">PPL - N°</label><input type="text" id="ppl_numero" name="ppl_numero"></td>
-            <td>du</td>
-            <td><label for="ppl_date" class="visually-hidden">PPL - date</label><input type="date" id="ppl_date" name="ppl_date"></td>
+            <td class="inline-field">N° <label for="ppl_numero" class="visually-hidden">PPL - N°</label><input type="text" id="ppl_numero" name="ppl_numero"></td>
+            <td class="inline-field">du <label for="ppl_date" class="visually-hidden">PPL - date</label><input type="date" id="ppl_date" name="ppl_date"></td>
         </tr>
         <tr>
             <td class="label">SPL</td>
-            <td>N°</td>
-            <td><label for="spl_numero" class="visually-hidden">SPL - N°</label><input type="text" id="spl_numero" name="spl_numero"></td>
-            <td>du</td>
-            <td><label for="spl_date" class="visually-hidden">SPL - date</label><input type="date" id="spl_date" name="spl_date"></td>
+            <td class="inline-field">N° <label for="spl_numero" class="visually-hidden">SPL - N°</label><input type="text" id="spl_numero" name="spl_numero"></td>
+            <td class="inline-field">du <label for="spl_date" class="visually-hidden">SPL - date</label><input type="date" id="spl_date" name="spl_date"></td>
         </tr>
         <tr>
             <td class="label">ULM</td>
-            <td>N°</td>
-            <td><label for="ulm_numero" class="visually-hidden">ULM - N°</label><input type="text" id="ulm_numero" name="ulm_numero"></td>
-            <td>du</td>
-            <td><label for="ulm_date" class="visually-hidden">ULM - date</label><input type="date" id="ulm_date" name="ulm_date"></td>
-            <td>validité : <label for="ulm_validite" class="visually-hidden">ULM - validité</label><input type="date" id="ulm_validite" name="ulm_validite"></td>
+            <td class="inline-field">N° <label for="ulm_numero" class="visually-hidden">ULM - N°</label><input type="text" id="ulm_numero" name="ulm_numero"></td>
+            <td class="inline-field">du <label for="ulm_date" class="visually-hidden">ULM - date</label><input type="date" id="ulm_date" name="ulm_date"></td>
+            <td class="inline-field">validité : <label for="ulm_validite" class="visually-hidden">ULM - validité</label><input type="date" id="ulm_validite" name="ulm_validite"></td>
         </tr>
     </table>
 
@@ -501,7 +510,6 @@
             <input type="date" id="date_demande" name="date_demande">
         </div>
     </div>
-    <p class="signature-hint">(signature)</p>
 
     <h2 class="section-title">Loi du 31 mai 1924</h2>
 
@@ -530,7 +538,10 @@
         <label class="sep" for="date_loi">le</label>
         <input type="date" id="date_loi" name="date_loi">
     </div>
-    <p class="signature-hint">(signature)</p>
+
+    <div class="signature-widget-block">
+        <div data-gvv-type="signature" data-gvv-name="signature_membre" data-gvv-required="true">Signature du futur membre</div>
+    </div>
 
     <h2 class="section-title">Autorisation du père, de la mère ou du tuteur (pour les mineurs)</h2>
 
@@ -562,7 +573,10 @@
                 <input type="date" id="date_tuteur" name="date_tuteur">
             </div>
         </div>
-        <p class="signature-hint">(signature du parent ou du tuteur)</p>
+
+        <div class="signature-widget-block">
+            <div data-gvv-type="signature" data-gvv-name="signature_representant_legal">Signature du représentant légal (pour les mineurs)</div>
+        </div>
     </div>
 
     <p class="footer-note">
