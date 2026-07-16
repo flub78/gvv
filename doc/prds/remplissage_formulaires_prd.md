@@ -35,6 +35,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Permettre la génération d'un PDF imprimable à partir d'une réponse.
 - Intégrer un mécanisme de champs dynamiques pré-remplis depuis GVV.
 - Permettre depuis une réponse la création d'un document archivé avec le PDF imprimable pré-rempli.
+- Permettre à un formulaire de déclencher un paiement en ligne (HelloAsso) rattaché à un compte comptable GVV.
 
 ## Non-objectifs
 
@@ -61,6 +62,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Import d'un PDF formulaire pour produire une base HTML éditable.
 - Création d'un document archivé depuis une réponse via le formulaire documentaire existant, avec PDF imprimable pré-rempli.
 - Soumission par téléchargement d'un scan/photo du formulaire imprimé, en alternative au remplissage en ligne, activable par formulaire (EF12).
+- Paiement en ligne HelloAsso intégré à un formulaire, obligatoire ou facultatif selon configuration (EF13).
 
 ### Exclu
 
@@ -68,6 +70,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Rendu pixel-perfect garanti identique au PDF source importé.
 - Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
 - Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
+- Plusieurs paiements sur un même formulaire, ou choix entre plusieurs moyens de paiement, en V1 (EF13) — un seul widget de paiement HelloAsso par formulaire.
 
 ## Taxonomie des formulaires
 
@@ -312,6 +315,20 @@ Sur un formulaire où l'option est explicitement activée par l'admin, l'utilisa
 7. Il est possible de faire pivoter une image ou un PDF téléchargé qui n'a pas été numérisé verticalement.
 8. Le bouton "Télécharger un formulaire prérempli" est également disponible depuis la vue liste des réponses, en plus de la page publique du formulaire.
 
+### EF13 : Paiement en ligne intégré à un formulaire
+
+Un formulaire peut proposer un paiement HelloAsso à l'utilisateur, en complément de sa réponse (ex. première cotisation à l'inscription, frais d'inscription BIA).
+
+1. Un formulaire comporte au maximum un paiement (V1).
+2. Le paiement est défini par : une description, un montant fixe ou une liste de montants proposés — si aucun montant n'est proposé, l'utilisateur saisit librement un montant, dans des bornes configurées — et le compte comptable GVV sur lequel l'écriture correspondante doit être générée.
+3. Le paiement s'effectue dans le contexte (section/organisation) auquel le formulaire est rattaché.
+4. L'admin configure le paiement comme **obligatoire** ou **facultatif** :
+   - **Facultatif** : la réponse est acceptée que l'utilisateur paie ou non.
+   - **Obligatoire** : une réponse n'est considérée acceptée qu'une fois le paiement confirmé ; si le paiement échoue ou n'est jamais confirmé, la réponse est marquée rejetée. Elle reste consultable par l'admin (traçabilité), mais n'est pas traitée comme une réponse valide.
+5. Le statut du paiement (payé / en attente / non payé / rejeté) est affiché de façon explicite et non ambiguë dans le détail d'une réponse côté admin.
+6. Le statut du paiement apparaît également dans le PDF imprimable généré à partir de la réponse.
+7. La confirmation du paiement provient de la plateforme de paiement et peut être différée par rapport à l'instant de la soumission ; une réponse à paiement obligatoire peut donc transiter par un état "en attente" avant d'être acceptée ou rejetée.
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -340,6 +357,9 @@ Sur un formulaire où l'option est explicitement activée par l'admin, l'utilisa
 - Niveau d'automatisation d'archivage depuis les workflows ? *(Tranché pour le briefing passager, juillet 2026 : pas d'archivage automatique — reste une option générique future du module `forms` si le besoin réapparaît pour un autre workflow.)*
 - Autres entités GVV à intégrer en catégorie 3 au-delà du briefing passager ?
 - Protection du lien public envoyé au passager (remplace le `briefing_tokens` actuel) : l'utilité même du transfert par QR code/SMS est remise en question (juillet 2026). Si confirmée plus tard, ce sera une fonctionnalité générique de formulaires "transférables", pas propre au briefing passager. Non traitée dans la migration en cours.
+- EF13 : délai/critère exact de rejet d'une réponse à paiement obligatoire non confirmé (rejet différé après un délai, ou rejet immédiat sur échec/annulation explicite côté HelloAsso) ?
+- EF13 : une réponse rejetée pour défaut de paiement peut-elle être régularisée a posteriori (nouveau lien de paiement envoyé à l'utilisateur) ou l'utilisateur doit-il resoumettre le formulaire ?
+- EF13 : notification (email) à l'utilisateur et/ou à l'admin selon l'issue du paiement ?
 
 ### Résolues
 

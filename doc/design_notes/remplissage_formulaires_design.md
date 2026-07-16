@@ -658,9 +658,12 @@ Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être
 
 ### 10. Import PDF -> HTML
 
-- Pas de service de conversion, demander à Claude ou ChatGPT de réaliser la conversion
-- Détection des champs du PDF source quand possible
-- Génération d'une page HTML initiale
+Pas de service de conversion intégré à GVV. Processus manuel, assisté par un outil d'IA externe (Claude, ChatGPT, ...) : voir [guide utilisateur — Convertir un formulaire PDF existant](../users/fr/13_formulaires.md#convertir-un-formulaire-pdf-existant).
+
+**Limites** :
+- pas de détection automatique des champs du PDF source — les `name="..."` sont ajoutés/vérifiés manuellement après conversion ;
+- pas de garantie de fidélité visuelle au document d'origine ;
+- relecture manuelle obligatoire avant publication (contraintes de rendu — voir [Règles CSS](../users/fr/13_formulaires.md#règles-css) du guide utilisateur).
 
 ### 11. Export PDF imprimable
 
@@ -809,6 +812,74 @@ Pour une ligne dont `submission_method = 'upload'` :
 
 Accès direct par URL aux vues `submission()`/`submission_view()`/`submission_pdf()` pour une réponse de type `upload` : redirection directe vers le fichier (pas de gabarit de champs à remplir).
 
+### 16. Paiement en ligne intégré (widget HelloAsso)
+
+#### Principe
+
+Un formulaire peut porter au maximum un paiement HelloAsso (V1), déclenché à la soumission plutôt que dans une page dédiée. Le choix d'architecture est de **ne quasiment rien ajouter au socle `forms`** : le pipeline de paiement (`paiements_en_ligne` : création de checkout, webhook, écriture comptable) existe déjà et sert aujourd'hui des flux authentifiés (`paiement_generique`) et anonymes (`public_bar`, `public_decouverte`) — voir `application/controllers/paiements_en_ligne.php`. Le paiement de formulaire n'est qu'un nouveau consommateur de ce pipeline, initié par un handler post-soumission (section 13), pas un sous-système parallèle.
+
+Réutilisations directes, sans modification :
+- `Helloasso::create_checkout($club_id, $params)` (`Helloasso.php:192`) — résout la config HelloAsso (compte, environnement) par `club_id`. Le paiement de formulaire réutilise `forms.club` comme `club_id` : le rattachement section d'un formulaire (déjà en place depuis le Lot 1) désigne à la fois la section GVV et l'organisation HelloAsso à débiter — pas de paramètre `data-gvv-account` (général/ULM/avion/planeur) distinct à introduire.
+- `paiements_en_ligne_model::_ecriture_paiement_generique()` (`paiements_en_ligne_model.php:865`) — débite 467, crédite le compte destination. C'est déjà l'écriture "dans un compte GVV" demandée ; le paiement de formulaire réutilise le type `paiement_generique` (ou un type dédié équivalent) plutôt que réinventer une logique comptable.
+- `helloasso_webhook()` (`paiements_en_ligne.php:1647`) — traitement asynchrone et idempotent du retour HelloAsso, déjà club-scopé et déjà utilisé par des flux anonymes. Aucune nouvelle route/authentification à concevoir.
+
+#### Déclaration dans le HTML
+
+Même pattern que le widget signature (section 9) : un `<div data-gvv-type="payment">` détecté par `sync_fields_from_html`/`extract_html_fields`, remplacé par GVV au rendu.
+
+```html
+<div data-gvv-type="payment"
+     data-gvv-name="paiement_cotisation"
+     data-gvv-description="Première cotisation 2026"
+     data-gvv-amounts="90,120,150"
+     data-gvv-compte-id="123"
+     data-gvv-required="true">
+  Réglez votre cotisation
+</div>
+```
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-name` | Nom technique du champ (valeur soumise = montant choisi) |
+| `data-gvv-description` | Libellé transmis à HelloAsso (`item_name`) et affiché dans les résultats |
+| `data-gvv-amounts` | Liste de montants proposés (radio) ; absent = montant libre, borné par la configuration HelloAsso de la section (`montant_min`/`montant_max`, déjà utilisés par `paiement_generique`) |
+| `data-gvv-compte-id` | Compte comptable GVV crédité (`compte_destination_id`) |
+| `data-gvv-required` | `true` = paiement obligatoire, `false`/absent = facultatif (même convention que le widget signature) |
+
+Ces paramètres vivent dans le contenu HTML de la page, pas dans de nouvelles colonnes de `forms` — cohérent avec le principe déjà établi (section 13) de ne pas ajouter de colonnes métier au socle générique.
+
+#### Cycle de vie et handler
+
+```
+FormPaymentHandler::after_submit($submission_id, $subject_type, $subject_id)
+  ├── Reparse le content_html de la page pour retrouver description/amounts/compte_id
+  ├── Relit le montant choisi dans les valeurs soumises
+  ├── Revalide le montant côté serveur (bornes de section — jamais confiance dans le POST)
+  ├── Crée la transaction paiements_en_ligne + le checkout HelloAsso (club_id = forms.club)
+  │     metadata additionnelle : form_submission_id (lien retour)
+  └── Retourne redirect_url → checkout HelloAsso
+```
+
+`forms_public::submit()` n'a besoin d'aucune modification : le mécanisme « redirige vers `redirect_url` si fourni, sinon page de remerciement standard » existe déjà depuis le Lot 6 étape 6.3.
+
+Le retour HelloAsso (`return_url`) pointe vers une route publique légère qui réaffiche `bs_thanks` sans présumer du résultat — la confirmation reste **asynchrone**, portée uniquement par le webhook, comme pour tous les autres flux HelloAsso du projet.
+
+Au webhook, en plus de l'écriture comptable habituelle, `form_submissions.payment_status` de la soumission liée est mis à jour (`none` → `pending` → `paid`/`failed`).
+
+#### Paiement obligatoire vs facultatif
+
+- **Facultatif** : `payment_status` est purement informatif, la réponse reste acceptée dans tous les cas.
+- **Obligatoire** : la réponse n'est considérée valide qu'une fois `payment_status = paid`. Sans confirmation, elle est marquée rejetée — conservée pour traçabilité admin, mais pas traitée comme une réponse valide en aval (ex. pas de déclenchement d'un éventuel autre handler métier). Le critère exact de bascule vers "rejetée" (délai d'attente vs échec/annulation explicite côté HelloAsso) reste ouvert — voir Questions ouvertes du PRD (EF13).
+
+#### Affichage du statut de paiement
+
+- **Admin** (`bs_submission.php`) : badge explicite (payé / en attente / non payé / rejeté), montant, description, lien vers la transaction `paiements_en_ligne` correspondante — même logique d'affichage que la miniature de signature déjà en place dans cette vue.
+- **PDF imprimable** (`submission_view`/`submission_pdf`) : le statut de paiement doit apparaître dans le rendu, pas seulement en admin — une réponse imprimée sans cette information serait trompeuse (ex. archivage d'un document qui semble complet alors que le paiement obligatoire n'a jamais été confirmé).
+
+#### Sécurité
+
+Un paiement de formulaire transforme un lien public réutilisable (risque déjà identifié) en générateur de checkouts HelloAsso à la demande. La limitation de débit sur soumissions publiques (déjà listée en « Sécurité » ci-dessous, toujours non implémentée) devient un prérequis plus pressant dès qu'un widget de paiement est en jeu, même si l'abus direct est limité (un rejeu du lien crée des opportunités de paiement légitimes, pas de l'argent gratuit).
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**
@@ -895,10 +966,8 @@ Sans objet pour la migration : le nouveau mécanisme ne produit plus d'`archived
 - Les paramètres runtime du workflow alimentent les params pré-remplissage
 - Une étape workflow peut déclencher l'archivage d'une réponse
 
-## Documentation à produire
+## Documentation
 
-- Exemples de formulaires (inscription, briefing, demande interne)
-- Exemple de CSS global
-- Guide pré-remplissage GVV
-- Guide import PDF → HTML et limites
-- Guide export PDF imprimable
+Guide utilisateur/admin complet : [doc/users/fr/13_formulaires.md](../users/fr/13_formulaires.md) — vue d'ensemble, interface d'administration, types de champs, règles CSS, exemples de formulaires et de CSS global, rôles de champs GVV, pré-remplissage (mécanismes A et B), page de génération, consultation des réponses et fichiers, soumission par téléchargement.
+
+Taxonomie, architecture, handlers post-soumission : ce document (sections « Taxonomie des formulaires », « 13. Intégration workflow GVV »).

@@ -315,13 +315,13 @@ Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design
 
 ### Lot 8 — Documentation et validation finale
 
-- [ ] Documenter le socle formulaire autonome et les fichiers uploadés.
-- [ ] Documenter la taxonomie des formulaires (catégories 1, 2, 3) et les exemples.
-- [ ] Ajouter exemples complets de formulaires et de CSS global.
-- [ ] Documenter import PDF -> HTML et ses limites.
-- [ ] Documenter l'API de pré-remplissage GVV (mécanismes A et B) et les exemples workflow.
-- [ ] Documenter le widget signature : modes canvas et upload, pré-remplissage depuis `membres.signature_path`, attributs `data-gvv-*`.
-- [ ] Documenter la création d'un handler post-soumission (interface, exemple BriefingPassagerUlm).
+- [x] Documenter le socle formulaire autonome et les fichiers uploadés. `doc/users/fr/13_formulaires.md` (existant) + nouvelle section « Consulter les réponses » (ouverture, aperçu image/PDF inline, téléchargement sécurisé, rétention).
+- [x] Documenter la taxonomie des formulaires (catégories 1, 2, 3) et les exemples. Déjà couvert par `remplissage_formulaires_design.md` § « Taxonomie des formulaires » (exemples par catégorie).
+- [x] Ajouter exemples complets de formulaires et de CSS global. Déjà couvert par `doc/users/fr/13_formulaires.md` § « Exemples de formulaires » (2 exemples complets HTML + CSS).
+- [x] Documenter import PDF -> HTML et ses limites. Nouvelle section « Convertir un formulaire PDF existant » dans `13_formulaires.md` ; § 10 du design doc mis à jour avec renvoi + limites détaillées.
+- [x] Documenter l'API de pré-remplissage GVV (mécanismes A et B) et les exemples workflow. Déjà couvert par `13_formulaires.md` §§ pré-remplissage A/B (taxonomie des sources, exemple briefing passager ULM).
+- [x] Documenter le widget signature : modes canvas et upload, pré-remplissage depuis `membres.signature_path`, attributs `data-gvv-*`. Déjà couvert par `13_formulaires.md` § « Champ signature » et design doc § 9.
+- [x] Documenter la création d'un handler post-soumission (interface, exemple BriefingPassagerUlm). Déjà couvert par design doc § 13 (interface `GvvFormHandlerInterface`, exemple `BriefingPassagerUlmHandler`).
 - [ ] PHPUnit : modèles, validations, fichiers, archivage, pré-remplissage, handlers.
 - [ ] Playwright : création admin, soumission anonyme, upload/preview, PDF imprimable, archivage, pré-remplissage GVV, signatures canvas et upload, workflow briefing end-to-end.
 - [ ] Vérification sécurité : uploads, contrôle d'accès, anti-spam.
@@ -409,6 +409,27 @@ Décisions retenues :
 
 **Lot 9 terminé.**
 
+### Lot 10 — Paiement en ligne intégré (widget HelloAsso)
+
+Objectif : permettre à un formulaire de déclencher un paiement HelloAsso (première cotisation, frais d'inscription BIA, ...) en complément de sa réponse, avec génération d'une écriture comptable dans un compte GVV. Réutilise autant que possible le pipeline `paiements_en_ligne` existant (création de checkout, webhook, écriture `compte_destination_id`) déjà éprouvé par les flux `paiement_generique`/`public_bar`/`public_decouverte`. Un seul paiement par formulaire (V1).
+
+- [ ] Migration `1XX_forms_payment.php` : ajouter `payment_status ENUM('none','pending','paid','failed') NOT NULL DEFAULT 'none'` sur `form_submissions`, et un moyen de distinguer une réponse rejetée faute de paiement obligatoire confirmé (valeur de statut dédiée ou colonne équivalente).
+- [ ] Mettre à jour `application/config/migration.php`.
+- [ ] Ajouter le type de champ `payment` dans `form_fields_model::$allowed_field_types` (sur le modèle de `signature`).
+- [ ] Étendre `extract_html_fields`/`sync_fields_from_html` pour détecter `<div data-gvv-type="payment" data-gvv-name="...">` et enregistrer le champ de type `payment`.
+- [ ] Widget de rendu (`Forms_renderer`) : attributs `data-gvv-description`, `data-gvv-amounts` (liste, ou absent = montant libre avec bornes de section), `data-gvv-compte-id`, `data-gvv-required` (paiement obligatoire ou facultatif — même convention que `data-gvv-required` du widget signature).
+- [ ] Handler `FormPaymentHandler implements GvvFormHandlerInterface` : relit la configuration du widget depuis `content_html`, revalide le montant soumis côté serveur (bornes de section, jamais confiance dans le POST), crée la transaction + le checkout HelloAsso en réutilisant `paiements_en_ligne_model`/`Helloasso` (`club_id` = `forms.club`), retourne `redirect_url` vers HelloAsso.
+- [ ] Page de retour publique (`forms_public`) après passage par HelloAsso : réaffiche la page de remerciement standard (`bs_thanks`) — la confirmation reste asynchrone, portée par le webhook, jamais par le retour synchrone.
+- [ ] Extension du webhook `paiements_en_ligne::helloasso_webhook`/`process_order_event` : au succès du paiement, met à jour `form_submissions.payment_status` de la soumission liée (référence portée dans les métadonnées de la transaction HelloAsso).
+- [ ] Comportement paiement facultatif : la réponse reste acceptée quel que soit `payment_status` ; le statut est informatif.
+- [ ] Comportement paiement obligatoire : une réponse dont le paiement n'est pas confirmé est marquée rejetée — critère exact de rejet (délai / échec explicite HelloAsso) à trancher, voir Questions ouvertes du PRD (EF13).
+- [ ] Affichage du statut de paiement dans le détail admin d'une réponse (`bs_submission.php`) : badge explicite (payé / en attente / non payé / rejeté), montant, description, lien vers la transaction `paiements_en_ligne` correspondante.
+- [ ] Affichage du statut de paiement dans le PDF imprimable de la réponse (`submission_view`/`submission_pdf`).
+- [ ] Anti-spam : le déclenchement d'un checkout HelloAsso depuis un lien public réutilisable renforce le besoin de limitation de débit déjà identifié au Lot 8.
+- [ ] Tests PHPUnit : validation du montant (bornes), création transaction/checkout depuis le handler, mise à jour `payment_status` par le webhook, comportement obligatoire vs facultatif.
+- [ ] Test Playwright : parcours paiement facultatif (réponse acceptée sans payer) et paiement obligatoire (jusqu'au checkout HelloAsso, confirmation simulée côté webhook).
+- [ ] **Validation non-régression** : formulaires sans widget paiement inchangés ; suite PHPUnit/Playwright complète verte.
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -447,6 +468,12 @@ Objectif : stabiliser, documenter et valider l'ensemble des phases précédentes
 
 Lots inclus : 8.
 
+### Phase 7 — Paiement en ligne intégré
+
+Objectif : permettre à un formulaire de déclencher un paiement HelloAsso rattaché à un compte GVV, obligatoire ou facultatif. Indépendant des phases 2, 3 et 5 ; dépend du socle (phase 1) et de l'infrastructure handler du Lot 6 (phase 4).
+
+Lots inclus : 10.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -460,7 +487,8 @@ Lots inclus : 8.
 9. Lot 6 (intégration workflow GVV — handlers + migration briefing_passager)
 10. Lot 7 (cartes dynamiques dans les dashboards) — indépendant, réalisable dès Lot 1 terminé
 11. Lot 9 (soumission par téléchargement) — dépend de Lot 2, indépendant des lots 4 à 7
-12. Lot 8 (documentation et validation)
+12. Lot 10 (paiement en ligne intégré) — dépend du socle (Lot 1) et de l'infrastructure handler (Lot 6), indépendant des lots 4, 5, 7
+13. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -485,6 +513,12 @@ Lots inclus : 8.
 - Icône « briefing fait » de `vols_decouverte` basée sur `form_submissions`, ancien mécanisme documentaire retiré du chemin de détection (mais pas supprimé du code tant que non décidé séparément).
 - Non-régression catégorie 1 et 2 vérifiée à chaque étape du Lot 6.
 - PHPUnit et Playwright verts sur les trois catégories.
+
+### Paiement en ligne
+- Un formulaire peut porter au maximum un paiement HelloAsso, obligatoire ou facultatif selon configuration.
+- Paiement facultatif : la réponse est acceptée que le paiement soit effectué ou non.
+- Paiement obligatoire : une réponse dont le paiement n'est pas confirmé est rejetée, tout en restant consultable en admin.
+- Le statut du paiement est visible sans ambiguïté dans le détail admin d'une réponse et dans son PDF imprimable.
 
 ### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.

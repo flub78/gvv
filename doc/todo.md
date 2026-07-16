@@ -7,6 +7,8 @@
 ## Reste à faire
 
 * [] Gestion de l'inscription, y compris les autorisations parentales (wip). Ce sont essentiellement des création de formulaires.
+
+* [] Formulaires externes. 
   
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
@@ -43,7 +45,7 @@
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
 
-* [] Passer à php8
+* [x] Passer à php8, c'est fait, à déployer
 
 * [] Configuration de la facturation
 

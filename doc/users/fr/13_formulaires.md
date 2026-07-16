@@ -12,8 +12,9 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 6. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
 7. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
 8. [Page de génération](#page-de-génération)
-9. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
-10. [Exemples de formulaires](#exemples-de-formulaires)
+9. [Consulter les réponses](#consulter-les-réponses)
+10. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
+11. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -66,6 +67,17 @@ Le contenu HTML d'une page peut être rédigé comme un fichier HTML autonome (u
 ![Gestion des pages](../screenshots/formulaires/admin_pages.png)
 
 ![Édition d'une page](../screenshots/formulaires/admin_edition_page.png)
+
+### Convertir un formulaire PDF existant
+
+GVV n'intègre pas de convertisseur PDF → HTML automatique. Pour numériser un formulaire existant (papier ou PDF) :
+
+1. Demander à un outil d'IA (Claude, ChatGPT, etc.) de convertir le PDF en HTML, en lui donnant les contraintes de ce document : Bootstrap 5, pas de `<head>`/`<style>` ni de balise `<form>` dans le contenu de page — voir [Règles CSS](#règles-css).
+2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main.
+3. Coller le résultat dans le contenu de la page, puis déclarer chaque champ dans l'admin — voir [Déclarer les champs](#déclarer-les-champs).
+4. Vérifier le rendu sur la page publique : la fidélité visuelle au PDF d'origine n'est pas garantie et demande souvent des retouches CSS.
+
+**Limites** : pas de détection automatique des champs du PDF source, pas de garantie de fidélité visuelle, relecture manuelle obligatoire avant publication.
 
 ### Déclarer les champs
 
@@ -502,6 +514,33 @@ Dans la fiche admin du formulaire, le champ **Paramètres requis** définit quel
 3. Cliquer sur **"Ouvrir le formulaire"** : GVV construit l'URL avec `pilot_login` et/ou `instructor_login` et ouvre le formulaire pré-rempli.
 
 Le mécanisme A (`data-gvv-source`) est alors actif : tous les champs annotés sont pré-remplis depuis les données GVV des membres sélectionnés.
+
+---
+
+## Consulter les réponses
+
+Navigation : **Formulaires → [nom du formulaire] → Réponses**
+
+La liste affiche, pour chaque soumission : un identifiant (nom/email du soumettant si déclarés via [`data-gvv-role`](#rôles-de-champs-gvv), sinon l'identifiant technique de la soumission), la date de soumission, et les actions disponibles.
+
+### Ouvrir une réponse
+
+Le bouton **"Ouvrir"** affiche le détail d'une réponse en ligne :
+
+- toutes les valeurs saisies, champ par champ, avec leur libellé et leur type ;
+- les fichiers joints (champs de type `file` et signatures) avec **aperçu intégré** : une image est affichée directement, un PDF s'affiche dans un cadre de prévisualisation intégré à la page ; les boutons "Aperçu" (nouvel onglet) et "Télécharger" restent disponibles pour tout type de fichier.
+
+### Export PDF imprimable
+
+Le bouton **"PDF"** ouvre une version imprimable de la réponse (page HTML avec un bouton "Imprimer / Enregistrer en PDF"), reprenant le CSS global du formulaire.
+
+### Téléchargement sécurisé des fichiers
+
+Les fichiers joints (uploads et signatures) ne sont accessibles que depuis l'interface d'administration, à un utilisateur authentifié ayant accès à la section du formulaire — jamais par une URL prévisible côté public. Le navigateur n'est pas autorisé à mettre ces fichiers en cache.
+
+### Rétention
+
+Les réponses et leurs fichiers sont conservés sans limite de durée ; il n'y a pas d'expiration automatique. La suppression (bouton "Supprimer") est manuelle et retire à la fois la réponse, ses valeurs et les fichiers associés (y compris les miniatures).
 
 ---
 
