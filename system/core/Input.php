@@ -26,6 +26,7 @@
  * @author		ExpressionEngine Dev Team
  * @link		http://codeigniter.com/user_guide/libraries/input.html
  */
+#[AllowDynamicProperties]
 class CI_Input {
 
 	/**
@@ -389,7 +390,7 @@ class CI_Input {
 					$flag = FILTER_FLAG_IPV6;
 					break;
 				default:
-					$flag = '';
+					$flag = 0;
 					break;
 			}
 

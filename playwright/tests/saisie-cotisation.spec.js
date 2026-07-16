@@ -135,8 +135,15 @@ test.describe('Membership Fee Entry (Saisie Cotisation)', () => {
         // Skip the first empty option and try members until one works
         let memberSelected = false;
         for (let i = 1; i < optionCount && !memberSelected; i++) {
-            await selectOrFillField(page, 'pilote', i);
-            
+            // Selecting a pilote triggers an async AJAX call (ajax_get_compte_pilote)
+            // that rebuilds the #compte_pilote field's DOM (select -> readonly input,
+            // or a fresh select2). Wait for that response before touching the field,
+            // otherwise it can get detached mid-interaction.
+            await Promise.all([
+                page.waitForResponse(resp => resp.url().includes('ajax_get_compte_pilote'), { timeout: 5000 }).catch(() => null),
+                selectOrFillField(page, 'pilote', i),
+            ]);
+
             // Set year (should have current year by default)
             const year = new Date().getFullYear();
             await expect(page.locator('input[name="annee_cotisation"]')).toHaveValue(year.toString());

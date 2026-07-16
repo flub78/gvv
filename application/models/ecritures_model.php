@@ -827,7 +827,7 @@ class Ecritures_model extends Common_Model {
      * @param bool $all Flag to determine whether to include all entries or filter specific entries
      * @return array Filtered accounting entries
      */
-    function select_ecritures_to_delete($start_date, $end_date, $section_id = 0, $all) {
+    function select_ecritures_to_delete($start_date, $end_date, $section_id, $all) {
         $this->db->select("ecritures.id, date_op, montant, description, num_cheque, ecritures.club, compte1.id as compte1, compte1.codec as codec1, compte1.nom as nom1, compte2.codec as codec2, compte2.nom as nom2, compte2.id as compte2")
             ->from("ecritures")
             ->join("comptes as compte1", "compte1.id = ecritures.compte1", "left")

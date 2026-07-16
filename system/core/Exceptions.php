@@ -57,7 +57,9 @@ class CI_Exceptions {
 						E_USER_ERROR		=>	'User Error',
 						E_USER_WARNING		=>	'User Warning',
 						E_USER_NOTICE		=>	'User Notice',
-						E_STRICT			=>	'Runtime Notice'
+						// 2048 is E_STRICT's value; referencing the E_STRICT
+						// constant itself is deprecated as of PHP 8.4.
+						2048				=>	'Runtime Notice'
 					);
 
 

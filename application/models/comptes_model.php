@@ -164,7 +164,7 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page($selection = array(), $date, $filter_solde = "", $filter_masked = 1) {
+    public function select_page($selection, $date, $filter_solde = "", $filter_masked = 1) {
 
         // selectionne les comptes
         $result = $this->db
@@ -249,7 +249,7 @@ class Comptes_model extends Common_Model {
      *            =>, tous, 1 = debiteur, 2 => non nuls, 3 => crediteur
      * @return objet La liste
      */
-    public function select_page_general($selection = array(), $date, $filter_solde = "", $filter_masked = 1, $with_sections = true) {
+    public function select_page_general($selection, $date, $filter_solde = "", $filter_masked = 1, $with_sections = true) {
 
         // selectionne les comptes
         $this->db

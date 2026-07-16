@@ -14,6 +14,7 @@ if (! defined('BASEPATH'))
  * @license MIT License Copyright (c) 2008 Erick Hartanto
  *          @credits http://dexcell.shinsengumiteam.com/dx_auth/general/credits.html
  */
+#[AllowDynamicProperties]
 class DX_Auth {
     // Private
     var $_banned;
