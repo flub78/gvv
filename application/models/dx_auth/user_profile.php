@@ -1,4 +1,5 @@
 <?php
+#[AllowDynamicProperties]
 class User_Profile extends CI_Model {
     function __construct() {
         parent :: __construct();

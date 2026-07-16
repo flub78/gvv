@@ -548,7 +548,12 @@ if (! function_exists('form_prep')) {
 			return $str;
 		}
 
-		if ($str === '') {
+		// Nullable DB columns commonly flow straight into form_hidden()/form_input()
+		// etc. as NULL. PHP 7.4 let htmlspecialchars(NULL) through silently (as '');
+		// PHP 8.1+ deprecates it, and CI's error display then injects that warning
+		// into the middle of the rendered page/response. Treat NULL like '' here,
+		// same as the empty-string case already handled below.
+		if ($str === '' || $str === NULL) {
 			return '';
 		}
 

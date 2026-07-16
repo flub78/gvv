@@ -363,7 +363,14 @@ class CI_Output {
 		{
 			$memory	 = ( ! function_exists('memory_get_usage')) ? '0' : round(memory_get_usage()/1024/1024, 2).'MB';
 
-			$output = str_replace('{elapsed_time}', $elapsed, $output);
+			// $output can be NULL here (e.g. a controller that echo's its own
+			// output, like a JSON endpoint, instead of using set_output()/views,
+			// leaves $this->final_output at its default NULL). PHP 7.4 silently
+			// coerced that to ''; PHP 8.1+ deprecates passing null to str_replace's
+			// $subject, and CI's own error display then injects that warning
+			// straight into the response body. Cast explicitly to keep the same
+			// (harmless) '' behavior on both versions.
+			$output = str_replace('{elapsed_time}', $elapsed, (string) $output);
 			$output = str_replace('{memory_usage}', $memory, $output);
 		}
 

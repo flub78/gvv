@@ -166,7 +166,12 @@ class CI_Migration {
 					return FALSE;
 				}
 
-				if ( ! is_callable(array($class, $method)))
+				// method_exists() rather than is_callable(): up()/down() are always
+				// public instance methods, and PHP 8 (unlike 7.4) no longer treats
+				// a non-static method as "callable" via array($class, $method) with
+				// a class name instead of an instance, causing is_callable() to
+				// return FALSE here and every migration to fail.
+				if ( ! method_exists($class, $method))
 				{
 					$this->_error_string = sprintf($this->lang->line('migration_missing_'.$method.'_method'), $class);
 					return FALSE;

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulletin d'adhésion</title>
+
+    <style>
+        /* Variables de la charte graphique GVV (extrait auto-suffisant, cf. gvv_charter.css) */
+        :root {
+            --gvv-primary: #2E7D32;
+            --gvv-primary-dark: #1B5E20;
+            --gvv-secondary: #1976D2;
+            --gvv-secondary-dark: #0D47A1;
+            --gvv-text-primary: #212121;
+            --gvv-text-secondary: #666666;
+            --gvv-text-disabled: #9E9E9E;
+            --gvv-bg-secondary: #F5F5F5;
+            --gvv-border: #E0E0E0;
+            --gvv-divider: #BDBDBD;
+            --gvv-font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --gvv-text-sm: 0.85rem;
+            --gvv-text-base: 1rem;
+            --gvv-text-lg: 1.125rem;
+            --gvv-text-2xl: 1.5rem;
+            --gvv-font-medium: 500;
+            --gvv-font-semibold: 600;
+            --gvv-font-bold: 700;
+            --gvv-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            --gvv-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --gvv-shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+            --gvv-transition-base: 0.2s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+            background-color: var(--gvv-bg-secondary);
+            font-family: var(--gvv-font-primary);
+            color: var(--gvv-text-primary);
+        }
+
+        /* Boutons (extrait de la charte graphique GVV) */
+        .btn-gvv {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: var(--gvv-font-medium);
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--gvv-transition-base);
+            font-size: var(--gvv-text-base);
+            line-height: 1.5;
+        }
+
+        .btn-gvv:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--gvv-shadow);
+        }
+
+        .btn-gvv-primary {
+            background-color: var(--gvv-primary);
+            color: white;
+        }
+
+        .btn-gvv-primary:hover {
+            background-color: var(--gvv-primary-dark);
+            color: white;
+        }
+
+        .btn-gvv-secondary {
+            background-color: transparent;
+            border: 2px solid var(--gvv-primary);
+            color: var(--gvv-primary);
+        }
+
+        .btn-gvv-secondary:hover {
+            background-color: var(--gvv-primary);
+            color: white;
+        }
+
+        .bulletin {
+            max-width: 850px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: var(--gvv-shadow-md);
+            border-radius: 4px;
+            padding: 2.5rem 3rem 2rem;
+        }
+
+        /* En-tête club, façon PDF d'origine */
+        .bulletin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 3px solid var(--gvv-secondary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .bulletin-header h2 {
+            margin: 0;
+            font-size: var(--gvv-text-lg);
+            font-weight: var(--gvv-font-semibold);
+            color: var(--gvv-secondary-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bulletin-header .page-num {
+            color: var(--gvv-text-secondary);
+            font-size: var(--gvv-text-sm);
+        }
+
+        /* Titre principal avec la barre bleue caractéristique du PDF */
+        .bulletin-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0 0 1.5rem;
+        }
+
+        .bulletin-title .bar {
+            width: 8px;
+            height: 2rem;
+            background-color: var(--gvv-secondary);
+            border-radius: 2px;
+        }
+
+        .bulletin-title h1 {
+            margin: 0;
+            font-size: var(--gvv-text-2xl);
+            font-weight: var(--gvv-font-bold);
+        }
+
+        .intro-text {
+            margin-bottom: 1rem;
+        }
+
+        .identity-fields {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Champ fichier façon "lien de téléchargement" (photo, pièce d'identité, certificat médical) */
+        .file-field {
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--gvv-secondary);
+            font-weight: var(--gvv-font-medium);
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+
+        .file-upload-label:hover {
+            color: var(--gvv-secondary-dark);
+        }
+
+        .file-upload-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        .file-upload-filename {
+            margin-left: 0.5rem;
+            font-size: var(--gvv-text-sm);
+            color: var(--gvv-text-secondary);
+            font-style: italic;
+        }
+
+        .field-help {
+            font-size: var(--gvv-text-sm);
+            color: var(--gvv-text-secondary);
+            margin-top: 0.15rem;
+        }
+
+        /* Libellé accessible non visible à l'écran (le texte visuel équivalent
+           est déjà porté par un <span>/<td> voisin) */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        /* Champ façon "ligne à pointillés" du formulaire papier */
+        .field-line {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .field-line label {
+            font-weight: var(--gvv-font-medium);
+            white-space: nowrap;
+        }
+
+        .field-line input,
+        .field-line select {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            border-bottom: 1px dotted var(--gvv-text-disabled);
+            background: transparent;
+            padding: 0.15rem 0.25rem;
+            font-family: var(--gvv-font-primary);
+            font-size: var(--gvv-text-base);
+        }
+
+        .field-line input:focus,
+        .field-line select:focus {
+            outline: none;
+            border-bottom: 1px solid var(--gvv-primary);
+        }
+
+        .field-line .sep {
+            color: var(--gvv-text-secondary);
+        }
+
+        /* Section titres soulignés, comme "Loi du 31 mai 1924" */
+        .section-title {
+            font-size: var(--gvv-text-lg);
+            font-weight: var(--gvv-font-semibold);
+            border-bottom: 1px solid var(--gvv-text-primary);
+            display: inline-block;
+            margin: 1.75rem 0 1rem;
+        }
+
+        /* Tableau des brevets / licences */
+        .licences-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .licences-table td {
+            padding: 0.4rem 0.5rem 0.4rem 0;
+            vertical-align: baseline;
+        }
+
+        .licences-table td.label {
+            font-weight: var(--gvv-font-semibold);
+            white-space: nowrap;
+            width: 90px;
+        }
+
+        .licences-table input {
+            border: none;
+            border-bottom: 1px dotted var(--gvv-text-disabled);
+            background: transparent;
+            padding: 0.15rem 0.25rem;
+            font-family: var(--gvv-font-primary);
+            width: 100%;
+        }
+
+        .licences-table input:focus {
+            outline: none;
+            border-bottom: 1px solid var(--gvv-primary);
+        }
+
+        .radio-group {
+            display: inline-flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: normal;
+        }
+
+        /* Bloc légal, façon citation du PDF */
+        .legal-quote {
+            font-style: italic;
+            background-color: var(--gvv-bg-secondary);
+            border-left: 3px solid var(--gvv-secondary);
+            padding: 0.75rem 1rem;
+            margin: 0.75rem 0;
+        }
+
+        .legal-text p {
+            margin: 0 0 0.75rem;
+            line-height: 1.5;
+        }
+
+        /* Ligne de signature "A ... le ..." */
+        .signature-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .signature-row .field-line {
+            margin-bottom: 0;
+            justify-content: flex-end;
+        }
+
+        .signature-hint {
+            text-align: right;
+            font-size: var(--gvv-text-sm);
+            color: var(--gvv-text-secondary);
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+
+        .minor-authorization {
+            border: 1px solid var(--gvv-border);
+            border-radius: 4px;
+            padding: 1.25rem 1.5rem;
+            background-color: var(--gvv-bg-secondary);
+        }
+
+        .footer-note {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gvv-divider);
+            font-size: var(--gvv-text-sm);
+            color: var(--gvv-text-secondary);
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .bulletin {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            .actions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .bulletin {
+                padding: 1.5rem 1.25rem;
+            }
+            .signature-row {
+                flex-direction: column;
+                align-items: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<form class="bulletin" id="bulletin-adhesion">
+
+    <div class="bulletin-header">
+        <h2 id="club-name">Aéroclub d'Abbeville-Buigny-Baie de Somme</h2>
+        <span class="page-num"></span>
+    </div>
+
+    <div class="bulletin-title">
+        <span class="bar"></span>
+        <h1>Bulletin d'adhésion</h1>
+    </div>
+
+    <p class="intro-text">Je soussigné,</p>
+
+    <div class="identity-fields">
+            <div class="file-field">
+                <label class="file-upload-label" for="photo">Photo d'identité</label>
+                <input type="file" class="file-upload-input" id="photo" name="photo" accept="image/*">
+                <span class="file-upload-filename"></span>
+                <div class="field-help">Formats acceptés : JPG, PNG. Taille maximale : 5 Mo.</div>
+            </div>
+            <div class="field-line">
+                <label for="nom_prenoms">Nom et prénoms</label>
+                <input type="text" id="nom_prenoms" name="nom_prenoms" required>
+            </div>
+            <div class="field-line">
+                <label for="adresse">Adresse</label>
+                <input type="text" id="adresse" name="adresse" required>
+                <label class="sep" for="ville">Ville</label>
+                <input type="text" id="ville" name="ville" required>
+            </div>
+            <div class="field-line">
+                <label for="date_naissance">Date de naissance</label>
+                <input type="date" id="date_naissance" name="date_naissance" required>
+                <label class="sep" for="lieu_naissance">Lieu de naissance</label>
+                <input type="text" id="lieu_naissance" name="lieu_naissance" required>
+            </div>
+            <div class="field-line">
+                <label for="instruction_diplomes">Instruction et diplômes</label>
+                <input type="text" id="instruction_diplomes" name="instruction_diplomes">
+            </div>
+            <div class="field-line">
+                <label for="profession">Profession</label>
+                <input type="text" id="profession" name="profession">
+            </div>
+            <div class="field-line">
+                <label for="telephone_fixe">Téléphone : fixe</label>
+                <input type="tel" id="telephone_fixe" name="telephone_fixe">
+                <label class="sep" for="telephone_mobile">mobile</label>
+                <input type="tel" id="telephone_mobile" name="telephone_mobile">
+            </div>
+            <div class="field-line">
+                <label for="courriel">Courriel</label>
+                <input type="email" id="courriel" name="courriel" required>
+            </div>
+    </div>
+
+    <p><strong>Pour les brevets, titres et N° des licences possédés :</strong></p>
+
+    <table class="licences-table">
+        <tr>
+            <td class="label"><label for="bia_oui" class="visually-hidden">BIA</label>BIA</td>
+            <td>
+                <span class="radio-group">
+                    <label><input type="radio" id="bia_oui" name="bia" value="oui"> OUI</label>
+                    <label><input type="radio" name="bia" value="non"> NON</label>
+                </span>
+            </td>
+            <td>Année</td>
+            <td><label for="bia_annee" class="visually-hidden">BIA - Année</label><input type="text" id="bia_annee" name="bia_annee" placeholder="Année"></td>
+            <td></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td class="label">PPL</td>
+            <td>N°</td>
+            <td><label for="ppl_numero" class="visually-hidden">PPL - N°</label><input type="text" id="ppl_numero" name="ppl_numero"></td>
+            <td>du</td>
+            <td><label for="ppl_date" class="visually-hidden">PPL - date</label><input type="date" id="ppl_date" name="ppl_date"></td>
+        </tr>
+        <tr>
+            <td class="label">SPL</td>
+            <td>N°</td>
+            <td><label for="spl_numero" class="visually-hidden">SPL - N°</label><input type="text" id="spl_numero" name="spl_numero"></td>
+            <td>du</td>
+            <td><label for="spl_date" class="visually-hidden">SPL - date</label><input type="date" id="spl_date" name="spl_date"></td>
+        </tr>
+        <tr>
+            <td class="label">ULM</td>
+            <td>N°</td>
+            <td><label for="ulm_numero" class="visually-hidden">ULM - N°</label><input type="text" id="ulm_numero" name="ulm_numero"></td>
+            <td>du</td>
+            <td><label for="ulm_date" class="visually-hidden">ULM - date</label><input type="date" id="ulm_date" name="ulm_date"></td>
+            <td>validité : <label for="ulm_validite" class="visually-hidden">ULM - validité</label><input type="date" id="ulm_validite" name="ulm_validite"></td>
+        </tr>
+    </table>
+
+    <p><strong>Documents à joindre :</strong></p>
+
+    <div class="file-field">
+        <label class="file-upload-label" for="piece_identite_recto">Pièce d'identité (recto)</label>
+        <input type="file" class="file-upload-input" id="piece_identite_recto" name="piece_identite_recto" accept="image/*,.pdf">
+        <span class="file-upload-filename"></span>
+        <div class="field-help">Carte d'identité, passeport ou titre de séjour — JPG, PNG ou PDF.</div>
+    </div>
+    <div class="file-field">
+        <label class="file-upload-label" for="piece_identite_verso">Pièce d'identité (verso)</label>
+        <input type="file" class="file-upload-input" id="piece_identite_verso" name="piece_identite_verso" accept="image/*,.pdf">
+        <span class="file-upload-filename"></span>
+        <div class="field-help">Carte d'identité, passeport ou titre de séjour — JPG, PNG ou PDF.</div>
+    </div>
+    <div class="file-field">
+        <label class="file-upload-label" for="certificat_medical">Certificat médical (médecin traitant pour l'ULM, médecin aéronautique pour l'avion ou le planeur)</label>
+        <input type="file" class="file-upload-input" id="certificat_medical" name="certificat_medical" accept="image/*,.pdf">
+        <span class="file-upload-filename"></span>
+        <div class="field-help">Certificat de non contre-indication à la pratique de l'activité — JPG, PNG ou PDF.</div>
+    </div>
+
+    <p>déclare solliciter mon adhésion à l'Aéro-Club d'Abbeville-Buigny Baie de Somme.</p>
+
+    <div class="signature-row">
+        <div class="field-line">
+            <label for="date_demande">Le</label>
+            <input type="date" id="date_demande" name="date_demande">
+        </div>
+    </div>
+    <p class="signature-hint">(signature)</p>
+
+    <h2 class="section-title">Loi du 31 mai 1924</h2>
+
+    <div class="legal-text">
+        <p class="legal-quote">
+            « Conformément aux dispositions des articles 42 et 48 de la loi, le transporteur déclare
+            s'exonérer de la responsabilité qui pourrait lui incomber à raison des risques de l'air et
+            des fautes commises par toute personne employée à bord dans la conduite de l'aéronef ».
+        </p>
+        <p>
+            En outre, je m'engage à prendre en charge tous les frais nécessités par la remise en état
+            d'un aéronef qui aurait subi des dégâts à la suite d'un accident dû à une négligence ou à
+            une faute flagrante que j'aurais commise lors de sa conduite. Je déclare exonérer
+            l'Aéro-Club d'Abbeville-Buigny-Baie de Somme de toute responsabilité découlant de la loi
+            précitée.
+        </p>
+    </div>
+
+    <div class="field-line">
+        <label for="lu_approuve_loi">
+            <input type="checkbox" id="lu_approuve_loi" name="lu_approuve_loi" required>
+            Porter la mention "Lu et approuvé"
+        </label>
+        <label class="sep" for="lieu_loi">A</label>
+        <input type="text" id="lieu_loi" name="lieu_loi" placeholder="lieu">
+        <label class="sep" for="date_loi">le</label>
+        <input type="date" id="date_loi" name="date_loi">
+    </div>
+    <p class="signature-hint">(signature)</p>
+
+    <h2 class="section-title">Autorisation du père, de la mère ou du tuteur (pour les mineurs)</h2>
+
+    <div class="minor-authorization">
+        <div class="field-line">
+            <label for="tuteur_identite">Je soussigné, (nom, prénoms, adresse du père, de la mère ou du tuteur)</label>
+        </div>
+        <div class="field-line">
+            <input type="text" id="tuteur_identite" name="tuteur_identite" style="min-width:100%;">
+        </div>
+
+        <p>
+            père, mère ou tuteur sus-nommé, déclare souscrire à la demande par lui présentée plus haut
+            et autoriser en conséquence, Monsieur le Président de l'Aéro-Club d'Abbeville-Buigny-Baie de
+            Somme et ses collaborateurs qualifiés, à lui donner l'instruction prévue aux règlements du
+            Service de la Formation Aéronautique.
+        </p>
+        <p>
+            J'autorise également le club à le transporter dans des véhicules de ses membres pour les
+            besoins de l'activité et à prendre des photos en cours d'activité en vue de leur publication
+            dans la revue de l'association et sur son site internet.
+        </p>
+
+        <div class="signature-row">
+            <div class="field-line">
+                <label class="sep" for="lieu_tuteur">A</label>
+                <input type="text" id="lieu_tuteur" name="lieu_tuteur" placeholder="lieu">
+                <label class="sep" for="date_tuteur">le</label>
+                <input type="date" id="date_tuteur" name="date_tuteur">
+            </div>
+        </div>
+        <p class="signature-hint">(signature du parent ou du tuteur)</p>
+    </div>
+
+    <p class="footer-note">
+        Ce bulletin doit rester en possession de l'Aéroclub d'Abbeville-Buigny-Baie de Somme.<br>
+        L'adhésion entraîne l'acceptation des Statuts et du Règlement Intérieur de l'Aéroclub ainsi que
+        ceux des Fédérations auxquelles le club est affilié.<br>
+        Elle ne sera définitive qu'après examen de la candidature par le Conseil d'Administration de
+        l'Aéroclub qui se réunit tous les trimestres.
+    </p>
+
+    <div class="actions">
+        <button type="button" class="btn-gvv btn-gvv-secondary" onclick="window.print()">Imprimer</button>
+        <button type="submit" class="btn-gvv btn-gvv-primary">Envoyer la demande</button>
+    </div>
+</form>
+
+<script>
+    // Affiche le nom du fichier choisi à côté de chaque lien de téléchargement
+    document.querySelectorAll('.file-upload-input').forEach(function (input) {
+        input.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const span = input.parentElement.querySelector('.file-upload-filename');
+            if (span) span.textContent = file ? file.name : '';
+        });
+    });
+
+    // Prototype autonome : la soumission réelle sera assurée par le mécanisme
+    // de formulaire GVV (forms_public) lors de l'intégration.
+    document.getElementById('bulletin-adhesion').addEventListener('submit', function (e) {
+        e.preventDefault();
+        alert('Prototype : ce formulaire n\'est pas encore relié au serveur GVV.');
+    });
+</script>
+
+</body>
+</html>

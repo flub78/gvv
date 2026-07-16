@@ -1,4 +1,5 @@
 <?php
+#[AllowDynamicProperties]
 class Login_Attempts extends CI_Model {
 
     function __construct() {
