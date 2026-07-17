@@ -14,14 +14,20 @@
   
 * [] Page archived_documents/view/154 il suffit modifier le lien pour afficher les documents archivés d'un autre pilote. Faire une étude globale sur les vulnérabilités.
 
+* [] Ajout de vrais export excel en sus des csv.
+
+* [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
+
+* [] Approbation de documents
+
+* [] Support de la gestion de la maintenance,                 (PRD à rédiger)
+  visite périodique, équipements à potentiel, 
+  renouvellement d'assurance, etc.
+
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
 
 * [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
-
-* [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
      
-* [] Ajout de vrais export excel en sus des csv.
-
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
@@ -30,13 +36,7 @@
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
-* [] Approbation de documents
-
-bin/* [] Informer le trésorier des renouvellement de cotisation par email
-
-* [] Support de la gestion de la maintenance,                 (PRD à rédiger)
-  visite périodique, équipements à potentiel, 
-  renouvellement d'assurance, etc.
+* [] Informer le trésorier des renouvellement de cotisation par email
 
 * [] Configuration de la facturation
 

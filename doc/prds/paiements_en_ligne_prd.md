@@ -1240,7 +1240,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ## 16. Documents Associés
 
-- **Spike HelloAsso** : `doc/plan/HelloAssoSpike.md` - Étude préalable et prototypage du flux HelloAsso (référence pour implémentation)
+- **Spike HelloAsso** : `doc/plans/HelloAssoSpike.md` - Étude préalable et prototypage du flux HelloAsso (référence pour implémentation)
 - **Plan d'Implémentation** : `doc/plans/paiements_en_ligne_plan.md` (à créer)
 - **Documentation API HelloAsso** : https://dev.helloasso.com/
 - **Documentation Système Comptable GVV** : `doc/comptabilite.md`
@@ -1251,7 +1251,7 @@ Les fonctionnalités suivantes sont explicitement hors périmètre pour cette ve
 
 ## 17. Directive d'Implémentation : Réutilisation du Spike HelloAsso
 
-Le spike HelloAsso (`doc/plan/HelloAssoSpike.md`) contient un prototype fonctionnel du flux de paiement HelloAsso, incluant :
+Le spike HelloAsso (`doc/plans/HelloAssoSpike.md`) contient un prototype fonctionnel du flux de paiement HelloAsso, incluant :
 - Contrôleur `application/controllers/payments.php` avec logique HelloAsso
 - Configuration `application/config/helloasso.php` avec gestion des secrets via environnement
 - Vues de test et de callback

@@ -6,4 +6,4 @@ Le plan doit faire référence au PRD et éviter de dupliquer les informations. 
 
 Le plan doit inclure les étapes de validation et la description des tests. 
 
-Génère un markdown dans doc/plan qui décrit le plan de développement pour le produit ou la fonctionnalité à développer. Le document doit être structuré de manière claire et concise, avec des sections pour chaque étape du développement et des sous-sections pour les détails spécifiques.
+Génère un markdown dans doc/plans qui décrit le plan de développement pour le produit ou la fonctionnalité à développer. Le document doit être structuré de manière claire et concise, avec des sections pour chaque étape du développement et des sous-sections pour les détails spécifiques.
