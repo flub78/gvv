@@ -18,7 +18,7 @@
 
 * [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
 
-* [] Insérer la liste des documents et qualifications d'un pilote dans sa carte membre.
+* [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
      
 * [] Ajout de vrais export excel en sus des csv.
 

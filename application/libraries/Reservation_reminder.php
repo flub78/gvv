@@ -24,6 +24,12 @@ class Reservation_reminder
     /** @var Reservation_reminder_model */
     private $model;
 
+    /** @var array Noms des jours de la semaine (ISO-8601, 1 = lundi) */
+    private static $jours_semaine = array(
+        1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi',
+        5 => 'Vendredi', 6 => 'Samedi', 7 => 'Dimanche',
+    );
+
     public function __construct()
     {
         $this->CI =& get_instance();
@@ -259,8 +265,9 @@ class Reservation_reminder
             $this->CI->lang->load('rappels_reservations', 'french');
         }
 
-        $date_heure = date('d/m/Y H:i', strtotime($reservation['start_datetime']));
-        $date_fin   = date('H:i',       strtotime($reservation['end_datetime']));
+        $start_ts   = strtotime($reservation['start_datetime']);
+        $date_heure = $this->_jour_semaine($start_ts) . ' ' . date('d/m/Y H:i', $start_ts);
+        $date_fin   = date('H:i', strtotime($reservation['end_datetime']));
         $aeronef    = $reservation['macimmat'] . ' (' . $reservation['macmodele'] . ')';
         $pilote     = trim($reservation['pilot_prenom'] . ' ' . $reservation['pilot_nom']);
         $instructeur = '';
@@ -333,7 +340,8 @@ class Reservation_reminder
      */
     public function _compose_sms_body($reservation, $action_type, $role, $event_type = null)
     {
-        $date  = date('d/m H:i', strtotime($reservation['start_datetime']));
+        $ts    = strtotime($reservation['start_datetime']);
+        $date  = substr($this->_jour_semaine($ts), 0, 3) . ' ' . date('d/m H:i', $ts);
         $immat = $reservation['macimmat'];
 
         if ($action_type === 'scheduled_reminder') {
@@ -357,7 +365,8 @@ class Reservation_reminder
      */
     public function _compose_daily_email_body($recipient, $date, $reservations, $source = '')
     {
-        $date_label = date('d/m/Y', strtotime($date));
+        $date_ts    = strtotime($date);
+        $date_label = $this->_jour_semaine($date_ts) . ' ' . date('d/m/Y', $date_ts);
         $nom_club   = ($this->CI) ? ($this->CI->config->item('nom_club') ?: 'GVV') : 'GVV';
 
         $body  = '<html><head><meta charset="UTF-8"></head><body>';
@@ -419,7 +428,8 @@ class Reservation_reminder
      */
     public function _compose_daily_sms_body($recipient, $date, $reservations)
     {
-        $date_label = date('d/m/y', strtotime($date));
+        $date_ts    = strtotime($date);
+        $date_label = substr($this->_jour_semaine($date_ts), 0, 3) . ' ' . date('d/m/y', $date_ts);
 
         if (count($reservations) === 1) {
             $r      = $reservations[0];
@@ -579,7 +589,8 @@ class Reservation_reminder
             return strcmp($a['start_datetime'], $b['start_datetime']);
         });
 
-        $date_label   = date('d/m/Y', strtotime($date));
+        $date_ts      = strtotime($date);
+        $date_label   = $this->_jour_semaine($date_ts) . ' ' . date('d/m/Y', $date_ts);
         $subject      = "[GVV] Rappels de réservation pour le $date_label";
         $email_body   = $this->_compose_daily_email_body($recipient, $date, $reservations, $source);
 
@@ -725,7 +736,8 @@ class Reservation_reminder
     protected function _compose_subject($reservation, $action_type, $role, $event_type = null)
     {
         $immat = $reservation['macimmat'];
-        $date  = date('d/m/Y', strtotime($reservation['start_datetime']));
+        $ts    = strtotime($reservation['start_datetime']);
+        $date  = $this->_jour_semaine($ts) . ' ' . date('d/m/Y', $ts);
 
         if ($action_type === 'scheduled_reminder') {
             return "[GVV] Rappel réservation $immat le $date";
@@ -817,6 +829,17 @@ class Reservation_reminder
             ->get()
             ->row_array();
         return !empty($row) && !empty($row['reservation_reminders_enabled']);
+    }
+
+    /**
+     * Nom du jour de la semaine (français) pour un timestamp donné.
+     *
+     * @param int $timestamp
+     * @return string
+     */
+    protected function _jour_semaine($timestamp)
+    {
+        return self::$jours_semaine[(int) date('N', $timestamp)];
     }
 
     /**
