@@ -434,7 +434,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <i class="fas fa-clipboard-check text-success"></i>
                 <div class="card-title"><?= $this->lang->line('db_card_passenger_briefing') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_declarations') ?></div>
-                <a href="<?= controller_url('briefing_passager/admin_list') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                <a href="<?= controller_url('forms_admin/submissions/briefing_passager_ulm') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
         <?php endif; ?>

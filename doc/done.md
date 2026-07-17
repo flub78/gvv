@@ -222,3 +222,9 @@
 * [x] Rappels de réservation, cumuler les rappels de réservation dans un seul message.
 
 * [x] Génération des certificats de formation et de pilotes VD.
+
+* [x] Gestion de l'inscription, y compris les autorisations parentales (wip). Ce sont essentiellement des création de formulaires.
+
+* [x] Formulaires externes. 
+
+* [x] Passer à php8, c'est fait, à déployer

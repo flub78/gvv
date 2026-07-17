@@ -474,103 +474,8 @@ class Briefing_passager extends Gvv_Controller {
         if ($vld_id) {
             redirect('briefing_passager/upload/' . $vld_id);
         } else {
-            redirect('briefing_passager/admin_list');
+            redirect('forms_admin/submissions/briefing_passager_ulm');
         }
-    }
-
-    // -----------------------------------------------------------------------
-    // UC3 — Admin list
-    // -----------------------------------------------------------------------
-
-    /**
-     * Admin list of all briefings for the past N days.
-     */
-    function admin_list() {
-        if (!$this->dx_auth->is_logged_in()) {
-            redirect('welcome/login');
-            return;
-        }
-        if (!$this->_is_admin()) {
-            show_error('Accès refusé', 403);
-            return;
-        }
-
-        $days = (int)($this->input->get('days') ?: 90);
-        if ($days <= 0 || $days > 3650) {
-            $days = 90;
-        }
-
-        $briefings = $this->_merged_briefings_recent($days);
-
-        $this->data['title']    = $this->lang->line('briefing_passager_list_title');
-        $this->data['briefings'] = $briefings;
-        $this->data['days']     = $days;
-        $this->data['message']  = '';
-
-        load_last_view('briefing_passager/adminListView', $this->data);
-    }
-
-    /**
-     * Export the admin list as PDF.
-     */
-    function export_pdf() {
-        if (!$this->dx_auth->is_logged_in()) {
-            redirect('welcome/login');
-            return;
-        }
-        if (!$this->_is_admin()) {
-            show_error('Accès refusé', 403);
-            return;
-        }
-
-        $days = (int)($this->input->get('days') ?: 90);
-        if ($days <= 0 || $days > 3650) {
-            $days = 90;
-        }
-
-        $briefings = $this->_merged_briefings_recent($days);
-
-        $this->load->library('tcpdf');
-        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8');
-        $pdf->SetCreator('GVV');
-        $pdf->SetTitle($this->lang->line('briefing_passager_list_title'));
-        $pdf->SetMargins(10, 20, 10);
-        $pdf->SetAutoPageBreak(true, 15);
-        $pdf->AddPage();
-
-        $pdf->SetFont('helvetica', 'B', 14);
-        $pdf->Cell(0, 10, $this->lang->line('briefing_passager_list_title') . ' — ' . $days . ' derniers jours', 0, 1, 'C');
-        $pdf->SetFont('helvetica', 'B', 9);
-
-        $headers = array(
-            $this->lang->line('briefing_passager_field_date_vol'),
-            $this->lang->line('briefing_passager_field_aerodrome'),
-            $this->lang->line('briefing_passager_field_appareil'),
-            $this->lang->line('briefing_passager_field_pilote'),
-            $this->lang->line('briefing_passager_field_nom'),
-            $this->lang->line('briefing_passager_field_mode'),
-            $this->lang->line('briefing_passager_field_date_sign'),
-        );
-        $widths = array(28, 40, 28, 30, 50, 32, 32);
-
-        foreach ($headers as $i => $h) {
-            $pdf->Cell($widths[$i], 7, $h, 1, 0, 'C');
-        }
-        $pdf->Ln();
-
-        $pdf->SetFont('helvetica', '', 8);
-        foreach ($briefings as $b) {
-            $pdf->Cell($widths[0], 6, $b['date_vol'] ? date_db2ht($b['date_vol']) : '', 1);
-            $pdf->Cell($widths[1], 6, $b['aerodrome'] ?? '', 1);
-            $pdf->Cell($widths[2], 6, $b['airplane_immat'] ?? '', 1);
-            $pdf->Cell($widths[3], 6, $b['pilote'] ?? '', 1);
-            $pdf->Cell($widths[4], 6, $b['beneficiaire'] ?? '', 1);
-            $pdf->Cell($widths[5], 6, $this->lang->line('briefing_passager_mode_' . $b['mode']), 1);
-            $pdf->Cell($widths[6], 6, $b['uploaded_at'] ? date('d/m/Y', strtotime($b['uploaded_at'])) : '', 1);
-            $pdf->Ln();
-        }
-
-        $pdf->Output('briefings_passagers.pdf', 'D');
     }
 
     // -----------------------------------------------------------------------
@@ -607,42 +512,6 @@ class Briefing_passager extends Gvv_Controller {
             $pilote_selector = $this->membres_model->selector_with_null(array('actif' => 1));
         }
         $this->data['pilote_selector'] = $pilote_selector;
-    }
-
-    private function _is_admin() {
-        return $this->user_has_role('instructeur') || $this->user_has_role('pilote_vd') || $this->user_has_role('club-admin');
-    }
-
-    /**
-     * Merges briefings from both mechanisms (legacy archived_documents and
-     * the new forms-based briefing-passager-ulm submissions) for admin_list
-     * and export_pdf, sorted by date descending. Transitional (Lot 6, étape
-     * 6.6) : à simplifier à la seule seconde source une fois l'étape 6.5 faite.
-     * @param int $days
-     * @return array
-     */
-    private function _merged_briefings_recent($days) {
-        $legacy = $this->archived_documents_model->get_briefings_recent($days);
-        foreach ($legacy as &$b) {
-            $b['mode'] = ($b['type_code'] === 'briefing_passager') ? 'upload' : 'digital';
-            $b['previewable'] = true;
-        }
-        unset($b);
-
-        $from_forms = $this->form_submissions_model->get_briefing_submissions_recent($days);
-        foreach ($from_forms as &$b) {
-            $b['mode'] = 'form';
-            $b['uploaded_at'] = $b['created_at'];
-            $b['previewable'] = false;
-        }
-        unset($b);
-
-        $briefings = array_merge($legacy, $from_forms);
-        usort($briefings, function ($a, $b) {
-            return strtotime($b['uploaded_at']) <=> strtotime($a['uploaded_at']);
-        });
-
-        return $briefings;
     }
 
     private function _ensure_directory($dirname) {

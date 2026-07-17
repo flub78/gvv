@@ -70,6 +70,15 @@ class Forms_model extends CI_Model {
         return $row ?: false;
     }
 
+    public function get_by_code($code) {
+        $row = $this->db
+            ->where('code', $code)
+            ->get($this->table)
+            ->row_array();
+
+        return $row ?: false;
+    }
+
     public function list_forms(array $filters = array()) {
         $this->db->select('forms.*, sections.nom as section_name');
         $this->db->from($this->table);

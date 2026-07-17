@@ -39,7 +39,7 @@ class Forms_admin extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin') && !$this->_can_access_workflow_pdf()) {
+        if (!$this->user_has_role('ca') && !$this->user_has_role('club-admin') && !$this->_can_access_workflow_form()) {
             show_error('Acces reserve aux administrateurs.', 403);
         }
 
@@ -51,19 +51,23 @@ class Forms_admin extends MY_Controller {
     }
 
     /**
-     * Narrow bypass of the ca/club-admin guard: the "briefing_vd" icon on
-     * vols_decouverte (visible to instructeur/pilote_vd, not just admins,
-     * see MetaData::action()) links straight to submission_pdf for workflow
-     * forms. Restricted to this one method/form list, not a general relaxation.
+     * Narrow bypass of the ca/club-admin guard for instructeur/pilote_vd, restricted
+     * to workflow forms (see $workflow_form_slugs):
+     * - submission_pdf: the "briefing_vd" icon on vols_decouverte (see MetaData::action())
+     *   links straight there.
+     * - submissions: the passenger-briefing menu entry (visible to the same
+     *   roles via has_briefing_admin_role()) links to forms_admin/submissions/briefing_passager_ulm.
+     * Restricted to these methods/form list, not a general relaxation.
      */
-    private function _can_access_workflow_pdf() {
-        if ($this->router->fetch_method() !== 'submission_pdf') {
+    private function _can_access_workflow_form() {
+        $method = $this->router->fetch_method();
+        if (!in_array($method, array('submission_pdf', 'submissions'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
             return false;
         }
-        $form_id = (int) $this->uri->segment(3);
+        $form_id = $this->_resolve_form_stub($this->uri->segment(3));
         if ($form_id <= 0) {
             return false;
         }
@@ -742,7 +746,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submissions($form_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($this->_resolve_form_stub($form_id));
         if (!$form) {
             return;
         }
@@ -2057,6 +2061,18 @@ class Forms_admin extends MY_Controller {
      * viewing their submission_pdf must not be restricted to the form's own
      * club, unlike the regular admin actions (edit/delete/list).
      */
+    /**
+     * forms_admin/submissions accepts either the numeric form id or the form's
+     * code as a stable stand-in for it (e.g. "briefing_passager_ulm" for id 2).
+     */
+    private function _resolve_form_stub($form_id) {
+        if (ctype_digit((string) $form_id)) {
+            return (int) $form_id;
+        }
+        $form = $this->forms_model->get_by_code((string) $form_id);
+        return $form ? (int) $form['id'] : 0;
+    }
+
     private function load_form_or_redirect($form_id, $allow_workflow_bypass = false) {
         $form = $this->forms_model->get_by_id((int) $form_id);
         if (!$form) {

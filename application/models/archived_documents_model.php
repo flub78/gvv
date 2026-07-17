@@ -799,7 +799,6 @@ class Archived_documents_model extends Common_Model {
             'archived_documents.id, archived_documents.vld_id, archived_documents.uploaded_at,
              archived_documents.description, archived_documents.file_path, archived_documents.original_filename,
              archived_documents.validation_status,
-             document_types.code as type_code,
              vols_decouverte.date_vol, vols_decouverte.aerodrome,
              vols_decouverte.airplane_immat, vols_decouverte.beneficiaire,
              vols_decouverte.pilote, vols_decouverte.club as section_id'
