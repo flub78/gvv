@@ -112,7 +112,7 @@ Les clubs de vol à voile font face à des défis opérationnels complexes :
 
 ### 3.1 Pile Technologique
 - **Framework Backend** : CodeIgniter 2.x (framework PHP)
-- **Langage de Programmation** : PHP 7.4
+- **Langage de Programmation** : PHP (testé avec PHP 7.4 et PHP 8.4)
 - **Base de Données** : MySQL 5.x avec pilote MySQLi
 - **Frontend** : HTML5, CSS3, JavaScript, Bootstrap 5
 - **Serveur Web** : Apache/Nginx avec mod_rewrite
@@ -256,7 +256,7 @@ Les clubs de vol à voile font face à des défis opérationnels complexes :
 
 ### 5.1 Limitations Techniques
 - **Framework Legacy** : CodeIgniter 2.x limite les fonctionnalités PHP modernes, pas de composer
-- **Verrouillage de Version PHP** : Nécessite PHP 7.4 spécifiquement (non compatible avec les versions plus récentes)
+- **Compatibilité PHP** : Testé avec PHP 7.4 et PHP 8.4
 - **Architecture Mono-Tenant** : Chaque club nécessite une installation séparée
 - **Optimisation Mobile Limitée** : Design responsive mais pas d'application mobile native
 - **Couplage à la Base de Données** : Couplage étroit à MySQL limite la portabilité de la base de données
@@ -264,7 +264,7 @@ Les clubs de vol à voile font face à des défis opérationnels complexes :
 ### 5.2 Prérequis Système
 - **Exigences Serveur** :
   - Serveur Linux/Windows avec Apache/Nginx
-  - PHP 7.4 avec extensions MySQLi, GD
+  - PHP 7.4 ou 8.4 avec extensions MySQLi, GD
   - MySQL 5.x ou base de données compatible
   - Minimum 256MB RAM (recommandé 512MB pour les sauvegardes)
 - **Exigences Client** :

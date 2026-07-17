@@ -6,9 +6,9 @@
 
 ## Reste à faire
 
-* [] Gestion de l'inscription, y compris les autorisations parentales (wip). Ce sont essentiellement des création de formulaires.
+* [~] Gestion de l'inscription, y compris les autorisations parentales (wip). Ce sont essentiellement des création de formulaires.
 
-* [] Formulaires externes. 
+* [x] Formulaires externes. 
   
 * [] Support des messages du jour, qui pourront inclure les alarmes.
 
@@ -38,8 +38,6 @@
 * [] Approbation de documents
 
 * [] Informer le trésorier des renouvellement de cotisation par email
-
-* [] Facture automatique de hangar
 
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 

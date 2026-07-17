@@ -8,7 +8,7 @@ This file provides comprehensive guidance for AI assistants (Claude Code, GitHub
 
 **GVV (Gestion Vol à voile)** is a web application for managing gliding clubs, developed in PHP since 2011. It handles member management, aircraft fleet management, flight logging, billing, basic accounting, flight calendars, and email communications. Currently used by 5-6 gliding associations.
 
-- **Languages**: PHP 7.4, MySQL 5.x, HTML, CSS, JavaScript
+- **Languages**: PHP (tested with 7.4 and 8.4), MySQL 5.x, HTML, CSS, JavaScript
 - **Framework**: CodeIgniter 2.x (legacy version), Bootstrap 5 for UI
 - **Database**: MySQL with migrations managed via CodeIgniter
 - **Size**: ~50 controllers, extensive model layer, multi-language support (French, English, Dutch)
@@ -43,10 +43,12 @@ When the user asks you to:
 **ALWAYS source the environment setup before running PHP commands:**
 
 ```bash
-source setenv.sh
+source setenv-php7.sh   # PHP 7.4
+# or
+source setenv-php8.sh   # PHP 8.4
 ```
 
-This sets PHP 7.4 as the active version. The project **requires PHP 7.4 specifically** - newer versions are not compatible.
+GVV has been tested with **PHP 7.4 and PHP 8.4**. Both environments are available side by side; pick the one matching what you need to validate.
 
 ---
 
@@ -116,7 +118,7 @@ GVV uses a **metadata-driven architecture** centered on `application/libraries/G
 ```
 /
 ├── index.php                    # Main entry point
-├── setenv.sh                    # MUST run before PHP commands
+├── setenv-php7.sh / setenv-php8.sh  # MUST run before PHP commands (7.4 or 8.4)
 ├── application/
 │   ├── controllers/             # Request handling (~50 controllers)
 │   ├── models/                  # Database operations (data + metadata)
@@ -187,8 +189,8 @@ Following `doc/development/workflow.md`:
 
 ## Key Development Guidelines
 
-1. **Environment**: ALWAYS `source setenv.sh` before running PHP commands
-2. **PHP 7.4 Only**: Use `/usr/bin/php7.4` explicitly when needed
+1. **Environment**: ALWAYS `source setenv-php7.sh` or `source setenv-php8.sh` before running PHP commands
+2. **PHP versions**: GVV has been tested with PHP 7.4 and PHP 8.4; use the appropriate `setenv-php*.sh` script for the version you need
 3. **Metadata-Driven**: Define field metadata in `Gvvmetadata.php` for proper rendering. **Exception**: `application/controllers/paiements_en_ligne.php` is an integration controller for HelloAsso online payments. It handles webhooks, checkout redirects, and payment state machines — not standard CRUD forms. It intentionally uses no gvvmetadata, no `input_field`/`array_field` helpers, and no `$this->gvvmetadata->table()` calls. Do not add gvvmetadata to this controller.
 4. **Code Reuse**: Check existing code before creating new implementations
 5. **Bootstrap UI**: Use Bootstrap 5 classes for all UI components
@@ -254,7 +256,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 
 ## Common Pitfalls to Avoid
 
-1. **Don't skip `source setenv.sh`** - PHP version mismatch causes failures
+1. **Don't skip `source setenv-php7.sh` / `source setenv-php8.sh`** - PHP version mismatch causes failures
 2. **Don't modify `system/`** - It's CodeIgniter core
 3. **Don't create new patterns** - Follow established CodeIgniter 2.x conventions
 4. **Don't skip metadata** - Tables/forms won't render correctly without it

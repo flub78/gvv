@@ -12,7 +12,7 @@ C'est un environment entièrement gratuit, à vie, sans publicité et sans limit
 
 ## Pré-requis
 
-* une machine avec PHP 7.4 et MySql 5.x (linux, windows ou MacOS, linux recommandé)
+* une machine avec PHP 7.4 ou 8.4 et MySql 5.x (linux, windows ou MacOS, linux recommandé) — GVV a été testé avec ces deux versions de PHP
 * un serveur web (Apache ou Nginx)
 * un nom de domaine
 
@@ -24,16 +24,16 @@ Certaines étapes se font avec l'interface graphique d'Hestia.
 
 ### Vérifiez la version php
 
-    frederic@hcp:~$ php7.4 --version
-        PHP 7.4.33 (cli) (built: Feb 14 2023 18:31:54) ( NTS )
-        Copyright (c) The PHP Group
-        Zend Engine v3.4.0, Copyright (c) Zend Technologies
-        with Zend OPcache v7.4.33, Copyright (c), by Zend Technologies
+GVV a été testé avec PHP 7.4 et PHP 8.4.
 
+    frederic@hcp:~$ php --version
+        PHP 8.4.x (cli) (built: ...) ( NTS )
+        Copyright (c) The PHP Group
+        Zend Engine v4.4.x, Copyright (c) Zend Technologies
 
 Hestia Control Panel allows you to change the PHP version used by the domain.
 
-**By default, the latest version of PHP will be used. To change the PHP version, go to the WEB section - click the Edit domain icon - click the Additional options button - select the desired version in the Backend PHP-FPM template field - click the Save button.**
+**By default, the latest version of PHP will be used. To change the PHP version, go to the WEB section - click the Edit domain icon - click the Additional options button - select the desired version (PHP 7.4 or 8.4) in the Backend PHP-FPM template field - click the Save button.**
 
 ### Configurer le serveur WEB, Apache ou Nginx, 
 
@@ -164,7 +164,7 @@ Si vous configurez Brevo :
 * Vérifiez la quantité de mémoire disponible pour l'application. La librairie zip utilisée pour les sauvegardes et restauration à besoin de beaucoup de mémoire.
 
 > J'ai résolu mon problème de sauvegarde de la base de donnée qui me retournait systématiquement une erreur 500.
-> Dans le fichier /etc/php/7.4/apache2/php.ini, > j'ai passé memory_limit de 128M à 256M
+> Dans le fichier /etc/php/<version>/apache2/php.ini (7.4 ou 8.4 selon la version installée), > j'ai passé memory_limit de 128M à 256M
 > Je pense que le module zip n'avait pas assez de mémoire disponible à la vue des données à compresser.
 > Ça risque d'arriver à tout le monde au fur et à mesure du temps...
 
@@ -343,7 +343,7 @@ Activez la rotation/rétention (exemple fourni: suppression au-delà de 30 jours
 
 Symptôme: erreur 500 lors d'une sauvegarde via l'interface web.
 Cause probable: mémoire PHP insuffisante pour la compression.
-Correctif: augmentez `memory_limit` dans `/etc/php/7.4/apache2/php.ini` (exemple courant: `256M`) puis redémarrez Apache.
+Correctif: augmentez `memory_limit` dans `/etc/php/<version>/apache2/php.ini` (7.4 ou 8.4 selon la version installée ; exemple courant: `256M`) puis redémarrez Apache.
 
 
 
