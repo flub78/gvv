@@ -262,7 +262,7 @@ class Reservation_reminder
     public function _compose_email_body($reservation, $action_type, $role, $event_type = null, $source = '')
     {
         if ($this->CI) {
-            $this->CI->lang->load('rappels_reservations', 'french');
+            $this->CI->lang->load('rappels_reservations');
         }
 
         $start_ts   = strtotime($reservation['start_datetime']);
@@ -300,30 +300,28 @@ class Reservation_reminder
         $body .= '<h2 style="color:#0d6efd;">' . htmlspecialchars($type_label, ENT_QUOTES, 'UTF-8') . '</h2>';
         $body .= '<p>' . htmlspecialchars($intro, ENT_QUOTES, 'UTF-8') . '</p>';
         $body .= '<table style="border-collapse:collapse;width:100%;max-width:500px;">';
-        $body .= $this->_row('Date / heure',
+        $body .= $this->_row($this->_lang('label_date_heure', 'Date / heure'),
                     htmlspecialchars($date_heure . ' – ' . $date_fin, ENT_QUOTES, 'UTF-8'));
-        $body .= $this->_row('Aéronef',
+        $body .= $this->_row($this->_lang('label_aeronef', 'Aéronef'),
                     htmlspecialchars($aeronef, ENT_QUOTES, 'UTF-8'));
-        $body .= $this->_row('Pilote',
+        $body .= $this->_row($this->_lang('label_pilote', 'Pilote'),
                     htmlspecialchars($pilote, ENT_QUOTES, 'UTF-8'));
         if ($instructeur) {
-            $body .= $this->_row('Instructeur',
+            $body .= $this->_row($this->_lang('label_instructeur', 'Instructeur'),
                         htmlspecialchars($instructeur, ENT_QUOTES, 'UTF-8'));
         }
-        $body .= $this->_row('Statut',
+        $body .= $this->_row($this->_lang('label_statut', 'Statut'),
                     htmlspecialchars($status_label, ENT_QUOTES, 'UTF-8'));
-        $body .= $this->_row('Votre rôle',
+        $body .= $this->_row($this->_lang('label_votre_role', 'Votre rôle'),
                     htmlspecialchars($role_label, ENT_QUOTES, 'UTF-8'));
-        $body .= $this->_row('Type de message',
+        $body .= $this->_row($this->_lang('label_type_message', 'Type de message'),
                     htmlspecialchars($type_label, ENT_QUOTES, 'UTF-8'));
         if ($source) {
-            $body .= $this->_row('Déclenchement',
+            $body .= $this->_row($this->_lang('label_declenchement', 'Déclenchement'),
                         htmlspecialchars($source, ENT_QUOTES, 'UTF-8'));
         }
         $body .= '</table>';
-        $body .= '<p style="color:#6c757d;font-size:0.85em;margin-top:24px;">'
-               . 'Message automatique envoyé par ' . htmlspecialchars($nom_club, ENT_QUOTES, 'UTF-8')
-               . ' – GVV. Ne pas répondre à cet email.</p>';
+        $body .= $this->_footer($nom_club);
         $body .= '</body></html>';
 
         return $body;
@@ -340,17 +338,28 @@ class Reservation_reminder
      */
     public function _compose_sms_body($reservation, $action_type, $role, $event_type = null)
     {
-        $ts    = strtotime($reservation['start_datetime']);
-        $date  = substr($this->_jour_semaine($ts), 0, 3) . ' ' . date('d/m H:i', $ts);
-        $immat = $reservation['macimmat'];
+        $ts      = strtotime($reservation['start_datetime']);
+        $date    = substr($this->_jour_semaine($ts), 0, 3) . ' ' . date('d/m H:i', $ts);
+        $immat   = $reservation['macimmat'];
+        $le      = $this->_lang('connector_le', 'le');
+        $role_word  = $this->_lang('sms_role_label', 'rôle');
+        $role_label = ($role === 'instructor')
+            ? $this->_lang('reminder_role_instructor', 'Instructeur')
+            : $this->_lang('reminder_role_pilot',      'Pilote');
 
         if ($action_type === 'scheduled_reminder') {
-            return "Rappel vol $immat le $date – rôle: $role – GVV";
+            $prefix = $this->_lang('sms_rappel_vol', 'Rappel vol');
+            return "$prefix $immat $le $date – $role_word: $role_label – GVV";
         }
 
-        $events = array('create' => 'Nouvelle', 'update' => 'Modif.', 'cancel' => 'Annulée');
-        $label  = isset($events[$event_type]) ? $events[$event_type] : 'Notification';
-        return "$label réservation $immat le $date – rôle: $role – GVV";
+        $events = array(
+            'create' => $this->_lang('sms_event_create', 'Nouvelle'),
+            'update' => $this->_lang('sms_event_update', 'Modif.'),
+            'cancel' => $this->_lang('sms_event_cancel', 'Annulée'),
+        );
+        $label = isset($events[$event_type]) ? $events[$event_type] : 'Notification';
+        $resa  = $this->_lang('sms_reservation_word', 'réservation');
+        return "$label $resa $immat $le $date – $role_word: $role_label – GVV";
     }
 
     /**
@@ -370,15 +379,16 @@ class Reservation_reminder
         $nom_club   = ($this->CI) ? ($this->CI->config->item('nom_club') ?: 'GVV') : 'GVV';
 
         $body  = '<html><head><meta charset="UTF-8"></head><body>';
-        $body .= '<h2 style="color:#0d6efd;">Rappels de réservation pour la journée du '
+        $body .= '<h2 style="color:#0d6efd;">'
+               . htmlspecialchars($this->_lang('daily_summary_heading', 'Rappels de réservation pour la journée du'), ENT_QUOTES, 'UTF-8') . ' '
                . htmlspecialchars($date_label, ENT_QUOTES, 'UTF-8') . '</h2>';
         $body .= '<table style="border-collapse:collapse;width:100%;max-width:640px;">';
         $body .= '<tr style="background:#0d6efd;color:white;">'
-               . '<th style="padding:8px 12px;text-align:left;">Heure</th>'
-               . '<th style="padding:8px 12px;text-align:left;">Aéronef</th>'
-               . '<th style="padding:8px 12px;text-align:left;">Pilote</th>'
-               . '<th style="padding:8px 12px;text-align:left;">Instructeur</th>'
-               . '<th style="padding:8px 12px;text-align:left;">Statut</th>'
+               . '<th style="padding:8px 12px;text-align:left;">' . htmlspecialchars($this->_lang('label_heure', 'Heure'), ENT_QUOTES, 'UTF-8') . '</th>'
+               . '<th style="padding:8px 12px;text-align:left;">' . htmlspecialchars($this->_lang('label_aeronef', 'Aéronef'), ENT_QUOTES, 'UTF-8') . '</th>'
+               . '<th style="padding:8px 12px;text-align:left;">' . htmlspecialchars($this->_lang('label_pilote', 'Pilote'), ENT_QUOTES, 'UTF-8') . '</th>'
+               . '<th style="padding:8px 12px;text-align:left;">' . htmlspecialchars($this->_lang('label_instructeur', 'Instructeur'), ENT_QUOTES, 'UTF-8') . '</th>'
+               . '<th style="padding:8px 12px;text-align:left;">' . htmlspecialchars($this->_lang('label_statut', 'Statut'), ENT_QUOTES, 'UTF-8') . '</th>'
                . '</tr>';
 
         foreach ($reservations as $i => $r) {
@@ -407,9 +417,7 @@ class Reservation_reminder
         }
 
         $body .= '</table>';
-        $body .= '<p style="color:#6c757d;font-size:0.85em;margin-top:24px;">'
-               . 'Message automatique envoyé par ' . htmlspecialchars($nom_club, ENT_QUOTES, 'UTF-8')
-               . ' – GVV. Ne pas répondre à cet email.</p>';
+        $body .= $this->_footer($nom_club);
         $body .= '</body></html>';
 
         return $body;
@@ -439,14 +447,16 @@ class Reservation_reminder
             $extra  = '';
             if (!empty($r['instructor_member_id'])) {
                 $instr = trim($r['instructor_prenom'] . ' ' . $r['instructor_nom']);
-                $extra = ', instr: ' . $instr;
+                $extra = ', ' . $this->_lang('sms_instr_label', 'instr') . ': ' . $instr;
             }
-            return "Rappel vol $date_label $heure $immat – $pilote$extra – GVV";
+            $prefix = $this->_lang('sms_rappel_vol', 'Rappel vol');
+            return "$prefix $date_label $heure $immat – $pilote$extra – GVV";
         }
 
         $base_url = ($this->CI) ? rtrim($this->CI->config->item('base_url'), '/') : '';
         $count    = count($reservations);
-        return "Vous avez $count réservations pour la journée du $date_label. Détails sur $base_url/mes_reservations";
+        $format   = $this->_lang('sms_multi_reservations', 'Vous avez %1$d réservations pour la journée du %2$s. Détails sur %3$s');
+        return sprintf($format, $count, $date_label, "$base_url/mes_reservations");
     }
 
     // =========================================================================
@@ -589,9 +599,10 @@ class Reservation_reminder
             return strcmp($a['start_datetime'], $b['start_datetime']);
         });
 
-        $date_ts      = strtotime($date);
-        $date_label   = $this->_jour_semaine($date_ts) . ' ' . date('d/m/Y', $date_ts);
-        $subject      = "[GVV] Rappels de réservation pour le $date_label";
+        $date_ts       = strtotime($date);
+        $date_label    = $this->_jour_semaine($date_ts) . ' ' . date('d/m/Y', $date_ts);
+        $subject_label = $this->_lang('subject_rappels_journee', 'Rappels de réservation pour le');
+        $subject       = "[GVV] $subject_label $date_label";
         $email_body   = $this->_compose_daily_email_body($recipient, $date, $reservations, $source);
 
         $email_result = null;
@@ -738,18 +749,20 @@ class Reservation_reminder
         $immat = $reservation['macimmat'];
         $ts    = strtotime($reservation['start_datetime']);
         $date  = $this->_jour_semaine($ts) . ' ' . date('d/m/Y', $ts);
+        $le    = $this->_lang('connector_le', 'le');
 
         if ($action_type === 'scheduled_reminder') {
-            return "[GVV] Rappel réservation $immat le $date";
+            $subject_label = $this->_lang('subject_rappel_reservation', 'Rappel réservation');
+            return "[GVV] $subject_label $immat $le $date";
         }
 
         $labels = array(
-            'create' => 'Nouvelle réservation',
-            'update' => 'Réservation modifiée',
-            'cancel' => 'Réservation annulée',
+            'create' => $this->_lang('reminder_event_create', 'Nouvelle réservation'),
+            'update' => $this->_lang('reminder_event_update', 'Réservation modifiée'),
+            'cancel' => $this->_lang('reminder_event_cancel', 'Réservation annulée'),
         );
         $label = isset($labels[$event_type]) ? $labels[$event_type] : 'Notification réservation';
-        return "[GVV] $label – $immat le $date";
+        return "[GVV] $label – $immat $le $date";
     }
 
     /**
@@ -832,14 +845,16 @@ class Reservation_reminder
     }
 
     /**
-     * Nom du jour de la semaine (français) pour un timestamp donné.
+     * Nom du jour de la semaine pour un timestamp donné, dans la langue
+     * configurée du site (repli sur le français).
      *
      * @param int $timestamp
      * @return string
      */
     protected function _jour_semaine($timestamp)
     {
-        return self::$jours_semaine[(int) date('N', $timestamp)];
+        $numero = (int) date('N', $timestamp);
+        return $this->_lang('jour_' . $numero, self::$jours_semaine[$numero]);
     }
 
     /**
@@ -850,6 +865,7 @@ class Reservation_reminder
         if (!$this->CI) {
             return $default;
         }
+        $this->CI->lang->load('rappels_reservations');
         $val = $this->CI->lang->line($key);
         return ($val !== false && $val !== null) ? $val : $default;
     }
@@ -867,6 +883,17 @@ class Reservation_reminder
              . $value
              . '</td>'
              . '</tr>';
+    }
+
+    /**
+     * HTML footer paragraph shared by all reminder emails.
+     */
+    protected function _footer($nom_club)
+    {
+        $format = $this->_lang('footer_auto_message', 'Message automatique envoyé par %s – GVV. Ne pas répondre à cet email.');
+        return '<p style="color:#6c757d;font-size:0.85em;margin-top:24px;">'
+             . sprintf(htmlspecialchars($format, ENT_QUOTES, 'UTF-8'), htmlspecialchars($nom_club, ENT_QUOTES, 'UTF-8'))
+             . '</p>';
     }
 
     /**

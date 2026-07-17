@@ -43,6 +43,45 @@ $lang['reminder_intro_event']      = "Une réservation vous concerne.";
 $lang['reminder_role_pilot']       = "Pilote";
 $lang['reminder_role_instructor']  = "Instructeur";
 
+// Libellés du tableau récapitulatif (email)
+$lang['label_date_heure']      = "Date / heure";
+$lang['label_aeronef']         = "Aéronef";
+$lang['label_pilote']          = "Pilote";
+$lang['label_instructeur']     = "Instructeur";
+$lang['label_statut']          = "Statut";
+$lang['label_votre_role']      = "Votre rôle";
+$lang['label_type_message']    = "Type de message";
+$lang['label_declenchement']   = "Déclenchement";
+$lang['label_heure']           = "Heure";
+
+// Sujets des emails de rappel
+$lang['subject_rappel_reservation'] = "Rappel réservation";
+$lang['subject_rappels_journee']    = "Rappels de réservation pour le";
+
+// Titre du résumé quotidien et pied de page des emails
+$lang['daily_summary_heading'] = "Rappels de réservation pour la journée du";
+$lang['footer_auto_message']   = "Message automatique envoyé par %s – GVV. Ne pas répondre à cet email.";
+
+// SMS
+$lang['sms_rappel_vol']        = "Rappel vol";
+$lang['sms_event_create']      = "Nouvelle";
+$lang['sms_event_update']      = "Modif.";
+$lang['sms_event_cancel']      = "Annulée";
+$lang['sms_reservation_word']  = "réservation";
+$lang['sms_role_label']        = "rôle";
+$lang['sms_instr_label']       = "instr";
+$lang['sms_multi_reservations']= "Vous avez %1\$d réservations pour la journée du %2\$s. Détails sur %3\$s";
+$lang['connector_le']          = "le";
+
+// Noms des jours de la semaine
+$lang['jour_1'] = "Lundi";
+$lang['jour_2'] = "Mardi";
+$lang['jour_3'] = "Mercredi";
+$lang['jour_4'] = "Jeudi";
+$lang['jour_5'] = "Vendredi";
+$lang['jour_6'] = "Samedi";
+$lang['jour_7'] = "Dimanche";
+
 // Page de test des rappels
 $lang['test_rappel_titre']             = "Test des rappels de réservation";
 $lang['test_rappel_form_title']        = "Paramètres du test";

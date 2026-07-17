@@ -271,9 +271,9 @@ class ReservationReminderTest extends TestCase
             'cancel'
         );
 
-        $this->assertStringContainsString('F-GSRP',   $body);
-        $this->assertStringContainsString('instructor', $body);
-        $this->assertStringContainsString('Annul',      $body);
+        $this->assertStringContainsString('F-GSRP',    $body);
+        $this->assertStringContainsString('Instructeur', $body, 'Rôle traduit (repli français en test)');
+        $this->assertStringContainsString('Annul',     $body);
     }
 
     // =========================================================================

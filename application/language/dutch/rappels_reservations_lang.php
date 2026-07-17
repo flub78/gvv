@@ -40,6 +40,45 @@ $lang['reminder_intro_event']      = "Een reservering betreft u.";
 $lang['reminder_role_pilot']       = "Piloot";
 $lang['reminder_role_instructor']  = "Instructeur";
 
+// Labels van de samenvattingstabel (e-mail)
+$lang['label_date_heure']      = "Datum / Tijd";
+$lang['label_aeronef']         = "Vliegtuig";
+$lang['label_pilote']          = "Piloot";
+$lang['label_instructeur']     = "Instructeur";
+$lang['label_statut']          = "Status";
+$lang['label_votre_role']      = "Uw rol";
+$lang['label_type_message']    = "Berichttype";
+$lang['label_declenchement']   = "Trigger";
+$lang['label_heure']           = "Tijd";
+
+// Onderwerpen van de herinneringsmails
+$lang['subject_rappel_reservation'] = "Reserveringsherinnering";
+$lang['subject_rappels_journee']    = "Reserveringsherinneringen voor";
+
+// Titel dagoverzicht en voettekst van de e-mails
+$lang['daily_summary_heading'] = "Reserveringsherinneringen voor";
+$lang['footer_auto_message']   = "Automatisch bericht verzonden door %s – GVV. Beantwoord deze e-mail niet.";
+
+// SMS
+$lang['sms_rappel_vol']        = "Vluchtherinnering";
+$lang['sms_event_create']      = "Nieuw";
+$lang['sms_event_update']      = "Gewijzigd";
+$lang['sms_event_cancel']      = "Geannuleerd";
+$lang['sms_reservation_word']  = "reservering";
+$lang['sms_role_label']        = "rol";
+$lang['sms_instr_label']       = "instr";
+$lang['sms_multi_reservations']= "U heeft %1\$d reserveringen voor %2\$s. Details op %3\$s";
+$lang['connector_le']          = "op";
+
+// Dagen van de week
+$lang['jour_1'] = "Maandag";
+$lang['jour_2'] = "Dinsdag";
+$lang['jour_3'] = "Woensdag";
+$lang['jour_4'] = "Donderdag";
+$lang['jour_5'] = "Vrijdag";
+$lang['jour_6'] = "Zaterdag";
+$lang['jour_7'] = "Zondag";
+
 // Testpagina herinneringen
 $lang['test_rappel_titre']             = "Test reserveringsherinneringen";
 $lang['test_rappel_form_title']        = "Testparameters";

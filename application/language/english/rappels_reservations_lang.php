@@ -40,6 +40,45 @@ $lang['reminder_intro_event']      = "A reservation concerns you.";
 $lang['reminder_role_pilot']       = "Pilot";
 $lang['reminder_role_instructor']  = "Instructor";
 
+// Summary table labels (email)
+$lang['label_date_heure']      = "Date / Time";
+$lang['label_aeronef']         = "Aircraft";
+$lang['label_pilote']          = "Pilot";
+$lang['label_instructeur']     = "Instructor";
+$lang['label_statut']          = "Status";
+$lang['label_votre_role']      = "Your role";
+$lang['label_type_message']    = "Message type";
+$lang['label_declenchement']   = "Trigger";
+$lang['label_heure']           = "Time";
+
+// Reminder email subjects
+$lang['subject_rappel_reservation'] = "Reservation reminder";
+$lang['subject_rappels_journee']    = "Reservation reminders for";
+
+// Daily summary heading and email footer
+$lang['daily_summary_heading'] = "Reservation reminders for";
+$lang['footer_auto_message']   = "Automatic message sent by %s – GVV. Do not reply to this email.";
+
+// SMS
+$lang['sms_rappel_vol']        = "Flight reminder";
+$lang['sms_event_create']      = "New";
+$lang['sms_event_update']      = "Updated";
+$lang['sms_event_cancel']      = "Cancelled";
+$lang['sms_reservation_word']  = "reservation";
+$lang['sms_role_label']        = "role";
+$lang['sms_instr_label']       = "instr";
+$lang['sms_multi_reservations']= "You have %1\$d reservations for %2\$s. Details at %3\$s";
+$lang['connector_le']          = "on";
+
+// Days of the week
+$lang['jour_1'] = "Monday";
+$lang['jour_2'] = "Tuesday";
+$lang['jour_3'] = "Wednesday";
+$lang['jour_4'] = "Thursday";
+$lang['jour_5'] = "Friday";
+$lang['jour_6'] = "Saturday";
+$lang['jour_7'] = "Sunday";
+
 // Reminder test page
 $lang['test_rappel_titre']             = "Reservation reminder test";
 $lang['test_rappel_form_title']        = "Test parameters";
