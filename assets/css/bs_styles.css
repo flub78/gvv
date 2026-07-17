@@ -82,6 +82,12 @@ form select {
     background-color: white;
 }
 
+form textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 /* Override Bootstrap's default red/pink color for code tags */
 code {
     color: #212529; /* Bootstrap's default body text color */
