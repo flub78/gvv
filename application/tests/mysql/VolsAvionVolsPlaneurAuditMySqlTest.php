@@ -58,13 +58,14 @@ class VolsAvionVolsPlaneurAuditMySqlTest extends TransactionalTestCase
             'updated_by' => false,
         );
 
-        // create() always calls facture(), which can throw on this minimal synthetic
-        // dataset if the test machine has no matching tariff configured. Billing is out
-        // of scope here — we only care whether the row itself got the audit fields right.
+        // Depuis le correctif "vol créé malgré échec de facturation", create() supprime
+        // le vol si facture() échoue (ex: tarif manquant) — il n'y a donc plus de ligne
+        // de secours à aller chercher en cas d'exception. activeAirplane() choisit une
+        // machine dont le tarif existe réellement pour éviter ce cas ici.
         try {
             $id = $this->ci->gvv_model->create($data);
         } catch (\Throwable $e) {
-            $id = $this->ci->db->select('vaid')->from('volsa')->where('vaobs', 'Lot5 audit test')->order_by('vaid', 'desc')->limit(1)->get()->row_array()['vaid'];
+            $this->markTestSkipped('Facturation impossible pour cette machine/session de test: ' . $e->getMessage());
         }
         $this->assertNotEmpty($id, 'Flight should be created');
 
@@ -108,13 +109,14 @@ class VolsAvionVolsPlaneurAuditMySqlTest extends TransactionalTestCase
             'vahfin' => 11,
         );
 
+        // Depuis le correctif "vol créé malgré échec de facturation", create() supprime
+        // le vol si facture() échoue — il n'y a donc plus de ligne de secours en cas
+        // d'exception ici. activeAirplane() choisit une machine dont le tarif existe
+        // réellement pour que cette création préalable réussisse normalement.
         try {
             $id = $this->ci->gvv_model->create($data);
         } catch (\Throwable $e) {
-            $id = null;
-        }
-        if (empty($id)) {
-            $id = $this->ci->db->select('vaid')->from('volsa')->where('vaobs', 'Lot5 update regression test')->order_by('vaid', 'desc')->limit(1)->get()->row_array()['vaid'];
+            $this->markTestSkipped('Facturation impossible pour cette machine/session de test: ' . $e->getMessage());
         }
         $this->assertNotEmpty($id, 'Flight should be created');
 
@@ -187,7 +189,18 @@ class VolsAvionVolsPlaneurAuditMySqlTest extends TransactionalTestCase
 
     private function activeAirplane()
     {
-        $row = $this->ci->db->select('macimmat')->from('machinesa')->where('actif', 1)->limit(1)->get()->row_array();
+        // Un avion dont la référence de tarif (maprix) existe réellement dans la
+        // table tarifs : la création ne doit pas échouer pour tarif manquant,
+        // ce qui empêcherait désormais la persistance du vol (cf. correctif
+        // "vol créé malgré échec de facturation").
+        $row = $this->ci->db
+            ->select('machinesa.macimmat')
+            ->from('machinesa')
+            ->join('tarifs', 'tarifs.reference = machinesa.maprix', 'inner')
+            ->where('machinesa.actif', 1)
+            ->limit(1)
+            ->get()
+            ->row_array();
         return isset($row['macimmat']) ? $row['macimmat'] : null;
     }
 

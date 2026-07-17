@@ -149,9 +149,10 @@ class EmailListsModelTest extends TestCase
 
         $this->assertTrue($result);
 
-        // Verify it's deleted
+        // Verify it's deleted (row_array() returns an empty array, not null,
+        // when CI_DB_result finds no matching row)
         $list = $this->model->get_list($id);
-        $this->assertNull($list);
+        $this->assertEmpty($list);
     }
 
     public function testGetUserLists_ReturnsUserLists()

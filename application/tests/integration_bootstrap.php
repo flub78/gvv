@@ -718,10 +718,13 @@ class RealQueryResult {
     
     public function row_array() {
         if ($this->result === true || $this->result === false) {
-            return null;
+            return array();
         }
 
-        return $this->result->fetch_assoc();
+        // Comportement aligné sur CI_DB_result::row_array(): un tableau vide
+        // (et non null) quand la requête ne retourne aucune ligne.
+        $row = $this->result->fetch_assoc();
+        return ($row === null) ? array() : $row;
     }
     
     public function row() {

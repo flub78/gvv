@@ -7,9 +7,8 @@
 ## Reste à faire
   
 * [] Support des messages du jour, qui pourront inclure les alarmes.
-
-* [] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
-  - à vérifier aussi sur les vols avions
+  
+* [] Refactoring split produits et tarifs.
 
 * [] Configuration des vols de découverte comme les cartes de membres. Editeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
   
@@ -33,7 +32,7 @@
   
 * [] Approbation de documents
 
-* [] Informer le trésorier des renouvellement de cotisation par email
+bin/* [] Informer le trésorier des renouvellement de cotisation par email
 
 * [] Support de la gestion de la maintenance,                 (PRD à rédiger)
   visite périodique, équipements à potentiel, 

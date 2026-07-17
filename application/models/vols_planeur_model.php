@@ -606,7 +606,13 @@ if ($where) {
         if ($this->db->insert($this->table, $data)) {
             $id = $this->db->insert_id();
 
-            $this->facture($id);
+            try {
+                $this->facture($id);
+            } catch (Exception $e) {
+                // La facturation a échoué (ex: tarif manquant), le vol ne doit pas être créé
+                $this->delete(array('vpid' => $id));
+                throw $e;
+            }
 
             return $id;
         } else {

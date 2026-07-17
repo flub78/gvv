@@ -6,10 +6,12 @@ Date : 9 février 2026
 Les clubs souhaitent communiquer rapidement des informations importantes aux membres (rappels, consignes, événements). Le message du jour permet une diffusion visible à l’ouverture de l’application.
 
 ## Objectifs
-- Permettre aux administrateurs de créer et gérer des messages du jour.
+- Permettre aux administrateurs de créer et gérer des messages destinés aux utilisateurs.
 - Offrir une visibilité claire aux utilisateurs via un une section repliable sur le dashboard d'accueil.
-- Permettre aux utilisateurs de masquer un message ou l’ensemble des messages.
-- Fournir une page dédiée listant tous les messages.
+- Permettre aux utilisateurs de masquer un message ou l’ensemble des messages. (marquer lu et n'afficher que les non lus
+- Les messages seront affichés dans une fenêtre de la page d’accueil. Il serra possible de replier cette fenêtre. L'état replié/déplié sera persistent. Si de nouveau messages sont à destination de l'utilisateur, la fenêtre sera dépliée.
+- Les messages pourront être à destination d'une liste de diffusion. On ré-utilisera les liste d'email, même ces messages ne sont pas des emails. Les messages pourront être filtrés par liste de diffusion. Les messages pourront également être à destination d'un utilisateur unique.
+- Les destinataires des messages pourront répondre aux messages. Dans ce cas les réponses seront visibles après chaque message. Les administrateurs pourront voir les réponses et y répondre. Les réponses seront visibles par tous les destinataires du message initial ainsi que par l'éditeur du message initial.
 
 ## Non-objectifs
 - Remplacer les communications officielles par email.
@@ -19,11 +21,12 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Gestion CRUD des messages par les administrateurs.
 - Affichage des messages actifs dans une section repliable sur le dashboard d'accueil.
 - Page de consultation listant tous les messages.
-- Rendu Markdown controle des messages avec support d'images referencees.
+- Rendu Markdown contrôle des messages avec support d'images référencées.
 
 ## Personae & rôles
 - Administrateur : crée, modifie, supprime et planifie des messages.
 - Utilisateur : consulte et masque des messages.
+- GVV : génère des messages d'alarmes à destination d'un ou plusieurs utilisateurs. Ces messages sont créés automatiquement par le système et peuvent être modifiés par les administrateurs.
 
 ## Parcours clés
 1. Un administrateur crée un message avec une période de diffusion.
@@ -40,7 +43,7 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
   - Contenu en Markdown (source de reference), rendu en HTML securise a l'affichage.
   - Date de début d’affichage.
   - Date de fin d’affichage.
-  - Niveau "Urgent, Important, Info" (optionnel).
+  - Niveau "Urgent, Important, Info, Alerte" (optionnel).
   - Type de destinataires (optionnel, ex. tous les utilisateurs, basé sur la gestion des rôles).
 
 ### EF1bis — Rendu Markdown

@@ -189,9 +189,9 @@ class Achats_model extends Common_Model {
         $data['saisie_par'] = $this->dx_auth->get_username();
         $this->inject_audit_fields($data, TRUE);
 
-        if (!$data['vol_planeur']) unset($data['vol_planeur']);
-        if (!$data['vol_avion']) unset($data['vol_avion']);
-        if (!$data['mvt_pompe']) unset($data['mvt_pompe']);
+        if (empty($data['vol_planeur'])) unset($data['vol_planeur']);
+        if (empty($data['vol_avion'])) unset($data['vol_avion']);
+        if (empty($data['mvt_pompe'])) unset($data['mvt_pompe']);
 
         // enregistre le prix unitaire du produit au moment de l'achat
         gvv_debug("achat create: " . var_export($data, true));
@@ -257,9 +257,9 @@ class Achats_model extends Common_Model {
     public function update($keyid, $data, $keyvalue = '') {
         $this->inject_audit_fields($data, FALSE);
 
-        if (!$data['vol_planeur']) unset($data['vol_planeur']);
-        if (!$data['vol_avion']) unset($data['vol_avion']);
-        if (!$data['mvt_pompe']) unset($data['mvt_pompe']);
+        if (empty($data['vol_planeur'])) unset($data['vol_planeur']);
+        if (empty($data['vol_avion'])) unset($data['vol_avion']);
+        if (empty($data['mvt_pompe'])) unset($data['mvt_pompe']);
 
         // détruit la ligne d'écriture correspondante
         $this->load->model('ecritures_model');

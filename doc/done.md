@@ -228,3 +228,6 @@
 * [x] Formulaires externes. 
 
 * [x] Passer à php8, c'est fait, à déployer
+
+* [x] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
+  - à vérifier aussi sur les vols avions

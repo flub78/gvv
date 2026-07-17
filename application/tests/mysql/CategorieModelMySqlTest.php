@@ -100,16 +100,14 @@ class CategorieModelMySqlTest extends TestCase
     }
 
     /**
-     * Test image() method with non-existent ID
-     * Note: The model has a bug where get_by_id returns null instead of empty array
-     * when category not found, causing array_key_exists to fail
+     * Test image() method with non-existent ID: get_by_id() returns an empty
+     * array (matching CI_DB_result::row_array() for a no-row result), so
+     * image() falls through to its "not found" message instead of erroring.
      */
     public function testImageMethodNonExistent()
     {
-        // The model's image() method will throw an error for non-existent ID
-        // This test documents the current behavior
-        $this->expectError();
         $image = $this->model->image(999999);
+        $this->assertEquals('catégorie inconnu 999999', $image);
     }
 
     /**

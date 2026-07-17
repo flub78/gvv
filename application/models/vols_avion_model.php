@@ -495,38 +495,14 @@ class Vols_avion_model extends Common_Model {
         if ($this->db->insert($this->table, $data)) {
             $id = $this->db->insert_id();
             $data['vaid'] = $id;
-            /*
-             * var_dump($data);
-             * array
-             * 'vaid' => string '0' (length=1)
-             * 'vadate' => string '2012-03-26' (length=10)
-             * 'vapilid' => string 'fpeignot' (length=8)
-             * 'vamacid' => string 'F-BLIT' (length=6)
-             * 'vacdeb' => string '840.00' (length=6)
-             * 'vacfin' => string '841' (length=3)
-             * 'vaduree' => string '1' (length=1)
-             * 'vaobs' => string '' (length=0)
-             * 'vadc' => boolean false
-             * 'vacategorie' => boolean false
-             * 'vanumvi' => string '' (length=0)
-             * 'vanbpax' => string '' (length=0)
-             * 'vaprixvol' => boolean false
-             * 'vainst' => string '' (length=0)
-             * 'valieudeco' => string '' (length=0)
-             * 'valieuatt' => string '' (length=0)
-             * 'facture' => boolean false
-             * 'payeur' => boolean false
-             * 'pourcentage' => boolean false
-             * 'club' => boolean false
-             * 'gel' => boolean false
-             * 'saisie_par' => string 'fpeignot' (length=8)
-             * 'vaatt' => string '1' (length=1)
-             * 'local' => string '0' (length=1)
-             * 'nuit' => boolean false
-             * 'reappro' => string '0' (length=1)
-             * 'essence' => string '0' (length=1)
-             */
-            $this->facture($data);
+
+            try {
+                $this->facture($data);
+            } catch (Exception $e) {
+                // La facturation a échoué (ex: tarif manquant), le vol ne doit pas être créé
+                $this->delete(array('vaid' => $id));
+                throw $e;
+            }
 
             return $id;
         } else {
