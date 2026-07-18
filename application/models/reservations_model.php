@@ -76,7 +76,8 @@ class Reservations_model extends Common_Model {
                 $reservation['macimmat'],
                 $pilot_name,
                 $instructor_name,
-                $reservation['status']
+                $reservation['status'],
+                $reservation['notes'] ?: ''
             );
 
             $event = array(
@@ -448,7 +449,7 @@ class Reservations_model extends Common_Model {
      * @param string $instructor_name Instructor name (optional)
      * @return string Formatted title: "HH:MM-HH:MM IMMAT Pilot + Instructor"
      */
-    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = '') {
+    private function format_reservation_title($start_datetime, $end_datetime, $aircraft_immat, $pilot_name, $instructor_name = '', $status = '', $notes = '') {
         // Extract time from datetime
         $start_time = substr($start_datetime, 11, 5); // HH:MM
         $end_time = substr($end_datetime, 11, 5); // HH:MM
@@ -477,6 +478,11 @@ class Reservations_model extends Common_Model {
             $title .= ' + ' . $instructor_name;
         }
 
+        // Add notes if present
+        if (!empty($notes)) {
+            $title .= ' - ' . $notes;
+        }
+
         return $title;
     }
 
@@ -499,7 +505,8 @@ class Reservations_model extends Common_Model {
                 $res['aircraft_immat'],
                 $res['pilot_name'],
                 $res['instructor_name'],
-                $res['status']
+                $res['status'],
+                $res['notes'] ?: ''
             );
 
             $event = array(
