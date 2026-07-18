@@ -98,17 +98,6 @@ Balance Accordion Search
  [x] Accordion state restoration
  [x] Search edge cases
 
-Briefing Signature
- [x] Token IsGenerated As64CharHex
- [x] Token InsertedInDb CanBeRetrieved
- [x] Token Uniqueness EnforcedByDB
- [x] ValidateToken ValidToken Passes
- [x] ValidateToken UnknownToken ReturnsNull
- [x] ValidateToken ExpiredToken ShouldBeDetected
- [x] ValidateToken UsedToken ShouldBeDetected
- [x] MarkTokenUsed SetsUsedAt
- [x] MarkTokenUsed PreventReuse
-
 Carnet Route Smoke
  [x] Controller file exists
  [x] Model file exists
@@ -472,12 +461,12 @@ Reservation Scheduler
  [x] Scheduler skips reservation not yet in reminder window
 
 Smart Adjustor Correlation Integration
- [ ] Correlation for frison against all images
- [ ] Correlation for bleuse against all images
- [ ] Correlation for lobry against all images
- [ ] Correlation for prelevement against all images
- [ ] Correlation for frais bancaire against all images
- [ ] Correlation for virement emis against all images
+ [x] Correlation for frison against all images
+ [x] Correlation for bleuse against all images
+ [x] Correlation for lobry against all images
+ [x] Correlation for prelevement against all images
+ [x] Correlation for frais bancaire against all images
+ [x] Correlation for virement emis against all images
 
 Users Coherence
  [x] User exists with data set "asterix"

@@ -48,8 +48,6 @@
 
 * [] IA revues de code et refactoring
 
-* [] Vérification des traductions
-
 * [] Définir une charte graphique et l'appliquer partout
   * [] Unifier le style des filtres
   * [] Unifier les erreurs de validation

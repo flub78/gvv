@@ -18,7 +18,6 @@ $lang['gvv_machinesa_field_maprixdc'] = "Prijs per vlieguur dubbelzit";
 $lang['gvv_machinesa_field_horametre_mode'] = "Tachoformaat";
 $lang['gvv_machinesa_field_horametre_en_minutes'] = "Tachoformaat";
 $lang['gvv_horametre_units'] = array(0 => "Decimaal (1/100 u)", 1 => "Uren/minuten", 2 => "Tienden van een uur (1/10 u)");
-$lang['gvv_machinesa_field_mmax_facturation'] = "Forfait minuten";
 $lang['gvv_machinesa_field_actif'] = "Actief";
 $lang['gvv_machinesa_field_fabrication'] = "Bouwjaar";
 $lang['gvv_machinesa_field_comment'] = "Omschrijving";

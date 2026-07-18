@@ -102,7 +102,6 @@ $lang['gvv_membres_short_field_madresse'] = "Adres";
 $lang['gvv_membres_short_field_cp'] = "Postcode";
 $lang['gvv_membres_short_field_ville'] = "Gemeente";
 $lang['gvv_membres_short_field_madresse'] = "Adres";
-$lang['gvv_membres_short_field_mville'] = "Gemeente";
 $lang['gvv_membres_short_field_mtelf'] = "Telefoon";
 $lang['gvv_membres_short_field_mtelm'] = "GSM";
 $lang['gvv_membres_short_field_memail'] = "E-mailadres";

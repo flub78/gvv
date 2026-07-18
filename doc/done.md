@@ -234,3 +234,6 @@
 
 * [x] Supprimer les anciens modes de validation de formulaires
 
+* [x] Vérification des traductions
+
+
