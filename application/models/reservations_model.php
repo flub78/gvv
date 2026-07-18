@@ -456,9 +456,13 @@ class Reservations_model extends Common_Model {
 
         // For maintenance and unavailable, show status instead of pilot
         if ($status === 'maintenance') {
-            return $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Maintenance';
+            $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Maintenance';
+            if (!empty($notes)) $title .= ' - ' . $notes;
+            return $title;
         } else if ($status === 'unavailable') {
-            return $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Indisponible';
+            $title = $start_time . '-' . $end_time . ' ' . $aircraft_immat . ' Indisponible';
+            if (!empty($notes)) $title .= ' - ' . $notes;
+            return $title;
         }
 
         // For specific flight types, prefix the type name
