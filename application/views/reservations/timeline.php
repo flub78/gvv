@@ -450,7 +450,7 @@ $this->load->view('bs_banner');
                 <button class="btn btn-outline-secondary btn-sm" id="btnPrevious" title="Previous day">
                     <i class="fas fa-chevron-left"></i> <span class="btn-label"><?php echo $this->lang->line('previous') ?: 'Précédent'; ?></span>
                 </button>
-                <input type="date" class="form-control form-control-sm mx-2" id="datePicker" style="width: auto; display: inline-block;" value="<?php echo $current_date; ?>" title="Sélectionner une date">
+                <span id="dayName" class="fw-semibold text-secondary me-1"></span><input type="date" class="form-control form-control-sm mx-2" id="datePicker" style="width: auto; display: inline-block;" value="<?php echo $current_date; ?>" title="Sélectionner une date">
                 <button class="btn btn-outline-secondary btn-sm" id="btnNext" title="Next day">
                     <span class="btn-label"><?php echo $this->lang->line('next') ?: 'Suivant'; ?></span> <i class="fas fa-chevron-right"></i>
                 </button>
@@ -1681,6 +1681,8 @@ $this->load->view('bs_banner');
          */
         function updateDateDisplay() {
             document.getElementById('datePicker').value = state.currentDate;
+            const dayName = new Date(state.currentDate + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long' });
+            document.getElementById('dayName').textContent = dayName.charAt(0).toUpperCase() + dayName.slice(1);
         }
         
         /**
