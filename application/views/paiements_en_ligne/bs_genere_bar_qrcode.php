@@ -1,4 +1,4 @@
-<!-- VIEW: application/views/paiements_en_ligne/bs_genere_bar_qrcode.php -->
+<?php define('MAX_TEXT_LENGTH', 1200); ?><?php define('MAX_TITLE_LENGTH', 120); ?><!-- VIEW: application/views/paiements_en_ligne/bs_genere_bar_qrcode.php -->
 <div id="body" class="body container-fluid">
 
 <?= checkalert($this->session) ?>
@@ -9,7 +9,7 @@
     <strong><?= htmlspecialchars($section['nom']) ?></strong>
 </p>
 
-<?php if (!empty($error)): ?>
+<?php if (isset($error) && $error !== ''): ?>
 <div class="alert alert-danger" role="alert">
     <?= htmlspecialchars($error) ?>
 </div>
@@ -22,12 +22,12 @@
     <div class="mb-3">
         <label for="title" class="form-label"><?= $this->lang->line('gvv_bar_qrcode_label_title') ?> <span class="text-danger">*</span></label>
         <input type="text" id="title" name="title" class="form-control"
-               value="<?= htmlspecialchars($title) ?>" maxlength="120" required>
+               value="<?= htmlspecialchars($title) ?>" maxlength="<?= defined('MAX_TITLE_LENGTH') ? MAX_TITLE_LENGTH : 120 ?>" required>
     </div>
 
     <div class="mb-3">
         <label for="text_top" class="form-label"><?= $this->lang->line('gvv_bar_qrcode_label_text_top') ?></label>
-        <textarea id="text_top" name="text_top" class="form-control" rows="4" maxlength="1200"><?= htmlspecialchars($text_top) ?></textarea>
+        <textarea id="text_top" name="text_top" class="form-control" rows="4" maxlength="<?= defined('MAX_TEXT_LENGTH') ? MAX_TEXT_LENGTH : 1200 ?>"><?= htmlspecialchars($text_top) ?></textarea>
     </div>
 
     <div class="mb-3">
@@ -40,7 +40,7 @@
         <input type="text" class="form-control" value="<?= htmlspecialchars($payment_url) ?>" readonly>
     </div>
 
-    <?php if (!empty($can_generate)): ?>
+    <?php if (isset($can_generate) && $can_generate === true): ?>
     <button type="submit" name="button" value="generate_pdf" class="btn btn-primary">
         <i class="fas fa-file-pdf"></i> <?= $this->lang->line('gvv_bar_qrcode_button_generate_pdf') ?>
     </button>
