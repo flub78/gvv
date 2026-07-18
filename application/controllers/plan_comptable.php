@@ -29,37 +29,9 @@ class Plan_Comptable extends Gvv_Controller {
     protected $model = 'plan_comptable_model';
     protected $kid = 'pcode';
 
-    // régles de validation
-    protected $fields = array(
-        'pcode' => array(
-            'label' => 'Code',
-            'default' => '',
-            'rules' => 'trim||max_length[10]'
-        ),
-
-        'pdesc' => array(
-            'label' => 'Description',
-            'default' => '',
-            'rules' => 'trim|required'
-        )
-    );
-
     protected $rules = array(
         'pcode' => "required|is_uniq[planc.pcode]"
     );
-
-    /**
-     * Constructor
-     */
-    function __construct() {
-        parent::__construct();
-
-        // Keep form-level rule display in sync with DB metadata for planc.pdesc.
-        $pdesc_size = (int) $this->gvvmetadata->field_size('planc', 'pdesc');
-        if ($pdesc_size > 0) {
-            $this->fields['pdesc']['rules'] = 'trim|required|max_length[' . $pdesc_size . ']';
-        }
-    }
 
     /**
      * Génération des éléments à passer au formulaire en cas de création,

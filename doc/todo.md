@@ -46,11 +46,9 @@
 
 * [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 
-* [] Supprimer les anciens modes de validation de formulaires
-
 * [] IA revues de code et refactoring
 
-* [] Check translations completeness
+* [] Vérification des traductions
 
 * [] Définir une charte graphique et l'appliquer partout
   * [] Unifier le style des filtres

@@ -231,3 +231,6 @@
 
 * [x] vols planeur, les vols sont créés même en cas d'erreur sur la facturation (tarif manquant)
   - à vérifier aussi sur les vols avions
+
+* [x] Supprimer les anciens modes de validation de formulaires
+

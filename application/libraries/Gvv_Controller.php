@@ -556,11 +556,6 @@ class Gvv_Controller extends MY_Controller {
                 $section_id = $this->gvv_model->section_id();
                 $processed_data['club'] = $section_id;
             }
-        } else {
-            // TODO: delete after validation
-            // foreach ($this->fields as $field => $value) {
-            //     $processed_data[$field] = $this->input->post($field);
-            // }
         }
         return $processed_data;
     }
@@ -660,9 +655,6 @@ class Gvv_Controller extends MY_Controller {
             }
 
             $this->gvvmetadata->set_rules($table, $fields_list, $this->rules, $action);
-        } else {
-            // Ancienne méthode
-            // TODO: à supprimer après vérification
         }
 
         if ($this->form_validation->run($this)) {
