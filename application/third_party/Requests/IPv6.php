@@ -39,7 +39,7 @@ class Requests_IPv6
     {
         $c1 = -1;
         $c2 = -1;
-        if (substr_count($ip, '::') === 1)
+        if (1 === substr_count($ip, '::'))
         {
             list($ip1, $ip2) = explode('::', $ip);
             if ($ip1 === '')
@@ -58,7 +58,7 @@ class Requests_IPv6
             {
                 $c2 = substr_count($ip2, ':');
             }
-            if (strpos($ip2, '.') !== false)
+            if (false !== strpos($ip2, '.'))
             {
                 $c2++;
             }
@@ -153,7 +153,7 @@ class Requests_IPv6
      */
     private static function split_v6_v4($ip)
     {
-        if (strpos($ip, '.') !== false)
+        if (false !== strpos($ip, '.'))
         {
             $pos = strrpos($ip, ':');
             $ipv6_part = substr($ip, 0, $pos);
@@ -180,7 +180,7 @@ class Requests_IPv6
         list($ipv6, $ipv4) = self::split_v6_v4($ip);
         $ipv6 = explode(':', $ipv6);
         $ipv4 = explode('.', $ipv4);
-        if (count($ipv6) === 8 && count($ipv4) === 1 || count($ipv6) === 6 && count($ipv4) === 4)
+        if (8 === count($ipv6) && 1 === count($ipv4) || 6 === count($ipv6) && 4 === count($ipv4))
         {
             foreach ($ipv6 as $ipv6_part)
             {
@@ -189,7 +189,7 @@ class Requests_IPv6
                     return false;
 
                 // Nor can it be over four characters
-                if (strlen($ipv6_part) > 4)
+                if (4 < strlen($ipv6_part))
                     return false;
 
                 // Remove leading zeros (this is safe because of the above)
@@ -207,7 +207,7 @@ class Requests_IPv6
                 foreach ($ipv4 as $ipv4_part)
                 {
                     $value = (int) $ipv4_part;
-                    if ((string) $value !== $ipv4_part || $value < 0 || $value > 0xFF)
+                    if ($ipv4_part !== (string) $value || 0 > $value || 0xFF < $value)
                         return false;
                 }
             }
