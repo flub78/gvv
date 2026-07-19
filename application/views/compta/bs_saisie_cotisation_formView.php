@@ -123,7 +123,7 @@ echo validation_errors();
 
             <div class="mb-3">
                 <label for="date_op" class="form-label"><?= $this->lang->line('gvv_ecritures_field_date_op') ?> <span class="text-danger">*</span></label>
-                <input type="text" class="form-control activity_date" id="date_op" name="date_op" value="<?= $date_op ?>" placeholder="dd/mm/yyyy">
+                <input type="text" class="form-control datepicker" id="date_op" name="date_op" value="<?= $date_op ?>" placeholder="dd/mm/yyyy">
             </div>
 
             <div class="mb-3">
