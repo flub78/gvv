@@ -54,6 +54,9 @@ class Facturation_accabs extends Facturation {
         } elseif ($vi == VE) {
             $desc .= " vol d'essai";
             $free = TRUE;
+        } elseif ($vi == VP_BIA) {
+            $desc .= " BIA";
+            $free = TRUE;
         } elseif ($vi == CONCOURS) {
             $desc .= " concours";
         }
@@ -137,6 +140,9 @@ class Facturation_accabs extends Facturation {
         } else if ($vi == VE) {
             $desc .= " vol d'essai";
             $free = TRUE;
+        } else if ($vi == VP_BIA) {
+            $desc .= " BIA";
+            $free = TRUE;
         }
 
         $this->nouvel_achat_partage(array (
@@ -200,6 +206,9 @@ class Facturation_accabs extends Facturation {
             // est-ce un vol d'essai ?
             $desc .= " vol d'essai";
             $free = TRUE;
+        } else if ($vi == VP_BIA) {
+            $desc .= " BIA";
+            $free = TRUE;
         }
 
         // on ne facture pas les privés
@@ -246,6 +255,9 @@ class Facturation_accabs extends Facturation {
             $free = TRUE;
         } else if ($vi == VE) {
             $desc .= " vol d'essai";
+            $free = TRUE;
+        } else if ($vi == VP_BIA) {
+            $desc .= " BIA";
             $free = TRUE;
         }
 

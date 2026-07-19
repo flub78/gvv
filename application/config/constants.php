@@ -77,6 +77,8 @@ define('STANDARD', 0);
 define('VI', 1);
 define('VE', 2);
 define('CONCOURS', 3);
+define('VP_PO', 4);    // Vol porte ouverte planeur
+define('VP_BIA', 5);   // Vol BIA planeur
 
 # Catégories de vols avion supplémentaires
 define('PO', 5);        // Vol porte ouverte
