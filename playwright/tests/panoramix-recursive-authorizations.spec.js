@@ -44,6 +44,7 @@ const SKIP_PATTERNS = [
     /\/csv_/,                 // CSV download endpoints (csv_month, csv_machine, etc.)
     /\/print\b/,
     /\/imprimer/,
+    /\/email_vd\//,             // GET action that sends an email — side-effect, not a display page
     /\/phpinfo/,
     /\/migration/,
     /\/backup/,
