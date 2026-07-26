@@ -133,7 +133,9 @@ function update_machine() {
 				$('#DC').hide();
 				$('#vpdc').prop('checked', false);
 				$("#instruction").hide();
+				$("#vpinst").val('');
 				$("#passager").hide();
+				$("#vppassager").val('');
 				// $('.VI').hide();
 			}
 		},
