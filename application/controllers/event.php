@@ -211,9 +211,9 @@ class Event extends Gvv_Controller {
     public function filterValidation() {
         $this->active_filter($this->filter_variables);
 
-        // Il faut rediriger et non pas appeller $this->page, sinon l'URL
-        // enregistrée pour le retour est incorrecte
-        redirect($this->pop_return_url());
+        // Le filtrage modifie le nombre de pages, on ne peut donc pas revenir
+        // à la page précédente (pop_return_url) qui peut ne plus exister.
+        redirect($this->controller . '/page');
     }
 
     /**

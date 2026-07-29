@@ -142,6 +142,18 @@
 		$.fn.dataTable.defaults.fnInitComplete = function(oSettings) {
 			var sSearch = oSettings.oPreviousSearch && oSettings.oPreviousSearch.sSearch;
 			if (sSearch) { this.fnFilter(sSearch); }
+
+			// bStateSave restores the previously viewed page (_iDisplayStart) from
+			// localStorage/cookie. If the table was filtered server-side in the
+			// meantime (accordion filter form, full page reload) the row count can
+			// shrink so that offset no longer exists, leaving a blank page. Go back
+			// to page 1 instead. Deferred: for server-side tables fnInitComplete
+			// runs while DataTables is still mid-callback (bAjaxDataGet momentarily
+			// false), so an immediate fnPageChange would be silently swallowed.
+			if (oSettings.oFeatures.bPaginate && oSettings._iDisplayStart >= oSettings.fnRecordsDisplay()) {
+				var oTable = this;
+				setTimeout(function() { oTable.fnPageChange('first'); }, 0);
+			}
 		};
 	</script>
 

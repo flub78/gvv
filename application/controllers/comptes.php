@@ -263,7 +263,9 @@ class Comptes extends Gvv_Controller {
         // echo "in filterValidation " . $this->session->userdata('return_url') . br();
         $this->active_filter($this->filter_variables);
 
-        $this->pop_return_url();
+        // Le filtrage modifie le nombre de pages, on ne peut donc pas revenir
+        // à la page précédente (pop_return_url) qui peut ne plus exister.
+        redirect($this->controller . '/page');
     }
 
     /**

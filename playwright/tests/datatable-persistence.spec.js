@@ -145,4 +145,42 @@ test.describe('DataTables State Persistence', () => {
             test.skip();
         }
     });
+
+    test('should fall back to the first page when the persisted page no longer exists after filtering', async ({ page }) => {
+        // vols_planeur uses a server-side DataTable (bServerSide: true). For
+        // server-side tables, DataTables 1.9.4 restores the persisted iStart from
+        // the state cookie with no bounds check against the current row count
+        // (unlike its client-side path, which already clamps). If a server-side
+        // filter later shrinks the result set below that offset, the table is left
+        // rendering a blank, out-of-range page.
+        await page.goto('/index.php/vols_planeur/page');
+        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('.dataTables_info');
+        await page.waitForTimeout(1000);
+
+        // Simulate having been left on a deep page: corrupt the DataTables state
+        // cookie to a page offset far beyond the actual row count.
+        const cookies = await page.context().cookies();
+        const dtCookies = cookies.filter((c) => c.name.startsWith('SpryMedia_DataTables_'));
+        expect(dtCookies.length).toBeGreaterThan(0);
+        for (const c of dtCookies) {
+            const state = JSON.parse(decodeURIComponent(c.value));
+            state.iStart = 999999;
+            await page.context().addCookies([{ ...c, value: encodeURIComponent(JSON.stringify(state)) }]);
+        }
+
+        await page.reload({ waitUntil: 'networkidle' });
+        await page.waitForSelector('.dataTables_info');
+        // The out-of-range page triggers a corrective second AJAX request; give it
+        // time to complete.
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+
+        // The table must show its first page of results, not a blank one.
+        const rowCount = await page.locator('table.datatable_server tbody tr').count();
+        expect(rowCount).toBeGreaterThan(0);
+
+        const infoText = await page.locator('.dataTables_info').first().textContent();
+        expect(infoText).toMatch(/l'élement 1 à|1 to/);
+    });
 });
