@@ -461,12 +461,12 @@ Reservation Scheduler
  [x] Scheduler skips reservation not yet in reminder window
 
 Smart Adjustor Correlation Integration
- [x] Correlation for frison against all images
- [x] Correlation for bleuse against all images
- [x] Correlation for lobry against all images
- [x] Correlation for prelevement against all images
- [x] Correlation for frais bancaire against all images
- [x] Correlation for virement emis against all images
+ [ ] Correlation for frison against all images
+ [ ] Correlation for bleuse against all images
+ [ ] Correlation for lobry against all images
+ [ ] Correlation for prelevement against all images
+ [ ] Correlation for frais bancaire against all images
+ [ ] Correlation for virement emis against all images
 
 Users Coherence
  [x] User exists with data set "asterix"

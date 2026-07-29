@@ -28,6 +28,7 @@ $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
 $this->lang->load('tableaux_de_bord');
+$this->lang->load('motd');
 
 $show_planeurs = empty($section) || !empty($section['gestion_planeurs']);
 $show_avions   = empty($section) || !empty($section['gestion_avions']);
@@ -103,6 +104,40 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         </div>
     </div>
     <?php endif; ?>
+
+    <!-- Messages du jour (nouvelle section repliable) -->
+    <?php if (!empty($motd_messages)): ?>
+    <div class="card mb-4" id="motdSectionCard">
+        <div class="card-header bg-primary text-white d-flex flex-wrap align-items-center gap-2"
+             data-bs-toggle="collapse" data-bs-target="#motdSectionBody"
+             style="cursor: pointer;" aria-expanded="<?= $motd_section_expanded ? 'true' : 'false' ?>">
+            <h5 class="mb-0 flex-grow-1">
+                <i class="fas fa-bullhorn" aria-hidden="true"></i>
+                <?= $this->lang->line('motd_title') ?>
+                <span class="badge bg-light text-dark ms-1"><?= count($motd_messages) ?></span>
+            </h5>
+            <select id="motdSortSelect" class="form-select form-select-sm me-2" style="width: auto;">
+                <option value="priority" <?= $motd_sort_by === 'priority' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_priority') ?></option>
+                <option value="date" <?= $motd_sort_by === 'date' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_date') ?></option>
+            </select>
+            <button type="button" id="motdHideAllBtn" class="btn btn-sm btn-light me-2">
+                <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide_all') ?>
+            </button>
+            <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
+        </div>
+        <div id="motdSectionBody" class="collapse <?= $motd_section_expanded ? 'show' : '' ?>">
+            <div class="card-body" style="max-height: 480px; overflow-y: auto;">
+                <?php $this->load->view('motd/_message_accordion', array('motd_messages' => $motd_messages, 'is_admin' => $is_admin)); ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <div class="mb-2">
+        <a href="<?= controller_url('motd/mine') ?>" class="small text-decoration-none" id="motdMineLink">
+            <i class="fas fa-inbox" aria-hidden="true"></i> <?= $this->lang->line('motd_my_messages_link') ?>
+        </a>
+    </div>
 
     <!-- Section tiles grid -->
     <div class="row g-3">
@@ -254,6 +289,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
             $(this).attr('target', '_blank').attr('rel', 'noopener noreferrer');
         }
+    });
+});
+</script>
+<?php endif; ?>
+
+<?php if (!empty($motd_messages)): ?>
+<?= html_script(array('type' => "text/javascript", 'src' => js_url('motd'))) ?>
+<script>
+$(function() {
+    motd_init_dashboard_section(
+        '<?= controller_url('motd') ?>/toggle_section',
+        '<?= controller_url('motd') ?>/set_sort'
+    );
+    motd_init_dashboard_actions({
+        hideUrl: '<?= controller_url('motd') ?>/hide_message',
+        hideAllUrl: '<?= controller_url('motd') ?>/hide_all',
+        ackUrl: '<?= controller_url('motd') ?>/acknowledge_message',
+        replyUrl: '<?= controller_url('motd') ?>/reply',
+        confirmHideAll: <?= json_encode($this->lang->line('motd_confirm_hide_all')) ?>,
+        errorFallback: <?= json_encode($this->lang->line('motd_error_action_failed')) ?>,
+        ackBadgeLabel: <?= json_encode($this->lang->line('motd_acknowledged_badge')) ?>,
+        repliesTitle: <?= json_encode($this->lang->line('motd_replies_title')) ?>
     });
 });
 </script>

@@ -185,8 +185,13 @@
 	<script type="text/javascript">
 		document.addEventListener('DOMContentLoaded', function() {
 			if (window.innerWidth < 768) {
-				// Collapse Bootstrap accordions
+				// Collapse Bootstrap accordions, except MOTD messages: an
+				// unread urgent/important message is forced open precisely so
+				// the user can't miss it, on any device.
 				document.querySelectorAll('.accordion-collapse.show').forEach(function(panel) {
+					if (panel.closest('#motdAccordion')) {
+						return;
+					}
 					bootstrap.Collapse.getOrCreateInstance(panel, {toggle: false}).hide();
 				});
 				// Collapse card-based filter sections and make them togglable

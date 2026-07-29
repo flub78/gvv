@@ -277,6 +277,27 @@ class Welcome extends Gvv_Controller {
             });
         }
 
+        // Messages du jour (MOTD) : section repliable du dashboard principal
+        $this->load->model('motd_model');
+        $this->load->model('motd_replies_model');
+        $this->load->model('motd_user_prefs_model');
+        $motd_prefs = $this->motd_user_prefs_model->get_prefs($data['username']);
+        $data['motd_sort_by'] = $motd_prefs['sort_by'];
+        $motd_messages = $this->motd_model->active_messages_for_user($data['username'], $motd_prefs['sort_by'], TRUE);
+        $motd_has_priority_unread = FALSE;
+        foreach ($motd_messages as &$motd_message) {
+            $motd_message['replies'] = $this->motd_replies_model->replies_for_message($motd_message['id']);
+            if (in_array($motd_message['level'], array('urgent', 'important')) && empty($motd_message['acknowledged'])) {
+                $motd_has_priority_unread = TRUE;
+            }
+        }
+        unset($motd_message);
+        $data['motd_messages'] = $motd_messages;
+        // Deplie si un message urgent/important n'a pas ete pris en compte,
+        // sinon respecte la preference utilisateur (repliee par defaut).
+        $data['motd_section_expanded'] = !empty($motd_messages)
+            && ($motd_has_priority_unread || empty($motd_prefs['section_collapsed']));
+
         // MOD (Message of the Day) handling
         $this->load->helper('file');
         // Date du dernier MOD

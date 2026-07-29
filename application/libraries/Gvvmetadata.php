@@ -1017,6 +1017,67 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_archived_documents']['alarm_disabled']['Subtype'] = 'checkbox';
 
                 /**
+                 * Messages du jour (MOTD)
+                 */
+                $CI->lang->load('motd');
+
+                $this->field['motd_messages']['id']['Type'] = 'int';
+                $this->field['motd_messages']['id']['Subtype'] = 'key';
+
+                $this->field['motd_messages']['title']['Name'] = $CI->lang->line('motd_field_title');
+                // Force a single-line input: the DB column is VARCHAR(255) but
+                // the generic renderer switches to a textarea above 128 chars.
+                $this->field['motd_messages']['title']['Type'] = 'varchar(128)';
+
+                $this->field['motd_messages']['content']['Name'] = $CI->lang->line('motd_field_content');
+                $this->field['motd_messages']['content']['Type'] = 'varchar(4000)';
+
+                $this->field['motd_messages']['level']['Name'] = $CI->lang->line('motd_field_level');
+                $this->field['motd_messages']['level']['Subtype'] = 'enumerate';
+                $this->field['motd_messages']['level']['Enumerate'] = array(
+                    'urgent' => $CI->lang->line('motd_level_urgent'),
+                    'important' => $CI->lang->line('motd_level_important'),
+                    'info' => $CI->lang->line('motd_level_info'),
+                    'alerte' => $CI->lang->line('motd_level_alerte'),
+                );
+
+                $this->field['motd_messages']['start_date']['Name'] = $CI->lang->line('motd_field_start_date');
+                $this->field['motd_messages']['start_date']['Type'] = 'date';
+
+                $this->field['motd_messages']['end_date']['Name'] = $CI->lang->line('motd_field_end_date');
+                $this->field['motd_messages']['end_date']['Type'] = 'date';
+
+                $this->field['motd_messages']['target_type']['Name'] = $CI->lang->line('motd_field_target_type');
+                $this->field['motd_messages']['target_type']['Subtype'] = 'enumerate';
+                $this->field['motd_messages']['target_type']['Enumerate'] = array(
+                    'all' => $CI->lang->line('motd_target_all'),
+                    'list' => $CI->lang->line('motd_target_list'),
+                    'user' => $CI->lang->line('motd_target_user'),
+                );
+
+                $this->field['motd_messages']['target_list_id']['Name'] = $CI->lang->line('motd_field_target_list_id');
+                $this->field['motd_messages']['target_list_id']['Subtype'] = 'selector';
+                $this->field['motd_messages']['target_list_id']['Selector'] = 'motd_list_selector';
+
+                $this->field['motd_messages']['target_user_login']['Name'] = $CI->lang->line('motd_field_target_user_login');
+                $this->field['motd_messages']['target_user_login']['Subtype'] = 'selector';
+                $this->field['motd_messages']['target_user_login']['Selector'] = 'motd_user_selector';
+
+                /**
+                 * Vue motd_messages (liste admin)
+                 */
+                $this->field['vue_motd_messages']['id']['Type'] = 'int';
+                $this->field['vue_motd_messages']['id']['Subtype'] = 'key';
+                $this->field['vue_motd_messages']['title']['Name'] = $CI->lang->line('motd_field_title');
+                $this->field['vue_motd_messages']['level']['Name'] = $CI->lang->line('motd_field_level');
+                $this->field['vue_motd_messages']['start_date']['Name'] = $CI->lang->line('motd_field_start_date');
+                $this->field['vue_motd_messages']['start_date']['Type'] = 'date';
+                $this->field['vue_motd_messages']['end_date']['Name'] = $CI->lang->line('motd_field_end_date');
+                $this->field['vue_motd_messages']['end_date']['Type'] = 'date';
+                $this->field['vue_motd_messages']['target_label']['Name'] = $CI->lang->line('motd_field_target_type');
+                $this->field['vue_motd_messages']['origin']['Name'] = $CI->lang->line('motd_field_origin');
+
+                /**
                  * Acceptance Items - Elements a faire accepter
                  */
                 $this->field['acceptance_items']['id']['Type'] = 'int';

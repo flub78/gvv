@@ -1,0 +1,96 @@
+@startuml messages_du_jour_er
+
+entity motd_messages {
+  * id : INT [PK]
+  --
+  title : VARCHAR(255)
+  * content : TEXT
+  level : ENUM('urgent','important','info','alerte')
+  * start_date : DATETIME
+  * end_date : DATETIME
+  * target_type : ENUM('all','list','user')
+  target_list_id : INT [FK]
+  target_user_login : VARCHAR(25) [FK]
+  * origin : ENUM('admin','system')
+  source_type : VARCHAR(50)
+  source_ref : VARCHAR(100)
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR(25)
+  * updated_by : VARCHAR(25)
+}
+
+entity motd_media {
+  * id : INT [PK]
+  --
+  message_id : INT [FK]
+  * filename : VARCHAR(255)
+  * original_filename : VARCHAR(255)
+  * mime_type : VARCHAR(100)
+  * size_bytes : INT
+  * sha256 : CHAR(64)
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR(25)
+  * updated_by : VARCHAR(25)
+}
+
+entity motd_replies {
+  * id : INT [PK]
+  --
+  * message_id : INT [FK]
+  parent_reply_id : INT [FK]
+  * author_login : VARCHAR(25)
+  * content : TEXT
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR(25)
+  * updated_by : VARCHAR(25)
+}
+
+entity motd_user_message_state {
+  * id : INT [PK]
+  --
+  * message_id : INT [FK]
+  * user_login : VARCHAR(25)
+  * hidden : TINYINT(1)
+  * acknowledged : TINYINT(1)
+  acknowledged_at : DATETIME
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR(25)
+  * updated_by : VARCHAR(25)
+}
+
+entity motd_user_prefs {
+  * id : INT [PK]
+  --
+  * user_login : VARCHAR(25) [UNIQUE]
+  * section_collapsed : TINYINT(1)
+  * sort_by : ENUM('priority','date')
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR(25)
+  * updated_by : VARCHAR(25)
+}
+
+entity membres {
+  * mlogin : VARCHAR(25) [PK]
+  --
+  ...
+}
+
+entity email_lists {
+  * id : INT [PK]
+  --
+  ...
+}
+
+motd_messages }o--o| email_lists : target_list_id
+motd_messages }o--o| membres : target_user_login
+motd_messages ||--o{ motd_media : message_id
+motd_messages ||--o{ motd_replies : message_id
+motd_replies }o--o| motd_replies : parent_reply_id
+motd_messages ||--o{ motd_user_message_state : message_id
+
+@enduml

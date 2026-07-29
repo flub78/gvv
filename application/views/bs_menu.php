@@ -34,6 +34,7 @@ $this->lang->load('acceptance');
 $this->lang->load('briefing_passager');
 $this->lang->load('paiements_en_ligne');
 $this->lang->load('email_lists');
+$this->lang->load('motd');
 
 $CI = &get_instance();
 $CI->config->load('program');
@@ -163,6 +164,7 @@ if ($CI->dx_auth->is_logged_in()) {
                     <?php if ($this->dx_auth->is_admin()): ?>
                     <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
                     <?php endif; ?>
+                    <li><a class="dropdown-item" href="<?= controller_url("motd/page") ?>"><i class="fas fa-bullhorn text-warning"></i> <?= translation("motd_title") ?></a></li>
                     <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= controller_url("email_lists") ?>"><i class="fas fa-envelope text-primary"></i> <?= translation("email_lists_menu") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("gestion_roles") ?>"><i class="fas fa-users-cog text-warning"></i> <?= translation("gvv_menu_gestion_roles") ?></a></li>
