@@ -126,7 +126,7 @@ $lang['gvv_button_site'] = "Site club";
 
 $lang['gvv_button_exit'] = "Quitter";
 $lang['gvv_button_create'] = "Créer";
-$lang['gvv_button_create_and_continue'] = "Créer et continuer";
+$lang['gvv_button_create_and_continue'] = "Créer et faire une autre saisie";
 $lang['gvv_button_update'] = "Changer";
 $lang['gvv_button_validate'] = "Valider";
 $lang['gvv_button_save'] = "Enregistrer";

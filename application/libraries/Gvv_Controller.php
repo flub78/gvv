@@ -701,7 +701,7 @@ class Gvv_Controller extends MY_Controller {
                     $this->post_create($processed_data);
                     $create_txt = $this->lang->line("gvv_button_create");
                     $upload_txt = $this->lang->line("gvv_button_upload");
-                    if (($button != $create_txt) && ($button_photo != $upload_txt) && $table != 'achats') {
+                    if (($button != $create_txt) && ($button_photo != $upload_txt) && $table != 'achats' && $table != 'volsp' && $table != 'volsa') {
                         gvv_debug("dialog? \$button=$button");
                         gvv_debug("dialog? \$create_text=$create_txt");
                         gvv_debug("dialog? \$button_photo=$button_photo");

@@ -180,12 +180,24 @@ class Vols_avion extends Gvv_Controller {
         }
 
         if ($action == CREATION) {
-            $defaut_aerodrome = $this->configuration_model->get_param('defaut.aerodrome');
-            if ($defaut_aerodrome) {
-                $terrain = $this->terrains_model->get_by_id('oaci', $defaut_aerodrome);
-                if (!empty($terrain)) {
-                    $this->data['valieudeco'] = $defaut_aerodrome;
-                    $this->data['valieuatt'] = $defaut_aerodrome;
+            // "Créer et faire une autre saisie" : reprend date, type de vol et lieux
+            // du vol qui vient d'être créé (déposés en flashdata par post_create()).
+            // La machine n'est volontairement pas reprise : les horamètres se
+            // réinitialisent alors correctement via le JS horametres_last_data.
+            $keep = $this->session->flashdata('vols_avion_keep');
+            if ($keep) {
+                $this->data['vadate'] = $keep['vadate'];
+                $this->data['vacategorie'] = $keep['vacategorie'];
+                $this->data['valieudeco'] = $keep['valieudeco'];
+                $this->data['valieuatt'] = $keep['valieuatt'];
+            } else {
+                $defaut_aerodrome = $this->configuration_model->get_param('defaut.aerodrome');
+                if ($defaut_aerodrome) {
+                    $terrain = $this->terrains_model->get_by_id('oaci', $defaut_aerodrome);
+                    if (!empty($terrain)) {
+                        $this->data['valieudeco'] = $defaut_aerodrome;
+                        $this->data['valieuatt'] = $defaut_aerodrome;
+                    }
                 }
             }
         }
@@ -1527,6 +1539,15 @@ class Vols_avion extends Gvv_Controller {
      */
     function post_create($data = array()) {
         gvv_debug($this->controller . " overwritten creation " . var_export($data, true));
+
+        if ($this->input->post('button') == $this->lang->line('gvv_button_create_and_continue')) {
+            $this->session->set_flashdata('vols_avion_keep', array(
+                'vadate' => $data['vadate'],
+                'vacategorie' => $data['vacategorie'],
+                'valieudeco' => $data['valieudeco'],
+                'valieuatt' => $data['valieuatt'],
+            ));
+        }
 
         $certificats = $this->input->post('certificat_values');
 

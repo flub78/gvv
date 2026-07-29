@@ -18,6 +18,7 @@ class GvvmetadataTest extends TestCase
     {
         // GVVMetadata requires CodeIgniter instance
         $CI = get_instance();
+        $CI->load->helper('form');
 
         // Load the GVVMetadata library
         if (!class_exists('GVVMetadata')) {
@@ -244,5 +245,40 @@ class GvvmetadataTest extends TestCase
                 $this->assertTrue(true, "field_attr() executed without error");
             }
         }
+    }
+
+    /**
+     * Régression : vpdc (volsp) et vadc (volsa) doivent avoir un défaut 0 explicite.
+     *
+     * Sans 'Default' explicite, field_default() renvoie '' (chaîne vide). Sous PHP 8,
+     * la case à cocher rendue par input_field() ('checked' => (0 != $value)) apparaît
+     * alors cochée par défaut, car 0 != '' vaut true en PHP 8 (contrairement à PHP 7.4
+     * où 0 != '' vaut false) — un vol créé sans rien saisir se retrouvait donc marqué
+     * "double commande" par défaut.
+     */
+    public function testVpdcAndVadcDefaultToZero()
+    {
+        $this->assertSame(0, $this->gvvmetadata->field_default('volsp', 'vpdc'),
+            "vpdc doit avoir un défaut explicite 0");
+        $this->assertSame(0, $this->gvvmetadata->field_default('volsa', 'vadc'),
+            "vadc doit avoir un défaut explicite 0");
+    }
+
+    /**
+     * Régression : la case DC ne doit pas être rendue cochée quand on lui passe
+     * la valeur par défaut (reproduit le bug PHP 8 constaté sur vols_planeur/create
+     * et vols_avion/create).
+     */
+    public function testVpdcAndVadcCheckboxNotCheckedByDefault()
+    {
+        $vpdc_default = $this->gvvmetadata->field_default('volsp', 'vpdc');
+        $vpdc_html = $this->gvvmetadata->input_field('volsp', 'vpdc', $vpdc_default);
+        $this->assertStringNotContainsString('checked', $vpdc_html,
+            "la case vpdc ne doit pas être cochée par défaut");
+
+        $vadc_default = $this->gvvmetadata->field_default('volsa', 'vadc');
+        $vadc_html = $this->gvvmetadata->input_field('volsa', 'vadc', $vadc_default);
+        $this->assertStringNotContainsString('checked', $vadc_html,
+            "la case vadc ne doit pas être cochée par défaut");
     }
 }

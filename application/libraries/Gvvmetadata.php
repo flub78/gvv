@@ -528,6 +528,7 @@ class GVVMetadata extends Metadata {
 
                 $this->field['volsa']['vadate']['Subtype'] = 'activity_date';
                 $this->field['volsa']['vadc']['Subtype'] = 'boolean';
+                $this->field['volsa']['vadc']['Default'] = 0;
                 $this->field['volsa']['nuit']['Subtype'] = 'boolean';
                 $this->field['volsa']['m25ans']['Subtype'] = 'boolean';
                 $this->field['volsa']['vamacid']['Subtype'] = 'selector';
@@ -639,6 +640,7 @@ class GVVMetadata extends Metadata {
 
                 $this->field['volsp']['vpcategorie']['Subtype'] = 'boolean';
                 $this->field['volsp']['vpdc']['Subtype'] = 'boolean';
+                $this->field['volsp']['vpdc']['Default'] = 0;
 
                 // Remplacement vpcategorie par catégories_vol_planeur
                 $this->field['volsp']['vpcategorie']['Subtype'] = 'enumerate';

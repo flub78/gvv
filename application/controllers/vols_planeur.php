@@ -149,8 +149,9 @@ class Vols_planeur extends Gvv_Controller {
                     $this->data ['vpautonome'] = $latestf [0] ['vpautonome'];
                     if ($latestf [0] ['vpautonome'] == 1)
                         $this->data ['vptreuillard'] = $this->data ['pilote_remorqueur'];
+                    $this->data ['vpcategorie'] = $latestf [0] ['vpcategorie'];
                     $this->data ['vplieudeco'] = $latestf [0] ['vplieudeco'];
-                    $this->data ['vplieuatt'] = $latestf [0] ['vplieudeco'];
+                    $this->data ['vplieuatt'] = $latestf [0] ['vplieuatt'];
                 } else
                     $this->data ['vpdate'] = date("Y-m-d");
             }

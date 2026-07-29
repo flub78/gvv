@@ -292,7 +292,7 @@ if ($where) {
 
         $select = 'vpid, vpdate, vppilid, vpmacid, vpcdeb, vpcfin, vpduree, vpobs, vpinst as instructeur';
         $select .= ', YEAR(vpdate) as year';
-        $select .= ', vpcategorie, vpautonome, vpaltrem, payeur, pourcentage, facture, remorqueur, vplieudeco, pilote_remorqueur';
+        $select .= ', vpcategorie, vpautonome, vpaltrem, payeur, pourcentage, facture, remorqueur, vplieudeco, vplieuatt, pilote_remorqueur';
         $select .= ', concat(mprenom," ", mnom) as pilote, compte, mpprive as prive, mprix, mprix_forfait, mmax_facturation';
 
         $db_res = $this->db->select($select, FALSE)
