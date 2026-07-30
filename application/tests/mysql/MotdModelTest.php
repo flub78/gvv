@@ -397,6 +397,80 @@ class MotdModelTest extends TestCase
         $this->assertNotNull($state['acknowledged_at']);
     }
 
+    /**
+     * "Afficher les messages masqués" : reverses hide_all_messages(), and
+     * leaves an unrelated acknowledged state untouched.
+     */
+    public function testUnhideAllMessages()
+    {
+        // active_messages_for_user() is scoped to pilot_a globally, not to this
+        // test's own fixtures (hide_all_messages()/unhide_all_messages() act on
+        // every message visible to the user). Snapshot any message already
+        // hidden coming into this test so it can be restored afterwards,
+        // keeping the test independent of execution order.
+        $previously_hidden_ids = array();
+        foreach ($this->motd_model->active_messages_for_user($this->pilot_a, 'priority', FALSE) as $row) {
+            if (!empty($row['hidden'])) {
+                $previously_hidden_ids[] = $row['id'];
+            }
+        }
+
+        $id1 = $this->motd_model->create_message($this->base_message(array('title' => 'Msg1')));
+        $this->test_message_ids[] = $id1;
+        $id2 = $this->motd_model->create_message($this->base_message(array('title' => 'Msg2')));
+        $this->test_message_ids[] = $id2;
+
+        $this->motd_user_state_model->acknowledge_message($id1, $this->pilot_a);
+        $this->motd_user_state_model->hide_message($id1, $this->pilot_a);
+        $this->motd_user_state_model->hide_message($id2, $this->pilot_a);
+
+        $titles_hidden = array_column($this->motd_model->active_messages_for_user($this->pilot_a), 'title');
+        $this->assertNotContains('Msg1', $titles_hidden);
+        $this->assertNotContains('Msg2', $titles_hidden);
+
+        $unhidden_count = $this->motd_user_state_model->unhide_all_messages($this->pilot_a);
+        $this->assertGreaterThanOrEqual(2, $unhidden_count);
+
+        $titles_visible = array_column($this->motd_model->active_messages_for_user($this->pilot_a), 'title');
+        $this->assertContains('Msg1', $titles_visible);
+        $this->assertContains('Msg2', $titles_visible);
+
+        // acknowledged state on Msg1 must survive the unhide.
+        $state = $this->motd_user_state_model->get_state($id1, $this->pilot_a);
+        $this->assertEquals(1, $state['acknowledged']);
+
+        foreach ($previously_hidden_ids as $message_id) {
+            $this->motd_user_state_model->hide_message($message_id, $this->pilot_a);
+        }
+    }
+
+    /**
+     * The "Tous mes messages" badge counts, among the rows returned by
+     * active_messages_for_user(), those with an empty 'acknowledged' field.
+     * This confirms that data source is sufficient to derive the unread count.
+     */
+    public function testActiveMessagesForUser_UnreadCountReflectsAcknowledgedState()
+    {
+        $id1 = $this->motd_model->create_message($this->base_message(array('title' => 'Unread1')));
+        $this->test_message_ids[] = $id1;
+        $id2 = $this->motd_model->create_message($this->base_message(array('title' => 'Unread2')));
+        $this->test_message_ids[] = $id2;
+        $id3 = $this->motd_model->create_message($this->base_message(array('title' => 'Acked')));
+        $this->test_message_ids[] = $id3;
+
+        $this->motd_user_state_model->acknowledge_message($id3, $this->pilot_a);
+
+        $messages = $this->motd_model->active_messages_for_user($this->pilot_a);
+        $unread_count = 0;
+        foreach ($messages as $message) {
+            if (empty($message['acknowledged'])) {
+                $unread_count++;
+            }
+        }
+
+        $this->assertEquals(2, $unread_count);
+    }
+
     // ==================== User prefs ====================
 
     public function testGetPrefs_DefaultsWhenNoneStored()

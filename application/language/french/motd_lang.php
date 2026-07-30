@@ -74,6 +74,8 @@ $lang['motd_error_action_failed'] = 'Une erreur est survenue, veuillez réessaye
 $lang['motd_my_messages_title'] = 'Tous mes messages';
 $lang['motd_my_messages_link'] = 'Tous mes messages';
 $lang['motd_my_messages_empty'] = 'Aucun message ne vous est actuellement adressé.';
+$lang['motd_my_messages_all_hidden'] = "Vous n'avez aucun message non masqué. Utilisez le bouton ci-dessus pour afficher les messages masqués.";
+$lang['motd_action_show_hidden'] = 'Afficher les messages masqués';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/french/motd_lang.php */

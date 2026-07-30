@@ -355,14 +355,26 @@ class Motd extends Gvv_Controller {
     public function mine() {
         $username = $this->dx_auth->get_username();
         $motd_prefs = $this->motd_user_prefs_model->get_prefs($username);
-        $motd_messages = $this->gvv_model->active_messages_for_user($username, $motd_prefs['sort_by'], FALSE);
+        // Masquage persistant (session/rechargement) : comme sur le dashboard, un
+        // message masqué reste masqué tant que l'utilisateur ne le démasque pas
+        // explicitement via le bouton "Afficher les messages masqués".
+        $motd_messages = $this->gvv_model->active_messages_for_user($username, $motd_prefs['sort_by'], TRUE);
         foreach ($motd_messages as &$motd_message) {
             $motd_message['replies'] = $this->motd_replies_model->replies_for_message($motd_message['id']);
         }
         unset($motd_message);
 
+        $all_messages = $this->gvv_model->active_messages_for_user($username, $motd_prefs['sort_by'], FALSE);
+        $hidden_count = 0;
+        foreach ($all_messages as $motd_message) {
+            if (!empty($motd_message['hidden'])) {
+                $hidden_count++;
+            }
+        }
+
         $data = array(
             'motd_messages' => $motd_messages,
+            'motd_hidden_count' => $hidden_count,
             'is_admin' => $this->can_manage(),
         );
         load_last_view('motd/bs_my_messages', $data, $this->unit_test);
@@ -396,6 +408,19 @@ class Motd extends Gvv_Controller {
             return;
         }
         $count = $this->motd_user_state_model->hide_all_messages($this->dx_auth->get_username());
+        header('Content-Type: application/json');
+        echo json_encode(array('success' => TRUE, 'count' => $count));
+    }
+
+    /**
+     * AJAX: the current user unhides every message they had previously hidden.
+     */
+    public function unhide_all() {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+            return;
+        }
+        $count = $this->motd_user_state_model->unhide_all_messages($this->dx_auth->get_username());
         header('Content-Type: application/json');
         echo json_encode(array('success' => TRUE, 'count' => $count));
     }
@@ -472,7 +497,7 @@ class Motd extends Gvv_Controller {
             'reply' => array(
                 'id' => (int) $reply['id'],
                 'author_login' => $reply['author_login'],
-                'created_at' => date_db2ht($reply['created_at']),
+                'created_at' => date('d/m/Y H:i', strtotime($reply['created_at'])),
                 'content_html' => markdown($reply['content']),
                 'parent_reply_id' => $reply['parent_reply_id'] !== NULL ? (int) $reply['parent_reply_id'] : NULL,
             ),

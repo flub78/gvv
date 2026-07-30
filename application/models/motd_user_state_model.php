@@ -46,6 +46,24 @@ class Motd_user_state_model extends Common_Model {
         return count($active);
     }
 
+    /**
+     * Unhide every message the user had hidden (acknowledged state untouched).
+     *
+     * @return int Number of messages unhidden.
+     */
+    public function unhide_all_messages($user_login) {
+        $this->db->where('user_login', $user_login);
+        $this->db->where('hidden', 1);
+        $hidden_rows = $this->db->get($this->table)->result_array();
+        $count = count($hidden_rows);
+        if ($count > 0) {
+            $this->db->where('user_login', $user_login);
+            $this->db->where('hidden', 1);
+            $this->db->update($this->table, array('hidden' => 0, 'updated_by' => $user_login));
+        }
+        return $count;
+    }
+
     public function acknowledge_message($message_id, $user_login) {
         return $this->upsert_state($message_id, $user_login, array(
             'acknowledged' => 1,

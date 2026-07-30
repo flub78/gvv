@@ -130,11 +130,26 @@ function motd_init_dashboard_section(toggleUrl, sortUrl) {
  * Câble les actions utilisateur sur chaque message : masquer, masquer tous,
  * pris connaissance, répondre (et répondre à une réponse, admin seulement).
  *
- * @param opts { hideUrl, hideAllUrl, ackUrl, replyUrl, confirmHideAll, errorFallback, ackBadgeLabel, repliesTitle }
+ * @param opts { hideUrl, hideAllUrl, unhideAllUrl, ackUrl, replyUrl, confirmHideAll, errorFallback, ackBadgeLabel, repliesTitle }
  */
 function motd_init_dashboard_actions(opts) {
 	function showError($container, message) {
 		$container.find('.motd-action-error').first().text(message || opts.errorFallback);
+	}
+
+	// Le badge "Tous mes messages" affiche le nombre de messages non lus ;
+	// il doit rester exact après un masquage/acquittement sans recharger la page.
+	function decrementMineBadge() {
+		var $badge = $('#motdMineUnreadBadge');
+		if (!$badge.length) {
+			return;
+		}
+		var next = (parseInt($badge.text(), 10) || 0) - 1;
+		if (next <= 0) {
+			$badge.remove();
+		} else {
+			$badge.text(next);
+		}
 	}
 
 	$('#motdHideAllBtn').on('click', function() {
@@ -142,6 +157,14 @@ function motd_init_dashboard_actions(opts) {
 			return;
 		}
 		$.post(opts.hideAllUrl, {}, function() {
+			location.reload();
+		}).fail(function() {
+			alert(opts.errorFallback);
+		});
+	});
+
+	$('#motdShowHiddenBtn').on('click', function() {
+		$.post(opts.unhideAllUrl, {}, function() {
 			location.reload();
 		}).fail(function() {
 			alert(opts.errorFallback);
@@ -160,6 +183,7 @@ function motd_init_dashboard_actions(opts) {
 					showError($actions, opts.errorFallback);
 					return;
 				}
+				var wasUnread = $item.data('unread') == 1;
 				var $accordion = $item.closest('.accordion');
 				$item.fadeOut(200, function() {
 					$(this).remove();
@@ -169,6 +193,9 @@ function motd_init_dashboard_actions(opts) {
 						$accordion.closest('.card').fadeOut(200);
 					}
 				});
+				if (wasUnread) {
+					decrementMineBadge();
+				}
 			})
 			.fail(function() {
 				showError($actions, opts.errorFallback);
@@ -189,6 +216,8 @@ function motd_init_dashboard_actions(opts) {
 				var $badge = $('<span class="badge bg-success"><i class="fas fa-check" aria-hidden="true"></i> </span>');
 				$badge.append(document.createTextNode(opts.ackBadgeLabel));
 				$btn.replaceWith($badge);
+				$btn.closest('.accordion-item').data('unread', 0);
+				decrementMineBadge();
 			})
 			.fail(function() {
 				showError($actions, opts.errorFallback);

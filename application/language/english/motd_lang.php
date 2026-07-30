@@ -74,6 +74,8 @@ $lang['motd_error_action_failed'] = 'An error occurred, please try again.';
 $lang['motd_my_messages_title'] = 'All my messages';
 $lang['motd_my_messages_link'] = 'All my messages';
 $lang['motd_my_messages_empty'] = 'No message is currently addressed to you.';
+$lang['motd_my_messages_all_hidden'] = 'You have no unhidden message. Use the button above to show hidden messages.';
+$lang['motd_action_show_hidden'] = 'Show hidden messages';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/english/motd_lang.php */

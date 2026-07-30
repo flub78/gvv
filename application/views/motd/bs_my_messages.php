@@ -18,9 +18,11 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Page dediee "Tous mes messages" (PRD EF4) : liste tous les messages
- * actuellement actifs et applicables a l'utilisateur (cible directe, liste
- * de diffusion, ou tous), y compris ceux masques sur le dashboard.
+ * Page dediee "Tous mes messages" (PRD EF4) : liste les messages actifs
+ * applicables a l'utilisateur (cible directe, liste de diffusion, ou tous).
+ * Comme sur le dashboard, un message masque reste masque (etat persistant
+ * en base) tant que l'utilisateur ne le demasque pas explicitement via le
+ * bouton "Afficher les messages masques".
  *
  * @package vues
  */
@@ -35,20 +37,33 @@ $this->lang->load('motd');
 <div id="body" class="body container-fluid">
     <?= heading("motd_my_messages_title", 3) ?>
 
+    <?php if (!empty($motd_hidden_count)): ?>
+    <div class="mb-3">
+        <button type="button" id="motdShowHiddenBtn" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-eye" aria-hidden="true"></i>
+            <?= $this->lang->line('motd_action_show_hidden') ?>
+            <span class="badge bg-secondary"><?= $motd_hidden_count ?></span>
+        </button>
+    </div>
+    <?php endif; ?>
+
     <?php if (empty($motd_messages)): ?>
-        <p class="text-muted"><?= $this->lang->line('motd_my_messages_empty') ?></p>
+        <p class="text-muted">
+            <?= $this->lang->line(!empty($motd_hidden_count) ? 'motd_my_messages_all_hidden' : 'motd_my_messages_empty') ?>
+        </p>
     <?php else: ?>
         <?php $this->load->view('motd/_message_accordion', array('motd_messages' => $motd_messages, 'is_admin' => $is_admin)); ?>
     <?php endif; ?>
 </div>
 
-<?php if (!empty($motd_messages)): ?>
+<?php if (!empty($motd_messages) || !empty($motd_hidden_count)): ?>
 <?= html_script(array('type' => "text/javascript", 'src' => js_url('motd'))) ?>
 <script>
 $(function() {
     motd_init_dashboard_actions({
         hideUrl: '<?= controller_url('motd') ?>/hide_message',
         hideAllUrl: '<?= controller_url('motd') ?>/hide_all',
+        unhideAllUrl: '<?= controller_url('motd') ?>/unhide_all',
         ackUrl: '<?= controller_url('motd') ?>/acknowledge_message',
         replyUrl: '<?= controller_url('motd') ?>/reply',
         confirmHideAll: <?= json_encode($this->lang->line('motd_confirm_hide_all')) ?>,

@@ -7,9 +7,7 @@
 * [] suppression du champ DC et instructeur au passage en monoplace
 
 ## Reste à faire
-  
-* [] Support des messages du jour, qui pourront inclure les alarmes.
-  
+    
 * [] Refactoring split produits et tarifs.
 
 * [] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   

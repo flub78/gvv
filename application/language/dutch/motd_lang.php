@@ -74,6 +74,8 @@ $lang['motd_error_action_failed'] = 'Er is een fout opgetreden, probeer het opni
 $lang['motd_my_messages_title'] = 'Al mijn berichten';
 $lang['motd_my_messages_link'] = 'Al mijn berichten';
 $lang['motd_my_messages_empty'] = 'Er is momenteel geen bericht aan u gericht.';
+$lang['motd_my_messages_all_hidden'] = 'U heeft geen zichtbaar bericht meer. Gebruik de knop hierboven om verborgen berichten weer te geven.';
+$lang['motd_action_show_hidden'] = 'Verborgen berichten weergeven';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/dutch/motd_lang.php */

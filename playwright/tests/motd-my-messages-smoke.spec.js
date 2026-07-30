@@ -5,8 +5,10 @@
  * - The dashboard always exposes a link to the page, even when the
  *   collapsible dashboard section itself is absent (e.g. every active
  *   message has been hidden).
- * - The page lists every currently active message applicable to the user,
- *   including ones already hidden from the dashboard section, with its replies.
+ * - The page lists every currently active message applicable to the user.
+ *   A hidden message stays hidden (DB-backed, persists across reload/session)
+ *   until the user clicks "Afficher les messages masqués", which reveals
+ *   every hidden message again.
  * - Expired / not-yet-started messages are never listed (policy from step 1).
  *
  * Usage:
@@ -117,16 +119,89 @@ test.describe.serial('MOTD My Messages Smoke Tests', () => {
     await expect(page.locator('#motdMineLink')).toBeVisible();
   });
 
-  test('page lists the hidden message with its reply, and never the expired one', async ({ page }) => {
+  test('hidden message stays hidden by default, and "Afficher les messages masqués" reveals it', async ({ page }) => {
     await login(page, PILOT_USER);
     await page.goto(MY_MESSAGES_URL);
     await page.waitForLoadState('networkidle');
     await closeMod(page);
 
+    // Hidden by default: the state is DB-backed, so it persists across
+    // reload/session rather than being a one-off client-side dismissal.
+    await expect(page.locator(`text=${titleHidden}`)).toHaveCount(0);
+    await expect(page.locator(`text=${titleExpired}`)).toHaveCount(0);
+
+    const showHiddenBtn = page.locator('#motdShowHiddenBtn');
+    await expect(showHiddenBtn).toBeVisible();
+    page.once('dialog', dialog => dialog.accept());
+    const [unhideResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/unhide_all')),
+      showHiddenBtn.click(),
+    ]);
+    expect(unhideResponse.ok()).toBeTruthy();
+    await page.waitForLoadState('networkidle');
+
     await expect(page.locator(`text=${titleHidden}`)).toBeVisible();
     await expandIfCollapsed(page, titleHidden);
     await expect(page.locator('text=Reponse conservee malgre le masquage.')).toBeVisible();
     await expect(page.locator(`text=${titleExpired}`)).toHaveCount(0);
+
+    // Restore the hidden fixture state so the remaining tests in this file
+    // see the same starting point.
+    await conn.query(
+      'UPDATE motd_user_message_state SET hidden = 1 WHERE message_id = ? AND user_login = ?',
+      [hiddenMsgId, PILOT_USER.username]
+    );
+  });
+
+  test('empty state explains hidden messages exist once everything is hidden', async ({ page }) => {
+    await login(page, PILOT_USER);
+    await page.goto(MY_MESSAGES_URL);
+    await page.waitForLoadState('networkidle');
+    await closeMod(page);
+
+    // Hide every message currently visible (this suite's own fixture plus any
+    // 'all'-targeted message a concurrent suite may have created). Done via
+    // the same AJAX endpoint the "Masquer" button calls, rather than
+    // clicking each button in turn, to avoid racing their fadeOut animation.
+    const hideButtons = page.locator('.motd-hide-btn');
+    const visibleCount = await hideButtons.count();
+    const messageIds = [];
+    for (let i = 0; i < visibleCount; i++) {
+      messageIds.push(await hideButtons.nth(i).getAttribute('data-message-id'));
+    }
+    for (const messageId of messageIds) {
+      await page.request.post(`/index.php/motd/hide_message/${messageId}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+    }
+
+    // The empty-state text is server-rendered; reload to see it as a
+    // returning user would.
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await closeMod(page);
+
+    await expect(page.locator('#motdShowHiddenBtn')).toBeVisible();
+    await expect(page.locator("text=Vous n'avez aucun message non masqué")).toBeVisible();
+    await expect(page.locator('text=Aucun message ne vous est actuellement adressé')).toHaveCount(0);
+
+    // Restore visibility for the remaining tests / concurrent suites. Wait
+    // for the unhide_all response itself (not just networkidle, which can
+    // resolve before the async $.post fires, racing ahead of the DB write)
+    // before touching the DB below.
+    page.once('dialog', dialog => dialog.accept());
+    const [unhideResponse] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/unhide_all')),
+      page.locator('#motdShowHiddenBtn').click(),
+    ]);
+    expect(unhideResponse.ok()).toBeTruthy();
+    await page.waitForLoadState('networkidle');
+
+    // Re-apply this file's own hidden fixture, as in the previous test.
+    await conn.query(
+      'UPDATE motd_user_message_state SET hidden = 1 WHERE message_id = ? AND user_login = ?',
+      [hiddenMsgId, PILOT_USER.username]
+    );
   });
 
   test('navigating from the dashboard link reaches the page', async ({ page }) => {
@@ -138,6 +213,34 @@ test.describe.serial('MOTD My Messages Smoke Tests', () => {
     await page.click('#motdMineLink');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/motd\/mine/);
-    await expect(page.locator(`text=${titleHidden}`)).toBeVisible();
+    // The hidden fixture message stays hidden here too; its presence is
+    // reflected by the "show hidden" button rather than the message itself.
+    await expect(page.locator('#motdShowHiddenBtn')).toBeVisible();
+  });
+
+  test('back button from the home dashboard returns home, not a stale section', async ({ page }) => {
+    // Regression: visiting a section sub-dashboard leaves 'nav_from_url' in
+    // session; going back to the plain home dashboard afterwards must reset
+    // it, otherwise motd/mine's "Retour" button silently points to that old
+    // section instead of the page the user actually came from (home).
+    await login(page, PILOT_USER);
+    await page.goto('/index.php/welcome/section/user');
+    await page.waitForLoadState('networkidle');
+    await closeMod(page);
+
+    await page.goto(DASHBOARD_URL);
+    await page.waitForLoadState('networkidle');
+    await closeMod(page);
+
+    await page.click('#motdMineLink');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/motd\/mine/);
+
+    const backLink = page.locator('#navBackLink');
+    await expect(backLink).toHaveAttribute('href', /\/welcome$/);
+
+    await backLink.click();
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/welcome$/);
   });
 });

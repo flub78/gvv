@@ -28,6 +28,19 @@
  * @package vues
  */
 ?>
+<style>
+/* Espace visuel entre chaque message pour ne pas les faire percevoir comme
+   un bloc continu (les items d'un accordion Bootstrap sont accolés par défaut). */
+#motdAccordion .accordion-item {
+    border: 1px solid var(--bs-accordion-border-color, rgba(0, 0, 0, .175));
+    border-radius: var(--bs-accordion-border-radius, 0.375rem);
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+#motdAccordion .accordion-item:last-child {
+    margin-bottom: 0;
+}
+</style>
 <div class="accordion" id="motdAccordion">
     <?php
     $motd_level_badges = array('urgent' => 'danger', 'important' => 'warning', 'info' => 'info', 'alerte' => 'secondary');
@@ -40,7 +53,7 @@
         $motd_expand_item = ($motd_index === 0) || $motd_priority_unread;
         $motd_badge_class = isset($motd_level_badges[$motd_message['level']]) ? $motd_level_badges[$motd_message['level']] : 'secondary';
         ?>
-        <div class="accordion-item">
+        <div class="accordion-item" data-unread="<?= empty($motd_message['acknowledged']) ? '1' : '0' ?>">
             <h2 class="accordion-header" id="heading<?= $motd_item_id ?>">
                 <button class="accordion-button <?= $motd_expand_item ? '' : 'collapsed' ?>" type="button"
                         data-bs-toggle="collapse" data-bs-target="#collapse<?= $motd_item_id ?>">
@@ -50,7 +63,7 @@
                         <?php endif; ?>
                         <span><?= !empty($motd_message['title']) ? htmlspecialchars($motd_message['title']) : $this->lang->line('motd_no_title') ?></span>
                         <small class="text-muted ms-auto me-2">
-                            <?= date_db2ht($motd_message['start_date']) ?> - <?= date_db2ht($motd_message['end_date']) ?>
+                            <?= date('d/m/Y H:i', strtotime($motd_message['start_date'])) ?> - <?= date('d/m/Y H:i', strtotime($motd_message['end_date'])) ?>
                         </small>
                     </span>
                 </button>
@@ -86,7 +99,7 @@
                                 <div class="border rounded p-2 mb-2 bg-light" id="motdReply<?= $motd_reply['id'] ?>">
                                     <div class="d-flex justify-content-between">
                                         <strong><?= htmlspecialchars($motd_reply['author_login']) ?></strong>
-                                        <small class="text-muted"><?= date_db2ht($motd_reply['created_at']) ?></small>
+                                        <small class="text-muted"><?= date('d/m/Y H:i', strtotime($motd_reply['created_at'])) ?></small>
                                     </div>
                                     <div class="markdown-content"><?= markdown($motd_reply['content']) ?></div>
                                     <?php if ($is_admin): ?>

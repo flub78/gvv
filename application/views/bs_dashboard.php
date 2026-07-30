@@ -134,8 +134,11 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
     <?php endif; ?>
 
     <div class="mb-2">
-        <a href="<?= controller_url('motd/mine') ?>" class="small text-decoration-none" id="motdMineLink">
+        <a href="<?= controller_url('motd/mine') ?>" class="btn btn-outline-primary btn-sm" id="motdMineLink">
             <i class="fas fa-inbox" aria-hidden="true"></i> <?= $this->lang->line('motd_my_messages_link') ?>
+            <?php if (!empty($motd_unread_count)): ?>
+            <span class="badge rounded-pill bg-danger" id="motdMineUnreadBadge"><?= $motd_unread_count ?></span>
+            <?php endif; ?>
         </a>
     </div>
 

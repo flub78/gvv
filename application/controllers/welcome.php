@@ -68,6 +68,12 @@ class Welcome extends Gvv_Controller {
     public function index() {
         $data = $this->_prepare_dashboard_data();
         $this->push_return_url("welcome dashboard");
+        // La page d'accueil n'appartient à aucune section : sans ceci, le bouton
+        // "retour" des pages filles (ex. motd/mine) réutiliserait la section
+        // visitée précédemment, restée en session, au lieu de revenir ici.
+        $this->lang->load('tableaux_de_bord');
+        $this->session->set_userdata('nav_from_url', 'welcome');
+        $this->session->set_userdata('nav_from_label', $this->lang->line('db_btn_retour'));
         load_last_view('dashboard', $data);
     }
 
@@ -285,14 +291,19 @@ class Welcome extends Gvv_Controller {
         $data['motd_sort_by'] = $motd_prefs['sort_by'];
         $motd_messages = $this->motd_model->active_messages_for_user($data['username'], $motd_prefs['sort_by'], TRUE);
         $motd_has_priority_unread = FALSE;
+        $motd_unread_count = 0;
         foreach ($motd_messages as &$motd_message) {
             $motd_message['replies'] = $this->motd_replies_model->replies_for_message($motd_message['id']);
-            if (in_array($motd_message['level'], array('urgent', 'important')) && empty($motd_message['acknowledged'])) {
-                $motd_has_priority_unread = TRUE;
+            if (empty($motd_message['acknowledged'])) {
+                $motd_unread_count++;
+                if (in_array($motd_message['level'], array('urgent', 'important'))) {
+                    $motd_has_priority_unread = TRUE;
+                }
             }
         }
         unset($motd_message);
         $data['motd_messages'] = $motd_messages;
+        $data['motd_unread_count'] = $motd_unread_count;
         // Deplie si un message urgent/important n'a pas ete pris en compte,
         // sinon respecte la preference utilisateur (repliee par defaut).
         $data['motd_section_expanded'] = !empty($motd_messages)
