@@ -3,8 +3,6 @@
 ## Bugs
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
-* [] pagination et filtrage quand le filtre rend moins de page que le numéro de page actif.
-* [] suppression du champ DC et instructeur au passage en monoplace
 
 ## Reste à faire
     
@@ -61,8 +59,6 @@
 ## Idées et suggestions
 
 * Accès à un carnet de vol ULM pour les membres
-
 * Seconde adresse email
-
 * [] Gérer le contexte des filtres par page.
 

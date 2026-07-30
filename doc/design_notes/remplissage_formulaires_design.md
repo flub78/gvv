@@ -880,6 +880,136 @@ Au webhook, en plus de l'écriture comptable habituelle, `form_submissions.payme
 
 Un paiement de formulaire transforme un lien public réutilisable (risque déjà identifié) en générateur de checkouts HelloAsso à la demande. La limitation de débit sur soumissions publiques (déjà listée en « Sécurité » ci-dessous, toujours non implémentée) devient un prérequis plus pressant dès qu'un widget de paiement est en jeu, même si l'abus direct est limité (un rejeu du lien crée des opportunités de paiement légitimes, pas de l'argent gratuit).
 
+### 17. Sous-formulaires (formulaires imbriqués)
+
+#### Principe
+
+Un widget `data-gvv-type="subform"` permet d'insérer, dans une page de formulaire, un lien vers le remplissage d'un autre formulaire GVV. Le sous-formulaire s'ouvre dans un **nouvel onglet** — pas de fusion DOM ni d'iframe, chaque formulaire garde son propre CSS/JS, sans risque de collision entre les deux. Une fois soumis, un résumé lecture seule de la réponse est injecté dans le widget du formulaire maître.
+
+Cette capacité est orthogonale à la taxonomie des catégories 1/2/3 (voir « Taxonomie des formulaires ») : elle décrit comment deux formulaires se composent entre eux, indépendamment du fait que l'un ou l'autre soit par ailleurs rattaché à une entité GVV.
+
+#### Déclaration dans le HTML
+
+Même convention que les widgets signature (section 9) et paiement (section 16) :
+
+```html
+<div data-gvv-type="subform"
+     data-gvv-name="briefing_passager"
+     data-gvv-form-slug="briefing-passager-ulm"
+     data-gvv-required="true">
+  Briefing passager
+</div>
+```
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-name` | Nom technique du widget (identifie la valeur associée dans la soumission maître) |
+| `data-gvv-form-slug` | `public_slug` du formulaire à ouvrir en sous-formulaire |
+| `data-gvv-required` | `true` = le formulaire maître ne peut être soumis sans une réponse liée au sous-formulaire ; `false`/absent = facultatif (même convention que le widget paiement) |
+
+#### États du widget
+
+```
+Non rempli                    En attente de vérification      Rempli
+┌───────────────────────┐    ┌───────────────────────┐        ┌───────────────────────┐
+│ [Remplir le            │    │ [Remplir le            │        │ résumé lecture seule    │
+│  sous-formulaire] ↗    │ →  │  sous-formulaire] ↗    │   →    │ [Voir la réponse]      │
+│                        │    │ [J'ai terminé, vérifier]│        │ [Remplir à nouveau] ↗  │
+└───────────────────────┘    └───────────────────────┘        └───────────────────────┘
+```
+
+Le passage vers « en attente de vérification » se fait dès le premier clic sur le lien (ouverture du sous-formulaire dans le nouvel onglet). Le passage vers « rempli » se fait par une action explicite de l'utilisateur (bouton « J'ai terminé, vérifier ») qui déclenche une requête ciblée limitée au widget — jamais un rechargement complet de la page maître ni un mécanisme silencieux type `postMessage`/polling automatique : le formulaire maître n'est pas persisté côté serveur page par page pendant sa saisie (voir « Mécanisme de corrélation » ci-dessous), un rechargement complet ferait perdre la saisie en cours de l'utilisateur sur sa page courante, et une vérification automatique qui échoue silencieusement irait à l'encontre de la règle GVV « le résultat d'une action doit toujours être visible ».
+
+« Remplir à nouveau » (depuis l'état « rempli ») rouvre le sous-formulaire vierge : il n'y a pas d'édition en place d'une réponse déjà soumise, seulement une resoumission complète.
+
+#### Mécanisme de corrélation avant soumission du maître
+
+`forms_public` ne persiste aujourd'hui aucune valeur en base tant que le formulaire maître n'est pas soumis (navigation multi-pages portée par des champs cachés reconduits de page en page ; une seule ligne `form_submissions` créée à la validation finale). Le sous-formulaire ne peut donc pas être rattaché au maître via le couple générique `subject_type`/`subject_id` (section 13) tant que le maître n'existe pas encore en base — ce couple suppose un `subject_id` déjà connu.
+
+La corrélation, avant soumission du maître, passe par un jeton porté par le même circuit que les paramètres réservés déjà mémorisés en session par slug (`subject_type`, `pilot_login`, `lock[]`, etc.) :
+
+1. À la génération du widget, un `link_token` est créé (ou réutilisé s'il existe déjà en session pour ce slug) et transmis en paramètre réservé à l'URL du sous-formulaire.
+2. `forms_public` stocke ce jeton sur la ligne `form_submissions` du sous-formulaire (nouvelle colonne `link_token`, infrastructurelle — comme `submission_uuid`, sans signification métier).
+3. Le bouton « Vérifier » du widget interroge un point d'accès de consultation par jeton, qui renvoie un résumé de la réponse si elle existe.
+4. À la soumission finale du formulaire maître, `create_submission()` retrouve le(s) sous-formulaire(s) lié(s) par jeton et leur écrit `subject_type='form_submission'` / `subject_id=<id du maître>` : le rattachement générique déjà décrit en section 13 redevient alors la seule référence durable — le jeton n'est qu'un échafaudage pour la phase de saisie anonyme.
+
+**Point d'attention non résolu** : le couple `subject_type`/`subject_id` d'une soumission ne peut porter qu'une seule référence à la fois. Si le formulaire utilisé comme sous-formulaire est par ailleurs un formulaire de catégorie 3 rattaché en direct à une entité GVV (ex. un `briefing_passager_ulm` ouvert à la fois seul, avec son propre `subject_type='vols_decouverte'`, et comme sous-formulaire d'un autre formulaire), les deux usages du couple entrent en conflit. Non tranché — voir Questions ouvertes du PRD.
+
+#### Sous-formulaire non rattaché (formulaire maître jamais soumis)
+
+Si le formulaire maître n'est jamais validé, la réponse du sous-formulaire est **conservée**, pas supprimée : c'est une soumission autonome et valide au même titre que n'importe quelle autre réponse de ce formulaire ; la supprimer détruirait une donnée réellement saisie sans bénéfice clair. Elle reste simplement sans `subject_type`/`subject_id` (jamais rattachée, faute de maître à référencer).
+
+La liste admin des réponses affiche un badge « non rattaché » pour ces soumissions, afin que l'admin les distingue des réponses effectivement exploitées par un workflow, sans purge automatique.
+
+#### Resoumission et fichiers déjà téléchargés
+
+Une resoumission crée une nouvelle ligne `form_submissions` avec ses propres `form_submission_files`, exactement comme deux soumissions indépendantes du même formulaire (voir « Différences » dans la comparaison `forms` vs `archived_documents` : « Aucune relation entre soumissions »). Les fichiers de la soumission précédente ne sont ni supprimés ni fusionnés avec la nouvelle — ils restent consultables en admin, rattachés à leur soumission d'origine. Le widget du maître n'affiche que la soumission liée la plus récente (même règle que `get_current_for_subject()`).
+
+#### Hors périmètre V1
+
+- Sous-formulaires récursifs (un sous-formulaire contenant lui-même un widget sous-formulaire) — un seul niveau d'imbrication en V1.
+- Sous-formulaires répétables (N instances, ex. liste de passagers) — le widget V1 gère une seule réponse liée par formulaire maître.
+- Édition en place d'une réponse de sous-formulaire déjà soumise — resoumission complète uniquement.
+
+### 18. Export d'une réponse vers un formulaire de création GVV
+
+#### Principe
+
+Un formulaire peut déclarer une cible d'export : une URL de formulaire de création GVV standard (ex. `membre/create`) et un libellé de bouton. Quand les deux sont renseignés, un bouton apparaît sur chaque ligne de la liste des réponses (`bs_submissions.php`) et ouvre l'URL cible avec les valeurs de la réponse en paramètres de requête, un paramètre par champ.
+
+Contrairement aux mécanismes de pré-remplissage GVV (section 7, `data-gvv-source`), le sens du flux est inversé ici : une réponse `forms` alimente un formulaire de création GVV situé en dehors du module, pas l'inverse.
+
+#### Colonnes `forms`
+
+```sql
+ALTER TABLE forms ADD COLUMN target_url VARCHAR(255) NULL
+    COMMENT 'URL du formulaire de création GVV à préremplir depuis une réponse, NULL = pas de bouton export';
+ALTER TABLE forms ADD COLUMN target_label VARCHAR(100) NULL
+    COMMENT 'Libellé du bouton export, affiché sur la liste des réponses';
+```
+
+Le bouton n'apparaît que si les deux colonnes sont renseignées — pas de valeur par défaut pour `target_label` qui rendrait un bouton sans texte.
+
+#### Construction de l'URL
+
+Pour une réponse donnée, l'URL est construite en concaténant `target_url` et une query string dérivée de `form_submission_values` :
+
+```
+{target_url}?{champ1}={valeur1}&{champ2}={valeur2}...
+```
+
+Règles de construction :
+- un paramètre par ligne de `form_submission_values` de la soumission, nommé `form_fields.name` ;
+- valeurs urlencodées ;
+- champs de type `file` et `signature` exclus (pas de `value_text` exploitable — ces champs vivent dans `form_submission_files`, jamais dans `form_submission_values`) ;
+- champs à choix multiples (checkbox multi-valeurs) exclus en V1 — pas d'encodage `champ[]=` pour ce mécanisme.
+
+Aucune correspondance configurable entre noms de champs : le nom du champ source (`form_fields.name`) doit être identique au nom de champ attendu par le formulaire cible. C'est une contrainte de configuration assumée à la charge de l'admin qui déclare `target_url`, pas une limite technique à lever plus tard par un mapping.
+
+#### Réception côté formulaire de création GVV — extension générique de `Gvv_Controller::create()`
+
+`Gvv_Controller::create()` (`application/libraries/Gvv_Controller.php:233`) initialise aujourd'hui `$this->data` uniquement depuis `$this->gvvmetadata->defaults_list($table)` — aucun paramètre de requête n'est lu. Pour que l'URL construite ci-dessus produise réellement un formulaire pré-rempli, `create()` doit fusionner par-dessus ces valeurs par défaut les paramètres `$_GET` dont le nom correspond à une colonne connue de la table cible :
+
+```php
+function create() {
+    ...
+    $this->data = $this->gvvmetadata->defaults_list($table);
+    // Surcharge par les paramètres de requête correspondant à une colonne connue
+    foreach ($this->input->get() as $key => $value) {
+        if (array_key_exists($key, $this->data)) {
+            $this->data[$key] = $value;
+        }
+    }
+    ...
+}
+```
+
+Cette évolution est volontairement générique et non spécifique au module `forms` : elle bénéficie à tout `create()` metadata-driven appelé avec des paramètres de requête, cohérent avec le principe déjà appliqué au mécanisme B (section 7) où le pré-remplissage est piloté par la correspondance de noms plutôt que par une déclaration explicite côté récepteur.
+
+#### Sécurité
+
+Le bouton est exposé uniquement dans la liste admin des réponses (`forms_admin`), déjà protégée par l'authentification GVV — pas d'exposition publique de `target_url` ni des valeurs de la réponse. La fusion `$_GET` dans `Gvv_Controller::create()` ne fait que pré-remplir un formulaire déjà soumis à la validation standard (`formValidation()`, unicité, règles metadata) : aucune donnée n'est enregistrée tant que l'admin ne valide pas explicitement le formulaire de création.
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**
@@ -959,6 +1089,7 @@ Sans objet pour la migration : le nouveau mécanisme ne produit plus d'`archived
 - Protection CSRF
 - Limitation de débit sur soumissions publiques
 - Journalisation dans les fichiers de logs
+- `link_token` de sous-formulaire (section 17) : même limite déjà acceptée que les liens publics non protégés (section 13) — pas de protection contre le devinage/rejeu à ce stade
 
 ## Intégration workflows GVV
 

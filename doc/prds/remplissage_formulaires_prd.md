@@ -36,6 +36,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Intégrer un mécanisme de champs dynamiques pré-remplis depuis GVV.
 - Permettre depuis une réponse la création d'un document archivé avec le PDF imprimable pré-rempli.
 - Permettre à un formulaire de déclencher un paiement en ligne (HelloAsso) rattaché à un compte comptable GVV.
+- Permettre à un formulaire d'inclure un lien vers un autre formulaire GVV (sous-formulaire), avec injection de la réponse dans le formulaire maître.
+- Permettre, depuis une réponse, d'ouvrir un formulaire de création GVV standard (ex. création de membre) pré-rempli avec ses valeurs.
 
 ## Non-objectifs
 
@@ -63,6 +65,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Création d'un document archivé depuis une réponse via le formulaire documentaire existant, avec PDF imprimable pré-rempli.
 - Soumission par téléchargement d'un scan/photo du formulaire imprimé, en alternative au remplissage en ligne, activable par formulaire (EF12).
 - Paiement en ligne HelloAsso intégré à un formulaire, obligatoire ou facultatif selon configuration (EF13).
+- Sous-formulaires : widget de lien vers un autre formulaire, ouvert dans un nouvel onglet, avec injection de la réponse dans le formulaire maître (EF14).
+- Bouton d'export d'une réponse, configurable par formulaire (URL cible + libellé), ouvrant un formulaire de création GVV pré-rempli avec les valeurs de la réponse (EF15).
 
 ### Exclu
 
@@ -71,6 +75,11 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
 - Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
 - Plusieurs paiements sur un même formulaire, ou choix entre plusieurs moyens de paiement, en V1 (EF13) — un seul widget de paiement HelloAsso par formulaire.
+- Sous-formulaires récursifs (un sous-formulaire contenant lui-même un widget sous-formulaire) en V1 (EF14) — un seul niveau d'imbrication.
+- Sous-formulaires répétables (N réponses liées, ex. liste de passagers) en V1 (EF14) — une seule réponse liée par widget.
+- Édition en place d'une réponse de sous-formulaire déjà soumise en V1 (EF14) — resoumission complète uniquement.
+- Mapping configurable entre les noms de champs du formulaire source et ceux du formulaire cible en V1 (EF15) — les noms doivent correspondre exactement.
+- Export des champs fichier, signature et à choix multiples (checkbox) vers le formulaire cible en V1 (EF15).
 
 ## Taxonomie des formulaires
 
@@ -329,6 +338,35 @@ Un formulaire peut proposer un paiement HelloAsso à l'utilisateur, en compléme
 6. Le statut du paiement apparaît également dans le PDF imprimable généré à partir de la réponse.
 7. La confirmation du paiement provient de la plateforme de paiement et peut être différée par rapport à l'instant de la soumission ; une réponse à paiement obligatoire peut donc transiter par un état "en attente" avant d'être acceptée ou rejetée.
 
+### EF14 : Sous-formulaires (formulaires imbriqués)
+
+Un formulaire peut inclure un widget de lien vers un autre formulaire GVV ("sous-formulaire"), ouvert dans un nouvel onglet, dont la réponse est ensuite rattachée et affichée dans le formulaire maître.
+
+1. Le widget est déclaré dans le HTML d'une page (`data-gvv-type="subform"`), au même titre que les widgets signature et paiement.
+2. Le widget peut être configuré obligatoire ou facultatif : s'il est obligatoire, le formulaire maître ne peut être soumis sans une réponse liée au sous-formulaire.
+3. Le widget expose trois états : non rempli (lien "Remplir le sous-formulaire"), en attente de vérification (après ouverture du lien, action explicite "J'ai terminé, vérifier"), rempli (résumé lecture seule de la réponse + lien "Voir la réponse" + "Remplir à nouveau").
+4. Aucun mécanisme silencieux (rechargement automatique de la page maître, `postMessage`) : la vérification est déclenchée par une action explicite de l'utilisateur, et ne modifie que la zone du widget concerné, sans perturber la saisie en cours sur le reste du formulaire maître.
+5. "Remplir à nouveau" ouvre une nouvelle réponse vierge du sous-formulaire ; il n'y a pas d'édition en place d'une réponse déjà soumise.
+6. Une resoumission du sous-formulaire crée une nouvelle réponse indépendante, avec ses propres fichiers ; les fichiers d'une réponse précédente ne sont ni supprimés ni fusionnés.
+7. Si le formulaire maître n'est jamais soumis, la réponse du sous-formulaire est conservée (non supprimée), affichée dans la liste admin du sous-formulaire avec un indicateur "non rattaché".
+8. Une réponse de sous-formulaire est rattachée au formulaire maître via le mécanisme générique `subject_type`/`subject_id` (EF10-A) dès que le formulaire maître est effectivement soumis.
+
+Voir : [Design sous-formulaires](../design_notes/remplissage_formulaires_design.md#17-sous-formulaires-formulaires-imbriqués)
+
+### EF15 : Export d'une réponse vers un formulaire de création GVV
+
+Depuis la liste des réponses d'un formulaire, un bouton optionnel permet d'ouvrir un formulaire de création GVV standard (ex. création de membre) pré-rempli avec les valeurs d'une réponse, pour éviter la ressaisie manuelle.
+
+1. Un formulaire peut déclarer deux paramètres optionnels : une URL cible et un libellé de bouton.
+2. Quand les deux paramètres sont renseignés, un bouton portant le libellé apparaît sur chaque ligne de la liste des réponses.
+3. Le bouton ouvre l'URL cible avec les valeurs de la réponse transmises en paramètres de requête, un paramètre par champ.
+4. Les noms des champs du formulaire source doivent correspondre exactement aux noms attendus par le formulaire cible ; aucun mapping n'est configurable.
+5. Les champs de type fichier et signature sont exclus de l'export.
+6. Les champs à choix multiples (checkbox) sont exclus de l'export.
+7. Le mécanisme est générique : n'importe quel formulaire de création GVV standard peut être ciblé, sans développement spécifique par cas d'usage.
+
+Voir : [Design export vers formulaire de création](../design_notes/remplissage_formulaires_design.md#18-export-dune-réponse-vers-un-formulaire-de-création-gvv)
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -360,6 +398,8 @@ Un formulaire peut proposer un paiement HelloAsso à l'utilisateur, en compléme
 - EF13 : délai/critère exact de rejet d'une réponse à paiement obligatoire non confirmé (rejet différé après un délai, ou rejet immédiat sur échec/annulation explicite côté HelloAsso) ?
 - EF13 : une réponse rejetée pour défaut de paiement peut-elle être régularisée a posteriori (nouveau lien de paiement envoyé à l'utilisateur) ou l'utilisateur doit-il resoumettre le formulaire ?
 - EF13 : notification (email) à l'utilisateur et/ou à l'admin selon l'issue du paiement ?
+- EF14 : un formulaire de catégorie 3 (déjà rattaché à une entité GVV via son propre `subject_type`/`subject_id`, ex. `briefing_passager_ulm`) peut-il aussi être utilisé comme sous-formulaire ? Le couple générique ne peut porter qu'une seule référence à la fois — conflit potentiel non tranché entre les deux usages.
+- EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ?
 
 ### Résolues
 

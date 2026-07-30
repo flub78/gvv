@@ -430,6 +430,53 @@ Objectif : permettre à un formulaire de déclencher un paiement HelloAsso (prem
 - [ ] Test Playwright : parcours paiement facultatif (réponse acceptée sans payer) et paiement obligatoire (jusqu'au checkout HelloAsso, confirmation simulée côté webhook).
 - [ ] **Validation non-régression** : formulaires sans widget paiement inchangés ; suite PHPUnit/Playwright complète verte.
 
+### Lot 11 — Sous-formulaires (formulaires imbriqués)
+
+Objectif : permettre à un formulaire d'inclure un widget de lien vers un autre formulaire GVV, ouvert dans un nouvel onglet, avec injection d'un résumé lecture seule de la réponse dans le formulaire maître. Dépend de Lot 6 (réutilisation du couple générique `subject_type`/`subject_id`) et reprend la convention de widget `data-gvv-type` introduite en Lot 5-bis/Lot 10.
+
+Voir : [Design sous-formulaires](../design_notes/remplissage_formulaires_design.md#17-sous-formulaires-formulaires-imbriqués)
+
+Décisions retenues :
+- Sous-formulaire ouvert dans un nouvel onglet, jamais en iframe ni fusionné dans le DOM du maître — isolation CSS/JS complète.
+- Corrélation avant soumission du maître via un jeton (`link_token`, colonne infrastructurelle sur `form_submissions`, sans signification métier), porté par le même circuit de session par slug que `subject_type`/`pilot_login`/`lock[]`.
+- Vérification déclenchée par une action explicite de l'utilisateur (bouton « J'ai terminé, vérifier »), jamais par rechargement automatique ou `postMessage` silencieux.
+- À la soumission finale du maître, bascule du jeton vers le rattachement générique définitif `subject_type='form_submission'`/`subject_id=<id maître>` — le jeton n'est qu'un échafaudage transitoire.
+- Sous-formulaire soumis mais maître jamais validé : réponse conservée, marquée « non rattaché » en admin, jamais supprimée automatiquement.
+- Resoumission = nouvelle soumission indépendante avec ses propres fichiers ; aucune suppression ni fusion avec la précédente.
+- Hors périmètre V1 : sous-formulaires récursifs, sous-formulaires répétables (N réponses), édition en place d'une réponse déjà soumise.
+- Point à trancher avant l'implémentation du backfill (voir Questions ouvertes du PRD, EF14) : conflit possible si le formulaire utilisé comme sous-formulaire est lui-même un formulaire de catégorie 3 avec son propre `subject_type`/`subject_id`.
+
+- [ ] Migration `1XX_forms_subform.php` : ajouter `link_token VARCHAR(64) NULL` (indexé) à `form_submissions`. Mettre à jour `application/config/migration.php`.
+- [ ] Ajouter le type de champ `subform` dans `form_fields_model::$allowed_field_types` (sur le modèle de `signature`/`payment`).
+- [ ] Étendre `extract_html_fields`/`sync_fields_from_html` pour détecter `<div data-gvv-type="subform" data-gvv-name="..." data-gvv-form-slug="..." data-gvv-required="...">` et enregistrer le champ de type `subform`.
+- [ ] `Forms_renderer` : widget avec ses trois états (non rempli / en attente de vérification / rempli), génération de l'URL du sous-formulaire avec `link_token` en paramètre réservé.
+- [ ] `forms_public::index()`/`submit()` : traiter `link_token` comme paramètre réservé supplémentaire (même pattern que `subject_type`/`pilot_login`), mémorisé en session par slug, transmis à `create_submission()` du sous-formulaire.
+- [ ] Nouveau point d'accès public (AJAX) de consultation par jeton : retourne un résumé de la réponse si une soumission existe pour ce `link_token`, sans authentification (même niveau d'exposition que les liens publics existants).
+- [ ] `forms_public::submit()` du formulaire maître : après création de la soumission, rechercher les soumissions liées par `link_token` et leur écrire `subject_type='form_submission'`/`subject_id=<id maître>` (bascule décrite dans le design).
+- [ ] Trancher le point de conflit `subject_type`/`subject_id` (catégorie 3 vs sous-formulaire) avant d'implémenter la bascule ci-dessus — voir Questions ouvertes du PRD (EF14).
+- [ ] Admin (`bs_submissions.php`) : badge « non rattaché » pour les soumissions avec `link_token` renseigné mais `subject_type` toujours NULL.
+- [ ] Tests PHPUnit : migration up/down, détection du widget, résolution par jeton (trouvé/non trouvé), bascule vers `subject_type`/`subject_id` à la soumission du maître, soumission orpheline conservée.
+- [ ] Test Playwright : formulaire maître avec widget sous-formulaire → ouverture du sous-formulaire dans un nouvel onglet → soumission → vérification manuelle depuis le maître → résumé affiché → soumission du maître → rattachement vérifié en admin.
+- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Sous-formulaires ».
+- [ ] **Validation non-régression** : formulaires sans widget sous-formulaire inchangés ; suite PHPUnit/Playwright complète verte.
+
+### Lot 12 — Export d'une réponse vers un formulaire de création GVV
+
+Objectif : permettre, depuis la liste des réponses d'un formulaire, d'ouvrir un formulaire de création GVV standard (ex. création de membre) pré-rempli avec les valeurs d'une réponse. Dépend uniquement du socle (Lot 1) ; indépendant des lots 2 à 11.
+
+Voir : [Design export vers formulaire de création](../design_notes/remplissage_formulaires_design.md#18-export-dune-réponse-vers-un-formulaire-de-création-gvv)
+
+- [ ] Migration `1XX_forms_export_target.php` : ajouter `target_url VARCHAR(255) NULL` et `target_label VARCHAR(100) NULL` à `forms`. Mettre à jour `application/config/migration.php`.
+- [ ] `forms_model.php` : gérer `target_url`/`target_label` en création/modification.
+- [ ] `bs_form.php` : deux champs optionnels (URL cible, libellé du bouton) dans le formulaire admin d'édition d'un formulaire.
+- [ ] `bs_submissions.php` : afficher, par ligne, un bouton portant `target_label` et pointant vers l'URL construite, uniquement si `target_url` et `target_label` sont tous deux renseignés.
+- [ ] Méthode de construction de l'URL (`forms_admin` ou `form_submissions_model`) : concatène `target_url` et une query string dérivée de `form_submission_values`, en excluant les champs de type `file`, `signature`, et les champs à choix multiples.
+- [ ] Extension générique de `Gvv_Controller::create()` (`application/libraries/Gvv_Controller.php:233`) : fusionner les paramètres `$_GET` correspondant à une colonne connue de la table par-dessus `defaults_list()`.
+- [ ] Tests PHPUnit : migration up/down, construction de l'URL (exclusion fichier/signature/multi-valeurs, encodage), `Gvv_Controller::create()` pré-rempli par `$_GET` sur un contrôleur existant (ex. `membre`).
+- [ ] Test Playwright : soumission `inscription_club` avec `target_url`/`target_label` configurés → bouton visible dans la liste des réponses → clic → `membre/create` ouvert avec les champs correspondants pré-remplis.
+- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Exporter une réponse vers un formulaire de création ».
+- [ ] **Validation non-régression** : formulaires sans `target_url`/`target_label` inchangés ; `Gvv_Controller::create()` sans paramètres de requête inchangé ; suite PHPUnit/Playwright complète verte.
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -474,6 +521,18 @@ Objectif : permettre à un formulaire de déclencher un paiement HelloAsso ratta
 
 Lots inclus : 10.
 
+### Phase 8 — Sous-formulaires
+
+Objectif : permettre à un formulaire d'inclure un lien vers un autre formulaire GVV, ouvert dans un nouvel onglet, avec injection de la réponse dans le formulaire maître. Dépend du socle (phase 1) et de l'infrastructure `subject_type`/`subject_id` (phase 4, Lot 6).
+
+Lots inclus : 11.
+
+### Phase 9 — Export d'une réponse vers un formulaire de création GVV
+
+Objectif : permettre d'ouvrir un formulaire de création GVV standard pré-rempli avec les valeurs d'une réponse, depuis la liste des réponses. Dépend uniquement du socle (phase 1) ; indépendant de toutes les autres phases.
+
+Lots inclus : 12.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -488,7 +547,9 @@ Lots inclus : 10.
 10. Lot 7 (cartes dynamiques dans les dashboards) — indépendant, réalisable dès Lot 1 terminé
 11. Lot 9 (soumission par téléchargement) — dépend de Lot 2, indépendant des lots 4 à 7
 12. Lot 10 (paiement en ligne intégré) — dépend du socle (Lot 1) et de l'infrastructure handler (Lot 6), indépendant des lots 4, 5, 7
-13. Lot 8 (documentation et validation)
+13. Lot 11 (sous-formulaires) — dépend du socle (Lot 1) et de `subject_type`/`subject_id` (Lot 6), indépendant des lots 4, 5, 7, 9, 10
+14. Lot 12 (export vers formulaire de création GVV) — dépend uniquement du socle (Lot 1), indépendant de tous les autres lots
+15. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -519,6 +580,18 @@ Lots inclus : 10.
 - Paiement facultatif : la réponse est acceptée que le paiement soit effectué ou non.
 - Paiement obligatoire : une réponse dont le paiement n'est pas confirmé est rejetée, tout en restant consultable en admin.
 - Le statut du paiement est visible sans ambiguïté dans le détail admin d'une réponse et dans son PDF imprimable.
+
+### Sous-formulaires
+- Un formulaire peut inclure un widget de lien vers un autre formulaire GVV, ouvert dans un nouvel onglet.
+- La réponse du sous-formulaire est vérifiable et affichée en lecture seule depuis le formulaire maître, sans rechargement de page.
+- Le rattachement définitif (`subject_type`/`subject_id`) est effectif à la soumission du maître ; une réponse de sous-formulaire soumise mais dont le maître n'est jamais validé reste conservée et identifiable en admin.
+- Une resoumission du sous-formulaire n'affecte pas les fichiers d'une soumission précédente.
+
+### Export vers formulaire de création GVV
+- Un formulaire avec `target_url`/`target_label` renseignés affiche un bouton par ligne dans la liste des réponses.
+- Le clic ouvre le formulaire cible avec les champs correspondants pré-remplis (noms de champs identiques entre source et cible).
+- Les champs fichier, signature et à choix multiples ne sont jamais inclus dans l'URL d'export.
+- Un formulaire sans `target_url`/`target_label` n'affiche aucun bouton et son comportement est inchangé.
 
 ### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.
