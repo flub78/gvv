@@ -13,8 +13,9 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 7. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
 8. [Page de génération](#page-de-génération)
 9. [Consulter les réponses](#consulter-les-réponses)
-10. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
-11. [Exemples de formulaires](#exemples-de-formulaires)
+10. [Modifier une réponse déjà soumise](#modifier-une-réponse-déjà-soumise)
+11. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
+12. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -541,6 +542,40 @@ Les fichiers joints (uploads et signatures) ne sont accessibles que depuis l'int
 ### Rétention
 
 Les réponses et leurs fichiers sont conservés sans limite de durée ; il n'y a pas d'expiration automatique. La suppression (bouton "Supprimer") est manuelle et retire à la fois la réponse, ses valeurs et les fichiers associés (y compris les miniatures).
+
+---
+
+## Modifier une réponse déjà soumise
+
+Pour utiliser un formulaire comme support de suivi de procédure (attestation à compléter, dossier à mettre à jour...), une réponse déjà envoyée peut être rouverte et corrigée sans créer une nouvelle réponse.
+
+### Déclencher la modification
+
+Le bouton **"Modifier"** apparaît à côté de "Ouvrir" et "PDF" :
+
+- dans la liste des réponses d'un formulaire ;
+- dans le détail d'une réponse (bouton en haut à droite).
+
+Il n'est disponible que pour les réponses saisies en ligne. Une réponse envoyée par [téléchargement de scan](#soumission-par-téléchargement-scan) ne peut pas être modifiée par ce mécanisme — seule la rotation du fichier déposé est possible pour ce type de réponse.
+
+Seul un administrateur ayant accès à la section du formulaire peut déclencher une modification ; ce n'est pas un lien renvoyé à la personne qui a rempli le formulaire.
+
+### Formulaire pré-rempli
+
+Le bouton rouvre le formulaire public, page par page, avec les valeurs déjà soumises :
+
+- les champs texte, date, nombre, case à cocher, liste déroulante, etc. affichent leur valeur enregistrée ;
+- un champ **fichier** déjà soumis affiche le nom du fichier existant avec un lien pour le consulter ; laisser le champ vide à la resoumission **conserve** le fichier, en choisir un nouveau le **remplace** ;
+- un champ **signature** déjà soumis affiche la signature existante en aperçu ; ne pas y toucher **conserve** la signature initiale, dessiner/téléverser/taper une nouvelle signature la **remplace**.
+
+### Enregistrer les modifications
+
+Le bouton **"Enregistrer les modifications"** valide et enregistre la réponse en place :
+
+- l'identifiant de la réponse ne change pas — ce n'est pas une nouvelle réponse ;
+- la date de soumission initiale, le rattachement éventuel à une entité GVV et le mode de soumission ne sont pas modifiés ;
+- quand un fichier ou une signature est remplacé, l'ancien est supprimé du stockage une fois le nouveau enregistré avec succès ;
+- le détail de la réponse affiche alors une **date de dernière modification**, en plus de la date de soumission initiale.
 
 ---
 

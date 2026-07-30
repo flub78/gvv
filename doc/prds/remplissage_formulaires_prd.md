@@ -38,6 +38,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Permettre à un formulaire de déclencher un paiement en ligne (HelloAsso) rattaché à un compte comptable GVV.
 - Permettre à un formulaire d'inclure un lien vers un autre formulaire GVV (sous-formulaire), avec injection de la réponse dans le formulaire maître.
 - Permettre, depuis une réponse, d'ouvrir un formulaire de création GVV standard (ex. création de membre) pré-rempli avec ses valeurs.
+- Permettre à un admin de modifier en place une réponse déjà soumise, pour utiliser les formulaires comme support de gestion de procédure.
 
 ## Non-objectifs
 
@@ -67,6 +68,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Paiement en ligne HelloAsso intégré à un formulaire, obligatoire ou facultatif selon configuration (EF13).
 - Sous-formulaires : widget de lien vers un autre formulaire, ouvert dans un nouvel onglet, avec injection de la réponse dans le formulaire maître (EF14).
 - Bouton d'export d'une réponse, configurable par formulaire (URL cible + libellé), ouvrant un formulaire de création GVV pré-rempli avec les valeurs de la réponse (EF15).
+- Bouton de modification d'une réponse déjà soumise, depuis la liste admin des réponses, rechargeant le formulaire pré-rempli et permettant une resoumission qui met à jour la réponse en place (EF16).
 
 ### Exclu
 
@@ -80,6 +82,10 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Édition en place d'une réponse de sous-formulaire déjà soumise en V1 (EF14) — resoumission complète uniquement.
 - Mapping configurable entre les noms de champs du formulaire source et ceux du formulaire cible en V1 (EF15) — les noms doivent correspondre exactement.
 - Export des champs fichier, signature et à choix multiples (checkbox) vers le formulaire cible en V1 (EF15).
+- Modification d'une réponse par lien public envoyé à l'utilisateur d'origine en V1 (EF16) — déclenchement admin uniquement, depuis `forms_admin`.
+- Modification d'une réponse de type téléchargement (`submission_method = 'upload'`, EF12) en V1 (EF16) — cette catégorie de réponse n'a pas de champs de saisie à compléter.
+- Historique des versions successives d'une réponse modifiée en V1 (EF16) — seule la dernière version est conservée, sans piste d'audit détaillée par champ.
+- Protection contre la modification concurrente de la même réponse en V1 (EF16) — dernier enregistrement gagnant, comme le reste de GVV.
 
 ## Taxonomie des formulaires
 
@@ -121,6 +127,13 @@ Cette taxonomie guide les décisions d'architecture : les formulaires de catégo
 2. Il ouvre une réponse, visualise les pièces jointes (image/PDF) et les documents référencés.
 3. Il génère le PDF imprimable de la réponse.
 4. Il utilise le bouton de la réponse pour ouvrir la création de document archivé avec le PDF imprimable pré-rempli à la place du sélecteur de fichier.
+
+### Parcours 4 : Modification d'une réponse déjà soumise (Admin)
+
+1. Depuis la liste des réponses d'un formulaire, l'admin clique sur "Modifier" pour une réponse en ligne.
+2. Le formulaire multi-pages se recharge avec les valeurs déjà soumises pré-remplies.
+3. L'admin complète ou corrige des champs, conserve ou redéfinit la signature, conserve ou remplace des fichiers.
+4. Il valide : la réponse existante est mise à jour, sans création d'une nouvelle réponse.
 
 ## Exigences fonctionnelles
 
@@ -367,6 +380,21 @@ Depuis la liste des réponses d'un formulaire, un bouton optionnel permet d'ouvr
 
 Voir : [Design export vers formulaire de création](../design_notes/remplissage_formulaires_design.md#18-export-dune-réponse-vers-un-formulaire-de-création-gvv)
 
+### EF16 : Modification en place d'une réponse déjà soumise
+
+Pour utiliser les formulaires comme support de gestion de procédure, une réponse déjà soumise doit pouvoir être complétée ou corrigée sans perdre son identité ni son historique de rattachement.
+
+1. Depuis la liste admin des réponses d'un formulaire, un bouton "Modifier" est disponible pour chaque réponse en ligne (`submission_method = 'online'`).
+2. Le bouton recharge le formulaire multi-pages public avec les valeurs déjà soumises pré-remplies dans les champs de saisie standard.
+3. La resoumission met à jour la réponse existante : `form_submissions.id` et `submission_uuid` restent inchangés, aucune nouvelle réponse n'est créée.
+4. La date de soumission initiale (`submitted_at`), le rattachement générique (`subject_type`/`subject_id`) et le mode de soumission ne sont pas modifiés par une édition ; seule la date de dernière modification est mise à jour et visible dans le détail admin de la réponse.
+5. Pour un champ signature, l'utilisateur peut conserver la signature initiale ou la redéfinir (dessin, upload ou saisie clavier).
+6. Pour un champ fichier, l'utilisateur peut conserver le fichier déjà soumis ou le remplacer.
+7. Si un fichier ou une signature est remplacé, le fichier initial est supprimé du stockage une fois le remplaçant enregistré avec succès.
+8. Seul un administrateur authentifié, avec accès à la section du formulaire, peut déclencher une modification.
+
+Voir : [Design modification en place d'une réponse](../design_notes/remplissage_formulaires_design.md#19-modification-en-place-dune-réponse-déjà-soumise)
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -400,6 +428,8 @@ Voir : [Design export vers formulaire de création](../design_notes/remplissage_
 - EF13 : notification (email) à l'utilisateur et/ou à l'admin selon l'issue du paiement ?
 - EF14 : un formulaire de catégorie 3 (déjà rattaché à une entité GVV via son propre `subject_type`/`subject_id`, ex. `briefing_passager_ulm`) peut-il aussi être utilisé comme sous-formulaire ? Le couple générique ne peut porter qu'une seule référence à la fois — conflit potentiel non tranché entre les deux usages.
 - EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ?
+- EF16 : faut-il à terme un lien de modification envoyé à l'utilisateur d'origine (hors admin), ou la modification reste-t-elle une action admin exclusive ?
+- EF16 : la modification en place doit-elle un jour être proposée aussi pour les réponses de type téléchargement (remplacement de scan), au-delà de la rotation déjà couverte par EF12 ?
 
 ### Résolues
 

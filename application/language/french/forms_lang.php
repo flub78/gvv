@@ -25,6 +25,7 @@ $lang['forms_label_global']               = 'Global';
 $lang['forms_label_id']                   = 'ID';
 $lang['forms_label_uuid']                 = 'UUID';
 $lang['forms_label_date']                 = 'Date';
+$lang['forms_label_last_modified']        = 'Dernière modification';
 $lang['forms_label_type']                 = 'Type';
 $lang['forms_label_value']                = 'Valeur';
 $lang['forms_label_field']                = 'Champ';
@@ -95,6 +96,8 @@ $lang['forms_button_next_page']           = 'Page suivante';
 $lang['forms_button_submit']              = 'Envoyer ma réponse';
 $lang['forms_button_pages']               = 'Pages';
 $lang['forms_button_upload_response']     = 'Télécharger un formulaire prérempli';
+$lang['forms_button_edit_submission']     = 'Modifier';
+$lang['forms_edit_button_save']           = 'Enregistrer les modifications';
 
 // Upload response modal
 $lang['forms_upload_modal_title']         = 'Télécharger un formulaire prérempli';
@@ -120,6 +123,7 @@ $lang['forms_title_add_field']            = 'Ajouter un champ';
 $lang['forms_title_edit_field']           = 'Modifier le champ';
 $lang['forms_title_submissions']          = 'Réponses du formulaire';
 $lang['forms_title_submission_detail']    = 'Détail de réponse';
+$lang['forms_edit_title']                 = 'Modifier la réponse';
 $lang['forms_title_preview']              = 'Prévisualisation';
 $lang['forms_title_thank_you']            = 'Merci pour votre réponse';
 

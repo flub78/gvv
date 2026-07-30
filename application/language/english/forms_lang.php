@@ -25,6 +25,7 @@ $lang['forms_label_global']               = 'Global';
 $lang['forms_label_id']                   = 'ID';
 $lang['forms_label_uuid']                 = 'UUID';
 $lang['forms_label_date']                 = 'Date';
+$lang['forms_label_last_modified']        = 'Last modified';
 $lang['forms_label_type']                 = 'Type';
 $lang['forms_label_value']                = 'Value';
 $lang['forms_label_field']                = 'Field';
@@ -95,6 +96,8 @@ $lang['forms_button_next_page']           = 'Next page';
 $lang['forms_button_submit']              = 'Send my response';
 $lang['forms_button_pages']               = 'Pages';
 $lang['forms_button_upload_response']     = 'Upload a filled-in form';
+$lang['forms_button_edit_submission']     = 'Edit';
+$lang['forms_edit_button_save']           = 'Save changes';
 
 // Upload response modal
 $lang['forms_upload_modal_title']         = 'Upload a filled-in form';
@@ -120,6 +123,7 @@ $lang['forms_title_add_field']            = 'Add field';
 $lang['forms_title_edit_field']           = 'Edit field';
 $lang['forms_title_submissions']          = 'Form responses';
 $lang['forms_title_submission_detail']    = 'Response detail';
+$lang['forms_edit_title']                 = 'Edit response';
 $lang['forms_title_preview']              = 'Preview';
 $lang['forms_title_thank_you']            = 'Thank you for your response';
 

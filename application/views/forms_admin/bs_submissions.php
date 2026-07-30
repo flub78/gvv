@@ -108,6 +108,7 @@
                                         <?php else: ?>
                                             <a class="btn btn-sm btn-outline-primary me-1" href="<?= site_url('forms_admin/submission/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_open') ?></a>
                                             <a class="btn btn-sm btn-outline-secondary me-1" href="<?= site_url('forms_admin/submission_pdf/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_pdf') ?></a>
+                                            <a class="btn btn-sm btn-outline-secondary me-1" href="<?= site_url('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_edit_submission') ?></a>
                                         <?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
                                             data-submission-id="<?= (int) $submission['id'] ?>"

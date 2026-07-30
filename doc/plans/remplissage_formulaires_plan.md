@@ -477,6 +477,36 @@ Voir : [Design export vers formulaire de création](../design_notes/remplissage_
 - [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Exporter une réponse vers un formulaire de création ».
 - [ ] **Validation non-régression** : formulaires sans `target_url`/`target_label` inchangés ; `Gvv_Controller::create()` sans paramètres de requête inchangé ; suite PHPUnit/Playwright complète verte.
 
+### Lot 13 — Modification en place d'une réponse déjà soumise
+
+Objectif : permettre à un admin de modifier une réponse en ligne déjà soumise, pour utiliser les formulaires comme support de gestion de procédure (compléter ou corriger une réponse après coup). Dépend uniquement du socle (Lot 1) et de Lot 2 (fichiers) ; réutilise le widget signature (Lot 5-bis) et l'autorisation par section déjà en place sur `submission_delete` (Lot 6, étape 6.6). Indépendant des lots 3, 4, 7, 9, 10, 11, 12.
+
+Voir : [Design modification en place d'une réponse](../design_notes/remplissage_formulaires_design.md#19-modification-en-place-dune-réponse-déjà-soumise)
+
+- [x] Pas de migration nécessaire : `form_submissions.updated_at`/`updated_by` sont déjà présents (champs d'audit standard), et `Form_submissions_model::save_submission_values()` est déjà un upsert par `(submission_id, field_id)`.
+- [x] **Découverte en cours d'implémentation** : `form_fields.field_type` est un ENUM qui n'a jamais été migré pour inclure `'signature'` (`116_forms_core.php` ne liste que `text,email,date,number,textarea,select,radio,checkbox,file`). En pratique, tous les widgets signature sont donc du type "HTML-only" (déclarés uniquement via `data-gvv-type="signature"` dans `content_html`, sans ligne `form_fields`, identifiés par `widget_name` — mécanisme de la migration 137/Lot 5-bis), jamais du type `field_type='signature'` backé par une ligne `form_fields`. `submission_edit_submit()` a donc dû être étendu pour traiter ce cas HTML-only en plus des champs standards, sur le même modèle que `Forms_public::submit()`. Correction de l'ENUM non traitée ici (hors périmètre de ce lot, à trancher séparément si besoin).
+- [x] Extraction de `Forms_public::process_uploaded_files()`/`save_signature_canvas()` vers `Forms_renderer::upload_submitted_files()`/`make_signature_file()` (refactor à filet de sécurité, même précédent que `File_rotator` au Lot 9) pour être réutilisables par `forms_admin` sans dupliquer la logique d'upload/signature.
+- [x] `forms_admin::submission_edit($form_id, $submission_id)` : contrôle d'autorisation par section (même garde que `submission_delete`), refuse les réponses `submission_method != 'online'`, charge les valeurs (`form_submission_values`) et fichiers/signature existants (`form_submission_files`) de la soumission, réutilise le moteur de rendu multi-pages existant en mode édition. GVV prefill mécanismes A/B non ré-appliqués en mode édition (limitation connue, voir note ci-dessous).
+- [x] Adapter la source de pré-remplissage du rendu (`Forms_renderer::normalize_fields_for_view`/`repopulate_html_fields`, déjà conçus pour prendre un `old_values` par `field_id`) pour accepter en alternative les valeurs d'une soumission existante — aucune modification de ces méthodes n'a été nécessaire, seule la construction de la map source diffère.
+- [x] Champs fichier en mode édition : `Forms_renderer::inject_existing_file_hints()` (nouvelle méthode) affiche le nom du fichier déjà soumis ; champ laissé vide = conserver, nouveau fichier fourni = remplacer.
+- [x] Widget signature en mode édition : `Forms_renderer::render_signature_widget()`/`inject_signature_widgets()` étendus (`$existing_preview_url`) pour afficher la signature existante en lecture seule (aperçu `<img>`, `required` désactivé côté widget) ; laisser le widget inchangé à la resoumission = conserver, dessiner/uploader/taper une nouvelle signature = remplacer.
+- [x] `forms_admin::submission_edit_submit($form_id, $submission_id)` : réutilise la validation serveur centralisée existante, puis `save_submission_values()` pour les champs standard ; pour chaque fichier/signature effectivement remplacé (champ `form_fields` ou widget HTML-only), écrit le nouveau `form_submission_files` puis supprime l'ancien enregistrement et son fichier disque une fois l'écriture confirmée (nouvelle méthode modèle `delete_submission_file()`) ; met à jour `updated_at`/`updated_by` ; ne modifie jamais `id`, `submission_uuid`, `submitted_at`, `subject_type`/`subject_id`, `submission_method`.
+- [x] Bouton "Modifier" dans `bs_submissions.php` (liste) et `bs_submission.php` (détail), visible uniquement pour les réponses `submission_method='online'`.
+- [x] Affichage de la date de dernière modification dans le détail admin d'une réponse (`bs_submission.php`) quand `updated_at` diffère de `created_at`.
+- [x] Traductions (fr/en/nl) : `forms_button_edit_submission`, `forms_edit_title`, `forms_edit_button_save`, `forms_label_last_modified`.
+- [x] Tests PHPUnit — `FormsSubmissionEditTest.php` (mysql, 5 tests, 39 assertions), même harnais HTTP que `FormsAdminSubmissionRotateTest`/`FormsUploadSubmitTest` (contrôleur non testable sans round-trip HTTP réel) :
+  - accès refusé sans authentification (redirection login) ;
+  - accès refusé pour une réponse `submission_method='upload'` ;
+  - pré-remplissage : la valeur déjà soumise apparaît dans le champ texte rendu, le nom du fichier existant et l'aperçu de la signature existante sont affichés ;
+  - resoumission sans toucher au fichier ni à la signature : les deux restent inchangés en base et sur disque ;
+  - resoumission avec remplacement du fichier et de la signature (widget HTML-only) : anciens supprimés (base + disque), nouveaux présents ; `id`/`submission_uuid`/`submitted_at` inchangés, `updated_by` renseigné.
+- [x] **Bug découvert et corrigé pendant cette étape** : les cases à cocher n'étaient jamais pré-remplies en mode édition. Cause : `field_type='checkbox'` désigne en pratique une case unique (`value_text` = `"on"`/`""`), jamais un groupe multi-valeurs — `extract_html_fields()` dédoublonne par nom HTML exact, donc plusieurs cases partageant un nom ne peuvent jamais produire qu'une seule ligne `form_fields`. `Forms_admin::_old_values_from_submission_values()` forçait pourtant un décodage JSON systématique (→ tableau vide), et `Forms_renderer::repopulate_html_fields()` ne savait cocher qu'à partir d'un tableau. Corrigé aux deux endroits (décodage JSON uniquement si la valeur y ressemble ; case cochée si la valeur scalaire est non vide, tableau géré en plus pour compatibilité). Nouveau test unitaire `FormsRendererCheckboxTest.php` (4 tests), reproduisant la forme réelle du formulaire `attestation_de_fin_de_formation_spl-planeur`. Vérifié en conditions réelles sur la soumission existante (id=5, formulaire id=8) : les 14 cases se pré-remplissent exactement comme en base.
+- [ ] Test Playwright — **non réalisé** : pas de Chromium disponible dans cet environnement d'exécution (`npx playwright install chrome` requis). Couverture équivalente obtenue via les tests PHPUnit HTTP ci-dessus, qui exercent le vrai endpoint sur le serveur de dev.
+- [x] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Modifier une réponse déjà soumise » (déclenchement, pré-remplissage, conservation/remplacement fichiers et signature, enregistrement en place).
+- [x] **Validation non-régression** : suite complète `./run-all-tests.sh` (5 suites, 1638 tests, 0 échec, 48 skips préexistants) verte après implémentation, y compris le refactor `Forms_renderer`/`Forms_public` (vérifié spécifiquement via `FormsUploadSubmitTest`/`FormsAdminSubmissionRotateTest`, qui exercent le code extrait) et le correctif checkbox.
+
+**Limitation connue non traitée dans cette passe** : le mode édition ne ré-applique pas les mécanismes de pré-remplissage GVV A/B (`data-gvv-source`, verrouillage `lock[]`) — un champ verrouillé lors de la génération initiale n'est pas re-verrouillé en mode édition. Acceptable pour l'usage principal visé (compléter des réponses de catégorie 1/2 simples) ; à revisiter si l'édition doit un jour couvrir des formulaires de catégorie 3 avec champs verrouillés.
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -533,6 +563,12 @@ Objectif : permettre d'ouvrir un formulaire de création GVV standard pré-rempl
 
 Lots inclus : 12.
 
+### Phase 10 — Modification en place d'une réponse déjà soumise
+
+Objectif : permettre à un admin de modifier une réponse en ligne déjà soumise depuis la liste des réponses, pour utiliser les formulaires comme support de gestion de procédure. Dépend du socle (phase 1) et des fichiers (Lot 2) ; réutilise le widget signature (phase 3) et l'autorisation par section (phase 4). Indépendant des phases 2, 5, 7, 8, 9.
+
+Lots inclus : 13.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -549,7 +585,8 @@ Lots inclus : 12.
 12. Lot 10 (paiement en ligne intégré) — dépend du socle (Lot 1) et de l'infrastructure handler (Lot 6), indépendant des lots 4, 5, 7
 13. Lot 11 (sous-formulaires) — dépend du socle (Lot 1) et de `subject_type`/`subject_id` (Lot 6), indépendant des lots 4, 5, 7, 9, 10
 14. Lot 12 (export vers formulaire de création GVV) — dépend uniquement du socle (Lot 1), indépendant de tous les autres lots
-15. Lot 8 (documentation et validation)
+15. Lot 13 (modification en place d'une réponse) — dépend du socle (Lot 1) et des fichiers (Lot 2), indépendant des lots 3, 4, 7, 9, 10, 11, 12
+16. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -592,6 +629,12 @@ Lots inclus : 12.
 - Le clic ouvre le formulaire cible avec les champs correspondants pré-remplis (noms de champs identiques entre source et cible).
 - Les champs fichier, signature et à choix multiples ne sont jamais inclus dans l'URL d'export.
 - Un formulaire sans `target_url`/`target_label` n'affiche aucun bouton et son comportement est inchangé.
+
+### Modification en place d'une réponse
+- Un admin peut modifier une réponse en ligne déjà soumise depuis la liste des réponses.
+- Le formulaire pré-rempli permet la resoumission sans créer de nouvelle réponse : `id` et `submission_uuid` inchangés.
+- Une signature ou un fichier peut être conservé ou remplacé ; en cas de remplacement, l'ancien est supprimé du stockage une fois le nouveau enregistré.
+- Une réponse de type téléchargement n'affiche pas le bouton "Modifier".
 
 ### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.

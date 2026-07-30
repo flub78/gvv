@@ -25,6 +25,7 @@ $lang['forms_label_global']               = 'Globaal';
 $lang['forms_label_id']                   = 'ID';
 $lang['forms_label_uuid']                 = 'UUID';
 $lang['forms_label_date']                 = 'Datum';
+$lang['forms_label_last_modified']        = 'Laatst gewijzigd';
 $lang['forms_label_type']                 = 'Type';
 $lang['forms_label_value']                = 'Waarde';
 $lang['forms_label_field']                = 'Veld';
@@ -95,6 +96,8 @@ $lang['forms_button_next_page']           = 'Volgende pagina';
 $lang['forms_button_submit']              = 'Mijn reactie versturen';
 $lang['forms_button_pages']               = 'Pagina\'s';
 $lang['forms_button_upload_response']     = 'Een ingevuld formulier uploaden';
+$lang['forms_button_edit_submission']     = 'Wijzigen';
+$lang['forms_edit_button_save']           = 'Wijzigingen opslaan';
 
 // Upload response modal
 $lang['forms_upload_modal_title']         = 'Een ingevuld formulier uploaden';
@@ -120,6 +123,7 @@ $lang['forms_title_add_field']            = 'Veld toevoegen';
 $lang['forms_title_edit_field']           = 'Veld bewerken';
 $lang['forms_title_submissions']          = 'Formulierreacties';
 $lang['forms_title_submission_detail']    = 'Reactiedetail';
+$lang['forms_edit_title']                 = 'Reactie wijzigen';
 $lang['forms_title_preview']              = 'Voorbeeld';
 $lang['forms_title_thank_you']            = 'Bedankt voor uw reactie';
 

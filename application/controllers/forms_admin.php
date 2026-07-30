@@ -22,6 +22,12 @@ class Forms_admin extends MY_Controller {
      */
     private $workflow_form_slugs = array('briefing-passager-ulm');
 
+    /**
+     * Same storage location/convention as Forms_public::$upload_base_dir — a submission
+     * edited in place must store its replacement files exactly like a fresh submission.
+     */
+    private $upload_base_dir = 'uploads/forms_submissions';
+
     public function __construct() {
         parent::__construct();
 
@@ -31,6 +37,7 @@ class Forms_admin extends MY_Controller {
         $this->load->model('form_fields_model');
         $this->load->model('form_submissions_model');
         $this->load->library('form_validation');
+        $this->load->library('forms_validation');
         $this->load->library('forms_renderer');
         $this->lang->load('gvv');
         $this->lang->load('forms');
@@ -1446,6 +1453,465 @@ class Forms_admin extends MY_Controller {
         }
 
         redirect('forms_admin/submissions/' . (int) $form['id']);
+    }
+
+    /**
+     * Load and validate an "online" submission for editing, shared by submission_edit()
+     * and submission_edit_submit(). Returns the submission array, or false after already
+     * redirecting (same convention as load_form_or_redirect()).
+     */
+    private function _load_editable_submission_or_redirect($form, $submission_id) {
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return false;
+        }
+
+        if ($submission['submission_method'] !== 'online') {
+            $this->session->set_flashdata('forms_error', 'Cette réponse ne peut pas être modifiée (soumise par téléchargement).');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return false;
+        }
+
+        return $submission;
+    }
+
+    private function _find_page_by_number(array $pages, $page_number) {
+        foreach ($pages as $page) {
+            if ((int) $page['page_number'] === (int) $page_number) {
+                return $page;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Split a submission's existing files (Form_submissions_model::get_submission_files())
+     * into the shapes needed to render/persist an edit:
+     * - $sig_existing:   field_name => preview URL, fed to Forms_renderer::inject_signature_widgets()
+     * - $file_existing:  field_name => ['original_name', 'preview_url'], fed to inject_existing_file_hints()
+     * - $by_field_id:    field_id => file row, for fields backed by a form_fields row.
+     * - $by_widget_name: widget_name => file row, for HTML-only signature widgets (field_id NULL).
+     *
+     * A file with no form_fields row (field_id NULL) is always an HTML-only signature widget:
+     * the form_fields.field_type ENUM has no 'signature' value (never migrated — see migration
+     * 116_forms_core.php), so a signature can only ever be recorded via widget_name, never
+     * field_id, regardless of whether the widget happens to also have a form_fields row for
+     * other reasons.
+     */
+    private function _split_existing_files($form, $submission, array $existing_files, array $fields_by_id) {
+        $sig_existing   = array();
+        $file_existing  = array();
+        $by_field_id    = array();
+        $by_widget_name = array();
+
+        foreach ($existing_files as $f) {
+            $field_name = (string) $f['field_name'];
+            if ($field_name === '') {
+                continue;
+            }
+
+            $preview_url = site_url('forms_admin/submission_file/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $f['id']) . '?inline=1';
+
+            $field_id = $f['field_id'] !== null ? (int) $f['field_id'] : null;
+            $is_signature = ($field_id === null)
+                || (isset($fields_by_id[$field_id]) && $fields_by_id[$field_id]['field_type'] === 'signature');
+
+            if ($is_signature) {
+                $sig_existing[$field_name] = $preview_url;
+            } else {
+                $file_existing[$field_name] = array(
+                    'original_name' => $f['original_name'],
+                    'preview_url'   => $preview_url,
+                );
+            }
+
+            if ($field_id !== null) {
+                $by_field_id[$field_id] = $f;
+            } elseif (!empty($f['widget_name'])) {
+                $by_widget_name[(string) $f['widget_name']] = $f;
+            }
+        }
+
+        return array($sig_existing, $file_existing, $by_field_id, $by_widget_name);
+    }
+
+    /**
+     * Detect signature widgets declared only in page HTML (data-gvv-type="signature", no
+     * form_fields row — see _split_existing_files() above) and return their field names,
+     * excluding any name already backed by a form_fields row (already handled by the main
+     * field loop in submission_edit_submit()).
+     */
+    private function _html_only_signature_widget_names($content_html, array $fields_by_id) {
+        $known_names = array();
+        foreach ($fields_by_id as $fld) {
+            $known_names[(string) $fld['name']] = true;
+        }
+
+        $raw = html_entity_decode((string) $content_html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $raw, $divs);
+
+        $names = array();
+        foreach ($divs[1] as $attrs) {
+            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $m)) {
+                continue;
+            }
+            $name = trim($m[1]);
+            if ($name !== '' && !isset($known_names[$name])) {
+                $names[] = $name;
+            }
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * Build the old_values map (field_id => value_text) expected by
+     * Forms_renderer::normalize_fields_for_view() / repopulate_html_fields(), from a
+     * submission's already-saved values.
+     *
+     * Checkbox values: Form_submissions_model::normalize_value() JSON-encodes arrays, used
+     * when a field genuinely received several values (e.g. <select multiple>, or in theory
+     * several checkboxes sharing one name — though extract_html_fields() dedupes by exact
+     * name, so that pattern can never actually produce more than one form_fields row in
+     * practice). In real forms, a "checkbox" field is one single toggle and value_text is
+     * the plain string the browser submits: "on" (or the input's own value=) when checked,
+     * "" when not — never JSON. Only decode when it actually looks like a JSON array;
+     * otherwise keep the raw scalar so repopulate_html_fields() can check it as a boolean.
+     */
+    private function _old_values_from_submission_values(array $submission_values, array $fields_by_id) {
+        $old_values = array();
+        foreach ($submission_values as $v) {
+            $field_id = (int) $v['field_id'];
+            if ($field_id <= 0) {
+                continue;
+            }
+            $value = $v['value_text'];
+            $type = isset($fields_by_id[$field_id]) ? $fields_by_id[$field_id]['field_type'] : '';
+            if ($type === 'checkbox' && is_string($value) && substr(trim($value), 0, 1) === '[') {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded)) {
+                    $value = $decoded;
+                }
+            }
+            $old_values[$field_id] = $value;
+        }
+        return $old_values;
+    }
+
+    /**
+     * Display an existing "online" submission pre-filled for editing (EF16 — modification
+     * en place d'une réponse déjà soumise). Reuses the same rendering/validation engine as
+     * the public submission flow (Forms_renderer, Forms_validation, per-page navigation);
+     * only the prefill source differs (existing submission values/files instead of
+     * flashdata). GVV prefill mechanisms A/B (data-gvv-source, URL params/lock[]) are not
+     * re-applied here — this edits already-collected values, it does not re-run the
+     * original generation context.
+     */
+    public function submission_edit($form_id = 0, $submission_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->_load_editable_submission_or_redirect($form, $submission_id);
+        if (!$submission) {
+            return;
+        }
+
+        $this->load->vars([
+            'nav_back_url'   => 'forms_admin/submissions/' . (int) $form['id'],
+            'nav_back_label' => 'Réponses',
+        ]);
+
+        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        if (empty($pages)) {
+            show_error('Ce formulaire ne contient aucune page publiee.', 404);
+            return;
+        }
+
+        $page_count = count($pages);
+        $current_page_number = (int) $this->input->get('page');
+        if ($current_page_number <= 0) {
+            $current_page_number = 1;
+        }
+        if ($current_page_number > $page_count) {
+            $current_page_number = $page_count;
+        }
+
+        $current_page = $this->_find_page_by_number($pages, $current_page_number);
+        if (!$current_page) {
+            $current_page = $pages[0];
+            $current_page_number = (int) $current_page['page_number'];
+        }
+
+        $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
+        $fields_by_id = array();
+        foreach ($fields as $fld) {
+            $fields_by_id[(int) $fld['id']] = $fld;
+        }
+
+        // Prefill priority: a failed resubmission attempt (flashdata) beats the
+        // already-saved values, same convention as the public "old values on error" flow.
+        $flash_old_values = $this->session->flashdata('forms_edit_old_values');
+        if (is_array($flash_old_values)) {
+            $old_values = $flash_old_values;
+        } else {
+            $submission_values = $this->form_submissions_model->get_submission_values((int) $submission['id']);
+            $old_values = $this->_old_values_from_submission_values($submission_values, $fields_by_id);
+        }
+
+        $render_fields = $this->forms_renderer->normalize_fields_for_view($fields, $old_values);
+
+        $existing_files = $this->form_submissions_model->get_submission_files((int) $submission['id']);
+        list($sig_existing, $file_existing, ) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_id);
+
+        $has_signature_widget = false;
+        if (!empty($current_page['content_html'])) {
+            $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, array(), $sig_existing);
+            $injected = $this->forms_renderer->inject_validation_script($injected);
+            $injected = $this->forms_renderer->inject_existing_file_hints($injected, $file_existing);
+            if (!empty($old_values)) {
+                $injected = $this->forms_renderer->repopulate_html_fields($injected, $fields, $old_values);
+            }
+            $current_page['content_html'] = $injected;
+        }
+
+        $data = array(
+            'form'                 => $form,
+            'submission'           => $submission,
+            'pages'                => $pages,
+            'current_page'         => $current_page,
+            'current_page_number'  => $current_page_number,
+            'page_count'           => $page_count,
+            'fields'               => $fields,
+            'render_fields'        => $render_fields,
+            'error'                => $this->session->flashdata('forms_error') ?: '',
+            'has_signature_widget' => $has_signature_widget,
+        );
+
+        $this->render_view('forms_admin/bs_submission_edit', $data);
+    }
+
+    /**
+     * Validate and persist a resubmitted page of an existing submission (EF16). Updates
+     * the submission in place: id and submission_uuid never change, submitted_at /
+     * subject_type / subject_id / submission_method are never rewritten. A file or
+     * signature field left empty keeps its existing value; the previous file is only
+     * deleted from storage after its replacement has been written successfully.
+     */
+    public function submission_edit_submit($form_id = 0, $submission_id = 0) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/submission_edit/' . (int) $form_id . '/' . (int) $submission_id);
+            return;
+        }
+
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->_load_editable_submission_or_redirect($form, $submission_id);
+        if (!$submission) {
+            return;
+        }
+
+        $page_number = (int) $this->input->post('page_number');
+        if ($page_number <= 0) {
+            $page_number = 1;
+        }
+
+        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $page = $this->_find_page_by_number($pages, $page_number);
+        if (!$page) {
+            show_error('Page de formulaire introuvable.', 404);
+            return;
+        }
+
+        $fields = $this->form_fields_model->get_page_fields((int) $page['id']);
+        $fields_by_id = array();
+        foreach ($fields as $fld) {
+            $fields_by_id[(int) $fld['id']] = $fld;
+        }
+
+        $existing_files = $this->form_submissions_model->get_submission_files((int) $submission['id']);
+        list(, , $existing_by_field_id, $existing_by_widget_name) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_id);
+
+        $submitted_values = array();
+        $file_field_keys  = array(); // field_id => $_FILES key, for fields that actually got a new file
+        $signature_canvas_data = array(); // field_id => base64, for fields that actually got a new drawn/typed signature
+
+        foreach ($fields as $field) {
+            $key        = (string) $field['name'];
+            $field_id   = (int) $field['id'];
+            $field_type = isset($field['field_type']) ? $field['field_type'] : 'text';
+
+            if ($field_type === 'signature') {
+                $sig_type = trim((string) $this->input->post($key . '_type'));
+                if (!in_array($sig_type, array('canvas', 'text', 'file'), true)) {
+                    $sig_type = 'canvas';
+                }
+
+                if ($sig_type === 'file' && isset($_FILES[$key . '_file']) && !empty($_FILES[$key . '_file']['name'])) {
+                    $file_field_keys[$field_id] = $key . '_file';
+                    $submitted_values[$field_id] = (string) $_FILES[$key . '_file']['name'];
+                    continue;
+                }
+
+                $base64 = ($sig_type !== 'file') ? trim((string) $this->input->post($key)) : '';
+                if ($base64 !== '') {
+                    $signature_canvas_data[$field_id] = $base64;
+                    $submitted_values[$field_id] = '[signature]';
+                    continue;
+                }
+
+                // Nothing new submitted: keep the existing signature (if any) untouched.
+                $submitted_values[$field_id] = isset($existing_by_field_id[$field_id])
+                    ? $existing_by_field_id[$field_id]['original_name']
+                    : '';
+                continue;
+            }
+
+            if ($field_type === 'file') {
+                if (isset($_FILES[$key]) && !empty($_FILES[$key]['name'])) {
+                    $file_field_keys[$field_id] = $key;
+                    $submitted_values[$field_id] = (string) $_FILES[$key]['name'];
+                    continue;
+                }
+
+                // Nothing new submitted: keep the existing file (if any) untouched.
+                $submitted_values[$field_id] = isset($existing_by_field_id[$field_id])
+                    ? $existing_by_field_id[$field_id]['original_name']
+                    : '';
+                continue;
+            }
+
+            $value = $this->input->post($key);
+            if (is_array($value)) {
+                $value = array_values($value);
+            }
+            $submitted_values[$field_id] = $value;
+        }
+
+        // HTML-only signature widgets (data-gvv-type="signature" with no form_fields row —
+        // see _split_existing_files()): not covered by the $fields loop above, not part of
+        // $submitted_values/validation (same as Forms_public::submit()), but still need the
+        // same keep-or-replace handling as any other signature.
+        $widget_names = $this->_html_only_signature_widget_names($page['content_html'], $fields_by_id);
+
+        $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
+        if (!empty($errors)) {
+            $this->session->set_flashdata('forms_error', implode('<br>', $errors));
+            $this->session->set_flashdata('forms_edit_old_values', $submitted_values);
+            redirect('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id'] . '?page=' . (int) $page_number);
+            return;
+        }
+
+        $new_files = array(); // field_id => file descriptor, only for fields actually replaced
+
+        foreach ($signature_canvas_data as $field_id => $base64) {
+            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, $field_id);
+            if ($result) {
+                $new_files[$field_id] = $result;
+            }
+        }
+
+        if (!empty($file_field_keys)) {
+            $upload_result = $this->forms_renderer->upload_submitted_files($file_field_keys, $this->upload_base_dir);
+            if (!empty($upload_result['errors'])) {
+                $this->session->set_flashdata('forms_error', implode('<br>', $upload_result['errors']));
+                $this->session->set_flashdata('forms_edit_old_values', $submitted_values);
+                redirect('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id'] . '?page=' . (int) $page_number);
+                return;
+            }
+            foreach ($upload_result['files'] as $uf) {
+                $new_files[(int) $uf['field_id']] = $uf;
+            }
+        }
+
+        $html_sig_new_files = array(); // widget_name => file descriptor, only when actually replaced
+        foreach ($widget_names as $widget_name) {
+            $sig_type = trim((string) $this->input->post($widget_name . '_type'));
+            if (!in_array($sig_type, array('canvas', 'text', 'file'), true)) {
+                $sig_type = 'canvas';
+            }
+
+            if ($sig_type === 'file' && isset($_FILES[$widget_name . '_file']) && !empty($_FILES[$widget_name . '_file']['name'])) {
+                $absolute_dir = FCPATH . $this->upload_base_dir . '/' . date('Y/m');
+                if (!is_dir($absolute_dir)) {
+                    @mkdir($absolute_dir, 0775, true);
+                }
+                $this->load->library('upload');
+                $this->upload->initialize(array(
+                    'upload_path'   => $absolute_dir,
+                    'allowed_types' => 'jpg|jpeg|png|gif|webp',
+                    'max_size'      => 10240,
+                    'encrypt_name'  => true,
+                ));
+                if ($this->upload->do_upload($widget_name . '_file')) {
+                    $udata = $this->upload->data();
+                    $html_sig_new_files[$widget_name] = array(
+                        'field_id'      => null,
+                        'widget_name'   => $widget_name,
+                        'original_name' => isset($udata['client_name']) ? $udata['client_name'] : $udata['orig_name'],
+                        'stored_name'   => $udata['file_name'],
+                        'mime_type'     => isset($udata['file_type']) ? $udata['file_type'] : null,
+                        'size_bytes'    => isset($udata['file_size']) ? (int) round($udata['file_size'] * 1024) : null,
+                        'storage_path'  => $this->upload_base_dir . '/' . date('Y/m') . '/' . $udata['file_name'],
+                    );
+                }
+                continue;
+            }
+
+            $base64 = ($sig_type !== 'file') ? trim((string) $this->input->post($widget_name)) : '';
+            if ($base64 !== '') {
+                $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, null, $widget_name);
+                if ($result) {
+                    $html_sig_new_files[$widget_name] = $result;
+                }
+            }
+            // Nothing new submitted: existing widget signature (if any) is left untouched.
+        }
+
+        $updated_by = $this->dx_auth->get_username();
+        $all_new_files = array_merge(array_values($new_files), array_values($html_sig_new_files));
+
+        $this->db->trans_start();
+        $this->form_submissions_model->save_submission_values((int) $submission['id'], $submitted_values, $updated_by);
+        if (!empty($all_new_files)) {
+            $this->form_submissions_model->save_submission_files((int) $submission['id'], $all_new_files, $updated_by);
+        }
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            foreach ($all_new_files as $uf) {
+                $fp = FCPATH . ltrim((string) $uf['storage_path'], '/');
+                if (is_file($fp)) {
+                    @unlink($fp);
+                }
+            }
+            $this->session->set_flashdata('forms_error', 'Impossible d\'enregistrer les modifications pour le moment.');
+            $this->session->set_flashdata('forms_edit_old_values', $submitted_values);
+            redirect('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id'] . '?page=' . (int) $page_number);
+            return;
+        }
+
+        // Only delete the previous file/signature once its replacement is confirmed saved.
+        foreach ($new_files as $field_id => $uf) {
+            if (isset($existing_by_field_id[$field_id])) {
+                $this->form_submissions_model->delete_submission_file((int) $existing_by_field_id[$field_id]['id']);
+            }
+        }
+        foreach ($html_sig_new_files as $widget_name => $uf) {
+            if (isset($existing_by_widget_name[$widget_name])) {
+                $this->form_submissions_model->delete_submission_file((int) $existing_by_widget_name[$widget_name]['id']);
+            }
+        }
+
+        $this->session->set_flashdata('forms_success', 'Réponse #' . (int) $submission['id'] . ' modifiée.');
+        redirect('forms_admin/submission/' . (int) $form['id'] . '/' . (int) $submission['id']);
     }
 
     public function submission_rotate($form_id = 0, $submission_id = 0, $direction = '') {

@@ -15,7 +15,7 @@
         }
     ?>
 
-    <div class="mb-3">
+    <div class="mb-3 d-flex justify-content-between align-items-start">
         <div>
             <h1 class="h3 mb-1"><?= $this->lang->line('forms_title_submission_detail') ?></h1>
             <p class="text-muted mb-0">
@@ -23,6 +23,11 @@
                 - <?= $this->lang->line('forms_section_submission') ?><?= (int) $submission['id'] ?>
             </p>
         </div>
+        <?php if (($submission['submission_method'] ?? 'online') === 'online'): ?>
+            <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>">
+                <?= $this->lang->line('forms_button_edit_submission') ?>
+            </a>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($error)): ?>
@@ -32,9 +37,12 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_uuid') ?>:</strong> <code><?= html_escape((string) $submission['submission_uuid']) ?></code></div>
-                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_status') ?>:</strong> <?= html_escape((string) $submission['status']) ?></div>
-                <div class="col-md-4"><strong><?= $this->lang->line('forms_label_date') ?>:</strong> <?= html_escape((string) $submission['submitted_at']) ?></div>
+                <div class="col-md-3"><strong><?= $this->lang->line('forms_label_uuid') ?>:</strong> <code><?= html_escape((string) $submission['submission_uuid']) ?></code></div>
+                <div class="col-md-3"><strong><?= $this->lang->line('forms_label_status') ?>:</strong> <?= html_escape((string) $submission['status']) ?></div>
+                <div class="col-md-3"><strong><?= $this->lang->line('forms_label_date') ?>:</strong> <?= html_escape((string) $submission['submitted_at']) ?></div>
+                <?php if (!empty($submission['updated_at']) && $submission['updated_at'] !== $submission['created_at']): ?>
+                    <div class="col-md-3"><strong><?= $this->lang->line('forms_label_last_modified') ?>:</strong> <?= html_escape((string) $submission['updated_at']) ?></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

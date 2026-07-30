@@ -116,13 +116,26 @@ class Forms_renderer {
                 }
 
                 if ($input_type === 'checkbox') {
-                    $checked_values = is_array($value) ? array_map('strval', $value) : array();
-                    $checkbox_val   = '';
+                    $checkbox_val = '';
                     if (preg_match('/\bvalue=["\']([^"\']*)["\']/', $attrs, $vm)) {
                         $checkbox_val = $vm[1];
                     }
                     $clean = preg_replace('/\s+checked(?:=["\'][^"\']*["\'])?/i', '', $attrs);
-                    if (in_array($checkbox_val, $checked_values, true)) {
+
+                    if (is_array($value)) {
+                        // Multiple checkboxes sharing one name (checkbox group): $value
+                        // holds the list of checked option values.
+                        $checked_values = array_map('strval', $value);
+                        $is_checked = in_array($checkbox_val, $checked_values, true);
+                    } else {
+                        // Single checkbox (the common case — see
+                        // Forms_admin::_old_values_from_submission_values()): the browser
+                        // submits its value= (or "on" if unset) when checked, nothing when
+                        // not, so any non-empty stored value means "was checked".
+                        $is_checked = ((string) $value !== '');
+                    }
+
+                    if ($is_checked) {
                         $clean .= ' checked';
                     }
                     return '<input' . $clean . '>';
@@ -201,6 +214,46 @@ class Forms_renderer {
         );
 
         return $html;
+    }
+
+    /**
+     * Submission-edit mode only (Forms_admin::submission_edit()): show what was already
+     * uploaded next to each native <input type="file"> and make clear that leaving it
+     * empty keeps the existing file — Forms_admin::submission_edit_submit() only replaces
+     * a file when a new one is actually posted.
+     *
+     * $existing_files_by_name: field_name => ['original_name' => ..., 'preview_url' => ...]
+     */
+    public function inject_existing_file_hints($html, array $existing_files_by_name) {
+        if (empty($existing_files_by_name)) {
+            return $html;
+        }
+
+        return preg_replace_callback(
+            '/<input(\s[^>]*\btype=["\']file["\'][^>]*)>/is',
+            function ($m) use ($existing_files_by_name) {
+                $attrs = $m[1];
+                if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) {
+                    return $m[0];
+                }
+                $name = $nm[1];
+                if (!isset($existing_files_by_name[$name])) {
+                    return $m[0];
+                }
+
+                $existing = $existing_files_by_name[$name];
+                $original_name = htmlspecialchars((string) $existing['original_name'], ENT_QUOTES, 'UTF-8');
+                $preview_url   = htmlspecialchars((string) $existing['preview_url'], ENT_QUOTES, 'UTF-8');
+
+                $hint = '<div class="form-text gvv-existing-file-hint">'
+                      . 'Fichier actuel : <a href="' . $preview_url . '" target="_blank">' . $original_name . '</a>'
+                      . ' — laissez ce champ vide pour le conserver.'
+                      . '</div>';
+
+                return $m[0] . $hint;
+            },
+            $html
+        );
     }
 
     /**
@@ -323,14 +376,19 @@ class Forms_renderer {
      * $sig_prefill: optional map of field_name => base64 string to restore a
      * previously submitted signature when re-displaying after a validation error.
      */
-    public function inject_signature_widgets($html, &$has_signature_widget = false, array $sig_prefill = array()) {
+    /**
+     * $existing_files: field_name => URL of an already-submitted signature image, used in
+     * submission-edit mode (Forms_admin::submission_edit()) to show what was previously
+     * signed and let the field stay empty ("keep") instead of forcing a redefinition.
+     */
+    public function inject_signature_widgets($html, &$has_signature_widget = false, array $sig_prefill = array(), array $existing_files = array()) {
         if (strpos($html, 'data-gvv-type') === false) {
             return $html;
         }
 
         $result = preg_replace_callback(
             '/<div([^>]*)\bdata-gvv-type=["\']signature["\']([^>]*)>(.*?)<\/div>/is',
-            function ($matches) use (&$has_signature_widget, $sig_prefill) {
+            function ($matches) use (&$has_signature_widget, $sig_prefill, $existing_files) {
                 $all_attrs = $matches[1] . $matches[2];
 
                 preg_match('/data-gvv-name=["\']([^"\']+)["\']/', $all_attrs, $name_m);
@@ -349,9 +407,10 @@ class Forms_renderer {
                 }
 
                 $prefill = isset($sig_prefill[$field_name]) ? $sig_prefill[$field_name] : '';
+                $existing_url = isset($existing_files[$field_name]) ? $existing_files[$field_name] : '';
 
                 $has_signature_widget = true;
-                return $this->render_signature_widget($field_name, $label, $required, $prefill);
+                return $this->render_signature_widget($field_name, $label, $required, $prefill, $existing_url);
             },
             $html
         );
@@ -365,8 +424,19 @@ class Forms_renderer {
      * Three tabs: Draw (canvas + SignaturePad), Upload (image file), Type (handwriting font canvas).
      * Two hidden inputs transmit value and type (canvas|file|text) to the server.
      * The first call also emits the shared CSS/JS assets (once per page).
+     *
+     * $existing_preview_url: when set (submission-edit mode), shows the already-submitted
+     * signature above the widget and makes it non-required — leaving the widget untouched
+     * means "keep the existing signature" (Forms_admin::submission_edit_submit() only
+     * replaces the stored file when a new value is actually posted).
      */
-    public function render_signature_widget($field_name, $label = '', $required = false, $prefill_base64 = '') {
+    public function render_signature_widget($field_name, $label = '', $required = false, $prefill_base64 = '', $existing_preview_url = '') {
+        // An existing signature already satisfies "required" — leaving the widget
+        // untouched keeps it, so the widget itself is never mandatory in this mode.
+        if ($existing_preview_url !== '') {
+            $required = false;
+        }
+
         $fn = htmlspecialchars($field_name, ENT_QUOTES, 'UTF-8');
         $lbl = htmlspecialchars($label !== '' ? $label : $field_name, ENT_QUOTES, 'UTF-8');
         $req_attr = $required ? ' required' : '';
@@ -381,6 +451,15 @@ class Forms_renderer {
         $req_data = $required ? ' data-gvv-required="true"' : '';
         $html  = '<div class="gvv-signature-widget mb-3" data-sig-name="' . $fn . '"' . $req_data . '>' . "\n";
         $html .= '  <label class="form-label fw-semibold">' . $lbl . $req_star . '</label>' . "\n";
+
+        if ($existing_preview_url !== '') {
+            $html .= '  <div class="gvv-sig-existing-preview mb-2">' . "\n";
+            $html .= '    <div class="small text-muted mb-1">Signature actuelle :</div>' . "\n";
+            $html .= '    <img src="' . htmlspecialchars($existing_preview_url, ENT_QUOTES, 'UTF-8') . '" alt="' . $lbl . '"'
+                   . ' style="max-height:80px;border:1px solid #dee2e6;border-radius:4px;background:#fff;padding:4px;" class="d-block">' . "\n";
+            $html .= '    <div class="form-text">Laissez le champ ci-dessous inchangé pour la conserver, ou redéfinissez-la.</div>' . "\n";
+            $html .= '  </div>' . "\n";
+        }
 
         // Tabs
         $html .= '  <ul class="nav nav-tabs gvv-sig-tabs" role="tablist">' . "\n";
@@ -432,6 +511,106 @@ class Forms_renderer {
         }
 
         return $html;
+    }
+
+    /**
+     * Upload one file per (field_id => $_FILES key) pair into $upload_base_dir/YYYY/MM.
+     * Shared by Forms_public::submit() (public submission) and Forms_admin::submission_edit_submit()
+     * (in-place edit of an existing submission) — same storage layout and validation rules for both.
+     *
+     * Returns ['files' => [...], 'errors' => [...]], same shape for both callers.
+     */
+    public function upload_submitted_files(array $file_field_keys, $upload_base_dir) {
+        $CI = &get_instance();
+        $CI->load->library('upload');
+
+        $errors = array();
+        $saved_files = array();
+
+        $relative_dir = $upload_base_dir . '/' . date('Y/m');
+        $absolute_dir = FCPATH . $relative_dir;
+
+        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0775, true)) {
+            return array(
+                'files'  => array(),
+                'errors' => array('Impossible de preparer le repertoire de televersement.'),
+            );
+        }
+
+        foreach ($file_field_keys as $field_id => $field_key) {
+            if (!isset($_FILES[$field_key]) || empty($_FILES[$field_key]['name'])) {
+                continue;
+            }
+
+            $config = array(
+                'upload_path'   => $absolute_dir,
+                'allowed_types' => 'pdf|jpg|jpeg|png|gif|webp|txt|csv|doc|docx|odt',
+                'max_size'      => 10240,
+                'encrypt_name'  => true,
+            );
+
+            $CI->upload->initialize($config);
+            if (!$CI->upload->do_upload($field_key)) {
+                $errors[] = html_escape('Upload impossible pour le champ fichier: ' . strip_tags($CI->upload->display_errors('', '')));
+                continue;
+            }
+
+            $data = $CI->upload->data();
+            $saved_files[] = array(
+                'field_id'      => (int) $field_id,
+                'original_name' => isset($data['client_name']) ? $data['client_name'] : $data['orig_name'],
+                'stored_name'   => $data['file_name'],
+                'mime_type'     => isset($data['file_type']) ? $data['file_type'] : null,
+                'size_bytes'    => isset($data['file_size']) ? (int) round($data['file_size'] * 1024) : null,
+                'storage_path'  => $relative_dir . '/' . $data['file_name'],
+            );
+        }
+
+        return array(
+            'files'  => $saved_files,
+            'errors' => $errors,
+        );
+    }
+
+    /**
+     * Decode a base64 PNG string and save it as a file in $upload_base_dir/YYYY/MM.
+     * Shared by Forms_public::submit() and Forms_admin::submission_edit_submit() (see
+     * upload_submitted_files() above for why this is a library method, not private per-controller).
+     */
+    public function make_signature_file($base64, $upload_base_dir, $field_id = null, $widget_name = null) {
+        $png_data = @base64_decode($base64, true);
+        if ($png_data === false || strlen($png_data) < 67) { // 67 bytes = minimal valid PNG header
+            return null;
+        }
+
+        // Verify PNG magic bytes
+        if (substr($png_data, 0, 8) !== "\x89PNG\r\n\x1a\n") {
+            return null;
+        }
+
+        $relative_dir  = $upload_base_dir . '/' . date('Y/m');
+        $absolute_dir  = FCPATH . $relative_dir;
+
+        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0775, true)) {
+            return null;
+        }
+
+        $stored_name   = 'sig_' . uniqid('', true) . '.png';
+        $absolute_path = $absolute_dir . '/' . $stored_name;
+
+        if (@file_put_contents($absolute_path, $png_data) === false) {
+            return null;
+        }
+
+        return array(
+            'field_id'      => ($field_id !== null && (int) $field_id > 0) ? (int) $field_id : null,
+            'widget_name'   => $widget_name,
+            'original_name' => 'signature.png',
+            'stored_name'   => $stored_name,
+            'mime_type'     => 'image/png',
+            'size_bytes'    => strlen($png_data),
+            'storage_path'  => $relative_dir . '/' . $stored_name,
+        );
     }
 
     /**

@@ -1010,6 +1010,41 @@ Cette évolution est volontairement générique et non spécifique au module `fo
 
 Le bouton est exposé uniquement dans la liste admin des réponses (`forms_admin`), déjà protégée par l'authentification GVV — pas d'exposition publique de `target_url` ni des valeurs de la réponse. La fusion `$_GET` dans `Gvv_Controller::create()` ne fait que pré-remplir un formulaire déjà soumis à la validation standard (`formValidation()`, unicité, règles metadata) : aucune donnée n'est enregistrée tant que l'admin ne valide pas explicitement le formulaire de création.
 
+### 19. Modification en place d'une réponse déjà soumise
+
+#### Principe
+
+Cas d'usage : utiliser un formulaire comme support de gestion de procédure, où une réponse doit pouvoir être complétée ou corrigée après sa soumission initiale (ex. une pièce ajoutée plus tard, un champ laissé vide à compléter). L'édition est déclenchée depuis `forms_admin`, jamais via un lien public envoyé à l'utilisateur d'origine — c'est une action admin, au même titre que la suppression d'une réponse.
+
+Aucune nouvelle table n'est nécessaire. `form_submissions` porte déjà `updated_at`/`updated_by` (champs d'audit standard), et `Form_submissions_model::save_submission_values()` est déjà un upsert par couple `(submission_id, field_id)` — la resoumission d'une valeur déjà présente la met simplement à jour, elle ne duplique rien.
+
+#### Point d'entrée : `forms_admin`, pas `forms_public`
+
+Contrairement au reste du rendu de formulaire (moteur multi-pages, validation, widgets), qui vit dans le contrôleur public anonyme `forms_public`, l'édition est portée par deux nouvelles méthodes authentifiées de `forms_admin` :
+
+- `submission_edit($form_id, $submission_id)` : affiche le formulaire pré-rempli.
+- `submission_edit_submit($form_id, $submission_id)` : valide et enregistre.
+
+Les deux réutilisent le moteur de rendu et de validation existant (`Forms_renderer`, `form_fields_model`, `forms_validation`, pagination multi-pages) — pas de duplication de la logique par type de champ. Seule la source de pré-remplissage change : au lieu de la flashdata "anciennes valeurs après échec de validation" utilisée par `forms_public::index()`, le pré-remplissage vient de `form_submission_values` et `form_submission_files` de la soumission éditée.
+
+L'autorisation réutilise le contrôle déjà en place sur `submission_delete` : refus si la section active de l'admin ne correspond pas au club du formulaire.
+
+#### Garde-fous sur la réponse éditable
+
+- Seules les réponses `submission_method = 'online'` sont éditables : une réponse de type téléchargement (Lot 9) n'a pas de champs de saisie à pré-remplir.
+- `form_submissions.id` et `submission_uuid` ne changent jamais.
+- `submitted_at`, `subject_type`/`subject_id`, `submission_method` ne sont pas réécrits par une édition — seuls `updated_at`/`updated_by` le sont.
+- Pas d'historique des versions : une édition écrase la valeur précédente, comme le reste du CRUD GVV.
+
+#### Fichiers et signature : conserver ou remplacer
+
+Un champ fichier ou signature déjà soumis affiche sa valeur actuelle (nom de fichier, ou image pour une signature) au lieu d'un champ de saisie vide :
+
+- **Fichier** : laisser le champ vide conserve le fichier existant ; fournir un nouveau fichier le remplace.
+- **Signature** : le widget s'ouvre en mode lecture seule sur la signature existante, avec une action explicite "Modifier la signature" pour repasser aux trois onglets de saisie (dessin, upload, clavier) déjà décrits en section 9. Tant que cette action n'est pas déclenchée, la signature initiale est conservée telle quelle.
+
+Dans les deux cas, le remplacement suit le même ordre d'opérations : le nouveau fichier est écrit et son enregistrement `form_submission_files` créé, puis — seulement une fois cette écriture confirmée — l'ancien enregistrement et son fichier disque sont supprimés. Jamais l'inverse, pour ne pas perdre le fichier initial si l'écriture du remplaçant échoue.
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**

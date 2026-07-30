@@ -291,6 +291,32 @@ class Form_submissions_model extends CI_Model {
     }
 
     /**
+     * Delete a single submission file: disk file first, then the DB row — mirrors the
+     * order/pattern of delete_submission() but for one file (used when a file/signature
+     * field is replaced during an in-place edit: the new file is saved and confirmed
+     * first, then this removes the old one).
+     */
+    public function delete_submission_file($file_id) {
+        $file = $this->db
+            ->where('id', (int) $file_id)
+            ->get($this->files_table)
+            ->row_array();
+
+        if (!$file) {
+            return false;
+        }
+
+        $path = FCPATH . ltrim((string) $file['storage_path'], '/');
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        $this->db->where('id', (int) $file_id)->delete($this->files_table);
+
+        return true;
+    }
+
+    /**
      * Return the single uploaded-response file for a submission (widget_name = 'uploaded_response'),
      * or false if this submission has no such file.
      */

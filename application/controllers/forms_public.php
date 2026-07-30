@@ -333,7 +333,7 @@ class Forms_public extends CI_Controller {
 
         // Process canvas/text signature fields (base64 → PNG file)
         foreach ($signature_canvas_data as $field_id => $base64) {
-            $result = $this->save_signature_canvas((int) $field_id, $base64);
+            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, (int) $field_id, null);
             if ($result) {
                 $uploaded_files[] = $result;
                 $submitted_values[$field_id] = $result['original_name'];
@@ -342,7 +342,7 @@ class Forms_public extends CI_Controller {
 
         // Process HTML-only signature widgets (canvas/text) — no form_fields record
         foreach ($html_sig_canvas_save as $html_sig) {
-            $result = $this->save_signature_canvas(null, $html_sig['base64'], $html_sig['widget_name']);
+            $result = $this->forms_renderer->make_signature_file($html_sig['base64'], $this->upload_base_dir, null, $html_sig['widget_name']);
             if ($result) {
                 $uploaded_files[] = $result;
             }
@@ -383,7 +383,7 @@ class Forms_public extends CI_Controller {
         }
 
         if (!empty($file_field_keys)) {
-            $upload_result = $this->process_uploaded_files($form, $file_field_keys);
+            $upload_result = $this->forms_renderer->upload_submitted_files($file_field_keys, $this->upload_base_dir);
             if (!empty($upload_result['errors'])) {
                 $this->session->set_flashdata('forms_public_error', implode('<br>', $upload_result['errors']));
                 $this->session->set_flashdata('forms_public_old_values', $submitted_values);
@@ -665,94 +665,6 @@ class Forms_public extends CI_Controller {
         return false;
     }
 
-    private function process_uploaded_files($form, array $file_field_keys) {
-        $errors = array();
-        $saved_files = array();
-
-        $relative_dir = $this->upload_base_dir . '/' . date('Y/m');
-        $absolute_dir = FCPATH . $relative_dir;
-
-        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0775, true)) {
-            return array(
-                'files'   => array(),
-                'errors'  => array('Impossible de preparer le repertoire de televersement.'),
-            );
-        }
-
-        foreach ($file_field_keys as $field_id => $field_key) {
-            if (!isset($_FILES[$field_key]) || empty($_FILES[$field_key]['name'])) {
-                continue;
-            }
-
-            $config = array(
-                'upload_path'   => $absolute_dir,
-                'allowed_types' => 'pdf|jpg|jpeg|png|gif|webp|txt|csv|doc|docx|odt',
-                'max_size'      => 10240,
-                'encrypt_name'  => true,
-            );
-
-            $this->upload->initialize($config);
-            if (!$this->upload->do_upload($field_key)) {
-                $errors[] = html_escape('Upload impossible pour le champ fichier: ' . strip_tags($this->upload->display_errors('', '')));
-                continue;
-            }
-
-            $data = $this->upload->data();
-            $saved_files[] = array(
-                'field_id'      => (int) $field_id,
-                'original_name' => isset($data['client_name']) ? $data['client_name'] : $data['orig_name'],
-                'stored_name'   => $data['file_name'],
-                'mime_type'     => isset($data['file_type']) ? $data['file_type'] : null,
-                'size_bytes'    => isset($data['file_size']) ? (int) round($data['file_size'] * 1024) : null,
-                'storage_path'  => $relative_dir . '/' . $data['file_name'],
-            );
-        }
-
-        return array(
-            'files'  => $saved_files,
-            'errors' => $errors,
-        );
-    }
-
-    /**
-     * Decode a base64 PNG string and save it as a file in the signatures upload dir.
-     * Returns a file descriptor array compatible with save_submission_files(), or null on failure.
-     */
-    private function save_signature_canvas($field_id, $base64, $widget_name = null) {
-        $png_data = @base64_decode($base64, true);
-        if ($png_data === false || strlen($png_data) < 67) { // 67 bytes = minimal valid PNG header
-            return null;
-        }
-
-        // Verify PNG magic bytes
-        if (substr($png_data, 0, 8) !== "\x89PNG\r\n\x1a\n") {
-            return null;
-        }
-
-        $relative_dir  = $this->upload_base_dir . '/' . date('Y/m');
-        $absolute_dir  = FCPATH . $relative_dir;
-
-        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0775, true)) {
-            return null;
-        }
-
-        $stored_name   = 'sig_' . uniqid('', true) . '.png';
-        $absolute_path = $absolute_dir . '/' . $stored_name;
-
-        if (@file_put_contents($absolute_path, $png_data) === false) {
-            return null;
-        }
-
-        return array(
-            'field_id'      => ($field_id !== null && (int) $field_id > 0) ? (int) $field_id : null,
-            'widget_name'   => $widget_name,
-            'original_name' => 'signature.png',
-            'stored_name'   => $stored_name,
-            'mime_type'     => 'image/png',
-            'size_bytes'    => strlen($png_data),
-            'storage_path'  => $relative_dir . '/' . $stored_name,
-        );
-    }
 
     /**
      * Resolve config.* data-gvv-source attributes in page HTML and inject values.
