@@ -19,6 +19,8 @@ $lang['motd_field_target_type'] = 'Ontvangers';
 $lang['motd_field_target_list_id'] = 'Mailinglijst';
 $lang['motd_field_target_user_login'] = 'Gebruiker';
 $lang['motd_field_origin'] = 'Oorsprong';
+$lang['motd_field_recipient_count'] = 'Aantal ontvangers';
+$lang['motd_field_acknowledged_count'] = 'Kennis genomen';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -32,6 +34,22 @@ $lang['gvv_motd_messages_field_target_type'] = 'Ontvangers';
 $lang['gvv_motd_messages_field_target_list_id'] = 'Mailinglijst';
 $lang['gvv_motd_messages_field_target_user_login'] = 'Gebruiker';
 $lang['gvv_motd_messages_field_origin'] = 'Oorsprong';
+$lang['gvv_motd_messages_field_id'] = 'ID';
+$lang['gvv_motd_messages_field_source_type'] = 'Brontype';
+$lang['gvv_motd_messages_field_source_ref'] = 'Bronreferentie';
+$lang['gvv_motd_messages_field_created_at'] = 'Aanmaakdatum';
+$lang['gvv_motd_messages_field_updated_at'] = 'Wijzigingsdatum';
+$lang['gvv_motd_messages_field_created_by'] = 'Aangemaakt door';
+$lang['gvv_motd_messages_field_updated_by'] = 'Gewijzigd door';
+
+// field_name() looks these up (gvv_vue_{table}_short_field_{field}) for the
+// compact admin table view (bs_tableView.php).
+$lang['gvv_vue_motd_messages_short_field_title'] = 'Titel';
+$lang['gvv_vue_motd_messages_short_field_level'] = 'Niveau';
+$lang['gvv_vue_motd_messages_short_field_start_date'] = 'Begin';
+$lang['gvv_vue_motd_messages_short_field_end_date'] = 'Einde';
+$lang['gvv_vue_motd_messages_short_field_target_label'] = 'Ontvangers';
+$lang['gvv_vue_motd_messages_short_field_origin'] = 'Oorsprong';
 
 $lang['motd_level_urgent'] = 'Dringend';
 $lang['motd_level_important'] = 'Belangrijk';

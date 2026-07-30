@@ -19,6 +19,8 @@ $lang['motd_field_target_type'] = 'Recipients';
 $lang['motd_field_target_list_id'] = 'Mailing list';
 $lang['motd_field_target_user_login'] = 'User';
 $lang['motd_field_origin'] = 'Origin';
+$lang['motd_field_recipient_count'] = 'Recipient count';
+$lang['motd_field_acknowledged_count'] = 'Acknowledged';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -32,6 +34,22 @@ $lang['gvv_motd_messages_field_target_type'] = 'Recipients';
 $lang['gvv_motd_messages_field_target_list_id'] = 'Mailing list';
 $lang['gvv_motd_messages_field_target_user_login'] = 'User';
 $lang['gvv_motd_messages_field_origin'] = 'Origin';
+$lang['gvv_motd_messages_field_id'] = 'ID';
+$lang['gvv_motd_messages_field_source_type'] = 'Source type';
+$lang['gvv_motd_messages_field_source_ref'] = 'Source reference';
+$lang['gvv_motd_messages_field_created_at'] = 'Creation date';
+$lang['gvv_motd_messages_field_updated_at'] = 'Last modified';
+$lang['gvv_motd_messages_field_created_by'] = 'Created by';
+$lang['gvv_motd_messages_field_updated_by'] = 'Modified by';
+
+// field_name() looks these up (gvv_vue_{table}_short_field_{field}) for the
+// compact admin table view (bs_tableView.php).
+$lang['gvv_vue_motd_messages_short_field_title'] = 'Title';
+$lang['gvv_vue_motd_messages_short_field_level'] = 'Level';
+$lang['gvv_vue_motd_messages_short_field_start_date'] = 'Start';
+$lang['gvv_vue_motd_messages_short_field_end_date'] = 'End';
+$lang['gvv_vue_motd_messages_short_field_target_label'] = 'Recipients';
+$lang['gvv_vue_motd_messages_short_field_origin'] = 'Origin';
 
 $lang['motd_level_urgent'] = 'Urgent';
 $lang['motd_level_important'] = 'Important';

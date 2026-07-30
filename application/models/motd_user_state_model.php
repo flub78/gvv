@@ -93,6 +93,16 @@ class Motd_user_state_model extends Common_Model {
     }
 
     /**
+     * Number of users who acknowledged ("pris connaissance") a message.
+     */
+    public function acknowledged_count($message_id) {
+        return (int) $this->db
+            ->where('message_id', $message_id)
+            ->where('acknowledged', 1)
+            ->count_all_results($this->table);
+    }
+
+    /**
      * @return int|FALSE The state row id on success, FALSE if the write failed.
      */
     private function upsert_state($message_id, $user_login, $data) {

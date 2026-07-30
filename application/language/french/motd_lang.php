@@ -19,6 +19,8 @@ $lang['motd_field_target_type'] = 'Destinataires';
 $lang['motd_field_target_list_id'] = 'Liste de diffusion';
 $lang['motd_field_target_user_login'] = 'Utilisateur';
 $lang['motd_field_origin'] = 'Origine';
+$lang['motd_field_recipient_count'] = 'Nb. destinataires';
+$lang['motd_field_acknowledged_count'] = 'Pris connaissance';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -32,6 +34,22 @@ $lang['gvv_motd_messages_field_target_type'] = 'Destinataires';
 $lang['gvv_motd_messages_field_target_list_id'] = 'Liste de diffusion';
 $lang['gvv_motd_messages_field_target_user_login'] = 'Utilisateur';
 $lang['gvv_motd_messages_field_origin'] = 'Origine';
+$lang['gvv_motd_messages_field_id'] = 'ID';
+$lang['gvv_motd_messages_field_source_type'] = 'Type de source';
+$lang['gvv_motd_messages_field_source_ref'] = 'Référence source';
+$lang['gvv_motd_messages_field_created_at'] = 'Date de création';
+$lang['gvv_motd_messages_field_updated_at'] = 'Date de modification';
+$lang['gvv_motd_messages_field_created_by'] = 'Créé par';
+$lang['gvv_motd_messages_field_updated_by'] = 'Modifié par';
+
+// field_name() looks these up (gvv_vue_{table}_short_field_{field}) for the
+// compact admin table view (bs_tableView.php).
+$lang['gvv_vue_motd_messages_short_field_title'] = 'Titre';
+$lang['gvv_vue_motd_messages_short_field_level'] = 'Niveau';
+$lang['gvv_vue_motd_messages_short_field_start_date'] = 'Début';
+$lang['gvv_vue_motd_messages_short_field_end_date'] = 'Fin';
+$lang['gvv_vue_motd_messages_short_field_target_label'] = 'Destinataires';
+$lang['gvv_vue_motd_messages_short_field_origin'] = 'Origine';
 
 $lang['motd_level_urgent'] = 'Urgent';
 $lang['motd_level_important'] = 'Important';

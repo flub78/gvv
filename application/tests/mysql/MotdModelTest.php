@@ -522,6 +522,55 @@ class MotdModelTest extends TestCase
         $this->assertEquals(2, $unread_count);
     }
 
+    // ==================== Admin list (recipient / acknowledged counts) ====================
+
+    public function testRecipientCount_TargetUser()
+    {
+        $message = array('target_type' => 'user', 'target_user_login' => $this->pilot_b);
+        $this->assertEquals(1, $this->motd_model->recipient_count($message));
+    }
+
+    public function testRecipientCount_TargetList()
+    {
+        $list_id = $this->email_lists_model->create_list(array(
+            'name' => 'TEST_motd_list_count',
+            'created_by' => $this->test_user_id,
+        ));
+        $this->test_list_ids[] = $list_id;
+        $this->email_lists_model->add_manual_member($list_id, $this->pilot_a);
+        $this->email_lists_model->add_manual_member($list_id, $this->pilot_b);
+
+        $message = array('target_type' => 'list', 'target_list_id' => $list_id);
+        $this->assertEquals(2, $this->motd_model->recipient_count($message));
+    }
+
+    public function testRecipientCount_TargetAll()
+    {
+        $expected = (int) $this->db->where('banned', 0)->count_all_results('users');
+        $message = array('target_type' => 'all');
+        $this->assertEquals($expected, $this->motd_model->recipient_count($message));
+    }
+
+    public function testSelectPage_IncludesRecipientAndAcknowledgedCounts()
+    {
+        $id = $this->motd_model->create_message($this->base_message(array(
+            'title' => 'Count me',
+            'target_type' => 'user',
+            'target_user_login' => $this->pilot_b,
+        )));
+        $this->test_message_ids[] = $id;
+
+        $rows = $this->motd_model->select_page(0, 0, array('id' => $id));
+        $this->assertCount(1, $rows);
+        $this->assertEquals(1, $rows[0]['recipient_count']);
+        $this->assertEquals(0, $rows[0]['acknowledged_count'], 'Not yet acknowledged by anyone');
+
+        $this->motd_user_state_model->acknowledge_message($id, $this->pilot_b);
+
+        $rows = $this->motd_model->select_page(0, 0, array('id' => $id));
+        $this->assertEquals(1, $rows[0]['acknowledged_count']);
+    }
+
     // ==================== User prefs ====================
 
     public function testGetPrefs_DefaultsWhenNoneStored()

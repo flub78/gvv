@@ -99,12 +99,32 @@ class Motd_model extends Common_Model {
 
         $rows = $this->get_to_array($this->db->get());
 
+        $CI = &get_instance();
+        $CI->load->model('motd_user_state_model');
+
         foreach ($rows as &$row) {
             $row['target_label'] = $this->target_label($row);
+            $row['recipient_count'] = $this->recipient_count($row);
+            $row['acknowledged_count'] = $CI->motd_user_state_model->acknowledged_count($row['id']);
         }
 
         $this->gvvmetadata->store_table('vue_motd_messages', $rows);
         return $rows;
+    }
+
+    /**
+     * Number of users targeted by a message: the mailing list's members,
+     * a single user, or every login-capable account for 'all'.
+     */
+    public function recipient_count($message) {
+        switch ($message['target_type']) {
+            case 'user':
+                return empty($message['target_user_login']) ? 0 : 1;
+            case 'list':
+                return empty($message['target_list_id']) ? 0 : count($this->list_member_logins($message['target_list_id']));
+            default:
+                return (int) $this->db->where('banned', 0)->count_all_results('users');
+        }
     }
 
     /**

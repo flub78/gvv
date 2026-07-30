@@ -1078,6 +1078,10 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_motd_messages']['end_date']['Type'] = 'date';
                 $this->field['vue_motd_messages']['target_label']['Name'] = $CI->lang->line('motd_field_target_type');
                 $this->field['vue_motd_messages']['origin']['Name'] = $CI->lang->line('motd_field_origin');
+                $this->field['vue_motd_messages']['recipient_count']['Name'] = $CI->lang->line('motd_field_recipient_count');
+                $this->field['vue_motd_messages']['recipient_count']['Type'] = 'int';
+                $this->field['vue_motd_messages']['acknowledged_count']['Name'] = $CI->lang->line('motd_field_acknowledged_count');
+                $this->field['vue_motd_messages']['acknowledged_count']['Type'] = 'int';
 
                 /**
                  * Acceptance Items - Elements a faire accepter
