@@ -228,6 +228,7 @@ $(function() {
         hideUrl: '<?= controller_url('motd') ?>/hide_message',
         hideAllUrl: '<?= controller_url('motd') ?>/hide_all',
         unhideAllUrl: '<?= controller_url('motd') ?>/unhide_all',
+        toggleUrl: '<?= controller_url('motd') ?>/toggle_section',
         ackUrl: '<?= controller_url('motd') ?>/acknowledge_message',
         replyUrl: '<?= controller_url('motd') ?>/reply',
         errorFallback: <?= json_encode($this->lang->line('motd_error_action_failed')) ?>,

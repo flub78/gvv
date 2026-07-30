@@ -130,7 +130,7 @@ function motd_init_dashboard_section(toggleUrl, sortUrl) {
  * Câble les actions utilisateur sur chaque message : masquer, masquer tous,
  * pris connaissance, répondre (et répondre à une réponse, admin seulement).
  *
- * @param opts { hideUrl, hideAllUrl, unhideAllUrl, ackUrl, replyUrl, errorFallback, ackBadgeLabel, repliesTitle, activeCountLabel }
+ * @param opts { hideUrl, hideAllUrl, unhideAllUrl, toggleUrl, ackUrl, replyUrl, errorFallback, ackBadgeLabel, repliesTitle, activeCountLabel }
  */
 function motd_init_dashboard_actions(opts) {
 	function showError($container, message) {
@@ -174,7 +174,12 @@ function motd_init_dashboard_actions(opts) {
 	});
 
 	$('#motdShowHiddenBtn').on('click', function() {
-		$.post(opts.unhideAllUrl, {}, function() {
+		// Affiche aussi les messages masques que deplie la section, pour que
+		// l'utilisateur les voie immediatement sans devoir cliquer l'accordeon.
+		$.when(
+			$.post(opts.unhideAllUrl, {}),
+			$.post(opts.toggleUrl, { collapsed: 0 })
+		).done(function() {
 			location.reload();
 		}).fail(function() {
 			alert(opts.errorFallback);
