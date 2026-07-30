@@ -4,6 +4,7 @@
  */
 
 $lang['motd_title'] = 'Berichten van de dag';
+$lang['motd_active_count'] = '%d actief(ve) bericht(en)';
 $lang['motd_add'] = 'Nieuw bericht';
 $lang['motd_edit'] = 'Bericht bewerken';
 $lang['motd_view'] = 'Bericht bekijken';
@@ -67,15 +68,12 @@ $lang['motd_reply_submit'] = 'Beantwoorden';
 $lang['motd_reply_to_reply'] = 'Beantwoorden';
 $lang['motd_reply_cancel'] = 'Annuleren';
 $lang['motd_reply_replying_to'] = 'Antwoord op';
-$lang['motd_confirm_hide_all'] = 'Alle actieve berichten verbergen?';
 $lang['motd_error_reply_empty'] = 'De reactie mag niet leeg zijn.';
 $lang['motd_error_action_failed'] = 'Er is een fout opgetreden, probeer het opnieuw.';
 
-$lang['motd_my_messages_title'] = 'Al mijn berichten';
-$lang['motd_my_messages_link'] = 'Al mijn berichten';
-$lang['motd_my_messages_empty'] = 'Er is momenteel geen bericht aan u gericht.';
-$lang['motd_my_messages_all_hidden'] = 'U heeft geen zichtbaar bericht meer. Gebruik de knop hierboven om verborgen berichten weer te geven.';
-$lang['motd_action_show_hidden'] = 'Verborgen berichten weergeven';
+$lang['motd_section_empty'] = 'Er is momenteel geen bericht aan u gericht.';
+$lang['motd_section_all_hidden'] = 'U heeft geen zichtbaar bericht meer. Gebruik de knop "Alle berichten weergeven" hierboven om ze terug te vinden.';
+$lang['motd_action_show_all'] = 'Alle berichten weergeven';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/dutch/motd_lang.php */

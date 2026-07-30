@@ -2,7 +2,8 @@
  * Playwright smoke tests for the Messages du jour (MOTD) dashboard section
  *
  * Tests:
- * - No active message => the section is not rendered
+ * - No active message => the section is still rendered, collapsed, with an
+ *   empty-state message (the section is never removed from the dashboard)
  * - An urgent unread message => the section is expanded by default, the
  *   message and its replies are visible
  * - Sort criterion selection is persisted via AJAX
@@ -73,7 +74,7 @@ test.describe.serial('MOTD Dashboard Smoke Tests', () => {
     await conn.end();
   });
 
-  test('no active message => no MOTD section on the dashboard', async ({ page }) => {
+  test('no active message => the section stays visible, empty and collapsed', async ({ page }) => {
     await login(page, PILOT_USER);
     await page.goto(DASHBOARD_URL);
     await page.waitForLoadState('networkidle');
@@ -82,15 +83,20 @@ test.describe.serial('MOTD Dashboard Smoke Tests', () => {
 
     // Other suites running concurrently may have their own active messages
     // visible to testuser; hide anything currently shown so this test only
-    // asserts its own scenario (no *unhidden* message left => no section).
+    // asserts its own scenario (no *unhidden* message left => empty section).
     const hideAllBtn = page.locator('#motdHideAllBtn');
     if (await hideAllBtn.count() > 0) {
-      page.once('dialog', dialog => dialog.accept());
       await hideAllBtn.click();
       await page.waitForLoadState('networkidle');
     }
 
-    await expect(page.locator('#motdSectionBody')).toHaveCount(0);
+    // The banner itself is never removed (it's the only way to reach hidden
+    // messages again via "Afficher tous les messages"), but it has no
+    // content and stays collapsed by default.
+    await expect(page.locator('#motdSectionCard')).toBeVisible();
+    await expect(page.locator('#motdSectionBody')).not.toHaveClass(/show/);
+    await expect(page.locator('#motdSectionEmptyText')).toHaveCount(1);
+    await expect(page.locator('#motdAccordion')).toHaveCount(0);
   });
 
   test('urgent unread message is expanded by default with its reply', async ({ page }) => {

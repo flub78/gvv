@@ -69,8 +69,8 @@ class Welcome extends Gvv_Controller {
         $data = $this->_prepare_dashboard_data();
         $this->push_return_url("welcome dashboard");
         // La page d'accueil n'appartient à aucune section : sans ceci, le bouton
-        // "retour" des pages filles (ex. motd/mine) réutiliserait la section
-        // visitée précédemment, restée en session, au lieu de revenir ici.
+        // "retour" des pages filles réutiliserait la section visitée
+        // précédemment, restée en session, au lieu de revenir ici.
         $this->lang->load('tableaux_de_bord');
         $this->session->set_userdata('nav_from_url', 'welcome');
         $this->session->set_userdata('nav_from_label', $this->lang->line('db_btn_retour'));
@@ -309,56 +309,18 @@ class Welcome extends Gvv_Controller {
         $data['motd_section_expanded'] = !empty($motd_messages)
             && ($motd_has_priority_unread || empty($motd_prefs['section_collapsed']));
 
-        // MOD (Message of the Day) handling
-        $this->load->helper('file');
-        // Date du dernier MOD
-        $config_file = "./application/config/club.php";
-        if (!$info = get_file_info($config_file)) {
-            gvv_debug("$config_file non trouvé");
+        // Nombre de messages actifs que l'utilisateur a masques individuellement
+        // (bouton "Afficher tous les messages" de la section, pour les retrouver).
+        $motd_hidden_count = 0;
+        $motd_all_messages = $this->motd_model->active_messages_for_user($data['username'], $motd_prefs['sort_by'], FALSE);
+        foreach ($motd_all_messages as $motd_message) {
+            if (!empty($motd_message['hidden'])) {
+                $motd_hidden_count++;
+            }
         }
-        $mod_date = $info ? $info['date'] : 0;
-        $this->load->helper('cookie');
-
-        $cookie = get_cookie('gvv_mod_date');
-
-        if ($cookie && ($mod_date <= $cookie)) {
-            // Cookie set et mod est plus vieux
-            // on affiche rien
-            $data['mod'] = '';
-        } else {
-            // pas de cookie ou MOD est plus récent
-            $data['mod'] = $this->config->item('mod');
-        }
+        $data['motd_hidden_count'] = $motd_hidden_count;
 
         return $data;
-    }
-
-    /*
-     * Set a cookie with the date of the MOD
-     */
-    function set_cookie() {
-        $this->load->helper('file');
-        // Date du dernier MOD
-        $config_file = "./application/config/club.php";
-        if (! $info = get_file_info($config_file)) {
-            echo "$config_file non trouvé" . br();
-        }
-        $mod_date = $info['date'];
-        $this->load->helper('cookie');
-
-        $this->input->set_cookie(array(
-            'name' => 'mod_date',
-            'value' => $mod_date,
-            'expire' => 86500 * 7,
-            'prefix' => 'gvv_'
-        ));
-
-        $json = json_encode(array(
-            'status' => "OK",
-            'action' => 'set_cookie'
-        ));
-        gvv_debug("json = $json");
-        echo $json;
     }
 
     function nyi() {

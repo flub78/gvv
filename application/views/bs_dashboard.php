@@ -89,24 +89,7 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         </div>
     </div>
 
-    <!-- Message du jour -->
-    <?php if ($mod): ?>
-    <div id="mod_dialog" style="display:none" title="<?= $this->lang->line("gvv_config_mod") ?>">
-        <div class="markdown-content">
-            <?= markdown($mod) ?>
-        </div>
-        <div class="mt-3">
-            <label>
-                <input type="checkbox" name="no_mod" value="0" id="no_mod" class="form-check-input" />
-                <small class="text-muted ms-1"><?= $this->lang->line("gvv_no_more_mod") ?></small>
-            </label>
-            <input type="hidden" name="mod_title" value="<?= $this->lang->line("gvv_config_mod") ?>" />
-        </div>
-    </div>
-    <?php endif; ?>
-
-    <!-- Messages du jour (nouvelle section repliable) -->
-    <?php if (!empty($motd_messages)): ?>
+    <!-- Messages du jour (section repliable, toujours affichee) -->
     <div class="card mb-4" id="motdSectionCard">
         <div class="card-header bg-primary text-white d-flex flex-wrap align-items-center gap-2"
              data-bs-toggle="collapse" data-bs-target="#motdSectionBody"
@@ -114,12 +97,23 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
             <h5 class="mb-0 flex-grow-1">
                 <i class="fas fa-bullhorn" aria-hidden="true"></i>
                 <?= $this->lang->line('motd_title') ?>
-                <span class="badge bg-light text-dark ms-1"><?= count($motd_messages) ?></span>
+                <?php if (!empty($motd_unread_count)): ?>
+                <span class="badge rounded-pill bg-danger ms-1" id="motdSectionUnreadBadge"><?= $motd_unread_count ?></span>
+                <?php endif; ?>
+                <small class="d-block text-white-50 fw-normal" id="motdSectionActiveCount">
+                    <?= sprintf($this->lang->line('motd_active_count'), count($motd_messages)) ?>
+                </small>
             </h5>
             <select id="motdSortSelect" class="form-select form-select-sm me-2" style="width: auto;">
                 <option value="priority" <?= $motd_sort_by === 'priority' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_priority') ?></option>
                 <option value="date" <?= $motd_sort_by === 'date' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_date') ?></option>
             </select>
+            <button type="button" id="motdShowHiddenBtn" class="btn btn-sm btn-light me-2">
+                <i class="fas fa-eye" aria-hidden="true"></i> <?= $this->lang->line('motd_action_show_all') ?>
+                <?php if (!empty($motd_hidden_count)): ?>
+                <span class="badge bg-secondary"><?= $motd_hidden_count ?></span>
+                <?php endif; ?>
+            </button>
             <button type="button" id="motdHideAllBtn" class="btn btn-sm btn-light me-2">
                 <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide_all') ?>
             </button>
@@ -127,19 +121,15 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         </div>
         <div id="motdSectionBody" class="collapse <?= $motd_section_expanded ? 'show' : '' ?>">
             <div class="card-body" style="max-height: 480px; overflow-y: auto;">
-                <?php $this->load->view('motd/_message_accordion', array('motd_messages' => $motd_messages, 'is_admin' => $is_admin)); ?>
+                <?php if (!empty($motd_messages)): ?>
+                    <?php $this->load->view('motd/_message_accordion', array('motd_messages' => $motd_messages, 'is_admin' => $is_admin)); ?>
+                <?php else: ?>
+                    <p class="text-muted mb-0" id="motdSectionEmptyText">
+                        <?= $this->lang->line(!empty($motd_hidden_count) ? 'motd_section_all_hidden' : 'motd_section_empty') ?>
+                    </p>
+                <?php endif; ?>
             </div>
         </div>
-    </div>
-    <?php endif; ?>
-
-    <div class="mb-2">
-        <a href="<?= controller_url('motd/mine') ?>" class="btn btn-outline-primary btn-sm" id="motdMineLink">
-            <i class="fas fa-inbox" aria-hidden="true"></i> <?= $this->lang->line('motd_my_messages_link') ?>
-            <?php if (!empty($motd_unread_count)): ?>
-            <span class="badge rounded-pill bg-danger" id="motdMineUnreadBadge"><?= $motd_unread_count ?></span>
-            <?php endif; ?>
-        </a>
     </div>
 
     <!-- Section tiles grid -->
@@ -227,77 +217,6 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
 
 </div>
 
-<!-- CSS and JS for MOD dialog -->
-<style>
-.ui-dialog { max-width: 90vw !important; box-sizing: border-box; }
-#mod_dialog { max-width: 100%; overflow-x: hidden; word-wrap: break-word; }
-#mod_dialog img { display: block !important; max-width: 100% !important; height: auto !important; margin: 10px auto !important; visibility: visible !important; }
-#mod_dialog a, #mod_dialog .markdown-content a { color: #007bff !important; text-decoration: underline !important; cursor: pointer !important; font-weight: 500 !important; }
-#mod_dialog a:hover, #mod_dialog .markdown-content a:hover { color: #0056b3 !important; font-weight: 600 !important; }
-.ui-dialog { z-index: 9999 !important; }
-.ui-widget-overlay { z-index: 9998 !important; }
-@media (max-width: 768px) {
-    .ui-dialog { margin: 10px !important; top: 70px !important; max-height: calc(100vh - 80px) !important; }
-    .ui-dialog .ui-dialog-content { padding: 10px !important; max-height: calc(100vh - 180px) !important; overflow-y: auto !important; }
-    .ui-dialog .ui-dialog-buttonpane { padding: 5px 10px !important; }
-    .ui-dialog .ui-dialog-titlebar { padding: 8px 10px !important; }
-}
-</style>
-
-<?php if ($mod): ?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function handleDontShowAgain() {
-        const noModCheckbox = document.getElementById('no_mod');
-        if (noModCheckbox && noModCheckbox.checked) {
-            fetch('<?= controller_url("welcome/set_cookie") ?>')
-                .then(response => response.json())
-                .catch(error => console.error('Error setting MOD cookie:', error));
-        }
-    }
-
-    function getResponsiveWidth() {
-        return Math.min(600, window.innerWidth * 0.9);
-    }
-
-    $('#mod_dialog').dialog({
-        modal: true,
-        width: getResponsiveWidth(),
-        height: 'auto',
-        resizable: true,
-        draggable: true,
-        closeOnEscape: true,
-        buttons: {
-            "OK": function() { handleDontShowAgain(); $(this).dialog('close'); }
-        },
-        close: function() { handleDontShowAgain(); },
-        position: { my: "center", at: "center", of: window }
-    });
-
-    let resizeTimer;
-    $(window).on('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            if ($('#mod_dialog').dialog('isOpen')) {
-                $('#mod_dialog').dialog('option', 'width', getResponsiveWidth());
-                $('#mod_dialog').dialog('option', 'position', { my: "center", at: "center", of: window });
-            }
-        }, 250);
-    });
-
-    $('#mod_dialog').dialog('open');
-
-    $('#mod_dialog a').each(function() {
-        const href = $(this).attr('href');
-        if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
-            $(this).attr('target', '_blank').attr('rel', 'noopener noreferrer');
-        }
-    });
-});
-</script>
-<?php endif; ?>
-
-<?php if (!empty($motd_messages)): ?>
 <?= html_script(array('type' => "text/javascript", 'src' => js_url('motd'))) ?>
 <script>
 $(function() {
@@ -308,13 +227,13 @@ $(function() {
     motd_init_dashboard_actions({
         hideUrl: '<?= controller_url('motd') ?>/hide_message',
         hideAllUrl: '<?= controller_url('motd') ?>/hide_all',
+        unhideAllUrl: '<?= controller_url('motd') ?>/unhide_all',
         ackUrl: '<?= controller_url('motd') ?>/acknowledge_message',
         replyUrl: '<?= controller_url('motd') ?>/reply',
-        confirmHideAll: <?= json_encode($this->lang->line('motd_confirm_hide_all')) ?>,
         errorFallback: <?= json_encode($this->lang->line('motd_error_action_failed')) ?>,
         ackBadgeLabel: <?= json_encode($this->lang->line('motd_acknowledged_badge')) ?>,
-        repliesTitle: <?= json_encode($this->lang->line('motd_replies_title')) ?>
+        repliesTitle: <?= json_encode($this->lang->line('motd_replies_title')) ?>,
+        activeCountLabel: <?= json_encode($this->lang->line('motd_active_count')) ?>
     });
 });
 </script>
-<?php endif; ?>

@@ -121,7 +121,7 @@ function motd_init_dashboard_section(toggleUrl, sortUrl) {
 		});
 	});
 
-	$('#motdHideAllBtn').on('click', function(e) {
+	$('#motdHideAllBtn, #motdShowHiddenBtn').on('click', function(e) {
 		e.stopPropagation();
 	});
 }
@@ -130,17 +130,17 @@ function motd_init_dashboard_section(toggleUrl, sortUrl) {
  * Câble les actions utilisateur sur chaque message : masquer, masquer tous,
  * pris connaissance, répondre (et répondre à une réponse, admin seulement).
  *
- * @param opts { hideUrl, hideAllUrl, unhideAllUrl, ackUrl, replyUrl, confirmHideAll, errorFallback, ackBadgeLabel, repliesTitle }
+ * @param opts { hideUrl, hideAllUrl, unhideAllUrl, ackUrl, replyUrl, errorFallback, ackBadgeLabel, repliesTitle, activeCountLabel }
  */
 function motd_init_dashboard_actions(opts) {
 	function showError($container, message) {
 		$container.find('.motd-action-error').first().text(message || opts.errorFallback);
 	}
 
-	// Le badge "Tous mes messages" affiche le nombre de messages non lus ;
-	// il doit rester exact après un masquage/acquittement sans recharger la page.
-	function decrementMineBadge() {
-		var $badge = $('#motdMineUnreadBadge');
+	// Le badge "non lus" du bandeau doit rester exact après un
+	// masquage/acquittement sans recharger la page.
+	function decrementUnreadBadge() {
+		var $badge = $('#motdSectionUnreadBadge');
 		if (!$badge.length) {
 			return;
 		}
@@ -153,9 +153,6 @@ function motd_init_dashboard_actions(opts) {
 	}
 
 	$('#motdHideAllBtn').on('click', function() {
-		if (!confirm(opts.confirmHideAll)) {
-			return;
-		}
 		$.post(opts.hideAllUrl, {}, function() {
 			location.reload();
 		}).fail(function() {
@@ -188,13 +185,19 @@ function motd_init_dashboard_actions(opts) {
 				$item.fadeOut(200, function() {
 					$(this).remove();
 					var remaining = $accordion.find('.accordion-item').length;
-					$('#motdSectionCard .badge').first().text(remaining);
 					if (remaining === 0) {
-						$accordion.closest('.card').fadeOut(200);
+						// Recharge pour afficher l'etat "aucun message actif" rendu
+						// cote serveur (texte + bouton "Afficher tous les messages").
+						location.reload();
+						return;
+					}
+					var $activeCount = $('#motdSectionActiveCount');
+					if ($activeCount.length && opts.activeCountLabel) {
+						$activeCount.text(opts.activeCountLabel.replace('%d', remaining));
 					}
 				});
 				if (wasUnread) {
-					decrementMineBadge();
+					decrementUnreadBadge();
 				}
 			})
 			.fail(function() {
@@ -217,7 +220,7 @@ function motd_init_dashboard_actions(opts) {
 				$badge.append(document.createTextNode(opts.ackBadgeLabel));
 				$btn.replaceWith($badge);
 				$btn.closest('.accordion-item').data('unread', 0);
-				decrementMineBadge();
+				decrementUnreadBadge();
 			})
 			.fail(function() {
 				showError($actions, opts.errorFallback);

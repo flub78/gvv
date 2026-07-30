@@ -347,40 +347,6 @@ class Motd extends Gvv_Controller {
     }
 
     /**
-     * Dedicated page (PRD EF4): every currently active message applicable to
-     * the user (direct target, mailing list, or all), including messages
-     * already hidden from the dashboard section. Expired/not-yet-started
-     * messages are never shown (policy set at plan step 1).
-     */
-    public function mine() {
-        $username = $this->dx_auth->get_username();
-        $motd_prefs = $this->motd_user_prefs_model->get_prefs($username);
-        // Masquage persistant (session/rechargement) : comme sur le dashboard, un
-        // message masqué reste masqué tant que l'utilisateur ne le démasque pas
-        // explicitement via le bouton "Afficher les messages masqués".
-        $motd_messages = $this->gvv_model->active_messages_for_user($username, $motd_prefs['sort_by'], TRUE);
-        foreach ($motd_messages as &$motd_message) {
-            $motd_message['replies'] = $this->motd_replies_model->replies_for_message($motd_message['id']);
-        }
-        unset($motd_message);
-
-        $all_messages = $this->gvv_model->active_messages_for_user($username, $motd_prefs['sort_by'], FALSE);
-        $hidden_count = 0;
-        foreach ($all_messages as $motd_message) {
-            if (!empty($motd_message['hidden'])) {
-                $hidden_count++;
-            }
-        }
-
-        $data = array(
-            'motd_messages' => $motd_messages,
-            'motd_hidden_count' => $hidden_count,
-            'is_admin' => $this->can_manage(),
-        );
-        load_last_view('motd/bs_my_messages', $data, $this->unit_test);
-    }
-
-    /**
      * AJAX: the current user hides one message on their own dashboard.
      */
     public function hide_message($id) {

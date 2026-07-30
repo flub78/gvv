@@ -152,6 +152,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Configuration des préférences par le pilote (canal, délai)
 - Supervision des envois via les logs d'administration
 
+#### [15. Gestion des Messages](15_gestion_messages.md)
+**Messages du jour affichés sur le tableau de bord**
+- Niveaux (urgent, important, info, alerte) et ciblage des destinataires
+- Actions du pilote : lecture, réponse, masquage
+- Création et administration des messages
+- Limite importante : n'atteint que les membres qui se connectent régulièrement
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -192,7 +199,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
 7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données
 8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
-9. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
+10. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

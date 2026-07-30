@@ -66,10 +66,9 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Les choix de masquage sont persistants.
 - La section de message est une liste scrollable. Elle peut-être trié par date de début d’affichage ou par niveau d’importance. Chaque message peut être développé ou réduit (accordéon) pour consulter le contenu complet.
 
-### EF4 — Page “Tous mes messages”
-- Une page dédiée liste tous les messages (actifs et passés selon la politique définie).
-- Chaque message peut être développé ou réduit (accordéon).
-- Depuis cette page, l’utilisateur peut consulter les détails complets des messages qui lui sont adressés.
+### EF4 — Retrouver les messages masqués
+- Le bandeau reste affiché même lorsqu’aucun message actif ne subsiste (par exemple si l’utilisateur les a tous masqués), afin de rester accessible.
+- Un bouton “Afficher tous les messages” permet de faire réapparaître les messages que l’utilisateur a masqués individuellement.
 
 ### EF5 — Accès
 - Seuls les administrateurs peuvent gérer les messages.

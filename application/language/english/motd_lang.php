@@ -4,6 +4,7 @@
  */
 
 $lang['motd_title'] = 'Messages of the day';
+$lang['motd_active_count'] = '%d active message(s)';
 $lang['motd_add'] = 'New message';
 $lang['motd_edit'] = 'Edit message';
 $lang['motd_view'] = 'View message';
@@ -67,15 +68,12 @@ $lang['motd_reply_submit'] = 'Reply';
 $lang['motd_reply_to_reply'] = 'Reply';
 $lang['motd_reply_cancel'] = 'Cancel';
 $lang['motd_reply_replying_to'] = 'Replying to';
-$lang['motd_confirm_hide_all'] = 'Hide all active messages?';
 $lang['motd_error_reply_empty'] = 'The reply cannot be empty.';
 $lang['motd_error_action_failed'] = 'An error occurred, please try again.';
 
-$lang['motd_my_messages_title'] = 'All my messages';
-$lang['motd_my_messages_link'] = 'All my messages';
-$lang['motd_my_messages_empty'] = 'No message is currently addressed to you.';
-$lang['motd_my_messages_all_hidden'] = 'You have no unhidden message. Use the button above to show hidden messages.';
-$lang['motd_action_show_hidden'] = 'Show hidden messages';
+$lang['motd_section_empty'] = 'No message is currently addressed to you.';
+$lang['motd_section_all_hidden'] = 'You have no unhidden message. Use the "Show all messages" button above to find them again.';
+$lang['motd_action_show_all'] = 'Show all messages';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/english/motd_lang.php */

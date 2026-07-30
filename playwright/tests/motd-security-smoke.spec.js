@@ -60,6 +60,17 @@ async function expandIfCollapsed(page, title) {
   }
 }
 
+// The outer MOTD section may render collapsed once no unread urgent/important
+// message remains (it then falls back to the user's persisted preference).
+async function expandSectionIfCollapsed(page) {
+  const section = page.locator('#motdSectionBody');
+  const expanded = await section.evaluate(el => el.classList.contains('show'));
+  if (!expanded) {
+    await page.locator('.card-header', { hasText: 'Messages du jour' }).click();
+    await page.waitForTimeout(300);
+  }
+}
+
 test.describe.serial('MOTD Security Smoke Tests', () => {
   let conn;
   let xssMsgId, privateMsgId, mediaId, mediaFilename;
@@ -120,8 +131,9 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
 
   test('message content is rendered as escaped text, not live HTML', async ({ page }) => {
     await login(page, ADMIN_USER);
-    await page.goto('/index.php/motd/mine');
+    await page.goto('/index.php/welcome');
     await page.waitForLoadState('networkidle');
+    await expandSectionIfCollapsed(page);
     await expandIfCollapsed(page, xssTitle);
 
     // No <script>/onerror ever executed.
@@ -157,7 +169,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
     const [rows] = await conn.query('SELECT COUNT(*) AS n FROM motd_replies WHERE message_id = ?', [privateMsgId]);
     expect(rows[0].n).toBe(0);
 
-    await page.goto('/index.php/motd/mine');
+    await page.goto('/index.php/welcome');
     await page.waitForLoadState('networkidle');
     await expect(page.locator(`text=${privateTitle}`)).toHaveCount(0);
   });

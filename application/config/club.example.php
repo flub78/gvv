@@ -21,8 +21,6 @@ $config['club'] = "accabs";
 $config['url_gcalendar'] = "https://www.google.com/calendar/embed?src=gvv.abbeville@gmail.com&ctz=Europe/Paris";
 $config['url_planche_auto'] = "http://flightlog.glidernet.org/";
 $config['logo_club'] = "./uploads/24eb9a9d50df8e3e61aa626a96517733.jpg";
-$config['mod'] = "Ceci est le message du jour. 
-Bises";
 $config['ffvv_id'] = "";
 $config['ffvv_pwd'] = "";
 $config['ffvv_product'] = "Cotisation membre volant -25 ans";

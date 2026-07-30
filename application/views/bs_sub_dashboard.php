@@ -25,7 +25,6 @@ $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
 $this->lang->load('tableaux_de_bord');
-$this->lang->load('motd');
 
 $show_planeurs  = empty($section) || !empty($section['gestion_planeurs']);
 $show_avions    = empty($section) || !empty($section['gestion_avions']);
@@ -97,15 +96,6 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <?= $meta['title'] ?>
             </h2>
         </div>
-    </div>
-
-    <div class="mb-2">
-        <a href="<?= controller_url('motd/mine') ?>" class="btn btn-outline-primary btn-sm" id="motdMineLink">
-            <i class="fas fa-inbox" aria-hidden="true"></i> <?= $this->lang->line('motd_my_messages_link') ?>
-            <?php if (!empty($motd_unread_count)): ?>
-            <span class="badge rounded-pill bg-danger" id="motdMineUnreadBadge"><?= $motd_unread_count ?></span>
-            <?php endif; ?>
-        </a>
     </div>
 
     <?php if ($dashboard_section === 'user'): ?>

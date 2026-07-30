@@ -32,14 +32,6 @@ class Calendar extends MY_Controller {
         }
     }
 
-    /*
-     * Set a cookie with the date of the MOD
-     */
-    function set_cookie() {
-        // Redirect to welcome controller
-        redirect("welcome/set_cookie");
-    }
-
     /**
      * Affiche le calendrier
      */

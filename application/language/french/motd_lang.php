@@ -4,6 +4,7 @@
  */
 
 $lang['motd_title'] = 'Messages du jour';
+$lang['motd_active_count'] = '%d message(s) actif(s)';
 $lang['motd_add'] = 'Nouveau message';
 $lang['motd_edit'] = 'Modifier le message';
 $lang['motd_view'] = 'Voir le message';
@@ -67,15 +68,12 @@ $lang['motd_reply_submit'] = 'Répondre';
 $lang['motd_reply_to_reply'] = 'Répondre';
 $lang['motd_reply_cancel'] = 'Annuler';
 $lang['motd_reply_replying_to'] = 'En réponse à';
-$lang['motd_confirm_hide_all'] = 'Masquer tous les messages actifs ?';
 $lang['motd_error_reply_empty'] = 'La réponse ne peut pas être vide.';
 $lang['motd_error_action_failed'] = 'Une erreur est survenue, veuillez réessayer.';
 
-$lang['motd_my_messages_title'] = 'Tous mes messages';
-$lang['motd_my_messages_link'] = 'Tous mes messages';
-$lang['motd_my_messages_empty'] = 'Aucun message ne vous est actuellement adressé.';
-$lang['motd_my_messages_all_hidden'] = "Vous n'avez aucun message non masqué. Utilisez le bouton ci-dessus pour afficher les messages masqués.";
-$lang['motd_action_show_hidden'] = 'Afficher les messages masqués';
+$lang['motd_section_empty'] = 'Aucun message ne vous est actuellement adressé.';
+$lang['motd_section_all_hidden'] = "Vous n'avez aucun message non masqué. Utilisez le bouton \"Afficher tous les messages\" ci-dessus pour les retrouver.";
+$lang['motd_action_show_all'] = 'Afficher tous les messages';
 
 /* End of file motd_lang.php */
 /* Location: ./application/language/french/motd_lang.php */

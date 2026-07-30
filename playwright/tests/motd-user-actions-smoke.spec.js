@@ -175,7 +175,6 @@ test.describe.serial('MOTD User Actions Smoke Tests', () => {
     await closeMod(page);
     await expandSectionIfCollapsed(page);
 
-    page.on('dialog', dialog => dialog.accept());
     await page.locator('#motdHideAllBtn').click();
     await page.waitForLoadState('networkidle');
 

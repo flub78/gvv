@@ -18,9 +18,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Partial: accordeon Bootstrap des messages MOTD, partage par la section
- * repliable du dashboard (bs_dashboard.php) et la page "Tous mes messages"
- * (bs_my_messages.php).
+ * Partial: accordeon Bootstrap des messages MOTD, utilise par la section
+ * repliable du dashboard (bs_dashboard.php).
  *
  * Attend en entree $motd_messages (avec 'replies'/'hidden'/'acknowledged'
  * deja rattaches par l'appelant) et $is_admin.
