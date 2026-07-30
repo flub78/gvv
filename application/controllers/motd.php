@@ -360,8 +360,13 @@ class Motd extends Gvv_Controller {
             show_404();
             return;
         }
-        $this->motd_user_state_model->hide_message($id, $username);
+        $ok = $this->motd_user_state_model->hide_message($id, $username);
         header('Content-Type: application/json');
+        if ($ok === FALSE) {
+            http_response_code(500);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));
+            return;
+        }
         echo json_encode(array('success' => TRUE));
     }
 
@@ -375,6 +380,11 @@ class Motd extends Gvv_Controller {
         }
         $count = $this->motd_user_state_model->hide_all_messages($this->dx_auth->get_username());
         header('Content-Type: application/json');
+        if ($count === FALSE) {
+            http_response_code(500);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));
+            return;
+        }
         echo json_encode(array('success' => TRUE, 'count' => $count));
     }
 
@@ -388,6 +398,11 @@ class Motd extends Gvv_Controller {
         }
         $count = $this->motd_user_state_model->unhide_all_messages($this->dx_auth->get_username());
         header('Content-Type: application/json');
+        if ($count === FALSE) {
+            http_response_code(500);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));
+            return;
+        }
         echo json_encode(array('success' => TRUE, 'count' => $count));
     }
 
@@ -405,8 +420,13 @@ class Motd extends Gvv_Controller {
             show_404();
             return;
         }
-        $this->motd_user_state_model->acknowledge_message($id, $username);
+        $ok = $this->motd_user_state_model->acknowledge_message($id, $username);
         header('Content-Type: application/json');
+        if ($ok === FALSE) {
+            http_response_code(500);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));
+            return;
+        }
         echo json_encode(array('success' => TRUE));
     }
 
@@ -453,6 +473,12 @@ class Motd extends Gvv_Controller {
             'created_by' => $username,
             'updated_by' => $username,
         ));
+        if ($reply_id === FALSE) {
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));
+            return;
+        }
         $reply = $this->motd_replies_model->get_reply($reply_id);
 
         gvv_info("motd: reply #$reply_id posted on message #$id by $username" . ($parent_reply_id ? " (in reply to #$parent_reply_id)" : ''));

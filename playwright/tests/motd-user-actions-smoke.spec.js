@@ -131,6 +131,14 @@ test.describe.serial('MOTD User Actions Smoke Tests', () => {
     await closeMod(page);
     await expandSectionIfCollapsed(page);
 
+    // Baseline "Afficher tous les messages" hidden-count badge, and a marker
+    // that only survives if the click below does NOT trigger a full page
+    // reload (regression check for review finding #3).
+    const hiddenCountBefore = await page.locator('#motdHiddenCountBadge').count()
+      ? parseInt(await page.locator('#motdHiddenCountBadge').textContent(), 10)
+      : 0;
+    await page.evaluate(() => { window.__noReloadMarker = true; });
+
     await expandIfCollapsed(page, titleA);
     const msgAItem = page.locator('.accordion-item', { hasText: titleA });
     await msgAItem.locator('.motd-hide-btn').click();
@@ -138,6 +146,10 @@ test.describe.serial('MOTD User Actions Smoke Tests', () => {
 
     await expect(page.locator(`text=${titleA}`)).not.toBeVisible();
     await expect(page.locator(`text=${titleB}`)).toBeVisible();
+
+    // The hidden-count badge must update immediately, without a reload.
+    expect(await page.evaluate(() => window.__noReloadMarker)).toBe(true);
+    await expect(page.locator('#motdHiddenCountBadge')).toHaveText(String(hiddenCountBefore + 1));
   });
 
   test('admin replies to the existing reply (nested, visible to all)', async ({ page }) => {

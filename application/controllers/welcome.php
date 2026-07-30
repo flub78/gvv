@@ -290,10 +290,15 @@ class Welcome extends Gvv_Controller {
         $motd_prefs = $this->motd_user_prefs_model->get_prefs($data['username']);
         $data['motd_sort_by'] = $motd_prefs['sort_by'];
         $motd_messages = $this->motd_model->active_messages_for_user($data['username'], $motd_prefs['sort_by'], TRUE);
+        $motd_replies_by_message = $this->motd_replies_model->replies_for_messages(
+            array_column($motd_messages, 'id')
+        );
         $motd_has_priority_unread = FALSE;
         $motd_unread_count = 0;
         foreach ($motd_messages as &$motd_message) {
-            $motd_message['replies'] = $this->motd_replies_model->replies_for_message($motd_message['id']);
+            $motd_message['replies'] = isset($motd_replies_by_message[$motd_message['id']])
+                ? $motd_replies_by_message[$motd_message['id']]
+                : array();
             if (empty($motd_message['acknowledged'])) {
                 $motd_unread_count++;
                 if (in_array($motd_message['level'], array('urgent', 'important'))) {

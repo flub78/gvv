@@ -152,6 +152,19 @@ function motd_init_dashboard_actions(opts) {
 		}
 	}
 
+	// Le badge du bouton "Afficher tous les messages" doit lui aussi rester
+	// exact après un masquage individuel sans recharger la page.
+	function incrementHiddenBadge() {
+		var $badge = $('#motdHiddenCountBadge');
+		if ($badge.length) {
+			$badge.text((parseInt($badge.text(), 10) || 0) + 1);
+			return;
+		}
+		$('#motdShowHiddenBtn').append(
+			$('<span class="badge bg-secondary" id="motdHiddenCountBadge"></span>').text(1)
+		);
+	}
+
 	$('#motdHideAllBtn').on('click', function() {
 		$.post(opts.hideAllUrl, {}, function() {
 			location.reload();
@@ -180,6 +193,7 @@ function motd_init_dashboard_actions(opts) {
 					showError($actions, opts.errorFallback);
 					return;
 				}
+				incrementHiddenBadge();
 				var wasUnread = $item.data('unread') == 1;
 				var $accordion = $item.closest('.accordion');
 				$item.fadeOut(200, function() {

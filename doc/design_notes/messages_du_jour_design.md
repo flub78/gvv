@@ -42,7 +42,7 @@ Message géré par un administrateur ou généré par GVV.
 | `id` | INT PK auto_increment | |
 | `title` | VARCHAR(255) NULL | optionnel (PRD EF1) |
 | `content` | TEXT | source Markdown |
-| `level` | ENUM('urgent','important','info','alerte') NULL | optionnel |
+| `level` | ENUM('urgent','important','info','alerte') NULL | nullable en base ; le formulaire admin présélectionne "Info" par défaut et ne permet pas de créer un message sans niveau (PRD EF1) |
 | `start_date` | DATETIME | début de période d'affichage |
 | `end_date` | DATETIME | fin de période d'affichage |
 | `target_type` | ENUM('all','list','user') | défaut 'all' |

@@ -336,6 +336,43 @@ class MotdModelTest extends TestCase
         $this->test_reply_ids = array_diff($this->test_reply_ids, array($reply_id));
     }
 
+    public function testRepliesForMessages_BatchesAcrossSeveralMessages()
+    {
+        $message_id_a = $this->motd_model->create_message($this->base_message(array('title' => 'Batch A')));
+        $this->test_message_ids[] = $message_id_a;
+        $message_id_b = $this->motd_model->create_message($this->base_message(array('title' => 'Batch B')));
+        $this->test_message_ids[] = $message_id_b;
+        $message_id_c = $this->motd_model->create_message($this->base_message(array('title' => 'Batch C (no reply)')));
+        $this->test_message_ids[] = $message_id_c;
+
+        $reply_id_a = $this->motd_replies_model->create_reply(array(
+            'message_id' => $message_id_a,
+            'author_login' => $this->pilot_a,
+            'content' => 'Reponse A',
+            'created_by' => $this->pilot_a,
+            'updated_by' => $this->pilot_a,
+        ));
+        $this->test_reply_ids[] = $reply_id_a;
+        $reply_id_b = $this->motd_replies_model->create_reply(array(
+            'message_id' => $message_id_b,
+            'author_login' => $this->pilot_b,
+            'content' => 'Reponse B',
+            'created_by' => $this->pilot_b,
+            'updated_by' => $this->pilot_b,
+        ));
+        $this->test_reply_ids[] = $reply_id_b;
+
+        $grouped = $this->motd_replies_model->replies_for_messages(array($message_id_a, $message_id_b, $message_id_c));
+
+        $this->assertCount(1, $grouped[$message_id_a]);
+        $this->assertEquals('Reponse A', $grouped[$message_id_a][0]['content']);
+        $this->assertCount(1, $grouped[$message_id_b]);
+        $this->assertEquals('Reponse B', $grouped[$message_id_b][0]['content']);
+        $this->assertArrayNotHasKey($message_id_c, $grouped);
+
+        $this->assertEquals(array(), $this->motd_replies_model->replies_for_messages(array()));
+    }
+
     public function testUserCanAccessMessage()
     {
         $message = array(

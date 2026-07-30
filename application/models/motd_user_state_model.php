@@ -36,12 +36,14 @@ class Motd_user_state_model extends Common_Model {
     /**
      * Hide every message currently active and visible to the user.
      *
-     * @return int Number of messages hidden.
+     * @return int|FALSE Number of messages hidden, or FALSE if at least one write failed.
      */
     public function hide_all_messages($user_login) {
         $active = $this->motd_model->active_messages_for_user($user_login, 'priority', TRUE);
         foreach ($active as $message) {
-            $this->hide_message($message['id'], $user_login);
+            if ($this->hide_message($message['id'], $user_login) === FALSE) {
+                return FALSE;
+            }
         }
         return count($active);
     }
@@ -49,7 +51,7 @@ class Motd_user_state_model extends Common_Model {
     /**
      * Unhide every message the user had hidden (acknowledged state untouched).
      *
-     * @return int Number of messages unhidden.
+     * @return int|FALSE Number of messages unhidden, or FALSE if the update failed.
      */
     public function unhide_all_messages($user_login) {
         $this->db->where('user_login', $user_login);
@@ -59,7 +61,9 @@ class Motd_user_state_model extends Common_Model {
         if ($count > 0) {
             $this->db->where('user_login', $user_login);
             $this->db->where('hidden', 1);
-            $this->db->update($this->table, array('hidden' => 0, 'updated_by' => $user_login));
+            if (!$this->db->update($this->table, array('hidden' => 0, 'updated_by' => $user_login))) {
+                return FALSE;
+            }
         }
         return $count;
     }
@@ -71,6 +75,9 @@ class Motd_user_state_model extends Common_Model {
         ));
     }
 
+    /**
+     * @return int|FALSE The state row id on success, FALSE if the write failed.
+     */
     private function upsert_state($message_id, $user_login, $data) {
         $existing = $this->get_state($message_id, $user_login);
         $data['message_id'] = $message_id;
@@ -80,8 +87,7 @@ class Motd_user_state_model extends Common_Model {
         $data['updated_by'] = $user_login;
 
         if ($existing) {
-            $this->update('id', $data, $existing['id']);
-            return $existing['id'];
+            return $this->update('id', $data, $existing['id']) ? $existing['id'] : FALSE;
         }
         $data['created_by'] = $user_login;
         return $this->create($data);

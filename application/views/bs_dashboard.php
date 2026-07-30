@@ -111,7 +111,7 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
             <button type="button" id="motdShowHiddenBtn" class="btn btn-sm btn-light me-2">
                 <i class="fas fa-eye" aria-hidden="true"></i> <?= $this->lang->line('motd_action_show_all') ?>
                 <?php if (!empty($motd_hidden_count)): ?>
-                <span class="badge bg-secondary"><?= $motd_hidden_count ?></span>
+                <span class="badge bg-secondary" id="motdHiddenCountBadge"><?= $motd_hidden_count ?></span>
                 <?php endif; ?>
             </button>
             <button type="button" id="motdHideAllBtn" class="btn btn-sm btn-light me-2">

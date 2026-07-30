@@ -43,7 +43,7 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
   - Contenu en Markdown (source de reference), rendu en HTML securise a l'affichage.
   - Date de début d’affichage.
   - Date de fin d’affichage.
-  - Niveau "Urgent, Important, Info, Alerte" (optionnel).
+  - Niveau "Urgent, Important, Info, Alerte" — optionnel au niveau du modèle de données (colonne nullable), mais le formulaire d'administration présélectionne "Info" par défaut (le groupe de boutons radio n'offre pas d'option "aucun niveau") : un message créé ou modifié via l'interface a donc toujours un niveau renseigné.
   - Type de destinataires (optionnel, ex. tous les utilisateurs, basé sur la gestion des rôles).
 
 ### EF1bis — Rendu Markdown

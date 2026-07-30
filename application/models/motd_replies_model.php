@@ -38,6 +38,27 @@ class Motd_replies_model extends Common_Model {
     public function replies_for_message($message_id) {
         return $this->select_all(array('message_id' => $message_id), 'created_at ASC');
     }
+
+    /**
+     * Batched version of replies_for_message() for a set of messages (avoids
+     * one query per message on the dashboard).
+     *
+     * @param array $message_ids
+     * @return array Replies grouped by message_id: array($message_id => array(reply, ...))
+     */
+    public function replies_for_messages($message_ids) {
+        $grouped = array();
+        if (empty($message_ids)) {
+            return $grouped;
+        }
+        $rows = $this->get_to_array(
+            $this->db->from($this->table)->where_in('message_id', $message_ids)->order_by('created_at', 'ASC')->get()
+        );
+        foreach ($rows as $row) {
+            $grouped[$row['message_id']][] = $row;
+        }
+        return $grouped;
+    }
 }
 
 /* End of file motd_replies_model.php */

@@ -202,12 +202,14 @@ class Common_Model extends CI_Model {
         $this->db->where($keyid, $keyvalue);
         unset($data[$keyid]);
 
-        if (!$this->db->update($this->table, $data)) {
+        $result = $this->db->update($this->table, $data);
+        if (!$result) {
             // Get MySQL error message
             $errno = $this->db->_error_number();
             $error = $this->db->_error_message();
             gvv_error("MySQL Error #$errno: $error");
         }
+        return $result;
     }
 
     /**
