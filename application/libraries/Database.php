@@ -390,6 +390,20 @@ class Database {
 		// when restoring on a different server with a different user.
 		$sql = $this->strip_definers($sql);
 
+		// Unwrap MySQL version-comment statements (/*!40101 SET ... */;).
+		// CI's is_write_type() only recognises a write query by its literal first
+		// keyword, so it misclassifies these as SELECT-like and tries to build a
+		// result object from the boolean TRUE that mysqli_query() returns for them,
+		// which fatals under PHP 8 (mysqli_num_rows(): Argument #1 must be of type
+		// mysqli_result, true given).
+		$sql = $this->unwrap_version_comments($sql);
+
+		// Remove "-- comment" lines (e.g. mysqldump's "-- Table structure for
+		// table `x`" before each DROP/LOCK TABLES). Left in place, such a
+		// comment gets glued onto the front of the next statement's chunk (see
+		// split below) and causes the same is_write_type() misclassification.
+		$sql = $this->strip_line_comments($sql);
+
 		$reqs = preg_split("/;\n/", $sql); // on sépare les requêtes
 		$all_results = array();
 		foreach ($reqs as $req) { // et on les éxécute
@@ -459,6 +473,46 @@ class Database {
 		// Remove DEFINER=`user`@`host` (views, plain syntax)
 		$sql = preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`/', '', $sql);
 		return $sql;
+	}
+
+	/**
+	 * Unwrap standalone statements that mysqldump wraps in MySQL version-comment
+	 * syntax, e.g. "/*!40101 SET NAMES utf8mb4 *\/;" or
+	 * "/*!40000 ALTER TABLE `x` DISABLE KEYS *\/;", keeping only the inner SQL
+	 * ("SET NAMES utf8mb4;" / "ALTER TABLE `x` DISABLE KEYS;").
+	 *
+	 * These statements are valid on any MySQL/MariaDB server this app targets, so
+	 * the version-comment wrapper serves no purpose here and only confuses
+	 * is_write_type() (see caller).
+	 */
+	private function unwrap_version_comments($sql) {
+		// Leading/trailing whitespace kept to [ \t] (not \s) so the match can't
+		// cross a newline and swallow a preceding blank line.
+		return preg_replace('/^[ \t]*\/\*!\d+[ \t]+(.*?)[ \t]*\*\/[ \t]*;/m', '$1;', $sql);
+	}
+
+	/**
+	 * Remove mysqldump's "-- comment" line comments (e.g. "-- Table structure
+	 * for table `x`"). Since sql() splits statements on ";\n", any comment line
+	 * preceding a statement gets glued onto the front of that statement's chunk
+	 * (comments don't end in ";"), so the chunk no longer starts with the
+	 * statement's own keyword and is_write_type() misclassifies it the same way
+	 * described in unwrap_version_comments() above. Every DROP TABLE/LOCK TABLES
+	 * statement in a mysqldump file is preceded by such a comment block.
+	 *
+	 * Safe to strip unconditionally: mysqldump only ever emits "--" comments on
+	 * their own line, never inline within a data row (embedded newlines in
+	 * dumped string values are escaped as "\n", not literal newlines).
+	 *
+	 * Also strips standalone one-line /*...*\/ comments with no trailing ";"
+	 * (e.g. mariadb-dump's leading "/*M!999999\- enable the sandbox mode *\/"),
+	 * which for the same reason would otherwise glue onto the following
+	 * statement. Statements already unwrapped by unwrap_version_comments() end
+	 * in ";" and are not matched here.
+	 */
+	private function strip_line_comments($sql) {
+		$sql = preg_replace('/^[ \t]*--.*$/m', '', $sql);
+		return preg_replace('/^[ \t]*\/\*.*?\*\/[ \t]*$/m', '', $sql);
 	}
 
 	/**
