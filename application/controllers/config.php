@@ -92,10 +92,6 @@ class Config extends MY_Controller {
                     'rules' => ''
             ),
 
-            'mod' => array (
-                    'label' => 'Message du jour',
-                    'rules' => ''
-            ),
             'ffvv_id' => array (
                     'label' => 'Identifiant de connexion FFVV',
                     'rules' => ''

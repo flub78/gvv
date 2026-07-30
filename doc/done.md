@@ -236,4 +236,7 @@
 
 * [x] Vérification des traductions
 
+* [x] Support des messages du jour, qui pourront inclure les alarmes.
+
+
 

@@ -66,6 +66,7 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 
 ### Notifications
 - **[Reservation Reminders](fr/14_rappels_reservations.md)** - Automated email/SMS reminders before flights, admin setup (cron, Brevo SMS), per-pilot preferences
+- **[Message Management](fr/15_gestion_messages.md)** - Dashboard "message of the day" announcements, levels, targeting; best suited for members who log in regularly
 
 ---
 

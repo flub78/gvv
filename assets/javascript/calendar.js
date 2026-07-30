@@ -319,49 +319,6 @@ function event_resize(event, delta, revertFunc) {
 	update_event(event, revertFunc);
 }
 
-/*
- * Called when MOD is closed
- */
-function close_mod() {
-
-	if ($("#no_mod").prop('checked')) {
-
-		var url = $("[name='base_url']").val()
-				+ 'index.php/calendar/set_cookie/';
-
-		$.ajax({
-			url : url,
-			type : 'GET',
-			success : function(code_html, statut) {
-			},
-
-			error : function(resultat, statut, erreur) {
-				alert("error setting no_mod cookie");
-			},
-
-			complete : function(resultat, statut) {
-			}
-		});
-
-	}
-	$(this).dialog("close");
-}
-
 $(document).ready(function() {
 	renderCalendar();
-	
-	$("#mod").dialog({
-		width: '90%',
-		modal : true,
-		title : $('[name="mod_title"]').val(),
-		draggable : true,
-		resizable : true,
-		buttons : [ {
-			text : "OK",
-			id : "close_mod_dialog",
-			click : close_mod
-		}]
-
-	});
-
 });

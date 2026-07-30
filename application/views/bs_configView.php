@@ -100,15 +100,6 @@ $table[$row][] = $this->lang->line("gvv_config_field_logo");
 $table[$row][] = img($logo_club) . '<br><input type="file" name="userfile" size="20" />';
 $row++;
 
-$table[$row][] = $this->lang->line("gvv_config_mod");
-$table[$row][] = form_textarea(array(
-	'name' => 'mod',
-	'value' => $mod,
-	'rows' => '10',
-	'cols' => '80'
-));
-$row++;
-
 $table[$row][] = $this->lang->line("gvv_config_maintenance_message");
 $table[$row][] = form_textarea(array(
 	'name' => 'maintenance_message',
