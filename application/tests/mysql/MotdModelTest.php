@@ -122,9 +122,10 @@ class MotdModelTest extends TestCase
 
     public function testCreateMessage_CreatedByNonMemberAdmin()
     {
-        // Regression test for migration 144: an admin account with no matching
-        // membres row (e.g. legacy DX_Auth admins like "testadmin") must still
-        // be able to create a message - created_by/updated_by have no FK to membres.
+        // Regression test: an admin account with no matching membres row
+        // (e.g. legacy DX_Auth admins like "testadmin") must still be able
+        // to create a message - created_by/updated_by have no FK to membres
+        // (see migration 143 comment).
         $id = $this->motd_model->create_message($this->base_message(array(
             'created_by' => 'no_membres_row_admin_xyz',
             'updated_by' => 'no_membres_row_admin_xyz',
@@ -414,12 +415,25 @@ class MotdModelTest extends TestCase
         $id2 = $this->motd_model->create_message($this->base_message(array('title' => 'Msg2')));
         $this->test_message_ids[] = $id2;
 
+        // id1 already has a state row (acknowledged, not yet hidden): the
+        // bulk upsert must UPDATE it (and preserve "acknowledged") rather
+        // than fail on the unique key. id2 has no state row yet: it must be
+        // INSERTed. Both go through the same single query.
+        $this->motd_user_state_model->acknowledge_message($id1, $this->pilot_a);
+
         $hidden_count = $this->motd_user_state_model->hide_all_messages($this->pilot_a);
         $this->assertGreaterThanOrEqual(2, $hidden_count);
 
         $titles = array_column($this->motd_model->active_messages_for_user($this->pilot_a), 'title');
         $this->assertNotContains('Msg1', $titles);
         $this->assertNotContains('Msg2', $titles);
+
+        $state1 = $this->motd_user_state_model->get_state($id1, $this->pilot_a);
+        $this->assertEquals(1, $state1['hidden']);
+        $this->assertEquals(1, $state1['acknowledged'], 'Hiding all must not clobber a pre-existing acknowledged state');
+
+        $state2 = $this->motd_user_state_model->get_state($id2, $this->pilot_a);
+        $this->assertEquals(1, $state2['hidden']);
     }
 
     public function testAcknowledgeMessage()

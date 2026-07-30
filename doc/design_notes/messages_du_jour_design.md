@@ -51,7 +51,7 @@ Message géré par un administrateur ou généré par GVV.
 | `origin` | ENUM('admin','system') | défaut 'admin' |
 | `source_type` | VARCHAR(50) NULL | ex. `'alarm_medical'`, `'alarm_brevet'` — tag libre pour messages système |
 | `source_ref` | VARCHAR(100) NULL | référence libre vers l'entité source (ex. id de document) |
-| `created_at`, `updated_at`, `created_by`, `updated_by` | audit standard | pas de FK (voir note migration 144 ci-dessous) |
+| `created_at`, `updated_at`, `created_by`, `updated_by` | audit standard | pas de FK (voir « colonnes d'acteur » ci-dessous) |
 
 Index : `(start_date, end_date)` pour le filtrage des messages actifs,
 `target_type`, `target_list_id`, `target_user_login`.
@@ -85,7 +85,7 @@ répondre à une réponse reçue.
 | `id` | INT PK auto_increment | |
 | `message_id` | INT, FK → `motd_messages(id)` | |
 | `parent_reply_id` | INT NULL, FK → `motd_replies(id)` | auto-référence, pour réponse d'admin à une réponse |
-| `author_login` | VARCHAR(25) | pas de FK (un admin sans profil `membres` doit pouvoir répondre) |
+| `author_login` | VARCHAR(25) | pas de FK (voir « colonnes d'acteur » ci-dessous) |
 | `content` | TEXT | Markdown, rendu via le même helper |
 | `created_at`, `updated_at`, `created_by`, `updated_by` | audit standard | |
 
@@ -104,7 +104,7 @@ ce qui garantit qu'un nouveau message reçu ensuite redéplie la section
 |---|---|---|
 | `id` | INT PK auto_increment | |
 | `message_id` | INT, FK → `motd_messages(id)` | |
-| `user_login` | VARCHAR(25), pas de FK (voir note migration 145 ci-dessous) | |
+| `user_login` | VARCHAR(25), pas de FK (voir « colonnes d'acteur » ci-dessous) | |
 | `hidden` | TINYINT(1) | défaut 0 |
 | `acknowledged` | TINYINT(1) | défaut 0 (« pris connaissance », optionnel EF3) |
 | `acknowledged_at` | DATETIME NULL | |
@@ -120,7 +120,7 @@ utilisateur (état replié/déplié, critère de tri).
 | Champ | Type | Notes |
 |---|---|---|
 | `id` | INT PK auto_increment | |
-| `user_login` | VARCHAR(25) UNIQUE, pas de FK (voir note migration 145 ci-dessous) | |
+| `user_login` | VARCHAR(25) UNIQUE, pas de FK (voir « colonnes d'acteur » ci-dessous) | |
 | `section_collapsed` | TINYINT(1) | défaut 1 (replié) |
 | `sort_by` | ENUM('priority','date') | défaut 'priority' (décision étape 1 : priorité puis date croissante) |
 | `created_at`, `updated_at`, `created_by`, `updated_by` | audit standard | |
@@ -135,30 +135,22 @@ Un message est visible par un utilisateur si :
 
 Un message est actif si `NOW()` est compris entre `start_date` et `end_date`.
 
-## Correction post-migration (migration 144)
+## Colonnes d'acteur sans FK vers `membres`
 
 Les comptes administrateur "techniques" (DX_Auth legacy, ex. `testadmin`)
-n'ont pas nécessairement de ligne dans `membres`. La FK initiale
-`created_by`/`updated_by` → `membres(mlogin)` (et `motd_replies.author_login`)
-empêchait donc tout admin sans profil membre de créer un message, téléverser
-une image ou répondre — découvert en testant le formulaire admin (étape 5).
-La migration 144 supprime ces FK ; ces colonnes restent une simple trace
-d'audit (VARCHAR sans contrainte), à l'image de
+n'ont pas nécessairement de ligne dans `membres`. Une FK stricte
+`created_by`/`updated_by` → `membres(mlogin)` sur chaque table (et
+`motd_replies.author_login`, `motd_user_message_state.user_login`,
+`motd_user_prefs.user_login`) empêcherait donc tout compte sans profil
+membre de créer un message, téléverser une image, répondre, masquer un
+message ou changer une préférence — un club-admin sans ligne `membres` voit
+pourtant la section MOTD et interagit avec (constaté en testant le
+formulaire admin et les actions utilisateur, étapes 5 et 8). Ces colonnes
+identifient l'acteur qui agit, pas un destinataire : elles restent une
+simple trace d'audit (VARCHAR sans contrainte), à l'image de
 `reservation_reminder_log.created_by`/`updated_by`. `target_user_login`
 (le destinataire d'un message, pas l'acteur) garde sa FK vers `membres`,
 et reste validé côté application par `Motd_model::is_target_valid()`.
-
-## Correction post-migration (migration 145)
-
-Même constat pour `motd_user_message_state.user_login` et
-`motd_user_prefs.user_login` : ce sont les identifiants de l'utilisateur
-connecté qui masque/acquitte un message ou change sa préférence d'affichage
-sur son propre dashboard — n'importe quel utilisateur authentifié, pas
-nécessairement un membre du club (un club-admin sans ligne `membres` voit
-aussi la section MOTD). La FK vers `membres(mlogin)` provoquait une
-violation dès qu'un tel compte utilisait ces actions — découvert en
-implémentant les actions utilisateur (étape 8). La migration 145 supprime
-ces deux FK, par cohérence avec la migration 144.
 
 ## Diagramme
 

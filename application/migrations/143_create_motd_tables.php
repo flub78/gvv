@@ -12,6 +12,17 @@ if (!defined('BASEPATH'))
  * - motd_user_message_state: per user/message hidden + acknowledged state
  * - motd_user_prefs: per user persistent display preferences
  *
+ * "Acting user" columns (created_by/updated_by on every table,
+ * motd_replies.author_login, motd_user_message_state.user_login,
+ * motd_user_prefs.user_login) have no FK to `membres`: they identify
+ * whoever is logged in and acting (creating/editing a message, replying,
+ * hiding, acknowledging, setting a preference), which is not necessarily a
+ * club member - legacy DX_Auth admin accounts (e.g. `testadmin`) have no
+ * matching `membres` row. They remain plain audit-trail VARCHAR values, like
+ * `reservation_reminder_log.created_by`/`updated_by`. `target_user_login` on
+ * `motd_messages` (an actual message recipient, not an actor) keeps its FK
+ * to `membres` and is validated by `Motd_model::is_target_valid()`.
+ *
  * @see doc/prds/messages_du_jour_prd.md
  * @see doc/design_notes/messages_du_jour_design.md
  */
@@ -58,8 +69,8 @@ class Migration_Create_motd_tables extends CI_Migration {
                 `source_ref` VARCHAR(100) NULL COMMENT 'Reference libre vers l entite source',
                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                `created_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
-                `updated_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
+                `created_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
+                `updated_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 PRIMARY KEY (`id`),
                 KEY `idx_motd_messages_period` (`start_date`, `end_date`),
                 KEY `idx_motd_messages_target_type` (`target_type`),
@@ -68,11 +79,7 @@ class Migration_Create_motd_tables extends CI_Migration {
                 CONSTRAINT `fk_motd_messages_target_list` FOREIGN KEY (`target_list_id`)
                     REFERENCES `email_lists` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT `fk_motd_messages_target_user` FOREIGN KEY (`target_user_login`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_messages_created_by` FOREIGN KEY (`created_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_messages_updated_by` FOREIGN KEY (`updated_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+                    REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Messages du jour'",
 
@@ -87,16 +94,12 @@ class Migration_Create_motd_tables extends CI_Migration {
                 `sha256` CHAR(64) NOT NULL COMMENT 'Empreinte SHA-256 du fichier',
                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                `created_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
-                `updated_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
+                `created_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
+                `updated_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 PRIMARY KEY (`id`),
                 KEY `idx_motd_media_message` (`message_id`),
                 CONSTRAINT `fk_motd_media_message` FOREIGN KEY (`message_id`)
-                    REFERENCES `motd_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_media_created_by` FOREIGN KEY (`created_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_media_updated_by` FOREIGN KEY (`updated_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+                    REFERENCES `motd_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Images televersees pour les messages du jour'",
 
@@ -105,25 +108,19 @@ class Migration_Create_motd_tables extends CI_Migration {
                 `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `message_id` INT(11) UNSIGNED NOT NULL COMMENT 'Message associe (motd_messages.id)',
                 `parent_reply_id` INT(11) UNSIGNED NULL COMMENT 'Reponse parente (reponse d un admin a une reponse)',
-                `author_login` VARCHAR(25) NOT NULL COMMENT 'membres.mlogin',
+                `author_login` VARCHAR(25) NOT NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 `content` TEXT NOT NULL COMMENT 'Contenu Markdown',
                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                `created_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
-                `updated_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
+                `created_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
+                `updated_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 PRIMARY KEY (`id`),
                 KEY `idx_motd_replies_message` (`message_id`),
                 KEY `idx_motd_replies_parent` (`parent_reply_id`),
                 CONSTRAINT `fk_motd_replies_message` FOREIGN KEY (`message_id`)
                     REFERENCES `motd_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT `fk_motd_replies_parent` FOREIGN KEY (`parent_reply_id`)
-                    REFERENCES `motd_replies` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_replies_author` FOREIGN KEY (`author_login`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_replies_created_by` FOREIGN KEY (`created_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_replies_updated_by` FOREIGN KEY (`updated_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+                    REFERENCES `motd_replies` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Reponses aux messages du jour'",
 
@@ -131,46 +128,34 @@ class Migration_Create_motd_tables extends CI_Migration {
             "CREATE TABLE IF NOT EXISTS `motd_user_message_state` (
                 `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `message_id` INT(11) UNSIGNED NOT NULL COMMENT 'Message associe (motd_messages.id)',
-                `user_login` VARCHAR(25) NOT NULL COMMENT 'membres.mlogin',
+                `user_login` VARCHAR(25) NOT NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 `hidden` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Message masque par l utilisateur',
                 `acknowledged` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Pris connaissance',
                 `acknowledged_at` DATETIME NULL COMMENT 'Date de prise de connaissance',
                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                `created_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
-                `updated_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
+                `created_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
+                `updated_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `uk_motd_user_message_state` (`message_id`, `user_login`),
                 KEY `idx_motd_user_message_state_user` (`user_login`),
                 CONSTRAINT `fk_motd_ums_message` FOREIGN KEY (`message_id`)
-                    REFERENCES `motd_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_ums_user` FOREIGN KEY (`user_login`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_ums_created_by` FOREIGN KEY (`created_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_ums_updated_by` FOREIGN KEY (`updated_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+                    REFERENCES `motd_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Etat utilisateur par message (masque, pris connaissance)'",
 
             // Table: motd_user_prefs - preferences d affichage persistantes
             "CREATE TABLE IF NOT EXISTS `motd_user_prefs` (
                 `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-                `user_login` VARCHAR(25) NOT NULL COMMENT 'membres.mlogin',
+                `user_login` VARCHAR(25) NOT NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 `section_collapsed` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Section repliee par defaut',
                 `sort_by` ENUM('priority', 'date') NOT NULL DEFAULT 'priority' COMMENT 'Critere de tri',
                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                `created_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
-                `updated_by` VARCHAR(25) NULL COMMENT 'membres.mlogin',
+                `created_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
+                `updated_by` VARCHAR(25) NULL COMMENT 'Acteur (pas de FK, cf. commentaire de migration)',
                 PRIMARY KEY (`id`),
-                UNIQUE KEY `uk_motd_user_prefs_user` (`user_login`),
-                CONSTRAINT `fk_motd_user_prefs_user` FOREIGN KEY (`user_login`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_user_prefs_created_by` FOREIGN KEY (`created_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT `fk_motd_user_prefs_updated_by` FOREIGN KEY (`updated_by`)
-                    REFERENCES `membres` (`mlogin`) ON DELETE SET NULL ON UPDATE CASCADE
+                UNIQUE KEY `uk_motd_user_prefs_user` (`user_login`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
             COMMENT='Preferences d affichage des messages du jour par utilisateur'",
         );

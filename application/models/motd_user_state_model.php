@@ -34,16 +34,33 @@ class Motd_user_state_model extends Common_Model {
     }
 
     /**
-     * Hide every message currently active and visible to the user.
+     * Hide every message currently active and visible to the user, in a
+     * single bulk upsert query rather than one per message.
      *
-     * @return int|FALSE Number of messages hidden, or FALSE if at least one write failed.
+     * @return int|FALSE Number of messages hidden, or FALSE if the write failed.
      */
     public function hide_all_messages($user_login) {
         $active = $this->motd_model->active_messages_for_user($user_login, 'priority', TRUE);
+        if (empty($active)) {
+            return 0;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $placeholders = array();
+        $bindings = array();
         foreach ($active as $message) {
-            if ($this->hide_message($message['id'], $user_login) === FALSE) {
-                return FALSE;
-            }
+            $placeholders[] = '(?, ?, 1, ?, ?, ?, ?)';
+            array_push($bindings, $message['id'], $user_login, $now, $now, $user_login, $user_login);
+        }
+
+        $sql = "INSERT INTO `{$this->table}`
+            (`message_id`, `user_login`, `hidden`, `created_at`, `updated_at`, `created_by`, `updated_by`)
+            VALUES " . implode(', ', $placeholders) . "
+            ON DUPLICATE KEY UPDATE `hidden` = 1, `updated_at` = VALUES(`updated_at`), `updated_by` = VALUES(`updated_by`)";
+
+        if (!$this->db->query($sql, $bindings)) {
+            gvv_error("motd_user_state_model::hide_all_messages failed: " . $this->db->_error_message());
+            return FALSE;
         }
         return count($active);
     }
