@@ -28,6 +28,7 @@
  * Include parent library
  */
 include('./application/libraries/Gvv_Controller.php');
+include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
 
 /**
  * Contrôleur de gestion des procédures
@@ -143,6 +144,63 @@ class Procedures extends Gvv_Controller {
         $this->set_nav_back('procedures', 'db_btn_retour_liste');
 
         load_last_view('procedures/view', $data);
+    }
+
+    /**
+     * Génère un PDF de la procédure et l'affiche dans le navigateur.
+     * Les cases à cocher markdown ([], [ ], [x]) deviennent des champs
+     * de formulaire PDF interactifs.
+     */
+    public function pdf($id) {
+        $procedure = $this->procedures_model->get_by_id('id', $id);
+        if (!$procedure) {
+            show_404();
+            return;
+        }
+
+        $is_privileged_user = $this->user_has_role('ca') || $this->user_has_role('club-admin');
+        if (!$is_privileged_user && $procedure['status'] !== 'published') {
+            show_404();
+            return;
+        }
+
+        $markdown_content = $this->procedures_model->get_markdown_content($procedure['name']);
+        $html = $markdown_content ? markdown($markdown_content) : '';
+        $html = $this->render_checkboxes($html);
+
+        $nom_club = $this->config->item('nom_club');
+
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator($nom_club);
+        $pdf->SetAuthor($nom_club);
+        $pdf->SetTitle($procedure['title']);
+
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->writeHTML('<h1>' . htmlspecialchars($procedure['title']) . '</h1>' . $html, true, false, true, false, '');
+
+        $filename = preg_replace('/[^a-z0-9_\-]/i', '_', $procedure['name']) . '.pdf';
+        $pdf->Output($filename, 'I');
+        exit;
+    }
+
+    /**
+     * Remplace les marqueurs markdown de case à cocher ([], [ ], [x], [X])
+     * par des champs de formulaire PDF interactifs (input type=checkbox).
+     */
+    private function render_checkboxes($html) {
+        $counter = 0;
+        $callback = function ($matches) use (&$counter) {
+            $counter++;
+            $checked = strtolower(trim($matches[1])) === 'x' ? ' checked="checked"' : '';
+            return '<input type="checkbox" name="chk_' . $counter . '" value="1"' . $checked . '>';
+        };
+        return preg_replace_callback('/\[\s?([xX]?)\s?\]/', $callback, $html);
     }
 
     /**

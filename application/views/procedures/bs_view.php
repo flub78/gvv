@@ -24,6 +24,9 @@ $this->lang->load('procedures');
             </div>
             <div class="col-md-4 text-end">
                 <div class="btn-group mt-4" role="group">
+                    <a href="<?= site_url("procedures/pdf/{$procedure['id']}") ?>" class="btn btn-danger" target="_blank">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
                     <?php if ($can_edit): ?>
                         <a href="<?= site_url("procedures/edit/{$procedure['id']}") ?>" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Modifier
