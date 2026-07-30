@@ -611,8 +611,20 @@ class Admin extends MY_Controller {
             if ($erase_db) {
                 $this->database->drop_all();
             }
-            $this->database->sql($sql);
-            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+
+            try {
+                $this->database->sql($sql);
+                $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+            } catch (Exception $e) {
+                $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+                gvv_error("do_restore: échec de la restauration - " . $e->getMessage());
+                $error = array(
+                    'error' => 'La restauration a échoué : ' . $e->getMessage() . ' Consultez les logs applicatifs pour le détail complet.',
+                    'erase_db' => 1
+                );
+                load_last_view('admin/restore_form', $error);
+                return;
+            }
 
             load_last_view('admin/restore_success', $data);
         }

@@ -26,6 +26,12 @@ class DatabaseRestoreTest extends TestCase
         require_once APPPATH . 'libraries/Database.php';
         $reflection = new ReflectionClass('Database');
         $this->database = $reflection->newInstanceWithoutConstructor();
+
+        $fake_ci = new stdClass();
+        $fake_ci->db = new FakeDbForDatabaseSqlTest();
+        $prop = new ReflectionProperty('Database', 'CI');
+        $prop->setAccessible(true);
+        $prop->setValue($this->database, $fake_ci);
     }
 
     private function call($method_name, $sql)
@@ -194,5 +200,99 @@ class DatabaseRestoreTest extends TestCase
         }
         // Sanity check: the fixture really does contain statements to verify.
         $this->assertGreaterThanOrEqual(7, $checked);
+    }
+
+    // ── Database::sql() error handling ─────────────────────────────────────
+
+    private function sql($sql, $return_result = false)
+    {
+        return $this->database->sql($sql, $return_result);
+    }
+
+    private function fake_db()
+    {
+        $prop = new ReflectionProperty('Database', 'CI');
+        $prop->setAccessible(true);
+        return $prop->getValue($this->database)->db;
+    }
+
+    public function test_sql_runs_all_statements_when_none_fail()
+    {
+        $sql = "CREATE TABLE `a` (`id` int(11));\nINSERT INTO `a` VALUES (1);\nINSERT INTO `a` VALUES (2);\n";
+        $this->sql($sql);
+        // +1 for the "SET sql_mode=..." statement sql() always issues first.
+        $this->assertCount(4, $this->fake_db()->queries);
+    }
+
+    public function test_sql_throws_on_query_failure_but_still_reports_all_errors()
+    {
+        $sql = "CREATE TABLE `a` (`id` int(11));\nCREATE TABLE `BOOM` (`id` int(11));\nINSERT INTO `a` VALUES (1);\n";
+        $this->fake_db()->fail_on = array('BOOM');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessageMatches('/requête\(s\) SQL en échec/');
+        $this->sql($sql);
+    }
+
+    public function test_sql_continues_past_a_failing_statement_instead_of_aborting()
+    {
+        // A single bad statement (e.g. a table the dump can't recreate) must not
+        // prevent the rest of a multi-hundred-statement restore from running —
+        // that silent early-abort is exactly what left `users`/`membres` missing
+        // in earlier incidents.
+        $sql = "CREATE TABLE `BOOM` (`id` int(11));\nCREATE TABLE `after_boom` (`id` int(11));\n";
+        $db = $this->fake_db();
+        $db->fail_on = array('BOOM');
+
+        try {
+            $this->sql($sql);
+            $this->fail('Expected an Exception to be thrown once all statements ran.');
+        } catch (Exception $e) {
+            // Both statements must have been attempted despite the first failing
+            // (queries[0] is the leading "SET sql_mode=..." sql() always issues).
+            $this->assertCount(3, $db->queries);
+            $this->assertStringContainsString('BOOM', $db->queries[1]);
+            $this->assertStringContainsString('after_boom', $db->queries[2]);
+        }
+    }
+
+    public function test_sql_does_not_crash_when_write_statement_returns_boolean_true_with_return_result()
+    {
+        // mysqli_query() returns boolean TRUE (not an object) for write-type
+        // statements. If sql() is called with $return_result = true while the
+        // dump contains writes (as opposed to the pure-SELECT reporting callers
+        // in plan_comptable.php/reports.php), it must not try to call
+        // result_array() on that boolean.
+        $sql = "INSERT INTO `a` VALUES (1);\n";
+        $result = $this->sql($sql, true);
+        $this->assertSame(array(), $result);
+    }
+}
+
+/**
+ * Minimal stand-in for CI's $this->CI->db, just enough for Database::sql().
+ */
+class FakeDbForDatabaseSqlTest
+{
+    public $queries = array();
+    public $fail_on = array();
+    private $last_error = array('code' => 0, 'message' => '');
+
+    public function query($sql)
+    {
+        $this->queries[] = $sql;
+        foreach ($this->fail_on as $needle) {
+            if (strpos($sql, $needle) !== false) {
+                $this->last_error = array('code' => 1064, 'message' => 'Simulated failure near: ' . $needle);
+                return FALSE;
+            }
+        }
+        // mysqli_query() returns boolean TRUE for write-type statements.
+        return TRUE;
+    }
+
+    public function error()
+    {
+        return $this->last_error;
     }
 }

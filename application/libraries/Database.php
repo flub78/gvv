@@ -406,13 +406,28 @@ class Database {
 
 		$reqs = preg_split("/;\n/", $sql); // on sépare les requêtes
 		$all_results = array();
+		$errors = array();
 		foreach ($reqs as $req) { // et on les éxécute
 			if (trim($req) != "") {
 				// echo "req = $req<br>";
 				$res = $this->CI->db->query($req);
-				if ($return_result && $res)
+				if ($res === FALSE) {
+					// Ne pas interrompre l'import : une erreur isolée sur un dump de
+					// plusieurs centaines de requêtes ne doit pas empêcher les suivantes
+					// de s'exécuter. Mais on ne doit plus jamais rester silencieux dessus
+					// (c'est exactement ce qui a produit des restaurations partielles
+					// non détectées).
+					$db_error = $this->CI->db->error();
+					$errors[] = $db_error['message'];
+					gvv_error("Database::sql(): requête échouée (" . $db_error['message'] . ") -- " . substr(trim($req), 0, 300));
+					continue;
+				}
+				if ($return_result && $res instanceof CI_DB_result)
 					$all_results[] = $res->result_array();
 			}
+		}
+		if (!empty($errors)) {
+			throw new Exception(count($errors) . " requête(s) SQL en échec pendant l'import. Première erreur : " . $errors[0]);
 		}
 		return $all_results;
 	}

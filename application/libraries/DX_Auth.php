@@ -938,6 +938,9 @@ class DX_Auth {
 
         $password = $this->_encode($password);
         $user_data = $this->ci->users->get_user_by_username($username);
+        if ($user_data === FALSE) {
+            return false; // requête échouée (ex: table users absente/erreur SQL)
+        }
         $stored_hash = $user_data->result_array();
         if (count($stored_hash) < 1) {
             return false; // programmation defensive

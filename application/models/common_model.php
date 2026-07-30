@@ -167,9 +167,13 @@ class Common_Model extends CI_Model {
      */
     public function get_by_id($keyid, $keyvalue) {
         $this->db->where($keyid, $keyvalue);
-        $res = $this->db->get($this->table)->row_array();
+        $query = $this->db->get($this->table);
         gvv_debug("sql: " . $this->db->last_query());
-        return $res;
+        if ($query === FALSE) {
+            gvv_error("sql error: " . $this->db->_error_message());
+            return array();
+        }
+        return $query->row_array();
     }
 
     /**
@@ -180,7 +184,12 @@ class Common_Model extends CI_Model {
      * @return hash des valeurs
      */
     public function get_first($where = array()) {
-        return $this->db->select('*')->from($this->table)->where($where)->limit(1)->get()->row_array(0);
+        $query = $this->db->select('*')->from($this->table)->where($where)->limit(1)->get();
+        if ($query === FALSE) {
+            gvv_error("sql error: " . $this->db->_error_message());
+            return array();
+        }
+        return $query->row_array(0);
     }
 
     /**
