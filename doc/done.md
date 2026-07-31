@@ -238,5 +238,8 @@
 
 * [x] Support des messages du jour, qui pourront inclure les alarmes.
 
+* [] Gérer le contexte des filtres par page.
+
+
 
 

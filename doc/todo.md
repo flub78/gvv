@@ -60,5 +60,5 @@
 
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
-* [] Gérer le contexte des filtres par page.
+
 

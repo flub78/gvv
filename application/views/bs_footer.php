@@ -57,6 +57,19 @@ if ($banner_color === '') {
             yearRange: "1930:2030"
         });
 
+        // Pre-fix DataTables state was saved under a key with no page path
+        // (e.g. "DT_DataTables_Table_0"), shared by every listing page. New
+        // keys always embed the path (e.g. "DT_DataTables_Table_0_/planeur/page"),
+        // so any leftover pathless "DT_" key is an orphan from before the fix.
+        try {
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+                var k = localStorage.key(i);
+                if (k && k.indexOf('DT_') === 0 && k.indexOf('/') === -1) {
+                    localStorage.removeItem(k);
+                }
+            }
+        } catch(e) {}
+
 $('.datatable').dataTable({
             "bFilter": true,
             "bPaginate": true,
@@ -64,12 +77,14 @@ $('.datatable').dataTable({
             "bStateSave": true,
             "fnStateSave": function(oSettings, oState) {
                 try {
-                    localStorage.setItem('DT_' + oSettings.sInstance, JSON.stringify(oState));
+                    var key = 'DT_' + oSettings.sInstance + '_' + window.location.pathname;
+                    localStorage.setItem(key, JSON.stringify(oState));
                 } catch(e) {}
             },
             "fnStateLoad": function(oSettings) {
                 try {
-                    var data = localStorage.getItem('DT_' + oSettings.sInstance);
+                    var key = 'DT_' + oSettings.sInstance + '_' + window.location.pathname;
+                    var data = localStorage.getItem(key);
                     return data ? JSON.parse(data) : null;
                 } catch(e) {
                     return null;

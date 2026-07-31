@@ -280,6 +280,12 @@ Authorization_model
  [x] Update role accepts correct parameters
  [x] Delete role accepts correct parameters
 
+Common Model Query Failure
+ [x] Get first returns empty array when query fails
+ [x] Get first returns row on success
+ [x] Get by id returns empty array when query fails
+ [x] Get by id returns row on success
+
 Comptes Model Section
  [x] Get pilote comptes uses account owner and filters active unmasked
  [x] Has compte in section checks owner and filters
@@ -373,6 +379,26 @@ Button
  [x] Multiple button instances
  [x] Button with empty controller and action
 
+DXAuth Is Password
+ [x] Returns false instead of crashing when lookup query fails
+ [x] Returns false when user not found
+
+Database Restore
+ [x] Unwraps set statement
+ [x] Unwraps alter table disable keys
+ [x] Unwrapped statement is recognised as write type
+ [x] Preserves line and statement count of a dump header
+ [x] Does not touch inline definer comments inside create statements
+ [x] Strips table structure comment block
+ [x] Strips mariadb sandbox mode directive
+ [x] Comment glued chunk is recognised as write type after full pipeline
+ [x] Does not strip inline double dash inside data value
+ [x] Full pipeline leaves no misclassified statement
+ [x] Sql runs all statements when none fail
+ [x] Sql throws on query failure but still reports all errors
+ [x] Sql continues past a failing statement instead of aborting
+ [x] Sql does not crash when write statement returns boolean true with return result
+
 File Rotator
  [x] Invalid direction is rejected
  [x] Missing file is not supported
@@ -390,6 +416,18 @@ Formation Progression
  [x] Niveau label
  [ ] Calculer with no seances
  [ ] Derniere evaluation selection
+
+Forms Renderer Checkbox
+ [x] Single checkbox checked when value is non empty string
+ [x] Single checkbox not checked when value is empty string
+ [x] Multiple independently named checkboxes are each repopulated correctly
+ [x] Checkbox group with array value still works
+
+Forms Renderer Subform
+ [x] Widget without matching state is left untouched
+ [x] Empty state renders open link and hides filled block
+ [x] Submitted state shows summary and reveals filled block
+ [x] Two widgets on the same page are each rendered from their own state
 
 Gvv_Authorization
  [x] Library loads successfully

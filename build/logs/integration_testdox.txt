@@ -218,6 +218,8 @@ Gvvmetadata
  [x] Field subtype returns string
  [x] Field default
  [x] Field attr
+ [x] Vpdc and vadc default to zero
+ [x] Vpdc and vadc checkbox not checked by default
 
 Licences Model Integration
  [x] Check cotisation exists returns false when not exists
@@ -487,6 +489,11 @@ Users Coherence
  [x] Panoramix is club admin in all sections
  [x] Panoramix has no comptes
  [x] Abraracourcix ca role is avion only
+
+Vols Avion Create And Continue
+ [x] Post create stores keep fields as flashdata for create and continue
+ [x] Form static element applies flashdata on creation
+ [x] Gvv controller excludes volsa from in place redisplay
 
 Vols Decouverte Date Validite
  [x] Date validite column exists

@@ -183,4 +183,41 @@ test.describe('DataTables State Persistence', () => {
         const infoText = await page.locator('.dataTables_info').first().textContent();
         expect(infoText).toMatch(/l'élement 1 à|1 to/);
     });
+
+    test('should not leak a search term from one datatable page to another', async ({ page }) => {
+        // bs_footer.php's ".datatable" DataTables init (used by planeur, avion,
+        // and ~22 other listing pages) used to save its state to a localStorage
+        // key keyed only on the auto-generated table id (e.g. "DataTables_Table_0").
+        // That id is not unique across pages, so a search typed on one listing
+        // page reappeared - and silently filtered rows - on unrelated pages.
+        await page.goto('/index.php/planeur/page');
+        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('.dataTables_info');
+        await page.waitForTimeout(1000);
+
+        const searchInput = page.locator('.dataTables_filter input').first();
+        await searchInput.fill('zzz_leak_test');
+        await searchInput.press('Enter');
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+
+        // Navigate to a different listing page that also uses the plain
+        // ".datatable" class.
+        await page.goto('/index.php/avion/page');
+        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('.dataTables_info');
+        await page.waitForTimeout(1000);
+
+        const avionSearchValue = await page.locator('.dataTables_filter input').first().inputValue();
+        expect(avionSearchValue).toBe('');
+
+        // Going back to the original page must still show the persisted term.
+        await page.goto('/index.php/planeur/page');
+        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('.dataTables_info');
+        await page.waitForTimeout(1000);
+
+        const planeurSearchValue = await page.locator('.dataTables_filter input').first().inputValue();
+        expect(planeurSearchValue).toBe('zzz_leak_test');
+    });
 });
