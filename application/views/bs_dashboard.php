@@ -104,23 +104,25 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
                     <?= sprintf($this->lang->line('motd_active_count'), count($motd_messages)) ?>
                 </small>
             </h5>
-            <select id="motdSortSelect" class="form-select form-select-sm me-2" style="width: auto;">
-                <option value="priority" <?= $motd_sort_by === 'priority' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_priority') ?></option>
-                <option value="date" <?= $motd_sort_by === 'date' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_date') ?></option>
-            </select>
-            <button type="button" id="motdShowHiddenBtn" class="btn btn-sm btn-light me-2">
-                <i class="fas fa-eye" aria-hidden="true"></i> <?= $this->lang->line('motd_action_show_all') ?>
-                <?php if (!empty($motd_hidden_count)): ?>
-                <span class="badge bg-secondary" id="motdHiddenCountBadge"><?= $motd_hidden_count ?></span>
-                <?php endif; ?>
-            </button>
-            <button type="button" id="motdHideAllBtn" class="btn btn-sm btn-light me-2">
-                <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide_all') ?>
-            </button>
             <i class="fas fa-chevron-down collapse-indicator" aria-hidden="true"></i>
         </div>
         <div id="motdSectionBody" class="collapse <?= $motd_section_expanded ? 'show' : '' ?>">
             <div class="card-body" style="max-height: 480px; overflow-y: auto;">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <select id="motdSortSelect" class="form-select form-select-sm" style="width: auto;">
+                        <option value="priority" <?= $motd_sort_by === 'priority' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_priority') ?></option>
+                        <option value="date" <?= $motd_sort_by === 'date' ? 'selected' : '' ?>><?= $this->lang->line('motd_sort_date') ?></option>
+                    </select>
+                    <button type="button" id="motdShowHiddenBtn" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-eye" aria-hidden="true"></i> <?= $this->lang->line('motd_action_show_all') ?>
+                        <?php if (!empty($motd_hidden_count)): ?>
+                        <span class="badge bg-secondary" id="motdHiddenCountBadge"><?= $motd_hidden_count ?></span>
+                        <?php endif; ?>
+                    </button>
+                    <button type="button" id="motdHideAllBtn" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide_all') ?>
+                    </button>
+                </div>
                 <?php if (!empty($motd_messages)): ?>
                     <?php $this->load->view('motd/_message_accordion', array('motd_messages' => $motd_messages, 'is_admin' => $is_admin)); ?>
                 <?php else: ?>

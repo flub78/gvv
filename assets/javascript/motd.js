@@ -113,16 +113,10 @@ function motd_init_dashboard_section(toggleUrl, sortUrl) {
 		});
 	}
 
-	$('#motdSortSelect').on('click', function(e) {
-		e.stopPropagation();
-	}).on('change', function() {
+	$('#motdSortSelect').on('change', function() {
 		$.post(sortUrl, { sort_by: $(this).val() }, function() {
 			location.reload();
 		});
-	});
-
-	$('#motdHideAllBtn, #motdShowHiddenBtn').on('click', function(e) {
-		e.stopPropagation();
 	});
 }
 
