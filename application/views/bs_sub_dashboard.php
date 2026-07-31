@@ -431,8 +431,17 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         <?php if (has_briefing_admin_role() && $current_section_id === 2) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
+                <i class="fas fa-clipboard-list text-success"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_fill_briefing') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_fill_briefing') ?></div>
+                <a href="<?= controller_url('vols_decouverte/select_by_id') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('gvv_button_open') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
                 <i class="fas fa-clipboard-check text-success"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_passenger_briefing') ?></div>
+                <div class="card-title"><?= $this->lang->line('db_card_briefing_archive') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_declarations') ?></div>
                 <a href="<?= controller_url('forms_admin/submissions/briefing_passager_ulm') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>

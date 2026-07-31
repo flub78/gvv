@@ -58,6 +58,7 @@ $index_page = $this->config->item('index_page');
 $index = ($index_page) ? "$index_page/" : "";
 $pre_flight_url = site_url('vols_decouverte/pre_flight/' . $obfuscated_id);
 $done_url       = site_url('vols_decouverte/done/'       . $obfuscated_id);
+$briefing_url   = site_url('briefing_passager/upload/'   . $id);
 
 ?>
 </div>
@@ -105,6 +106,7 @@ $done_url       = site_url('vols_decouverte/done/'       . $obfuscated_id);
 
 	<div class="d-flex flex-column flex-lg-row gap-3">
 		<a href="<?= $pre_flight_url ?>" class="btn btn-primary px-4 text-decoration-none">Ajouter contact d'urgence</a>
+		<a href="<?= $briefing_url ?>" class="btn btn-success px-4 text-decoration-none">Remplir le briefing passager</a>
 		<a href="<?= $done_url ?>" class="btn btn-warning px-4 text-decoration-none">Enregistrer la date du vol</a>
 	</div>
 </div>
