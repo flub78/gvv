@@ -643,6 +643,38 @@ class Forms_renderer {
 (function () {
     'use strict';
 
+    // Query-string names the receiving sub-form treats specially (see
+    // Forms_public::index() $b_reserved) — never forwarded as prefill values,
+    // even if the master page happens to have a same-named field.
+    var RESERVED = ['page', 'token', 'subject_type', 'subject_id', 'link_token', 'lock', 'pilot_login', 'instructor_login'];
+    var SKIP_TYPES = ['hidden', 'file', 'submit', 'reset', 'button'];
+
+    // Best-effort prefill (Lot 11): forward whatever the visitor already typed
+    // into the master form to the sub-form, by field name — the sub-form only
+    // has matching inputs for the names it actually defines (Mechanism B /
+    // inject_prefill_by_name), so unrelated names are silently ignored there.
+    function buildPrefillQuery(form) {
+        if (!form) return '';
+        var params = [];
+        form.querySelectorAll('input, select, textarea').forEach(function (el) {
+            var name = el.getAttribute('name');
+            if (!name || RESERVED.indexOf(name) !== -1) return;
+            var type = (el.getAttribute('type') || '').toLowerCase();
+            if (SKIP_TYPES.indexOf(type) !== -1) return;
+            if ((type === 'checkbox' || type === 'radio') && !el.checked) return;
+            var value = el.value;
+            if (value === '' || value === null) return;
+            params.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+        });
+        return params.join('&');
+    }
+
+    // This script is inlined right after the *first* subform widget in the page
+    // (only once per page — see self::$subform_assets_emitted), so at the time it
+    // runs, widgets appearing later in the HTML haven't been parsed into the DOM
+    // yet. Defer wiring until the whole document is parsed so every widget on the
+    // page gets its click handlers, not just the first one.
+    function wireWidgets() {
     document.querySelectorAll('.gvv-subform-widget').forEach(function (widget) {
         var link = widget.querySelector('.gvv-subform-open-link');
         var verifyBtn = widget.querySelector('.gvv-subform-verify-btn');
@@ -650,6 +682,10 @@ class Forms_renderer {
         if (!link || !verifyBtn) return;
 
         link.addEventListener('click', function () {
+            var extra = buildPrefillQuery(link.closest('form'));
+            if (extra) {
+                link.href += (link.href.indexOf('?') === -1 ? '?' : '&') + extra;
+            }
             verifyBtn.classList.remove('d-none');
         });
 
@@ -683,6 +719,13 @@ class Forms_renderer {
                 });
         });
     });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wireWidgets);
+    } else {
+        wireWidgets();
+    }
 
     function renderSummary(summary) {
         if (!summary.length) return '<span class="text-muted">Réponse enregistrée.</span>';
