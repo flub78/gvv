@@ -2411,6 +2411,34 @@ class Forms_admin extends MY_Controller {
             );
         }
 
+        // Detect sub-form widgets declared as
+        // <div data-gvv-type="subform" data-gvv-name="..." data-gvv-form-slug="...">
+        foreach ($xpath->query('//*[@data-gvv-type and @data-gvv-name]') as $node) {
+            if (strtolower($node->getAttribute('data-gvv-type')) !== 'subform') {
+                continue;
+            }
+            $name = trim($node->getAttribute('data-gvv-name'));
+            if ($name === '' || isset($seen[$name])) {
+                continue;
+            }
+            $seen[$name] = true;
+
+            $label = trim($node->textContent);
+            if ($label === '') {
+                $label = $name;
+            }
+
+            $fields[] = array(
+                'name'        => $name,
+                'label'       => $label,
+                'field_type'  => 'subform',
+                'is_required' => $node->hasAttribute('data-gvv-required') ? 1 : 0,
+                'sort_order'  => $sort++,
+                'options'     => array(),
+                'gvv_role'    => null,
+            );
+        }
+
         return $fields;
     }
 

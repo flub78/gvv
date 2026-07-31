@@ -65,6 +65,15 @@
                                     <td>
                                         <?php $ident = trim((string) ($submission['response_identifier'] ?? '')); ?>
                                         <?= $ident !== '' ? html_escape($ident) : '<span class="text-muted">—</span>' ?>
+                                        <?php
+                                            $is_unattached_subform = !empty($submission['link_token'])
+                                                && empty($submission['subject_type']);
+                                        ?>
+                                        <?php if ($is_unattached_subform): ?>
+                                            <span class="badge bg-warning text-dark ms-1" title="<?= $this->lang->line('forms_help_badge_subform_unattached') ?>">
+                                                <?= $this->lang->line('forms_badge_subform_unattached') ?>
+                                            </span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php

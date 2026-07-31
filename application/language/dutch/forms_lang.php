@@ -252,5 +252,9 @@ $lang['forms_generate_error_not_found'] = 'Formulier niet gevonden of niet gepub
 $lang['forms_generate_error_pilot']     = 'Selecteer een kandidaat.';
 $lang['forms_generate_error_instructor']= 'Selecteer een instructeur.';
 
+/* subformulieren (Lot 11) */
+$lang['forms_badge_subform_unattached']      = 'Niet gekoppeld';
+$lang['forms_help_badge_subform_unattached'] = 'Dit antwoord werd ingediend als subformulier, maar het hoofdformulier is nooit definitief ingediend.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/dutch/forms_lang.php */

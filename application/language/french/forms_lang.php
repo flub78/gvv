@@ -252,5 +252,9 @@ $lang['forms_generate_error_not_found'] = 'Formulaire introuvable ou non publié
 $lang['forms_generate_error_pilot']     = 'Veuillez sélectionner un candidat.';
 $lang['forms_generate_error_instructor']= 'Veuillez sélectionner un instructeur.';
 
+/* sous-formulaires (Lot 11) */
+$lang['forms_badge_subform_unattached']      = 'Non rattaché';
+$lang['forms_help_badge_subform_unattached'] = 'Cette réponse a été soumise comme sous-formulaire, mais son formulaire maître n\'a jamais été validé.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/french/forms_lang.php */

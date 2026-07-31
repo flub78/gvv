@@ -426,8 +426,8 @@ Voir : [Design modification en place d'une réponse](../design_notes/remplissage
 - EF13 : délai/critère exact de rejet d'une réponse à paiement obligatoire non confirmé (rejet différé après un délai, ou rejet immédiat sur échec/annulation explicite côté HelloAsso) ?
 - EF13 : une réponse rejetée pour défaut de paiement peut-elle être régularisée a posteriori (nouveau lien de paiement envoyé à l'utilisateur) ou l'utilisateur doit-il resoumettre le formulaire ?
 - EF13 : notification (email) à l'utilisateur et/ou à l'admin selon l'issue du paiement ?
-- EF14 : un formulaire de catégorie 3 (déjà rattaché à une entité GVV via son propre `subject_type`/`subject_id`, ex. `briefing_passager_ulm`) peut-il aussi être utilisé comme sous-formulaire ? Le couple générique ne peut porter qu'une seule référence à la fois — conflit potentiel non tranché entre les deux usages.
-- EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ?
+- EF14 : *(Tranché, Lot 11)* un formulaire de catégorie 3 (déjà rattaché à une entité GVV via son propre `subject_type`/`subject_id`, ex. `briefing_passager_ulm`) peut aussi être utilisé comme sous-formulaire ; en cas de conflit, l'attachement direct existant est prioritaire et la bascule vers `subject_type='form_submission'` est simplement ignorée (voir design § 17, « Décision actée »).
+- EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ? *(Non tranché : n'importe quel formulaire publié est éligible en V1.)*
 - EF16 : faut-il à terme un lien de modification envoyé à l'utilisateur d'origine (hors admin), ou la modification reste-t-elle une action admin exclusive ?
 - EF16 : la modification en place doit-elle un jour être proposée aussi pour les réponses de type téléchargement (remplacement de scan), au-delà de la rotation déjà couverte par EF12 ?
 

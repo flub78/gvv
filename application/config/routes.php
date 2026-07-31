@@ -48,6 +48,8 @@ $route['membres/renommer'] = 'membre/renommer';
 // Forms module - public endpoints
 $route['forms/submit/(:any)'] = 'forms_public/submit/$1';
 $route['forms/upload/(:any)'] = 'forms_public/upload_submit/$1';
+$route['forms/subform-status/(:any)'] = 'forms_public/subform_status/$1';
+$route['forms/subform-reset/(:any)/(:any)'] = 'forms_public/subform_reset/$1/$2';
 $route['forms/(:any)'] = 'forms_public/index/$1';
 
 $route['default_controller'] = "welcome";

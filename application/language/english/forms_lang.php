@@ -252,5 +252,9 @@ $lang['forms_generate_error_not_found'] = 'Form not found or not published.';
 $lang['forms_generate_error_pilot']     = 'Please select a candidate.';
 $lang['forms_generate_error_instructor']= 'Please select an instructor.';
 
+/* subforms (Lot 11) */
+$lang['forms_badge_subform_unattached']      = 'Unattached';
+$lang['forms_help_badge_subform_unattached'] = 'This response was submitted as a sub-form, but its master form was never finalized.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/english/forms_lang.php */

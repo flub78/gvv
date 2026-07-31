@@ -11,6 +11,7 @@ if (!defined('BASEPATH'))
 class Forms_renderer {
 
     private static $signature_assets_emitted  = false;
+    private static $subform_assets_emitted    = false;
     private static $validation_script_emitted = false;
 
     public function normalize_fields_for_view(array $fields, array $old_values = array()) {
@@ -514,6 +515,196 @@ class Forms_renderer {
     }
 
     /**
+     * Replace <div data-gvv-type="subform"> elements in page HTML with the
+     * sub-form widget (Lot 11 — sous-formulaires).
+     *
+     * $widget_state: field_name => [
+     *   'sub_url'    => URL opening the sub-form (new tab), carrying the reserved link_token param,
+     *   'verify_url' => AJAX endpoint returning JSON {found, summary} for that token,
+     *   'reset_url'  => URL that mints a fresh token and redirects straight to the sub-form ("remplir à nouveau"),
+     *   'status'     => 'empty' | 'submitted',
+     *   'summary'    => [['label' => ..., 'value' => ...], ...] (only when status === 'submitted'),
+     * ]
+     * A div whose name has no entry in $widget_state (e.g. missing data-gvv-form-slug) is left untouched.
+     */
+    public function inject_subform_widgets($html, &$has_subform_widget = false, array $widget_state = array()) {
+        if (strpos($html, 'data-gvv-type') === false) {
+            return $html;
+        }
+
+        $result = preg_replace_callback(
+            '/<div([^>]*)\bdata-gvv-type=["\']subform["\']([^>]*)>(.*?)<\/div>/is',
+            function ($matches) use (&$has_subform_widget, $widget_state) {
+                $all_attrs = $matches[1] . $matches[2];
+
+                preg_match('/data-gvv-name=["\']([^"\']+)["\']/', $all_attrs, $name_m);
+                $field_name = isset($name_m[1]) ? trim($name_m[1]) : '';
+                if ($field_name === '' || !isset($widget_state[$field_name])) {
+                    return $matches[0];
+                }
+
+                preg_match('/data-gvv-required=["\']?true["\']?/i', $all_attrs, $req_m);
+                $required = !empty($req_m);
+
+                $label = trim(strip_tags($matches[3]));
+                if ($label === '') {
+                    $label = $field_name;
+                }
+
+                $has_subform_widget = true;
+                $state = $widget_state[$field_name];
+                return $this->render_subform_widget(
+                    $field_name,
+                    $label,
+                    $required,
+                    $state['sub_url'],
+                    $state['verify_url'],
+                    isset($state['status']) ? $state['status'] : 'empty',
+                    isset($state['summary']) ? $state['summary'] : array(),
+                    $state['reset_url']
+                );
+            },
+            $html
+        );
+
+        return ($result !== null) ? $result : $html;
+    }
+
+    /**
+     * Render the HTML for a sub-form link widget: an "open in new tab" link, a
+     * "J'ai terminé, vérifier" button (AJAX check by link_token, revealed once the
+     * link has been clicked), and, once a linked submission is found, a read-only
+     * summary plus a "remplir à nouveau" link that mints a fresh token.
+     */
+    public function render_subform_widget($field_name, $label, $required, $sub_url, $verify_url, $status, array $summary, $reset_url) {
+        $fn  = htmlspecialchars($field_name, ENT_QUOTES, 'UTF-8');
+        $lbl = htmlspecialchars($label !== '' ? $label : $field_name, ENT_QUOTES, 'UTF-8');
+        $req_star = $required ? ' <span class="text-danger">*</span>' : '';
+        $req_data = $required ? ' data-gvv-required="true"' : '';
+        $is_submitted = ($status === 'submitted');
+
+        $html  = '<div class="gvv-subform-widget mb-3" data-subform-name="' . $fn . '"'
+               . ' data-subform-status="' . ($is_submitted ? 'submitted' : 'empty') . '"' . $req_data . '>' . "\n";
+        $html .= '  <label class="form-label fw-semibold">' . $lbl . $req_star . '</label>' . "\n";
+
+        $html .= '  <div class="gvv-subform-empty' . ($is_submitted ? ' d-none' : '') . '">' . "\n";
+        $html .= '    <a class="btn btn-outline-primary gvv-subform-open-link" target="_blank" rel="noopener"'
+               . ' href="' . htmlspecialchars($sub_url, ENT_QUOTES, 'UTF-8') . '"'
+               . ' data-verify-url="' . htmlspecialchars($verify_url, ENT_QUOTES, 'UTF-8') . '">'
+               . 'Remplir le sous-formulaire <span aria-hidden="true">&#8599;</span></a>' . "\n";
+        $html .= '    <button type="button" class="btn btn-outline-secondary ms-2 gvv-subform-verify-btn d-none">'
+               . 'J\'ai terminé, vérifier</button>' . "\n";
+        $html .= '    <div class="gvv-subform-status-msg small text-muted mt-1"></div>' . "\n";
+        $html .= '  </div>' . "\n";
+
+        $html .= '  <div class="gvv-subform-filled' . (!$is_submitted ? ' d-none' : '') . '">' . "\n";
+        $html .= '    <div class="gvv-subform-summary border rounded p-2 small bg-light">' . "\n";
+        $html .= $this->render_subform_summary_html($summary);
+        $html .= '    </div>' . "\n";
+        $html .= '    <a class="btn btn-sm btn-outline-secondary mt-2" target="_blank" rel="noopener"'
+               . ' href="' . htmlspecialchars($reset_url, ENT_QUOTES, 'UTF-8') . '">'
+               . 'Remplir à nouveau <span aria-hidden="true">&#8599;</span></a>' . "\n";
+        $html .= '  </div>' . "\n";
+
+        $html .= '</div>' . "\n";
+
+        if (!self::$subform_assets_emitted) {
+            $html .= $this->build_subform_assets();
+            self::$subform_assets_emitted = true;
+        }
+
+        return $html;
+    }
+
+    private function render_subform_summary_html(array $summary) {
+        if (empty($summary)) {
+            return '      <span class="text-muted">Réponse enregistrée.</span>' . "\n";
+        }
+
+        $html = '      <dl class="row mb-0">' . "\n";
+        foreach ($summary as $item) {
+            $html .= '        <dt class="col-5 col-md-4">' . htmlspecialchars((string) $item['label'], ENT_QUOTES, 'UTF-8') . '</dt>' . "\n";
+            $html .= '        <dd class="col-7 col-md-8">' . htmlspecialchars((string) $item['value'], ENT_QUOTES, 'UTF-8') . '</dd>' . "\n";
+        }
+        $html .= '      </dl>' . "\n";
+
+        return $html;
+    }
+
+    /**
+     * Shared JS for the sub-form widget: reveals the "vérifier" button once the
+     * open link has been clicked, and performs the targeted AJAX status check —
+     * never a full page reload of the master form (would discard unsaved input
+     * on its other fields — see design notes § 17).
+     */
+    private function build_subform_assets() {
+        return <<<'SUBJS'
+<script>
+(function () {
+    'use strict';
+
+    document.querySelectorAll('.gvv-subform-widget').forEach(function (widget) {
+        var link = widget.querySelector('.gvv-subform-open-link');
+        var verifyBtn = widget.querySelector('.gvv-subform-verify-btn');
+        var msg = widget.querySelector('.gvv-subform-status-msg');
+        if (!link || !verifyBtn) return;
+
+        link.addEventListener('click', function () {
+            verifyBtn.classList.remove('d-none');
+        });
+
+        verifyBtn.addEventListener('click', function () {
+            var url = link.dataset.verifyUrl;
+            if (!url) return;
+            verifyBtn.disabled = true;
+            if (msg) msg.textContent = 'Vérification en cours...';
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    verifyBtn.disabled = false;
+                    if (data && data.found) {
+                        widget.dataset.subformStatus = 'submitted';
+                        var emptyBlock = widget.querySelector('.gvv-subform-empty');
+                        var filledBlock = widget.querySelector('.gvv-subform-filled');
+                        var summaryBox = widget.querySelector('.gvv-subform-summary');
+                        if (summaryBox && data.summary) {
+                            summaryBox.innerHTML = renderSummary(data.summary);
+                        }
+                        if (emptyBlock) emptyBlock.classList.add('d-none');
+                        if (filledBlock) filledBlock.classList.remove('d-none');
+                    } else if (msg) {
+                        msg.textContent = 'Réponse non trouvée pour le moment : terminez le sous-formulaire puis réessayez.';
+                    }
+                })
+                .catch(function () {
+                    verifyBtn.disabled = false;
+                    if (msg) msg.textContent = 'Vérification impossible, réessayez.';
+                });
+        });
+    });
+
+    function renderSummary(summary) {
+        if (!summary.length) return '<span class="text-muted">Réponse enregistrée.</span>';
+        var html = '<dl class="row mb-0">';
+        summary.forEach(function (item) {
+            html += '<dt class="col-5 col-md-4">' + esc(item.label) + '</dt>'
+                 + '<dd class="col-7 col-md-8">' + esc(item.value) + '</dd>';
+        });
+        return html + '</dl>';
+    }
+
+    function esc(s) {
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+})();
+</script>
+SUBJS;
+    }
+
+    /**
      * Upload one file per (field_id => $_FILES key) pair into $upload_base_dir/YYYY/MM.
      * Shared by Forms_public::submit() (public submission) and Forms_admin::submission_edit_submit()
      * (in-place edit of an existing submission) — same storage layout and validation rules for both.
@@ -637,6 +828,8 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
 .gvv-sig-invalid>.gvv-sig-panel,
 .gvv-sig-invalid .gvv-sig-tabs{outline:2px solid #dc3545;border-radius:4px;}
 .gvv-sig-error{display:block;color:#dc3545;font-size:.875em;margin-top:.25rem;}
+.gvv-subform-invalid{outline:2px solid #dc3545;border-radius:4px;padding:.5rem;}
+.gvv-subform-error{display:block;color:#dc3545;font-size:.875em;margin-top:.25rem;}
 </style>
 <script>
 (function () {
@@ -683,10 +876,20 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
                 }
             });
 
+            /* 3. Required sub-form widgets (Lot 11) — status is set to "submitted"
+             * either at server render time or by the widget's own verify AJAX call. */
+            form.querySelectorAll('.gvv-subform-widget[data-gvv-required="true"]').forEach(function (widget) {
+                if (widget.dataset.subformStatus !== 'submitted') {
+                    markSubformInvalid(widget);
+                    var lbl = widget.querySelector('.form-label');
+                    missing.push(lbl ? lbl.textContent.trim().replace(/\s*\*\s*$/, '').trim() : 'Sous-formulaire');
+                }
+            });
+
             if (missing.length > 0) {
                 e.preventDefault();
                 showSummary(form, missing);
-                var first = form.querySelector('.is-invalid, .gvv-sig-invalid');
+                var first = form.querySelector('.is-invalid, .gvv-sig-invalid, .gvv-subform-invalid');
                 if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
@@ -778,6 +981,16 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
         if (f) checkAllClear(f);
     }
 
+    function markSubformInvalid(widget) {
+        widget.classList.add('gvv-subform-invalid');
+        if (!widget.querySelector('.gvv-subform-error')) {
+            var fb = document.createElement('div');
+            fb.className = 'gvv-subform-error small';
+            fb.textContent = 'Ce sous-formulaire doit être rempli et vérifié avant de continuer.';
+            widget.appendChild(fb);
+        }
+    }
+
     function showSummary(form, labels) {
         var alert = document.createElement('div');
         alert.className = 'alert alert-danger gvv-validation-summary';
@@ -796,6 +1009,8 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
         form.querySelectorAll('.gvv-invalid-feedback').forEach(function (el) { el.remove(); });
         form.querySelectorAll('.gvv-sig-invalid').forEach(function (el) { el.classList.remove('gvv-sig-invalid'); });
         form.querySelectorAll('.gvv-sig-error').forEach(function (el) { el.remove(); });
+        form.querySelectorAll('.gvv-subform-invalid').forEach(function (el) { el.classList.remove('gvv-subform-invalid'); });
+        form.querySelectorAll('.gvv-subform-error').forEach(function (el) { el.remove(); });
         var s = form.querySelector('.gvv-validation-summary');
         if (s) s.remove();
     }

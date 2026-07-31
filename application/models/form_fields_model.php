@@ -13,7 +13,7 @@ class Form_fields_model extends CI_Model {
 
     private $allowed_field_types = array(
         'text', 'email', 'date', 'number', 'textarea',
-        'select', 'radio', 'checkbox', 'file', 'signature'
+        'select', 'radio', 'checkbox', 'file', 'signature', 'subform'
     );
 
     public function __construct() {

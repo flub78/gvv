@@ -35,6 +35,7 @@ class Form_submissions_model extends CI_Model {
             'upload_comment'  => isset($data['upload_comment']) ? $data['upload_comment'] : null,
             'subject_type'    => isset($data['subject_type']) ? $data['subject_type'] : null,
             'subject_id'      => isset($data['subject_id']) ? $data['subject_id'] : null,
+            'link_token'      => isset($data['link_token']) && $data['link_token'] !== '' ? $data['link_token'] : null,
             'submitter_email' => isset($data['submitter_email']) ? $data['submitter_email'] : null,
             'submitter_name'  => isset($data['submitter_name']) ? $data['submitter_name'] : null,
             'source_ip'       => isset($data['source_ip']) ? $data['source_ip'] : null,
@@ -104,6 +105,59 @@ class Form_submissions_model extends CI_Model {
         return $row ?: null;
     }
 
+    /**
+     * Returns the latest submitted submission carrying this link_token, or null.
+     * Used to correlate a sub-form response (Lot 11) to its master before the
+     * master itself is submitted — see get_current_for_subject() for the
+     * equivalent lookup once the generic subject_type/subject_id pair applies.
+     */
+    public function get_by_link_token($link_token) {
+        $link_token = trim((string) $link_token);
+        if ($link_token === '') {
+            return null;
+        }
+
+        $row = $this->db
+            ->where('link_token', $link_token)
+            ->where('status', 'submitted')
+            ->order_by('created_at', 'desc')
+            ->limit(1)
+            ->get($this->table)
+            ->row_array();
+
+        return $row ?: null;
+    }
+
+    /**
+     * Switch a sub-form submission's generic subject reference to the master
+     * submission that just absorbed it (Lot 11), once the master's own id is
+     * known. Only applies when the sub-form submission has no subject
+     * reference of its own yet: if it is itself a category-3 form already
+     * attached to a GVV entity (e.g. briefing_passager_ulm used standalone),
+     * that attachment takes precedence and is left untouched — the link_token
+     * on the row is enough on its own to prove the sub-form/master relationship.
+     *
+     * @return bool true if a row was actually updated.
+     */
+    public function backfill_subject_from_link_token($link_token, $subject_type, $subject_id) {
+        $link_token = trim((string) $link_token);
+        if ($link_token === '') {
+            return false;
+        }
+
+        $this->db
+            ->where('link_token', $link_token)
+            ->where('subject_type', null)
+            ->where('subject_id', null)
+            ->update($this->table, array(
+                'subject_type' => (string) $subject_type,
+                'subject_id'   => (int) $subject_id,
+                'updated_at'   => date('Y-m-d H:i:s'),
+            ));
+
+        return $this->db->affected_rows() > 0;
+    }
+
     public function count_by_form(array $form_ids) {
         if (empty($form_ids)) {
             return array();
@@ -151,6 +205,34 @@ class Form_submissions_model extends CI_Model {
             ->order_by('v.id', 'ASC')
             ->get()
             ->result_array();
+    }
+
+    /**
+     * Read-only summary of a submission's field values, for display inside a
+     * sub-form widget (Lot 11) or its status AJAX endpoint. Excludes file,
+     * signature and subform fields (not meaningful as a flat label/value pair)
+     * and empty values.
+     */
+    public function get_submission_summary($submission_id) {
+        $values = $this->get_submission_values($submission_id);
+
+        $summary = array();
+        foreach ($values as $row) {
+            $type = isset($row['field_type']) ? $row['field_type'] : 'text';
+            if (in_array($type, array('file', 'signature', 'subform'), true)) {
+                continue;
+            }
+            $text = trim((string) $row['value_text']);
+            if ($text === '') {
+                continue;
+            }
+            $summary[] = array(
+                'label' => isset($row['field_label']) && $row['field_label'] !== '' ? $row['field_label'] : $row['field_name'],
+                'value' => $text,
+            );
+        }
+
+        return $summary;
     }
 
     public function save_submission_values($submission_id, array $values_by_field, $updated_by = null) {

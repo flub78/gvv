@@ -15,7 +15,8 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 9. [Consulter les réponses](#consulter-les-réponses)
 10. [Modifier une réponse déjà soumise](#modifier-une-réponse-déjà-soumise)
 11. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
-12. [Exemples de formulaires](#exemples-de-formulaires)
+12. [Sous-formulaires](#sous-formulaires)
+13. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -615,6 +616,52 @@ Dans la liste, une réponse envoyée par téléchargement se distingue des répo
 - **Rotation** (boutons ↺ / ↻) : pour redresser un scan ou une photo qui n'a pas été prise droite. La rotation modifie le fichier stocké.
 - Pas de bouton "Ouvrir" : il n'y a pas de champs à afficher pour ce type de réponse, seulement le fichier déposé.
 - La **suppression** de la réponse supprime aussi le fichier et sa miniature.
+
+---
+
+## Sous-formulaires
+
+Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans un **nouvel onglet** — jamais en iframe ni fusionné dans la page, pour que chaque formulaire garde son propre CSS/JS. Une fois le sous-formulaire rempli, un résumé lecture seule de sa réponse s'affiche dans le formulaire maître.
+
+**Déclaration dans le HTML :**
+
+```html
+<div data-gvv-type="subform"
+     data-gvv-name="briefing_passager"
+     data-gvv-form-slug="briefing-passager-ulm"
+     data-gvv-required="true">
+  Briefing passager
+</div>
+```
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-type="subform"` | Identifie le widget (obligatoire) |
+| `data-gvv-name` | Nom technique du widget |
+| `data-gvv-form-slug` | Lien public (`public_slug`) du formulaire à ouvrir comme sous-formulaire |
+| `data-gvv-required` | `true` = le formulaire maître ne peut être soumis sans réponse liée au sous-formulaire |
+
+### Déroulement pour l'utilisateur
+
+1. **Remplir le sous-formulaire** — clic sur le lien, ouverture dans un nouvel onglet.
+2. **J'ai terminé, vérifier** — de retour sur l'onglet du maître, ce bouton devient visible ; un clic vérifie si la réponse a bien été enregistrée, sans recharger la page (la saisie déjà en cours sur les autres champs du maître n'est jamais perdue).
+3. **Résumé affiché** — une fois la réponse trouvée, un résumé lecture seule des valeurs saisies remplace le lien, avec un bouton **Remplir à nouveau** pour recommencer une réponse indépendante.
+
+Si le widget est obligatoire, la soumission du formulaire maître est bloquée tant que le sous-formulaire n'a pas été vérifié comme rempli.
+
+### Rattachement au formulaire maître
+
+Avant que le maître ne soit soumis, la réponse du sous-formulaire n'est reliée à rien de définitif : un jeton technique (`link_token`) assure la correspondance le temps de la saisie. À la soumission finale du maître, cette réponse est rattachée à lui de façon durable.
+
+Si l'utilisateur remplit le sous-formulaire mais ne termine jamais le formulaire maître, la réponse du sous-formulaire est **conservée** (jamais supprimée automatiquement) et apparaît dans la liste des réponses avec le badge **Non rattaché**.
+
+> **Cas particulier** : si le formulaire utilisé comme sous-formulaire est par ailleurs rattaché directement à un enregistrement GVV (ex. `briefing-passager-ulm` rattaché à un vol de découverte), cet attachement d'origine est toujours prioritaire et n'est jamais remplacé par le rattachement au formulaire maître.
+
+### Limites (V1)
+
+- Un seul niveau d'imbrication : un sous-formulaire ne peut pas lui-même contenir un widget sous-formulaire.
+- Une seule réponse liée par widget (pas de sous-formulaire répétable).
+- Pas d'édition en place d'une réponse de sous-formulaire déjà soumise — seulement une nouvelle soumission complète (« Remplir à nouveau »).
 
 ---
 

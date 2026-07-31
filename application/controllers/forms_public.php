@@ -79,6 +79,8 @@ class Forms_public extends CI_Controller {
         $session_key_b_lock       = 'forms_b_lock_'           . md5($slug);
         $session_key_subject_type = 'forms_subject_type_'     . md5($slug);
         $session_key_subject_id   = 'forms_subject_id_'       . md5($slug);
+        $session_key_link_token   = 'forms_link_token_'       . md5($slug);
+        $session_key_subform_tokens = 'forms_subform_tokens_' . md5($slug);
 
         // Mechanism A — pilot/instructor login
         $get_pilot      = trim((string) $this->input->get('pilot_login'));
@@ -95,9 +97,15 @@ class Forms_public extends CI_Controller {
         if ($get_subject_type !== '') $this->session->set_userdata($session_key_subject_type, $get_subject_type);
         if ($get_subject_id   !== '') $this->session->set_userdata($session_key_subject_id, $get_subject_id);
 
+        // Sub-form correlation token (Lot 11): present when this form is itself opened
+        // as a sub-form of another master form. Stored per-slug like subject_type/id so
+        // it survives page navigation and is written onto this form's own submission.
+        $get_link_token = trim((string) $this->input->get('link_token'));
+        if ($get_link_token !== '') $this->session->set_userdata($session_key_link_token, $get_link_token);
+
         // Mechanism B — arbitrary field values from URL query string
         // Reserved names that are never injected as field values.
-        $b_reserved = array('page', 'token', 'subject_type', 'subject_id', 'lock', 'pilot_login', 'instructor_login');
+        $b_reserved = array('page', 'token', 'subject_type', 'subject_id', 'link_token', 'lock', 'pilot_login', 'instructor_login');
         $all_get    = $this->input->get();
         if (is_array($all_get)) {
             $new_prefill = array();
@@ -123,12 +131,15 @@ class Forms_public extends CI_Controller {
         // so we work on raw HTML here and store raw HTML back.
         $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
         $has_signature_widget = false;
+        $has_subform_widget = false;
+        $subform_tokens = $this->session->userdata($session_key_subform_tokens) ?: array();
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             // GVV-sourced signature prefill; flash data (validation error) takes priority.
             $gvv_sig_prefill = $this->_collect_gvv_sig_prefill($raw, $pilot_login, $instructor_login, $club_id);
             $merged_sig = array_merge($gvv_sig_prefill, $sig_canvas_data);
             $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, $merged_sig);
+            list($injected, $subform_tokens) = $this->_apply_subform_widgets($injected, $slug, $subform_tokens, $has_subform_widget);
             $injected = $this->forms_renderer->inject_validation_script($injected);
             list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
             if (!empty($b_prefill)) {
@@ -138,6 +149,9 @@ class Forms_public extends CI_Controller {
                 $injected = $this->forms_renderer->repopulate_html_fields($injected, $fields, $old_values);
             }
             $current_page['content_html'] = $injected;
+        }
+        if (!empty($subform_tokens)) {
+            $this->session->set_userdata($session_key_subform_tokens, $subform_tokens);
         }
 
         $data = array(
@@ -319,6 +333,11 @@ class Forms_public extends CI_Controller {
 
         $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
 
+        // Required sub-form widgets (Lot 11) can live on any page of a multi-page
+        // master, not just the one being submitted here — check across all pages.
+        $subform_tokens = $this->session->userdata('forms_subform_tokens_' . md5($slug)) ?: array();
+        $errors = array_merge($errors, $this->_validate_required_subforms($pages, $subform_tokens));
+
         if (!empty($errors)) {
             $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
@@ -426,6 +445,11 @@ class Forms_public extends CI_Controller {
             }
         }
 
+        // This form's own correlation token (Lot 11), set in index() when it is
+        // opened as a sub-form of another master — written onto its own submission
+        // so the master can find it back via Form_submissions_model::get_by_link_token().
+        $own_link_token = $this->session->userdata('forms_link_token_' . md5($slug)) ?: null;
+
         $this->db->trans_start();
 
         $submission_id = $this->form_submissions_model->create_submission(array(
@@ -433,6 +457,7 @@ class Forms_public extends CI_Controller {
             'status'          => 'submitted',
             'subject_type'    => $subject_type,
             'subject_id'      => $subject_id !== null ? (int) $subject_id : null,
+            'link_token'      => $own_link_token,
             'submitter_email' => $submitter_email,
             'submitter_name'  => $submitter_name,
             'source_ip'       => $this->input->ip_address(),
@@ -462,6 +487,20 @@ class Forms_public extends CI_Controller {
         // Clear mechanism B session after successful submission.
         $this->session->unset_userdata('forms_b_prefill_' . md5($slug));
         $this->session->unset_userdata('forms_b_lock_'    . md5($slug));
+
+        // Sub-form backfill (Lot 11): this master submission now exists, switch every
+        // linked sub-form submission's subject_type/subject_id to point at it — unless
+        // that sub-form submission already carries its own subject reference (it is
+        // itself a category-3 form used standalone), in which case it is left untouched.
+        $subform_tokens = $this->session->userdata('forms_subform_tokens_' . md5($slug)) ?: array();
+        foreach ($subform_tokens as $subform_token) {
+            $this->form_submissions_model->backfill_subject_from_link_token(
+                $subform_token,
+                'form_submission',
+                (int) $submission_id
+            );
+        }
+        $this->session->unset_userdata('forms_subform_tokens_' . md5($slug));
 
         $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
 
@@ -604,6 +643,57 @@ class Forms_public extends CI_Controller {
         );
 
         $this->render_view('forms_public/bs_thanks', $data);
+    }
+
+    /**
+     * Public AJAX endpoint (Lot 11 — sous-formulaires): returns whether a
+     * submission exists for a given link_token, and a read-only summary of its
+     * values if so. Same exposure level as any other public form link — no
+     * authentication, the token itself is the only secret.
+     */
+    public function subform_status($token = '') {
+        $token = trim((string) $token);
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($token === '' || !preg_match('/^[a-f0-9]{16,64}$/', $token)) {
+            echo json_encode(array('found' => false));
+            return;
+        }
+
+        $submission = $this->form_submissions_model->get_by_link_token($token);
+        if (!$submission) {
+            echo json_encode(array('found' => false));
+            return;
+        }
+
+        echo json_encode(array(
+            'found'   => true,
+            'summary' => $this->form_submissions_model->get_submission_summary((int) $submission['id']),
+        ));
+    }
+
+    /**
+     * "Remplir à nouveau" (Lot 11): mints a fresh link_token for this widget on the
+     * master form and redirects straight to the sub-form with it — a resubmission is
+     * a brand new, independent sub-form submission, never an edit of the previous one.
+     */
+    public function subform_reset($master_slug = '', $widget_name = '') {
+        $master_slug = trim((string) $master_slug);
+        $widget_name = trim((string) $widget_name);
+        $sub_slug    = trim((string) $this->input->get('form_slug'));
+
+        if ($master_slug === '' || $widget_name === '' || $sub_slug === '') {
+            show_404();
+            return;
+        }
+
+        $session_key = 'forms_subform_tokens_' . md5($master_slug);
+        $tokens = $this->session->userdata($session_key) ?: array();
+        $tokens[$widget_name] = $this->_generate_link_token();
+        $this->session->set_userdata($session_key, $tokens);
+
+        redirect('forms/' . rawurlencode($sub_slug) . '?link_token=' . rawurlencode($tokens[$widget_name]));
     }
 
     /**
@@ -868,6 +958,104 @@ class Forms_public extends CI_Controller {
         }
 
         return $sig_prefill;
+    }
+
+    /**
+     * Resolve/render sub-form widgets (Lot 11 — sous-formulaires) found in a master
+     * page's HTML. Mints or reuses a link_token per widget name (persisted in the
+     * caller's session token map), looks up whether a linked sub-form submission
+     * already exists, and delegates the actual HTML swap to Forms_renderer.
+     *
+     * Returns [modified_html, updated_tokens_map].
+     */
+    private function _apply_subform_widgets($html, $master_slug, array $tokens, &$has_widget) {
+        $has_widget = false;
+        if (strpos($html, 'data-gvv-type') === false || strpos($html, 'subform') === false) {
+            return array($html, $tokens);
+        }
+
+        preg_match_all('/<div([^>]*)\bdata-gvv-type=["\']subform["\']([^>]*)>/i', $html, $divs, PREG_SET_ORDER);
+        if (empty($divs)) {
+            return array($html, $tokens);
+        }
+
+        $widget_state = array();
+        foreach ($divs as $div) {
+            $attrs = $div[1] . $div[2];
+
+            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
+            $name = trim($nm[1]);
+            if ($name === '' || isset($widget_state[$name])) continue;
+
+            if (!preg_match('/\bdata-gvv-form-slug=["\']([^"\']+)["\']/', $attrs, $sl)) continue;
+            $sub_slug = trim($sl[1]);
+            if ($sub_slug === '') continue;
+
+            if (empty($tokens[$name])) {
+                $tokens[$name] = $this->_generate_link_token();
+            }
+            $token = $tokens[$name];
+
+            $submission = $this->form_submissions_model->get_by_link_token($token);
+            $status  = $submission ? 'submitted' : 'empty';
+            $summary = $submission ? $this->form_submissions_model->get_submission_summary((int) $submission['id']) : array();
+
+            $widget_state[$name] = array(
+                'sub_url'    => site_url('forms/' . rawurlencode($sub_slug)) . '?link_token=' . rawurlencode($token),
+                'verify_url' => site_url('forms/subform-status/' . rawurlencode($token)),
+                'reset_url'  => site_url('forms/subform-reset/' . rawurlencode($master_slug) . '/' . rawurlencode($name))
+                                . '?form_slug=' . rawurlencode($sub_slug),
+                'status'     => $status,
+                'summary'    => $summary,
+            );
+        }
+
+        if (empty($widget_state)) {
+            return array($html, $tokens);
+        }
+
+        $injected = $this->forms_renderer->inject_subform_widgets($html, $has_widget, $widget_state);
+        return array($injected !== null ? $injected : $html, $tokens);
+    }
+
+    private function _generate_link_token() {
+        return bin2hex(random_bytes(16));
+    }
+
+    /**
+     * Server-side enforcement of required sub-form widgets (Lot 11), across every
+     * page of the master — a required widget on an earlier page than the one being
+     * submitted must still block the final submission.
+     */
+    private function _validate_required_subforms(array $pages, array $tokens) {
+        $errors = array();
+
+        foreach ($pages as $page) {
+            $html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if (strpos($html, 'data-gvv-type') === false || strpos($html, 'subform') === false) {
+                continue;
+            }
+
+            preg_match_all('/<div([^>]*)\bdata-gvv-type=["\']subform["\']([^>]*)>(.*?)<\/div>/is', $html, $divs, PREG_SET_ORDER);
+            foreach ($divs as $div) {
+                $attrs = $div[1] . $div[2];
+                if (!preg_match('/\bdata-gvv-required=["\']?true["\']?/i', $attrs)) continue;
+                if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
+                $name = trim($nm[1]);
+                if ($name === '') continue;
+
+                $label = trim(strip_tags($div[3]));
+                if ($label === '') $label = $name;
+
+                $token = isset($tokens[$name]) ? $tokens[$name] : '';
+                $submission = $token !== '' ? $this->form_submissions_model->get_by_link_token($token) : null;
+                if (!$submission) {
+                    $errors[] = 'Le sous-formulaire "' . html_escape($label) . '" doit être rempli et vérifié.';
+                }
+            }
+        }
+
+        return $errors;
     }
 
     /**
