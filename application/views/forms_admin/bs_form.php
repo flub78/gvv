@@ -128,6 +128,18 @@
                     <div class="form-text"><?= $this->lang->line('forms_help_handler_class') ?></div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="target_url"><?= $this->lang->line('forms_label_target_url') ?></label>
+                        <input class="form-control" id="target_url" name="target_url" type="text" maxlength="255" placeholder="membre/create" value="<?= html_escape(isset($form['target_url']) ? $form['target_url'] : '') ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="target_label"><?= $this->lang->line('forms_label_target_label') ?></label>
+                        <input class="form-control" id="target_label" name="target_label" type="text" maxlength="100" value="<?= html_escape(isset($form['target_label']) ? $form['target_label'] : '') ?>">
+                    </div>
+                </div>
+                <div class="form-text mb-3 mt-n2"><?= $this->lang->line('forms_help_target_export') ?></div>
+
                 <?php if (isset($form_mode) && $form_mode === 'edit'): ?>
                     <?php $current_status = isset($form['status']) ? $form['status'] : 'draft'; ?>
                     <?php if ($current_status === 'published'): ?>

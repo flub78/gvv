@@ -239,6 +239,16 @@ class Gvv_Controller extends MY_Controller {
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
+        // Pré-remplissage générique depuis les paramètres de requête (Lot 12 —
+        // export d'une réponse de formulaire vers un formulaire de création GVV) :
+        // ne surcharge que les colonnes déjà connues de la table, jamais de
+        // nouvelle clé — un create() appelé sans paramètre reste inchangé.
+        foreach ($this->input->get() as $key => $value) {
+            if (array_key_exists($key, $this->data) && !is_array($value)) {
+                $this->data[$key] = $value;
+            }
+        }
+
         $this->form_static_element(CREATION);
 
         // Bouton retour → liste

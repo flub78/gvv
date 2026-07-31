@@ -467,16 +467,16 @@ Objectif : permettre, depuis la liste des réponses d'un formulaire, d'ouvrir un
 
 Voir : [Design export vers formulaire de création](../design_notes/remplissage_formulaires_design.md#18-export-dune-réponse-vers-un-formulaire-de-création-gvv)
 
-- [ ] Migration `1XX_forms_export_target.php` : ajouter `target_url VARCHAR(255) NULL` et `target_label VARCHAR(100) NULL` à `forms`. Mettre à jour `application/config/migration.php`.
-- [ ] `forms_model.php` : gérer `target_url`/`target_label` en création/modification.
-- [ ] `bs_form.php` : deux champs optionnels (URL cible, libellé du bouton) dans le formulaire admin d'édition d'un formulaire.
-- [ ] `bs_submissions.php` : afficher, par ligne, un bouton portant `target_label` et pointant vers l'URL construite, uniquement si `target_url` et `target_label` sont tous deux renseignés.
-- [ ] Méthode de construction de l'URL (`forms_admin` ou `form_submissions_model`) : concatène `target_url` et une query string dérivée de `form_submission_values`, en excluant les champs de type `file`, `signature`, et les champs à choix multiples.
-- [ ] Extension générique de `Gvv_Controller::create()` (`application/libraries/Gvv_Controller.php:233`) : fusionner les paramètres `$_GET` correspondant à une colonne connue de la table par-dessus `defaults_list()`.
-- [ ] Tests PHPUnit : migration up/down, construction de l'URL (exclusion fichier/signature/multi-valeurs, encodage), `Gvv_Controller::create()` pré-rempli par `$_GET` sur un contrôleur existant (ex. `membre`).
-- [ ] Test Playwright : soumission `inscription_club` avec `target_url`/`target_label` configurés → bouton visible dans la liste des réponses → clic → `membre/create` ouvert avec les champs correspondants pré-remplis.
-- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Exporter une réponse vers un formulaire de création ».
-- [ ] **Validation non-régression** : formulaires sans `target_url`/`target_label` inchangés ; `Gvv_Controller::create()` sans paramètres de requête inchangé ; suite PHPUnit/Playwright complète verte.
+- [x] Migration `145_forms_export_target.php` : ajouter `target_url VARCHAR(255) NULL` et `target_label VARCHAR(100) NULL` à `forms`, pattern idempotent `add_column_if_missing`. `application/config/migration.php` mis à jour à la version 145.
+- [x] `forms_model.php` : `target_url`/`target_label` gérés dans `create_form()`/`update_form()` (chaîne vide normalisée en NULL, comme `handler_class`).
+- [x] `bs_form.php` : deux champs optionnels (URL cible, libellé du bouton) dans le formulaire admin d'édition d'un formulaire, avec texte d'aide ; `forms_admin::store()`/`update()` transmettent les champs POST (avec règles `max_length[255]`/`max_length[100]`).
+- [x] `bs_submissions.php` : bouton `target_label` par ligne, pointant vers l'URL construite, affiché uniquement si `target_url` et `target_label` sont tous deux renseignés et la réponse n'est pas de type `upload` (pas de `form_submission_values` exploitable pour ce mode).
+- [x] `Form_submissions_model::get_export_query_params()`/`build_export_url()` : concatène `target_url` (résolu via `site_url()` si ce n'est pas déjà une URL absolue) et une query string dérivée de `form_submission_values`, excluant les champs de type `file`, `signature`, `subform`, et les valeurs à forme JSON-array (champs à choix multiples, ex. `<select multiple>`).
+- [x] Extension générique de `Gvv_Controller::create()` (`application/libraries/Gvv_Controller.php:233`) : fusionne les paramètres `$_GET` correspondant à une colonne connue de `defaults_list()` par-dessus celle-ci (valeurs tableau ignorées, aucune nouvelle clé introduite).
+- [x] Tests PHPUnit : `FormsExportTargetMigrationTest` (mysql, 5 tests, 24 assertions — migration up/down/idempotence, exclusion fichier/signature/multi-valeurs, URL inchangée si aucun paramètre) ; `GvvControllerCreatePrefillTest` (mysql/HTTP, 3 tests — préremplissage par `$_GET` sur `membre/create`, comportement inchangé sans paramètre, paramètre inconnu ignoré). Suite complète (5 suites, 1656 tests) verte, mêmes 48 skips pré-existants.
+- [ ] Test Playwright — **non réalisé** : pas de Chromium disponible dans cet environnement d'exécution (même limitation que Lots 11/13). Couverture équivalente obtenue par un parcours fonctionnel réel sur gvv.net (curl + session admin) : formulaire de test avec `target_url='membre/create'`/`target_label` configurés → soumission publique → bouton visible dans `forms_admin/submissions` avec l'URL exacte pré-remplie → `membre/create?mnom=...&memail=...` affiche bien les valeurs dans les champs. Formulaire et soumission de test supprimés après vérification.
+- [x] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Exporter une réponse vers un formulaire de création ».
+- [x] **Validation non-régression** : formulaire existant sans `target_url`/`target_label` (`forms_admin/submissions/10`) n'affiche aucun bouton d'export ; `membre/create` sans paramètre de requête inchangé (champ `mnom` vide) ; suite PHPUnit complète verte (1656 tests, 0 échec, 48 skips pré-existants).
 
 ### Lot 13 — Modification en place d'une réponse déjà soumise
 

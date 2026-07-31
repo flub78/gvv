@@ -120,6 +120,8 @@ class Forms_admin extends MY_Controller {
                 'css_scope'   => '',
                 'global_css'  => '',
                 'handler_class' => '',
+                'target_url'   => '',
+                'target_label' => '',
                 'is_global'   => ($section_id <= 0) ? 1 : 0,
             ),
             'section_id' => $section_id,
@@ -209,6 +211,8 @@ class Forms_admin extends MY_Controller {
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
         $this->form_validation->set_rules('global_css', 'CSS global', 'max_length[65535]');
+        $this->form_validation->set_rules('target_url', 'URL cible', 'max_length[255]');
+        $this->form_validation->set_rules('target_label', 'Libellé du bouton', 'max_length[100]');
 
         if ($this->form_validation->run() === FALSE) {
             $data = array(
@@ -236,6 +240,8 @@ class Forms_admin extends MY_Controller {
             'required_params' => $this->input->post('required_params') ?: 'none',
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
+            'target_url'      => trim((string) $this->input->post('target_url')),
+            'target_label'    => trim((string) $this->input->post('target_label')),
             'created_by'      => $this->dx_auth->get_username(),
         ));
 
@@ -271,6 +277,8 @@ class Forms_admin extends MY_Controller {
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
         $this->form_validation->set_rules('global_css', 'CSS global', 'max_length[65535]');
+        $this->form_validation->set_rules('target_url', 'URL cible', 'max_length[255]');
+        $this->form_validation->set_rules('target_label', 'Libellé du bouton', 'max_length[100]');
         $this->form_validation->set_rules('status', 'Statut', 'in_list[draft,published,archived]');
 
         if ($this->form_validation->run() === FALSE) {
@@ -331,6 +339,8 @@ class Forms_admin extends MY_Controller {
             'required_params' => $this->input->post('required_params') ?: $current['required_params'],
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
+            'target_url'      => trim((string) $this->input->post('target_url')),
+            'target_label'    => trim((string) $this->input->post('target_label')),
             'status'          => $status,
             'updated_by'      => $this->dx_auth->get_username(),
         ));
@@ -767,11 +777,26 @@ class Forms_admin extends MY_Controller {
             }
         }
 
+        // Export to a GVV creation form (Lot 12) — button only when both are configured.
+        $export_urls = array();
+        if (!empty($form['target_url']) && !empty($form['target_label'])) {
+            foreach ($submissions as $submission) {
+                if ($submission['submission_method'] === 'upload') {
+                    continue;
+                }
+                $export_urls[(int) $submission['id']] = $this->form_submissions_model->build_export_url(
+                    $form['target_url'],
+                    (int) $submission['id']
+                );
+            }
+        }
+
         $data = array(
             'controller'    => $this->controller,
             'form'          => $form,
             'submissions'   => $submissions,
             'upload_files'  => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
+            'export_urls'   => $export_urls,
             'success'       => $this->session->flashdata('forms_success') ?: '',
             'error'         => $this->session->flashdata('forms_error') ?: '',
         );

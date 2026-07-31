@@ -252,6 +252,11 @@ $lang['forms_generate_error_not_found'] = 'Formulaire introuvable ou non publié
 $lang['forms_generate_error_pilot']     = 'Veuillez sélectionner un candidat.';
 $lang['forms_generate_error_instructor']= 'Veuillez sélectionner un instructeur.';
 
+/* export vers formulaire de creation GVV (Lot 12) */
+$lang['forms_label_target_url']   = 'Formulaire de création cible (export)';
+$lang['forms_label_target_label'] = 'Libellé du bouton export';
+$lang['forms_help_target_export'] = 'Si les deux champs sont renseignés, un bouton apparaît sur chaque réponse pour ouvrir ce formulaire GVV pré-rempli avec les valeurs de la réponse (ex : membre/create).';
+
 /* sous-formulaires (Lot 11) */
 $lang['forms_badge_subform_unattached']      = 'Non rattaché';
 $lang['forms_help_badge_subform_unattached'] = 'Cette réponse a été soumise comme sous-formulaire, mais son formulaire maître n\'a jamais été validé.';

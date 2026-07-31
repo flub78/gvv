@@ -235,6 +235,64 @@ class Form_submissions_model extends CI_Model {
         return $summary;
     }
 
+    /**
+     * Field_name => value_text map derived from a submission's values, for the
+     * "export to a GVV creation form" button (Lot 12). Excludes file, signature
+     * and subform fields (no exploitable value_text) and multi-valued fields
+     * (JSON-array-shaped value_text, e.g. a <select multiple>) — no `champ[]=`
+     * encoding in V1, see design notes § 18.
+     */
+    public function get_export_query_params($submission_id) {
+        $values = $this->get_submission_values($submission_id);
+
+        $params = array();
+        foreach ($values as $row) {
+            $type = isset($row['field_type']) ? $row['field_type'] : 'text';
+            if (in_array($type, array('file', 'signature', 'subform'), true)) {
+                continue;
+            }
+            $name = isset($row['field_name']) ? trim((string) $row['field_name']) : '';
+            if ($name === '') {
+                continue;
+            }
+            $value_text = (string) $row['value_text'];
+            if ($this->_looks_like_json_array($value_text)) {
+                continue;
+            }
+            $params[$name] = $value_text;
+        }
+
+        return $params;
+    }
+
+    /**
+     * Full export URL for a submission (Lot 12): $target_url (a relative
+     * controller/method path, e.g. "membre/create", resolved via site_url() —
+     * or an already-absolute URL, left as-is) with the query string above
+     * appended. Returns the resolved target unchanged if there is nothing to append.
+     */
+    public function build_export_url($target_url, $submission_id) {
+        $target_url = trim((string) $target_url);
+        $resolved = preg_match('#^https?://#i', $target_url) ? $target_url : site_url($target_url);
+
+        $params = $this->get_export_query_params($submission_id);
+        if (empty($params)) {
+            return $resolved;
+        }
+
+        $separator = (strpos($resolved, '?') === false) ? '?' : '&';
+        return $resolved . $separator . http_build_query($params);
+    }
+
+    private function _looks_like_json_array($value_text) {
+        $trimmed = trim($value_text);
+        if ($trimmed === '' || $trimmed[0] !== '[') {
+            return false;
+        }
+        $decoded = json_decode($trimmed, true);
+        return json_last_error() === JSON_ERROR_NONE && is_array($decoded);
+    }
+
     public function save_submission_values($submission_id, array $values_by_field, $updated_by = null) {
         $submission = $this->get_by_id($submission_id);
         if (!$submission) {

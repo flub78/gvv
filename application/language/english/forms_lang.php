@@ -252,6 +252,11 @@ $lang['forms_generate_error_not_found'] = 'Form not found or not published.';
 $lang['forms_generate_error_pilot']     = 'Please select a candidate.';
 $lang['forms_generate_error_instructor']= 'Please select an instructor.';
 
+/* export to a GVV creation form (Lot 12) */
+$lang['forms_label_target_url']   = 'Target GVV creation form (export)';
+$lang['forms_label_target_label'] = 'Export button label';
+$lang['forms_help_target_export'] = 'If both fields are set, a button appears on each response to open this GVV form pre-filled with the response values (e.g. member/create).';
+
 /* subforms (Lot 11) */
 $lang['forms_badge_subform_unattached']      = 'Unattached';
 $lang['forms_help_badge_subform_unattached'] = 'This response was submitted as a sub-form, but its master form was never finalized.';

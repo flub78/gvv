@@ -16,7 +16,8 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 10. [Modifier une réponse déjà soumise](#modifier-une-réponse-déjà-soumise)
 11. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
 12. [Sous-formulaires](#sous-formulaires)
-13. [Exemples de formulaires](#exemples-de-formulaires)
+13. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
+14. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -662,6 +663,41 @@ Si l'utilisateur remplit le sous-formulaire mais ne termine jamais le formulaire
 - Un seul niveau d'imbrication : un sous-formulaire ne peut pas lui-même contenir un widget sous-formulaire.
 - Une seule réponse liée par widget (pas de sous-formulaire répétable).
 - Pas d'édition en place d'une réponse de sous-formulaire déjà soumise — seulement une nouvelle soumission complète (« Remplir à nouveau »).
+
+---
+
+## Exporter une réponse vers un formulaire de création
+
+Un formulaire peut déclarer une **cible d'export** : un formulaire de création GVV standard (ex. création de membre) à ouvrir, pré-rempli, à partir des valeurs d'une réponse. Contrairement au pré-remplissage GVV (mécanismes A et B ci-dessus), le sens du flux est ici inversé : c'est une réponse `forms` qui alimente un formulaire GVV situé en dehors du module.
+
+### Configurer un formulaire
+
+Dans l'admin d'édition d'un formulaire, deux champs optionnels :
+
+- **Formulaire de création cible** : chemin relatif du contrôleur/méthode GVV à ouvrir (ex. `membre/create`).
+- **Libellé du bouton export** : texte affiché sur le bouton dans la liste des réponses.
+
+Le bouton n'apparaît que si **les deux** champs sont renseignés.
+
+### Fonctionnement
+
+Depuis la liste des réponses, un clic sur le bouton ouvre le formulaire cible avec un paramètre par champ de la réponse :
+
+```
+membre/create?mnom=Dupont&memail=dupont%40example.com
+```
+
+Règles de construction :
+
+- un paramètre par champ, nommé comme le **nom technique** du champ source — il doit être identique au nom de colonne attendu côté formulaire cible (ex. `mnom` pour le nom d'un membre) ;
+- les champs de type **fichier**, **signature** et **sous-formulaire** sont toujours exclus (pas de valeur exploitable en paramètre d'URL) ;
+- les champs à **choix multiples** (ex. liste déroulante à sélection multiple) sont exclus en V1.
+
+> Il n'y a pas de correspondance configurable entre noms de champs : nommer un champ du formulaire source comme la colonne GVV attendue est à la charge de l'administrateur qui configure l'export.
+
+### Sécurité
+
+Le bouton n'est visible que dans la liste admin des réponses, déjà protégée par l'authentification GVV. Ouvrir le lien pré-rempli ne fait qu'afficher un formulaire de création déjà soumis à la validation standard : aucune donnée n'est enregistrée tant que l'administrateur ne valide pas explicitement ce formulaire.
 
 ---
 

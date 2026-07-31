@@ -252,6 +252,11 @@ $lang['forms_generate_error_not_found'] = 'Formulier niet gevonden of niet gepub
 $lang['forms_generate_error_pilot']     = 'Selecteer een kandidaat.';
 $lang['forms_generate_error_instructor']= 'Selecteer een instructeur.';
 
+/* export naar een GVV-aanmaakformulier (Lot 12) */
+$lang['forms_label_target_url']   = 'Doel-aanmaakformulier (export)';
+$lang['forms_label_target_label'] = 'Label van de exportknop';
+$lang['forms_help_target_export'] = 'Als beide velden zijn ingevuld, verschijnt er een knop bij elk antwoord om dit GVV-formulier vooraf ingevuld te openen met de waarden van het antwoord (bv. membre/create).';
+
 /* subformulieren (Lot 11) */
 $lang['forms_badge_subform_unattached']      = 'Niet gekoppeld';
 $lang['forms_help_badge_subform_unattached'] = 'Dit antwoord werd ingediend als subformulier, maar het hoofdformulier is nooit definitief ingediend.';

@@ -7,6 +7,8 @@
         $form = isset($form) ? $form : array('id' => 0, 'title' => '', 'code' => '');
         $submissions = isset($submissions) ? $submissions : array();
         $upload_files = isset($upload_files) ? $upload_files : array();
+        $export_urls = isset($export_urls) ? $export_urls : array();
+        $target_label = trim((string) ($form['target_label'] ?? ''));
         $public_slug = trim((string) ($form['public_slug'] ?? ''));
         $can_fill_form = ($public_slug !== '');
         $required_params = (string) ($form['required_params'] ?? 'none');
@@ -118,6 +120,10 @@
                                             <a class="btn btn-sm btn-outline-primary me-1" href="<?= site_url('forms_admin/submission/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_open') ?></a>
                                             <a class="btn btn-sm btn-outline-secondary me-1" href="<?= site_url('forms_admin/submission_pdf/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_pdf') ?></a>
                                             <a class="btn btn-sm btn-outline-secondary me-1" href="<?= site_url('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id']) ?>"><?= $this->lang->line('forms_button_edit_submission') ?></a>
+                                            <?php if ($target_label !== '' && !empty($export_urls[(int) $submission['id']])): ?>
+                                                <a class="btn btn-sm btn-outline-success me-1" target="_blank" rel="noopener"
+                                                   href="<?= $export_urls[(int) $submission['id']] ?>"><?= html_escape($target_label) ?></a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
                                             data-submission-id="<?= (int) $submission['id'] ?>"

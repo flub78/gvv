@@ -40,6 +40,8 @@ class Forms_model extends CI_Model {
             'required_params' => isset($data['required_params']) ? $data['required_params'] : 'none',
             'allow_upload_response' => !empty($data['allow_upload_response']) ? 1 : 0,
             'handler_class' => isset($data['handler_class']) && $data['handler_class'] !== '' ? $data['handler_class'] : null,
+            'target_url'   => isset($data['target_url']) && $data['target_url'] !== '' ? $data['target_url'] : null,
+            'target_label' => isset($data['target_label']) && $data['target_label'] !== '' ? $data['target_label'] : null,
             'created_at'  => $now,
             'updated_at'  => $now,
             'created_by'  => isset($data['created_by']) ? $data['created_by'] : null,
@@ -126,6 +128,12 @@ class Forms_model extends CI_Model {
             'handler_class' => array_key_exists('handler_class', $data)
                 ? ($data['handler_class'] !== '' ? $data['handler_class'] : null)
                 : (isset($current['handler_class']) ? $current['handler_class'] : null),
+            'target_url' => array_key_exists('target_url', $data)
+                ? ($data['target_url'] !== '' ? $data['target_url'] : null)
+                : (isset($current['target_url']) ? $current['target_url'] : null),
+            'target_label' => array_key_exists('target_label', $data)
+                ? ($data['target_label'] !== '' ? $data['target_label'] : null)
+                : (isset($current['target_label']) ? $current['target_label'] : null),
             'updated_at'  => date('Y-m-d H:i:s'),
             'updated_by'  => isset($data['updated_by']) ? $data['updated_by'] : null,
         );
