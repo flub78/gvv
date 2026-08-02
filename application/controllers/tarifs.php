@@ -80,12 +80,18 @@ class Tarifs extends Gvv_Controller {
     /**
      * Affiche une page d'éléments
      *
+     * $selection n'est pas utilisé ici (tarifs.php a son propre mécanisme de
+     * filtrage par session, cf. filterValidation()) — le paramètre existe
+     * uniquement pour rester compatible avec la signature de
+     * Gvv_Controller::page() (PHP 8 refuse une surcharge avec moins de
+     * paramètres que le parent).
+     *
      * @param $premier élément
      *            à afficher
      * @param
      *            message message à afficher
      */
-    function page($premier = 0, $message = '') {
+    function page($premier = 0, $message = '', $selection = array()) {
         $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier);
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;

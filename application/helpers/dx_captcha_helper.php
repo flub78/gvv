@@ -247,10 +247,11 @@ function create_captcha($data = '', $img_path = '', $img_url = '', $font_path = 
     $current_dir = @ opendir($img_path);
 
     while ($filename = @ readdir($current_dir)) {
-        if ($filename != "." and $filename != ".." and $filename != "index.html") {
+        if ($filename != "." and $filename != ".." and $filename != "index.html"
+            and is_file($img_path . $filename)) {
             $name = str_replace(".png", "", $filename);
 
-            if (($name + $expiration) < $now) {
+            if (is_numeric($name) && (($name + $expiration) < $now)) {
                 @ unlink($img_path . $filename);
             }
         }

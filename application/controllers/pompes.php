@@ -41,9 +41,15 @@ class Pompes extends Gvv_Controller {
     /**
      * (non-PHPdoc)
      *
+     * $premier/$message/$selection ne sont pas utilisés ici (page() est
+     * entièrement réimplémentée pour ce contrôleur, filtrage par $pompe) —
+     * ils existent uniquement pour rester compatible avec la signature de
+     * Gvv_Controller::page() (PHP 8 refuse une surcharge avec moins de
+     * paramètres que le parent).
+     *
      * @see Gvv_Controller::page()
      */
-    function page($pompe = 0) {
+    function page($pompe = 0, $premier = 0, $message = '', $parent_selection = array()) {
         $selection = "pnum = $pompe ";
         $this->data['pnum'] = $pompe;
 

@@ -63,11 +63,12 @@ class Historique extends Gvv_Controller {
      *            à afficher
      * @param
      *            message message à afficher
+     * @param $selection filtre de sélection (persistence recherche par page)
      */
-    function page($premier = 0, $message = '') {
+    function page($premier = 0, $message = '', $selection = array()) {
         $this->data ['action'] = VISUALISATION;
 
-        parent::page($premier, $message);
+        parent::page($premier, $message, $selection);
     }
 
 }
