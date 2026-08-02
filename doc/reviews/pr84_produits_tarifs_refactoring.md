@@ -180,5 +180,21 @@ matter.
       pass, the 4th keeps its own pre-existing, legitimate skip (insufficient
       test-pilot balance). `./run-all-tests.sh`: 1604/1604 passed, 0 failed,
       61 skips (down from 64 — the 3 recovered tests).
-- [ ] Note #3 — no action needed now; re-check `MY_Migration.php` on next CI core upgrade
-- [ ] Note #4 — pagination gap in `select_page()`, fix opportunistically (both models)
+- [x] Note #3 — added `application/tests/unit/libraries/MyMigrationCoreCompatibilityTest.php`,
+      a canary test that asserts the specific `CI_Migration` assumptions
+      `MY_Migration.php` relies on (subclass-init guard, protected
+      properties it reads/writes, `version()`'s signature) via reflection on
+      the core class. A future CodeIgniter core upgrade that breaks any of
+      these now fails this test immediately instead of silently drifting —
+      turns the "re-check on next upgrade" reminder into something
+      automatic rather than relying on memory.
+- [x] Note #4 — **retracted, not a bug.** `application/libraries/MetaData.php:501`
+      ("pagination, obsolete dans la plupart des cas, on utilise datatable")
+      confirms this is deliberate: any table rendered with the `datatable`
+      CSS class (as `produits`/`tarifs` are) is paginated/sorted/searched
+      client-side by DataTables.js over the *full* result set, so
+      `select_page()` intentionally skips a SQL `LIMIT`. `membres_model.php`
+      shows the same convention explicitly, with `->limit($nb, $debut)`
+      present but commented out. Adding a real `LIMIT` here would have
+      broken client-side search/sort across the full list, not fixed
+      anything — no code change made.
