@@ -41,7 +41,7 @@ class Migration_Forms_upload_response extends CI_Migration {
         if ($this->column_exists($table, $column)) {
             $t = $this->db->escape_str($table);
             $c = $this->db->escape_str($column);
-            return (bool) $this->db->query("ALTER TABLE `$t` DROP COLUMN `$c`");
+            return (bool) $this->db->query("ALTER TABLE `$t` ROW_FORMAT=DYNAMIC, DROP COLUMN `$c`");
         }
         return TRUE;
     }

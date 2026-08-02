@@ -189,14 +189,15 @@ class VolsAvionVolsPlaneurAuditMySqlTest extends TransactionalTestCase
 
     private function activeAirplane()
     {
-        // Un avion dont la référence de tarif (maprix) existe réellement dans la
-        // table tarifs : la création ne doit pas échouer pour tarif manquant,
-        // ce qui empêcherait désormais la persistance du vol (cf. correctif
-        // "vol créé malgré échec de facturation").
+        // Un avion dont la référence de tarif (maprix) existe réellement comme
+        // produit (table produits, depuis le refactoring produits/tarifs,
+        // migration 149) : la création ne doit pas échouer pour tarif
+        // manquant, ce qui empêcherait désormais la persistance du vol (cf.
+        // correctif "vol créé malgré échec de facturation").
         $row = $this->ci->db
             ->select('machinesa.macimmat')
             ->from('machinesa')
-            ->join('tarifs', 'tarifs.reference = machinesa.maprix', 'inner')
+            ->join('produits', 'produits.reference = machinesa.maprix', 'inner')
             ->where('machinesa.actif', 1)
             ->limit(1)
             ->get()

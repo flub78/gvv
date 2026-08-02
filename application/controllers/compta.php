@@ -64,7 +64,7 @@ class Compta extends Gvv_Controller {
         }
 
         $this->load->model('comptes_model');
-        $this->load->model('tarifs_model');
+        $this->load->model('produits_model');
         $this->load->model('categorie_model');
         $this->load->model('attachments_model');
         $this->load->model('sections_model');
@@ -1969,7 +1969,7 @@ class Compta extends Gvv_Controller {
 
         // fields for purchase
         $this->data['date'] = date("d/m/Y", time());
-        $this->data['produit_selector'] = $this->tarifs_model->selector();
+        $this->data['produit_selector'] = $this->produits_model->selector();
         $this->data['quantite'] = 1;
         $this->data['produit'] = '';
         $this->data['description'] = '';

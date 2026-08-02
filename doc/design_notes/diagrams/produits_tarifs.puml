@@ -1,0 +1,65 @@
+@startuml produits_tarifs
+title Refactoring tarifs -> produits + tarifs
+
+entity produits {
+  * id : INT [PK]
+  --
+  * reference : VARCHAR(32)
+  description : VARCHAR(80)
+  * compte : INT [FK -> comptes.id]
+  * club : TINYINT(1)
+  * is_cotisation : TINYINT(1)
+  * nb_personnes_max : TINYINT(3) UNSIGNED
+  public : TINYINT(4)
+  type_ticket : INT
+  * created_by : VARCHAR(25)
+  * created_at : DATETIME
+  * updated_by : VARCHAR(25)
+  * updated_at : DATETIME
+  --
+  UNIQUE (reference, club)
+}
+
+entity tarifs {
+  * id : INT [PK]
+  --
+  * produit_id : INT [FK -> produits.id]
+  date : DATE
+  date_fin : DATE
+  * prix : DECIMAL(8,2)
+  * nb_tickets : DECIMAL(8,2)
+  * created_by : VARCHAR(25)
+  * created_at : DATETIME
+  * updated_by : VARCHAR(25)
+  * updated_at : DATETIME
+}
+
+entity comptes {
+  * id : INT [PK]
+  --
+  * nom : VARCHAR(48)
+  ...
+}
+
+produits ||--o{ tarifs : produit_id
+produits }o--|| comptes : compte
+
+note right of tarifs
+  **id préservé**
+  Certaines surcharges club (ex. ACES)
+  stockent tarifs.id directement dans
+  avions.maprix / pompes.ppu.
+  La migration ne renumérote jamais
+  tarifs.id (ALTER en place).
+end note
+
+note bottom of produits
+  **Colonnes retirées de tarifs**
+  Après bascule complète (étape 12) :
+  reference, description, compte, club,
+  is_cotisation, nb_personnes_max,
+  public, type_ticket, saisie_par
+  sont supprimées de tarifs et ne
+  vivent plus que sur produits.
+end note
+@enduml

@@ -1416,6 +1416,15 @@ abstract class Metadata {
                 $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
             }
             return $btn;
+        } elseif ($action == 'tarifs') {
+            // Bouton « Tarifs » : liste des tarifs (historique de prix) du produit.
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-outline-secondary" title="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+                 . '<i class="fas fa-tags" aria-hidden="true"></i>'
+                 . '</a>';
+            if ($attrs) {
+                $btn = str_replace('" class=', '" ' . $attrs . ' class=', $btn);
+            }
+            return $btn;
         } elseif ($action == 'rotate_cw') {
             $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '"'
                  . ' class="btn btn-sm btn-outline-secondary"'

@@ -254,10 +254,11 @@ class Welcome extends Gvv_Controller {
             $annee_cible = ((int) date('m') === 12) ? (int) date('Y') + 1 : (int) date('Y');
             $cotisation_count = (int) $this->db
                 ->from('tarifs')
-                ->where('club', $active_section_id)
-                ->where('is_cotisation', 1)
-                ->where('date <=', $today)
-                ->where('(date_fin IS NULL OR date_fin >= ' . $this->db->escape($today) . ')', null, false)
+                ->join('produits', 'produits.id = tarifs.produit_id')
+                ->where('produits.club', $active_section_id)
+                ->where('produits.is_cotisation', 1)
+                ->where('tarifs.date <=', $today)
+                ->where('(tarifs.date_fin IS NULL OR tarifs.date_fin >= ' . $this->db->escape($today) . ')', null, false)
                 ->count_all_results();
             if ($cotisation_count > 0) {
                 $this->load->model('licences_model');

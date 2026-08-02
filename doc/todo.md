@@ -60,5 +60,3 @@
 
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
-
-

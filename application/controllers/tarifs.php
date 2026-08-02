@@ -1,5 +1,4 @@
 <?php
-
 /**
  *    GVV Gestion vol à voile
  *    Copyright (C) 2011  Philippe Boissel & Frédéric Peignot
@@ -18,12 +17,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * File: tarifs.php
- * controleur de gestion des tarifs.
+ * controleur de gestion des tarifs (historique de prix d'un produit — voir
+ * produits.php pour l'identité du produit). Sous-CRUD scoped par produit_id.
  */
 include('./application/libraries/Gvv_Controller.php');
 class Tarifs extends Gvv_Controller {
     protected $controller = 'tarifs';
-    protected $back_dashboard = 'welcome/section/treasurer';
+    protected $back_dashboard = 'produits/page';
     protected $model = 'tarifs_model';
     protected $rules = array();
 
@@ -34,32 +34,15 @@ class Tarifs extends Gvv_Controller {
         parent::__construct();
 
         $this->require_roles(['user']);
-        
-        $this->load->model('comptes_model');
-        $this->load->model('types_ticket_model');
+
+        $this->load->model('produits_model');
     }
 
     /**
-     * Génération des éléments à passer au formulaire en cas de création,
-     * modification ou réaffichage après erreur.
-     */
-    function form_static_element($action) {
-        parent::form_static_element($action);
-        $this->data['tarif_selector'] = $this->gvv_model->selector();
-        $this->data['saisie_par'] = $this->dx_auth->get_username();
-        $where = array(
-            "codec >=" => "7",
-            'codec <' => "8"
-        );
-        $this->gvvmetadata->set_selector('compte_selector', $this->comptes_model->selector($where, "asc", TRUE));
-
-        $this->gvvmetadata->set_selector('ticket_selector', $this->types_ticket_model->selector_with_null());
-    }
-
-    /**
-     * Active ou désactive le filtrage des tarifs
+     * Active ou désactive le filtrage des tarifs affichés pour ce produit
      */
     function filterValidation() {
+        $produit_id = $this->input->post('produit_id');
         $button = $this->input->post('button');
         if ($button == "Afficher tout") {
             gvv_debug("filterValidation tout");
@@ -74,27 +57,37 @@ class Tarifs extends Gvv_Controller {
             $this->session->set_userdata($session);
             gvv_debug("filterValidation selection " . $session['filter_tarif_date'] . ", public=" . $session['filter_tarif_public']);
         }
-        redirect($this->controller . '/page');
+        redirect($this->controller . '/page/' . $produit_id);
     }
 
     /**
-     * Affiche une page d'éléments
+     * Affiche les tarifs (historique de prix) d'un produit
      *
-     * @param $premier élément
-     *            à afficher
-     * @param
-     *            message message à afficher
+     * $produit_id est optionnel uniquement pour rester compatible avec la
+     * signature de Gvv_Controller::page() (PHP 8 impose une surcharge
+     * compatible) — ce sous-CRUD est toujours appelé avec un produit_id.
+     *
+     * @param $produit_id produit dont on affiche les tarifs
+     * @param $premier élément à afficher
+     * @param $message message à afficher
      */
-    function page($premier = 0, $message = '') {
-        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier);
+    function page($produit_id = null, $premier = 0, $message = '') {
+        if ($produit_id === null) {
+            redirect(controller_url('produits') . '/page');
+        }
+
+        $produit = $this->produits_model->get_by_id('id', $produit_id);
+
+        $this->data['produit'] = $produit;
+        $this->data['produit_id'] = $produit_id;
+        $this->data['select_result'] = $this->gvv_model->select_page($produit_id, PER_PAGE, $premier);
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
-        $this->data['count'] = $this->gvv_model->count();
+        $this->data['count'] = $this->gvv_model->count(array('produit_id' => $produit_id));
         $this->data['premier'] = $premier;
         $this->data['message'] = $message;
         $this->data['has_modification_rights'] = $this->has_modification_rights();
         $this->data['section'] = $this->gvv_model->section();
-
 
         if ($this->session->userdata('filter_tarif_tout')) {
             $this->data['filter_tarif_date'] = "";
@@ -108,6 +101,9 @@ class Tarifs extends Gvv_Controller {
             $this->data['filter_tarif_public'] = $this->session->userdata('filter_tarif_public');
         }
 
+        // Fil d'ariane retour vers la liste des produits
+        $this->set_nav_back('produits/page', 'db_btn_retour_liste');
+
         $this->push_return_url("Tarifs");
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
@@ -118,10 +114,11 @@ class Tarifs extends Gvv_Controller {
      */
     function clone_elt($id) {
         $data = $this->gvv_model->get_by_id('id', $id);
-        unset($data['id']);
+        $produit_id = $data['produit_id'];
+        unset($data['id'], $data['created_at'], $data['created_by'], $data['updated_at'], $data['updated_by']);
         $data['date'] = date('Y-m-d');
         $this->gvv_model->create($data);
-        redirect(controller_url("tarifs/page"));
+        redirect(controller_url("tarifs/page/" . $produit_id));
     }
 
 }

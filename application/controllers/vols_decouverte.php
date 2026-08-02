@@ -56,6 +56,7 @@ class Vols_decouverte extends Gvv_Controller {
 
         $this->load->helper('crypto');
         $this->load->model('tarifs_model');
+        $this->load->model('produits_model');
         $this->load->model('configuration_model');
         $this->load->model('terrains_model');
         $this->load->model('vols_planeur_model');
@@ -222,11 +223,12 @@ class Vols_decouverte extends Gvv_Controller {
         }
 
         $produit = $this->db
-            ->select('reference, description, prix, compte')
+            ->select('produits.reference AS reference, produits.description AS description, tarifs.prix AS prix, produits.compte AS compte')
             ->from('tarifs')
-            ->where('club', $section_id)
-            ->where('reference', $product_ref)
-            ->where('type_ticket', 1)
+            ->join('produits', 'produits.id = tarifs.produit_id')
+            ->where('produits.club', $section_id)
+            ->where('produits.reference', $product_ref)
+            ->where('produits.type_ticket', 1)
             ->get()
             ->row_array();
 
@@ -534,7 +536,7 @@ class Vols_decouverte extends Gvv_Controller {
             $this->data['date_validite'] = date('Y-m-d', strtotime('+1 year'));
         }
 
-        $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
+        $product_selector = $this->produits_model->selector(array('type_ticket' => 1));
         $this->gvvmetadata->set_selector('product_selector', $product_selector);
 
         $pilote_selector = $this->membres_model->vd_pilots();
@@ -604,7 +606,7 @@ class Vols_decouverte extends Gvv_Controller {
         $this->data['has_modification_rights'] = $this->has_full_vd_rights();
         $this->data['has_pilot_rights'] = $this->has_vd_pilot_rights();
 
-        $product_selector = $this->tarifs_model->selector(array('type_ticket' => 1));
+        $product_selector = $this->produits_model->selector(array('type_ticket' => 1));
         $this->gvvmetadata->set_selector('product_selector', $product_selector);
 
         return load_last_view("vols_decouverte/formMenu", $this->data, $this->unit_test);
@@ -921,12 +923,13 @@ EOD;
         }
         $voucher_title = $section_label !== '' ? 'Un vol en ' . $section_label : 'Un vol de découverte';
 
-        $tarif = $this->db->select('description')
+        $tarif = $this->db->select('produits.description AS description')
             ->from('tarifs')
-            ->where('reference', $this->data['product'])
-            ->where('club', (int) $this->data['club'])
-            ->where('date <=', $this->data['date_vente'])
-            ->order_by('date', 'desc')
+            ->join('produits', 'produits.id = tarifs.produit_id')
+            ->where('produits.reference', $this->data['product'])
+            ->where('produits.club', (int) $this->data['club'])
+            ->where('tarifs.date <=', $this->data['date_vente'])
+            ->order_by('tarifs.date', 'desc')
             ->limit(1)
             ->get()
             ->row_array();
@@ -1335,11 +1338,13 @@ EOD;
             $today = date('Y-m-d');
             $produit = $this->db
                 ->query(
-                    "SELECT reference, description, prix, compte, nb_personnes_max
+                    "SELECT produits.reference AS reference, produits.description AS description,
+                            tarifs.prix AS prix, produits.compte AS compte, produits.nb_personnes_max AS nb_personnes_max
                      FROM tarifs
-                     WHERE club = ? AND reference = ? AND type_ticket = 1 AND public = 1
-                       AND date <= ? AND (date_fin IS NULL OR date_fin >= ?)
-                     ORDER BY date DESC LIMIT 1",
+                     JOIN produits ON produits.id = tarifs.produit_id
+                     WHERE produits.club = ? AND produits.reference = ? AND produits.type_ticket = 1 AND produits.public = 1
+                       AND tarifs.date <= ? AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= ?)
+                     ORDER BY tarifs.date DESC LIMIT 1",
                     array($section_id, $product_ref, $today, $today)
                 )
                 ->row_array();
@@ -1478,11 +1483,13 @@ EOD;
             if (!$quota_status_get['atteint']) {
                 $today = date('Y-m-d');
                 $products = $this->db->query(
-                    "SELECT reference, description, prix, nb_personnes_max
+                    "SELECT produits.reference AS reference, produits.description AS description,
+                            tarifs.prix AS prix, produits.nb_personnes_max AS nb_personnes_max
                      FROM tarifs
-                     WHERE club = ? AND type_ticket = 1 AND public = 1
-                       AND date <= ? AND (date_fin IS NULL OR date_fin >= ?)
-                     ORDER BY prix ASC",
+                     JOIN produits ON produits.id = tarifs.produit_id
+                     WHERE produits.club = ? AND produits.type_ticket = 1 AND produits.public = 1
+                       AND tarifs.date <= ? AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= ?)
+                     ORDER BY tarifs.prix ASC",
                     array($section_id, $today, $today)
                 )->result_array();
             }

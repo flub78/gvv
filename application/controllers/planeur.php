@@ -60,7 +60,7 @@ class Planeur extends Gvv_Controller {
             $this->require_roles(['user']);
         }
 
-        $this->load->model('tarifs_model');
+        $this->load->model('produits_model');
         $this->load->model('membres_model');
     }
 
@@ -75,7 +75,7 @@ class Planeur extends Gvv_Controller {
         $pilote_selector = $this->membres_model->selector_with_null(array());
 
         $this->gvvmetadata->set_selector('owner_selector', $pilote_selector);
-        $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector());
+        $this->gvvmetadata->set_selector('produit_selector', $this->produits_model->selector());
     }
 
     /**

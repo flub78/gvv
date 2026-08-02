@@ -31,6 +31,28 @@ class BackfillAuditHistoriqueMigrationTest extends TestCase
             require_once BASEPATH . 'libraries/Migration.php';
         }
         require_once APPPATH . 'migrations/142_backfill_audit_historique.php';
+
+        // Migration 142 boucle sur $tables_with_saisie_par (dont `tarifs`) et
+        // suppose que chacune porte encore saisie_par. Le refactoring
+        // produits/tarifs (migration 149, doc/plans/refactoring_produits_tarifs_plan.md)
+        // a supprimé saisie_par de `tarifs` (remplacée par created_by).
+        // Migration 142 elle-même reste inchangée (historique, déjà appliquée) ;
+        // ce test — qui la rejoue directement sur le schéma actuel — n'est
+        // plus rejouable tel quel et est sauté plutôt que cassé.
+        if (!$this->columnExists('tarifs', 'saisie_par')) {
+            $this->markTestSkipped('tarifs.saisie_par supprimée par le refactoring produits/tarifs (migration 149) — migration 142 non rejouable telle quelle sur ce schéma');
+        }
+    }
+
+    private function columnExists($table, $column)
+    {
+        $t = $this->db->escape_str($table);
+        $c = $this->db->escape_str($column);
+        $row = $this->db->query(
+            "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$t' AND COLUMN_NAME = '$c'"
+        )->row_array();
+        return isset($row['cnt']) && (int) $row['cnt'] > 0;
     }
 
     private function runMigrationUp()

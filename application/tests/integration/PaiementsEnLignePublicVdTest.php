@@ -73,8 +73,19 @@ class PaiementsEnLignePublicVdTest extends TestCase
     // Migration 101 : nb_personnes_max
     // =========================================================================
 
+    // Migration 101 a ajouté nb_personnes_max sur `tarifs`. Le refactoring
+    // produits/tarifs (migrations 146-149, doc/plans/refactoring_produits_tarifs_plan.md)
+    // a depuis déplacé cet attribut vers `produits.nb_personnes_max` et
+    // supprimé la colonne de `tarifs` (identité du produit, pas du prix daté).
+    // Migration 101 elle-même reste inchangée (historique), mais son résultat
+    // n'est plus observable sur le schéma actuel : ces deux tests deviennent
+    // sans objet et sont sautés plutôt que cassés.
+
     public function testMigration101_ColumnExists()
     {
+        if (!$this->columnExists('tarifs', 'nb_personnes_max')) {
+            $this->markTestSkipped('nb_personnes_max déplacée sur produits par le refactoring produits/tarifs (migration 149)');
+        }
         $this->assertTrue(
             $this->columnExists('tarifs', 'nb_personnes_max'),
             'Column nb_personnes_max should exist on tarifs after migration 101'
@@ -83,6 +94,9 @@ class PaiementsEnLignePublicVdTest extends TestCase
 
     public function testMigration101_DefaultIsOne()
     {
+        if (!$this->columnExists('tarifs', 'nb_personnes_max')) {
+            $this->markTestSkipped('nb_personnes_max déplacée sur produits par le refactoring produits/tarifs (migration 149)');
+        }
         $default = $this->columnDefault('tarifs', 'nb_personnes_max');
         $this->assertEquals('1', (string) $default,
             'nb_personnes_max should default to 1'

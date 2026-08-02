@@ -896,7 +896,11 @@ class MockSession {
     public function userdata($key) {
         return isset($this->userdata[$key]) ? $this->userdata[$key] : null;
     }
-    
+
+    public function all_userdata() {
+        return $this->userdata;
+    }
+
     public function set_userdata($key, $value = null) {
         if (is_array($key)) {
             $this->userdata = array_merge($this->userdata, $key);

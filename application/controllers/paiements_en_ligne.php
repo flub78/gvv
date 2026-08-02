@@ -2248,12 +2248,13 @@ EOD;
             }
             $voucher_title = $section_label !== '' ? 'Un vol en ' . $section_label : 'Un vol de découverte';
 
-            $tarif = $this->db->select('description')
+            $tarif = $this->db->select('produits.description AS description')
                 ->from('tarifs')
-                ->where('reference', $vd['product'])
-                ->where('club', (int) $vd['club'])
-                ->where('date <=', $vd['date_vente'])
-                ->order_by('date', 'desc')
+                ->join('produits', 'produits.id = tarifs.produit_id')
+                ->where('produits.reference', $vd['product'])
+                ->where('produits.club', (int) $vd['club'])
+                ->where('tarifs.date <=', $vd['date_vente'])
+                ->order_by('tarifs.date', 'desc')
                 ->limit(1)
                 ->get()
                 ->row_array();

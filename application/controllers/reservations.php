@@ -957,12 +957,13 @@ class Reservations extends MY_Controller {
         if (empty($reference)) return 0.0;
         $section_id = $this->session->userdata('section');
         $result = $this->db
-            ->select('prix')
+            ->select('tarifs.prix AS prix')
             ->from('tarifs')
-            ->where('reference', $reference)
-            ->where('date <=', $date)
-            ->where('club', $section_id)
-            ->order_by('date', 'desc')
+            ->join('produits', 'produits.id = tarifs.produit_id')
+            ->where('produits.reference', $reference)
+            ->where('tarifs.date <=', $date)
+            ->where('produits.club', $section_id)
+            ->order_by('tarifs.date', 'desc')
             ->limit(1)
             ->get();
         if ($result && $result->num_rows() > 0) {
