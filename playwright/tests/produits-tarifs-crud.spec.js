@@ -86,6 +86,39 @@ test.describe('Produits -> Tarifs CRUD', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('td[data-field="prix"]').first()).toContainText('44,00');
 
+    // 7b. Tentative de suppression du produit alors qu'il a encore un tarif :
+    //     bloquee par la contrainte fk_tarifs_produit (RESTRICT, migration 147).
+    //     L'utilisateur doit voir un message explicite au lieu d'un echec
+    //     silencieux (regression pour doc/reviews/pr84_produits_tarifs_refactoring.md,
+    //     finding #1).
+    await page.goto('/index.php/produits/page');
+    await page.waitForLoadState('networkidle');
+
+    let popupMessage = null;
+    const dialogHandler = async dialog => {
+      if (dialog.type() === 'alert') {
+        popupMessage = dialog.message();
+      }
+      await dialog.accept();
+    };
+    page.on('dialog', dialogHandler);
+
+    await page.locator('tr', { hasText: reference }).locator('a[href*="/produits/delete/"]').click();
+    await page.waitForLoadState('networkidle');
+    page.off('dialog', dialogHandler);
+
+    expect(popupMessage).toContain('impossible');
+
+    // Le produit doit toujours exister (suppression bloquee)
+    await page.goto('/index.php/produits/page');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('tr', { hasText: reference })).toBeVisible();
+
+    // Le tarif doit toujours exister aussi
+    await page.goto(`/index.php/tarifs/page/${produitId}`);
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('td[data-field="prix"]')).toHaveCount(1);
+
     // 8. Suppression du tarif
     page.once('dialog', dialog => dialog.accept());
     await page.locator('a[href*="/tarifs/delete/"]').first().click();

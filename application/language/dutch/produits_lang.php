@@ -27,3 +27,4 @@ $lang['gvv_vue_produits_short_field_section_name'] = "Sectie";
 
 $lang['gvv_produits_warning'] = "Opgelet de referenties worden gebruikt in de boekhoudmodule. Gelieve het veld \"Referentie product\" niet wijzigen.";
 $lang['gvv_produits_tarifs_tooltip'] = "De knop \"Tarieven\" opent de prijsgeschiedenis van het product: gebruik hem om een nieuwe prijs toe te voegen of vorige te bekijken.";
+$lang['gvv_produits_delete_has_tarifs'] = "Verwijderen niet mogelijk: dit product heeft nog %d tarief/tarieven. Verwijder eerst de tarieven.";

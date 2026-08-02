@@ -35,6 +35,7 @@ class Produits extends Gvv_Controller {
 
         $this->require_roles(['user']);
 
+        $this->lang->load('produits');
         $this->load->model('comptes_model');
         $this->load->model('types_ticket_model');
     }
@@ -70,5 +71,38 @@ class Produits extends Gvv_Controller {
      */
     function tarifs($id) {
         redirect(controller_url('tarifs') . '/page/' . $id);
+    }
+
+    /**
+     * Supprime un produit.
+     *
+     * `tarifs.produit_id` porte une contrainte FOREIGN KEY (fk_tarifs_produit,
+     * migration 147) sans ON DELETE CASCADE : MySQL refuse la suppression
+     * d'un produit tant qu'il a des tarifs. Sans ce contrôle, la suppression
+     * échouerait silencieusement (db_debug=FALSE en configuration, cf.
+     * application/config/database.php) — Gvv_Controller::delete() ignore le
+     * retour de Common_Model::delete() et redirige comme si l'opération avait
+     * réussi. Contrôle explicite ici, même principe que Comptes::delete().
+     */
+    function delete($id) {
+        if (!$this->ensure_modification_rights(MODIFICATION)) {
+            return;
+        }
+
+        $this->load->model('tarifs_model');
+        $count = $this->tarifs_model->count(array('produit_id' => $id));
+        if ($count) {
+            $this->session->set_flashdata('popup',
+                sprintf($this->lang->line('gvv_produits_delete_has_tarifs'), $count));
+            redirect($this->controller . "/page");
+            return;
+        }
+
+        $this->pre_delete($id);
+        $this->gvv_model->delete(array(
+            $this->kid => $id
+        ));
+        $this->pop_return_url();
+        redirect($this->controller . "/page");
     }
 }

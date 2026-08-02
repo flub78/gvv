@@ -39,14 +39,6 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         self::$CI->load->model('ecritures_model');
         self::$CI->load->model('comptes_model');
         self::$CI->load->model('licences_model');
-
-        $q = self::$CI->db->query(
-            "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tarifs' AND COLUMN_NAME = 'is_cotisation'"
-        )->row_array();
-        if ((int) $q['cnt'] === 0) {
-            self::markTestSkipped('Colonne tarifs.is_cotisation absente — exécuter la migration 099');
-        }
     }
 
     protected function setUp(): void
@@ -159,8 +151,9 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         $this->assertEquals(50.00, (float) $p['montant']);
 
         // Toggle off — is_cotisation vit désormais sur produits (identité du
-        // produit), get_cotisation_products_for_section() la lit en priorité
-        // dès qu'un produit est lié (COALESCE(produits.x, tarifs.x)).
+        // produit) : get_cotisation_products_for_section() la lit via un
+        // INNER JOIN produits (tarifs ne porte plus cette colonne depuis la
+        // migration 149, qui a supprimé les colonnes produit legacy).
         $this->db->where('id', $produit_id)->update('produits', array('is_cotisation' => 0));
         $produits_after = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found_after = array_filter($produits_after, function ($p) use ($id) { return (int) $p['id'] === $id; });

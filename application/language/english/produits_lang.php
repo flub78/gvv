@@ -27,3 +27,4 @@ $lang['gvv_vue_produits_short_field_section_name'] = "Section";
 
 $lang['gvv_produits_warning'] = "Warning, references are used by the billing module. If you change the \"Reference\" field, you must modify the billing module accordingly.";
 $lang['gvv_produits_tarifs_tooltip'] = "The \"Prices\" button opens the product's price history: use it to add a new price or review previous ones.";
+$lang['gvv_produits_delete_has_tarifs'] = "Cannot delete: %d price(s) still associated with this product. Delete the prices first.";

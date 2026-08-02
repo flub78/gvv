@@ -28,6 +28,7 @@ $this->load->view('bs_menu');
 $this->lang->load('produits');
 ?>
 <div id="body" class="body container-fluid">
+    <?= checkalert($this->session) ?>
     <h3><?= $this->lang->line("gvv_produits_title_list") ?></h3>
 
     <input type="hidden" name="controller_url" id="controller_url" value="<?= controller_url($controller) ?>" />

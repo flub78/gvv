@@ -27,3 +27,4 @@ $lang['gvv_vue_produits_short_field_section_name'] = "Section";
 
 $lang['gvv_produits_warning'] = "Attention les références sont utilisées par le module de facturation. Ne modifiez pas le champ \"Référence\".";
 $lang['gvv_produits_tarifs_tooltip'] = "Le bouton \"Tarifs\" ouvre l'historique de prix du produit : cliquez dessus pour créer un nouveau tarif ou consulter les tarifs précédents.";
+$lang['gvv_produits_delete_has_tarifs'] = "Suppression impossible : %d tarif(s) associé(s) à ce produit. Supprimez d'abord les tarifs.";
