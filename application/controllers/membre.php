@@ -398,6 +398,14 @@ class Membre extends Gvv_Controller {
     function ma_fiche() {
         $mlogin = $this->dx_auth->get_username();
         $this->edit($mlogin, false, VISUALISATION);
+        if (! array_key_exists('mnom', $this->data)) {
+            // Pas de fiche membre pour ce compte connecté (ex: compte
+            // technique/admin sans profil pilote) — edit() a déjà affiché un
+            // message d'erreur ; ne pas poursuivre avec des données vides
+            // (load_certificats()/le formulaire plantent sinon sur des
+            // champs/metadonnées jamais chargés).
+            return;
+        }
         $this->data['action'] = VISUALISATION;
         $this->data['has_modification_rights'] = false;
 

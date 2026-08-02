@@ -512,13 +512,13 @@ if ($where) {
         }
         if ($percent) {
             for($i = 1; $i <= 13; $i ++) {
-                if (isset($percent [$i-1]) and ($percent [$i-1] != 0)) {
+                if (isset($percent [$i-1]) and is_numeric($percent [$i-1]) and ($percent [$i-1] != 0)) {
                     $res [$i] = ( int ) (100 * floatval($res [$i]) / $percent [$i-1]);
+                    if (abs($res [$i]) < 0.00001)
+                        $res [$i] = '';
                 } else {
                     $res [$i] = '';
                 }
-                if (abs($res [$i]) < 0.00001)
-                    $res [$i] = '';
             }
         }
 
