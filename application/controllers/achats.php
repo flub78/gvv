@@ -103,7 +103,7 @@ class Achats extends Gvv_Controller {
         $this->data['date'] = $this->input->get('date');
         $this->data['produit'] = $produit;
         $this->data['pilote'] = $this->input->get('pilot');
-        $this->data['quantite'] = $amount / $price;
+        $this->data['quantite'] = ($amount !== null && $amount !== '' && !empty($price)) ? $amount / $price : '';
         $this->data['description'] = $this->input->get('description');
         $this->data['num_cheque'] = $this->input->get('num_cheque');
 
