@@ -19,6 +19,17 @@ class AuditFinancesMigrationTest extends TestCase
             require_once BASEPATH . 'libraries/Migration.php';
         }
         require_once APPPATH . 'migrations/092_audit_finances.php';
+
+        // Migration 092 backfille created_by depuis tarifs.saisie_par. Le
+        // refactoring produits/tarifs (migration 149,
+        // doc/plans/refactoring_produits_tarifs_plan.md) a supprimé
+        // saisie_par de `tarifs`. Migration 092 elle-même reste inchangée
+        // (historique, déjà appliquée) ; ce test — qui la rejoue directement
+        // sur le schéma actuel — n'est plus rejouable tel quel et est sauté
+        // plutôt que cassé.
+        if (!$this->columnExists('tarifs', 'saisie_par')) {
+            $this->markTestSkipped('tarifs.saisie_par supprimée par le refactoring produits/tarifs (migration 149) — migration 092 non rejouable telle quelle sur ce schéma');
+        }
     }
 
     private function columnExists($table, $column)

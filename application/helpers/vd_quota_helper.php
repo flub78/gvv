@@ -116,10 +116,11 @@ if (!function_exists('get_sections_vd_disponibles')) {
             // Ne retenir la section que si elle a au moins un produit VD actif
             $has_products = (bool) $CI->db->query(
                 "SELECT 1 FROM tarifs
-                 WHERE club = ? AND type_ticket = 1 AND public = 1
-                   AND date <= ? AND (date_fin IS NULL OR date_fin >= ?)
+                 JOIN produits ON produits.id = tarifs.produit_id
+                 WHERE produits.club = ? AND produits.type_ticket = 1 AND produits.public = 1
+                   AND tarifs.date <= ?
                  LIMIT 1",
-                array((int) $section['id'], $today, $today)
+                array((int) $section['id'], $today)
             )->num_rows();
 
             if (!$has_products) {

@@ -49,6 +49,7 @@ class Achats extends Gvv_Controller {
 
         $this->load->model('membres_model');
         $this->load->model('tarifs_model');
+        $this->load->model('produits_model');
         $this->load->model('ecritures_model');
         $this->lang->load('achats');
     }
@@ -63,7 +64,7 @@ class Achats extends Gvv_Controller {
     function form_static_element($action) {
         parent::form_static_element($action);
 
-        $this->gvvmetadata->set_selector('produit_selector', $this->tarifs_model->selector());
+        $this->gvvmetadata->set_selector('produit_selector', $this->produits_model->selector());
         $this->gvvmetadata->set_selector('pilote_selector', $this->membres_model->selector());
 
         $this->data['saisie_par'] = $this->dx_auth->get_username();

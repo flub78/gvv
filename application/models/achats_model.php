@@ -19,14 +19,15 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, '
+        $select = 'achats.id as id, achats.date as date, produits.reference as produit, quantite, '
             . "tarifs.prix as prix_unit, tarifs.prix * quantite as prix, "
             . 'achats.description as description,  pilote, facture';
 
         $db_res = $this->db
             ->select($select)
-            ->from("achats, tarifs")
-            ->where("achats.produit = tarifs.reference")
+            ->from("achats")
+            ->join("produits", "achats.produit = produits.reference")
+            ->join("tarifs", "tarifs.produit_id = produits.id")
             ->limit($nb, $debut)
             ->order_by('achats.date')
             ->get();
@@ -47,13 +48,14 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function select($nb = 1000, $debut = 0) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as produit, quantite, tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
+        $select = 'achats.id as id, achats.date as date, produits.reference as produit, quantite, tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
             . ', achats.description as description,  pilote, facture';
 
         $db_res = $this->db
             ->select($select)
-            ->from("achats, tarifs")
-            ->where("achats.produit = tarifs.reference")
+            ->from("achats")
+            ->join("produits", "achats.produit = produits.reference")
+            ->join("tarifs", "tarifs.produit_id = produits.id")
             ->limit($nb, $debut)
             ->order_by('achats.date')
             ->get();
@@ -77,13 +79,14 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function achats_de($pilote) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite'
+        $select = 'achats.id as id, achats.date as date, produits.reference as nom_produit, quantite'
             . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
-            . ', achats.description as description,  pilote, facture, compte, produit';
+            . ', achats.description as description,  pilote, facture, produits.compte as compte, produit';
         $db_res = $this->db
             ->select($select)
-            ->from("achats, tarifs")
-            ->where("achats.produit = tarifs.reference")
+            ->from("achats")
+            ->join("produits", "achats.produit = produits.reference")
+            ->join("tarifs", "tarifs.produit_id = produits.id")
             ->where(array("pilote" => $pilote, "facture" => 0))
             ->order_by('date')->get();
         $res = $this->get_to_array($db_res);
@@ -98,9 +101,10 @@ class Achats_model extends Common_Model {
         $select = ' sum(tarifs.prix * quantite) as total' . ', pilote, facture, mnom, mprenom';
         $db_res = $this->db
             ->select($select)
-            ->from("achats, tarifs, membres")
-            ->where("achats.produit = tarifs.reference")
-            ->where("achats.pilote = membres.mlogin")
+            ->from("achats")
+            ->join("produits", "achats.produit = produits.reference")
+            ->join("tarifs", "tarifs.produit_id = produits.id")
+            ->join("membres", "achats.pilote = membres.mlogin")
             ->where(array("facture" => 0))
             ->group_by('pilote')
             ->order_by("mnom, mprenom")
@@ -115,14 +119,15 @@ class Achats_model extends Common_Model {
      *	@return objet		  La liste
      */
     public function achats_de_facture($facture) {
-        $select = 'achats.id as id, achats.date as date, tarifs.reference as nom_produit, quantite'
+        $select = 'achats.id as id, achats.date as date, produits.reference as nom_produit, quantite'
             . ', tarifs.prix as prix_unit, tarifs.prix * quantite as prix'
-            . ', achats.description as description,  pilote, facture, compte';
+            . ', achats.description as description,  pilote, facture, produits.compte as compte';
 
         $db_res = $this->db
             ->select($select)
-            ->from("achats, tarifs")
-            ->where("achats.produit = tarifs.reference")
+            ->from("achats")
+            ->join("produits", "achats.produit = produits.reference")
+            ->join("tarifs", "tarifs.produit_id = produits.id")
             ->where(array("facture" => $facture))
             ->order_by('date')->get();
         $res = $this->get_to_array($db_res);

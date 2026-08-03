@@ -46,23 +46,34 @@ function runSQL(sql) {
 const TEST_TARIF_REF = 'playwright_test_vd_section4';
 
 test.beforeAll(async () => {
+    // tarifs.produit_id est NOT NULL (migration 148) et tarifs ne porte plus
+    // que les colonnes de prix depuis la migration 149 (étape 12) — l'identité
+    // produit (reference, description, compte...) vit uniquement sur produits.
     runSQL(`
-        DELETE FROM tarifs WHERE reference = '${TEST_TARIF_REF}';
+        DELETE tarifs FROM tarifs JOIN produits ON produits.id = tarifs.produit_id
+            WHERE produits.reference = '${TEST_TARIF_REF}';
+        DELETE FROM produits WHERE reference = '${TEST_TARIF_REF}';
         DELETE FROM public_rate_limit WHERE endpoint = 'vd_public_form';
-        INSERT INTO tarifs
-            (reference, date, date_fin, description, prix, nb_personnes_max,
-             compte, saisie_par, club, nb_tickets, type_ticket, is_cotisation,
-             public, created_by, created_at, updated_by, updated_at)
+        INSERT INTO produits
+            (reference, description, compte, club, nb_personnes_max, type_ticket,
+             is_cotisation, public, created_by, created_at, updated_by, updated_at)
         VALUES
-            ('${TEST_TARIF_REF}', '2020-01-01', '2099-12-31',
-             'Vol de découverte test Playwright', 100.00, 1,
-             726, 'playwright', 4, 0, 1, 0,
-             1, 'playwright', NOW(), 'playwright', NOW());
+            ('${TEST_TARIF_REF}', 'Vol de découverte test Playwright', 726, 4, 1, 1,
+             0, 1, 'playwright', NOW(), 'playwright', NOW());
+        INSERT INTO tarifs
+            (produit_id, date, prix, nb_tickets, created_by, created_at, updated_by, updated_at)
+        VALUES
+            (LAST_INSERT_ID(), '2020-01-01', 100.00, 0,
+             'playwright', NOW(), 'playwright', NOW());
     `);
 });
 
 test.afterAll(async () => {
-    runSQL(`DELETE FROM tarifs WHERE reference = '${TEST_TARIF_REF}';`);
+    runSQL(`
+        DELETE tarifs FROM tarifs JOIN produits ON produits.id = tarifs.produit_id
+            WHERE produits.reference = '${TEST_TARIF_REF}';
+        DELETE FROM produits WHERE reference = '${TEST_TARIF_REF}';
+    `);
 });
 
 // ---------------------------------------------------------------------------

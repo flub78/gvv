@@ -44,24 +44,33 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         $row = $this->CI->db->select('id')->from('sections')->limit(1)->get()->row_array();
         $this->section_id = $row ? (int)$row['id'] : 1;
 
-        // Insert three tarifs for this section
+        // Insert three produits + tarifs for this section. tarifs.produit_id is
+        // NOT NULL (migration 148) : chaque tarif de test doit référencer un
+        // produit existant. Les colonnes produit historiques (reference,
+        // description, compte...) n'existent plus sur tarifs depuis la
+        // migration 149 (étape 12) — l'identité produit vit uniquement sur
+        // `produits`, tarifs ne porte plus que les colonnes de prix.
         foreach ([
             [$this->tarif_ref,    50.00, 'Test tarif 50€/h'],
             [$this->tarif_dc_ref, 10.00, 'Test DC tarif 10€/h'],
             [$this->tarif_own_ref, 20.00, 'Test proprio tarif 20€/h'],
         ] as [$ref, $prix, $desc]) {
-            $this->CI->db->insert('tarifs', [
+            $this->CI->db->insert('produits', [
                 'reference'    => $ref,
-                'date'         => '2020-01-01',
-                'prix'         => $prix,
                 'description'  => $desc,
                 'compte'       => 0,
-                'saisie_par'   => 'test',
                 'club'         => $this->section_id,
                 'nb_personnes_max' => 1,
-                'nb_tickets'   => 0,
                 'is_cotisation' => 0,
                 'public'       => 0,
+            ]);
+            $produit_id = (int) $this->CI->db->insert_id();
+
+            $this->CI->db->insert('tarifs', [
+                'produit_id'   => $produit_id,
+                'date'         => '2020-01-01',
+                'prix'         => $prix,
+                'nb_tickets'   => 0,
             ]);
         }
 
@@ -200,14 +209,16 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
             ? $aircraft['maprixproprio']
             : $aircraft['maprix'];
 
-        // 2. Tarif price
+        // 2. Tarif price (jointure produits — reference/club vivent sur
+        //    produits depuis le refactoring produits/tarifs, migration 149)
         $date = date('Y-m-d');
         $tarif = $this->CI->db
-            ->select('prix')->from('tarifs')
-            ->where('reference', $price_ref)
-            ->where('date <=', $date)
-            ->where('club', $this->section_id)
-            ->order_by('date', 'desc')->limit(1)->get()->row_array();
+            ->select('tarifs.prix AS prix')->from('tarifs')
+            ->join('produits', 'produits.id = tarifs.produit_id')
+            ->where('produits.reference', $price_ref)
+            ->where('tarifs.date <=', $date)
+            ->where('produits.club', $this->section_id)
+            ->order_by('tarifs.date', 'desc')->limit(1)->get()->row_array();
         $hourly_rate = $tarif ? (float)$tarif['prix'] : 0.0;
 
         if ($hourly_rate <= 0.0) {
@@ -236,11 +247,12 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
                     $res_ref = ($res_is_owner && !empty($res_a['maprixproprio']))
                         ? $res_a['maprixproprio'] : $res_a['maprix'];
                     $res_tarif = $this->CI->db
-                        ->select('prix')->from('tarifs')
-                        ->where('reference', $res_ref)
-                        ->where('date <=', substr($r['start_datetime'], 0, 10))
-                        ->where('club', $this->section_id)
-                        ->order_by('date', 'desc')->limit(1)->get()->row_array();
+                        ->select('tarifs.prix AS prix')->from('tarifs')
+                        ->join('produits', 'produits.id = tarifs.produit_id')
+                        ->where('produits.reference', $res_ref)
+                        ->where('tarifs.date <=', substr($r['start_datetime'], 0, 10))
+                        ->where('produits.club', $this->section_id)
+                        ->order_by('tarifs.date', 'desc')->limit(1)->get()->row_array();
                     $rate_cache[$res_id] = $res_tarif ? (float)$res_tarif['prix'] : 0.0;
                 }
             }
@@ -256,11 +268,12 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         // 4. DC cost
         if ($with_instructor) {
             $dc_tarif = $this->CI->db
-                ->select('prix')->from('tarifs')
-                ->where('reference', $aircraft['maprixdc'])
-                ->where('date <=', $date)
-                ->where('club', $this->section_id)
-                ->order_by('date', 'desc')->limit(1)->get()->row_array();
+                ->select('tarifs.prix AS prix')->from('tarifs')
+                ->join('produits', 'produits.id = tarifs.produit_id')
+                ->where('produits.reference', $aircraft['maprixdc'])
+                ->where('tarifs.date <=', $date)
+                ->where('produits.club', $this->section_id)
+                ->order_by('tarifs.date', 'desc')->limit(1)->get()->row_array();
             $dc_rate = $dc_tarif ? (float)$dc_tarif['prix'] : 0.0;
             $total_cost += $new_hours * $dc_rate;
         }

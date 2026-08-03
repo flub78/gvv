@@ -66,10 +66,17 @@ class Migration extends CI_Controller {
         gvv_info ("Migration: depuis $base_level vers $target_level");
 
         if ($target_level != $base_level) {
-            # TRUE if already latest, FALSE if failed, int if upgraded
-            if (! $this->migration->version($target_level)) {
-                echo "Migration to $target_level" . br();
-                show_error($this->migration->error_string());
+            try {
+                # TRUE if already latest, FALSE if failed, int if upgraded
+                if (! $this->migration->version($target_level)) {
+                    echo "Migration to $target_level" . br();
+                    show_error($this->migration->error_string());
+                    return;
+                }
+            } catch (Throwable $e) {
+                $msg = "Échec de la migration depuis $base_level vers $target_level : " . $e->getMessage();
+                gvv_error("Migration: $msg");
+                show_error($msg);
                 return;
             }
             gvv_info("Migration: migration effectuée vers le niveau $target_level");

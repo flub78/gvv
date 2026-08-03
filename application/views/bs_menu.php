@@ -200,7 +200,7 @@ if ($CI->dx_auth->is_logged_in()) {
                     <?php endif; ?>
 
                     <li><a class="dropdown-item" href="<?= controller_url("plan_comptable/page") ?>"><i class="fas fa-book text-primary"></i> <?= translation("welcome_chart_of_account_title") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("tarifs/page") ?>"><i class="fas fa-dollar-sign text-success"></i> <?= translation("welcome_price_list_title") ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("produits/page") ?>"><i class="fas fa-dollar-sign text-success"></i> <?= translation("welcome_price_list_title") ?></a></li>
                     <?php if ($this->config->item('gestion_tickets')) : ?>
                       <li><a class="dropdown-item" href="<?= controller_url("types_ticket/page") ?>"><i class="fas fa-ticket-alt text-warning"></i> <?= translation("welcome_ticket_types_title") ?></a></li>
                     <?php endif; ?>

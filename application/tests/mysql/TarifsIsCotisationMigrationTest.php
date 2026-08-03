@@ -8,6 +8,14 @@ use PHPUnit\Framework\TestCase;
  * Teste :
  * - up() ajoute la colonne is_cotisation avec DEFAULT 0
  * - down() supprime la colonne
+ *
+ * Migration 099 elle-même reste inchangée (historique) mais son up() fait
+ * `ADD COLUMN is_cotisation ... AFTER type_ticket` : depuis le refactoring
+ * produits/tarifs (migration 149, doc/plans/refactoring_produits_tarifs_plan.md),
+ * `type_ticket` (comme `is_cotisation`) a été déplacée sur `produits` et
+ * n'existe plus sur `tarifs` — up() échouerait en SQL ("Unknown column
+ * type_ticket"). Toute la classe est sautée sur le schéma actuel plutôt que
+ * cassée.
  */
 class TarifsIsCotisationMigrationTest extends TestCase
 {
@@ -23,6 +31,10 @@ class TarifsIsCotisationMigrationTest extends TestCase
         }
         require_once APPPATH . 'migrations/099_tarifs_is_cotisation.php';
 
+        if (!$this->columnExists('tarifs', 'type_ticket')) {
+            $this->markTestSkipped('type_ticket déplacée sur produits par le refactoring produits/tarifs (migration 149) — migration 099 non rejouable telle quelle sur ce schéma');
+        }
+
         // État propre avant le test : supprimer la colonne si elle existe
         if ($this->columnExists('tarifs', 'is_cotisation')) {
             $this->db->query("ALTER TABLE `tarifs` DROP COLUMN `is_cotisation`");
@@ -31,6 +43,12 @@ class TarifsIsCotisationMigrationTest extends TestCase
 
     protected function tearDown(): void
     {
+        // Rien à restaurer sur le schéma actuel (type_ticket absente de tarifs,
+        // cf. skip en setUp()) — AFTER `type_ticket` échouerait aussi ici.
+        if (!$this->columnExists('tarifs', 'type_ticket')) {
+            return;
+        }
+
         // Restaurer l'état : remettre la colonne si elle a été supprimée par down()
         if (!$this->columnExists('tarifs', 'is_cotisation')) {
             $this->db->query(

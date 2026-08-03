@@ -1,4 +1,4 @@
-<!-- VIEW: application/views/tarifs/bs_formView.php -->
+<!-- VIEW: application/views/produits/bs_formView.php -->
 <?php
 
 /**
@@ -18,14 +18,14 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Formulaire de saisie tarifs (historique de prix d'un produit)
+ * Formulaire de saisie produits
  * @package vues
  */
 $this->load->view('bs_header');
 $this->load->view('bs_menu');
 
 $this->load->view('bs_banner');
-$this->lang->load('tarifs');
+$this->lang->load('produits');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -35,25 +35,25 @@ if (isset($message)) {
 echo checkalert($this->session, isset($popup) ? $popup : "");
 echo validation_errors();
 
-echo heading("gvv_tarifs_title", 3);
+echo heading("gvv_produits_title", 3);
 
 echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 // hidden contrller url for java script access
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 echo form_hidden('id', $id);
-// produit_id fixe : ce formulaire n'édite jamais l'identité du produit
-echo form_hidden('produit_id', $produit_id);
 
 $fields = array(
-	'date' => $date,
-	'prix' => $prix,
+	'reference' => $reference,
+	'description' => $description,
+	'compte' => $compte,
+	'public' => $public,
+	'is_cotisation' => $is_cotisation,
+	'nb_personnes_max' => isset($nb_personnes_max) ? $nb_personnes_max : 1,
 );
 
 if ($this->config->item('gestion_tickets')) {
-	$fields['nb_tickets'] = $nb_tickets;
-} else {
-	echo form_hidden('nb_tickets', 0);
+	$fields['type_ticket'] = $type_ticket;
 }
 
 // Add hidden field for original ID (required for MODIFICATION to work with race condition fix)
@@ -61,7 +61,7 @@ if (isset($kid) && isset($$kid)) {
     echo form_hidden('original_' . $kid, $$kid);
 }
 
-echo ($this->gvvmetadata->form('tarifs', $fields));
+echo ($this->gvvmetadata->form('produits', $fields));
 
 echo validation_button($action);
 echo form_close();

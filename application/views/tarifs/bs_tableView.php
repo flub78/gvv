@@ -18,8 +18,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Vue (table) pour les tarifs et les produits
- * 
+ * Vue (table) pour les tarifs (historique de prix) d'un produit
+ *
  * @package vues
  */
 $this->load->view('bs_header');
@@ -28,7 +28,7 @@ $this->load->view('bs_menu');
 $this->lang->load('tarifs');
 ?>
 <div id="body" class="body container-fluid">
-    <h3><?= $this->lang->line("gvv_tarifs_title_list") ?></h3>
+    <h3><?= $this->lang->line("gvv_tarifs_title_list") ?> — <?= html_escape($produit['description'] ?: $produit['reference']) ?></h3>
 
     <input type="hidden" name="controller_url" id="controller_url" value="<?= controller_url($controller) ?>" />
 
@@ -43,9 +43,9 @@ $this->lang->load('tarifs');
                 <div class="accordion-body">
                     <div>
                         <form action="<?= controller_url($controller) . "/filterValidation/" ?>" method="post" accept-charset="utf-8" name="saisie">
+                            <input type="hidden" name="produit_id" value="<?= $produit_id ?>" />
 
                             <div class="d-md-flex flex-row mb-2">
-                                <!-- date, jusqua, compte-->
                                 <div class="me-3 mb-2">
                                     <?= $this->lang->line("gvv_tarifs_label_todate") . ": " . input_field('filter_tarif_date', $filter_tarif_date, array('type'  => 'text', 'size' => '15', 'title' => 'JJ/MM/AAAA', 'class' => 'datepicker')) ?>
                                 </div>
@@ -53,28 +53,6 @@ $this->lang->load('tarifs');
                                 <div class="me-3 mb-2">
                                     <?= $this->lang->line("gvv_tarifs_label_public") . ": "
                                         . enumerate_radio_fields($this->lang->line("gvv_tarifs_filter_public_select"), 'filter_tarif_public', $filter_tarif_public) ?>
-                                </div>
-
-                                <div class="me-3 mb-2">
-                                    <?= "" ?>
-                                </div>
-
-                                <div class="me-3 mb-2">
-                                    <?= "" ?>
-                                </div>
-
-                                <div class="me-3 mb-2">
-                                    <?= "" ?>
-                                </div>
-                            </div>
-
-                            <div class="d-md-flex flex-row  mb-2">
-                                <div class="me-3 mb-2">
-                                    <?= "" ?>
-                                </div>
-
-                                <div class="me-3 mb-2">
-                                    <?= "" ?>
                                 </div>
                             </div>
 
@@ -90,15 +68,14 @@ $this->lang->load('tarifs');
     </div>
 
     <?php
-    $tarifs = "Tarifs";
+    $tarifs = $this->lang->line("gvv_tarifs_title_list");
     if ($filter_tarif_date) $tarifs .= " au $filter_tarif_date";
 
     $attrs = array(
         'controller' => $controller,
         'actions' => array('edit', 'delete', 'clone_elt'),
         'title' => $tarifs,
-        'fields' => array('reference', 'description', 'date', 'section_name', 'date_fin', 'prix', 'nom_compte', 'public', 'is_cotisation'),
-        //    'count' => $count,
+        'fields' => array('date', 'prix'),
         'first' => $premier,
         'mode' => ($has_modification_rights && $section) ? "rw" : "ro",
         'class' => "datatable table table-striped"
@@ -106,7 +83,7 @@ $this->lang->load('tarifs');
 
     // Create button above the table
     echo '<div class="mb-3">'
-        . '<a href="' . site_url('tarifs/create') . '" class="btn btn-sm btn-success">'
+        . '<a href="' . site_url('tarifs/create?produit_id=' . $produit_id) . '" class="btn btn-sm btn-success">'
         . '<i class="fas fa-plus" aria-hidden="true"></i> '
         . $this->lang->line('gvv_button_create')
         . '</a>'
@@ -114,7 +91,5 @@ $this->lang->load('tarifs');
     echo $this->gvvmetadata->table("vue_tarifs", $attrs, "");
 
     echo p($this->lang->line("gvv_tarifs_clone_tooltip"));
-    echo br();
-    echo p($this->lang->line("gvv_tarifs_warning"));
 
     echo '</div>';

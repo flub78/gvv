@@ -42,6 +42,7 @@ class Database {
 
 		'pompes',
 		'achats',
+		'produits',
 		'tarifs',
 		'volsa',
 		'volsp',

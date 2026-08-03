@@ -157,9 +157,9 @@ class Config extends MY_Controller {
         $data ['controller'] = 'config';
         $data ['action'] = "modification";
         
-        $this->load->model('tarifs_model');
+        $this->load->model('produits_model');
 
-        $data['product_selector'] = $this->tarifs_model->selector();
+        $data['product_selector'] = $this->produits_model->selector();
         load_last_view('configView', $data);
     }
 

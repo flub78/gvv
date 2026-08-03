@@ -471,6 +471,11 @@ Helloasso Library
  [x] Create checkout fails when slug missing
  [x] Create checkout logs status pending
 
+My Migration Core Compatibility
+ [x] Core constructor still guards against subclass reinit
+ [x] Core protected properties still exist
+ [x] Core version method signature unchanged
+
 Reservation Reminder
  [x] Creator is pilot notifies instructor
  [x] Creator is instructor notifies pilot

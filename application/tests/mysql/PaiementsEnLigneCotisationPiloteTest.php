@@ -25,6 +25,7 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
 
     protected $created_ecriture_ids = array();
     protected $created_tarif_ids    = array();
+    protected $created_produit_ids  = array();
     protected $created_licence_ids  = array();
 
     protected static $club_id      = 4;
@@ -38,14 +39,6 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         self::$CI->load->model('ecritures_model');
         self::$CI->load->model('comptes_model');
         self::$CI->load->model('licences_model');
-
-        $q = self::$CI->db->query(
-            "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tarifs' AND COLUMN_NAME = 'is_cotisation'"
-        )->row_array();
-        if ((int) $q['cnt'] === 0) {
-            self::markTestSkipped('Colonne tarifs.is_cotisation absente — exécuter la migration 099');
-        }
     }
 
     protected function setUp(): void
@@ -57,6 +50,7 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         $this->comptes_model   = self::$CI->comptes_model;
         $this->created_ecriture_ids = array();
         $this->created_tarif_ids    = array();
+        $this->created_produit_ids  = array();
         $this->created_licence_ids  = array();
     }
 
@@ -67,6 +61,9 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         }
         foreach ($this->created_tarif_ids as $id) {
             $this->db->where('id', $id)->delete('tarifs');
+        }
+        foreach ($this->created_produit_ids as $id) {
+            $this->db->where('id', $id)->delete('produits');
         }
         foreach ($this->created_licence_ids as $id) {
             $this->db->where('id', $id)->delete('licences');
@@ -112,16 +109,25 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
             $this->markTestSkipped('Aucun compte 7xx dans club=4');
         }
 
-        $this->db->insert('tarifs', array(
-            'reference'     => 'COT-PHPUNIT-' . uniqid(),
-            'date'          => '2026-01-01',
-            'date_fin'      => '2099-12-31',
+        // tarifs.produit_id est NOT NULL (migration 148) : il faut un produit.
+        // Les colonnes produit historiques (reference, description, compte,
+        // club, is_cotisation, saisie_par) ont été supprimées de tarifs à
+        // l'étape 12 (migration 149) — elles ne vivent plus que sur produits.
+        $reference = 'COT-PHPUNIT-' . uniqid();
+        $this->db->insert('produits', array(
+            'reference'     => $reference,
             'description'   => 'Cotisation test PHPUnit',
-            'prix'          => 50.00,
             'compte'        => (int) $compte['id'],
-            'saisie_par'    => 'phpunit',
             'club'          => self::$club_id,
             'is_cotisation' => 1,
+        ));
+        $produit_id = (int) $this->db->insert_id();
+        $this->created_produit_ids[] = $produit_id;
+
+        $this->db->insert('tarifs', array(
+            'produit_id'    => $produit_id,
+            'date'          => '2026-01-01',
+            'prix'          => 50.00,
             'created_by'    => 'phpunit',
             'created_at'    => date('Y-m-d H:i:s'),
         ));
@@ -143,14 +149,17 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         $this->assertEquals(2026, (int) $p['annee']);
         $this->assertEquals(50.00, (float) $p['montant']);
 
-        // Toggle off
-        $this->db->where('id', $id)->update('tarifs', array('is_cotisation' => 0));
+        // Toggle off — is_cotisation vit désormais sur produits (identité du
+        // produit) : get_cotisation_products_for_section() la lit via un
+        // INNER JOIN produits (tarifs ne porte plus cette colonne depuis la
+        // migration 149, qui a supprimé les colonnes produit legacy).
+        $this->db->where('id', $produit_id)->update('produits', array('is_cotisation' => 0));
         $produits_after = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found_after = array_filter($produits_after, function ($p) use ($id) { return (int) $p['id'] === $id; });
-        $this->assertEmpty($found_after, 'Tarif is_cotisation=0 ne doit plus être dans la liste');
+        $this->assertEmpty($found_after, 'Produit is_cotisation=0 ne doit plus être dans la liste');
 
         // Toggle on
-        $this->db->where('id', $id)->update('tarifs', array('is_cotisation' => 1));
+        $this->db->where('id', $produit_id)->update('produits', array('is_cotisation' => 1));
         $produits_final = $this->tarifs_model->get_cotisation_products_for_section(self::$club_id);
         $found_final = array_filter($produits_final, function ($p) use ($id) { return (int) $p['id'] === $id; });
         $this->assertNotEmpty($found_final, 'Tarif is_cotisation=1 réactivé doit réapparaître');

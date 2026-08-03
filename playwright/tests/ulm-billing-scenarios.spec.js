@@ -171,12 +171,13 @@ function getTariffPrice(reference, date, sectionId) {
   }
 
   const rows = mysqlRows(
-    `SELECT prix
+    `SELECT tarifs.prix
      FROM tarifs
-     WHERE reference = '${escapeSqlString(reference)}'
-       AND club = ${sectionId}
-       AND date <= '${escapeSqlString(date)}'
-     ORDER BY date DESC
+     JOIN produits ON produits.id = tarifs.produit_id
+     WHERE produits.reference = '${escapeSqlString(reference)}'
+       AND produits.club = ${sectionId}
+       AND tarifs.date <= '${escapeSqlString(date)}'
+     ORDER BY tarifs.date DESC
      LIMIT 1`
   );
 

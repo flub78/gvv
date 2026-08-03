@@ -30,7 +30,7 @@ class GVVMetadata extends Metadata {
 
                 $this->field['achats']['id']['Name'] = 'Id';
                 $this->field['achats']['date']['Name'] = 'Date';
-                $this->field['tarifs']['reference']['Name'] = 'Produit';
+                $this->field['produits']['reference']['Name'] = 'Produit';
                 $this->field['achats']['quantite']['Name'] = 'Quantité';
                 $this->field['achats']['prix']['Name'] = 'Prix';
                 $this->field['achats']['description']['Name'] = 'Description';
@@ -386,35 +386,42 @@ class GVVMetadata extends Metadata {
                 $this->field['planc']['pdesc']['Name'] = 'Description';
 
                 /**
-                 * Table tarifs
+                 * Table tarifs (historique de prix d'un produit — voir Table produits
+                 * ci-dessous pour l'identité du produit)
                  */
                 $this->field['tarifs']['prix']['Subtype'] = 'currency';
-
-                $this->field['vue_tarifs']['nom_compte']['Type'] = 'varchar';
-
-                $this->field['vue_tarifs']['reference']['Type'] = 'varchar';
-                $this->field['vue_tarifs']['description']['Type'] = 'varchar';
-                $this->field['vue_tarifs']['prix']['Subtype'] = 'currency';
-                $this->field['vue_tarifs']['date']['Type'] = 'date';
-                $this->field['vue_tarifs']['date_fin']['Type'] = 'date';
-                $this->field['tarifs']['compte']['Subtype'] = 'selector';
-                $this->field['tarifs']['compte']['Selector'] = 'compte_selector';
                 $this->field['tarifs']['date']['Default'] = 'today';
 
-                $this->field['tarifs']['type_ticket']['Subtype'] = 'selector';
-                $this->field['tarifs']['type_ticket']['Selector'] = 'ticket_selector';
-                $this->field['tarifs']['type_ticket']['Default'] = '';
-                $this->field['tarifs']['public']['Subtype'] = 'boolean';
-                $this->field['vue_tarifs']['public']['Subtype'] = 'boolean';
-                $this->field['tarifs']['is_cotisation']['Subtype'] = 'boolean';
-                $this->field['vue_tarifs']['is_cotisation']['Subtype'] = 'boolean';
-                $this->field['tarifs']['nb_personnes_max']['Type'] = 'int';
-                $this->field['tarifs']['nb_personnes_max']['Name'] = 'Nb max passagers';
-                $this->field['tarifs']['nb_personnes_max']['Min'] = 1;
-                $this->field['tarifs']['nb_personnes_max']['Default'] = 1;
-                $this->field['vue_tarifs']['nb_personnes_max']['Type'] = 'int';
-                $this->field['vue_tarifs']['nb_personnes_max']['Name'] = 'Nb max passagers';
-                $this->field['vue_tarifs']['nb_personnes_max']['Min'] = 1;
+                $this->field['vue_tarifs']['prix']['Subtype'] = 'currency';
+                $this->field['vue_tarifs']['date']['Type'] = 'date';
+
+                /**
+                 * Table produits (identité du produit — reference, description, compte,
+                 * club, is_cotisation, nb_personnes_max, public, type_ticket)
+                 */
+                $this->field['produits']['compte']['Subtype'] = 'selector';
+                $this->field['produits']['compte']['Selector'] = 'compte_selector';
+
+                $this->field['produits']['type_ticket']['Subtype'] = 'selector';
+                $this->field['produits']['type_ticket']['Selector'] = 'ticket_selector';
+                $this->field['produits']['type_ticket']['Default'] = '';
+
+                $this->field['produits']['public']['Subtype'] = 'boolean';
+                $this->field['produits']['is_cotisation']['Subtype'] = 'boolean';
+
+                $this->field['produits']['nb_personnes_max']['Type'] = 'int';
+                $this->field['produits']['nb_personnes_max']['Name'] = 'Nb max passagers';
+                $this->field['produits']['nb_personnes_max']['Min'] = 1;
+                $this->field['produits']['nb_personnes_max']['Default'] = 1;
+
+                $this->field['vue_produits']['nom_compte']['Type'] = 'varchar';
+                $this->field['vue_produits']['reference']['Type'] = 'varchar';
+                $this->field['vue_produits']['description']['Type'] = 'varchar';
+                $this->field['vue_produits']['public']['Subtype'] = 'boolean';
+                $this->field['vue_produits']['is_cotisation']['Subtype'] = 'boolean';
+                $this->field['vue_produits']['nb_personnes_max']['Type'] = 'int';
+                $this->field['vue_produits']['nb_personnes_max']['Name'] = 'Nb max passagers';
+                $this->field['vue_produits']['nb_personnes_max']['Min'] = 1;
 
                 /**
                  * Table clotures

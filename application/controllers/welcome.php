@@ -249,15 +249,17 @@ class Welcome extends Gvv_Controller {
         // encore payé sa cotisation pour l'année cible (année suivante en décembre,
         // année courante les autres mois).
         $data['show_pay_cotisation_card'] = false;
-        if ($active_section_id > 0) {
+        if ($active_section_id > 0
+            && $this->db->table_exists('produits')
+            && $this->db->field_exists('produit_id', 'tarifs')) {
             $today = date('Y-m-d');
             $annee_cible = ((int) date('m') === 12) ? (int) date('Y') + 1 : (int) date('Y');
             $cotisation_count = (int) $this->db
                 ->from('tarifs')
-                ->where('club', $active_section_id)
-                ->where('is_cotisation', 1)
-                ->where('date <=', $today)
-                ->where('(date_fin IS NULL OR date_fin >= ' . $this->db->escape($today) . ')', null, false)
+                ->join('produits', 'produits.id = tarifs.produit_id')
+                ->where('produits.club', $active_section_id)
+                ->where('produits.is_cotisation', 1)
+                ->where('tarifs.date <=', $today)
                 ->count_all_results();
             if ($cotisation_count > 0) {
                 $this->load->model('licences_model');
