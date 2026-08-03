@@ -74,6 +74,120 @@ class Produits extends Gvv_Controller {
     }
 
     /**
+     * Formulaire de création — ajoute la liste (vide) des tarifs pour le
+     * panneau intégré du formulaire (cf. bs_formView.php).
+     */
+    function create() {
+        parent::create(true);
+        $this->data['tarifs'] = array();
+        return load_last_view($this->form_view, $this->data, $this->unit_test);
+    }
+
+    /**
+     * Formulaire de modification — ajoute les tarifs existants du produit
+     * pour le panneau intégré du formulaire.
+     */
+    function edit($id = "", $load_view = TRUE, $action = MODIFICATION) {
+        parent::edit($id, false, $action);
+        $this->load->model('tarifs_model');
+        $this->data['tarifs'] = $this->tarifs_model->all_for_produit($id);
+        if ($load_view) {
+            return load_last_view($this->form_view, $this->data, $this->unit_test);
+        }
+    }
+
+    /**
+     * Ajoute la règle "au moins un tarif" avant de déléguer à la validation
+     * générique (création ou modification).
+     *
+     * `tarifs.produit_id` est NOT NULL sans cascade (migrations 147/148) : un
+     * tarif ne peut jamais être inséré avant que le produit existe. On ne
+     * persiste donc jamais un produit sans tarif, même transitoirement — la
+     * validation bloque avant toute écriture en base, et post_create()/
+     * post_update() synchronisent les tarifs dans la même requête.
+     */
+    function formValidation($action, $return_on_success = false) {
+        $this->form_validation->set_rules('tarifs_json', 'Tarifs', 'callback_at_least_one_tarif');
+        return parent::formValidation($action, $return_on_success);
+    }
+
+    /**
+     * Callback de validation CodeIgniter (nom exposé requis: at_least_one_tarif,
+     * appelé via la règle "callback_at_least_one_tarif").
+     */
+    function at_least_one_tarif($json) {
+        $rows = json_decode((string) $json, true);
+        if (!is_array($rows) || count($rows) < 1) {
+            $this->form_validation->set_message('at_least_one_tarif', $this->lang->line('gvv_produits_tarif_requis'));
+            return false;
+        }
+        foreach ($rows as $row) {
+            if (!isset($row['date']) || !isset($row['prix']) || trim((string) $row['date']) === '' || trim((string) $row['prix']) === '') {
+                $this->form_validation->set_message('at_least_one_tarif', $this->lang->line('gvv_produits_tarif_invalide'));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Synchronise les tarifs après création du produit (cf. formValidation()).
+     */
+    function post_create($data = array()) {
+        parent::post_create($data);
+        $this->_sync_tarifs($data[$this->kid]);
+    }
+
+    /**
+     * Synchronise les tarifs après modification du produit (cf. formValidation()).
+     */
+    function post_update($data = array()) {
+        parent::post_update($data);
+        $this->_sync_tarifs($data[$this->kid]);
+    }
+
+    /**
+     * Applique l'état "brouillon" des tarifs (champ caché tarifs_json, géré
+     * par assets/js/produits_tarifs.js) au produit qui vient d'être créé ou
+     * modifié : create() pour les lignes sans id, update() pour celles avec
+     * id, delete() pour les tarifs existants en base mais absents du POST.
+     */
+    private function _sync_tarifs($produit_id) {
+        $this->load->model('tarifs_model');
+        $this->load->helper('validation');
+
+        $rows = json_decode((string) $this->input->post('tarifs_json'), true);
+        if (!is_array($rows)) {
+            $rows = array();
+        }
+
+        $submitted_ids = array();
+        foreach ($rows as $row) {
+            $data = array(
+                'produit_id' => $produit_id,
+                'date' => $row['date'],
+                'prix' => clean_currency_input($row['prix']),
+                'nb_tickets' => (isset($row['nb_tickets']) && $row['nb_tickets'] !== '')
+                    ? clean_currency_input($row['nb_tickets']) : 0,
+            );
+            if (!empty($row['id'])) {
+                $this->tarifs_model->update('id', $data, $row['id']);
+                $submitted_ids[] = (int) $row['id'];
+            } else {
+                $new_id = $this->tarifs_model->create($data);
+                $submitted_ids[] = (int) $new_id;
+            }
+        }
+
+        $existing = $this->tarifs_model->all_for_produit($produit_id);
+        foreach ($existing as $tarif) {
+            if (!in_array((int) $tarif['id'], $submitted_ids, true)) {
+                $this->tarifs_model->delete(array('id' => $tarif['id']));
+            }
+        }
+    }
+
+    /**
      * Supprime un produit.
      *
      * `tarifs.produit_id` porte une contrainte FOREIGN KEY (fk_tarifs_produit,

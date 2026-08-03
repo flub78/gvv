@@ -36,7 +36,7 @@ $this->lang->load('produits');
     <?php
     $attrs = array(
         'controller' => $controller,
-        'actions' => array('tarifs', 'edit', 'delete'),
+        'actions' => array('edit', 'delete'),
         'title' => $this->lang->line("gvv_produits_title_list"),
         'fields' => array('reference', 'description', 'section_name', 'nom_compte', 'prix', 'public', 'is_cotisation'),
         'first' => $premier,
@@ -53,8 +53,6 @@ $this->lang->load('produits');
         . '</div>';
     echo $this->gvvmetadata->table("vue_produits", $attrs, "");
 
-    echo p($this->lang->line("gvv_produits_tarifs_tooltip"));
-    echo br();
     echo p($this->lang->line("gvv_produits_warning"));
 
     echo '</div>';

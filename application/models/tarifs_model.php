@@ -137,6 +137,22 @@ class Tarifs_model extends Common_Model {
     }
 
     /**
+     * Tous les tarifs d'un produit, sans les filtres de session de la page
+     * tarifs/page (filter_tarif_tout/date/public, cf. select_page() ci-dessus).
+     * Utilisé par le panneau tarifs intégré à produits/create|edit, qui doit
+     * toujours refléter l'état réel en base, indépendamment d'un filtre laissé
+     * actif par un passage antérieur sur tarifs/page.
+     */
+    public function all_for_produit($produit_id) {
+        return $this->db->select('id, date, prix, nb_tickets')
+            ->from('tarifs')
+            ->where('produit_id', $produit_id)
+            ->order_by('date', 'desc')
+            ->order_by('id', 'desc')
+            ->get()->result_array();
+    }
+
+    /**
      * Ajoute un élément
      *
      * N'écrit que les colonnes de prix : produit_id, date, prix,

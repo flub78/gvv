@@ -27,5 +27,12 @@ $lang['gvv_vue_produits_short_field_nb_personnes_max'] = "Max pass.";
 $lang['gvv_vue_produits_short_field_section_name'] = "Section";
 
 $lang['gvv_produits_warning'] = "Attention les références sont utilisées par le module de facturation. Ne modifiez pas le champ \"Référence\".";
-$lang['gvv_produits_tarifs_tooltip'] = "Le bouton \"Tarifs\" ouvre l'historique de prix du produit : cliquez dessus pour créer un nouveau tarif ou consulter les tarifs précédents.";
 $lang['gvv_produits_delete_has_tarifs'] = "Suppression impossible : %d tarif(s) associé(s) à ce produit. Supprimez d'abord les tarifs.";
+
+$lang['gvv_produits_tarifs_card_title'] = "Tarifs";
+$lang['gvv_produits_tarif_requis'] = "Au moins un tarif est requis avant de pouvoir valider le produit.";
+$lang['gvv_produits_tarif_invalide'] = "Chaque tarif doit avoir une date et un prix.";
+$lang['gvv_produits_tarif_add_btn'] = "Ajouter";
+$lang['gvv_produits_tarif_update_btn'] = "Mettre à jour";
+$lang['gvv_produits_tarif_cancel_btn'] = "Annuler";
+$lang['gvv_produits_tarif_last_one'] = "Il doit rester au moins un tarif.";
