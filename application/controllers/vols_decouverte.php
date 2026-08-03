@@ -1343,9 +1343,9 @@ EOD;
                      FROM tarifs
                      JOIN produits ON produits.id = tarifs.produit_id
                      WHERE produits.club = ? AND produits.reference = ? AND produits.type_ticket = 1 AND produits.public = 1
-                       AND tarifs.date <= ? AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= ?)
+                       AND tarifs.date <= ?
                      ORDER BY tarifs.date DESC LIMIT 1",
-                    array($section_id, $product_ref, $today, $today)
+                    array($section_id, $product_ref, $today)
                 )
                 ->row_array();
         }
@@ -1488,9 +1488,9 @@ EOD;
                      FROM tarifs
                      JOIN produits ON produits.id = tarifs.produit_id
                      WHERE produits.club = ? AND produits.type_ticket = 1 AND produits.public = 1
-                       AND tarifs.date <= ? AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= ?)
+                       AND tarifs.date <= ?
                      ORDER BY tarifs.prix ASC",
-                    array($section_id, $today, $today)
+                    array($section_id, $today)
                 )->result_array();
             }
 

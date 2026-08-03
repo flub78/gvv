@@ -75,7 +75,7 @@ $this->lang->load('tarifs');
         'controller' => $controller,
         'actions' => array('edit', 'delete', 'clone_elt'),
         'title' => $tarifs,
-        'fields' => array('date', 'date_fin', 'prix'),
+        'fields' => array('date', 'prix'),
         'first' => $premier,
         'mode' => ($has_modification_rights && $section) ? "rw" : "ro",
         'class' => "datatable table table-striped"

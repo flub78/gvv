@@ -127,7 +127,6 @@ class PaiementsEnLigneCotisationPiloteTest extends TestCase
         $this->db->insert('tarifs', array(
             'produit_id'    => $produit_id,
             'date'          => '2026-01-01',
-            'date_fin'      => '2099-12-31',
             'prix'          => 50.00,
             'created_by'    => 'phpunit',
             'created_at'    => date('Y-m-d H:i:s'),

@@ -61,9 +61,9 @@ test.beforeAll(async () => {
             ('${TEST_TARIF_REF}', 'Vol de découverte test Playwright', 726, 4, 1, 1,
              0, 1, 'playwright', NOW(), 'playwright', NOW());
         INSERT INTO tarifs
-            (produit_id, date, date_fin, prix, nb_tickets, created_by, created_at, updated_by, updated_at)
+            (produit_id, date, prix, nb_tickets, created_by, created_at, updated_by, updated_at)
         VALUES
-            (LAST_INSERT_ID(), '2020-01-01', '2099-12-31', 100.00, 0,
+            (LAST_INSERT_ID(), '2020-01-01', 100.00, 0,
              'playwright', NOW(), 'playwright', NOW());
     `);
 });

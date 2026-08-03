@@ -394,7 +394,6 @@ class GVVMetadata extends Metadata {
 
                 $this->field['vue_tarifs']['prix']['Subtype'] = 'currency';
                 $this->field['vue_tarifs']['date']['Type'] = 'date';
-                $this->field['vue_tarifs']['date_fin']['Type'] = 'date';
 
                 /**
                  * Table produits (identité du produit — reference, description, compte,

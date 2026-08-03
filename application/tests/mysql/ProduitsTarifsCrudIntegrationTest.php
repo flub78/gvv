@@ -58,7 +58,6 @@ class ProduitsTarifsCrudIntegrationTest extends TestCase
         $tarifId = $this->tarifs_model->create(array(
             'produit_id' => $this->produitId,
             'date' => '2020-01-01',
-            'date_fin' => '2099-12-31',
             'prix' => 42.50,
             'nb_tickets' => 0,
         ));

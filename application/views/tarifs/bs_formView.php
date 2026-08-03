@@ -47,7 +47,6 @@ echo form_hidden('produit_id', $produit_id);
 
 $fields = array(
 	'date' => $date,
-	'date_fin' => $date_fin,
 	'prix' => $prix,
 );
 

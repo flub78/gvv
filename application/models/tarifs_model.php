@@ -5,7 +5,7 @@ if (! defined('BASEPATH'))
 /**
  * Tarifs model
  *
- * Historique de prix (date, date_fin, prix, nb_tickets) d'un produit
+ * Historique de prix (date, prix, nb_tickets) d'un produit
  * (application/models/produits_model.php). Façade de compatibilité du
  * refactoring tarifs -> produits + tarifs (doc/design_notes/refactoring_produits_tarifs.md,
  * étape 7 du plan) : toutes les méthodes publiques gardent leur signature et la
@@ -34,7 +34,7 @@ class Tarifs_model extends Common_Model {
      */
     private function joined_select_columns() {
         return 'tarifs.id AS id, tarifs.produit_id AS produit_id, produits.reference AS reference,
-                tarifs.date AS date, tarifs.date_fin AS date_fin, produits.description AS description,
+                tarifs.date AS date, produits.description AS description,
                 tarifs.prix AS prix, produits.nb_personnes_max AS nb_personnes_max, produits.compte AS compte,
                 produits.club AS club, tarifs.nb_tickets AS nb_tickets, produits.type_ticket AS type_ticket,
                 produits.is_cotisation AS is_cotisation, produits.public AS public,
@@ -57,7 +57,7 @@ class Tarifs_model extends Common_Model {
         gvv_debug("tarifs select tout=" . $tarif_tout);
         gvv_debug("tarifs select date=" . $tarif_date);
 
-        $select = 'tarifs.id as id, tarifs.date as date, tarifs.date_fin as date_fin, produits.public as public,
+        $select = 'tarifs.id as id, tarifs.date as date, produits.public as public,
                    produits.reference as reference, produits.description as description, tarifs.prix as prix,
                    produits.club as club, comptes.nom as nom_compte, tarifs.nb_tickets as nb_tickets,
                    produits.type_ticket as type_ticket, produits.is_cotisation as is_cotisation';
@@ -139,7 +139,7 @@ class Tarifs_model extends Common_Model {
     /**
      * Ajoute un élément
      *
-     * N'écrit que les colonnes de prix : produit_id, date, date_fin, prix,
+     * N'écrit que les colonnes de prix : produit_id, date, prix,
      * nb_tickets (+ audit, injecté par Common_Model::create()). L'identité
      * produit vit désormais sur `produits` — produit_id doit toujours être
      * fourni par l'appelant.
@@ -170,7 +170,7 @@ class Tarifs_model extends Common_Model {
      * plus écrites par cette façade — elles vivent sur `produits`.
      */
     private function filter_price_fields($data) {
-        $allowed = array('produit_id', 'date', 'date_fin', 'prix', 'nb_tickets',
+        $allowed = array('produit_id', 'date', 'prix', 'nb_tickets',
             'created_at', 'created_by', 'updated_at', 'updated_by');
         return array_intersect_key($data, array_flip($allowed));
     }
@@ -210,7 +210,7 @@ class Tarifs_model extends Common_Model {
      * Retourne les champs avec les noms attendus par paiements_en_ligne/cotisation :
      *   id, libelle, annee, montant, compte_cotisation_id, section_id, actif
      *
-     * Filtrage : is_cotisation=1, date <= aujourd'hui, date_fin >= aujourd'hui ou null.
+     * Filtrage : is_cotisation=1, date <= aujourd'hui.
      *
      * INNER JOIN sur produits : `tarifs.produit_id` est NOT NULL depuis la
      * migration 148 et les colonnes produit historiques ont été supprimées de
@@ -232,7 +232,6 @@ class Tarifs_model extends Common_Model {
                 WHERE produits.club = $cid
                   AND produits.is_cotisation = 1
                   AND tarifs.date <= $today
-                  AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= $today)
                 ORDER BY tarifs.date DESC, libelle ASC";
         return $this->db->query($sql)->result_array();
     }
@@ -258,8 +257,7 @@ class Tarifs_model extends Common_Model {
                 JOIN produits ON produits.id = tarifs.produit_id
                 WHERE tarifs.id = $id
                   AND produits.is_cotisation = 1
-                  AND tarifs.date <= $today
-                  AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= $today)";
+                  AND tarifs.date <= $today";
         $row = $this->db->query($sql)->row_array();
         return $row ? $row : false;
     }

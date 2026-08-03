@@ -118,9 +118,9 @@ if (!function_exists('get_sections_vd_disponibles')) {
                 "SELECT 1 FROM tarifs
                  JOIN produits ON produits.id = tarifs.produit_id
                  WHERE produits.club = ? AND produits.type_ticket = 1 AND produits.public = 1
-                   AND tarifs.date <= ? AND (tarifs.date_fin IS NULL OR tarifs.date_fin >= ?)
+                   AND tarifs.date <= ?
                  LIMIT 1",
-                array((int) $section['id'], $today, $today)
+                array((int) $section['id'], $today)
             )->num_rows();
 
             if (!$has_products) {
