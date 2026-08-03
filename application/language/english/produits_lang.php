@@ -20,6 +20,7 @@ $lang['gvv_produits_field_nb_personnes_max'] = "Max passengers";
 $lang['gvv_vue_produits_short_field_reference'] = "Reference";
 $lang['gvv_vue_produits_short_field_description'] = "Description";
 $lang['gvv_vue_produits_short_field_nom_compte'] = "Account";
+$lang['gvv_vue_produits_short_field_prix'] = "Today's price";
 $lang['gvv_vue_produits_short_field_public'] = "Public";
 $lang['gvv_vue_produits_short_field_is_cotisation'] = "Membership fee";
 $lang['gvv_vue_produits_short_field_nb_personnes_max'] = "Max pass.";

@@ -20,6 +20,7 @@ $lang['gvv_produits_field_nb_personnes_max'] = "Nb max passagers";
 $lang['gvv_vue_produits_short_field_reference'] = "Référence";
 $lang['gvv_vue_produits_short_field_description'] = "Description";
 $lang['gvv_vue_produits_short_field_nom_compte'] = "Compte";
+$lang['gvv_vue_produits_short_field_prix'] = "Tarif du jour";
 $lang['gvv_vue_produits_short_field_public'] = "Public";
 $lang['gvv_vue_produits_short_field_is_cotisation'] = "Cotisation";
 $lang['gvv_vue_produits_short_field_nb_personnes_max'] = "Max pass.";

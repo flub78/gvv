@@ -38,7 +38,7 @@ $this->lang->load('produits');
         'controller' => $controller,
         'actions' => array('tarifs', 'edit', 'delete'),
         'title' => $this->lang->line("gvv_produits_title_list"),
-        'fields' => array('reference', 'description', 'section_name', 'nom_compte', 'public', 'is_cotisation'),
+        'fields' => array('reference', 'description', 'section_name', 'nom_compte', 'prix', 'public', 'is_cotisation'),
         'first' => $premier,
         'mode' => ($has_modification_rights && $section) ? "rw" : "ro",
         'class' => "datatable table table-striped"

@@ -20,6 +20,7 @@ $lang['gvv_produits_field_nb_personnes_max'] = "Max passagiers";
 $lang['gvv_vue_produits_short_field_reference'] = "Referentie";
 $lang['gvv_vue_produits_short_field_description'] = "Omschrijving";
 $lang['gvv_vue_produits_short_field_nom_compte'] = "Rekening";
+$lang['gvv_vue_produits_short_field_prix'] = "Tarief vandaag";
 $lang['gvv_vue_produits_short_field_public'] = "Openbaar";
 $lang['gvv_vue_produits_short_field_is_cotisation'] = "Lidgeld";
 $lang['gvv_vue_produits_short_field_nb_personnes_max'] = "Max pass.";

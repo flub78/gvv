@@ -63,23 +63,28 @@ class Tarifs extends Gvv_Controller {
     /**
      * Affiche les tarifs (historique de prix) d'un produit
      *
-     * $produit_id est optionnel uniquement pour rester compatible avec la
-     * signature de Gvv_Controller::page() (PHP 8 impose une surcharge
-     * compatible) — ce sous-CRUD est toujours appelé avec un produit_id.
-     *
      * $selection n'est pas utilisé ici (tarifs.php a son propre mécanisme de
      * filtrage par session, cf. filterValidation()) — le paramètre existe
      * uniquement pour rester compatible avec la signature de
      * Gvv_Controller::page() (PHP 8 refuse une surcharge avec moins de
      * paramètres que le parent).
      *
+     * @param $produit_id produit dont on affiche les tarifs
      * @param $premier élément
      *            à afficher
      * @param
      *            message message à afficher
      */
-    function page($premier = 0, $message = '', $selection = array()) {
-        $this->data['select_result'] = $this->gvv_model->select_page(PER_PAGE, $premier);
+    function page($produit_id = null, $premier = 0, $message = '', $selection = array()) {
+        if ($produit_id === null) {
+            redirect(controller_url('produits') . '/page');
+        }
+
+        $produit = $this->produits_model->get_by_id('id', $produit_id);
+
+        $this->data['produit'] = $produit;
+        $this->data['produit_id'] = $produit_id;
+        $this->data['select_result'] = $this->gvv_model->select_page($produit_id, PER_PAGE, $premier);
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
         $this->data['count'] = $this->gvv_model->count(array('produit_id' => $produit_id));
@@ -106,18 +111,6 @@ class Tarifs extends Gvv_Controller {
         $this->push_return_url("Tarifs");
 
         return load_last_view($this->table_view, $this->data, $this->unit_test);
-    }
-
-    /**
-     * Duplique un tarif à la date courante
-     */
-    function clone_elt($id) {
-        $data = $this->gvv_model->get_by_id('id', $id);
-        $produit_id = $data['produit_id'];
-        unset($data['id'], $data['created_at'], $data['created_by'], $data['updated_at'], $data['updated_by']);
-        $data['date'] = date('Y-m-d');
-        $this->gvv_model->create($data);
-        redirect(controller_url("tarifs/page/" . $produit_id));
     }
 
 }

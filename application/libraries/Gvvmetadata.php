@@ -422,6 +422,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_produits']['nb_personnes_max']['Type'] = 'int';
                 $this->field['vue_produits']['nb_personnes_max']['Name'] = 'Nb max passagers';
                 $this->field['vue_produits']['nb_personnes_max']['Min'] = 1;
+                $this->field['vue_produits']['prix']['Subtype'] = 'currency';
 
                 /**
                  * Table clotures

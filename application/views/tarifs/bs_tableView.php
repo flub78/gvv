@@ -73,7 +73,7 @@ $this->lang->load('tarifs');
 
     $attrs = array(
         'controller' => $controller,
-        'actions' => array('edit', 'delete', 'clone_elt'),
+        'actions' => array('edit', 'delete'),
         'title' => $tarifs,
         'fields' => array('date', 'prix'),
         'first' => $premier,
@@ -89,7 +89,5 @@ $this->lang->load('tarifs');
         . '</a>'
         . '</div>';
     echo $this->gvvmetadata->table("vue_tarifs", $attrs, "");
-
-    echo p($this->lang->line("gvv_tarifs_clone_tooltip"));
 
     echo '</div>';

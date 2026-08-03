@@ -39,10 +39,20 @@ class Produits_model extends Common_Model {
      * @return objet La liste
      */
     public function select_page($nb = 1000, $debut = 0) {
+        // Sous-requête : tarif applicable à la date du jour (le plus récent
+        // dont la date de départ n'est pas dans le futur, départage par id le
+        // plus grand en cas d'égalité de date — même règle que la migration
+        // 146). IFNULL -> '' pour un affichage vide plutôt que "0,00 €"
+        // quand le produit n'a aucun tarif applicable aujourd'hui.
+        $prix_du_jour_subquery = "(SELECT t.prix FROM tarifs t
+            WHERE t.produit_id = produits.id AND t.date <= CURDATE()
+            ORDER BY t.date DESC, t.id DESC LIMIT 1)";
+
         $this->db->select('produits.id as id, produits.reference as reference, produits.description as description,
                             produits.club as club, comptes.nom as nom_compte, produits.public as public,
                             produits.is_cotisation as is_cotisation, produits.nb_personnes_max as nb_personnes_max,
                             produits.type_ticket as type_ticket')
+            ->select('IFNULL(' . $prix_du_jour_subquery . ", '') as prix", FALSE)
             ->from('produits')
             ->join('comptes', 'produits.compte = comptes.id')
             ->order_by('produits.reference', 'asc');
