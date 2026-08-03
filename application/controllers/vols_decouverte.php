@@ -76,6 +76,134 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
+     * Hook post-création : génère et stocke le PDF du bon (nouveau moteur
+     * configurable), si activé (`vd.new_pdf_engine.enabled`).
+     *
+     * @see doc/plans/configuration_bons_vols_decouverte_plan.md
+     */
+    function post_create($data = array()) {
+        parent::post_create($data);
+        if (!empty($data[$this->kid])) {
+            $this->_generate_and_store_vd_pdf($data[$this->kid]);
+        }
+    }
+
+    /**
+     * Hook post-modification : régénère et remplace le PDF stocké, si
+     * activé. Le bon garde ainsi le rendu correspondant à ses données et au
+     * look en vigueur au moment de la modification.
+     */
+    function post_update($data = array()) {
+        parent::post_update($data);
+        $id = $data[$this->kid] ?? $this->input->post('original_' . $this->kid);
+        if (!empty($id)) {
+            $this->_generate_and_store_vd_pdf($id);
+        }
+    }
+
+    /**
+     * Force la régénération manuelle du PDF stocké d'un bon existant, avec
+     * le look actuellement associé à sa section (EF9). Réservé aux mêmes
+     * droits que les autres actions d'administration des VD.
+     */
+    function regenerate($obfuscated_id) {
+        if (!$this->has_full_vd_rights()) {
+            show_error('Vous n\'avez pas les droits pour accéder à cette page.', 403, 'Accès interdit');
+            return;
+        }
+
+        $id = reverseTransform($obfuscated_id);
+        $vd = $this->gvv_model->get_by_id($this->kid, $id);
+        if (!count($vd)) {
+            $data = [];
+            $data['msg'] = "Le vol de découverte $obfuscated_id n'existe pas";
+            load_last_view('error', $data);
+            return;
+        }
+
+        $this->_generate_and_store_vd_pdf($id, true);
+
+        $msg = '<div class="alert alert-success alert-dismissible fade show">'
+             . '<i class="fas fa-check"></i> PDF régénéré avec succès.'
+             . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>'
+             . '</div>';
+        $this->session->set_flashdata('message', $msg);
+        redirect(site_url('vols_decouverte/action/' . $obfuscated_id));
+    }
+
+    /**
+     * Génère le PDF du bon avec le moteur configurable (Vd_bon_pdf) et
+     * stocke le fichier, en mettant à jour `pdf_path`. N'a d'effet que si
+     * `vd.new_pdf_engine.enabled` est actif, sauf régénération forcée
+     * ($force = true, cf. regenerate()).
+     *
+     * @param int  $id
+     * @param bool $force  Ignore le flag d'activation (régénération manuelle)
+     */
+    private function _generate_and_store_vd_pdf($id, $force = false) {
+        if (!$force && $this->configuration_model->get_param('vd.new_pdf_engine.enabled') !== '1') {
+            return;
+        }
+
+        $vd = $this->gvv_model->get_by_id($this->kid, $id);
+        if (empty($vd)) {
+            return;
+        }
+
+        $this->load->model('vols_decouverte_looks_model');
+        require_once(APPPATH . 'libraries/Vd_bon_pdf.php');
+
+        $look = $this->vols_decouverte_looks_model->get_look_for_section($vd['club']);
+        $layout = $this->vols_decouverte_looks_model->get_layout($look);
+
+        $fond_recto = !empty($look['fond_recto_path']) ? FCPATH . $look['fond_recto_path'] : image_dir() . 'Bon-Bapteme.png';
+        $fond_verso = !empty($look['fond_verso_path']) ? FCPATH . $look['fond_verso_path'] : null;
+
+        // Type de vol : même résolution que generate_pdf() (produit/tarif applicable à la date de vente)
+        $tarif = $this->db->select('produits.description AS description')
+            ->from('tarifs')
+            ->join('produits', 'produits.id = tarifs.produit_id')
+            ->where('produits.reference', $vd['product'])
+            ->where('produits.club', (int) $vd['club'])
+            ->where('tarifs.date <=', $vd['date_vente'])
+            ->order_by('tarifs.date', 'desc')
+            ->limit(1)
+            ->get()
+            ->row_array();
+        $type_vol = !empty($tarif['description']) ? trim((string) $tarif['description']) : trim((string) $vd['product']);
+
+        $date_validite = !empty($vd['date_validite'])
+            ? date_db2ht($vd['date_validite'])
+            : date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+
+        $obfuscated_id = transformInteger($id);
+
+        $data = array(
+            'numero'        => $id,
+            'date_vente'    => date_db2ht($vd['date_vente']),
+            'date_validite' => $date_validite,
+            'beneficiaire'  => $vd['beneficiaire'],
+            'occasion'      => $vd['occasion'],
+            'de_la_part'    => $vd['de_la_part'],
+            'type_vol'      => $type_vol,
+            'qr_url'        => site_url('vols_decouverte/action/' . $obfuscated_id),
+        );
+
+        $pdf = new Vd_bon_pdf();
+        $pdf->generate($data, $layout, $fond_recto, $fond_verso);
+        $pdf_binary = $pdf->Output('vol_decouverte_' . $id . '.pdf', 'S');
+
+        $upload_dir = FCPATH . 'uploads/vols_decouverte/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0775, true);
+        }
+        $relative = 'uploads/vols_decouverte/vol_decouverte_' . $id . '.pdf';
+        file_put_contents(FCPATH . $relative, $pdf_binary);
+
+        $this->gvv_model->update($this->kid, array($this->kid => $id, 'pdf_path' => $relative), $id);
+    }
+
+    /**
      * Droits pilote VD : pilote_vd ou droits complets.
      * Donne accès aux routes action/pre_flight/done/briefing et aux boutons correspondants.
      * Le rôle CA n'est pas inclus : il donne accès en lecture seule uniquement.
@@ -649,6 +777,17 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
+        // Bon généré et stocké à la vente/modification (nouveau moteur) : on sert ce
+        // fichier tel quel plutôt que de le régénérer, pour préserver son apparence
+        // d'origine (cf. décision "stabilité de l'apparence historique").
+        if (!empty($vd['pdf_path']) && file_exists(FCPATH . $vd['pdf_path'])) {
+            $this->output
+                ->set_content_type('application/pdf')
+                ->set_header('Content-Disposition: inline; filename="vol_decouverte_' . $id . '.pdf"')
+                ->set_output(file_get_contents(FCPATH . $vd['pdf_path']));
+            return;
+        }
+
         $data = [];
         $data['obfuscated_id'] = $obfuscated_id;
         $data['id'] = $id;
@@ -688,6 +827,19 @@ class Vols_decouverte extends Gvv_Controller {
             return;
         }
 
+        // Use date_validite if defined, otherwise use date_vente + 1 year
+        $validity = !empty($vd['date_validite'])
+            ? date_db2ht($vd['date_validite'])
+            : date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
+
+        // Bon généré et stocké à la vente/modification (nouveau moteur) : on envoie ce
+        // fichier tel quel plutôt que de le régénérer (même raison que print_vd()).
+        if (!empty($vd['pdf_path']) && file_exists(FCPATH . $vd['pdf_path'])) {
+            $pdf_content = file_get_contents(FCPATH . $vd['pdf_path']);
+            $this->send_email_with_pdf($vd, $pdf_content, $id, $validity);
+            return;
+        }
+
         $data = [];
         $data['obfuscated_id'] = $obfuscated_id;
         $data['id'] = $id;
@@ -695,13 +847,7 @@ class Vols_decouverte extends Gvv_Controller {
         $data['offer_a'] = $vd['beneficiaire'];
         $data['occasion'] = $vd['occasion'];
         $data['de_la_part'] = $vd['de_la_part'];
-
-        // Use date_validite if defined, otherwise use date_vente + 1 year
-        if (!empty($vd['date_validite'])) {
-            $data['validity'] = date_db2ht($vd['date_validite']);
-        } else {
-            $data['validity'] = date_db2ht(date('Y-m-d', strtotime($vd['date_vente'] . ' +1 year')));
-        }
+        $data['validity'] = $validity;
 
         $data[$vd['product']] = true;
 

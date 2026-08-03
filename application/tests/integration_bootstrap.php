@@ -261,6 +261,15 @@ class RealDatabase {
         return $this;
     }
 
+    public function select_max($field, $alias = '') {
+        if ($alias == '') {
+            $this->select_fields[] = "MAX(" . $field . ") as " . $field;
+        } else {
+            $this->select_fields[] = "MAX(" . $field . ") as " . $alias;
+        }
+        return $this;
+    }
+
     public function from($table) {
         // Handle table aliases like "user_roles_per_section urps"
         if (strpos($table, ' ') !== false) {
@@ -731,7 +740,14 @@ class RealQueryResult {
         if ($this->result === true || $this->result === false) {
             return null;
         }
-        
+
+        // Mirrors CI_DB_result::row(): idempotent, always the first row —
+        // calling row() more than once must not advance the cursor and
+        // return null on the second call (real mysqli_result::fetch_assoc()
+        // does advance, unlike CI's cached result set).
+        if (method_exists($this->result, 'data_seek')) {
+            $this->result->data_seek(0);
+        }
         $row = $this->result->fetch_assoc();
         return $row ? (object) $row : null;
     }

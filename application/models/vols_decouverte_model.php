@@ -204,8 +204,9 @@ class Vols_decouverte_model extends Common_Model {
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
 
-        parent::create($data);
+        $id = parent::create($data);
         $this->db->query("SELECT RELEASE_LOCK('vols_decouverte_id')");
+        return $id;
     }
 
     /**
