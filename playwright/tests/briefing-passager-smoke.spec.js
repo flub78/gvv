@@ -298,11 +298,24 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         const briefingLinkFinal = rowFinal.locator(`a[href*="briefing_passager/upload/${vdId}"]`);
         await expect(briefingLinkFinal).toHaveClass(/btn-outline-secondary/);
     } finally {
-        if (submissionId) {
-            await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [submissionId]);
-            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
-        }
+        // Look up any submission tied to this VD by subject_id rather than relying
+        // solely on the `submissionId` captured mid-test: if the test fails before
+        // that capture (e.g. the redirect assertion right after the form POST),
+        // submissionId stays null and a real form_submissions row would otherwise
+        // leak. Left uncleaned, it would attach its "has_briefing" state to the
+        // *next* run's VD, since vols_decouverte's auto-increment recomputes to the
+        // same next id once this row is deleted below and nothing else inserts in
+        // between on this idle test DB — a stale submission then makes a brand new
+        // VD look already-briefed (regression caught 2026-08-03).
         if (vdId) {
+            const [orphanRows] = await connection.execute(
+                "SELECT id FROM form_submissions WHERE form_id = 2 AND subject_type = 'vols_decouverte' AND subject_id = ?",
+                [vdId]
+            );
+            for (const row of orphanRows) {
+                await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [row.id]);
+                await connection.execute('DELETE FROM form_submissions WHERE id = ?', [row.id]);
+            }
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         await connection.end();
