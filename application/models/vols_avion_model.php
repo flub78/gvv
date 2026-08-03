@@ -412,11 +412,11 @@ class Vols_avion_model extends Common_Model {
             for ($i = 1; $i <= 12; $i++) {
                 if ($percent[$i]) {
                     $res[$i] = (int) ((float)$res[$i] * 1000 / $percent[$i]) / 10;
+                    if (abs($res[$i]) < 0.00001)
+                        $res[$i] = '';
                 } else {
                     $res[$i] = '';
                 }
-                if (abs($res[$i]) < 0.00001)
-                    $res[$i] = '';
             }
         }
 

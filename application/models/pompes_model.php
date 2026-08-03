@@ -115,7 +115,7 @@ class Pompes_model extends Common_Model {
      *	@param string  $data donnée à remplacer
      *	@return bool		Le résultat de la requête
      */
-    public function update($keyid, $data) {
+    public function update($keyid, $data, $keyvalue = '') {
     	$this->load->model('tarifs_model');
         // detruit les lignes d'achat correspondante
         $this->delete_facture($data[$keyid]);

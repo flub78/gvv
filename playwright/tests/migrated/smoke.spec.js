@@ -104,9 +104,22 @@ test.describe('GVV Smoke Tests (Migrated from Dusk)', () => {
     
     for (const pageInfo of corePages) {
       console.log(`Testing ${pageInfo.name} page...`);
-      
+
       await loginPage.goto(pageInfo.url);
-      
+
+      // The dev server's PHP-FPM pool (pm.max_children=5) is far smaller than
+      // the number of parallel Playwright workers hitting it during a full
+      // suite run, and sessions are DB-backed. Under that contention the
+      // session can occasionally be lost mid-crawl, bouncing us back to the
+      // login page. Retry once with a fresh login rather than failing on
+      // transient server load — a real app error on the target page still
+      // fails the checks below as before.
+      if (page.url().includes('/auth/login')) {
+        console.log(`  Session lost before ${pageInfo.name} page (server contention), re-logging in and retrying...`);
+        await loginPage.login(TEST_USER, TEST_PASSWORD);
+        await loginPage.goto(pageInfo.url);
+      }
+
       // Verify page loads successfully (no error pages)
       const hasError = await loginPage.hasText('Error') ||
                       await loginPage.hasText('Exception') ||

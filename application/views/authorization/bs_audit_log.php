@@ -177,7 +177,7 @@ $this->load->view('bs_banner');
                                         ?>
                                             <small>
                                                 <?php foreach ($details as $key => $value): ?>
-                                                    <strong><?= htmlspecialchars($key) ?>:</strong> <?= htmlspecialchars($value) ?><br>
+                                                    <strong><?= htmlspecialchars($key) ?>:</strong> <?= htmlspecialchars(is_scalar($value) ? $value : json_encode($value)) ?><br>
                                                 <?php endforeach; ?>
                                             </small>
                                         <?php else: ?>

@@ -50,7 +50,7 @@ $table = array ();
 $row = 0;
 $altitude = ($remorque_100eme) ? $this->lang->line("gvv_vols_planeur_label_centieme") : $this->lang->line("gvv_vols_planeur_label_alt");
 
-$vols = $planche ['flights'];
+$vols = (isset($planche['flights']) && is_array($planche['flights'])) ? $planche['flights'] : array();
 $launch = $this->lang->line("gvv_launch_type");
 $towing = $launch [3];
 $winch = $launch [1];

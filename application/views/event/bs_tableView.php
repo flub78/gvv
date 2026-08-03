@@ -62,7 +62,6 @@ $attrs = array(
 		'plane_flight',
 		'glider_flight'
 	),
-	'count' => "",
 	'first' => $premier,
 	'mode' => ($has_modification_rights) ? "rw" : "ro",
 	'param' => $mlogin,
