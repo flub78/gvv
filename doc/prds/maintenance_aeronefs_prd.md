@@ -15,7 +15,7 @@ Plusieurs éléments existent déjà et sont directement réutilisables :
 - **Réservations** : un statut "Maintenance" existe déjà pour bloquer manuellement un aéronef (`doc/prds/aircraft_booking_prd.md`).
 - **Alarmes génériques** (`doc/prds/gestion_alarmes_generiques_prd.md`) : la maintenance y est identifiée comme une des trois familles d'alarme à couvrir, mais ce PRD exclut explicitement la gestion du planning de maintenance lui-même — il ne fait qu'attendre des échéances à afficher.
 - **Module Formulaires** (`doc/prds/remplissage_formulaires_prd.md`, EF12) : établit déjà le principe "saisie en ligne OU téléversement d'un scan du document rempli à la main", que ce PRD reprend pour les comptes rendus de maintenance.
-- **Module Formation** (`doc/prds/archives/suivi_formation_prd.md`, tables `formation_programmes` / `formation_inscriptions` / `formation_seances`) : GVV sait déjà gérer un parcours structuré (programme → dossier ouvert pour un sujet → séances qui font progresser ce dossier). Ce PRD reprend délibérément cette architecture pour la maintenance plutôt que d'en inventer une nouvelle.
+- **Module Formation** (`doc/prds/archives/suivi_formation_prd.md`, tables `formation_programmes` / `formation_lecons` / `formation_sujets` / `formation_inscriptions` / `formation_seances`) : GVV sait déjà gérer un programme structuré à trois niveaux (programme → leçon → sujet), ouvert pour un pilote via une inscription, et fait progresser par des séances qui évaluent chaque sujet. Ce PRD reprend délibérément cette architecture pour la maintenance plutôt que d'en inventer une nouvelle.
 
 Ce PRD couvre la Mission C de `doc/offre_de_stage.md` ("Gestion de la maintenance"), en la précisant et en l'ancrant sur l'existant.
 
@@ -26,11 +26,15 @@ Le module Maintenance est conçu comme le miroir du module Formation. Un dévelo
 | Formation | Maintenance | Rôle |
 |---|---|---|
 | Pilote | **Entité maintenable** : un aéronef, ou un équipement rattaché à un aéronef | Le sujet suivi par un programme |
-| Programme de formation (`formation_programmes`) | **Programme d'entretien** (`maintenance_programmes`) | Contenu structuré (markdown) : liste de tâches/points de contrôle + règles de butée |
+| Programme de formation (`formation_programmes`) | **Programme d'entretien** (`maintenance_programmes`) | Racine du contenu structuré (markdown) + règles de butée |
+| Leçon (`formation_lecons`) | **Section** (`maintenance_sections`) | Regroupement de tâches au sein d'un programme |
+| Sujet (`formation_sujets`) | **Tâche** (`maintenance_taches`) | Point de contrôle élémentaire, rattaché à une section |
 | Inscription — "ouvrir une formation" (`formation_inscriptions`) | **Dossier d'entretien** — "ouvrir un dossier d'entretien" (`maintenance_dossiers`) | Association programme + entité maintenable, avec cycle de vie (ouvert/suspendu/clôturé/abandonné) |
 | Séance de formation (`formation_seances`) | **Opération de maintenance** (`maintenance_operations`) | Un événement daté qui fait progresser un dossier |
-| Sujet/leçon évalué lors d'une séance | **Tâche du programme réalisée lors d'une opération** | Case à cocher (fait / non fait / non applicable) + commentaire, comme l'évaluation d'un sujet |
+| Évaluation d'un sujet lors d'une séance (`formation_evaluations`) | **Réalisation d'une tâche lors d'une opération** (`maintenance_realisations`) | Case à cocher (fait / non fait / non applicable) + commentaire, comme l'évaluation d'un sujet |
 | Instructeur | Mécano | Rôle qui enregistre les séances/opérations |
+
+Le programme d'entretien est donc structuré sur trois niveaux, comme le programme de formation : **programme → section → tâche**.
 
 Cette analogie structure directement la Portée et les Exigences fonctionnelles ci-dessous.
 
@@ -62,10 +66,10 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 ### Inclus
 
 - **Entités maintenables** : chaque aéronef et chaque équipement qui lui est rattaché (moteur, hélice, parachute, radio, etc.) est une entité maintenable, au même titre qu'un pilote en formation. Un équipement peut être transféré d'un aéronef à un autre ; il conserve alors son historique et son potentiel.
-- **Programmes d'entretien** : documents structurés en markdown, comme les programmes de formation, définissant une liste de tâches/points de contrôle et des règles de butée (échéance calendaire, seuil d'heures de vol, ou les deux). Versionnés via le système documentaire existant.
+- **Programmes d'entretien** : documents structurés en markdown à trois niveaux (programme → section → tâche), comme les programmes de formation (programme → leçon → sujet), portant des règles de butée (échéance calendaire, seuil d'heures de vol, ou les deux). Versionnés via le système documentaire existant.
 - **Dossiers d'entretien** : association d'un programme d'entretien à une entité maintenable (aéronef ou équipement), avec un statut de cycle de vie (ouvert / suspendu / clôturé / abandonné) — l'équivalent exact d'une formation ouverte. Une entité maintenable peut avoir plusieurs dossiers ouverts simultanément (ex. programme cellule sur l'aéronef + programme repliage sur son parachute).
 - **Opérations de maintenance** : équivalent des séances de formation. Rattachées à un dossier d'entretien, enregistrées par un mécano, en saisie directe ou par dépôt d'un compte rendu scanné/photographié — un seul écran pour les deux modes.
-- **Réalisation des tâches du programme** : lors d'une opération, chaque tâche du programme peut être cochée (fait / non fait / non applicable) avec un commentaire par tâche, plus un commentaire global sur l'opération — comme l'évaluation des sujets lors d'une séance de formation.
+- **Réalisation des tâches du programme** : lors d'une opération, chaque tâche du programme peut être cochée (fait / non fait / non applicable), regroupée par section pour l'affichage, avec un commentaire par tâche, plus un commentaire global sur l'opération — comme l'évaluation des sujets lors d'une séance de formation.
 - **Bulletins de service** : documents typés, avec statut à traiter / traité / non applicable, validation par un mécano ou un admin.
 - Mise à jour du potentiel de l'entité concernée à partir d'une opération enregistrée, quel que soit le mode de saisie utilisé.
 - Historique des opérations par entité maintenable.
@@ -94,7 +98,7 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 ### Parcours 1 — Création d'un programme d'entretien (Admin/Mécano)
 
 1. L'admin ou le mécano crée un programme d'entretien (ex. "Visite 100 h cellule", "Repliage parachute 6 ans"), rédigé en markdown structuré comme un programme de formation.
-2. Il y définit la liste des tâches/points de contrôle (ex. "vidange", "remplacement des filtres", "contrôle de compression").
+2. Il y définit des sections (ex. "Moteur", "Cellule", "Équipements de sécurité"), puis pour chaque section la liste des tâches/points de contrôle (ex. "vidange", "remplacement des filtres", "contrôle de compression").
 3. Il définit la règle de butée du programme : échéance calendaire, seuil d'heures de vol, ou les deux.
 
 ### Parcours 2 — Ouverture d'un dossier d'entretien (Mécano/Admin)
@@ -107,7 +111,7 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 
 1. Le mécano ouvre "Nouvelle opération" sur un dossier d'entretien.
 2. Il renseigne la date et une remarque libre.
-3. Il coche les tâches du programme réalisées pendant l'opération (ex. "vidange", "remplacement des filtres"), avec un commentaire possible par tâche, comme l'évaluation des sujets d'une séance de formation.
+3. Il coche les tâches du programme réalisées pendant l'opération (ex. "vidange", "remplacement des filtres"), regroupées par section, avec un commentaire possible par tâche, comme l'évaluation des sujets d'une séance de formation.
 4. Il valide : l'opération est historisée et le potentiel de l'entité est mis à jour automatiquement.
 
 ### Parcours 4 — Opération de maintenance par dépôt d'un compte rendu papier (Mécano)
@@ -140,10 +144,11 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 
 ### EF2 — Programmes d'entretien
 
-1. Un programme d'entretien est un document structuré en markdown, sur le modèle des programmes de formation, listant les tâches/points de contrôle à réaliser.
-2. Un programme d'entretien porte une règle de butée : échéance calendaire, seuil d'heures de vol, ou les deux.
-3. Les programmes d'entretien sont gérés par le système documentaire existant (`document_types` / `archived_documents`), étendu avec une portée `machine`.
-4. Le versioning déjà présent dans le système documentaire s'applique : une nouvelle version d'un programme conserve l'historique des versions précédentes.
+1. Un programme d'entretien est un document structuré en markdown à trois niveaux (programme → section → tâche), exactement sur le modèle des programmes de formation (programme → leçon → sujet).
+2. Une section regroupe une ou plusieurs tâches/points de contrôle à réaliser ; un programme comporte une ou plusieurs sections.
+3. Un programme d'entretien porte une règle de butée : échéance calendaire, seuil d'heures de vol, ou les deux.
+4. Les programmes d'entretien sont gérés par le système documentaire existant (`document_types` / `archived_documents`), étendu avec une portée `machine`.
+5. Le versioning déjà présent dans le système documentaire s'applique : une nouvelle version d'un programme conserve l'historique des versions précédentes.
 
 ### EF3 — Dossiers d'entretien
 
@@ -156,7 +161,7 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 
 1. Une opération de maintenance est toujours rattachée à un dossier d'entretien — l'équivalent d'une séance de formation rattachée à une inscription.
 2. Deux modes d'enregistrement sont proposés sur un même écran, au choix de l'utilisateur, jamais combinés obligatoirement :
-   - **Saisie directe** : date, tâches du programme réalisées (cochées individuellement, avec commentaire possible par tâche), remarque globale.
+   - **Saisie directe** : date, tâches du programme réalisées (cochées individuellement, regroupées par section, avec commentaire possible par tâche), remarque globale.
    - **Dépôt d'un compte rendu** : mêmes champs minimaux que la saisie directe pour permettre le calcul du potentiel, plus le fichier scanné/photographié du compte rendu papier (bouton de téléchargement sur le même écran), réutilisant le pipeline d'upload du système documentaire (types de fichiers, taille maximale, compression déjà en place).
 3. Le mode de saisie choisi n'affecte pas les champs disponibles ensuite pour la consultation ou le calcul du potentiel : les deux modes produisent une opération exploitable de la même façon.
 4. Une opération une fois enregistrée reste consultable dans l'historique du dossier ; sa correction reste possible selon les droits (pas de suppression silencieuse — traçabilité). Si un compte rendu papier est joint, il doit rester consultable facilement depuis l'opération.
@@ -213,7 +218,7 @@ Cette analogie structure directement la Portée et les Exigences fonctionnelles 
 
 - Dépend de l'extension du système documentaire (`document_types.scope`) pour couvrir la portée `machine`, déjà anticipée par la colonne `machine_immat` existante dans `archived_documents`.
 - S'appuie sur le rôle `mecano` et les emplacements dashboard déjà réservés, sans les redéfinir.
-- S'appuie sur l'architecture du module Formation (`formation_programmes` / `formation_inscriptions` / `formation_seances`) comme référence de conception, sans dépendance fonctionnelle directe entre les deux modules.
+- S'appuie sur l'architecture du module Formation (`formation_programmes` / `formation_lecons` / `formation_sujets` / `formation_inscriptions` / `formation_seances`) comme référence de conception, sans dépendance fonctionnelle directe entre les deux modules.
 - La notification des échéances dépend de la livraison de `doc/prds/gestion_alarmes_generiques_prd.md` ; en attendant, la vue de synthèse (EF7) suffit à une consultation manuelle.
 - Cohérence à assurer avec le statut "Maintenance" des réservations (`doc/prds/aircraft_booking_prd.md`) : ce PRD ne le modifie pas mais s'appuie sur la même terminologie.
 
