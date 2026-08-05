@@ -1,9 +1,9 @@
 # Plan d'implémentation — Gestion de la Maintenance des Aéronefs
 
-**Date :** 4 août 2026
-**Statut :** Non démarré
+**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phase 0 terminée)
+**Statut :** Phase 0 terminée
 **PRD :** [doc/prds/maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
-**Design :** à créer en Phase 0 — `doc/design_notes/maintenance_aeronefs_design.md`
+**Design :** [doc/design_notes/maintenance_aeronefs_design.md](../design_notes/maintenance_aeronefs_design.md)
 
 ---
 
@@ -45,15 +45,16 @@ Le programme d'entretien est désormais structuré sur trois niveaux, exactement
 Points tranchés en amont de la conception détaillée :
 - **Parseur markdown : duplication, pas de mutualisation en phase 1.** `Maintenance_markdown_parser` est une classe dédiée, distincte de `Formation_markdown_parser`, malgré un format isomorphe (programme/section/tâche ↔ programme/leçon/sujet, H1/H2/H3). Objectif : ne pas toucher un module Formation stable et déjà en production tant que le module Maintenance n'a pas fait ses preuves. À réévaluer après l'implémentation (voir tableau des risques) : si aucun besoin de divergence entre les deux parseurs n'apparaît en pratique, extraire un composant commun.
 
-Points restant à trancher dans le design :
-- Emplacement du seuil global "échéance proche" (30 jours par défaut, PRD EF7) : table de configuration existante vs. nouvelle entrée.
-- Modélisation du statut des bulletins de service (à traiter/traité/non applicable) : table compagnon légère `maintenance_bulletin_statuts` plutôt que d'ajouter des colonnes propres à la maintenance dans `archived_documents` (qui reste générique).
-- Confirmation du schéma proposé ci-dessous (Phase 1).
+Points tranchés dans le design (5 août 2026) :
+- Seuil global "échéance proche" (30 jours par défaut, PRD EF7) : nouvelle entrée dans la table `configuration` existante (`configuration_model::get_param()`), pas de nouvelle table.
+- Statut des bulletins de service (à traiter/traité/non applicable) : table compagnon légère `maintenance_bulletin_statuts` (relation 1—0..1 avec `archived_documents`, qui reste générique).
+- Nommage du niveau intermédiaire du programme : `maintenance_programme_sections` (jamais `maintenance_sections` seul), pour éviter toute confusion avec la table `sections` (clubs/activités) — cf. PRD, table d'analogie mise à jour en conséquence.
+- Schéma ci-dessous (Phase 1) confirmé sans changement.
 
 **Validation :**
-- [ ] Design note relue et cohérente avec le PRD (aucune contradiction, aucune duplication du contenu du PRD)
-- [ ] Diagramme de classes PlantUML généré en image et lien inséré dans le design
-- [ ] Décisions ci-dessus tranchées et actées dans le design
+- [x] Design note relue et cohérente avec le PRD (aucune contradiction, aucune duplication du contenu du PRD)
+- [x] Diagramme de classes PlantUML généré en image et lien inséré dans le design
+- [x] Décisions ci-dessus tranchées et actées dans le design
 
 ---
 
@@ -535,7 +536,7 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 
 | Phase | Description | Statut |
 |---|---|---|
-| 0 | Conception (design + schéma) | ⬜ Non démarré |
+| 0 | Conception (design + schéma) | ✅ Terminé |
 | 1 | Fondations base de données (migrations 155–160) | ⬜ Non démarré |
 | 2 | Modèles | ⬜ Non démarré |
 | 3 | Calcul du potentiel (`Maintenance_potentiel`) | ⬜ Non démarré |

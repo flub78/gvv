@@ -1,6 +1,6 @@
 # PRD — Gestion de la Maintenance des Aéronefs
 
-Date : 3 août 2026 — mis à jour le 4 août 2026 (alignement architectural sur le module Formation)
+Date : 3 août 2026 — mis à jour le 4 août 2026 (alignement architectural sur le module Formation), 5 août 2026 (nommage `maintenance_programme_sections`, cf. design Phase 0)
 
 ## Contexte
 
@@ -27,7 +27,7 @@ Le module Maintenance est conçu comme le miroir du module Formation. Un dévelo
 |---|---|---|
 | Pilote | **Entité maintenable** : un aéronef, ou un équipement rattaché à un aéronef | Le sujet suivi par un programme |
 | Programme de formation (`formation_programmes`) | **Programme d'entretien** (`maintenance_programmes`) | Racine du contenu structuré (markdown) + règles de butée |
-| Leçon (`formation_lecons`) | **Section** (`maintenance_sections`) | Regroupement de tâches au sein d'un programme |
+| Leçon (`formation_lecons`) | **Section** (`maintenance_programme_sections`) | Regroupement de tâches au sein d'un programme |
 | Sujet (`formation_sujets`) | **Tâche** (`maintenance_taches`) | Point de contrôle élémentaire, rattaché à une section |
 | Inscription — "ouvrir une formation" (`formation_inscriptions`) | **Dossier d'entretien** — "ouvrir un dossier d'entretien" (`maintenance_dossiers`) | Association programme + entité maintenable, avec cycle de vie (ouvert/suspendu/clôturé/abandonné) |
 | Séance de formation (`formation_seances`) | **Opération de maintenance** (`maintenance_operations`) | Un événement daté qui fait progresser un dossier |

@@ -1,0 +1,154 @@
+@startuml maintenance_aeronefs_classes
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+skinparam class {
+  BackgroundColor #f5f5f5
+  BorderColor #888888
+  ArrowColor #555555
+}
+
+title Schéma des entités — Maintenance des Aéronefs (miroir du module Formation)
+
+package "Programme d'entretien" #lightblue {
+  class maintenance_programmes {
+    id
+    code
+    titre
+    section_id : null = toutes sections
+    document_id : FK archived_documents (source markdown)
+    regle_butee_date
+    regle_butee_heures
+    seuil_heures
+    periodicite_mois
+    statut : actif | inactif
+  }
+
+  class maintenance_programme_sections {
+    id
+    programme_id : FK
+    ordre
+    titre
+  }
+
+  class maintenance_taches {
+    id
+    programme_section_id : FK
+    ordre
+    titre
+    description
+  }
+
+  maintenance_programmes "1" *-- "0..*" maintenance_programme_sections
+  maintenance_programme_sections "1" *-- "0..*" maintenance_taches
+}
+
+package "Entités maintenables" #lightyellow {
+  class machinesa <<existant>> {
+    macimmat
+    ...
+  }
+
+  class maintenance_equipements {
+    id
+    aeronef_id : FK machinesa.macimmat
+    nom
+    description
+    actif
+  }
+
+  machinesa "1" o-- "0..*" maintenance_equipements : rattaché à
+}
+
+package "Suivi" #lightgreen {
+  class maintenance_dossiers {
+    id
+    entite_type : aeronef | equipement
+    entite_id : macimmat | maintenance_equipements.id
+    programme_id : FK
+    mecano_referent_id : FK membres
+    statut : ouvert | suspendu | cloture | abandonne
+    date_ouverture
+    date_suspension
+    date_cloture
+    echeance_courante : calculée
+    heures_restantes_courant : calculée
+    commentaire
+  }
+
+  class maintenance_operations {
+    id
+    dossier_id : FK
+    date_operation
+    mecano_id : FK membres
+    mode_saisie : directe | compte_rendu
+    document_id : FK archived_documents (si compte_rendu)
+    horametre_releve
+    nouvelle_echeance
+    commentaire
+  }
+
+  class maintenance_realisations {
+    id
+    operation_id : FK
+    tache_id : FK
+    statut : fait | non_fait | non_applicable
+    commentaire
+  }
+
+  maintenance_dossiers "1" *-- "0..*" maintenance_operations
+  maintenance_operations "1" *-- "0..*" maintenance_realisations
+  maintenance_realisations --> maintenance_taches : évalue
+  maintenance_dossiers --> maintenance_programmes : suit
+}
+
+package "Bulletins de service" #lightpink {
+  class archived_documents <<existant>> {
+    id
+    document_type_id
+    machine_immat
+    ...
+  }
+
+  class maintenance_bulletin_statuts {
+    id
+    archived_document_id : FK UNIQUE
+    statut : a_traiter | traite | non_applicable
+  }
+
+  archived_documents "1" -- "0..1" maintenance_bulletin_statuts
+}
+
+package "Calcul" #lightgray {
+  class Maintenance_potentiel <<library>> {
+    calculer_etat(dossier) : etat
+    appliquer_operation(operation_id)
+    etat_pire_cas(aeronef_id) : etat
+    mise_a_jour_manuelle(dossier_id, data, user)
+    lister_echeances_actives(section_id) : []
+  }
+
+  Maintenance_potentiel ..> maintenance_dossiers : lit / met à jour
+  Maintenance_potentiel ..> maintenance_operations : lit
+}
+
+class Maintenance_markdown_parser <<library>> {
+  parse(markdown_content) : array
+  validate(parsed_data)
+}
+
+Maintenance_markdown_parser ..> maintenance_programme_sections : produit
+Maintenance_markdown_parser ..> maintenance_taches : produit
+
+maintenance_programmes --> archived_documents : document_id
+maintenance_operations --> archived_documents : document_id (compte rendu)
+maintenance_dossiers ..> maintenance_equipements : entite_id (si equipement)
+maintenance_dossiers ..> machinesa : entite_id (si aeronef)
+
+note bottom of maintenance_programme_sections
+  Nommage volontairement distinct de la table
+  ""sections"" existante (clubs/activités planeur/
+  avion/ULM) — aucun rapport entre les deux notions.
+end note
+
+@enduml
