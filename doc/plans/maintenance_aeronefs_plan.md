@@ -1,7 +1,7 @@
 # Plan d'implémentation — Gestion de la Maintenance des Aéronefs
 
-**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phase 0 et Phase 1 terminées)
-**Statut :** Phase 1 terminée
+**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phases 0 à 5 terminées)
+**Statut :** Phase 5 terminée (7/7 étapes) — Phase 6 (rôles et accès) à démarrer
 **PRD :** [doc/prds/maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
 **Design :** [doc/design_notes/maintenance_aeronefs_design.md](../design_notes/maintenance_aeronefs_design.md)
 
@@ -126,6 +126,7 @@ Colonnes :
 - `programme_id` INT NOT NULL — FK vers `maintenance_programmes.id`
 - `ordre` INT NOT NULL
 - `titre` VARCHAR(255) NOT NULL
+- `actif` TINYINT(1) NOT NULL DEFAULT 1 — **ajouté par la migration 161 (Phase 4)**, absent de ce schéma initial ; nécessaire à la désactivation logique lors du re-parsing d'une nouvelle version (Étape 4.2)
 - audit standard
 
 `maintenance_taches` (miroir de `formation_sujets`) :
@@ -134,6 +135,7 @@ Colonnes :
 - `ordre` INT NOT NULL
 - `titre` VARCHAR(255) NOT NULL
 - `description` TEXT NULL
+- `actif` TINYINT(1) NOT NULL DEFAULT 1 — **ajouté par la migration 161 (Phase 4)**, même raison
 - audit standard
 
 **Validation :**
@@ -225,6 +227,10 @@ Colonnes :
 
 ## Phase 2 — Modèles
 
+**Statut : Terminée (5 août 2026).** Les 8 modèles sont créés et testés (`application/tests/mysql/MaintenanceModelsTest.php`, 6 tests / 71 assertions). Suite complète : 1721 tests, 0 échec, 61 skips préexistants.
+
+**Note d'implémentation :** le harnais de test (`application/tests/integration_bootstrap.php`, classe `RealDatabase`) ne portait pas `insert_batch()`, utilisée par `maintenance_realisation_model::save_batch()` (comme par les modèles Formation équivalents). Méthode ajoutée au double de test — infrastructure de test uniquement, aucun changement côté application.
+
 ### Étape 2.1 — Modèles CRUD de base
 
 **Objectif :** Un modèle par table, sur le pattern `Common_Model` déjà utilisé par les modèles Formation.
@@ -242,9 +248,9 @@ Colonnes :
 Méthodes minimales par modèle (calquées sur `Formation_*_model`) : `get($id)`, `get_by_section()`/`get_visibles()` où pertinent, `get_by_parent(...)` (ex. `get_by_aeronef`, `get_by_dossier`, `get_by_programme`), `get_full($id)` avec jointures utiles à l'affichage.
 
 **Validation :**
-- [ ] Fichiers créés, syntaxe valide
-- [ ] Chaque modèle testé par au moins un test d'intégration CRUD
-- [ ] `get_by_section()` de `maintenance_programme_model` reproduit la logique de `Formation_programme_model::get_by_section()` (section + programmes globaux)
+- [x] Fichiers créés, syntaxe valide
+- [x] Chaque modèle testé par au moins un test d'intégration CRUD
+- [x] `get_by_section()` de `maintenance_programme_model` reproduit la logique de `Formation_programme_model::get_by_section()` (section + programmes globaux)
 
 ---
 
@@ -255,13 +261,21 @@ Méthodes minimales par modèle (calquées sur `Formation_*_model`) : `get($id)`
 Dans `maintenance_equipement_model` : méthode `transferer($equipement_id, $nouvel_aeronef_id)` — met à jour uniquement `aeronef_id`, ne touche à aucune ligne de `maintenance_dossiers`/`maintenance_operations` (celles-ci référencent l'équipement par `entite_id`, indépendant de l'aéronef courant).
 
 **Validation :**
-- [ ] Après transfert, l'historique des dossiers et opérations de l'équipement reste identique
-- [ ] La fiche du nouvel aéronef affiche l'équipement transféré avec son potentiel inchangé
-- [ ] La fiche de l'ancien aéronef ne l'affiche plus
+- [x] Après transfert, l'historique des dossiers et opérations de l'équipement reste identique (vérifié au niveau modèle : `entite_id` inchangé, `get_by_aeronef()` reflète le nouvel aéronef)
+- [ ] La fiche du nouvel aéronef affiche l'équipement transféré avec son potentiel inchangé (vue non encore construite — Phase 5)
+- [ ] La fiche de l'ancien aéronef ne l'affiche plus (vue non encore construite — Phase 5)
 
 ---
 
 ## Phase 3 — Calcul du potentiel
+
+**Statut : Terminée (5 août 2026).** `Maintenance_potentiel` créée et testée : logique pure (`calculer_etat`) en test unitaire (`application/tests/unit/libraries/MaintenancePotentielTest.php`, 11 tests), méthodes touchant la base (`appliquer_operation`, `etat_pire_cas`, `mise_a_jour_manuelle`) en test MySQL (`application/tests/mysql/MaintenancePotentielTest.php`, 9 tests). Suite complète : 1741 tests, 0 échec, 61 skips préexistants.
+
+**Décisions d'implémentation (non tranchées explicitement par le PRD, actées ici) :**
+- `heures_restantes_courant` est un instantané figé à chaque opération (`= seuil_heures` du programme dès qu'un `horametre_releve` est saisi), pas une valeur qui décompte en continu au fil des vols entre deux opérations — pas de lecture live de l'horamètre courant de l'aéronef en phase 1, cohérent avec la NFR « rester simple » et l'absence de toute automatisation live dans le PRD.
+- Pas de notion d'« échéance proche » côté heures (seul le seuil calendaire de 30 jours est défini par le PRD, EF7.2) : la dimension horaire n'a que deux sous-états, `a_jour` (≥ 0) et `depasse` (< 0).
+- Quand un dossier suit à la fois une règle calendaire et une règle horaire, ou quand plusieurs dossiers/entités sont combinés (`etat_pire_cas`), l'état retenu est le pire des sous-états (`depasse` > `echeance_proche` > `a_jour`).
+- Un dossier sans aucune donnée de potentiel encore renseignée (avant la première opération) est considéré `a_jour` par défaut.
 
 ### Étape 3.1 — Bibliothèque `Maintenance_potentiel`
 
@@ -276,15 +290,27 @@ Méthodes :
 - `mise_a_jour_manuelle($dossier_id, $data, $user)` — corrige le potentiel hors opération, journalise dans les logs avec le marqueur `MAINTENANCE`
 
 **Validation :**
-- [ ] Fichier créé, syntaxe valide
-- [ ] `appliquer_operation()` met à jour `echeance_courante` et/ou `heures_restantes_courant` correctement pour les 3 combinaisons de règle de butée (date seule, heures seules, les deux)
-- [ ] `calculer_etat()` retourne `echeance_proche` uniquement si l'échéance est à moins de 30 jours (valeur par défaut, configurable)
-- [ ] `mise_a_jour_manuelle()` écrit une ligne de log contenant le marqueur `MAINTENANCE`
-- [ ] Tests unitaires couvrant les cas limites (échéance dépassée de 1 jour, exactement au seuil, potentiel négatif)
+- [x] Fichier créé, syntaxe valide
+- [x] `appliquer_operation()` met à jour `echeance_courante` et/ou `heures_restantes_courant` correctement pour les 3 combinaisons de règle de butée (date seule, heures seules, les deux)
+- [x] `calculer_etat()` retourne `echeance_proche` uniquement si l'échéance est à moins de 30 jours (valeur par défaut, configurable)
+- [x] `mise_a_jour_manuelle()` écrit une ligne de log contenant le marqueur `MAINTENANCE`
+- [x] Tests unitaires couvrant les cas limites (échéance dépassée de 1 jour, exactement au seuil, potentiel négatif)
 
 ---
 
 ## Phase 4 — Programmes d'entretien : parsing et versioning
+
+**Statut : Terminée (5 août 2026)** pour le mécanisme de parsing/versioning lui-même ; l'écran d'upload proprement dit reste à construire en Phase 5 (aucun contrôleur n'existe encore).
+
+**Schéma corrigé au passage (migration 161) :** le schéma de la Phase 1 ne portait aucune colonne permettant la désactivation logique requise par l'Étape 4.2 (`maintenance_programme_sections`/`maintenance_taches` n'avaient pas de colonne `actif`). Ajoutée par la migration `161_maintenance_actif_column.php`.
+
+**Fichiers :**
+- `application/libraries/Maintenance_markdown_parser.php`
+- `doc/test-data/maintenance_visite_100h.md`
+- `application/migrations/161_maintenance_actif_column.php`, `162_maintenance_document_types.php`
+- `Maintenance_programme_model::synchroniser_structure($programme_id, $markdown_content, $document_id = null)` — orchestration parse + validate + réconciliation (nouveau, cf. Étape 4.2 ci-dessous)
+
+**Tests :** `application/tests/unit/libraries/MaintenanceMarkdownParserTest.php` (15 tests, parsing pur), `application/tests/mysql/MaintenanceProgrammeSyncTest.php` (5 tests, réconciliation avec vraies données), `application/tests/mysql/MaintenanceMigrationsTest.php` étendu (161/162). Suite complète : 1765 tests, 0 échec, 61 skips préexistants.
 
 ### Étape 4.1 — Parsing du markdown structuré
 
@@ -292,12 +318,12 @@ Méthodes :
 
 **Fichier :** `application/libraries/Maintenance_markdown_parser.php` — classe dédiée, indépendante de `Formation_markdown_parser`.
 
-Format attendu, désormais isomorphe au format Formation : H1 = titre du programme, H2 = section (`maintenance_programme_sections`), H3 = tâche (`maintenance_taches`), contenu = description de la tâche.
+Format attendu, désormais isomorphe au format Formation : H1 = titre du programme, H2 = section (`maintenance_programme_sections`), H3 = tâche (`maintenance_taches`), contenu = description de la tâche. Plus simple que `Formation_markdown_parser` : ni `maintenance_programme_sections` ni `maintenance_taches` ne portent de colonne `numero` (seulement `ordre`/`titre`), donc aucun préfixe "Leçon X :"/"Sujet X.Y :" à reconnaître, et pas de split description/objectifs (une seule colonne `description`). Le texte placé directement sous un H2, avant la première H3, est ignoré silencieusement (aucune colonne pour le conserver), comme `Formation_markdown_parser` ignore déjà le texte placé avant la première leçon.
 
 **Validation :**
-- [ ] Parseur créé, syntaxe valide
-- [ ] Import d'un fichier markdown de test produit les lignes `maintenance_programme_sections` et `maintenance_taches` attendues, dans l'ordre et avec le bon rattachement section → tâche
-- [ ] Test avec un fichier markdown de test au format documenté (`doc/test-data/maintenance_visite_100h.md` ou équivalent)
+- [x] Parseur créé, syntaxe valide
+- [x] Import d'un fichier markdown de test produit les lignes `maintenance_programme_sections` et `maintenance_taches` attendues, dans l'ordre et avec le bon rattachement section → tâche
+- [x] Test avec un fichier markdown de test au format documenté (`doc/test-data/maintenance_visite_100h.md`)
 
 ---
 
@@ -305,111 +331,194 @@ Format attendu, désormais isomorphe au format Formation : H1 = titre du program
 
 **Objectif :** Réutiliser `archived_documents`/`document_types` pour stocker et versionner le fichier source d'un programme d'entretien et les bulletins de service (PRD EF2, EF6).
 
-- Création des `document_types` nécessaires : programme d'entretien (scope `machine`, `allow_versioning = 1`), bulletin de service (scope `machine`).
-- À l'upload d'une nouvelle version d'un programme, ré-exécution du parsing (Étape 4.1) et mise à jour de `maintenance_programme_sections`/`maintenance_taches` (les sections/tâches obsolètes ne sont pas supprimées si déjà référencées par une `maintenance_realisation` existante — désactivation logique).
+- Création des `document_types` nécessaires : programme d'entretien (`maintenance_programme`, scope `machine`), bulletin de service (`maintenance_bulletin`, scope `machine`) — migration `162_maintenance_document_types.php`. **Correction :** le plan mentionnait `allow_versioning = 1`, mais cette colonne a été supprimée de `document_types` par la migration 075 (le versioning est désormais toujours explicite via l'action "Nouvelle version", jamais piloté par un indicateur sur le type) ; aucune valeur à fixer pour ce comportement.
+- À l'upload d'une nouvelle version d'un programme, ré-exécution du parsing (Étape 4.1) et mise à jour de `maintenance_programme_sections`/`maintenance_taches`, via `Maintenance_programme_model::synchroniser_structure()` : réconciliation par titre (une section/tâche retrouvée à l'identique réutilise sa ligne existante, réactivée si besoin ; sinon nouvelle ligne créée). Une section/tâche absente de la nouvelle version est supprimée si elle n'est référencée par aucune `maintenance_realisation`, sinon désactivée (`actif = 0`, migration 161) — son historique reste consultable.
+- L'écran d'upload lui-même (contrôleur documentaire, déclenchement de `synchroniser_structure()` au moment de l'upload) est du ressort de la Phase 5 (Étape 5.2) ; ce qui est livré ici est le mécanisme complet et testé, prêt à être appelé par ce contrôleur.
 
 **Validation :**
-- [ ] Nouveau programme créé via l'écran document existant, avec scope `machine`
-- [ ] Nouvelle version d'un programme déclenche le re-parsing et met à jour les sections/tâches actives
-- [ ] Une tâche déjà utilisée dans une réalisation reste consultable après une nouvelle version qui la supprime
+- [ ] Nouveau programme créé via l'écran document existant, avec scope `machine` (dépend du contrôleur — Phase 5)
+- [x] Nouvelle version d'un programme déclenche le re-parsing et met à jour les sections/tâches actives (validé au niveau modèle, `synchroniser_structure()`)
+- [x] Une tâche déjà utilisée dans une réalisation reste consultable après une nouvelle version qui la supprime
 
 ---
 
 ## Phase 5 — Contrôleurs et vues
 
+**Approche :** contrairement aux Phases 1 à 4 (backend), cette phase est traitée étape par étape avec vérification navigateur réelle à chaque livraison (pas seulement PHPUnit), conformément à la politique du projet sur les changements d'UI.
+
+**Décision d'implémentation transverse (5.1) :** les contrôleurs miroir de Formation (`Formation_types_seances` et consorts) n'utilisent **pas** le `Gvv_Controller`/`Gvvmetadata->table()` générique historique (utilisé par `avion.php`, `categorie.php`, `terrains.php`) mais un style direct — `MY_Controller` + `form_validation` manuel + vues Bootstrap écrites à la main (`index.php`/`form.php`, pas de préfixe `bs_`, pas de `load_last_view()`). Puisque le PRD/plan est explicite sur le fait que le module Maintenance mirroir Formation, **tous les contrôleurs de la Phase 5 suivent ce même style Formation**, pas le style générique. Un développeur qui connaît un contrôleur Formation reconnaît directement la structure d'un contrôleur Maintenance.
+
+**Correction de trajectoire sur le tableau de bord (après 5.1) :** une carte "Équipements" a été ajoutée au tableau de bord Maintenance existant (`bs_sub_dashboard.php`) lors de l'Étape 5.1. À partir de l'Étape 5.2, **aucune nouvelle carte n'est ajoutée** à ce tableau de bord générique pour les étapes suivantes (programmes, dossiers, opérations, bulletins, synthèse) : l'Étape 5.7 prévoit explicitement un tableau de bord Maintenance dédié qui regroupe tout, et multiplier les cartes une par une créerait du travail redondant que 5.7 devrait ensuite défaire. La navigation vers les nouveaux contrôleurs pendant les Étapes 5.2 à 5.6 se fait par URL directe (vérifications manuelle/Playwright), en attendant la consolidation en 5.7.
+
 ### Étape 5.1 — Équipements
 
-**Fichier :** `application/controllers/maintenance_equipements.php` + vues `application/views/maintenance_equipements/`
+**Statut : Terminée (5 août 2026).**
 
-CRUD équipement + action de transfert (Étape 2.2).
+**Fichier :** `application/controllers/maintenance_equipements.php` + vues `application/views/maintenance_equipements/` (`index.php`, `form.php`, `transfer.php`)
+
+CRUD équipement + action de transfert (Étape 2.2). Suppression toujours logique (`actif=0`/`reactivate`), jamais de suppression définitive (PRD EF1.3) — pas d'action `delete`.
+
+**Ajouts complémentaires :**
+- `maintenance_equipement_model` : `get_all($actif_only)` (jointure `machinesa` pour affichage), `get_aeronef_selector()`, `desactiver()`/`reactiver()`.
+- Accès réservé au rôle `mecano` (admin bypass automatique via `user_has_role()`), `show_error(..., 403)` sinon — jamais silencieux.
+- Fichiers de langue `maintenance_lang.php` (FR/EN/NL) créés avec les clés de cette étape uniquement (la Phase 8 complètera pour les étapes suivantes — `LanguageCompletenessTest` exige les 3 fichiers synchronisés à tout moment, donc chaque étape doit livrer ses propres traductions plutôt que d'attendre la Phase 8).
+- Une carte "Équipements" fonctionnelle ajoutée au tableau de bord Maintenance (`bs_sub_dashboard.php`), sans toucher aux 2 cartes placeholder existantes (réservées à la Phase 5.7).
+
+**Tests :** `playwright/tests/maintenance-equipements-smoke.spec.js` (2 tests : parcours mécano complet création→édition→transfert→désactivation avec vérifications réelles en base ; refus d'accès pour un non-mécano), exécuté avec succès contre gvv.net. Suite PHPUnit complète : 1765 tests, 0 échec. Ce fichier est conservé pour la régression ; la Phase 10 l'étendra plutôt que de le dupliquer.
 
 **Validation :**
-- [ ] CRUD complet accessible et fonctionnel
-- [ ] Formulaire de transfert avec sélecteur d'aéronef cible, confirmation explicite
+- [x] CRUD complet accessible et fonctionnel
+- [x] Formulaire de transfert avec sélecteur d'aéronef cible, confirmation explicite
 
 ---
 
 ### Étape 5.2 — Programmes d'entretien
 
-**Fichier :** `application/controllers/maintenance_programmes.php` + vues `application/views/maintenance_programmes/`
+**Statut : Terminée (5 août 2026).**
 
-Liste, création/édition (délègue l'upload au contrôleur documentaire existant), affichage des sections et de leurs tâches parsées.
+**Fichier :** `application/controllers/maintenance_programmes.php` + vues `application/views/maintenance_programmes/` (`index.php`, `form.php`, `view.php`, `upload.php`)
+
+Liste (métadonnées + compteur sections/tâches), création/édition des métadonnées (code, titre, section, règle de butée), détail (structure sections/tâches dans l'ordre + document lié), dépôt d'une version markdown.
+
+**Précision sur « délègue l'upload au contrôleur documentaire existant »** (reformulée après investigation du contrôleur `archived_documents.php`, 1485 lignes) : la réutilisation se fait au niveau **modèle**, pas en redirigeant vers l'écran générique de `archived_documents` (dont l'UI — sélecteurs pilote/section/type multiples — ne convient pas à ce cas d'usage precis). Le contrôleur `maintenance_programmes` appelle directement `Archived_documents_model::create_document()` (méthode déjà réutilisable telle quelle, gère le chaînage `previous_version_id`/`is_current_version`) avec `document_type_id` résolu via `document_types_model->get_by_code('maintenance_programme')` (migration 162). Le stockage physique suit exactement la même convention que le contrôleur existant pour tout type hors `pilot`/`section` (`./uploads/documents/club/<code>/`), vérifiée en lisant `_get_storage_path()`. Le parsing (`Maintenance_markdown_parser`) et la validation ont lieu **avant** tout upload physique : un fichier invalide n'est jamais archivé (vérifié par test).
+
+**Bug trouvé et corrigé pendant la vérification navigateur :** la vue `upload.php` affichait une variable locale `$error` (toujours vide) au lieu de lire `session->flashdata('error')` — l'échec de dépôt d'un markdown invalide ne remontait aucun message. Corrigé pour lire la flashdata, cohérent avec le reste du module.
+
+**Leçon pour le nettoyage des données de test :** `create_document()` ne supprime jamais l'ancienne version lors d'un nouveau dépôt (elle passe seulement `is_current_version=0`, chaînée via `previous_version_id`) — nettoyer uniquement le document courant (`maintenance_programmes.document_id`) laisse les anciennes versions orphelines en base (bloque ensuite un `DELETE` sur `document_types` par contrainte FK). Toujours retrouver toute la chaîne de versions avant de nettoyer des documents de test.
+
+**Tests :** `playwright/tests/maintenance-programmes-smoke.spec.js` (2 tests : création → dépôt → structure parsée affichée → nouvelle version → désactivation/réactivation ; rejet d'un markdown invalide sans archivage). Suite PHPUnit complète : 1765 tests, 0 échec.
 
 **Validation :**
-- [ ] Liste filtrée par section club/activité (cohérent avec `formation_programmes`)
-- [ ] Détail d'un programme affiche ses sections et leurs tâches, dans l'ordre
+- [x] Liste filtrée par section club/activité (cohérent avec `formation_programmes`)
+- [x] Détail d'un programme affiche ses sections et leurs tâches, dans l'ordre
 
 ---
 
 ### Étape 5.3 — Dossiers d'entretien
 
-**Fichier :** `application/controllers/maintenance_dossiers.php` + vues `application/views/maintenance_dossiers/`
+**Statut : Terminée (5 août 2026).**
 
-Ouverture (sélection entité + programme), suspension, clôture, abandon — mêmes transitions d'état que `formation_inscriptions`.
+**Fichier :** `application/controllers/maintenance_dossiers.php` + vues `application/views/maintenance_dossiers/` (`index.php`, `ouvrir.php`, `view.php`)
+
+Ouverture (sélection entité + programme), suspension, réactivation, clôture, abandon — mêmes transitions d'état que `formation_inscriptions`.
+
+**Précision sur « depuis la fiche d'une entité »** : ce module ne modifie pas les fiches aéronef/planeur existantes (`avion.php`/`planeur.php`, hors périmètre). L'historique par entité est exposé via `maintenance_dossiers?entite_type=...&entite_id=...` (le même contrôleur/vue `index`, filtré) — la Phase 5.7 (synthèse) et une éventuelle intégration future dans les fiches existantes pourront pointer vers cette URL.
+
+**Ajouts complémentaires :**
+- `maintenance_dossier_model` : `get_all($section_id)` (liste admin tout statut, scopée par section via le programme lié), `entite_label($entite_type, $entite_id)` (libellé lisible, résolu applicativement puisque `entite_type`/`entite_id` est une clé polymorphe sans FK).
+- `maintenance_equipement_model::get_all_selector()` : sélecteur tous équipements actifs (toutes machines), nécessaire pour choisir l'entité à l'ouverture d'un dossier de type équipement.
+- La liste des programmes proposés à l'ouverture réutilise `get_visibles()` (Étape 5.2), donc filtrée par section comme le reste du module.
+
+**Tests :** `playwright/tests/maintenance-dossiers-smoke.spec.js` (1 test : ouverture sur un aéronef → suspendre → réactiver → clôturer → historique consultable via le filtre entité). Suite PHPUnit complète : 1765 tests, 0 échec.
 
 **Validation :**
-- [ ] Ouverture d'un dossier depuis la fiche d'une entité ou depuis un programme
-- [ ] Changements de statut (suspendre/clôturer/abandonner) journalisés avec date
-- [ ] Historique des dossiers (y compris non ouverts) consultable depuis l'entité
+- [x] Ouverture d'un dossier depuis la fiche d'une entité ou depuis un programme
+- [x] Changements de statut (suspendre/clôturer/abandonner) journalisés avec date
+- [x] Historique des dossiers (y compris non ouverts) consultable depuis l'entité
 
 ---
 
 ### Étape 5.4 — Opérations de maintenance
 
+**Statut : Terminée (5 août 2026).**
+
 **Fichier :** `application/controllers/maintenance_operations.php` + vue unique `application/views/maintenance_operations/form.php` (PRD EF4 : un seul écran pour les deux modes)
 
-- Bloc "saisie directe" : cases à cocher par tâche + commentaire par tâche + commentaire global.
-- Bouton de téléchargement du compte rendu papier sur le même écran, réutilisant le composant d'upload documentaire existant.
-- À la validation : appel à `Maintenance_potentiel::appliquer_operation()`.
+- Bloc "saisie directe" : radio fait/non fait/non applicable par tâche (regroupées par section, dans l'ordre) + commentaire par tâche + commentaire global.
+- Champ de dépôt du compte rendu papier sur le même écran, réutilisant le système documentaire existant (mécanisme identique à l'Étape 5.2). Le mode (`directe`/`compte_rendu`) est déterminé par la présence d'un fichier déposé — jamais un choix exclusif, conformément à EF4.2 ("jamais combinés obligatoirement") : un mécano peut cocher des tâches ET joindre un compte rendu sur la même opération.
+- À la validation : appel à `Maintenance_potentiel::appliquer_operation()`. Vérifié en base (pas seulement à l'écran) : `heures_restantes_courant` se met bien à jour à la valeur du `seuil_heures` du programme.
+
+**Migration manquante trouvée et corrigée :** aucun `document_type` n'existait pour le compte rendu d'opération lui-même (la migration 162, Phase 4, n'avait anticipé que le programme d'entretien et le bulletin de service). Ajouté par `163_maintenance_compte_rendu_document_type.php` (code `maintenance_compte_rendu`, scope `machine`).
+
+**Correction d'une opération existante (EF4.4)** : `edit()`/`update()`, jamais de suppression — les réalisations sont remplacées (`delete_by_operation` + `save_batch`) et le potentiel systématiquement recalculé après une correction, y compris si seul le compte rendu ou le commentaire change.
+
+**Tests :** `playwright/tests/maintenance-operations-smoke.spec.js` (1 test : opération en saisie directe → potentiel vérifié en base après coup → correction de l'opération). Suite PHPUnit complète : 1767 tests, 0 échec.
 
 **Validation :**
-- [ ] Une opération en saisie directe mémorise l'état de chaque tâche cochée
-- [ ] Une opération avec compte rendu déposé affiche une miniature/lien vers le document depuis l'historique
-- [ ] Dans les deux modes, le potentiel du dossier est mis à jour après validation
-- [ ] Correction d'une opération existante possible selon droits, sans suppression silencieuse
+- [x] Une opération en saisie directe mémorise l'état de chaque tâche cochée
+- [x] Une opération avec compte rendu déposé affiche une miniature/lien vers le document depuis l'historique
+- [x] Dans les deux modes, le potentiel du dossier est mis à jour après validation
+- [x] Correction d'une opération existante possible selon droits, sans suppression silencieuse
 
 ---
 
 ### Étape 5.5 — Bulletins de service
 
-**Fichier :** `application/controllers/maintenance_bulletins.php` + vues `application/views/maintenance_bulletins/`
+**Statut : Terminée (5 août 2026).**
 
-Liste par entité maintenable, changement de statut (mecano/admin uniquement).
+**Fichier :** `application/controllers/maintenance_bulletins.php` + vues `application/views/maintenance_bulletins/` (`index.php`, `upload.php`)
+
+Liste par aéronef (sélecteur), dépôt (réutilise le système documentaire existant comme les Étapes 5.2/5.4, `document_type` `maintenance_bulletin` avec `machine_immat` renseigné cette fois — seul cas du module où ce champ est réellement utilisé), changement de statut. Accès mecano/admin déjà garanti par le filtre de rôle du contrôleur (EF6.3), donc aucune vérification supplémentaire nécessaire au niveau de l'action `set_statut()`.
+
+**Bug réel trouvé et corrigé grâce à la vérification navigateur (PHPUnit ne l'aurait pas vu) :** `Maintenance_bulletin_model::get_by_machine()` provoquait une erreur fatale (`result_array() on false`) dès qu'un filtre `document_type_id` était appliqué. Cause : CodeIgniter 2 découpe naïvement la chaîne passée à `select()` sur chaque virgule avant de ré-échapper chaque fragment — `COALESCE(bs.statut, 'a_traiter')` était donc explosé en fragments invalides. Le correctif établi ailleurs dans la base (`formation_seance_model.php`, `form_submissions_model.php`) est de passer `$escape = FALSE` en second argument de `select()`, ce qui rend le découpage/réassemblage neutre. Corrigé dans `maintenance_bulletin_model.php`.
+
+**Pourquoi les tests ne l'avaient pas détecté :** le mock `RealDatabase` (`application/tests/integration_bootstrap.php`) utilisé par tous les tests MySQL de ce plan ne reproduit pas ce découpage — sa méthode `select()` stocke la chaîne complète telle quelle. Le test Phase 2 de ce modèle (`get_by_machine('F-MBUL01')`) n'exerçait d'ailleurs jamais la branche avec filtre `document_type_id`. **Ceci confirme la valeur de la vérification Playwright en conditions réelles à chaque étape** (politique adoptée dès l'Étape 5.1) : c'est elle, et uniquement elle, qui a révélé ce bug.
+
+**Tests :** `playwright/tests/maintenance-bulletins-smoke.spec.js` (2 tests : dépôt d'un bulletin + changement de statut ; refus d'accès pour un non-mécano). Suite PHPUnit complète : 1767 tests, 0 échec.
 
 **Validation :**
-- [ ] Liste des bulletins avec statut visible
-- [ ] Changement de statut réservé à mecano/admin (autre rôle bloqué avec message explicite)
+- [x] Liste des bulletins avec statut visible
+- [x] Changement de statut réservé à mecano/admin (autre rôle bloqué avec message explicite)
 
 ---
 
 ### Étape 5.6 — Vue de synthèse navigabilité et export PDF
 
-**Fichier :** `application/controllers/maintenance_synthese.php` + vues `application/views/maintenance_synthese/`
+**Statut : Terminée (5 août 2026).**
 
-- Vue par aéronef : état de chaque entité maintenable (à jour/proche/dépassé).
+**Fichier :** `application/controllers/maintenance_synthese.php` + vues `application/views/maintenance_synthese/` (`index.php`, `aeronef.php`)
+
+- Vue par aéronef : état de chaque entité maintenable (l'aéronef lui-même + chacun de ses équipements actifs comme entités distinctes), détail des dossiers ouverts et de leur échéance/potentiel individuels.
 - Vue flotte filtrable par section : pire état par aéronef (`Maintenance_potentiel::etat_pire_cas()`).
-- Export PDF de synthèse par aéronef (réutilisation TCPDF, déjà utilisé ailleurs dans GVV).
+- Export PDF de synthèse par aéronef (réutilisation de TCPDF exactement comme `programmes.php::export_pdf()`).
+- Codes couleur centralisés dans une seule constante (`Maintenance_synthese::ETAT_BADGES`) partagée par les deux vues et le PDF, plutôt que dupliqués — garantit la cohérence demandée par la validation.
+
+**Ajout complémentaire :** `Maintenance_potentiel::etat_entite($entite_type, $entite_id)` — pire état des dossiers ouverts d'une seule entité (nouveau, extrait de `etat_pire_cas()` qui l'utilise maintenant en interne pour l'aéronef et chacun de ses équipements ; non-régression vérifiée par la suite de tests existante de la Phase 3). `maintenance_equipement_model::get_aeronefs_by_section()` pour la liste flotte.
+
+**Second bug réel du même type trouvé en amont, corrigé avant même d'écrire ce contrôleur** (cf. Étape 5.5) : par prudence après la découverte du bug `select()`/virgule, ce contrôleur n'utilise aucune expression `COALESCE`/fonction multi-arguments dans un `select()` — les agrégations (pire état) sont calculées en PHP à partir de plusieurs requêtes simples plutôt qu'en SQL, ce qui élimine le risque pour cette étape.
+
+**Tests :** `playwright/tests/maintenance-synthese-smoke.spec.js` (1 test : vue flotte → filtrage par section → détail aéronef avec état par entité → export PDF, vérifié `Content-Type: application/pdf` et statut 200 réels). Suite PHPUnit complète : 1767 tests, 0 échec.
 
 **Validation :**
-- [ ] Codes couleur cohérents entre vue aéronef et vue flotte
-- [ ] Export PDF généré et lisible, contient l'ensemble des entités et leur état
-- [ ] Filtrage par section fonctionnel
+- [x] Codes couleur cohérents entre vue aéronef et vue flotte
+- [x] Export PDF généré et lisible, contient l'ensemble des entités et leur état
+- [x] Filtrage par section fonctionnel
 
 ---
 
 ### Étape 5.7 — Dashboard maintenance dédié
 
-**Fichier :** `application/controllers/maintenance_dashboard.php` (ou intégration dans un contrôleur existant selon convention GVV) + vue dédiée
+**Statut : Terminée (5 août 2026).**
 
-- Regroupe les cartes : équipements, programmes, dossiers, opérations, bulletins, synthèse.
-- Activation des deux cartes existantes (`db_card_maintenance_prog`, `db_card_maintenance_ops`) sur le dashboard principal, pointant vers ce dashboard.
+**Fichier :** `application/controllers/maintenance_dashboard.php` + vue dédiée `application/views/maintenance_dashboard/index.php`
+
+- Regroupe les 6 cartes : équipements, programmes, dossiers, opérations, bulletins, synthèse.
+- Activation des deux cartes existantes (`db_card_maintenance_prog`, `db_card_maintenance_ops`) sur le dashboard principal (`bs_sub_dashboard.php`), pointant vers ce dashboard dédié plutôt que directement vers un sous-écran. Les deux autres cartes placeholder de cette section (`db_card_airworthiness`, `db_card_fleet_mgmt`) restent désactivées, hors périmètre de ce plan.
+- **Nettoyage de la carte "Équipements" ajoutée en 5.1** : la carte ad hoc ajoutée directement sur le dashboard principal lors de l'Étape 5.1 (avant que ce dashboard dédié n'existe) a été retirée de `bs_sub_dashboard.php` ; elle est désormais uniquement dans le dashboard dédié, évitant la duplication annoncée dans la note de correction de trajectoire (cf. début de Phase 5).
+- **Ajout complémentaire :** `maintenance_operations` n'avait jusqu'ici aucune vue de liste globale (Étape 5.4 ne construit que les écrans liés à un dossier). Une action `index()` a été ajoutée (`maintenance_operation_model::get_all()`, liste des opérations récentes toutes entités confondues, scopée par section) pour donner une destination réelle à la carte "Opérations de maintenance", plutôt qu'un lien qui ne mène nulle part.
+
+**Tests :** `playwright/tests/maintenance-dashboard-smoke.spec.js` (2 tests : les deux cartes du dashboard principal ne sont plus "Bientôt disponible" et mènent au dashboard dédié, qui affiche les 6 cartes pointant chacune vers le bon contrôleur ; un non-mécano reçoit un refus explicite). Suite PHPUnit complète : 1767 tests, 0 échec.
+
+**Incident hors périmètre du code, résolu en cours d'étape :** le fichier de test `application/tests/unit/libraries/MaintenanceMarkdownParserTest.php` (créé en Phase 4, 15 tests) a été retrouvé déplacé dans la corbeille système (`~/.local/share/Trash/`) en cours de session — cause exacte inconnue (pas une action délibérée de l'agent). Détecté par une baisse inattendue du nombre de tests dans `run-all-tests.sh` (481 → 466), restauré depuis la corbeille, contenu identique confirmé par `diff`. Aucune perte.
 
 **Validation :**
-- [ ] Dashboard maintenance accessible et affiche toutes les cartes du module
-- [ ] Les deux cartes existantes ne sont plus en état "bientôt disponible" et pointent correctement
-- [ ] Visibilité conditionnée à `is_mecano || is_admin` (cohérent avec l'existant)
+- [x] Dashboard maintenance accessible et affiche toutes les cartes du module
+- [x] Les deux cartes existantes ne sont plus en état "bientôt disponible" et pointent correctement
+- [x] Visibilité conditionnée à `is_mecano || is_admin` (cohérent avec l'existant)
 
 ---
+
+## Phase 5 — Bilan
+
+**Phase 5 terminée dans son intégralité (5 août 2026), 7/7 étapes.** Tous les contrôleurs suivent le style Formation (`MY_Controller` direct, pas de `Gvv_Controller`/`Gvvmetadata` générique). Chaque étape a été vérifiée en navigateur réel (Playwright contre gvv.net) en plus de la suite PHPUnit, conformément à la politique du projet sur les changements d'UI — ce choix a permis de détecter deux bugs réels invisibles aux tests unitaires/MySQL (Étapes 5.5/5.6) : le découpage naïf des virgules par `CodeIgniter 2::select()` sur toute expression contenant une fonction SQL multi-arguments (`COALESCE`), non reproduit par le mock `RealDatabase` des tests.
+
+Récapitulatif des ajouts non prévus explicitement par le plan initial, mais nécessaires à son exécution :
+- Migration 163 (document_type manquant pour les comptes rendus d'opération, Étape 5.4).
+- `Maintenance_potentiel::etat_entite()` (Étape 5.6, extrait de `etat_pire_cas()`).
+- `maintenance_operations::index()` (Étape 5.7, destination pour la carte dashboard).
+- Correctif `select(..., FALSE)` dans `maintenance_bulletin_model.php` (Étape 5.5).
+
+La Phase 6 (rôles et accès) doit maintenant affiner la matrice de droits PRD EF8 : tous les contrôleurs de la Phase 5 sont actuellement gardés uniformément par `mecano || admin`, sans encore distinguer les accès en lecture seule (responsable de section, trésorier, pilote) prévus par le PRD.
 
 ## Phase 6 — Rôles et accès
 
@@ -542,10 +651,10 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 |---|---|---|
 | 0 | Conception (design + schéma) | ✅ Terminé |
 | 1 | Fondations base de données (migrations 155–160) | ✅ Terminé |
-| 2 | Modèles | ⬜ Non démarré |
-| 3 | Calcul du potentiel (`Maintenance_potentiel`) | ⬜ Non démarré |
-| 4 | Parsing et versioning des programmes | ⬜ Non démarré |
-| 5 | Contrôleurs et vues | ⬜ Non démarré |
+| 2 | Modèles | ✅ Terminé |
+| 3 | Calcul du potentiel (`Maintenance_potentiel`) | ✅ Terminé |
+| 4 | Parsing et versioning des programmes | ✅ Terminé (mécanisme ; écran Phase 5) |
+| 5 | Contrôleurs et vues | ✅ Terminé (7/7 étapes) |
 | 6 | Rôles et accès | ⬜ Non démarré |
 | 7 | Point d'ancrage alarmes/réservations | ⬜ Non démarré |
 | 8 | Fichiers de langue FR/EN/NL | ⬜ Non démarré |
@@ -565,3 +674,4 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 | Ambiguïté sur l'entité `entite_type`/`entite_id` polymorphe dans `maintenance_dossiers`/`maintenance_operations` (pas de contrainte FK native possible) | Valider systématiquement l'existence de l'entité au niveau applicatif (modèle), couvrir par tests d'intégration dédiés |
 | Confusion possible entre le statut "Maintenance" des réservations et les statuts internes des dossiers d'entretien | Vocabulaire distinct dans l'UI, aucune automatisation entre les deux en phase 1 (cf. PRD non-objectifs) |
 | Reprise de données pour les clubs ayant déjà un suivi papier/tableur de maintenance | Hors périmètre de ce plan ; à traiter comme migration de données séparée si demandée |
+| `$this->db->select("...COALESCE(a, b)...")` sans `$escape = FALSE` provoque une erreur fatale (CodeIgniter 2 découpe la chaîne sur chaque virgule) — trouvé en Étape 5.5, invisible pour les tests PHPUnit car le mock `RealDatabase` ne reproduit pas ce découpage | Toujours passer `FALSE` en second argument de `select()` dès qu'une expression contient une virgule (fonction SQL multi-arguments) ; vigilance particulière en Étape 5.6 (agrégations pour la synthèse) ; la vérification Playwright en conditions réelles reste indispensable pour ce type de bug |

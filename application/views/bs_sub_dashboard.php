@@ -900,20 +900,20 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
          ================================================================ -->
     <div class="row g-2">
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center" style="opacity: 0.5;">
-                <i class="fas fa-clipboard-list text-secondary"></i>
-                <div class="card-title text-muted"><?= $this->lang->line('db_card_maintenance_prog') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
-                <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+            <div class="sub-card text-center">
+                <i class="fas fa-clipboard-list text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_prog') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('maintenance_dashboard') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center" style="opacity: 0.5;">
-                <i class="fas fa-tools text-secondary"></i>
-                <div class="card-title text-muted"><?= $this->lang->line('db_card_maintenance_ops') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
-                <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+            <div class="sub-card text-center">
+                <i class="fas fa-tools text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_ops') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('maintenance_dashboard') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
 

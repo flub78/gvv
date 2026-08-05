@@ -471,6 +471,36 @@ Helloasso Library
  [x] Create checkout fails when slug missing
  [x] Create checkout logs status pending
 
+Maintenance Markdown Parser
+ [x] Parse visite 100h
+ [x] Section structure
+ [x] Tache structure
+ [x] All sections are parsed in order
+ [x] Taches ordre is sequential within section
+ [x] Parse empty content throws exception
+ [x] Parse without title throws exception
+ [x] Parse without sections throws exception
+ [x] Tache before section throws exception
+ [x] Section without tache throws exception
+ [x] Content before first tache is silently ignored
+ [x] Validate valid structure
+ [x] Validate detects missing title
+ [x] Validate detects missing sections
+ [x] Validate detects section without taches
+
+Maintenance Potentiel
+ [x] Seuil echeance proche par defaut est 30 jours
+ [x] Etat a jour quand aucune donnee suivie
+ [x] Echeance depassee de un jour est depasse
+ [x] Echeance aujourdhui est echeance proche
+ [x] Echeance exactement au seuil est echeance proche
+ [x] Echeance juste au dessus du seuil est a jour
+ [x] Echeance lointaine est a jour
+ [x] Potentiel horaire negatif est depasse
+ [x] Potentiel horaire nul est a jour
+ [x] Potentiel horaire positif est a jour
+ [x] Etat global retient le pire des deux dimensions
+
 My Migration Core Compatibility
  [x] Core constructor still guards against subclass reinit
  [x] Core protected properties still exist
@@ -498,6 +528,15 @@ Reservation Reminder
  [x] Daily sms body multiple flights contains link not details
  [x] Handle event skips when reservation not found
  [x] Handle event dispatches to recipients
+
+Vd Bon Pdf
+ [x] Generate with empty layout produces valid pdf
+ [x] Generate with background image does not throw
+ [x] Generate skips missing background without error
+ [x] Generate renders all expected variable fields
+ [x] Generate with custom look moved field and disabled qr
+ [x] Generate with qr url produces qr image and places it
+ [x] Generate with qr field disabled does not place qr
 
 Widget
  [x] Instantiation empty

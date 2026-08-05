@@ -512,6 +512,34 @@ class RealDatabase {
 
         return $this->insert_id();
     }
+
+    public function insert_batch($table, $data) {
+        if (empty($data)) {
+            return 0;
+        }
+
+        $fields = array_keys($data[0]);
+        $rows = array();
+        foreach ($data as $row) {
+            $escaped_values = array_map(function($value) {
+                if ($value === NULL || $value === '') {
+                    return "NULL";
+                }
+                return "'" . $this->escape_str($value) . "'";
+            }, array_values($row));
+            $rows[] = "(" . implode(', ', $escaped_values) . ")";
+        }
+
+        $sql = "INSERT INTO " . $table . " (" . implode(', ', $fields) . ") VALUES " . implode(', ', $rows);
+        $this->last_executed_query = $sql;
+
+        $result = $this->connection->query($sql);
+        if ($result === false) {
+            throw new Exception("Batch insert failed: " . $this->connection->error . " SQL: " . $sql);
+        }
+
+        return $this->connection->affected_rows;
+    }
     
     public function update($table, $data = null, $where = null) {
         // Apply inline where conditions if provided as array (mirrors delete() behavior)

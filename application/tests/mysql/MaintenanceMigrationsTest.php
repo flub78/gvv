@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests MySQL — Migrations 155 a 160 (Phase 1, module Maintenance des Aeronefs)
+ * Tests MySQL — Migrations 155 a 162 (Phases 1 et 4, module Maintenance des Aeronefs)
  *
  * Couvre les points de validation de la Phase 1 du plan :
  * - document_types.scope accepte 'machine' sans casser les valeurs existantes
@@ -13,7 +13,11 @@ use PHPUnit\Framework\TestCase;
  * - contraintes metier : programme sans section / section sans tache valides,
  *   dossiers multiples ouverts sur une meme entite, operation compte_rendu
  *   sans tache cochee, unicite du statut de bulletin par document
- * - roundtrip down()/up() de l'ensemble des 6 migrations
+ * - roundtrip down()/up() de l'ensemble des 8 migrations
+ *
+ * Et de la Phase 4 (Etape 4.2) :
+ * - colonne `actif` sur maintenance_programme_sections/maintenance_taches
+ * - document_types seedes pour les programmes d'entretien et bulletins de service
  *
  * @see doc/plans/maintenance_aeronefs_plan.md
  */
@@ -33,6 +37,9 @@ class MaintenanceMigrationsTest extends TestCase
         require_once APPPATH . 'migrations/158_maintenance_dossiers.php';
         require_once APPPATH . 'migrations/159_maintenance_operations.php';
         require_once APPPATH . 'migrations/160_maintenance_bulletin_statuts.php';
+        require_once APPPATH . 'migrations/161_maintenance_actif_column.php';
+        require_once APPPATH . 'migrations/162_maintenance_document_types.php';
+        require_once APPPATH . 'migrations/163_maintenance_compte_rendu_document_type.php';
     }
 
     protected function setUp(): void
@@ -47,9 +54,12 @@ class MaintenanceMigrationsTest extends TestCase
         (new Migration_Document_types_scope_machine())->up();
         (new Migration_Maintenance_equipements())->up();
         (new Migration_Maintenance_programmes())->up();
+        (new Migration_Maintenance_actif_column())->up();
         (new Migration_Maintenance_dossiers())->up();
         (new Migration_Maintenance_operations())->up();
         (new Migration_Maintenance_bulletin_statuts())->up();
+        (new Migration_Maintenance_document_types())->up();
+        (new Migration_Maintenance_compte_rendu_document_type())->up();
     }
 
     private function tableExists($table)
@@ -376,14 +386,76 @@ class MaintenanceMigrationsTest extends TestCase
     }
 
     // ---------------------------------------------------------------
-    // Roundtrip down()/up() de l'ensemble des 6 migrations
+    // Migration 161 — actif sur maintenance_programme_sections/maintenance_taches
+    // ---------------------------------------------------------------
+
+    public function testActifColumnPresentOnSectionsAndTaches()
+    {
+        $this->assertTrue($this->columnExists('maintenance_programme_sections', 'actif'));
+        $this->assertTrue($this->columnExists('maintenance_taches', 'actif'));
+    }
+
+    public function testUpIsIdempotentWhenActifColumnAlreadyExists()
+    {
+        // applyAllUp() (setUp) l'a deja applique une fois ; un second appel ne doit pas erreur.
+        $this->assertTrue((new Migration_Maintenance_actif_column())->up());
+    }
+
+    // ---------------------------------------------------------------
+    // Migration 162 — document_types pour la maintenance
+    // ---------------------------------------------------------------
+
+    public function testMaintenanceDocumentTypesSeeded()
+    {
+        $programme_type = $this->db->where('code', 'maintenance_programme')->get('document_types')->row_array();
+        $this->assertNotEmpty($programme_type);
+        $this->assertSame('machine', $programme_type['scope']);
+
+        $bulletin_type = $this->db->where('code', 'maintenance_bulletin')->get('document_types')->row_array();
+        $this->assertNotEmpty($bulletin_type);
+        $this->assertSame('machine', $bulletin_type['scope']);
+    }
+
+    public function testUpIsIdempotentWhenDocumentTypesAlreadySeeded()
+    {
+        // applyAllUp() (setUp) l'a deja applique une fois ; un second appel ne doit pas dupliquer les lignes.
+        $this->assertTrue((new Migration_Maintenance_document_types())->up());
+
+        $count = $this->db->where('code', 'maintenance_programme')->count_all_results('document_types');
+        $this->assertSame(1, $count);
+    }
+
+    // ---------------------------------------------------------------
+    // Migration 163 — document_type compte rendu de maintenance
+    // ---------------------------------------------------------------
+
+    public function testMaintenanceCompteRenduDocumentTypeSeeded()
+    {
+        $type = $this->db->where('code', 'maintenance_compte_rendu')->get('document_types')->row_array();
+        $this->assertNotEmpty($type);
+        $this->assertSame('machine', $type['scope']);
+    }
+
+    public function testUpIsIdempotentWhenCompteRenduTypeAlreadySeeded()
+    {
+        $this->assertTrue((new Migration_Maintenance_compte_rendu_document_type())->up());
+
+        $count = $this->db->where('code', 'maintenance_compte_rendu')->count_all_results('document_types');
+        $this->assertSame(1, $count);
+    }
+
+    // ---------------------------------------------------------------
+    // Roundtrip down()/up() de l'ensemble des 9 migrations
     // ---------------------------------------------------------------
 
     public function testDownUpRoundtripAllMigrations()
     {
+        $this->assertTrue((new Migration_Maintenance_compte_rendu_document_type())->down(), 'down() 163 doit reussir');
+        $this->assertTrue((new Migration_Maintenance_document_types())->down(), 'down() 162 doit reussir');
         $this->assertTrue((new Migration_Maintenance_bulletin_statuts())->down(), 'down() 160 doit reussir');
         $this->assertTrue((new Migration_Maintenance_operations())->down(), 'down() 159 doit reussir');
         $this->assertTrue((new Migration_Maintenance_dossiers())->down(), 'down() 158 doit reussir');
+        $this->assertTrue((new Migration_Maintenance_actif_column())->down(), 'down() 161 doit reussir');
         $this->assertTrue((new Migration_Maintenance_programmes())->down(), 'down() 157 doit reussir');
         $this->assertTrue((new Migration_Maintenance_equipements())->down(), 'down() 156 doit reussir');
         $this->assertTrue((new Migration_Document_types_scope_machine())->down(), 'down() 155 doit reussir');
@@ -403,8 +475,13 @@ class MaintenanceMigrationsTest extends TestCase
         )->row_array();
         $this->assertStringNotContainsString("'machine'", $col['COLUMN_TYPE']);
 
+        $count = $this->db->where('code', 'maintenance_programme')->count_all_results('document_types');
+        $this->assertSame(0, $count);
+
         // Restaure l'etat migre pour le reste de la suite / l'application
         $this->applyAllUp();
         $this->assertTrue($this->tableExists('maintenance_bulletin_statuts'));
+        $this->assertTrue($this->columnExists('maintenance_taches', 'actif'));
     }
 }
+
