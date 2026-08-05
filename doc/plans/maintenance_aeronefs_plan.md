@@ -1,7 +1,7 @@
 # Plan d'implémentation — Gestion de la Maintenance des Aéronefs
 
-**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phase 0 terminée)
-**Statut :** Phase 0 terminée
+**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phase 0 et Phase 1 terminées)
+**Statut :** Phase 1 terminée
 **PRD :** [doc/prds/maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
 **Design :** [doc/design_notes/maintenance_aeronefs_design.md](../design_notes/maintenance_aeronefs_design.md)
 
@@ -60,6 +60,10 @@ Points tranchés dans le design (5 août 2026) :
 
 ## Phase 1 — Fondations base de données
 
+**Statut : Terminée (5 août 2026).** Migrations 155–160 créées et testées (up/down + 6 tests métier) contre la base de test `gvv2` (`application/tests/mysql/MaintenanceMigrationsTest.php`, 16 tests). Suite complète (`./run-all-tests.sh`) : 1715 tests, 0 échec, 61 skips préexistants sans rapport avec ce lot.
+
+**Note d'implémentation :** les colonnes `document_id`/`archived_document_id` sont en `BIGINT(20) UNSIGNED` (et non `INT`) pour correspondre au type réel de `archived_documents.id`. Toutes les tables `maintenance_*` sont créées en `utf8`/`utf8_general_ci` (et non `utf8mb4`, malgré la convention plus récente utilisée par d'autres migrations) : `membres.mlogin` et `archived_documents` sont en `utf8mb3`, et MySQL refuse une clé étrangère entre colonnes de jeux de caractères différents (erreur 150) — la contrainte se propage à toute table `maintenance_*` référençant `membres` ou `archived_documents`.
+
 ### Étape 1.1 — Extension du système documentaire
 
 **Objectif :** Permettre de rattacher un document à une entité maintenable (PRD EF2, EF6).
@@ -70,10 +74,10 @@ Points tranchés dans le design (5 août 2026) :
 - Aucune modification de `archived_documents` : la colonne `machine_immat` existe déjà (migration 076).
 
 **Validation :**
-- [ ] Migration créée, syntaxe PHP valide (`php -l`)
-- [ ] `config/migration.php` mis à jour
-- [ ] `document_types.scope` accepte la valeur `machine` sans casser les valeurs existantes (`pilot`, `section`, `club`)
-- [ ] Un document existant de type `pilot`/`section`/`club` reste inchangé après migration
+- [x] Migration créée, syntaxe PHP valide (`php -l`)
+- [x] `config/migration.php` mis à jour
+- [x] `document_types.scope` accepte la valeur `machine` sans casser les valeurs existantes (`pilot`, `section`, `club`)
+- [x] Un document existant de type `pilot`/`section`/`club` reste inchangé après migration
 
 ---
 
@@ -92,9 +96,9 @@ Colonnes :
 - `created_at`, `updated_at`, `created_by`, `updated_by` (audit standard)
 
 **Validation :**
-- [ ] Migration créée et testée (up/down)
-- [ ] `config/migration.php` mis à jour
-- [ ] Un équipement peut changer d'`aeronef_id` sans perdre son historique (vérifié après Phase 1.5/1.6)
+- [x] Migration créée et testée (up/down)
+- [x] `config/migration.php` mis à jour
+- [x] Un équipement peut changer d'`aeronef_id` sans perdre son historique (vérifié après Phase 1.5/1.6)
 
 ---
 
@@ -109,7 +113,7 @@ Colonnes :
 - `code` VARCHAR(50) NOT NULL
 - `titre` VARCHAR(255) NOT NULL
 - `section_id` INT NULL (NULL = toutes sections/clubs, cohérent avec `formation_programmes.section_id` — à ne pas confondre avec les sections du programme lui-même, voir ci-dessous)
-- `document_id` INT NULL — FK vers `archived_documents.id` (fichier markdown source, versionné)
+- `document_id` BIGINT(20) UNSIGNED NULL — FK vers `archived_documents.id` (fichier markdown source, versionné ; type aligné sur `archived_documents.id`)
 - `regle_butee_date` TINYINT(1) NOT NULL DEFAULT 0
 - `regle_butee_heures` TINYINT(1) NOT NULL DEFAULT 0
 - `seuil_heures` DECIMAL(8,2) NULL — seuil d'heures de vol si `regle_butee_heures = 1`
@@ -133,10 +137,10 @@ Colonnes :
 - audit standard
 
 **Validation :**
-- [ ] Migrations créées et testées (up/down)
-- [ ] `config/migration.php` mis à jour
-- [ ] Un programme sans section, ou une section sans tâche, reste valide (listes vides acceptées)
-- [ ] Aucune collision de nommage avec la table `sections` existante (clubs/activités)
+- [x] Migrations créées et testées (up/down)
+- [x] `config/migration.php` mis à jour
+- [x] Un programme sans section, ou une section sans tâche, reste valide (listes vides acceptées)
+- [x] Aucune collision de nommage avec la table `sections` existante (clubs/activités)
 
 ---
 
@@ -162,9 +166,9 @@ Colonnes :
 - audit standard
 
 **Validation :**
-- [ ] Migration créée et testée (up/down)
-- [ ] `config/migration.php` mis à jour
-- [ ] Une entité maintenable peut avoir plusieurs dossiers `ouvert` simultanément sur des programmes différents (contrainte vérifiée en base : pas d'unicité programme+entité forcée)
+- [x] Migration créée et testée (up/down)
+- [x] `config/migration.php` mis à jour
+- [x] Une entité maintenable peut avoir plusieurs dossiers `ouvert` simultanément sur des programmes différents (contrainte vérifiée en base : pas d'unicité programme+entité forcée)
 
 ---
 
@@ -180,7 +184,7 @@ Colonnes :
 - `date_operation` DATE NOT NULL
 - `mecano_id` VARCHAR(25) NOT NULL — FK vers `membres.mlogin`
 - `mode_saisie` ENUM('directe','compte_rendu') NOT NULL
-- `document_id` INT NULL — FK vers `archived_documents.id` si `mode_saisie = compte_rendu`
+- `document_id` BIGINT(20) UNSIGNED NULL — FK vers `archived_documents.id` si `mode_saisie = compte_rendu` (type aligné sur `archived_documents.id`)
 - `horametre_releve` DECIMAL(8,2) NULL
 - `nouvelle_echeance` DATE NULL
 - `commentaire` VARCHAR(500) NULL
@@ -194,9 +198,9 @@ Colonnes :
 - `commentaire` VARCHAR(255) NULL
 
 **Validation :**
-- [ ] Migrations créées et testées (up/down)
-- [ ] `config/migration.php` mis à jour
-- [ ] Une opération de type `compte_rendu` sans aucune tâche cochée reste valide (le détail reste dans le document joint, PRD EF4)
+- [x] Migrations créées et testées (up/down)
+- [x] `config/migration.php` mis à jour
+- [x] Une opération de type `compte_rendu` sans aucune tâche cochée reste valide (le détail reste dans le document joint, PRD EF4)
 
 ---
 
@@ -208,14 +212,14 @@ Colonnes :
 
 Colonnes :
 - `id` INT AUTO_INCREMENT PRIMARY KEY
-- `archived_document_id` INT NOT NULL UNIQUE — FK vers `archived_documents.id`
+- `archived_document_id` BIGINT(20) UNSIGNED NOT NULL UNIQUE — FK vers `archived_documents.id` (type aligné sur `archived_documents.id`)
 - `statut` ENUM('a_traiter','traite','non_applicable') NOT NULL DEFAULT 'a_traiter'
 - audit standard (`updated_by`/`updated_at` suffisent, pas de `created_*` distinct du document)
 
 **Validation :**
-- [ ] Migration créée et testée (up/down)
-- [ ] `config/migration.php` mis à jour
-- [ ] Seuls `mecano` et `admin` peuvent modifier `statut` (vérifié en Phase 6)
+- [x] Migration créée et testée (up/down)
+- [x] `config/migration.php` mis à jour
+- [ ] Seuls `mecano` et `admin` peuvent modifier `statut` (vérifié en Phase 6 — hors périmètre de la Phase 1, aucun contrôleur n'existe encore)
 
 ---
 
@@ -537,7 +541,7 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 | Phase | Description | Statut |
 |---|---|---|
 | 0 | Conception (design + schéma) | ✅ Terminé |
-| 1 | Fondations base de données (migrations 155–160) | ⬜ Non démarré |
+| 1 | Fondations base de données (migrations 155–160) | ✅ Terminé |
 | 2 | Modèles | ⬜ Non démarré |
 | 3 | Calcul du potentiel (`Maintenance_potentiel`) | ⬜ Non démarré |
 | 4 | Parsing et versioning des programmes | ⬜ Non démarré |
