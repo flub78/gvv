@@ -508,6 +508,59 @@ Voir : [Design modification en place d'une réponse](../design_notes/remplissage
 
 **Limitation connue non traitée dans cette passe** : le mode édition ne ré-applique pas les mécanismes de pré-remplissage GVV A/B (`data-gvv-source`, verrouillage `lock[]`) — un champ verrouillé lors de la génération initiale n'est pas re-verrouillé en mode édition. Acceptable pour l'usage principal visé (compléter des réponses de catégorie 1/2 simples) ; à revisiter si l'édition doit un jour couvrir des formulaires de catégorie 3 avec champs verrouillés.
 
+### Lot 14 — Lien de modification public à usage unique (EF16-bis)
+
+Objectif : permettre à l'utilisateur d'origine de reprendre une réponse déjà soumise via un lien de modification public, généré à la demande depuis la liste admin, à usage unique et à expiration automatique. Dépend du socle (Lot 1), des fichiers (Lot 2) et de Lot 13 (réutilise le moteur de rendu/validation de la modification en place admin). Indépendant des lots 3, 4, 7, 9, 10, 11, 12.
+
+Voir : [Design lien de modification public](../design_notes/remplissage_formulaires_design.md#20-lien-de-modification-public-à-usage-unique-ef16-bis)
+
+Décisions retenues :
+- Token dédié (`edit_token`), distinct de `submission_uuid`, un seul actif à la fois — toute régénération invalide l'ancien, utilisé ou non.
+- Consommé uniquement à la resoumission réussie, jamais à la simple consultation.
+- Consommation atomique (`UPDATE ... WHERE edit_token = ?`, 0 ligne affectée → échec explicite) pour gérer la concurrence sans verrou applicatif supplémentaire.
+- Expiration fixe 7 jours après génération, indépendamment de l'usage.
+- Génération à la demande depuis la liste admin des réponses (bouton "Modifier le formulaire"), affichage du lien pour transmission manuelle — pas d'envoi automatique par email, pas d'indicateur d'état de lien à maintenir dans la liste.
+
+- [ ] Migration `1XX_forms_edit_token.php` : ajouter `edit_token VARCHAR(64) NULL` (indexé) et `edit_token_expires_at DATETIME NULL` à `form_submissions`, pattern idempotent `add_column_if_missing`/`add_index_if_missing`.
+- [ ] Mettre à jour `application/config/migration.php`.
+- [ ] `Form_submissions_model::generate_edit_token($submission_id)` : génère un token aléatoire (UUID v4), écrit `edit_token`/`edit_token_expires_at = NOW() + 7 jours`.
+- [ ] `Form_submissions_model::get_by_edit_token($token)` : résout la soumission par token, vérifie la non-expiration.
+- [ ] `Form_submissions_model::consume_edit_token($submission_id, $token)` : `UPDATE ... SET edit_token = NULL WHERE id = ? AND edit_token = ?`, retourne le nombre de lignes affectées.
+- [ ] Bouton "Modifier le formulaire" dans `bs_submissions.php` : appelle la génération, affiche le lien construit (`site_url("forms/edit/{slug}/{token}")` ou équivalent) pour copie/transmission par l'admin. Visible uniquement pour les réponses `submission_method = 'online'`.
+- [ ] `forms_public::edit($slug, $token)` : résout la soumission, refuse si token invalide/expiré/absent avec message explicite dédié (pas de formulaire vide ni de 404 générique), sinon réutilise le moteur de rendu multi-pages en mode édition (même source de pré-remplissage que `forms_admin::submission_edit`, section 19/Lot 13).
+- [ ] `forms_public::edit_submit($slug, $token)` : consomme le token de façon atomique avant tout enregistrement ; si la consommation échoue (0 ligne), rend l'erreur "lien déjà utilisé" sans enregistrer ; sinon réutilise la logique d'enregistrement de `forms_admin::submission_edit_submit` (conserver/remplacer fichiers et signature, mise à jour `updated_at`/`updated_by`, `id`/`submission_uuid`/`submitted_at`/`subject_type`/`subject_id`/`submission_method` inchangés).
+- [ ] Vue dédiée "lien invalide" (`forms_public`) : message explicite unique pour les trois causes (expiré, déjà consommé, remplacé), pas de distinction affichée à l'utilisateur.
+- [ ] Traductions (fr/en/nl) : libellé bouton, message lien invalide, message double soumission concurrente.
+- [ ] Tests PHPUnit : génération/régénération invalide l'ancien token, résolution par token valide/expiré/absent, consommation atomique (double appel simultané simulé → un seul succès), resoumission met à jour la réponse existante sans créer de nouvelle ligne.
+- [ ] Test Playwright ou parcours fonctionnel réel équivalent (selon disponibilité Chromium dans l'environnement, cf. Lots 11-13) : génération du lien en admin → ouverture publique → formulaire pré-rempli → resoumission → lien redevenu invalide.
+- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Lien de modification public ».
+- [ ] **Validation non-régression** : la modification admin existante (Lot 13) reste inchangée ; formulaires sans réponse modifiée via lien public inchangés ; suite PHPUnit/Playwright complète verte.
+
+### Lot 15 — Complétude des pièces obligatoires (EF17)
+
+Objectif : permettre la soumission d'un formulaire même si des pièces obligatoires (fichier/signature) sont manquantes, tout en rendant cette incomplétude visible côté public et admin. Dépend du socle (Lot 1) ; s'articule avec Lot 14 (la liste de complétude s'affiche aussi en mode reprise) sans en dépendre techniquement. Indépendant des lots 3, 4, 7, 9, 10, 11, 12.
+
+Voir : [Design complétude des pièces obligatoires](../design_notes/remplissage_formulaires_design.md#21-complétude-des-pièces-obligatoires-ef17)
+
+Décisions retenues :
+- Comportement non-bloquant déterminé par le type de champ (`file`/`signature`) uniquement — pas de flag configurable par champ en plus de `is_required`.
+- `required_group` sur `form_fields` pour les exigences "un parmi plusieurs" (ex. carte d'identité OU passeport).
+- Calcul de complétude à la volée, pas de colonne dénormalisée.
+- Liste des pièces manquantes toujours affichée côté public (saisie initiale et reprise), par libellé de champ.
+
+- [ ] Migration `1XX_forms_required_group.php` : ajouter `required_group VARCHAR(50) NULL` à `form_fields`, pattern idempotent `add_column_if_missing`.
+- [ ] Mettre à jour `application/config/migration.php`.
+- [ ] `Forms_validation::validate_field_value()` : ne plus bloquer la soumission pour `is_required` sur `field_type IN ('file', 'signature')` — les autres types inchangés.
+- [ ] `form_fields_model.php`/vue admin des champs : `required_group` éditable à côté de `is_required` pour les champs fichier.
+- [ ] `Form_submissions_model::get_missing_required_pieces($submission_id)` (ou équivalent) : calcule les exigences non satisfaites (champs isolés + groupes) par jointure `form_fields`/`form_submission_files`.
+- [ ] `Forms_renderer` : injection de la liste des pièces manquantes en bas du formulaire (rendu public, saisie initiale et mode édition/reprise Lot 14), avec formulation "au moins un parmi" pour les groupes.
+- [ ] `bs_submissions.php` (liste admin) : indicateur de complétude par ligne, calculé avec les mêmes règles.
+- [ ] Traductions (fr/en/nl) : libellé de la liste de pièces manquantes, formulation "au moins un parmi", libellé de l'indicateur admin.
+- [ ] Tests PHPUnit : soumission acceptée avec pièce obligatoire manquante (isolée et en groupe), calcul de complétude correct (isolé satisfait/non satisfait, groupe satisfait par un seul membre), champs non-fichier toujours bloquants.
+- [ ] Test Playwright ou parcours fonctionnel réel équivalent : soumission incomplète acceptée, liste des pièces manquantes affichée, indicateur admin cohérent.
+- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Pièces obligatoires et complétude ».
+- [ ] **Validation non-régression** : formulaires sans champ fichier/signature obligatoire inchangés ; champs texte/select obligatoires restent bloquants ; suite PHPUnit/Playwright complète verte.
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -570,6 +623,18 @@ Objectif : permettre à un admin de modifier une réponse en ligne déjà soumis
 
 Lots inclus : 13.
 
+### Phase 11 — Lien de modification public à usage unique
+
+Objectif : permettre à l'utilisateur d'origine de reprendre une réponse déjà soumise via un lien public à usage unique, sans intervention admin au-delà de sa génération. Dépend du socle (phase 1), des fichiers (phase 1, Lot 2) et de la modification en place admin (phase 10, Lot 13).
+
+Lots inclus : 14.
+
+### Phase 12 — Complétude des pièces obligatoires
+
+Objectif : permettre la soumission d'un formulaire avec des pièces obligatoires manquantes, en rendant cette incomplétude visible et actionnable côté public et admin. Dépend uniquement du socle (phase 1) ; s'articule avec la phase 11 sans en dépendre techniquement.
+
+Lots inclus : 15.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -587,7 +652,9 @@ Lots inclus : 13.
 13. Lot 11 (sous-formulaires) — dépend du socle (Lot 1) et de `subject_type`/`subject_id` (Lot 6), indépendant des lots 4, 5, 7, 9, 10
 14. Lot 12 (export vers formulaire de création GVV) — dépend uniquement du socle (Lot 1), indépendant de tous les autres lots
 15. Lot 13 (modification en place d'une réponse) — dépend du socle (Lot 1) et des fichiers (Lot 2), indépendant des lots 3, 4, 7, 9, 10, 11, 12
-16. Lot 8 (documentation et validation)
+16. Lot 14 (lien de modification public à usage unique) — dépend du socle (Lot 1), des fichiers (Lot 2) et de Lot 13
+17. Lot 15 (complétude des pièces obligatoires) — dépend uniquement du socle (Lot 1)
+18. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -636,6 +703,17 @@ Lots inclus : 13.
 - Le formulaire pré-rempli permet la resoumission sans créer de nouvelle réponse : `id` et `submission_uuid` inchangés.
 - Une signature ou un fichier peut être conservé ou remplacé ; en cas de remplacement, l'ancien est supprimé du stockage une fois le nouveau enregistré.
 - Une réponse de type téléchargement n'affiche pas le bouton "Modifier".
+
+### Lien de modification public
+- Un lien de modification généré depuis l'admin est à usage unique : consommé à la resoumission, invalidé par toute régénération ultérieure, expiré après 7 jours.
+- Un accès avec un lien invalide affiche un message explicite dédié.
+- Une double soumission concurrente avec le même lien n'aboutit qu'une seule fois.
+
+### Complétude des pièces obligatoires
+- Une réponse avec des pièces fichier/signature obligatoires manquantes est acceptée.
+- La liste des pièces manquantes est affichée par libellé, en saisie initiale et en reprise.
+- Un groupe de pièces alternatives est satisfait dès qu'un seul membre est fourni.
+- L'indicateur de complétude est visible dans la liste admin des réponses.
 
 ### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.

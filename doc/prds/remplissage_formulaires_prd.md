@@ -39,6 +39,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Permettre à un formulaire d'inclure un lien vers un autre formulaire GVV (sous-formulaire), avec injection de la réponse dans le formulaire maître.
 - Permettre, depuis une réponse, d'ouvrir un formulaire de création GVV standard (ex. création de membre) pré-rempli avec ses valeurs.
 - Permettre à un admin de modifier en place une réponse déjà soumise, pour utiliser les formulaires comme support de gestion de procédure.
+- Permettre à l'utilisateur d'origine de compléter ou corriger sa réponse après soumission, via un lien de modification public à usage unique.
+- Signaler explicitement les pièces obligatoires manquantes, sans bloquer la soumission, pour permettre un remplissage en plusieurs fois.
 
 ## Non-objectifs
 
@@ -69,6 +71,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Sous-formulaires : widget de lien vers un autre formulaire, ouvert dans un nouvel onglet, avec injection de la réponse dans le formulaire maître (EF14).
 - Bouton d'export d'une réponse, configurable par formulaire (URL cible + libellé), ouvrant un formulaire de création GVV pré-rempli avec les valeurs de la réponse (EF15).
 - Bouton de modification d'une réponse déjà soumise, depuis la liste admin des réponses, rechargeant le formulaire pré-rempli et permettant une resoumission qui met à jour la réponse en place (EF16).
+- Lien de modification public à usage unique, généré à la demande depuis la liste admin des réponses, permettant à l'utilisateur d'origine de compléter ou corriger sa réponse (EF16-bis).
+- Comportement non bloquant des pièces obligatoires de type fichier/signature à la soumission, avec liste explicite des pièces manquantes et indicateur de complétude en admin (EF17).
 
 ### Exclu
 
@@ -82,10 +86,13 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Édition en place d'une réponse de sous-formulaire déjà soumise en V1 (EF14) — resoumission complète uniquement.
 - Mapping configurable entre les noms de champs du formulaire source et ceux du formulaire cible en V1 (EF15) — les noms doivent correspondre exactement.
 - Export des champs fichier, signature et à choix multiples (checkbox) vers le formulaire cible en V1 (EF15).
-- Modification d'une réponse par lien public envoyé à l'utilisateur d'origine en V1 (EF16) — déclenchement admin uniquement, depuis `forms_admin`.
 - Modification d'une réponse de type téléchargement (`submission_method = 'upload'`, EF12) en V1 (EF16) — cette catégorie de réponse n'a pas de champs de saisie à compléter.
 - Historique des versions successives d'une réponse modifiée en V1 (EF16) — seule la dernière version est conservée, sans piste d'audit détaillée par champ.
 - Protection contre la modification concurrente de la même réponse en V1 (EF16) — dernier enregistrement gagnant, comme le reste de GVV.
+- Envoi automatique par email du lien de modification public (EF16-bis) — la transmission à l'utilisateur reste manuelle, à la charge de l'admin.
+- Distinction visuelle de l'état d'un lien de modification (actif/consommé/expiré) dans la liste admin (EF16-bis) — l'action de génération est toujours valide et régénère systématiquement.
+- Expiration ou usage unique configurable par formulaire (EF16-bis) — durée fixe de 7 jours et usage unique pour tous les formulaires.
+- Flag "bloquant/non bloquant" configurable par champ (EF17) — le comportement non bloquant est déterminé uniquement par le type de champ (fichier/signature), pas configurable individuellement.
 
 ## Taxonomie des formulaires
 
@@ -134,6 +141,14 @@ Cette taxonomie guide les décisions d'architecture : les formulaires de catégo
 2. Le formulaire multi-pages se recharge avec les valeurs déjà soumises pré-remplies.
 3. L'admin complète ou corrige des champs, conserve ou redéfinit la signature, conserve ou remplace des fichiers.
 4. Il valide : la réponse existante est mise à jour, sans création d'une nouvelle réponse.
+
+### Parcours 5 : Reprise d'une réponse incomplète via lien de modification (utilisateur public)
+
+1. Un utilisateur soumet un formulaire sans fournir toutes les pièces obligatoires ; sa réponse est acceptée mais apparaît "incomplète" dans la liste admin.
+2. Depuis la liste des réponses, l'admin clique sur "Modifier le formulaire" : un lien de modification à usage unique est généré et affiché.
+3. L'admin transmet ce lien à l'utilisateur (ouverture en direct devant lui, ou envoi par un canal externe).
+4. L'utilisateur ouvre le lien : le formulaire se recharge avec les valeurs déjà soumises, les fichiers et la signature prévisualisés, et la liste des pièces encore manquantes affichée.
+5. Il complète les pièces manquantes et valide : la réponse existante est mise à jour, le lien devient inutilisable.
 
 ## Exigences fonctionnelles
 
@@ -395,6 +410,32 @@ Pour utiliser les formulaires comme support de gestion de procédure, une répon
 
 Voir : [Design modification en place d'une réponse](../design_notes/remplissage_formulaires_design.md#19-modification-en-place-dune-réponse-déjà-soumise)
 
+### EF16-bis : Lien de modification public à usage unique
+
+Extension d'EF16 : en plus du déclenchement admin, l'utilisateur d'origine peut reprendre sa réponse via un lien public généré à la demande, à usage unique.
+
+1. Depuis la liste admin des réponses, un bouton "Modifier le formulaire" génère (ou régénère) un lien de modification et l'affiche pour l'admin.
+2. Ce lien porte un token dédié, distinct de `submission_uuid`, à usage unique : toute nouvelle génération invalide immédiatement le lien précédent, qu'il ait été utilisé ou non.
+3. Le token reste valable à la simple consultation (navigation, rafraîchissement) ; il n'est consommé qu'au moment d'une resoumission réussie.
+4. Le token expire automatiquement 7 jours après sa génération, indépendamment de son usage.
+5. Un accès avec un token invalide (déjà consommé, remplacé ou expiré) affiche un message explicite dédié, jamais un formulaire vide ou une erreur générique.
+6. En cas de double soumission quasi simultanée avec le même token (ex. deux onglets), une seule aboutit ; l'autre échoue avec un message explicite, sans double enregistrement.
+7. La transmission du lien à l'utilisateur reste manuelle, à la charge de l'admin (ouverture en direct ou transmission par un canal externe) — GVV n'envoie aucun email automatique.
+8. Le formulaire rouvert via ce lien suit les mêmes règles de pré-remplissage et de remplacement de fichiers/signature que la modification en place déclenchée par un admin (EF16, points 5 à 7).
+
+Voir : [Design lien de modification public](../design_notes/remplissage_formulaires_design.md#20-lien-de-modification-public-à-usage-unique-ef16-bis)
+
+### EF17 : Complétude des pièces obligatoires
+
+1. Pour les champs de type fichier ou signature, le caractère obligatoire (`is_required`) n'empêche plus la validation du formulaire : une réponse peut être soumise avec des pièces obligatoires manquantes.
+2. Un formulaire peut définir qu'un ensemble de plusieurs champs fichier constitue une seule exigence, satisfaite dès qu'un seul des champs du groupe est renseigné (ex. carte d'identité OU passeport).
+3. La liste des pièces manquantes est affichée explicitement, par libellé de champ, en bas du formulaire — visible aussi bien lors de la saisie initiale que lors d'une reprise via le lien de modification (EF16-bis).
+4. Pour un groupe de pièces alternatives, la liste indique l'ensemble des libellés du groupe avec la règle "au moins un parmi".
+5. La liste admin des réponses affiche un indicateur de complétude par réponse (ex. nombre de pièces manquantes), calculé à partir des mêmes règles.
+6. Ce comportement ne modifie pas le caractère bloquant de `is_required` pour les autres types de champs (texte, select, etc.), qui continuent d'empêcher la soumission comme aujourd'hui.
+
+Voir : [Design complétude des pièces obligatoires](../design_notes/remplissage_formulaires_design.md#21-complétude-des-pièces-obligatoires-ef17)
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -428,9 +469,10 @@ Voir : [Design modification en place d'une réponse](../design_notes/remplissage
 - EF13 : notification (email) à l'utilisateur et/ou à l'admin selon l'issue du paiement ?
 - EF14 : *(Tranché, Lot 11)* un formulaire de catégorie 3 (déjà rattaché à une entité GVV via son propre `subject_type`/`subject_id`, ex. `briefing_passager_ulm`) peut aussi être utilisé comme sous-formulaire ; en cas de conflit, l'attachement direct existant est prioritaire et la bascule vers `subject_type='form_submission'` est simplement ignorée (voir design § 17, « Décision actée »).
 - EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ? *(Non tranché : n'importe quel formulaire publié est éligible en V1.)*
-- EF16 : faut-il à terme un lien de modification envoyé à l'utilisateur d'origine (hors admin), ou la modification reste-t-elle une action admin exclusive ?
 - EF16 : la modification en place doit-elle un jour être proposée aussi pour les réponses de type téléchargement (remplacement de scan), au-delà de la rotation déjà couverte par EF12 ?
+- EF16-bis : faut-il à terme permettre l'envoi automatique du lien de modification par email, ou la transmission manuelle par l'admin reste-t-elle suffisante ?
 
 ### Résolues
 
 - **Stratégie de migration `briefing_sign` → handler** *(juillet 2026)* : remplacement complet, pas de cohabitation prolongée. Séquencement : construire et valider le nouveau mécanisme (`forms` + rattachement générique) sans toucher à l'ancien, ressaisir manuellement les briefings existants (peu nombreux) au moment de la bascule, puis basculer la détection d'un coup. La suppression effective du code de l'ancien mécanisme documentaire reste une décision séparée, ultérieure à la validation en conditions réelles.
+- **EF16 : lien de modification envoyé à l'utilisateur d'origine** *(août 2026)* : tranché — oui, sous forme d'un lien à usage unique (token dédié, régénéré à chaque demande, expirant après 7 jours), généré à la demande depuis la liste admin des réponses. Pas d'envoi automatique par email : la transmission reste manuelle, à la charge de l'admin. Voir EF16-bis.

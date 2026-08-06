@@ -1045,6 +1045,82 @@ Un champ fichier ou signature déjà soumis affiche sa valeur actuelle (nom de f
 
 Dans les deux cas, le remplacement suit le même ordre d'opérations : le nouveau fichier est écrit et son enregistrement `form_submission_files` créé, puis — seulement une fois cette écriture confirmée — l'ancien enregistrement et son fichier disque sont supprimés. Jamais l'inverse, pour ne pas perdre le fichier initial si l'écriture du remplaçant échoue.
 
+### 20. Lien de modification public à usage unique (EF16-bis)
+
+#### Principe
+
+Extension de la modification en place (section 19) : en plus du déclenchement admin authentifié, une réponse peut être rouverte par l'utilisateur d'origine via un lien portant un token dédié. Contrairement au token de corrélation `link_token` des sous-formulaires (section 17), ce token autorise une écriture, pas seulement une lecture/corrélation — il doit donc être à usage unique et expirer.
+
+#### Schéma
+
+```sql
+ALTER TABLE form_submissions ADD COLUMN edit_token VARCHAR(64) NULL
+    COMMENT 'Token d''autorisation de modification publique à usage unique, NULL = aucun lien actif';
+ALTER TABLE form_submissions ADD COLUMN edit_token_expires_at DATETIME NULL
+    COMMENT 'Expiration du token, 7 jours après génération';
+-- index sur edit_token pour la résolution par lien
+```
+
+Un seul token actif par soumission : la colonne est simplement écrasée à chaque génération, pas de table d'historique.
+
+#### Cycle de vie du token
+
+1. **Génération** — bouton "Modifier le formulaire" dans `bs_submissions.php` (liste admin) : appelle `Form_submissions_model::generate_edit_token($submission_id)`, qui écrit un token aléatoire (UUID v4) et `edit_token_expires_at = NOW() + 7 jours`, remplaçant tout token précédent — sans distinction entre "déjà utilisé" et "jamais utilisé", cohérent avec le principe "un seul lien valide à la fois". Le lien est affiché à l'admin pour transmission manuelle (ouverture en direct ou copie vers un autre canal) ; GVV n'envoie aucun email.
+2. **Consultation** — `forms_public::edit($slug, $token)` résout la soumission par `edit_token`, vérifie la non-expiration, et rend le formulaire pré-rempli en réutilisant le même moteur que `forms_admin::submission_edit()` (section 19) : valeurs, fichiers et signature existants prévisualisés. La simple consultation ne consomme pas le token.
+3. **Consommation** — à la resoumission réussie, le token est invalidé dans la même opération que l'enregistrement des valeurs :
+
+```sql
+UPDATE form_submissions
+   SET edit_token = NULL
+ WHERE id = ? AND edit_token = ?
+```
+
+Si cette requête affecte 0 ligne (token déjà consommé ou remplacé par une génération plus récente entre-temps), la resoumission est refusée avec un message explicite — c'est le garde-fou contre la double soumission concurrente (deux onglets sur le même lien) sans verrou applicatif supplémentaire.
+
+4. **Expiration** — un accès après `edit_token_expires_at` est traité comme un lien invalide, même si le token n'a jamais été consommé.
+
+#### Lien invalide
+
+Trois causes possibles (jamais consommé mais expiré, déjà consommé, remplacé par une génération plus récente) convergent vers le même état "lien invalide" côté utilisateur — pas de distinction utile à faire, dans tous les cas la réponse est de demander un nouveau lien à l'admin. Message dédié, jamais un formulaire vide ni une 404 générique.
+
+#### Différences avec la modification admin (section 19)
+
+- Point d'entrée public (`forms_public`) au lieu d'authentifié (`forms_admin`), mais moteur de rendu, validation et remplacement fichiers/signature strictement identiques (section 19, "Fichiers et signature : conserver ou remplacer").
+- Mêmes garde-fous : seules les réponses `submission_method = 'online'` sont éligibles ; `id`/`submission_uuid`/`submitted_at`/`subject_type`/`subject_id`/`submission_method` ne sont jamais modifiés.
+- Pas d'indicateur d'état de token affiché dans la liste admin : le bouton "Modifier le formulaire" régénère systématiquement, sans qu'il soit utile de savoir si un lien précédent était encore actif.
+
+### 21. Complétude des pièces obligatoires (EF17)
+
+#### Principe
+
+Pour les pièces à fournir (champs `file`/`signature`), `is_required` cesse d'être bloquant à la soumission : une réponse incomplète est acceptée, mais son incomplétude reste visible et actionnable (via le lien de modification, section 20). Les autres types de champs conservent le comportement bloquant existant (`Forms_validation::validate_field_value()`, inchangé pour `text`/`email`/`date`/`number`/`textarea`/`select`/`radio`/`checkbox`).
+
+Ce comportement est déterminé par le type de champ, pas par une propriété distincte configurable — pas de nouveau flag "bloquant/non-bloquant" à gérer par champ en plus de `is_required`.
+
+#### Groupes d'alternatives
+
+Certaines pièces sont interchangeables (ex. carte d'identité OU passeport) : exiger les deux serait incorrect, mais l'absence des deux doit compter comme une seule pièce manquante.
+
+```sql
+ALTER TABLE form_fields ADD COLUMN required_group VARCHAR(50) NULL
+    COMMENT 'Regroupe des champs fichier alternatifs ; satisfait si au moins un membre du groupe est renseigné';
+```
+
+- Les champs `is_required = 1` partageant le même `required_group` (et le même `form_id`, la portée est toujours un seul formulaire) forment une seule exigence, satisfaite dès qu'un membre a une valeur.
+- Un champ `is_required = 1` sans `required_group` reste une exigence individuelle, comme aujourd'hui.
+- Configuré depuis l'admin d'édition des champs (`forms_admin`), au même endroit que `is_required`.
+
+#### Calcul de la complétude
+
+Calcul à la volée (pas de colonne dénormalisée), par jointure entre les exigences du formulaire (`form_fields` où `field_type IN ('file','signature')` et `is_required=1`, regroupées par `required_group`) et les valeurs soumises (`form_submission_files` pour la soumission courante). Choix cohérent avec le volume attendu (formulaires de club, pas de gros volumes concurrents) et évite tout risque de désynchronisation qu'un compteur mis en cache introduirait.
+
+Une exigence (champ isolé ou groupe) est satisfaite si au moins un des champs concernés a un fichier associé dans `form_submission_files` pour cette soumission.
+
+#### Affichage
+
+- **Public** (formulaire de saisie et reprise via lien, section 20) : liste des pièces manquantes en bas du formulaire, toujours affichée (pas seulement en mode reprise). Un champ isolé manquant est cité par son libellé (`form_fields.label`) ; un groupe manquant est cité par l'ensemble des libellés de ses membres, avec la formulation "au moins un parmi : label A, label B...".
+- **Admin** (`bs_submissions.php`) : indicateur de complétude par ligne (nombre de pièces manquantes, ou équivalent visuel), calculé avec les mêmes règles.
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**
@@ -1125,6 +1201,7 @@ Sans objet pour la migration : le nouveau mécanisme ne produit plus d'`archived
 - Limitation de débit sur soumissions publiques
 - Journalisation dans les fichiers de logs
 - `link_token` de sous-formulaire (section 17) : même limite déjà acceptée que les liens publics non protégés (section 13) — pas de protection contre le devinage/rejeu à ce stade
+- `edit_token` de modification publique (section 20) : traité différemment car il autorise une écriture — usage unique, expiration 7 jours, consommation atomique, régénération qui invalide tout lien précédent
 
 ## Intégration workflows GVV
 
