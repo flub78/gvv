@@ -96,19 +96,20 @@ Mettre en place un module de formulaires HTML natifs dans GVV (inspiré Google F
 - [x] Gérer téléchargement sécurisé et politique de rétention initiale.
 - [x] Ajouter messages de confirmation explicites côté utilisateur.
 
-### Lot 2-bis — Synchronisation fichiers disque (option)
+### Lot 2-bis — Stockage fichier du contenu des formulaires
 
-A analyser, pas sûr que ce soit vraiment utile.
+Remplace la conception précédente (sync bidirectionnelle par hash, base restant source de vérité), jamais implémentée — voir [Design stockage fichier](../design_notes/formulaires_sync_fichiers_design.md) et PRD EF2-bis/EF2-ter.
 
-- [ ] Migration : ajouter `content_hash VARCHAR(32) NULL` sur `form_pages` et `css_hash VARCHAR(32) NULL` sur `forms`.
-- [ ] Créer le répertoire `application/forms_templates/` avec `.htaccess` de protection (si nécessaire selon config serveur).
-- [ ] Lors de la sauvegarde web d'une page (`page_create` / `page_update`) : calculer MD5, stocker `content_hash`, écrire le fichier disque.
-- [ ] Lors de la sauvegarde web du CSS global d'un formulaire : calculer MD5, stocker `css_hash`, écrire le fichier disque.
-- [ ] Ajouter le bouton "Actualiser depuis le disque" sur la vue page admin : lire le fichier, comparer le hash, mettre à jour la base si différent, afficher le résultat.
-- [ ] Ajouter le bouton "Exporter vers le disque" sur la vue page admin : écrire le fichier depuis le contenu en base (même si le fichier existe).
-- [ ] Même logique pour le CSS global : boutons "Actualiser" et "Exporter" sur la vue formulaire.
-- [ ] Afficher le chemin du fichier attendu dans l'admin pour guider le développeur.
-- [ ] Test PHPUnit : hash calculé à la sauvegarde, fichier écrit, sync file→DB met à jour le contenu et le hash.
+- [ ] Créer le répertoire `uploads/formulaires/{code}/` par formulaire (protection contre l'exécution de scripts).
+- [ ] Adapter `forms_admin.php` : lecture/écriture du contenu HTML/CSS depuis/vers le fichier au lieu de `form_pages.content_html` / `forms.global_css`.
+- [ ] Ajouter le dépôt et le téléchargement d'un formulaire complet en une seule archive (HTML + CSS + images).
+- [ ] Supprimer la table `form_fields` et son mécanisme de synchronisation (`extract_html_fields` / `sync_fields_from_html`) ; remplacer par un parsing à la demande (vue admin des champs, validation de soumission, mapping `gvv_role`).
+- [ ] Ajouter la convention d'images de substitution pour les widgets dynamiques (signature, sous-formulaire, paiement) : détection dans `Forms_renderer` et remplacement par le composant réel au rendu.
+- [ ] Vérifier l'ouverture statique d'un formulaire exporté dans un navigateur nu (sans serveur), CSS résolu (fichier relatif ou lien absolu vers la charte partagée).
+- [ ] Migration `1xx_forms_file_storage.php` (numéro définitif à la création) : convertit vers le nouveau stockage fichier tous les formulaires existants encore uniquement en base, de façon idempotente (no-op si le fichier existe déjà). Cette migration n'est jamais supprimée du projet : elle reste un no-op permanent une fois toutes les installations migrées (EF2-ter).
+- [ ] Test PHPUnit : migration idempotente, parsing à la demande, upload/export d'archive.
+- [ ] Test Playwright smoke : création/édition/publication d'un formulaire via le nouveau stockage fichier.
+- [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : mise à jour de « Gérer les pages » et « Convertir un formulaire PDF existant » (nouveau mode d'édition par fichier/archive), nouvelle section décrivant l'export/import d'un formulaire complet et la convention des images de substitution pour les widgets.
 
 ### Lot 3 — Impression et archivage (approche simplifiée)
 

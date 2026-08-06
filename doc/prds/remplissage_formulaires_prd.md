@@ -175,16 +175,22 @@ Cette taxonomie guide les décisions d'architecture : les formulaires de catégo
 3. Chaque page peut être importée depuis un fichier texte/HTML.
 4. Chaque page peut être exportée en fichier texte/HTML.
 
-### EF2-bis : Synchronisation fichiers disque
+### EF2-bis : Stockage fichier du contenu (HTML/CSS)
 
-1. Le contenu HTML d'une page et le CSS global d'un formulaire peuvent être stockés sous forme de fichiers dans `application/forms_templates/`.
-2. Nommage : `{public_slug}_pageN.html` pour les pages, `{public_slug}.css` pour le CSS global.
-3. Un bouton "Actualiser depuis le disque" dans l'admin déclenche la synchronisation fichier → base (le fichier est prioritaire).
-4. Toute sauvegarde via l'interface web écrit simultanément en base et sur disque.
-5. La détection de modification repose sur un hash MD5 du contenu (insensible aux timestamps de déploiement).
-6. La synchronisation n'est jamais déclenchée automatiquement au rendu public.
+1. Le contenu HTML de chaque page et le CSS global d'un formulaire sont stockés sous forme de fichiers, qui constituent la source de vérité du contenu — ce stockage fichier remplace le stockage exclusif en base utilisé jusqu'ici.
+2. Le formulaire reste identifié et administré via un enregistrement en base (statut, section, slug, titre, options de soumission) : seul le contenu HTML/CSS quitte la base.
+3. Le format de stockage permet l'ouverture directe d'un formulaire dans un navigateur standard, sans serveur applicatif, pour prévisualisation, avec un rendu fidèle à la mise en page réelle.
+4. Les widgets dynamiques (signature, sous-formulaire, paiement en ligne, etc.) sont représentés dans le fichier statique par un visuel de substitution reconnaissable (image/icône dédiée par type de widget), remplacé par le composant fonctionnel réel au moment du rendu serveur.
+5. L'ajout, la mise à jour ou le remplacement du contenu d'un formulaire (HTML, CSS, images associées) reste possible entièrement depuis l'interface d'administration web, sans nécessiter d'accès au système de fichiers serveur.
+6. Un formulaire complet (HTML + CSS + images) peut être exporté et importé comme un seul artefact téléchargeable.
+7. La structure des champs d'un formulaire (liste, type, obligatoire, rôle) n'est plus persistée en base : elle est déterminée à la lecture du contenu HTML, à la demande (affichage admin, validation de soumission, mapping des notifications).
 
-Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md)
+Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md) *(architecture à réviser pour refléter cette décision — mise à jour prévue après validation du refactoring)*
+
+### EF2-ter : Migration des formulaires existants
+
+1. Une procédure permet de convertir vers le nouveau stockage fichier les formulaires actuellement stockés uniquement en base (`content_html`/`global_css`), sans perte de contenu ni interruption du service public des formulaires déjà publiés.
+2. Cette procédure reste en place indéfiniment une fois tous les formulaires existants migrés et vérifiés : elle devient alors un no-op sans coût (rien à convertir), plutôt que d'être retirée du projet. Elle ne doit pas être supprimée du fait de sa dépendance à l'ordre des migrations : chaque installation cliente peut se trouver à un niveau de migration différent, et une suppression casserait la mise à niveau de toute installation n'ayant pas encore atteint cette étape.
 
 ### EF3 : Champs et validations
 

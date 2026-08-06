@@ -1,96 +1,83 @@
-# Design Notes — Synchronisation Fichiers Disque ↔ Base de Données (Formulaires)
+# Design Notes — Stockage fichier du contenu des formulaires
 
-Date : 2 juin 2026
+Date de création : 2 juin 2026 — révisé le 6 août 2026 (voir PRD EF2-bis/EF2-ter)
 
 ## Contexte
 
-L'édition du contenu HTML d'une page de formulaire via le textarea de l'interface admin est insuffisante pour les formulaires complexes (mise en page document, CSS scoped, prévisualisation live). Le workflow naturel est :
+L'édition du contenu HTML d'une page de formulaire via le textarea de l'interface admin est insuffisante pour les formulaires complexes (mise en page document, CSS scoped, prévisualisation). Le stockage en base (`form_pages.content_html`, `forms.global_css`) pose en plus deux problèmes récurrents observés en exploitation :
 
-1. concevoir le formulaire dans un éditeur HTML (VS Code, live-server)
-2. le déployer dans GVV sans copier-coller manuel
+- le filtre anti-XSS de CodeIgniter (`global_xss_filtering`) altère silencieusement tout contenu posté contenant une URI `data:` (ex. logo encodé en base64), imposant des contournements SQL directs pour toute modification de contenu concerné ;
+- la table `form_fields`, dérivée du HTML par synchronisation automatique à la sauvegarde, peut diverger silencieusement du contenu réel si la synchronisation échoue partiellement (cf. incident migration 164 — ENUM `field_type` incomplet, deux types de widgets jamais synchronisés).
 
-En parallèle, la base de données reste la source de sauvegarde/restauration : un dump SQL doit suffire à reconstruire l'état complet.
+**Décision** : le fichier devient la source de vérité du contenu (HTML + CSS + images), remplaçant le stockage en base. La table `form_fields` est supprimée ; toute information sur les champs est dérivée du fichier à la demande. Voir PRD [EF2-bis](../prds/remplissage_formulaires_prd.md#ef2-bis--stockage-fichier-du-contenu-htmlcss) et [EF2-ter](../prds/remplissage_formulaires_prd.md#ef2-ter--migration-des-formulaires-existants).
+
+> Ce document remplace la conception précédente (synchronisation bidirectionnelle par hash MD5, base de données restant source de vérité), jamais implémentée. Cette révision reste provisoire : une mise à jour finale interviendra après validation du refactoring, pour clore explicitement les options abandonnées.
 
 ## Décisions d'architecture
 
 | Question | Décision |
 |---|---|
-| Détection de modification | Hash MD5 du contenu (insensible aux mtimes de déploiement git/rsync) |
-| Conflit fichier vs DB | Le fichier gagne toujours |
-| Déclenchement de la sync | Manuel (bouton dans l'admin), pas automatique au rendu |
-| Emplacement des fichiers | `application/forms_templates/` (hors webroot) |
-| Nommage | `{public_slug}_page{N}.html` et `{public_slug}.css` |
-| Granularité | Un fichier par page + un fichier CSS par formulaire |
+| Source de vérité du contenu | Le fichier (HTML + CSS + images). La base ne garde que les métadonnées du formulaire (statut, section, slug, titre, options de soumission). |
+| Table `form_fields` | Supprimée. Les champs sont déterminés par parsing à la demande du fichier HTML (affichage admin, validation de soumission, mapping `gvv_role`). |
+| Emplacement des fichiers | `uploads/formulaires/{code}/` (un dossier par formulaire) |
+| Contenu du dossier | `index.html`, `style.css`, images associées (logo, etc.) |
+| Édition | Depuis l'admin web : dépôt d'un fichier ou d'une archive (HTML + CSS + images) — aucun accès au système de fichiers serveur requis pour l'admin |
+| Export / Import | Un formulaire complet s'exporte/s'importe comme une seule archive téléchargeable |
+| Prévisualisation | Le fichier exporté s'ouvre directement dans un navigateur standard (`file://`), sans serveur applicatif |
+| Widgets dynamiques (signature, sous-formulaire, paiement) | Représentés dans le fichier statique par une image de substitution dédiée par type de widget ; remplacée par le composant réel au rendu serveur |
+| Migration des formulaires existants | Procédure de conversion base → fichier, idempotente ; reste en place indéfiniment comme no-op une fois toutes les installations migrées (jamais supprimée — voir Sécurité) |
 
 ## Emplacement des fichiers
 
 ```
-application/
-└── forms_templates/          ← non accessible par le web
-    ├── attestation-formation-procedures_page1.html
-    ├── attestation-formation-procedures_page2.html
-    ├── attestation-formation-procedures.css
-    ├── inscription-membre_page1.html
-    └── inscription-membre.css
+uploads/
+└── formulaires/               ← web-writable (chmod +wx), protégé contre l'exécution de scripts
+    ├── inscription-membre/
+    │   ├── index.html
+    │   ├── style.css
+    │   └── logo.jpg
+    └── attestation-formation-procedures/
+        ├── index.html
+        └── style.css
 ```
 
-Le répertoire est protégé par la configuration Apache/Nginx (situé sous `application/`, hors du webroot `public_html/` ou protégé par `.htaccess`).
+## Convention des images de substitution
 
-## Schéma de données
+Un widget dynamique reste déclaré par les mêmes attributs `data-gvv-type` / `data-gvv-name` / `data-gvv-required` qu'aujourd'hui, mais son contenu statique est une image reconnaissable plutôt qu'un simple texte :
 
-Deux colonnes de hash ajoutées :
-
-```sql
-ALTER TABLE form_pages ADD COLUMN content_hash VARCHAR(32) NULL
-    COMMENT 'MD5 du content_html, NULL si jamais synchronisé';
-
-ALTER TABLE forms ADD COLUMN css_hash VARCHAR(32) NULL
-    COMMENT 'MD5 du global_css, NULL si jamais synchronisé';
+```html
+<div data-gvv-type="signature" data-gvv-name="signature_membre" data-gvv-required="true">
+  <img src="/assets/forms-widgets/signature-placeholder.png" alt="Zone de signature">
+</div>
 ```
 
-Le hash est calculé à chaque sauvegarde (web ou sync) et sert uniquement à détecter une divergence.
+Au rendu serveur (`Forms_renderer`), ce nœud est repéré par ses attributs `data-gvv-*` — comme aujourd'hui — et son contenu remplacé par le composant fonctionnel réel (canvas de signature, lien de sous-formulaire, etc.). L'image de substitution n'est qu'un repère visuel pour la prévisualisation statique ; la logique de détection des widgets ne change pas.
 
-## Flux de synchronisation
+## Flux
 
-![Diagramme de synchronisation](diagrams/formulaires_sync_fichiers.png)
+### Édition (admin web)
 
-### Fichier → DB (Refresh)
+1. L'admin dépose un fichier HTML/CSS, ou une archive complète, depuis l'interface web.
+2. GVV écrit le contenu dans `uploads/formulaires/{code}/`.
+3. Le rendu public (`forms_public`) lit ce fichier et applique l'injection des widgets dynamiques, exactement comme il lisait `content_html` en base auparavant.
 
-Déclenché par le bouton **"Actualiser depuis le disque"** sur la vue page admin :
+### Migration des formulaires existants
 
-1. GVV lit le fichier `forms_templates/{slug}_page{N}.html`
-2. Calcule `md5_file()`
-3. Compare avec `form_pages.content_hash`
-4. Si différent : met à jour `content_html` + `content_hash`
-5. Résultat affiché explicitement (synchronisé / déjà à jour / fichier absent)
+1. Pour chaque formulaire dont le contenu est encore uniquement en base (`content_html`/`global_css` non vides, fichier absent), écrire le fichier correspondant dans `uploads/formulaires/{code}/`.
+2. Idempotente : un formulaire déjà migré (fichier déjà présent) est ignoré.
+3. Reste disponible indéfiniment comme no-op une fois toutes les installations migrées — voir PRD EF2-ter pour la justification (numérotation séquentielle des migrations, installations clientes à des niveaux de migration différents).
 
-Même logique pour le CSS via le bouton sur la vue formulaire.
-
-### DB → Fichier (sauvegarde web)
-
-Déclenché automatiquement à chaque sauvegarde depuis l'interface web :
-
-1. GVV enregistre `content_html` en base
-2. Recalcule et stocke `content_hash`
-3. Écrit le fichier sur disque (crée le répertoire si absent)
-
-### Export initial
-
-Bouton **"Exporter vers le disque"** disponible même si le fichier existe déjà (écrasement). Utile pour initialiser le fichier depuis un contenu existant en base.
-
-## Règle de priorité
-
-**Le fichier gagne toujours** lors d'un Refresh. Si l'interface web a été utilisée et qu'un fichier plus récent existe sur disque, le Refresh écrase le contenu de la base. C'est intentionnel : le fichier est le medium d'édition principal.
+*Diagramme à refaire pour cette révision (l'ancien diagramme, `diagrams/formulaires_sync_fichiers.png`, décrit la synchronisation bidirectionnelle par hash désormais abandonnée) — prévu lors de la mise à jour finale après validation du refactoring.*
 
 ## Ce que ça ne fait pas
 
-- Pas de sync automatique au rendu public (pas de dégradation de performance)
-- Pas de merge en cas de modifications simultanées (le dernier Refresh écrase)
-- Pas de versioning des fichiers (Git joue ce rôle si les fichiers sont dans le dépôt)
-- Pas de renommage automatique si le `public_slug` change (le fichier garde son ancien nom)
+- Pas de synchronisation bidirectionnelle fichier ↔ base : le fichier est la seule source de vérité du contenu, la base ne le duplique plus.
+- Pas de rendu public directement depuis un serveur de fichiers statique (Apache/Nginx) : le rendu passe toujours par `forms_public`/`Forms_renderer` pour l'injection des widgets dynamiques ; seule la copie locale utilisée pour l'édition/prévisualisation s'ouvre en `file://`.
+- Pas de versioning intégré à GVV des fichiers (Git peut jouer ce rôle si les fichiers sont aussi conservés hors serveur de production).
 
 ## Sécurité
 
-- Le chemin du fichier est construit exclusivement depuis `public_slug` et `page_number` stockés en base : pas d'entrée utilisateur libre dans le chemin → pas de path traversal
-- Le répertoire `forms_templates/` est hors webroot : les fichiers ne sont pas servis directement
-- Écriture de fichier réservée aux admins authentifiés (action admin uniquement)
+- `uploads/formulaires/` reste protégé contre l'exécution de scripts : aucun fichier déposé ne doit pouvoir être interprété comme du PHP.
+- Le nom de dossier est dérivé du `code` du formulaire, jamais d'une entrée utilisateur libre → pas de path traversal.
+- Écriture réservée aux admins authentifiés autorisés sur le formulaire.
+- La migration base → fichier ne doit jamais être supprimée du projet : le runner de migration GVV (`system/libraries/Migration.php`) s'arrête silencieusement à la première étape numérotée manquante lors d'une montée de version — une suppression bloquerait la mise à niveau de toute installation cliente n'ayant pas encore atteint ce numéro.
