@@ -28,7 +28,7 @@
 
     <?php if (!empty($form['global_css'])): ?>
         <style>
-            <?= str_ireplace('</style>', '<\/style>', (string) $form['global_css']) ?>
+            <?= str_ireplace('</style>', '<\/style>', $this->forms_renderer->scope_css((string) $form['global_css'], $scope_class)) ?>
         </style>
     <?php endif; ?>
 

@@ -11,7 +11,6 @@ class BriefingPassagerUlmHandlerTest extends TestCase
     private $db;
     private $form_id;
     private $page_id;
-    private $field_ids = array();
     private $vld_id;
     private $submission_ids = array();
 
@@ -41,19 +40,6 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         ));
         $this->page_id = $this->db->insert_id();
 
-        $field_names = array('nom', 'prenom', 'poids_declare', 'personne_a_prevenir', 'telephone', 'date_vol');
-        foreach ($field_names as $i => $name) {
-            $this->db->insert('form_fields', array(
-                'form_id'    => $this->form_id,
-                'page_id'    => $this->page_id,
-                'name'       => $name,
-                'label'      => $name,
-                'field_type' => $name === 'date_vol' ? 'date' : 'text',
-                'sort_order' => $i,
-            ));
-            $this->field_ids[$name] = $this->db->insert_id();
-        }
-
         $this->db->insert('vols_decouverte', array(
             'date_vente'  => date('Y-m-d'),
             'club'        => 1,
@@ -78,7 +64,6 @@ class BriefingPassagerUlmHandlerTest extends TestCase
             $this->db->where('id', $this->vld_id)->delete('vols_decouverte');
         }
         if ($this->form_id) {
-            $this->db->where('form_id', $this->form_id)->delete('form_fields');
             $this->db->where('form_id', $this->form_id)->delete('form_pages');
             $this->db->where('id', $this->form_id)->delete('forms');
         }
@@ -87,17 +72,13 @@ class BriefingPassagerUlmHandlerTest extends TestCase
     private function createSubmission(array $values_by_name, $subject_id)
     {
         $CI = &get_instance();
-        $values_by_field = array();
-        foreach ($values_by_name as $name => $value) {
-            $values_by_field[$this->field_ids[$name]] = $value;
-        }
 
         $submission_id = $CI->form_submissions_model->create_submission(array(
             'form_id'      => $this->form_id,
             'status'       => 'submitted',
             'subject_type' => 'vols_decouverte',
             'subject_id'   => $subject_id,
-            'values'       => $values_by_field,
+            'values'       => $values_by_name,
         ));
         $this->submission_ids[] = $submission_id;
 

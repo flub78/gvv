@@ -27,9 +27,11 @@
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/pages/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_pages') ?></a>
-            <a class="btn btn-primary" href="<?= site_url('forms_admin/field_create/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_add_field') ?></a>
+            <a class="btn btn-outline-primary" href="<?= site_url('forms_admin/page_edit/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_edit_page') ?></a>
         </div>
     </div>
+
+    <p class="text-muted small"><?= $this->lang->line('forms_help_fields_readonly') ?></p>
 
     <?php if (!empty($success)): ?>
         <div class="alert alert-success"><?= html_escape($success) ?></div>
@@ -49,13 +51,12 @@
                             <th><?= $this->lang->line('forms_label_technical_name') ?></th>
                             <th><?= $this->lang->line('forms_label_type') ?></th>
                             <th style="width:80px"><?= $this->lang->line('forms_label_required') ?></th>
-                            <th class="text-end"><?= $this->lang->line('forms_label_actions') ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($fields)): ?>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4"><?= $this->lang->line('forms_empty_no_fields') ?></td>
+                                <td colspan="5" class="text-center text-muted py-4"><?= $this->lang->line('forms_empty_no_fields') ?></td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($fields as $field): ?>
@@ -65,12 +66,6 @@
                                     <td><code><?= html_escape((string) $field['name']) ?></code></td>
                                     <td><?= html_escape($field_type_labels[$field['field_type']] ?? $field['field_type']) ?></td>
                                     <td><?= $field['is_required'] ? '<span class="badge bg-danger">' . $this->lang->line('forms_label_yes') . '</span>' : '<span class="text-muted">' . $this->lang->line('forms_label_no') . '</span>' ?></td>
-                                    <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/field_edit/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
-                                        <form method="post" action="<?= site_url('forms_admin/field_delete/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_field') ?>');">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
-                                        </form>
-                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

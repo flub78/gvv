@@ -15,8 +15,6 @@ class FormsSubmissionEditTest extends TestCase
     /** @var RealDatabase */
     private $db;
     private $form_id;
-    private $field_nom_id;
-    private $field_file_id;
     private $submission_id;
     private $submission_uuid;
     private $upload_dir;
@@ -53,22 +51,9 @@ class FormsSubmissionEditTest extends TestCase
         ));
         $page_id = $this->db->insert_id();
 
-        $this->db->insert('form_fields', array(
-            'form_id' => $this->form_id, 'page_id' => $page_id, 'name' => 'nom',
-            'label' => 'Nom', 'field_type' => 'text', 'is_required' => 0, 'sort_order' => 1,
-        ));
-        $this->field_nom_id = $this->db->insert_id();
-
-        $this->db->insert('form_fields', array(
-            'form_id' => $this->form_id, 'page_id' => $page_id, 'name' => 'piece_jointe',
-            'label' => 'Pièce jointe', 'field_type' => 'file', 'is_required' => 0, 'sort_order' => 2,
-        ));
-        $this->field_file_id = $this->db->insert_id();
-
-        // No form_fields row for the signature widget: form_fields.field_type is an ENUM
-        // that was never migrated to include 'signature' (see migration 116_forms_core.php)
-        // — in practice every signature widget is the HTML-only kind (data-gvv-type, no
-        // form_fields row, matched by widget_name; migration 137 / Lot 5-bis).
+        // Field structure is no longer persisted (migration 166): all three widgets
+        // above (nom, piece_jointe, signature_test) are parsed on demand from
+        // content_html; values/files are keyed by field_name/widget_name directly.
 
         $this->submission_uuid = 'sub_edit_' . $ts;
         $this->db->insert('form_submissions', array(
@@ -79,7 +64,7 @@ class FormsSubmissionEditTest extends TestCase
         $this->submission_id = $this->db->insert_id();
 
         $this->db->insert('form_submission_values', array(
-            'submission_id' => $this->submission_id, 'field_id' => $this->field_nom_id,
+            'submission_id' => $this->submission_id, 'field_name' => 'nom',
             'value_text' => 'Ancien nom', 'created_at' => $now, 'updated_at' => $now,
         ));
 
@@ -96,7 +81,7 @@ class FormsSubmissionEditTest extends TestCase
         $this->file_path = $this->upload_dir . '/edit_test_file_' . $ts . '.pdf';
         file_put_contents($this->file_path, 'fake pdf content for test');
         $this->db->insert('form_submission_files', array(
-            'submission_id' => $this->submission_id, 'field_id' => $this->field_file_id,
+            'submission_id' => $this->submission_id, 'widget_name' => 'piece_jointe',
             'original_name' => 'ancien.pdf', 'stored_name' => basename($this->file_path),
             'mime_type' => 'application/pdf', 'size_bytes' => filesize($this->file_path),
             'storage_path' => 'uploads/forms_submissions/' . date('Y/m') . '/' . basename($this->file_path),
@@ -107,7 +92,7 @@ class FormsSubmissionEditTest extends TestCase
         $this->sig_path = $this->upload_dir . '/edit_test_sig_' . $ts . '.png';
         copy($this->fixture_png, $this->sig_path);
         $this->db->insert('form_submission_files', array(
-            'submission_id' => $this->submission_id, 'field_id' => null, 'widget_name' => 'signature_test',
+            'submission_id' => $this->submission_id, 'widget_name' => 'signature_test',
             'original_name' => 'signature.png', 'stored_name' => basename($this->sig_path),
             'mime_type' => 'image/png', 'size_bytes' => filesize($this->sig_path),
             'storage_path' => 'uploads/forms_submissions/' . date('Y/m') . '/' . basename($this->sig_path),
@@ -128,7 +113,6 @@ class FormsSubmissionEditTest extends TestCase
         $this->db->where('submission_id', $this->submission_id)->delete('form_submission_files');
         $this->db->where('submission_id', $this->submission_id)->delete('form_submission_values');
         $this->db->where('id', $this->submission_id)->delete('form_submissions');
-        $this->db->where('form_id', $this->form_id)->delete('form_fields');
         $this->db->where('form_id', $this->form_id)->delete('form_pages');
         $this->db->where('id', $this->form_id)->delete('forms');
     }
@@ -285,7 +269,7 @@ class FormsSubmissionEditTest extends TestCase
         $this->assertSame('testadmin', $after_submission['updated_by']);
 
         // value actually updated in place
-        $value = $this->db->where('submission_id', $this->submission_id)->where('field_id', $this->field_nom_id)
+        $value = $this->db->where('submission_id', $this->submission_id)->where('field_name', 'nom')
             ->get('form_submission_values')->row_array();
         $this->assertSame('Nouveau nom', $value['value_text']);
 
@@ -337,7 +321,7 @@ class FormsSubmissionEditTest extends TestCase
 
         // new file/signature present for the same fields
         $new_file = $this->db->where('submission_id', $this->submission_id)
-            ->where('field_id', $this->field_file_id)->get('form_submission_files')->row_array();
+            ->where('widget_name', 'piece_jointe')->get('form_submission_files')->row_array();
         $new_sig = $this->db->where('submission_id', $this->submission_id)
             ->where('widget_name', 'signature_test')->get('form_submission_files')->row_array();
         $this->assertNotEmpty($new_file, 'Le nouveau fichier doit être enregistré.');

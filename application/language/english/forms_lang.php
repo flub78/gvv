@@ -53,6 +53,7 @@ $lang['forms_label_number']               = '#';
 $lang['forms_label_identifier']           = 'Identification';
 $lang['forms_checkbox_identifier']        = 'Response identifier';
 $lang['forms_help_identifier']            = 'Checked fields are concatenated (space-separated) to form the identifier shown in the submissions list.';
+$lang['forms_help_fields_readonly']       = 'Read-only list, auto-detected from the page HTML. To change a field (name, type, required), edit the page HTML.';
 
 // Buttons
 $lang['forms_button_new_form']            = 'New form';
@@ -73,6 +74,7 @@ $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
 $lang['forms_button_backup']              = 'Backup (ZIP)';
 $lang['forms_button_restore']             = 'Restore from ZIP';
+$lang['forms_button_upload_image']        = 'Upload image';
 $lang['forms_button_import_html']         = 'Import from HTML';
 $lang['forms_button_import_zip']          = 'Import from backup';
 $lang['forms_title_import_zip']           = 'Create a form from a backup';
@@ -87,6 +89,7 @@ $lang['forms_button_back_responses']      = 'View responses';
 $lang['forms_button_back_to_responses']   = 'View responses';
 $lang['forms_button_back_form']           = 'Edit form';
 $lang['forms_button_back_pages']          = 'Back to pages';
+$lang['forms_button_edit_page']           = 'Edit page';
 $lang['forms_button_back_fields']         = 'Back to fields';
 $lang['forms_button_pdf']                 = 'Generate PDF';
 $lang['forms_button_back_submissions']    = 'Back to responses';
@@ -118,6 +121,7 @@ $lang['forms_title_edit_page']            = 'Edit page';
 $lang['forms_title_import_page']          = 'Import page';
 $lang['forms_title_import_html']          = 'Create a form from an HTML page';
 $lang['forms_title_backup_restore']       = 'Backup and restore';
+$lang['forms_title_images']               = 'Images';
 $lang['forms_title_fields']               = 'Fields — page';
 $lang['forms_title_add_field']            = 'Add field';
 $lang['forms_title_edit_field']           = 'Edit field';
@@ -184,6 +188,9 @@ $lang['forms_help_options_format']        = '(one per line)';
 $lang['forms_help_options_usage']         = 'Each line is an option presented to the user.';
 $lang['forms_help_import_content']        = 'Content will be added as a new page at the end of the form.';
 $lang['forms_help_restore']              = 'The ZIP file must come from a GVV backup. Title, description, CSS and pages are replaced. Code, status and public slug remain unchanged.';
+$lang['forms_help_backup']                = 'Exports the complete form (metadata, CSS, HTML pages and images) as a ZIP file.';
+$lang['forms_help_images']                = 'Images usable in the pages\' HTML (logo, etc.). Copy the URL shown below each image into a src="..." attribute. Accepted formats: PNG, JPEG, GIF, WEBP — 2 MB maximum.';
+$lang['forms_confirm_delete_image']       = 'Delete this image? Pages referencing it will no longer display it.';
 $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields

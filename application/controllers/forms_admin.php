@@ -28,17 +28,22 @@ class Forms_admin extends MY_Controller {
      */
     private $upload_base_dir = 'uploads/forms_submissions';
 
+    /** Extensions accepted for form content images (logos, etc.). */
+    private $image_allowed_mimes = array('image/png', 'image/jpeg', 'image/gif', 'image/webp');
+    private $image_max_bytes = 2097152; // 2 Mo
+
     public function __construct() {
         parent::__construct();
 
         $this->load->helper('views');
         $this->load->model('forms_model');
         $this->load->model('form_pages_model');
-        $this->load->model('form_fields_model');
         $this->load->model('form_submissions_model');
         $this->load->library('form_validation');
         $this->load->library('forms_validation');
         $this->load->library('forms_renderer');
+        $this->load->library('forms_file_storage');
+        $this->load->library('forms_field_parser');
         $this->lang->load('gvv');
         $this->lang->load('forms');
 
@@ -140,6 +145,7 @@ class Forms_admin extends MY_Controller {
             redirect('forms_admin');
             return;
         }
+        $row = $this->_overlay_css_from_file($row);
 
         $section_id = (int) $this->session->userdata('section');
         $row['is_global'] = empty($row['club']) ? 1 : 0;
@@ -154,6 +160,7 @@ class Forms_admin extends MY_Controller {
             'handler_classes'  => $this->_available_handler_classes(),
             'is_workflow_form' => in_array($row['public_slug'], $this->workflow_form_slugs, true),
             'is_currently_published' => $row['status'] === 'published',
+            'images'           => $this->forms_file_storage->list_images($row['code']),
             'error'            => '',
         );
 
@@ -228,15 +235,17 @@ class Forms_admin extends MY_Controller {
 
         $is_global = (int) $this->input->post('is_global');
         $club = ($section_id > 0 && !$is_global) ? $section_id : null;
+        $code = trim($this->input->post('code'));
+        $global_css = (string) $this->input->post('global_css');
 
         $id = $this->forms_model->create_form(array(
             'club'            => $club,
-            'code'            => trim($this->input->post('code')),
+            'code'            => $code,
             'title'           => trim($this->input->post('title')),
             'description'     => trim($this->input->post('description')),
             'public_slug'     => trim($this->input->post('public_slug')),
             'css_scope'       => trim($this->input->post('css_scope')),
-            'global_css'      => (string) $this->input->post('global_css'),
+            'global_css'      => $global_css,
             'required_params' => $this->input->post('required_params') ?: 'none',
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
@@ -256,6 +265,8 @@ class Forms_admin extends MY_Controller {
             $this->render_view('forms_admin/bs_form', $data);
             return;
         }
+
+        $this->forms_file_storage->write_css($code, $global_css);
 
         $this->session->set_flashdata('forms_success', 'Formulaire cree.');
         redirect('forms_admin');
@@ -328,6 +339,8 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $global_css = (string) $this->input->post('global_css');
+
         $ok = $this->forms_model->update_form($id, array(
             'code'            => $new_code,
             'club'            => $club,
@@ -335,7 +348,7 @@ class Forms_admin extends MY_Controller {
             'description'     => trim($this->input->post('description')),
             'public_slug'     => trim($this->input->post('public_slug')),
             'css_scope'       => trim($this->input->post('css_scope')),
-            'global_css'      => (string) $this->input->post('global_css'),
+            'global_css'      => $global_css,
             'required_params' => $this->input->post('required_params') ?: $current['required_params'],
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
@@ -351,6 +364,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        if ($new_code !== $current['code']) {
+            $this->forms_file_storage->rename_form_dir($current['code'], $new_code);
+        }
+        $this->forms_file_storage->write_css($new_code, $global_css);
+
         $this->session->set_flashdata('forms_success', 'Formulaire « ' . trim($this->input->post('title')) . ' » mis à jour.');
         redirect('forms_admin');
     }
@@ -361,11 +379,14 @@ class Forms_admin extends MY_Controller {
             return;
         }
         $id = (int) $id;
-        if ($id <= 0 || !$this->forms_model->delete_form($id)) {
+        $current = $id > 0 ? $this->forms_model->get_by_id($id) : null;
+        if (!$current || !$this->forms_model->delete_form($id)) {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce formulaire.');
             redirect('forms_admin');
             return;
         }
+
+        $this->forms_file_storage->delete_form_dir($current['code']);
 
         $this->session->set_flashdata('forms_success', 'Formulaire supprime.');
         redirect('forms_admin');
@@ -383,11 +404,19 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $source = $this->forms_model->get_by_id($id);
         $new_id = $this->forms_model->duplicate_form($id, $this->dx_auth->get_username());
         if (!$new_id) {
             $this->session->set_flashdata('forms_error', 'Impossible de dupliquer ce formulaire.');
             redirect('forms_admin');
             return;
+        }
+
+        if ($source) {
+            $new_form = $this->forms_model->get_by_id($new_id);
+            if ($new_form) {
+                $this->forms_file_storage->copy_form_dir($source['code'], $new_form['code']);
+            }
         }
 
         $this->session->set_flashdata('forms_success', 'Formulaire duplique.');
@@ -418,8 +447,10 @@ class Forms_admin extends MY_Controller {
             redirect('forms_admin');
             return;
         }
+        $form = $this->_overlay_css_from_file($form);
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
         $page_count = count($pages);
 
         $current_page_number = (int) $this->input->get('page');
@@ -444,7 +475,7 @@ class Forms_admin extends MY_Controller {
 
         $render_fields = array();
         if ($current_page) {
-            $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
+            $fields = $this->forms_field_parser->parse_fields((string) $current_page['content_html']);
             $render_fields = $this->forms_renderer->normalize_fields_for_view($fields, array());
         } else {
             $fields = array();
@@ -470,10 +501,13 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+
         $data = array(
             'controller' => $this->controller,
             'form'       => $form,
-            'pages'      => $this->form_pages_model->get_form_pages((int) $form['id']),
+            'pages'      => $pages,
             'success'    => $this->session->flashdata('forms_success') ?: '',
             'error'      => $this->session->flashdata('forms_error') ?: '',
         );
@@ -530,7 +564,7 @@ class Forms_admin extends MY_Controller {
         $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $extracted    = $this->extract_html_fields($content_html);
         $field_names  = array_column($extracted, 'name');
-        $conflict     = $this->validate_html_field_names((int) $form['id'], 0, $field_names);
+        $conflict     = $this->validate_html_field_names($form, 0, $field_names);
 
         if ($conflict) {
             $data = array(
@@ -546,9 +580,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $page_number = (int) $this->input->post('page_number');
+
         $page_id = $this->form_pages_model->create_page(array(
             'form_id'      => (int) $form['id'],
-            'page_number'  => (int) $this->input->post('page_number'),
+            'page_number'  => $page_number,
             'title'        => trim((string) $this->input->post('title')),
             'content_html' => $content_html,
             'created_by'   => $this->dx_auth->get_username(),
@@ -560,7 +596,7 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $this->dx_auth->get_username());
+        $this->forms_file_storage->write_page($form['code'], $page_number, $content_html);
 
         $this->session->set_flashdata('forms_success', 'Page ajoutee.');
         redirect('forms_admin/pages/' . (int) $form['id']);
@@ -621,7 +657,7 @@ class Forms_admin extends MY_Controller {
         $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $extracted    = $this->extract_html_fields($content_html);
         $field_names  = array_column($extracted, 'name');
-        $conflict     = $this->validate_html_field_names((int) $form['id'], (int) $page['id'], $field_names);
+        $conflict     = $this->validate_html_field_names($form, (int) $page['id'], $field_names);
 
         if ($conflict) {
             $data = array(
@@ -637,8 +673,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $old_page_number = (int) $page['page_number'];
+        $new_page_number = (int) $this->input->post('page_number');
+
         $ok = $this->form_pages_model->update_page((int) $page['id'], array(
-            'page_number'  => (int) $this->input->post('page_number'),
+            'page_number'  => $new_page_number,
             'title'        => trim((string) $this->input->post('title')),
             'content_html' => $content_html,
             'updated_by'   => $this->dx_auth->get_username(),
@@ -650,7 +689,10 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $this->sync_fields_from_html((int) $form['id'], (int) $page['id'], $content_html, $this->dx_auth->get_username());
+        if ($new_page_number !== $old_page_number) {
+            $this->forms_file_storage->delete_page($form['code'], $old_page_number);
+        }
+        $this->forms_file_storage->write_page($form['code'], $new_page_number, $content_html);
 
         $this->session->set_flashdata('forms_success', 'Page mise a jour.');
         redirect('forms_admin/pages/' . (int) $form['id']);
@@ -676,6 +718,8 @@ class Forms_admin extends MY_Controller {
             redirect('forms_admin/pages/' . (int) $form['id']);
             return;
         }
+
+        $this->forms_file_storage->delete_page($form['code'], (int) $page['page_number']);
 
         $this->session->set_flashdata('forms_success', 'Page supprimee.');
         redirect('forms_admin/pages/' . (int) $form['id']);
@@ -705,7 +749,7 @@ class Forms_admin extends MY_Controller {
 
         $extracted   = $this->extract_html_fields($content_html);
         $field_names = array_column($extracted, 'name');
-        $conflict    = $this->validate_html_field_names((int) $form['id'], 0, $field_names);
+        $conflict    = $this->validate_html_field_names($form, 0, $field_names);
 
         if ($conflict) {
             $this->session->set_flashdata('forms_error', $conflict);
@@ -713,9 +757,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $page_number = $this->form_pages_model->next_page_number((int) $form['id']);
+
         $page_id = $this->form_pages_model->create_page(array(
             'form_id'      => (int) $form['id'],
-            'page_number'  => $this->form_pages_model->next_page_number((int) $form['id']),
+            'page_number'  => $page_number,
             'title'        => trim((string) $this->input->post('import_title')),
             'content_html' => $content_html,
             'created_by'   => $this->dx_auth->get_username(),
@@ -727,7 +773,7 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $this->dx_auth->get_username());
+        $this->forms_file_storage->write_page($form['code'], $page_number, $content_html);
 
         $count = count($extracted);
         $this->session->set_flashdata('forms_success', 'Page importee.' . ($count > 0 ? ' ' . $count . ' champ(s) détecté(s).' : ''));
@@ -768,7 +814,15 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $submissions = $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0);
+        $fields = $this->_parse_form_fields($form);
+        $identifier_names = array();
+        foreach ($fields as $f) {
+            if (!empty($f['is_identifier'])) {
+                $identifier_names[] = $f['name'];
+            }
+        }
+
+        $submissions = $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0, $identifier_names);
 
         $upload_submission_ids = array();
         foreach ($submissions as $submission) {
@@ -786,7 +840,8 @@ class Forms_admin extends MY_Controller {
                 }
                 $export_urls[(int) $submission['id']] = $this->form_submissions_model->build_export_url(
                     $form['target_url'],
-                    (int) $submission['id']
+                    (int) $submission['id'],
+                    $fields
                 );
             }
         }
@@ -827,12 +882,29 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $fields_by_name = $this->forms_field_parser->fields_by_name($this->_parse_form_fields($form));
+
+        $values = $this->form_submissions_model->get_submission_values((int) $submission['id']);
+        foreach ($values as &$v) {
+            $fname = (string) $v['field_name'];
+            $v['field_label'] = isset($fields_by_name[$fname]) ? $fields_by_name[$fname]['label'] : $fname;
+            $v['field_type']  = isset($fields_by_name[$fname]) ? $fields_by_name[$fname]['field_type'] : '';
+        }
+        unset($v);
+
+        $files = $this->form_submissions_model->get_submission_files((int) $submission['id']);
+        foreach ($files as &$f) {
+            $fname = (string) $f['field_name'];
+            $f['field_label'] = isset($fields_by_name[$fname]) ? $fields_by_name[$fname]['label'] : null;
+        }
+        unset($f);
+
         $data = array(
             'controller' => $this->controller,
             'form'       => $form,
             'submission' => $submission,
-            'values'     => $this->form_submissions_model->get_submission_values((int) $submission['id']),
-            'files'      => $this->form_submissions_model->get_submission_files((int) $submission['id']),
+            'values'     => $values,
+            'files'      => $files,
             'error'      => $this->session->flashdata('forms_error') ?: '',
         );
 
@@ -879,6 +951,7 @@ class Forms_admin extends MY_Controller {
         $values_raw = $this->form_submissions_model->get_submission_values((int) $submission['id']);
         $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
         $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages      = $this->_overlay_pages_from_file($form['code'], $pages);
 
         $values_by_name = array();
         foreach ($values_raw as $v) {
@@ -984,6 +1057,7 @@ class Forms_admin extends MY_Controller {
         $values_raw = $this->form_submissions_model->get_submission_values((int) $submission['id']);
         $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
         $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages      = $this->_overlay_pages_from_file($form['code'], $pages);
 
         $values_by_name = array();
         foreach ($values_raw as $v) {
@@ -1364,6 +1438,22 @@ class Forms_admin extends MY_Controller {
         $base_url = rtrim(base_url(), '/') . '/';
 
         $embed_src = function ($src) use ($base_url) {
+            // Images deposited via the "Images" admin card (Lot 2-bis) are served
+            // through forms_public/image/{code}/{filename}, a controller route —
+            // the URL path does not mirror a filesystem path like other assets, so
+            // it needs its own resolution via Forms_file_storage rather than the
+            // generic base_url-relative mapping below. Matched whether the src is
+            // root-relative or prefixed with the full base_url.
+            if (preg_match('~^(?:https?://[^/]+)?/forms_public/image/([^/]+)/([^/?#]+)~i', $src, $m)) {
+                $abs_path = $this->forms_file_storage->image_path(rawurldecode($m[1]), rawurldecode($m[2]));
+                if (!file_exists($abs_path) || !is_readable($abs_path)) {
+                    return null;
+                }
+                $info = getimagesize($abs_path);
+                $mime = $info ? $info['mime'] : 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($abs_path));
+            }
+
             if (strpos($src, $base_url) !== 0) {
                 return null;
             }
@@ -1514,22 +1604,14 @@ class Forms_admin extends MY_Controller {
     /**
      * Split a submission's existing files (Form_submissions_model::get_submission_files())
      * into the shapes needed to render/persist an edit:
-     * - $sig_existing:   field_name => preview URL, fed to Forms_renderer::inject_signature_widgets()
-     * - $file_existing:  field_name => ['original_name', 'preview_url'], fed to inject_existing_file_hints()
-     * - $by_field_id:    field_id => file row, for fields backed by a form_fields row.
-     * - $by_widget_name: widget_name => file row, for HTML-only signature widgets (field_id NULL).
-     *
-     * A file with no form_fields row (field_id NULL) is always an HTML-only signature widget:
-     * the form_fields.field_type ENUM has no 'signature' value (never migrated — see migration
-     * 116_forms_core.php), so a signature can only ever be recorded via widget_name, never
-     * field_id, regardless of whether the widget happens to also have a form_fields row for
-     * other reasons.
+     * - $sig_existing:    field_name => preview URL, fed to Forms_renderer::inject_signature_widgets()
+     * - $file_existing:   field_name => ['original_name', 'preview_url'], fed to inject_existing_file_hints()
+     * - $by_field_name:   field_name => file row.
      */
-    private function _split_existing_files($form, $submission, array $existing_files, array $fields_by_id) {
+    private function _split_existing_files($form, $submission, array $existing_files, array $fields_by_name) {
         $sig_existing   = array();
         $file_existing  = array();
-        $by_field_id    = array();
-        $by_widget_name = array();
+        $by_field_name  = array();
 
         foreach ($existing_files as $f) {
             $field_name = (string) $f['field_name'];
@@ -1539,9 +1621,7 @@ class Forms_admin extends MY_Controller {
 
             $preview_url = site_url('forms_admin/submission_file/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $f['id']) . '?inline=1';
 
-            $field_id = $f['field_id'] !== null ? (int) $f['field_id'] : null;
-            $is_signature = ($field_id === null)
-                || (isset($fields_by_id[$field_id]) && $fields_by_id[$field_id]['field_type'] === 'signature');
+            $is_signature = isset($fields_by_name[$field_name]) && $fields_by_name[$field_name]['field_type'] === 'signature';
 
             if ($is_signature) {
                 $sig_existing[$field_name] = $preview_url;
@@ -1552,77 +1632,74 @@ class Forms_admin extends MY_Controller {
                 );
             }
 
-            if ($field_id !== null) {
-                $by_field_id[$field_id] = $f;
-            } elseif (!empty($f['widget_name'])) {
-                $by_widget_name[(string) $f['widget_name']] = $f;
-            }
+            $by_field_name[$field_name] = $f;
         }
 
-        return array($sig_existing, $file_existing, $by_field_id, $by_widget_name);
+        return array($sig_existing, $file_existing, $by_field_name);
     }
 
     /**
-     * Detect signature widgets declared only in page HTML (data-gvv-type="signature", no
-     * form_fields row — see _split_existing_files() above) and return their field names,
-     * excluding any name already backed by a form_fields row (already handled by the main
-     * field loop in submission_edit_submit()).
-     */
-    private function _html_only_signature_widget_names($content_html, array $fields_by_id) {
-        $known_names = array();
-        foreach ($fields_by_id as $fld) {
-            $known_names[(string) $fld['name']] = true;
-        }
-
-        $raw = html_entity_decode((string) $content_html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $raw, $divs);
-
-        $names = array();
-        foreach ($divs[1] as $attrs) {
-            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $m)) {
-                continue;
-            }
-            $name = trim($m[1]);
-            if ($name !== '' && !isset($known_names[$name])) {
-                $names[] = $name;
-            }
-        }
-
-        return array_values(array_unique($names));
-    }
-
-    /**
-     * Build the old_values map (field_id => value_text) expected by
+     * Build the old_values map (field_name => value_text) expected by
      * Forms_renderer::normalize_fields_for_view() / repopulate_html_fields(), from a
      * submission's already-saved values.
      *
      * Checkbox values: Form_submissions_model::normalize_value() JSON-encodes arrays, used
      * when a field genuinely received several values (e.g. <select multiple>, or in theory
-     * several checkboxes sharing one name — though extract_html_fields() dedupes by exact
-     * name, so that pattern can never actually produce more than one form_fields row in
-     * practice). In real forms, a "checkbox" field is one single toggle and value_text is
-     * the plain string the browser submits: "on" (or the input's own value=) when checked,
-     * "" when not — never JSON. Only decode when it actually looks like a JSON array;
-     * otherwise keep the raw scalar so repopulate_html_fields() can check it as a boolean.
+     * several checkboxes sharing one name — though Forms_field_parser dedupes by exact
+     * name, so that pattern can never actually produce more than one field in practice).
+     * In real forms, a "checkbox" field is one single toggle and value_text is the plain
+     * string the browser submits: "on" (or the input's own value=) when checked, "" when
+     * not — never JSON. Only decode when it actually looks like a JSON array; otherwise
+     * keep the raw scalar so repopulate_html_fields() can check it as a boolean.
      */
-    private function _old_values_from_submission_values(array $submission_values, array $fields_by_id) {
+    private function _old_values_from_submission_values(array $submission_values, array $fields_by_name) {
         $old_values = array();
         foreach ($submission_values as $v) {
-            $field_id = (int) $v['field_id'];
-            if ($field_id <= 0) {
+            $field_name = (string) $v['field_name'];
+            if ($field_name === '') {
                 continue;
             }
             $value = $v['value_text'];
-            $type = isset($fields_by_id[$field_id]) ? $fields_by_id[$field_id]['field_type'] : '';
+            $type = isset($fields_by_name[$field_name]) ? $fields_by_name[$field_name]['field_type'] : '';
             if ($type === 'checkbox' && is_string($value) && substr(trim($value), 0, 1) === '[') {
                 $decoded = json_decode($value, true);
                 if (is_array($decoded)) {
                     $value = $decoded;
                 }
             }
-            $old_values[$field_id] = $value;
+            $old_values[$field_name] = $value;
         }
         return $old_values;
+    }
+
+    /**
+     * Same identifier a submission would show in the "Identification" column of the
+     * submissions list (fields flagged data-gvv-identifier, concatenated) — used to
+     * replace the bare "#<id>" on single-submission admin pages (edit, delete confirm)
+     * with something a human can recognize. Falls back to upload_comment, then to ''
+     * (caller falls back further to "#<id>").
+     */
+    private function _response_identifier($form, $submission) {
+        $identifier_names = array();
+        foreach ($this->_parse_form_fields($form) as $f) {
+            if (!empty($f['is_identifier'])) {
+                $identifier_names[] = (string) $f['name'];
+            }
+        }
+
+        $ident = '';
+        if (!empty($identifier_names)) {
+            $values = $this->form_submissions_model->get_submission_values((int) $submission['id']);
+            $parts = array();
+            foreach ($values as $v) {
+                if (in_array((string) $v['field_name'], $identifier_names, true)) {
+                    $parts[] = (string) $v['value_text'];
+                }
+            }
+            $ident = trim(implode(' ', $parts));
+        }
+
+        return $ident !== '' ? $ident : trim((string) ($submission['upload_comment'] ?? ''));
     }
 
     /**
@@ -1651,6 +1728,7 @@ class Forms_admin extends MY_Controller {
         ]);
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
         if (empty($pages)) {
             show_error('Ce formulaire ne contient aucune page publiee.', 404);
             return;
@@ -1671,11 +1749,8 @@ class Forms_admin extends MY_Controller {
             $current_page_number = (int) $current_page['page_number'];
         }
 
-        $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
-        $fields_by_id = array();
-        foreach ($fields as $fld) {
-            $fields_by_id[(int) $fld['id']] = $fld;
-        }
+        $fields = $this->forms_field_parser->parse_fields((string) $current_page['content_html']);
+        $fields_by_name = $this->forms_field_parser->fields_by_name($fields);
 
         // Prefill priority: a failed resubmission attempt (flashdata) beats the
         // already-saved values, same convention as the public "old values on error" flow.
@@ -1684,13 +1759,13 @@ class Forms_admin extends MY_Controller {
             $old_values = $flash_old_values;
         } else {
             $submission_values = $this->form_submissions_model->get_submission_values((int) $submission['id']);
-            $old_values = $this->_old_values_from_submission_values($submission_values, $fields_by_id);
+            $old_values = $this->_old_values_from_submission_values($submission_values, $fields_by_name);
         }
 
         $render_fields = $this->forms_renderer->normalize_fields_for_view($fields, $old_values);
 
         $existing_files = $this->form_submissions_model->get_submission_files((int) $submission['id']);
-        list($sig_existing, $file_existing, ) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_id);
+        list($sig_existing, $file_existing, ) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_name);
 
         $has_signature_widget = false;
         if (!empty($current_page['content_html'])) {
@@ -1715,6 +1790,7 @@ class Forms_admin extends MY_Controller {
             'render_fields'        => $render_fields,
             'error'                => $this->session->flashdata('forms_error') ?: '',
             'has_signature_widget' => $has_signature_widget,
+            'response_identifier'  => $this->_response_identifier($form, $submission),
         );
 
         $this->render_view('forms_admin/bs_submission_edit', $data);
@@ -1749,28 +1825,25 @@ class Forms_admin extends MY_Controller {
         }
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
         $page = $this->_find_page_by_number($pages, $page_number);
         if (!$page) {
             show_error('Page de formulaire introuvable.', 404);
             return;
         }
 
-        $fields = $this->form_fields_model->get_page_fields((int) $page['id']);
-        $fields_by_id = array();
-        foreach ($fields as $fld) {
-            $fields_by_id[(int) $fld['id']] = $fld;
-        }
+        $fields = $this->forms_field_parser->parse_fields((string) $page['content_html']);
+        $fields_by_name = $this->forms_field_parser->fields_by_name($fields);
 
         $existing_files = $this->form_submissions_model->get_submission_files((int) $submission['id']);
-        list(, , $existing_by_field_id, $existing_by_widget_name) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_id);
+        list(, , $existing_by_name) = $this->_split_existing_files($form, $submission, $existing_files, $fields_by_name);
 
         $submitted_values = array();
-        $file_field_keys  = array(); // field_id => $_FILES key, for fields that actually got a new file
-        $signature_canvas_data = array(); // field_id => base64, for fields that actually got a new drawn/typed signature
+        $file_field_keys  = array(); // field_name => $_FILES key, for fields that actually got a new file
+        $signature_canvas_data = array(); // field_name => base64, for fields that actually got a new drawn/typed signature
 
         foreach ($fields as $field) {
             $key        = (string) $field['name'];
-            $field_id   = (int) $field['id'];
             $field_type = isset($field['field_type']) ? $field['field_type'] : 'text';
 
             if ($field_type === 'signature') {
@@ -1780,35 +1853,35 @@ class Forms_admin extends MY_Controller {
                 }
 
                 if ($sig_type === 'file' && isset($_FILES[$key . '_file']) && !empty($_FILES[$key . '_file']['name'])) {
-                    $file_field_keys[$field_id] = $key . '_file';
-                    $submitted_values[$field_id] = (string) $_FILES[$key . '_file']['name'];
+                    $file_field_keys[$key] = $key . '_file';
+                    $submitted_values[$key] = (string) $_FILES[$key . '_file']['name'];
                     continue;
                 }
 
                 $base64 = ($sig_type !== 'file') ? trim((string) $this->input->post($key)) : '';
                 if ($base64 !== '') {
-                    $signature_canvas_data[$field_id] = $base64;
-                    $submitted_values[$field_id] = '[signature]';
+                    $signature_canvas_data[$key] = $base64;
+                    $submitted_values[$key] = '[signature]';
                     continue;
                 }
 
                 // Nothing new submitted: keep the existing signature (if any) untouched.
-                $submitted_values[$field_id] = isset($existing_by_field_id[$field_id])
-                    ? $existing_by_field_id[$field_id]['original_name']
+                $submitted_values[$key] = isset($existing_by_name[$key])
+                    ? $existing_by_name[$key]['original_name']
                     : '';
                 continue;
             }
 
             if ($field_type === 'file') {
                 if (isset($_FILES[$key]) && !empty($_FILES[$key]['name'])) {
-                    $file_field_keys[$field_id] = $key;
-                    $submitted_values[$field_id] = (string) $_FILES[$key]['name'];
+                    $file_field_keys[$key] = $key;
+                    $submitted_values[$key] = (string) $_FILES[$key]['name'];
                     continue;
                 }
 
                 // Nothing new submitted: keep the existing file (if any) untouched.
-                $submitted_values[$field_id] = isset($existing_by_field_id[$field_id])
-                    ? $existing_by_field_id[$field_id]['original_name']
+                $submitted_values[$key] = isset($existing_by_name[$key])
+                    ? $existing_by_name[$key]['original_name']
                     : '';
                 continue;
             }
@@ -1817,14 +1890,8 @@ class Forms_admin extends MY_Controller {
             if (is_array($value)) {
                 $value = array_values($value);
             }
-            $submitted_values[$field_id] = $value;
+            $submitted_values[$key] = $value;
         }
-
-        // HTML-only signature widgets (data-gvv-type="signature" with no form_fields row —
-        // see _split_existing_files()): not covered by the $fields loop above, not part of
-        // $submitted_values/validation (same as Forms_public::submit()), but still need the
-        // same keep-or-replace handling as any other signature.
-        $widget_names = $this->_html_only_signature_widget_names($page['content_html'], $fields_by_id);
 
         $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
         if (!empty($errors)) {
@@ -1834,12 +1901,12 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $new_files = array(); // field_id => file descriptor, only for fields actually replaced
+        $new_files = array(); // field_name => file descriptor, only for fields actually replaced
 
-        foreach ($signature_canvas_data as $field_id => $base64) {
-            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, $field_id);
+        foreach ($signature_canvas_data as $field_name => $base64) {
+            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, $field_name);
             if ($result) {
-                $new_files[$field_id] = $result;
+                $new_files[$field_name] = $result;
             }
         }
 
@@ -1852,66 +1919,21 @@ class Forms_admin extends MY_Controller {
                 return;
             }
             foreach ($upload_result['files'] as $uf) {
-                $new_files[(int) $uf['field_id']] = $uf;
+                $new_files[(string) $uf['widget_name']] = $uf;
             }
-        }
-
-        $html_sig_new_files = array(); // widget_name => file descriptor, only when actually replaced
-        foreach ($widget_names as $widget_name) {
-            $sig_type = trim((string) $this->input->post($widget_name . '_type'));
-            if (!in_array($sig_type, array('canvas', 'text', 'file'), true)) {
-                $sig_type = 'canvas';
-            }
-
-            if ($sig_type === 'file' && isset($_FILES[$widget_name . '_file']) && !empty($_FILES[$widget_name . '_file']['name'])) {
-                $absolute_dir = FCPATH . $this->upload_base_dir . '/' . date('Y/m');
-                if (!is_dir($absolute_dir)) {
-                    @mkdir($absolute_dir, 0775, true);
-                }
-                $this->load->library('upload');
-                $this->upload->initialize(array(
-                    'upload_path'   => $absolute_dir,
-                    'allowed_types' => 'jpg|jpeg|png|gif|webp',
-                    'max_size'      => 10240,
-                    'encrypt_name'  => true,
-                ));
-                if ($this->upload->do_upload($widget_name . '_file')) {
-                    $udata = $this->upload->data();
-                    $html_sig_new_files[$widget_name] = array(
-                        'field_id'      => null,
-                        'widget_name'   => $widget_name,
-                        'original_name' => isset($udata['client_name']) ? $udata['client_name'] : $udata['orig_name'],
-                        'stored_name'   => $udata['file_name'],
-                        'mime_type'     => isset($udata['file_type']) ? $udata['file_type'] : null,
-                        'size_bytes'    => isset($udata['file_size']) ? (int) round($udata['file_size'] * 1024) : null,
-                        'storage_path'  => $this->upload_base_dir . '/' . date('Y/m') . '/' . $udata['file_name'],
-                    );
-                }
-                continue;
-            }
-
-            $base64 = ($sig_type !== 'file') ? trim((string) $this->input->post($widget_name)) : '';
-            if ($base64 !== '') {
-                $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, null, $widget_name);
-                if ($result) {
-                    $html_sig_new_files[$widget_name] = $result;
-                }
-            }
-            // Nothing new submitted: existing widget signature (if any) is left untouched.
         }
 
         $updated_by = $this->dx_auth->get_username();
-        $all_new_files = array_merge(array_values($new_files), array_values($html_sig_new_files));
 
         $this->db->trans_start();
         $this->form_submissions_model->save_submission_values((int) $submission['id'], $submitted_values, $updated_by);
-        if (!empty($all_new_files)) {
-            $this->form_submissions_model->save_submission_files((int) $submission['id'], $all_new_files, $updated_by);
+        if (!empty($new_files)) {
+            $this->form_submissions_model->save_submission_files((int) $submission['id'], array_values($new_files), $updated_by);
         }
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
-            foreach ($all_new_files as $uf) {
+            foreach ($new_files as $uf) {
                 $fp = FCPATH . ltrim((string) $uf['storage_path'], '/');
                 if (is_file($fp)) {
                     @unlink($fp);
@@ -1924,14 +1946,9 @@ class Forms_admin extends MY_Controller {
         }
 
         // Only delete the previous file/signature once its replacement is confirmed saved.
-        foreach ($new_files as $field_id => $uf) {
-            if (isset($existing_by_field_id[$field_id])) {
-                $this->form_submissions_model->delete_submission_file((int) $existing_by_field_id[$field_id]['id']);
-            }
-        }
-        foreach ($html_sig_new_files as $widget_name => $uf) {
-            if (isset($existing_by_widget_name[$widget_name])) {
-                $this->form_submissions_model->delete_submission_file((int) $existing_by_widget_name[$widget_name]['id']);
+        foreach ($new_files as $field_name => $uf) {
+            if (isset($existing_by_name[$field_name])) {
+                $this->form_submissions_model->delete_submission_file((int) $existing_by_name[$field_name]['id']);
             }
         }
 
@@ -2067,6 +2084,14 @@ class Forms_admin extends MY_Controller {
         readfile($resolved);
     }
 
+    /**
+     * Read-only list of a page's fields, parsed on demand from its HTML content
+     * (uploads/formulaires/) — form_fields no longer exists (migration 166),
+     * so there is no separate structured field editor: fields are edited by
+     * editing the page's HTML (name/type/required are native HTML; validation
+     * rules and "identifier" flag are set via data-gvv-validation/
+     * data-gvv-identifier attributes — see Forms_field_parser).
+     */
     public function fields($form_id = 0, $page_id = 0) {
         $form = $this->load_form_or_redirect($form_id);
         if (!$form) {
@@ -2081,7 +2106,7 @@ class Forms_admin extends MY_Controller {
             'controller' => $this->controller,
             'form'       => $form,
             'page'       => $page,
-            'fields'     => $this->form_fields_model->get_page_fields((int) $page['id']),
+            'fields'     => $this->forms_field_parser->parse_fields((string) $page['content_html']),
             'success'    => $this->session->flashdata('forms_success') ?: '',
             'error'      => $this->session->flashdata('forms_error') ?: '',
         );
@@ -2089,488 +2114,46 @@ class Forms_admin extends MY_Controller {
         $this->render_view('forms_admin/bs_fields', $data);
     }
 
-    public function field_create($form_id = 0, $page_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $data = array(
-            'controller'   => $this->controller,
-            'form'         => $form,
-            'page'         => $page,
-            'field_mode'   => 'create',
-            'form_action'  => site_url('forms_admin/field_store/' . (int) $form['id'] . '/' . (int) $page['id']),
-            'submit_label' => 'Ajouter le champ',
-            'field'        => array(
-                'name'         => '',
-                'label'        => '',
-                'field_type'   => 'text',
-                'is_required'  => 0,
-                'sort_order'   => '',
-                'options_text' => '',
-            ),
-            'error' => '',
-        );
-
-        $this->render_view('forms_admin/bs_field_form', $data);
-    }
-
-    public function field_store($form_id = 0, $page_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $this->form_validation->set_rules('label', 'Libellé', 'required|max_length[255]');
-        $this->form_validation->set_rules('name', 'Nom technique', 'required|max_length[100]|alpha_dash');
-        $this->form_validation->set_rules('field_type', 'Type', 'required');
-
-        if ($this->form_validation->run() === FALSE) {
-            $data = array(
-                'controller'   => $this->controller,
-                'form'         => $form,
-                'page'         => $page,
-                'field_mode'   => 'create',
-                'form_action'  => site_url('forms_admin/field_store/' . (int) $form['id'] . '/' . (int) $page['id']),
-                'submit_label' => 'Ajouter le champ',
-                'field'        => array_merge($this->input->post(), array('options_text' => (string) $this->input->post('options_text'))),
-                'error'        => validation_errors(),
-            );
-            $this->render_view('forms_admin/bs_field_form', $data);
-            return;
-        }
-
-        $options_json = $this->options_text_to_json((string) $this->input->post('options_text'));
-
-        $id = $this->form_fields_model->create_field(array(
-            'form_id'          => (int) $form['id'],
-            'page_id'          => (int) $page['id'],
-            'label'            => trim($this->input->post('label')),
-            'name'             => trim($this->input->post('name')),
-            'field_type'       => trim($this->input->post('field_type')),
-            'is_required'      => (int) (bool) $this->input->post('is_required'),
-            'is_identifier'    => (int) (bool) $this->input->post('is_identifier'),
-            'sort_order'       => (int) $this->input->post('sort_order') ?: null,
-            'options_json'     => $options_json,
-            'created_by'       => $this->dx_auth->get_username(),
-        ));
-
-        if (!$id) {
-            $this->session->set_flashdata('forms_error', 'Impossible de créer le champ.');
-        } else {
-            $this->session->set_flashdata('forms_success', 'Champ ajouté.');
-        }
-
-        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-    }
-
-    public function field_edit($form_id = 0, $page_id = 0, $field_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $field = $this->form_fields_model->get_by_id((int) $field_id);
-        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
-            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
-            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-            return;
-        }
-
-        $field['options_text'] = $this->options_json_to_text($field['options_json']);
-
-        $data = array(
-            'controller'   => $this->controller,
-            'form'         => $form,
-            'page'         => $page,
-            'field_mode'   => 'edit',
-            'form_action'  => site_url('forms_admin/field_update/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']),
-            'submit_label' => 'Enregistrer',
-            'field'        => $field,
-            'error'        => '',
-        );
-
-        $this->render_view('forms_admin/bs_field_form', $data);
-    }
-
-    public function field_update($form_id = 0, $page_id = 0, $field_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $field = $this->form_fields_model->get_by_id((int) $field_id);
-        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
-            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
-            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-            return;
-        }
-
-        $this->form_validation->set_rules('label', 'Libellé', 'required|max_length[255]');
-        $this->form_validation->set_rules('name', 'Nom technique', 'required|max_length[100]|alpha_dash');
-        $this->form_validation->set_rules('field_type', 'Type', 'required');
-
-        if ($this->form_validation->run() === FALSE) {
-            $posted = $this->input->post();
-            $posted['options_text'] = (string) $this->input->post('options_text');
-            $posted['id'] = $field['id'];
-            $data = array(
-                'controller'   => $this->controller,
-                'form'         => $form,
-                'page'         => $page,
-                'field_mode'   => 'edit',
-                'form_action'  => site_url('forms_admin/field_update/' . (int) $form['id'] . '/' . (int) $page['id'] . '/' . (int) $field['id']),
-                'submit_label' => 'Enregistrer',
-                'field'        => $posted,
-                'error'        => validation_errors(),
-            );
-            $this->render_view('forms_admin/bs_field_form', $data);
-            return;
-        }
-
-        $options_json = $this->options_text_to_json((string) $this->input->post('options_text'));
-
-        $old_name    = $field['name'];
-        $new_name    = trim($this->input->post('name'));
-        $is_required = (int) (bool) $this->input->post('is_required');
-
-        $this->form_fields_model->update_field((int) $field['id'], array(
-            'label'            => trim($this->input->post('label')),
-            'name'             => $new_name,
-            'field_type'       => trim($this->input->post('field_type')),
-            'is_required'      => $is_required,
-            'is_identifier'    => (int) (bool) $this->input->post('is_identifier'),
-            'sort_order'       => (int) $this->input->post('sort_order') ?: $field['sort_order'],
-            'options_json'     => $options_json,
-            'updated_by'       => $this->dx_auth->get_username(),
-        ));
-
-        // Propagate required/name changes back to the page HTML so that
-        // sync_fields_from_html does not overwrite is_required on next page save.
-        $raw_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        if (trim($raw_html) !== '') {
-            $dom = new DOMDocument('1.0', 'UTF-8');
-            libxml_use_internal_errors(true);
-            $dom->loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $raw_html . '</body></html>');
-            libxml_clear_errors();
-            $xpath = new DOMXPath($dom);
-            $nodes = iterator_to_array($xpath->query(
-                '//input[@name="' . $old_name . '"] | //select[@name="' . $old_name . '"] | //textarea[@name="' . $old_name . '"]'
-            ));
-            if (!empty($nodes)) {
-                foreach ($nodes as $node) {
-                    if ($new_name !== '' && $new_name !== $old_name) {
-                        $node->setAttribute('name', $new_name);
-                    }
-                    if ($is_required) {
-                        $node->setAttribute('required', 'required');
-                    } else {
-                        $node->removeAttribute('required');
-                    }
-                }
-                $body = $dom->getElementsByTagName('body')->item(0);
-                $updated = '';
-                foreach ($body->childNodes as $child) {
-                    $updated .= $dom->saveHTML($child);
-                }
-                $this->form_pages_model->update_page((int) $page['id'], array(
-                    'content_html' => $updated,
-                    'updated_by'   => $this->dx_auth->get_username(),
-                ));
-            }
-        }
-
-        $this->session->set_flashdata('forms_success', 'Champ mis à jour.');
-        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-    }
-
-    public function field_delete($form_id = 0, $page_id = 0, $field_id = 0) {
-        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
-            show_error('Méthode non autorisée.', 405);
-            return;
-        }
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $field = $this->form_fields_model->get_by_id((int) $field_id);
-        if (!$field || (int) $field['page_id'] !== (int) $page['id']) {
-            $this->session->set_flashdata('forms_error', 'Champ introuvable.');
-            redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-            return;
-        }
-
-        if ($this->form_fields_model->delete_field((int) $field['id'])) {
-            $this->session->set_flashdata('forms_success', 'Champ supprimé.');
-        } else {
-            $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce champ.');
-        }
-
-        redirect('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']);
-    }
-
+    /**
+     * Thin wrapper kept for call-site compatibility: field parsing itself now
+     * lives in Forms_field_parser (shared with forms_public.php), since
+     * form_fields no longer exists to sync to (migration 166).
+     */
     private function extract_html_fields($html) {
-        if (trim($html) === '') {
-            return array();
-        }
-
-        libxml_use_internal_errors(true);
-        $dom = new DOMDocument('1.0', 'UTF-8');
-        @$dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        libxml_clear_errors();
-
-        $xpath = new DOMXPath($dom);
-
-        $label_map = array();
-        foreach ($xpath->query('//label[@for]') as $label_node) {
-            $for = trim($label_node->getAttribute('for'));
-            if ($for !== '') {
-                $label_map[$for] = trim(preg_replace('/\s*\*\s*/', '', $label_node->textContent));
-            }
-        }
-
-        $fields = array();
-        $seen = array();
-        $sort = 1;
-        $skip_types = array('hidden', 'submit', 'reset', 'button', 'image');
-
-        foreach ($xpath->query('//input[@name] | //select[@name] | //textarea[@name]') as $node) {
-            $tag  = strtolower($node->tagName);
-            $name = trim($node->getAttribute('name'));
-            if ($name === '') {
-                continue;
-            }
-            if ($tag === 'input' && in_array(strtolower($node->getAttribute('type') ?: 'text'), $skip_types, true)) {
-                continue;
-            }
-            if (isset($seen[$name])) {
-                continue;
-            }
-            $seen[$name] = true;
-
-            if ($tag === 'textarea') {
-                $field_type = 'textarea';
-            } elseif ($tag === 'select') {
-                $field_type = 'select';
-            } else {
-                $type_map = array('email' => 'email', 'date' => 'date', 'number' => 'number',
-                                  'checkbox' => 'checkbox', 'radio' => 'radio', 'file' => 'file');
-                $raw_type = strtolower($node->getAttribute('type') ?: 'text');
-                $field_type = isset($type_map[$raw_type]) ? $type_map[$raw_type] : 'text';
-            }
-
-            $id    = trim($node->getAttribute('id'));
-            $label = ($id !== '' && isset($label_map[$id])) ? $label_map[$id] : '';
-            if ($label === '') {
-                $label = $name;
-            }
-
-            $options = array();
-            if ($tag === 'select') {
-                foreach ($xpath->query('.//option', $node) as $opt) {
-                    if ($opt->getAttribute('value') !== '') {
-                        $options[] = trim($opt->textContent);
-                    }
-                }
-            }
-
-            $gvv_role = trim($node->getAttribute('data-gvv-role'));
-
-            $fields[] = array(
-                'name'        => $name,
-                'label'       => $label,
-                'field_type'  => $field_type,
-                'is_required' => $node->hasAttribute('required') ? 1 : 0,
-                'sort_order'  => $sort++,
-                'options'     => $options,
-                'gvv_role'    => $gvv_role !== '' ? $gvv_role : null,
-            );
-        }
-
-        // Detect signature widgets declared as <div data-gvv-type="signature" data-gvv-name="...">
-        foreach ($xpath->query('//*[@data-gvv-type and @data-gvv-name]') as $node) {
-            if (strtolower($node->getAttribute('data-gvv-type')) !== 'signature') {
-                continue;
-            }
-            $name = trim($node->getAttribute('data-gvv-name'));
-            if ($name === '' || isset($seen[$name])) {
-                continue;
-            }
-            $seen[$name] = true;
-
-            $label = trim($node->textContent);
-            if ($label === '') {
-                $label = $name;
-            }
-
-            $fields[] = array(
-                'name'        => $name,
-                'label'       => $label,
-                'field_type'  => 'signature',
-                'is_required' => $node->hasAttribute('data-gvv-required') ? 1 : 0,
-                'sort_order'  => $sort++,
-                'options'     => array(),
-                'gvv_role'    => null,
-            );
-        }
-
-        // Detect sub-form widgets declared as
-        // <div data-gvv-type="subform" data-gvv-name="..." data-gvv-form-slug="...">
-        foreach ($xpath->query('//*[@data-gvv-type and @data-gvv-name]') as $node) {
-            if (strtolower($node->getAttribute('data-gvv-type')) !== 'subform') {
-                continue;
-            }
-            $name = trim($node->getAttribute('data-gvv-name'));
-            if ($name === '' || isset($seen[$name])) {
-                continue;
-            }
-            $seen[$name] = true;
-
-            $label = trim($node->textContent);
-            if ($label === '') {
-                $label = $name;
-            }
-
-            $fields[] = array(
-                'name'        => $name,
-                'label'       => $label,
-                'field_type'  => 'subform',
-                'is_required' => $node->hasAttribute('data-gvv-required') ? 1 : 0,
-                'sort_order'  => $sort++,
-                'options'     => array(),
-                'gvv_role'    => null,
-            );
-        }
-
-        return $fields;
+        return $this->forms_field_parser->parse_fields($html);
     }
 
-    private function validate_html_field_names($form_id, $exclude_page_id, array $names) {
+    /**
+     * Cross-page field-name collision check, now parsing every other page's
+     * HTML on demand instead of querying the (removed) form_fields table.
+     */
+    private function validate_html_field_names($form, $exclude_page_id, array $names) {
         if (empty($names)) {
             return null;
         }
 
-        $other = $this->db
-            ->select('ff.name')
-            ->from('form_fields ff')
-            ->join('form_pages fp', 'fp.id = ff.page_id')
-            ->where('fp.form_id', (int) $form_id)
-            ->where('ff.page_id !=', (int) $exclude_page_id)
+        $other_pages = $this->db
+            ->select('page_number, content_html')
+            ->from('form_pages')
+            ->where('form_id', (int) $form['id'])
+            ->where('id !=', (int) $exclude_page_id)
             ->get()
             ->result_array();
+        $other_pages = $this->_overlay_pages_from_file($form['code'], $other_pages);
 
-        $other_names = array_column($other, 'name');
-        $conflicts   = array_intersect($names, $other_names);
+        $other_names = array();
+        foreach ($other_pages as $p) {
+            foreach ($this->forms_field_parser->parse_fields((string) $p['content_html']) as $f) {
+                $other_names[] = $f['name'];
+            }
+        }
+
+        $conflicts = array_intersect($names, $other_names);
         if (!empty($conflicts)) {
             return 'Noms de champs déjà utilisés dans une autre page : ' . implode(', ', $conflicts);
         }
 
         return null;
-    }
-
-    private function sync_fields_from_html($form_id, $page_id, $html, $by = null) {
-        $html = html_entity_decode((string) $html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $new_fields = $this->extract_html_fields($html);
-        $now        = date('Y-m-d H:i:s');
-
-        // Index existing fields by name to preserve IDs (avoid CASCADE on submission values)
-        $existing = $this->db
-            ->where('page_id', (int) $page_id)
-            ->get('form_fields')
-            ->result_array();
-        $existing_by_name = array();
-        foreach ($existing as $row) {
-            $existing_by_name[$row['name']] = $row;
-        }
-
-        $new_names = array_column($new_fields, 'name');
-
-        // Delete fields no longer present in HTML
-        foreach ($existing_by_name as $name => $row) {
-            if (!in_array($name, $new_names, true)) {
-                $this->db->where('id', (int) $row['id'])->delete('form_fields');
-            }
-        }
-
-        // Update or insert
-        foreach ($new_fields as $field) {
-            $options_json = !empty($field['options']) ? json_encode($field['options']) : null;
-            $gvv_role     = isset($field['gvv_role']) ? $field['gvv_role'] : null;
-
-            if (isset($existing_by_name[$field['name']])) {
-                // Update in place — ID preserved, no cascade on submission values
-                $this->db
-                    ->where('id', (int) $existing_by_name[$field['name']]['id'])
-                    ->update('form_fields', array(
-                        'label'        => $field['label'],
-                        'field_type'   => $field['field_type'],
-                        'is_required'  => $field['is_required'],
-                        'sort_order'   => $field['sort_order'],
-                        'options_json' => $options_json,
-                        'gvv_role'     => $gvv_role,
-                        'updated_at'   => $now,
-                        'updated_by'   => $by,
-                    ));
-            } else {
-                $this->db->insert('form_fields', array(
-                    'form_id'      => (int) $form_id,
-                    'page_id'      => (int) $page_id,
-                    'name'         => $field['name'],
-                    'label'        => $field['label'],
-                    'field_type'   => $field['field_type'],
-                    'is_required'  => $field['is_required'],
-                    'sort_order'   => $field['sort_order'],
-                    'options_json' => $options_json,
-                    'gvv_role'     => $gvv_role,
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
-                    'created_by'   => $by,
-                    'updated_by'   => $by,
-                ));
-            }
-        }
-    }
-
-    private function options_text_to_json($text) {
-        $text = trim((string) $text);
-        if ($text === '') {
-            return null;
-        }
-        $lines = array_values(array_filter(array_map('trim', explode("\n", $text)), function ($l) { return $l !== ''; }));
-        return empty($lines) ? null : json_encode($lines);
-    }
-
-    private function options_json_to_text($json) {
-        if (empty($json)) {
-            return '';
-        }
-        $arr = json_decode($json, true);
-        if (!is_array($arr)) {
-            return '';
-        }
-        return implode("\n", $arr);
     }
 
     /**
@@ -2599,6 +2182,7 @@ class Forms_admin extends MY_Controller {
             redirect('forms_admin');
             return false;
         }
+        $form = $this->_overlay_css_from_file($form);
 
         if ($allow_workflow_bypass && in_array($form['public_slug'], $this->workflow_form_slugs, true)) {
             return $form;
@@ -2625,7 +2209,50 @@ class Forms_admin extends MY_Controller {
             redirect('forms_admin/pages/' . (int) $form['id']);
             return false;
         }
+        return $this->_overlay_page_from_file($form['code'], $page);
+    }
+
+    /**
+     * uploads/formulaires/{code}/ is the source of truth for form content
+     * (EF2-bis) — it can be edited directly on disk, not only through the
+     * admin's textarea (Forms_file_storage::write_page()/write_css()). These
+     * helpers overlay the file's content onto the DB-fetched row, mirroring
+     * Forms_public::_overlay_css_from_file()/_overlay_pages_from_file() so the
+     * admin side never displays or acts on content stale relative to the file.
+     */
+    private function _overlay_css_from_file(array $form) {
+        $file_css = $this->forms_file_storage->read_css($form['code']);
+        if ($file_css !== null) {
+            $form['global_css'] = $file_css;
+        }
+        return $form;
+    }
+
+    private function _overlay_page_from_file($code, array $page) {
+        $file_html = $this->forms_file_storage->read_page($code, (int) $page['page_number']);
+        if ($file_html !== null) {
+            $page['content_html'] = $file_html;
+        }
         return $page;
+    }
+
+    private function _overlay_pages_from_file($code, array $pages) {
+        foreach ($pages as &$page) {
+            $page = $this->_overlay_page_from_file($code, $page);
+        }
+        unset($page);
+        return $pages;
+    }
+
+    /**
+     * Parses every page of a form into one flat list of field descriptors —
+     * form_fields no longer exists (migration 166), field metadata is always
+     * derived on demand from the HTML content.
+     */
+    private function _parse_form_fields($form) {
+        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+        return $this->forms_field_parser->parse_form_pages($pages);
     }
 
     public function form_import_html() {
@@ -2743,6 +2370,8 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $this->forms_file_storage->write_css($code, $global_css);
+
         $page_id = $this->form_pages_model->create_page(array(
             'form_id'      => (int) $form_id,
             'page_number'  => 1,
@@ -2752,11 +2381,71 @@ class Forms_admin extends MY_Controller {
         ));
 
         if ($page_id) {
-            $this->sync_fields_from_html((int) $form_id, (int) $page_id, $content_html, $by);
+            $this->forms_file_storage->write_page($code, 1, $content_html);
         }
 
         $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($html_title) . ' » créé depuis le fichier HTML.');
         redirect('forms_admin/edit/' . (int) $form_id);
+    }
+
+    public function image_upload($form_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        if (empty($_FILES['image']['tmp_name']) || (int) $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', 'Aucune image valide reçue.');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        if ((int) $_FILES['image']['size'] > $this->image_max_bytes) {
+            $this->session->set_flashdata('forms_error', 'Image trop volumineuse (2 Mo maximum).');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $info = @getimagesize($_FILES['image']['tmp_name']);
+        if ($info === false || !in_array($info['mime'], $this->image_allowed_mimes, true)) {
+            $this->session->set_flashdata('forms_error', 'Le fichier doit être une image (PNG, JPEG, GIF ou WEBP).');
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $stored_name = $this->forms_file_storage->write_image(
+            $form['code'],
+            $_FILES['image']['name'],
+            file_get_contents($_FILES['image']['tmp_name'])
+        );
+
+        $url = site_url('forms_public/image/' . $form['code'] . '/' . $stored_name);
+        $this->session->set_flashdata(
+            'forms_success',
+            'Image envoyée : ' . html_escape($stored_name) . '. URL à utiliser dans le HTML : ' . html_escape($url)
+        );
+        redirect('forms_admin/edit/' . (int) $form['id']);
+    }
+
+    public function image_delete($form_id = 0, $filename = '') {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $this->forms_file_storage->delete_image($form['code'], $filename);
+        $this->session->set_flashdata('forms_success', 'Image supprimée.');
+        redirect('forms_admin/edit/' . (int) $form['id']);
     }
 
     public function form_backup($form_id = 0) {
@@ -2766,6 +2455,7 @@ class Forms_admin extends MY_Controller {
         }
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
 
         $meta = array(
             'version'         => '1',
@@ -2797,6 +2487,17 @@ class Forms_admin extends MY_Controller {
         file_put_contents($tmp_dir . '/meta.json', json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         file_put_contents($tmp_dir . '/styles.css', (string) $form['global_css']);
 
+        $images = $this->forms_file_storage->list_images($form['code']);
+        if (!empty($images)) {
+            mkdir($tmp_dir . '/images', 0700, true);
+            foreach ($images as $image_name) {
+                copy(
+                    $this->forms_file_storage->image_path($form['code'], $image_name),
+                    $tmp_dir . '/images/' . $image_name
+                );
+            }
+        }
+
         $safe_code = preg_replace('/[^a-zA-Z0-9_-]+/', '-', (string) $form['code']);
         $zip_path  = sys_get_temp_dir() . '/' . $safe_code . '.zip';
 
@@ -2808,6 +2509,10 @@ class Forms_admin extends MY_Controller {
         // Clean up temp directory
         foreach (glob($tmp_dir . '/pages/*.html') as $f) { unlink($f); }
         rmdir($tmp_dir . '/pages');
+        if (is_dir($tmp_dir . '/images')) {
+            foreach (glob($tmp_dir . '/images/*') as $f) { unlink($f); }
+            rmdir($tmp_dir . '/images');
+        }
         foreach (array('meta.json', 'styles.css') as $f) {
             if (file_exists($tmp_dir . '/' . $f)) { unlink($tmp_dir . '/' . $f); }
         }
@@ -2900,6 +2605,8 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $this->forms_file_storage->write_css($code, $css);
+
         $page_count = 0;
         foreach ($meta['pages'] as $pm) {
             $num      = (int) $pm['page_number'];
@@ -2915,16 +2622,40 @@ class Forms_admin extends MY_Controller {
             ));
 
             if ($page_id) {
-                $this->sync_fields_from_html((int) $form_id, (int) $page_id, $content_html, $by);
+                $this->forms_file_storage->write_page($code, $num, $content_html);
                 $page_count++;
             }
         }
 
+        $image_count = $this->_import_images_from_tmpdir($tmp_dir, $code);
+
         $this->_cleanup_tmpdir($tmp_dir);
 
         $title = isset($meta['title']) ? (string) $meta['title'] : $code;
-        $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($title) . ' » importé depuis la sauvegarde (' . $page_count . ' page(s)).');
+        $message = 'Formulaire « ' . html_escape($title) . ' » importé depuis la sauvegarde (' . $page_count . ' page(s)';
+        $message .= $image_count > 0 ? ', ' . $image_count . ' image(s)).' : ').';
+        $this->session->set_flashdata('forms_success', $message);
         redirect('forms_admin/edit/' . (int) $form_id);
+    }
+
+    /**
+     * Extracts an archive's optional images/ folder into the form's file
+     * storage. Shared by form_import_zip() and form_restore(). Returns the
+     * number of image files copied.
+     */
+    private function _import_images_from_tmpdir($tmp_dir, $code) {
+        $images_src = $tmp_dir . '/images';
+        if (!is_dir($images_src)) {
+            return 0;
+        }
+        $count = 0;
+        foreach (glob($images_src . '/*') as $file) {
+            if (is_file($file)) {
+                $this->forms_file_storage->write_image($code, basename($file), file_get_contents($file));
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function form_restore($form_id = 0) {
@@ -2978,10 +2709,17 @@ class Forms_admin extends MY_Controller {
             'global_css'  => $css,
             'updated_by'  => $this->dx_auth->get_username(),
         ));
+        $this->forms_file_storage->write_css($form['code'], $css);
 
         // Remove all existing pages (cascade removes their fields)
         foreach ($this->form_pages_model->get_form_pages((int) $form['id']) as $ep) {
             $this->form_pages_model->delete_page((int) $ep['id']);
+            $this->forms_file_storage->delete_page($form['code'], (int) $ep['page_number']);
+        }
+
+        // Remove all existing images — the archive's images/ folder is the new full set
+        foreach ($this->forms_file_storage->list_images($form['code']) as $existing_image) {
+            $this->forms_file_storage->delete_image($form['code'], $existing_image);
         }
 
         // Recreate pages from the extracted ZIP
@@ -3001,14 +2739,18 @@ class Forms_admin extends MY_Controller {
             ));
 
             if ($page_id) {
-                $this->sync_fields_from_html((int) $form['id'], (int) $page_id, $content_html, $by);
+                $this->forms_file_storage->write_page($form['code'], $num, $content_html);
                 $page_count++;
             }
         }
 
+        $image_count = $this->_import_images_from_tmpdir($tmp_dir, $form['code']);
+
         $this->_cleanup_tmpdir($tmp_dir);
 
-        $this->session->set_flashdata('forms_success', 'Formulaire restauré : ' . $page_count . ' page(s) importée(s).');
+        $message = 'Formulaire restauré : ' . $page_count . ' page(s)';
+        $message .= $image_count > 0 ? ', ' . $image_count . ' image(s) importée(s).' : ' importée(s).';
+        $this->session->set_flashdata('forms_success', $message);
         redirect('forms_admin/edit/' . (int) $form['id']);
     }
 

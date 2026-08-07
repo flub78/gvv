@@ -13,8 +13,8 @@ class Forms_validation {
         $errors = array();
 
         foreach ($fields as $field) {
-            $field_id = isset($field['id']) ? (int) $field['id'] : 0;
-            $value = array_key_exists($field_id, $submitted_values) ? $submitted_values[$field_id] : null;
+            $field_name = isset($field['name']) ? (string) $field['name'] : '';
+            $value = array_key_exists($field_name, $submitted_values) ? $submitted_values[$field_name] : null;
             $error = $this->validate_field_value($field, $value);
             if ($error !== null) {
                 $errors[] = $error;

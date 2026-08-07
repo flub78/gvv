@@ -35,7 +35,7 @@
     ?>
     <?php if (!empty($form['global_css'])): ?>
         <style>
-            <?= str_ireplace('</style>', '<\/style>', (string) $form['global_css']) ?>
+            <?= str_ireplace('</style>', '<\/style>', $this->forms_renderer->scope_css((string) $form['global_css'], $scope_class)) ?>
         </style>
     <?php endif; ?>
 
@@ -43,7 +43,8 @@
         <h1 class="h3 mb-1"><?= $this->lang->line('forms_edit_title') ?></h1>
         <p class="text-muted mb-0">
             <?= html_escape($form['title']) ?> (<?= html_escape($form['code']) ?>)
-            - <?= $this->lang->line('forms_section_submission') ?><?= (int) $submission['id'] ?>
+            - <?php $ident = trim((string) ($response_identifier ?? '')); ?>
+            <?= $ident !== '' ? html_escape($ident) : $this->lang->line('forms_section_submission') . (int) $submission['id'] ?>
         </p>
     </div>
 

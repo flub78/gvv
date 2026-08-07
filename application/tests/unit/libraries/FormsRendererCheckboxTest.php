@@ -32,20 +32,20 @@ class FormsRendererCheckboxTest extends TestCase
 
     public function test_single_checkbox_checked_when_value_is_non_empty_string()
     {
-        $fields = array(array('id' => 1, 'name' => 'rp_masculin', 'field_type' => 'checkbox'));
+        $fields = array(array('name' => 'rp_masculin', 'field_type' => 'checkbox'));
         $html = '<input type="checkbox" name="rp_masculin">';
 
-        $out = $this->repopulate($html, $fields, array(1 => 'on'));
+        $out = $this->repopulate($html, $fields, array('rp_masculin' => 'on'));
 
         $this->assertStringContainsString('checked', $out);
     }
 
     public function test_single_checkbox_not_checked_when_value_is_empty_string()
     {
-        $fields = array(array('id' => 1, 'name' => 'candidat_male', 'field_type' => 'checkbox'));
+        $fields = array(array('name' => 'candidat_male', 'field_type' => 'checkbox'));
         $html = '<input type="checkbox" name="candidat_male">';
 
-        $out = $this->repopulate($html, $fields, array(1 => ''));
+        $out = $this->repopulate($html, $fields, array('candidat_male' => ''));
 
         $this->assertStringNotContainsString('checked', $out);
     }
@@ -55,15 +55,15 @@ class FormsRendererCheckboxTest extends TestCase
         // Reproduces the real attestation_de_fin_de_formation_spl-planeur shape: several
         // single-toggle checkbox fields on the same page, a mix of checked/unchecked.
         $fields = array(
-            array('id' => 1, 'name' => 'instruction_15', 'field_type' => 'checkbox'),
-            array('id' => 2, 'name' => 'dc_10', 'field_type' => 'checkbox'),
-            array('id' => 3, 'name' => 'treuil', 'field_type' => 'checkbox'),
+            array('name' => 'instruction_15', 'field_type' => 'checkbox'),
+            array('name' => 'dc_10', 'field_type' => 'checkbox'),
+            array('name' => 'treuil', 'field_type' => 'checkbox'),
         );
         $html = '<input type="checkbox" name="instruction_15">'
             . '<input type="checkbox" name="dc_10">'
             . '<input type="checkbox" name="treuil">';
 
-        $out = $this->repopulate($html, $fields, array(1 => 'on', 2 => 'on', 3 => ''));
+        $out = $this->repopulate($html, $fields, array('instruction_15' => 'on', 'dc_10' => 'on', 'treuil' => ''));
 
         $this->assertRegExp('/name="instruction_15"[^>]*checked/', $out);
         $this->assertRegExp('/name="dc_10"[^>]*checked/', $out);
@@ -74,11 +74,11 @@ class FormsRendererCheckboxTest extends TestCase
     {
         // Theoretical multi-value case (kept for backward compatibility): $value is an
         // array of checked option values, matched against each checkbox's own value=.
-        $fields = array(array('id' => 1, 'name' => 'options', 'field_type' => 'checkbox'));
+        $fields = array(array('name' => 'options', 'field_type' => 'checkbox'));
         $html = '<input type="checkbox" name="options" value="a">'
             . '<input type="checkbox" name="options" value="b">';
 
-        $out = $this->repopulate($html, $fields, array(1 => array('b')));
+        $out = $this->repopulate($html, $fields, array('options' => array('b')));
 
         $this->assertNotRegExp('/value="a"[^>]*checked/', $out);
         $this->assertRegExp('/value="b"[^>]*checked/', $out);

@@ -2,6 +2,10 @@
 
 Le module formulaires permet de créer des formulaires HTML publiables via un lien public anonyme, de collecter les réponses et de les consulter depuis l'interface d'administration.
 
+Ce mécanisme inspiré des formulaires Google est un moyen pratique d'étendre les fonctionnalités de GVV sans modifier le code. Par rapport à un formulaire papier, il permet la saisie en ligne et gère l'archivage des réponses. Toutes les réponses peuvent être retrouvées facilement dans GVV. 
+
+> 💡 **Envie de construire un formulaire pas à pas ?** Voir le [tutoriel — Créer un formulaire avec l'aide d'un assistant IA](13_formulaires_tutoriel.md), qui construit un exemple complet (3 pages, upload, signature) en s'appuyant sur ChatGPT pour générer le HTML.
+
 ## Sommaire
 
 1. [Vue d'ensemble](#vue-densemble)
@@ -17,27 +21,42 @@ Le module formulaires permet de créer des formulaires HTML publiables via un li
 11. [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
 12. [Sous-formulaires](#sous-formulaires)
 13. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
-14. [Exemples de formulaires](#exemples-de-formulaires)
+14. [Exporter / importer un formulaire complet (archive)](#exporter--importer-un-formulaire-complet-archive)
+15. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
 ## Vue d'ensemble
 
+Un formulaire est un ensemble de pages HTML contenant des champs de saisie. Il est publié via un lien public anonyme, et les réponses sont collectées dans GVV. L'administrateur peut consulter les réponses, les exporter en PDF et supprimer celles qui ne sont plus utiles.
+
+Un formulaire permet également de collecter des fichiers (photos, documents PDF, etc.) et des signatures électroniques. Les fichiers sont stockés de manière sécurisée et ne sont accessibles que depuis l'interface d'administration.
+
+Il est possible de remplir un formulaire en une ou plusieurs fois, et de modifier une réponse déjà soumise si le formulaire est conçu pour cela. Cela permet par exemple de suivre la mise en place d'une procédure ou de compléter un dossier. La procédure n'est considérée comme terminées que lorsque tous les documents ont été fournis et touts les champs obligatoires remplis.
+
+J'ai envisagé plusieurs techniques pour permettre aux administrateurs de créer des formulaires sans coder, et j'ai choisi de rester sur du HTML. Ce n'est pas vraiment plus compliqué que de créer des formulaires en pdf ou avec un système de traitement de texte. Cela permet de rendre n'importe quel look, donc de copier assez exactement des formulaires fournis par l'administration. 
+
+Il aurait aussi été possible de faire définir les champs un peu comme la configuration des cartes de membres, en laissant les administrateurs définir les types de champs et leur position dans la page. Cela aurait été beaucoup plus compliqué et n'aurait pas permis à l'utilisateur de visualiser le rendu final du formulaire. Avec le HTML libre, l'administrateur voit exactement ce que verra l'utilisateur final.
+
+De plus les agents IA comme ChatGPT, Claude ou Gemini sont assez compétents pour générer un formulaire en HTML à partir d'une description textuelle pour en convertissant un fichier word ou pdf en HTML.
+
 Un formulaire GVV est composé de :
 
 - **Métadonnées** : titre, code interne, slug public (URL d'accès anonyme), CSS global, statut (brouillon / publié / archivé)
-- **Pages** : un formulaire peut comporter plusieurs pages ; chaque page contient du HTML libre et des champs déclarés
-- **Champs** : éléments de saisie déclarés par page, typés, optionnellement obligatoires
+- **Pages** : un formulaire peut comporter plusieurs pages ; chaque page contient du HTML libre et des champs
+- **Champs** : éléments de saisie détectés automatiquement dans le HTML de la page (voir [Champs détectés automatiquement](#champs-détectés-automatiquement)) — rien à déclarer séparément
 - **Réponses** : soumissions anonymes, consultables et exportables en PDF
 
 Flux de travail :
 
 ```
-Créer le formulaire → Ajouter des pages → Éditer le contenu HTML
-→ Déclarer les champs → Publier → Partager le lien public → Consulter les réponses
+Créer le formulaire → Ajouter des pages (contenu HTML, champs inclus)
+→ Publier → Partager le lien public → Consulter les réponses
 ```
 
 Le lien public a la forme : `http://gvv.net/index.php/forms/{slug-public}`
+
+Le contenu de chaque page (HTML + CSS) est stocké sous forme de fichiers dans `uploads/formulaires/{code}/` — voir [Gérer les pages](#gérer-les-pages) pour ce que ça change concrètement pour l'administrateur.
 
 ![Liste des formulaires](../screenshots/formulaires/admin_liste_formulaires.png)
 
@@ -53,50 +72,87 @@ Navigation : **Formulaires → Nouveau formulaire**
 
 | Champ | Rôle |
 |---|---|
-| **Titre** | Affiché en en-tête du formulaire public |
 | **Code** | Identifiant interne (lettres, chiffres, tirets) |
-| **Slug public** | Segment d'URL (ex. `inscription-club`) |
+| **Titre** | Affiché en en-tête du formulaire public |
 | **Description** | Texte optionnel affiché sous le titre |
-| **CSS global** | Styles injectés dans la page publique (voir [Règles CSS](#règles-css)) |
-| **Statut** | `brouillon` : non accessible ; `publié` : accessible via le lien public |
+| **Lien public** | Segment d'URL (ex. `inscription-club`) — voir la distinction avec **Code** ci-dessous |
+| **CSS scope** | Préfixe optionnel pour isoler le CSS global de ce formulaire des autres |
+| **CSS global du formulaire** | Styles injectés dans la page publique et dans la preview admin (voir [Règles CSS](#règles-css)) |
+| **Contexte GVV** | Sélecteur(s) de pré-remplissage nécessaires : aucun, membre, instructeur, ou les deux — voir [Pré-remplissage — mécanisme A](#pré-remplissage--mécanisme-a-attributs-data-gvv-source) |
+| **Formulaire global** | Rend le formulaire visible dans toutes les sections plutôt que la seule section active |
 | **Autoriser la soumission par téléchargement (scan)** | Active le bouton "Télécharger un formulaire prérempli" — voir [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan) |
+| **Traitement après soumission** | Déclenche une action GVV (ex. mise à jour d'un vol de découverte) juste après l'enregistrement de la réponse |
+| **Formulaire de création cible (export)** + **Libellé du bouton export** | Si les deux sont renseignés, un bouton apparaît sur chaque réponse pour ouvrir ce formulaire GVV pré-rempli avec les valeurs de la réponse (ex. `membre/create`) |
+| **Statut** *(en modification uniquement)* | `brouillon` : non accessible ; `publié` : accessible via le lien public ; `archivé` |
+
+Le **Code** sert de nom de dossier de stockage (`uploads/formulaires/{code}/` : pages HTML, CSS, images) et de clé unique en base pour retrouver le formulaire côté admin. Si l'admin le renomme, GVV renomme aussi le dossier physique correspondant. Il est distinct du **Lien public**, qui est le segment d'URL vu par les visiteurs externes (`forms/{slug}`) : les deux sont indépendants et modifiables séparément une fois le formulaire créé.
 
 ### Gérer les pages
 
 Chaque formulaire comporte une ou plusieurs pages affichées séquentiellement. GVV gère automatiquement la navigation Précédent / Suivant et le bouton de soumission finale.
 
-Le contenu HTML d'une page peut être rédigé comme un fichier HTML autonome (utile pour la prévisualisation locale), mais seul le contenu du `<body>` est utilisé lors du rendu dans GVV.
+Le contenu HTML de chaque page est la **source de vérité** du formulaire : il n'y a pas de copie séparée des champs à maintenir en base. GVV stocke ce contenu sous forme de fichier, dans `uploads/formulaires/{code}/pageNN.html`, aux côtés du CSS global (`style.css`) et des images éventuelles (`images/`) — voir [Images du formulaire](#images-du-formulaire).
+
+Ce fichier est un document HTML5 autonome (avec son propre `<link rel="stylesheet" href="style.css">`) : il peut s'ouvrir directement dans un navigateur, même sans connexion au serveur GVV — pratique pour relire une mise en page ou dépanner un CSS localement. La zone de texte de l'admin, elle, continue à n'afficher que le contenu utile de la page (sans l'enveloppe HTML) : GVV l'ajoute et la retire automatiquement à l'écriture/la lecture du fichier.
 
 ![Gestion des pages](../screenshots/formulaires/admin_pages.png)
 
 ![Édition d'une page](../screenshots/formulaires/admin_edition_page.png)
+
+Les champs de saisie (texte, email, liste déroulante, signature, etc.) sont **détectés automatiquement** dans ce contenu HTML — voir [Champs détectés automatiquement](#champs-détectés-automatiquement). Il n'y a pas d'étape de déclaration séparée : ajouter un `<input name="...">` dans la page suffit.
+
+### Images du formulaire
+
+Un formulaire peut avoir besoin d'images propres (logo, en-tête, etc.), séparées du CSS et du HTML. Dans la fiche d'édition d'un formulaire, la carte **Images** permet :
+
+- de **déposer** une image (PNG, JPEG, GIF ou WEBP, 2 Mo maximum) ;
+- de consulter la **liste** des images déjà déposées, avec un aperçu miniature ;
+- de **copier l'URL** de chaque image, à coller dans un attribut `src="..."` du contenu HTML de la page (ex. `<img src="{url copiée}" alt="Logo du club">`) ;
+- de **supprimer** une image qui n'est plus utilisée.
+
+> Une image collée en base64 directement dans le HTML (comme le fait déjà l'exemple `inscription_bia`) fonctionne toujours, mais alourdit le fichier de la page à chaque relecture. Pour un logo ou une image réutilisée, préférer le dépôt via la carte Images.
 
 ### Convertir un formulaire PDF existant
 
 GVV n'intègre pas de convertisseur PDF → HTML automatique. Pour numériser un formulaire existant (papier ou PDF) :
 
 1. Demander à un outil d'IA (Claude, ChatGPT, etc.) de convertir le PDF en HTML, en lui donnant les contraintes de ce document : Bootstrap 5, pas de `<head>`/`<style>` ni de balise `<form>` dans le contenu de page — voir [Règles CSS](#règles-css).
-2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main.
-3. Coller le résultat dans le contenu de la page, puis déclarer chaque champ dans l'admin — voir [Déclarer les champs](#déclarer-les-champs).
+2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main pour que GVV les reconnaisse ensuite — voir [Champs détectés automatiquement](#champs-détectés-automatiquement).
+3. Coller le résultat dans le contenu de la page. Aucune déclaration supplémentaire n'est nécessaire : GVV détecte les champs à l'enregistrement de la page.
 4. Vérifier le rendu sur la page publique : la fidélité visuelle au PDF d'origine n'est pas garantie et demande souvent des retouches CSS.
 
 **Limites** : pas de détection automatique des champs du PDF source, pas de garantie de fidélité visuelle, relecture manuelle obligatoire avant publication.
 
-### Déclarer les champs
+### Champs détectés automatiquement
 
-Les champs déclarés permettent à GVV d'identifier les données soumises, d'appliquer la validation serveur et d'enregistrer les réponses.
+GVV analyse le HTML de chaque page à la volée (à l'affichage public, à l'enregistrement d'une réponse, dans la liste admin des champs) pour en extraire la liste des champs — il n'y a rien à déclarer séparément, ni de bouton "Ajouter un champ".
 
-![Ajout d'un champ](../screenshots/formulaires/admin_ajout_champ.png)
+Sont détectés : tout `<input name="...">`, `<select name="...">` ou `<textarea name="...">` (hors `hidden`, `submit`, `reset`, `button`, `image`), ainsi que les widgets `<div data-gvv-type="signature">` et `<div data-gvv-type="subform">`.
 
-| Propriété | Description |
+| Propriété détectée | Provenance |
 |---|---|
-| **Libellé** | Texte affiché dans l'interface admin et les exports |
-| **Nom technique** | Identifiant du champ dans le HTML (`name="..."`) |
-| **Type** | Voir [Types de champs](#types-de-champs) |
-| **Obligatoire** | Validation serveur : erreur si valeur vide à la soumission |
-| **Options** | Pour `select`, `radio`, `checkbox` : une valeur par ligne |
+| **Nom technique** | Attribut `name` (ou `data-gvv-name` pour signature/sous-formulaire) |
+| **Libellé** | Texte du `<label for="id_du_champ">` correspondant ; à défaut, le nom technique |
+| **Type** | Type HTML de l'élément — voir [Types de champs](#types-de-champs) |
+| **Obligatoire** | Attribut `required` sur l'élément (`data-gvv-required="true"` pour signature/sous-formulaire) |
+| **Options** | Options du `<select>`, ou boutons `radio`/`checkbox` partageant le même `name` |
 
-> **Important** : le nom technique déclaré dans l'admin doit correspondre exactement à l'attribut `name` de l'élément HTML. C'est ce lien qui permet à GVV de valider et d'enregistrer la valeur.
+Deux attributs optionnels complètent le comportement d'un champ, sans équivalent visuel dans le rendu :
+
+| Attribut | Effet |
+|---|---|
+| `data-gvv-identifier="true"` | La valeur de ce champ est concaténée avec celles des autres champs identifiants pour former l'identifiant affiché dans la [liste des réponses](#consulter-les-réponses) |
+| `data-gvv-validation="regle1\|regle2"` | Règles de validation serveur supplémentaires, en plus du type. Reconnues : `max_length[n]`, `min_length[n]`, `valid_email`, `numeric` |
+
+```html
+<input type="text" name="numero_licence"
+       data-gvv-identifier="true"
+       data-gvv-validation="max_length[10]|numeric">
+```
+
+Depuis **Gérer les pages**, le bouton **"Champs"** d'une page affiche la liste en lecture seule de ce que GVV a détecté — utile pour vérifier qu'un `name` n'a pas été oublié après un copier-coller. Toute correction se fait en modifiant directement le HTML de la page (bouton **"Modifier la page"**), pas depuis cette liste.
+
+> **Important** : c'est l'attribut `name` de l'élément HTML qui identifie le champ pour GVV — aucune correspondance à saisir ailleurs. Renommer ce `name` change l'identité du champ (les réponses déjà soumises sous l'ancien nom ne sont pas rattachées automatiquement au nouveau).
 
 ---
 
@@ -109,8 +165,8 @@ Les champs déclarés permettent à GVV d'identifier les données soumises, d'ap
 | `date` | `<input type="date">` | Format `YYYY-MM-DD`, date réelle vérifiée |
 | `number` | `<input type="number">` | Valeur numérique |
 | `textarea` | `<textarea>` | — |
-| `select` | `<select>` | Options déclarées dans l'admin |
-| `radio` | `<input type="radio">` (groupe) | Options déclarées dans l'admin |
+| `select` | `<select>` | Options = les `<option value="...">` du HTML |
+| `radio` | `<input type="radio">` (groupe) | Options = les valeurs des boutons partageant le même `name` |
 | `checkbox` | `<input type="checkbox">` (groupe) | `name="champ[]"` pour les valeurs multiples |
 | `file` | `<input type="file">` | MIME et taille contrôlés |
 | `signature` | `<div data-gvv-type="signature" ...>` | Widget interactif — voir ci-dessous |
@@ -148,7 +204,7 @@ Les champs déclarés permettent à GVV d'identifier les données soumises, d'ap
   <textarea class="form-control" id="commentaire" name="commentaire" rows="4"></textarea>
 </div>
 
-<!-- select (options déclarées dans l'admin : Masculin / Féminin / Autre) -->
+<!-- select (options = les <option> ci-dessous : Masculin / Féminin / Autre) -->
 <div class="mb-3">
   <label class="form-label" for="genre">Genre</label>
   <select class="form-select" id="genre" name="genre">
@@ -159,7 +215,7 @@ Les champs déclarés permettent à GVV d'identifier les données soumises, d'ap
   </select>
 </div>
 
-<!-- radio (options déclarées : Oui / Non) -->
+<!-- radio (options = les valeurs des boutons partageant name="licencie" : Oui / Non) -->
 <div class="mb-3">
   <label class="form-label d-block">Licencié FFVV ?</label>
   <div class="form-check form-check-inline">
@@ -172,7 +228,7 @@ Les champs déclarés permettent à GVV d'identifier les données soumises, d'ap
   </div>
 </div>
 
-<!-- checkbox — noter le [] dans name, déclaré sans crochets dans l'admin -->
+<!-- checkbox — le [] dans name regroupe les valeurs cochées en tableau à la soumission -->
 <div class="mb-3">
   <label class="form-label d-block">Disponibilités</label>
   <div class="form-check form-check-inline">
@@ -210,12 +266,21 @@ Le champ signature est un widget interactif qui offre trois modes à l'utilisate
 | Attribut | Rôle |
 |---|---|
 | `data-gvv-type="signature"` | Identifie le widget (obligatoire) |
-| `data-gvv-name` | Nom technique du champ — doit correspondre au nom déclaré dans l'admin |
+| `data-gvv-name` | Nom technique du champ — voir [Champs détectés automatiquement](#champs-détectés-automatiquement) |
 | `data-gvv-required` | `true` = champ obligatoire |
 
 GVV remplace automatiquement ce `<div>` par le widget interactif lors du rendu public. Le texte contenu dans le div sert de libellé affiché au-dessus du widget.
 
-> **Champ à déclarer dans l'admin** : type `signature`, nom technique identique à `data-gvv-name`.
+**Aperçu hors ligne** : comme le fichier de la page est ouvrable directement dans un navigateur (voir [Gérer les pages](#gérer-les-pages)), il est utile d'ajouter une image de repère à l'intérieur du `<div>` du widget, pour qu'il reste visuellement identifiable même sans passer par GVV. GVV ignore cette image au rendu réel (le `<div>` entier est remplacé par le widget fonctionnel) :
+
+```html
+<div data-gvv-type="signature"
+     data-gvv-name="signature_candidat"
+     data-gvv-required="true">
+  <img src="/assets/images/forms-widgets/signature-placeholder.svg" alt="Zone de signature"><br>
+  Signature du candidat
+</div>
+```
 
 ---
 
@@ -524,7 +589,10 @@ Le mécanisme A (`data-gvv-source`) est alors actif : tous les champs annotés s
 
 Navigation : **Formulaires → [nom du formulaire] → Réponses**
 
-La liste affiche, pour chaque soumission : un identifiant (nom/email du soumettant si déclarés via [`data-gvv-role`](#rôles-de-champs-gvv), sinon l'identifiant technique de la soumission), la date de soumission, et les actions disponibles.
+La liste affiche, pour chaque soumission, deux colonnes distinctes en plus de la date et des actions :
+
+- **Identification** : valeur des champs marqués `data-gvv-identifier="true"` (voir [Champs détectés automatiquement](#champs-détectés-automatiquement)), concaténés ; pour une [réponse déposée par scan](#soumission-par-téléchargement-scan), c'est le commentaire saisi au dépôt.
+- **Soumis par** : nom et/ou email captés via [`data-gvv-role`](#rôles-de-champs-gvv), ou "Anonyme" si aucun champ n'est ainsi marqué.
 
 ### Ouvrir une réponse
 
@@ -642,6 +710,18 @@ Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans
 | `data-gvv-form-slug` | Lien public (`public_slug`) du formulaire à ouvrir comme sous-formulaire |
 | `data-gvv-required` | `true` = le formulaire maître ne peut être soumis sans réponse liée au sous-formulaire |
 
+Comme pour le [champ signature](#champ-signature), une image de repère peut être ajoutée dans le `<div>` pour que le widget reste identifiable à l'ouverture directe du fichier de la page :
+
+```html
+<div data-gvv-type="subform"
+     data-gvv-name="briefing_passager"
+     data-gvv-form-slug="briefing-passager-ulm"
+     data-gvv-required="true">
+  <img src="/assets/images/forms-widgets/subform-placeholder.svg" alt="Sous-formulaire à compléter"><br>
+  Briefing passager
+</div>
+```
+
 ### Déroulement pour l'utilisateur
 
 1. **Remplir le sous-formulaire** — clic sur le lien, ouverture dans un nouvel onglet.
@@ -701,13 +781,37 @@ Le bouton n'est visible que dans la liste admin des réponses, déjà protégée
 
 ---
 
+## Exporter / importer un formulaire complet (archive)
+
+Un formulaire (pages HTML, CSS, images, métadonnées) peut être manipulé comme un seul fichier ZIP téléchargeable — utile pour une sauvegarde avant une modification risquée, un transfert entre installations GVV, ou le partage d'un formulaire entre clubs.
+
+### Sauvegarder
+
+Dans la fiche d'édition d'un formulaire, le bouton **"Sauvegarder (ZIP)"** télécharge une archive contenant :
+
+- les pages HTML et le CSS global ;
+- les images déposées via la carte [Images du formulaire](#images-du-formulaire) ;
+- les métadonnées du formulaire (titre, description, portée CSS, slug public, paramètres requis).
+
+### Importer comme nouveau formulaire
+
+Depuis la liste des formulaires, le bouton **"Import depuis sauvegarde"** crée un **nouveau** formulaire à partir d'une archive. Si le code du formulaire sauvegardé existe déjà, GVV lui ajoute automatiquement un suffixe (`_2`, `_3`, ...) plutôt que d'échouer ou d'écraser l'existant.
+
+### Restaurer un formulaire existant
+
+Dans la fiche d'édition d'un formulaire, la section **"Sauvegarde et restauration"** permet aussi de déposer une archive pour **remplacer** le contenu du formulaire courant (pages, CSS, images, métadonnées). Le code, le statut et le lien public du formulaire ne sont **pas** modifiés par une restauration.
+
+> Une restauration remplace intégralement le contenu existant — les pages et images qui ne figurent pas dans l'archive déposée sont supprimées. Faire une sauvegarde avant de restaurer si le contenu actuel doit être conservé en cas d'erreur.
+
+---
+
 ## Exemples de formulaires
 
 ### Exemple 1 — Formulaire minimaliste
 
 Un formulaire d'une page avec trois champs. Aucun CSS personnalisé.
 
-**Champs à déclarer :**
+**Champs détectés automatiquement dans le HTML ci-dessous :**
 
 | Nom technique | Type | Obligatoire |
 |---|---|---|
@@ -742,7 +846,7 @@ Formulaire réaliste couvrant tous les types de champs supportés, y compris la 
 
 ![Formulaire d'inscription avec signature](../screenshots/formulaires/form_avec_signature.png)
 
-**Champs à déclarer :**
+**Champs détectés automatiquement dans le HTML ci-dessous :**
 
 | Nom technique | Type | Obligatoire |
 |---|---|---|
@@ -896,3 +1000,4 @@ Formulaire réaliste couvrant tous les types de champs supportés, y compris la 
 | Portée CSS avec `.forms-public-root` | Sélecteurs nus `input`, `label` sans portée |
 | `name="champ[]"` pour les checkboxes | Balise `<form>` dans le HTML de page |
 | `<div data-gvv-type="signature">` pour les signatures | Boutons `submit`/`reset` dans le HTML de page |
+| Carte **Images** de la fiche formulaire pour un logo réutilisé | Image en base64 collée directement dans le HTML (alourdit le fichier) |

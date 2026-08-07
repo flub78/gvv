@@ -176,34 +176,49 @@ class Form_submissions_model extends CI_Model {
         return $counts;
     }
 
-    public function get_form_submissions($form_id, $limit = 100, $offset = 0) {
-        $sql = "SELECT s.*,
-                  COALESCE(
-                    (
-                      SELECT GROUP_CONCAT(sv.value_text ORDER BY ff.sort_order SEPARATOR ' ')
-                      FROM form_submission_values sv
-                      JOIN form_fields ff ON ff.id = sv.field_id
-                      WHERE sv.submission_id = s.id AND ff.is_identifier = 1
-                    ),
-                    s.upload_comment
-                  ) AS response_identifier
-                FROM {$this->table} s
-                WHERE s.form_id = ?
-                ORDER BY s.submitted_at DESC
-                LIMIT ? OFFSET ?";
-        return $this->db->query($sql, array((int) $form_id, (int) $limit, (int) $offset))->result_array();
+    /**
+     * @param array $identifier_field_names field names flagged data-gvv-identifier
+     *   in the form's HTML (parsed on demand by the caller via Forms_field_parser —
+     *   the model has no access to file-based form content).
+     */
+    public function get_form_submissions($form_id, $limit = 100, $offset = 0, array $identifier_field_names = array()) {
+        if (!empty($identifier_field_names)) {
+            $placeholders = implode(',', array_fill(0, count($identifier_field_names), '?'));
+            $sql = "SELECT s.*,
+                      COALESCE(
+                        (
+                          SELECT GROUP_CONCAT(sv.value_text SEPARATOR ' ')
+                          FROM form_submission_values sv
+                          WHERE sv.submission_id = s.id AND sv.field_name IN ($placeholders)
+                        ),
+                        s.upload_comment
+                      ) AS response_identifier
+                    FROM {$this->table} s
+                    WHERE s.form_id = ?
+                    ORDER BY s.submitted_at DESC
+                    LIMIT ? OFFSET ?";
+            $params = array_merge($identifier_field_names, array((int) $form_id, (int) $limit, (int) $offset));
+        } else {
+            $sql = "SELECT s.*, s.upload_comment AS response_identifier
+                    FROM {$this->table} s
+                    WHERE s.form_id = ?
+                    ORDER BY s.submitted_at DESC
+                    LIMIT ? OFFSET ?";
+            $params = array((int) $form_id, (int) $limit, (int) $offset);
+        }
+        return $this->db->query($sql, $params)->result_array();
     }
 
+    /**
+     * Raw values for a submission, keyed by field_name (no label/type — the
+     * model has no access to file-based form content to resolve those; the
+     * caller enriches by matching field_name against Forms_field_parser output).
+     */
     public function get_submission_values($submission_id) {
         return $this->db
-            ->select('v.*, f.name as field_name, f.label as field_label, f.field_type')
-            ->from($this->values_table . ' v')
-            ->join('form_fields f', 'f.id = v.field_id', 'left')
-            ->where('v.submission_id', (int) $submission_id)
-            ->order_by('f.page_id', 'ASC')
-            ->order_by('f.sort_order', 'ASC')
-            ->order_by('v.id', 'ASC')
-            ->get()
+            ->where('submission_id', (int) $submission_id)
+            ->order_by('id', 'ASC')
+            ->get($this->values_table)
             ->result_array();
     }
 
@@ -212,13 +227,22 @@ class Form_submissions_model extends CI_Model {
      * sub-form widget (Lot 11) or its status AJAX endpoint. Excludes file,
      * signature and subform fields (not meaningful as a flat label/value pair)
      * and empty values.
+     *
+     * @param array $fields form's field descriptors (Forms_field_parser::parse_form_pages()),
+     *   used to resolve label/type and ordering — the model cannot parse HTML itself.
      */
-    public function get_submission_summary($submission_id) {
+    public function get_submission_summary($submission_id, array $fields = array()) {
         $values = $this->get_submission_values($submission_id);
+        $fields_by_name = array();
+        foreach ($fields as $f) {
+            $fields_by_name[$f['name']] = $f;
+        }
 
         $summary = array();
         foreach ($values as $row) {
-            $type = isset($row['field_type']) ? $row['field_type'] : 'text';
+            $name = (string) $row['field_name'];
+            $field = isset($fields_by_name[$name]) ? $fields_by_name[$name] : null;
+            $type = $field ? $field['field_type'] : 'text';
             if (in_array($type, array('file', 'signature', 'subform'), true)) {
                 continue;
             }
@@ -227,10 +251,17 @@ class Form_submissions_model extends CI_Model {
                 continue;
             }
             $summary[] = array(
-                'label' => isset($row['field_label']) && $row['field_label'] !== '' ? $row['field_label'] : $row['field_name'],
-                'value' => $text,
+                'label'      => $field && $field['label'] !== '' ? $field['label'] : $name,
+                'value'      => $text,
+                'sort_order' => $field ? $field['sort_order'] : PHP_INT_MAX,
             );
         }
+
+        usort($summary, function ($a, $b) { return $a['sort_order'] <=> $b['sort_order']; });
+        foreach ($summary as &$row) {
+            unset($row['sort_order']);
+        }
+        unset($row);
 
         return $summary;
     }
@@ -241,18 +272,25 @@ class Form_submissions_model extends CI_Model {
      * and subform fields (no exploitable value_text) and multi-valued fields
      * (JSON-array-shaped value_text, e.g. a <select multiple>) — no `champ[]=`
      * encoding in V1, see design notes § 18.
+     *
+     * @param array $fields form's field descriptors, see get_submission_summary().
      */
-    public function get_export_query_params($submission_id) {
+    public function get_export_query_params($submission_id, array $fields = array()) {
         $values = $this->get_submission_values($submission_id);
+        $fields_by_name = array();
+        foreach ($fields as $f) {
+            $fields_by_name[$f['name']] = $f;
+        }
 
         $params = array();
         foreach ($values as $row) {
-            $type = isset($row['field_type']) ? $row['field_type'] : 'text';
-            if (in_array($type, array('file', 'signature', 'subform'), true)) {
-                continue;
-            }
             $name = isset($row['field_name']) ? trim((string) $row['field_name']) : '';
             if ($name === '') {
+                continue;
+            }
+            $field = isset($fields_by_name[$name]) ? $fields_by_name[$name] : null;
+            $type = $field ? $field['field_type'] : 'text';
+            if (in_array($type, array('file', 'signature', 'subform'), true)) {
                 continue;
             }
             $value_text = (string) $row['value_text'];
@@ -270,12 +308,14 @@ class Form_submissions_model extends CI_Model {
      * controller/method path, e.g. "membre/create", resolved via site_url() —
      * or an already-absolute URL, left as-is) with the query string above
      * appended. Returns the resolved target unchanged if there is nothing to append.
+     *
+     * @param array $fields form's field descriptors, see get_submission_summary().
      */
-    public function build_export_url($target_url, $submission_id) {
+    public function build_export_url($target_url, $submission_id, array $fields = array()) {
         $target_url = trim((string) $target_url);
         $resolved = preg_match('#^https?://#i', $target_url) ? $target_url : site_url($target_url);
 
-        $params = $this->get_export_query_params($submission_id);
+        $params = $this->get_export_query_params($submission_id, $fields);
         if (empty($params)) {
             return $resolved;
         }
@@ -300,9 +340,9 @@ class Form_submissions_model extends CI_Model {
         }
 
         $now = date('Y-m-d H:i:s');
-        foreach ($values_by_field as $field_id => $value) {
-            $field_id = (int) $field_id;
-            if ($field_id <= 0) {
+        foreach ($values_by_field as $field_name => $value) {
+            $field_name = trim((string) $field_name);
+            if ($field_name === '') {
                 continue;
             }
 
@@ -310,7 +350,7 @@ class Form_submissions_model extends CI_Model {
 
             $existing = $this->db
                 ->where('submission_id', (int) $submission_id)
-                ->where('field_id', $field_id)
+                ->where('field_name', $field_name)
                 ->get($this->values_table)
                 ->row_array();
 
@@ -325,7 +365,7 @@ class Form_submissions_model extends CI_Model {
             } else {
                 $this->db->insert($this->values_table, array(
                     'submission_id' => (int) $submission_id,
-                    'field_id'      => $field_id,
+                    'field_name'    => $field_name,
                     'value_text'    => $value_text,
                     'created_at'    => $now,
                     'updated_at'    => $now,
@@ -372,18 +412,13 @@ class Form_submissions_model extends CI_Model {
 
         $now = date('Y-m-d H:i:s');
         foreach ($files as $file) {
-            $field_id = isset($file['field_id']) && $file['field_id'] !== null ? (int) $file['field_id'] : null;
-            if ($field_id !== null && $field_id <= 0) {
-                continue;
-            }
-            if (empty($file['storage_path']) || empty($file['stored_name'])) {
+            if (empty($file['widget_name']) || empty($file['storage_path']) || empty($file['stored_name'])) {
                 continue;
             }
 
             $this->db->insert($this->files_table, array(
                 'submission_id' => (int) $submission_id,
-                'field_id'      => $field_id,
-                'widget_name'   => isset($file['widget_name']) ? (string) $file['widget_name'] : null,
+                'widget_name'   => (string) $file['widget_name'],
                 'original_name' => isset($file['original_name']) ? $file['original_name'] : '',
                 'stored_name'   => $file['stored_name'],
                 'mime_type'     => isset($file['mime_type']) ? $file['mime_type'] : null,
@@ -406,11 +441,16 @@ class Form_submissions_model extends CI_Model {
         return true;
     }
 
+    /**
+     * field_name/field_label in the result are aliases of widget_name and are
+     * NOT resolved against form content — the caller enriches field_label by
+     * matching field_name against Forms_field_parser output when needed
+     * (the model has no access to file-based form content).
+     */
     public function get_submission_files($submission_id) {
         return $this->db
-            ->select('sf.id, sf.submission_id, sf.field_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, COALESCE(f.name, sf.widget_name) as field_name, f.label as field_label', false)
+            ->select('sf.id, sf.submission_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, sf.widget_name as field_name', false)
             ->from($this->files_table . ' sf')
-            ->join('form_fields f', 'f.id = sf.field_id', 'left')
             ->where('sf.submission_id', (int) $submission_id)
             ->order_by('sf.id', 'ASC')
             ->get()
@@ -419,10 +459,9 @@ class Form_submissions_model extends CI_Model {
 
     public function get_submission_file_by_id($file_id) {
         $row = $this->db
-            ->select('sf.id, sf.submission_id, sf.field_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, s.form_id, COALESCE(f.name, sf.widget_name) as field_name, f.label as field_label', false)
+            ->select('sf.id, sf.submission_id, sf.widget_name, sf.original_name, sf.stored_name, sf.mime_type, sf.size_bytes, sf.storage_path, sf.created_at, sf.updated_at, s.form_id, sf.widget_name as field_name', false)
             ->from($this->files_table . ' sf')
             ->join($this->table . ' s', 's.id = sf.submission_id', 'inner')
-            ->join('form_fields f', 'f.id = sf.field_id', 'left')
             ->where('sf.id', (int) $file_id)
             ->get()
             ->row_array();

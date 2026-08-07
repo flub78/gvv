@@ -14,13 +14,151 @@ class Forms_renderer {
     private static $subform_assets_emitted    = false;
     private static $validation_script_emitted = false;
 
+    /**
+     * Scopes a form's custom CSS to $scope_class so it can no longer leak
+     * onto the rest of the GVV page (e.g. a bare `.header` or `input` rule
+     * meant for the form otherwise also matches GVV's own header/menu).
+     *
+     * `body`/`html`/`:root` selectors become the scope class itself.
+     * Selectors combined with `:has(<scope class>)` are left untouched: this
+     * is the deliberate escape hatch a form uses to reach its own Bootstrap
+     * wrapper (`.card`, `.container`) from the outside, e.g. for a full-page
+     * print layout — see doc/design_notes/formulaires_css_isolation_design.md.
+     */
+    public function scope_css($css, $scope_class) {
+        $css = (string) $css;
+        if (trim($css) === '') {
+            return $css;
+        }
+
+        $classes = preg_split('/\s+/', trim((string) $scope_class), -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($classes)) {
+            return $css;
+        }
+        $scope_selector = '.' . implode('.', $classes);
+
+        // Strip comments first so they can't confuse brace/selector matching.
+        $css = preg_replace('#/\*.*?\*/#s', '', $css);
+
+        return $this->_scope_css_blocks($css, $scope_selector);
+    }
+
+    private function _scope_css_blocks($css, $scope_selector) {
+        $result = '';
+        $len    = strlen($css);
+        $i      = 0;
+
+        while ($i < $len) {
+            // Pass through statements with no block body (@import, @charset).
+            if (preg_match('/\G\s*@(import|charset)\b[^;{}]*;/i', $css, $m, 0, $i)) {
+                $result .= $m[0];
+                $i += strlen($m[0]);
+                continue;
+            }
+
+            $brace_pos = strpos($css, '{', $i);
+            if ($brace_pos === false) {
+                $result .= substr($css, $i);
+                break;
+            }
+
+            $close_pos = $this->_find_matching_brace($css, $brace_pos);
+            if ($close_pos === false) {
+                $result .= substr($css, $i);
+                break;
+            }
+
+            $selector_part = substr($css, $i, $brace_pos - $i);
+            $body          = substr($css, $brace_pos + 1, $close_pos - $brace_pos - 1);
+            $trimmed       = trim($selector_part);
+
+            if ($trimmed !== '' && $trimmed[0] === '@') {
+                if (preg_match('/^@(media|supports)\b/i', $trimmed)) {
+                    // Recurse: prefix the selectors declared inside the block.
+                    $result .= $selector_part . '{' . $this->_scope_css_blocks($body, $scope_selector) . '}';
+                } else {
+                    // @keyframes / @font-face / @page: no DOM selector to scope.
+                    $result .= $selector_part . '{' . $body . '}';
+                }
+            } else {
+                $result .= $this->_scope_selector_list($selector_part, $scope_selector) . '{' . $body . '}';
+            }
+
+            $i = $close_pos + 1;
+        }
+
+        return $result;
+    }
+
+    private function _find_matching_brace($css, $open_pos) {
+        $depth = 0;
+        $len   = strlen($css);
+        for ($j = $open_pos; $j < $len; $j++) {
+            if ($css[$j] === '{') {
+                $depth++;
+            } elseif ($css[$j] === '}') {
+                $depth--;
+                if ($depth === 0) {
+                    return $j;
+                }
+            }
+        }
+        return false;
+    }
+
+    private function _scope_selector_list($selector_part, $scope_selector) {
+        $scoped = array();
+        foreach ($this->_split_selectors($selector_part) as $selector) {
+            $selector = trim($selector);
+            if ($selector === '') {
+                continue;
+            }
+            if (preg_match('/^(body|html|:root)$/i', $selector)) {
+                $scoped[] = $scope_selector;
+            } elseif (strpos($selector, ':has(') !== false && strpos($selector, $scope_selector) !== false) {
+                $scoped[] = $selector;
+            } elseif (strpos($selector, $scope_selector) === 0) {
+                $scoped[] = $selector;
+            } else {
+                $scoped[] = $scope_selector . ' ' . $selector;
+            }
+        }
+        return implode(', ', $scoped) . ' ';
+    }
+
+    private function _split_selectors($selector_part) {
+        $selectors = array();
+        $current   = '';
+        $depth     = 0;
+        $len       = strlen($selector_part);
+
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $selector_part[$i];
+            if ($ch === '(') {
+                $depth++;
+            } elseif ($ch === ')') {
+                $depth--;
+            }
+            if ($ch === ',' && $depth === 0) {
+                $selectors[] = $current;
+                $current = '';
+            } else {
+                $current .= $ch;
+            }
+        }
+        if (trim($current) !== '') {
+            $selectors[] = $current;
+        }
+
+        return $selectors;
+    }
+
     public function normalize_fields_for_view(array $fields, array $old_values = array()) {
         $normalized = array();
 
         foreach ($fields as $field) {
-            $field_id = isset($field['id']) ? (int) $field['id'] : 0;
+            $name = isset($field['name']) ? (string) $field['name'] : '';
             $type = isset($field['field_type']) ? (string) $field['field_type'] : 'text';
-            $name = 'field_' . $field_id;
 
             $options = array();
             if (!empty($field['options_json'])) {
@@ -30,7 +168,7 @@ class Forms_renderer {
                 }
             }
 
-            $old = array_key_exists($field_id, $old_values) ? $old_values[$field_id] : '';
+            $old = array_key_exists($name, $old_values) ? $old_values[$name] : '';
             if ($type === 'checkbox') {
                 $old = is_array($old) ? $old : array();
             }
@@ -41,7 +179,7 @@ class Forms_renderer {
             }
 
             $normalized[] = array(
-                'id'         => $field_id,
+                'id'         => $name,
                 'name'       => $name,
                 'type'       => $type,
                 'label'      => isset($field['label']) ? $field['label'] : '',
@@ -62,8 +200,8 @@ class Forms_renderer {
      * as flashdata, and on re-display this method injects them back into the HTML so
      * the user does not lose what they typed.
      *
-     * $fields:     array of field records (each with 'id', 'name', 'field_type')
-     * $old_values: field_id => submitted_value (as stored by the submit() controller)
+     * $fields:     array of field records (each with 'name', 'field_type')
+     * $old_values: field_name => submitted_value (as stored by the submit() controller)
      *
      * Handles: text/email/date/number inputs, select (single), textarea,
      *          checkbox groups, radio groups.  Skips file and signature fields.
@@ -76,17 +214,16 @@ class Forms_renderer {
         // Build field_name => {value, type} map
         $map = array();
         foreach ($fields as $field) {
-            $fid  = (int)    $field['id'];
             $name = (string) $field['name'];
             $type = isset($field['field_type']) ? (string) $field['field_type'] : 'text';
-            if ($name === '' || !array_key_exists($fid, $old_values)) {
+            if ($name === '' || !array_key_exists($name, $old_values)) {
                 continue;
             }
             // Skip fields that cannot or need not be repopulated
             if (in_array($type, array('file', 'signature'), true)) {
                 continue;
             }
-            $map[$name] = array('value' => $old_values[$fid], 'type' => $type);
+            $map[$name] = array('value' => $old_values[$name], 'type' => $type);
         }
 
         if (empty($map)) {
@@ -748,7 +885,7 @@ SUBJS;
     }
 
     /**
-     * Upload one file per (field_id => $_FILES key) pair into $upload_base_dir/YYYY/MM.
+     * Upload one file per (field_name => $_FILES key) pair into $upload_base_dir/YYYY/MM.
      * Shared by Forms_public::submit() (public submission) and Forms_admin::submission_edit_submit()
      * (in-place edit of an existing submission) — same storage layout and validation rules for both.
      *
@@ -771,7 +908,7 @@ SUBJS;
             );
         }
 
-        foreach ($file_field_keys as $field_id => $field_key) {
+        foreach ($file_field_keys as $field_name => $field_key) {
             if (!isset($_FILES[$field_key]) || empty($_FILES[$field_key]['name'])) {
                 continue;
             }
@@ -791,7 +928,7 @@ SUBJS;
 
             $data = $CI->upload->data();
             $saved_files[] = array(
-                'field_id'      => (int) $field_id,
+                'widget_name'   => (string) $field_name,
                 'original_name' => isset($data['client_name']) ? $data['client_name'] : $data['orig_name'],
                 'stored_name'   => $data['file_name'],
                 'mime_type'     => isset($data['file_type']) ? $data['file_type'] : null,
@@ -811,7 +948,7 @@ SUBJS;
      * Shared by Forms_public::submit() and Forms_admin::submission_edit_submit() (see
      * upload_submitted_files() above for why this is a library method, not private per-controller).
      */
-    public function make_signature_file($base64, $upload_base_dir, $field_id = null, $widget_name = null) {
+    public function make_signature_file($base64, $upload_base_dir, $widget_name) {
         $png_data = @base64_decode($base64, true);
         if ($png_data === false || strlen($png_data) < 67) { // 67 bytes = minimal valid PNG header
             return null;
@@ -837,8 +974,7 @@ SUBJS;
         }
 
         return array(
-            'field_id'      => ($field_id !== null && (int) $field_id > 0) ? (int) $field_id : null,
-            'widget_name'   => $widget_name,
+            'widget_name'   => (string) $widget_name,
             'original_name' => 'signature.png',
             'stored_name'   => $stored_name,
             'mime_type'     => 'image/png',

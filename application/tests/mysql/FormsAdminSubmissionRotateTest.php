@@ -59,7 +59,6 @@ class FormsAdminSubmissionRotateTest extends TestCase
 
         $this->db->insert('form_submission_files', array(
             'submission_id' => $this->submission_id,
-            'field_id'      => null,
             'widget_name'   => 'uploaded_response',
             'original_name' => 'scan.png',
             'stored_name'   => basename($this->file_path),

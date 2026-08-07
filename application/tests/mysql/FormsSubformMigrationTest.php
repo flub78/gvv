@@ -197,7 +197,6 @@ class FormsSubformMigrationTest extends TestCase
 
         $CI = &get_instance();
         $CI->load->model('form_submissions_model');
-        $CI->load->model('form_fields_model');
         $CI->load->model('forms_model');
         $CI->load->model('form_pages_model');
 
@@ -215,32 +214,30 @@ class FormsSubformMigrationTest extends TestCase
         ));
         $page_id = $this->db->insert_id();
 
-        $field_text = $CI->form_fields_model->create_field(array(
-            'form_id' => $form_id, 'page_id' => $page_id, 'sort_order' => 1,
-            'name' => 'nom', 'label' => 'Nom', 'field_type' => 'text',
-        ));
-        $field_file = $CI->form_fields_model->create_field(array(
-            'form_id' => $form_id, 'page_id' => $page_id, 'sort_order' => 2,
-            'name' => 'piece_jointe', 'label' => 'Piece jointe', 'field_type' => 'file',
-        ));
+        // Field structure is no longer persisted (migration 166) — parsed on demand
+        // from HTML in production; here we build the descriptor array directly,
+        // matching Forms_field_parser::parse_fields()'s output shape.
+        $fields = array(
+            array('name' => 'nom', 'label' => 'Nom', 'field_type' => 'text', 'sort_order' => 1),
+            array('name' => 'piece_jointe', 'label' => 'Piece jointe', 'field_type' => 'file', 'sort_order' => 2),
+        );
 
         $submission_id = $CI->form_submissions_model->create_submission(array(
             'form_id' => $form_id,
             'status'  => 'submitted',
             'values'  => array(
-                $field_text => 'Dupont',
-                $field_file => 'scan.pdf',
+                'nom'          => 'Dupont',
+                'piece_jointe' => 'scan.pdf',
             ),
         ));
 
-        $summary = $CI->form_submissions_model->get_submission_summary($submission_id);
+        $summary = $CI->form_submissions_model->get_submission_summary($submission_id, $fields);
         $labels = array_column($summary, 'label');
         $this->assertContains('Nom', $labels);
         $this->assertNotContains('Piece jointe', $labels);
 
         $this->db->where('submission_id', $submission_id)->delete('form_submission_values');
         $this->db->where('form_id', $form_id)->delete('form_submissions');
-        $this->db->where('page_id', $page_id)->delete('form_fields');
         $this->db->where('id', $page_id)->delete('form_pages');
         $this->db->where('id', $form_id)->delete('forms');
     }

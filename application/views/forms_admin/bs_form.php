@@ -184,14 +184,44 @@
     <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
     <div class="card shadow-sm mt-4">
         <div class="card-header">
+            <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_images') ?></h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3"><?= $this->lang->line('forms_help_images') ?></p>
+
+            <?php if (!empty($images)): ?>
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <?php foreach ($images as $image_name): ?>
+                    <?php $image_url = site_url('forms_public/image/' . $form['code'] . '/' . $image_name); ?>
+                    <div class="text-center" style="width:130px;">
+                        <img src="<?= $image_url ?>" alt="<?= html_escape($image_name) ?>" class="border rounded mb-1" style="max-width:120px; max-height:80px; object-fit:contain;">
+                        <div class="small text-truncate" title="<?= html_escape($image_name) ?>"><?= html_escape($image_name) ?></div>
+                        <input type="text" class="form-control form-control-sm mb-1" value="<?= html_escape($image_url) ?>" readonly onclick="this.select();">
+                        <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_image') ?>');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100"><?= $this->lang->line('forms_button_delete') ?></button>
+                        </form>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <form method="post" enctype="multipart/form-data" action="<?= site_url('forms_admin/image_upload/' . (int) $form['id']) ?>">
+                <div class="input-group">
+                    <input type="file" class="form-control form-control-sm" name="image" accept="image/png,image/jpeg,image/gif,image/webp" required>
+                    <button type="submit" class="btn btn-sm btn-primary"><?= $this->lang->line('forms_button_upload_image') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
             <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_backup_restore') ?></h2>
         </div>
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-md-4">
-                    <p class="text-muted small mb-2">
-                        Exporte le formulaire complet (métadonnées, CSS et pages HTML) dans un fichier ZIP.
-                    </p>
+                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_backup') ?></p>
                     <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/form_backup/' . (int) $form['id']) ?>">
                         <?= $this->lang->line('forms_button_backup') ?>
                     </a>

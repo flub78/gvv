@@ -128,6 +128,7 @@
                                         <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
                                             data-submission-id="<?= (int) $submission['id'] ?>"
                                             data-form-id="<?= (int) $form['id'] ?>"
+                                            data-identifier="<?= html_escape($ident) ?>"
                                             data-bs-toggle="modal" data-bs-target="#deleteSubmissionModal">
                                             <?= $this->lang->line('forms_button_delete') ?>
                                         </button>
@@ -225,7 +226,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $this->lang->line('forms_button_close') ?>"></button>
             </div>
             <div class="modal-body">
-                <?= $this->lang->line('forms_modal_confirm_delete') ?> <strong>#<span id="deleteSubmissionId"></span></strong> ?
+                <?= $this->lang->line('forms_modal_confirm_delete') ?> <strong><span id="deleteSubmissionId"></span></strong> ?
                 <?= $this->lang->line('forms_modal_help_delete') ?>
             </div>
             <div class="modal-footer">
@@ -243,7 +244,8 @@ document.querySelectorAll('.btn-delete-submission').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var submissionId = this.dataset.submissionId;
         var formId = this.dataset.formId;
-        document.getElementById('deleteSubmissionId').textContent = submissionId;
+        var identifier = this.dataset.identifier;
+        document.getElementById('deleteSubmissionId').textContent = identifier ? identifier : '#' + submissionId;
         document.getElementById('deleteSubmissionForm').action =
             '<?= site_url('forms_admin/submission_delete') ?>/' + formId + '/' + submissionId;
     });

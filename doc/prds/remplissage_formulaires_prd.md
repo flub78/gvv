@@ -55,7 +55,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 
 - CRUD admin des formulaires (créer, modifier, supprimer, activer/désactiver).
 - Formulaires composés d'une ou plusieurs pages HTML.
-- Édition en ligne d'une page et import/export texte de page.
+- Édition exclusivement par dépôt d'archive (création et remplacement de contenu) — voir EF2-quater.
 - Lien public de soumission, sans authentification GVV.
 - Types de champs : texte, email, date, numérique, textarea, select, radio, checkbox, fichier.
 - Prévisualisation admin des fichiers image/PDF soumis.
@@ -171,9 +171,8 @@ Cette taxonomie guide les décisions d'architecture : les formulaires de catégo
 ### EF2 : Structure des pages
 
 1. Un formulaire contient 1..N pages HTML.
-2. Chaque page est éditable en ligne.
-3. Chaque page peut être importée depuis un fichier texte/HTML.
-4. Chaque page peut être exportée en fichier texte/HTML.
+2. Le contenu d'une page se dépose par fichier ou archive — pas de saisie en ligne du HTML (superseded par EF2-quater).
+3. Chaque page peut être exportée en fichier HTML.
 
 ### EF2-bis : Stockage fichier du contenu (HTML/CSS)
 
@@ -182,15 +181,23 @@ Cette taxonomie guide les décisions d'architecture : les formulaires de catégo
 3. Le format de stockage permet l'ouverture directe d'un formulaire dans un navigateur standard, sans serveur applicatif, pour prévisualisation, avec un rendu fidèle à la mise en page réelle.
 4. Les widgets dynamiques (signature, sous-formulaire, paiement en ligne, etc.) sont représentés dans le fichier statique par un visuel de substitution reconnaissable (image/icône dédiée par type de widget), remplacé par le composant fonctionnel réel au moment du rendu serveur.
 5. L'ajout, la mise à jour ou le remplacement du contenu d'un formulaire (HTML, CSS, images associées) reste possible entièrement depuis l'interface d'administration web, sans nécessiter d'accès au système de fichiers serveur.
-6. Un formulaire complet (HTML + CSS + images) peut être exporté et importé comme un seul artefact téléchargeable.
+6. Un formulaire complet (HTML + CSS + images) peut être exporté et importé comme un seul artefact téléchargeable, qui reflète fidèlement le contenu du répertoire de stockage — pas de format d'archive distinct à maintenir en parallèle.
 7. La structure des champs d'un formulaire (liste, type, obligatoire, rôle) n'est plus persistée en base : elle est déterminée à la lecture du contenu HTML, à la demande (affichage admin, validation de soumission, mapping des notifications).
 
-Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md) *(architecture à réviser pour refléter cette décision — mise à jour prévue après validation du refactoring)*
+Voir : [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md)
 
 ### EF2-ter : Migration des formulaires existants
 
 1. Une procédure permet de convertir vers le nouveau stockage fichier les formulaires actuellement stockés uniquement en base (`content_html`/`global_css`), sans perte de contenu ni interruption du service public des formulaires déjà publiés.
 2. Cette procédure reste en place indéfiniment une fois tous les formulaires existants migrés et vérifiés : elle devient alors un no-op sans coût (rien à convertir), plutôt que d'être retirée du projet. Elle ne doit pas être supprimée du fait de sa dépendance à l'ordre des migrations : chaque installation cliente peut se trouver à un niveau de migration différent, et une suppression casserait la mise à niveau de toute installation n'ayant pas encore atteint cette étape.
+
+### EF2-quater : Formulaire = répertoire autonome et CSS partagé
+
+1. Le répertoire de stockage d'un formulaire (`uploads/formulaires/{code}/`) est autosuffisant : pages HTML, CSS et images qu'il contient, plus un fichier de métadonnées, suffisent à reconstituer le formulaire sans dépendre de la base.
+2. Ce fichier de métadonnées est écrit à chaque modification du formulaire depuis l'admin (pas seulement au moment d'un export) : le répertoire reste à tout moment auto-descriptif, pas seulement au moment d'un instantané de sauvegarde.
+3. La base conserve son rôle d'index (identifiant stable référencé par les réponses, listage/filtrage rapide dans l'admin) mais n'est plus la référence pour les champs de contenu/configuration couverts par le fichier de métadonnées — seuls le statut, le lien public et le rattachement à une section restent pilotés depuis l'admin et ne sont jamais modifiés par un dépôt d'archive, pour ne pas dépublier ou déplacer un formulaire déjà partagé par ce biais.
+4. Le dépôt d'une archive est le seul mode d'édition du contenu (HTML, CSS, métadonnées, images) : il n'y a plus de zone de saisie libre pour le HTML ou le CSS dans l'interface admin. Créer un formulaire dépose une nouvelle archive ; modifier son contenu dépose une archive de remplacement sur le formulaire existant, sans toucher au statut, au lien public ni à la section.
+5. Le CSS d'un formulaire peut référencer un CSS partagé entre plusieurs formulaires (charte graphique commune, styles réutilisés d'un concours à l'autre, etc.) sans dupliquer son contenu ni le recopier dans chaque formulaire.
 
 ### EF3 : Champs et validations
 
@@ -477,8 +484,10 @@ Voir : [Design complétude des pièces obligatoires](../design_notes/remplissage
 - EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ? *(Non tranché : n'importe quel formulaire publié est éligible en V1.)*
 - EF16 : la modification en place doit-elle un jour être proposée aussi pour les réponses de type téléchargement (remplacement de scan), au-delà de la rotation déjà couverte par EF12 ?
 - EF16-bis : faut-il à terme permettre l'envoi automatique du lien de modification par email, ou la transmission manuelle par l'admin reste-t-elle suffisante ?
+- EF2-quater : emplacement et mode de service exact du CSS partagé — recommandation actuelle : fichier réservé dans `uploads/formulaires/` (admin-éditable comme le reste, cohérent avec EF2-bis point 5), servi par une route dédiée, référencé depuis chaque formulaire par une URL absolue plutôt qu'un chemin relatif (voir design [Design synchronisation fichiers](../design_notes/formulaires_sync_fichiers_design.md)). À confirmer avant implémentation.
 
 ### Résolues
 
 - **Stratégie de migration `briefing_sign` → handler** *(juillet 2026)* : remplacement complet, pas de cohabitation prolongée. Séquencement : construire et valider le nouveau mécanisme (`forms` + rattachement générique) sans toucher à l'ancien, ressaisir manuellement les briefings existants (peu nombreux) au moment de la bascule, puis basculer la détection d'un coup. La suppression effective du code de l'ancien mécanisme documentaire reste une décision séparée, ultérieure à la validation en conditions réelles.
 - **EF16 : lien de modification envoyé à l'utilisateur d'origine** *(août 2026)* : tranché — oui, sous forme d'un lien à usage unique (token dédié, régénéré à chaque demande, expirant après 7 jours), généré à la demande depuis la liste admin des réponses. Pas d'envoi automatique par email : la transmission reste manuelle, à la charge de l'admin. Voir EF16-bis.
+- **EF2-quater : le formulaire reste indexé en base, pas purement filesystem** *(août 2026)* : tranché — la table `forms` est conservée comme index (identifiant stable référencé par `form_submissions`, listage/filtrage admin), mais cesse d'être la référence pour le contenu/la configuration une fois le fichier de métadonnées introduit. Écarté : liste des formulaires dérivée uniquement d'un `scandir()` de `uploads/formulaires/` — coût de requêtage à chaque affichage, absence de verrouillage concurrent, et surtout couplage fragile entre `form_submissions` et un identifiant (`code`) qui reste volontairement renommable.

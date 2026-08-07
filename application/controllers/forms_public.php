@@ -17,12 +17,53 @@ class Forms_public extends CI_Controller {
         $this->load->helper('views');
         $this->load->model('forms_model');
         $this->load->model('form_pages_model');
-        $this->load->model('form_fields_model');
         $this->load->model('form_submissions_model');
         $this->load->library('form_validation');
         $this->load->library('forms_validation');
         $this->load->library('forms_renderer');
+        $this->load->library('forms_file_storage');
+        $this->load->library('forms_field_parser');
         $this->load->library('upload');
+    }
+
+    /**
+     * Overlays file-stored content onto DB-fetched rows (uploads/formulaires/
+     * is the source of truth for form content — see doc/prds/remplissage_formulaires_prd.md
+     * EF2-bis). Falls back to the DB value when the file is absent (defensive:
+     * should not happen once migration 165 has run, kept for robustness).
+     */
+    private function _overlay_css_from_file(array $form) {
+        $file_css = $this->forms_file_storage->read_css($form['code']);
+        if ($file_css !== null) {
+            $form['global_css'] = $file_css;
+        }
+        return $form;
+    }
+
+    private function _overlay_pages_from_file($code, array $pages) {
+        foreach ($pages as &$page) {
+            $file_html = $this->forms_file_storage->read_page($code, (int) $page['page_number']);
+            if ($file_html !== null) {
+                $page['content_html'] = $file_html;
+            }
+        }
+        unset($page);
+        return $pages;
+    }
+
+    /**
+     * Parses every field of a form (all pages) given its numeric id — used
+     * wherever a submission's form is only known by form_id (e.g. subform
+     * status lookups), not by the slug already being visited.
+     */
+    private function _parse_form_fields_by_id($form_id) {
+        $form = $this->forms_model->get_by_id((int) $form_id);
+        if (!$form) {
+            return array();
+        }
+        $pages = $this->form_pages_model->get_form_pages((int) $form_id);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+        return $this->forms_field_parser->parse_form_pages($pages);
     }
 
     public function index($slug = '') {
@@ -37,12 +78,14 @@ class Forms_public extends CI_Controller {
             show_404();
             return;
         }
+        $form = $this->_overlay_css_from_file($form);
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
         if (empty($pages)) {
             show_error('Ce formulaire ne contient aucune page publiee.', 404);
             return;
         }
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
 
         $page_count = count($pages);
         $current_page_number = (int) $this->input->get('page');
@@ -65,7 +108,7 @@ class Forms_public extends CI_Controller {
             $current_page_number = (int) $current_page['page_number'];
         }
 
-        $fields = $this->form_fields_model->get_page_fields((int) $current_page['id']);
+        $fields = $this->forms_field_parser->parse_fields((string) $current_page['content_html']);
         $old_values     = $this->session->flashdata('forms_public_old_values') ?: array();
         $sig_canvas_data = $this->session->flashdata('forms_public_sig_canvas')  ?: array();
         $render_fields = $this->forms_renderer->normalize_fields_for_view(
@@ -191,17 +234,17 @@ class Forms_public extends CI_Controller {
         }
 
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
+        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
         $page = $this->find_page_by_number($pages, $page_number);
         if (!$page) {
             show_error('Page de formulaire introuvable.', 404);
             return;
         }
 
-        $fields = $this->form_fields_model->get_page_fields((int) $page['id']);
+        $fields = $this->forms_field_parser->parse_fields((string) $page['content_html']);
         $submitted_values = array();
-        $file_field_keys = array();
-        $signature_canvas_data = array();    // field_id   => base64 (for file saving on success)
-        $signature_canvas_by_name = array(); // field_name => base64 (for session persistence on failure)
+        $file_field_keys = array();          // field_name => $_FILES key
+        $signature_canvas_data = array();    // field_name => base64 (for file saving on success)
 
         foreach ($fields as $field) {
             $key        = (string) $field['name'];
@@ -214,30 +257,29 @@ class Forms_public extends CI_Controller {
                 }
 
                 if ($sig_type === 'file') {
-                    $file_field_keys[(int) $field['id']] = $key . '_file';
+                    $file_field_keys[$key] = $key . '_file';
                     $uploaded_name = '';
                     if (isset($_FILES[$key . '_file']) && !empty($_FILES[$key . '_file']['name'])) {
                         $uploaded_name = (string) $_FILES[$key . '_file']['name'];
                     }
-                    $submitted_values[(int) $field['id']] = $uploaded_name;
+                    $submitted_values[$key] = $uploaded_name;
                 } else {
                     $base64 = trim((string) $this->input->post($key));
-                    $submitted_values[(int) $field['id']] = ($base64 !== '') ? '[signature]' : '';
+                    $submitted_values[$key] = ($base64 !== '') ? '[signature]' : '';
                     if ($base64 !== '') {
-                        $signature_canvas_data[(int) $field['id']] = $base64;
-                        $signature_canvas_by_name[$key] = $base64;
+                        $signature_canvas_data[$key] = $base64;
                     }
                 }
                 continue;
             }
 
             if ($field_type === 'file') {
-                $file_field_keys[(int) $field['id']] = $key;
+                $file_field_keys[$key] = $key;
                 $uploaded_name = '';
                 if (isset($_FILES[$key]) && isset($_FILES[$key]['name']) && $_FILES[$key]['name'] !== '') {
                     $uploaded_name = (string) $_FILES[$key]['name'];
                 }
-                $submitted_values[(int) $field['id']] = $uploaded_name;
+                $submitted_values[$key] = $uploaded_name;
                 continue;
             }
 
@@ -245,39 +287,7 @@ class Forms_public extends CI_Controller {
             if (is_array($value)) {
                 $value = array_values($value);
             }
-            $submitted_values[(int) $field['id']] = $value;
-        }
-
-        // Capture signature widgets defined only in content_html (no form_fields record).
-        // These are <div data-gvv-type="signature" data-gvv-name="..."> elements whose
-        // POST value is submitted but not iterated above because there is no form_fields row.
-        // $html_sig_canvas_save: queued for file saving on successful submission (canvas/text types)
-        // $html_sig_file_save:   queued for upload processing on successful submission (file type)
-        $html_sig_canvas_save = array();
-        $html_sig_file_save   = array();
-        $page_html_raw = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        preg_match_all('/<div([^>]*\bdata-gvv-type=["\']signature["\'][^>]*)>/i', $page_html_raw, $html_sig_divs);
-        foreach ($html_sig_divs[1] as $sig_div_attrs) {
-            if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $sig_div_attrs, $sig_name_match)) {
-                continue;
-            }
-            $html_sig_name = trim($sig_name_match[1]);
-            if ($html_sig_name === '' || isset($signature_canvas_by_name[$html_sig_name])) {
-                continue;
-            }
-            $html_sig_type = trim((string) $this->input->post($html_sig_name . '_type'));
-            if (!in_array($html_sig_type, array('canvas', 'text', 'file'), true)) {
-                $html_sig_type = 'canvas';
-            }
-            if ($html_sig_type === 'file') {
-                $html_sig_file_save[] = array('widget_name' => $html_sig_name, 'file_key' => $html_sig_name . '_file');
-            } else {
-                $html_sig_b64 = trim((string) $this->input->post($html_sig_name));
-                if ($html_sig_b64 !== '') {
-                    $signature_canvas_by_name[$html_sig_name] = $html_sig_b64;
-                    $html_sig_canvas_save[] = array('widget_name' => $html_sig_name, 'base64' => $html_sig_b64);
-                }
-            }
+            $submitted_values[$key] = $value;
         }
 
         // Apply server-side lock: override submitted values for GVV-prefilled locked fields.
@@ -313,7 +323,7 @@ class Forms_public extends CI_Controller {
             foreach ($fields as $field) {
                 $fname = (string) $field['name'];
                 if (isset($locked_config[$fname])) {
-                    $submitted_values[(int) $field['id']] = $locked_config[$fname];
+                    $submitted_values[$fname] = $locked_config[$fname];
                 }
             }
         }
@@ -326,7 +336,7 @@ class Forms_public extends CI_Controller {
             foreach ($fields as $field) {
                 $fname = (string) $field['name'];
                 if (isset($b_lock_set[$fname]) && array_key_exists($fname, $b_prefill)) {
-                    $submitted_values[(int) $field['id']] = $b_prefill[$fname];
+                    $submitted_values[$fname] = $b_prefill[$fname];
                 }
             }
         }
@@ -341,8 +351,8 @@ class Forms_public extends CI_Controller {
         if (!empty($errors)) {
             $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
-            if (!empty($signature_canvas_by_name)) {
-                $this->session->set_flashdata('forms_public_sig_canvas', $signature_canvas_by_name);
+            if (!empty($signature_canvas_data)) {
+                $this->session->set_flashdata('forms_public_sig_canvas', $signature_canvas_data);
             }
             redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
@@ -351,53 +361,11 @@ class Forms_public extends CI_Controller {
         $uploaded_files = array();
 
         // Process canvas/text signature fields (base64 → PNG file)
-        foreach ($signature_canvas_data as $field_id => $base64) {
-            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, (int) $field_id, null);
+        foreach ($signature_canvas_data as $field_name => $base64) {
+            $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, $field_name);
             if ($result) {
                 $uploaded_files[] = $result;
-                $submitted_values[$field_id] = $result['original_name'];
-            }
-        }
-
-        // Process HTML-only signature widgets (canvas/text) — no form_fields record
-        foreach ($html_sig_canvas_save as $html_sig) {
-            $result = $this->forms_renderer->make_signature_file($html_sig['base64'], $this->upload_base_dir, null, $html_sig['widget_name']);
-            if ($result) {
-                $uploaded_files[] = $result;
-            }
-        }
-
-        // Process HTML-only signature widgets (file upload) — no form_fields record
-        if (!empty($html_sig_file_save)) {
-            $relative_dir = $this->upload_base_dir . '/' . date('Y/m');
-            $absolute_dir = FCPATH . $relative_dir;
-            if (!is_dir($absolute_dir)) {
-                @mkdir($absolute_dir, 0775, true);
-            }
-            foreach ($html_sig_file_save as $html_file) {
-                $file_key = $html_file['file_key'];
-                if (!isset($_FILES[$file_key]) || empty($_FILES[$file_key]['name'])) {
-                    continue;
-                }
-                $config = array(
-                    'upload_path'   => $absolute_dir,
-                    'allowed_types' => 'jpg|jpeg|png|gif|webp',
-                    'max_size'      => 10240,
-                    'encrypt_name'  => true,
-                );
-                $this->upload->initialize($config);
-                if ($this->upload->do_upload($file_key)) {
-                    $udata = $this->upload->data();
-                    $uploaded_files[] = array(
-                        'field_id'      => null,
-                        'widget_name'   => $html_file['widget_name'],
-                        'original_name' => isset($udata['client_name']) ? $udata['client_name'] : $udata['orig_name'],
-                        'stored_name'   => $udata['file_name'],
-                        'mime_type'     => isset($udata['file_type']) ? $udata['file_type'] : null,
-                        'size_bytes'    => isset($udata['file_size']) ? (int) round($udata['file_size'] * 1024) : null,
-                        'storage_path'  => $relative_dir . '/' . $udata['file_name'],
-                    );
-                }
+                $submitted_values[$field_name] = $result['original_name'];
             }
         }
 
@@ -412,8 +380,7 @@ class Forms_public extends CI_Controller {
 
             $uploaded_files = array_merge($uploaded_files, $upload_result['files']);
             foreach ($upload_result['files'] as $uploaded_file) {
-                $field_id = (int) $uploaded_file['field_id'];
-                $submitted_values[$field_id] = $uploaded_file['original_name'];
+                $submitted_values[(string) $uploaded_file['widget_name']] = $uploaded_file['original_name'];
             }
         }
 
@@ -625,7 +592,6 @@ class Forms_public extends CI_Controller {
         }
 
         $this->form_submissions_model->save_submission_files($submission_id, array(array(
-            'field_id'      => null,
             'widget_name'   => 'uploaded_response',
             'original_name' => isset($upload_data['client_name']) ? $upload_data['client_name'] : $upload_data['orig_name'],
             'stored_name'   => $upload_data['file_name'],
@@ -669,7 +635,10 @@ class Forms_public extends CI_Controller {
 
         echo json_encode(array(
             'found'   => true,
-            'summary' => $this->form_submissions_model->get_submission_summary((int) $submission['id']),
+            'summary' => $this->form_submissions_model->get_submission_summary(
+                (int) $submission['id'],
+                $this->_parse_form_fields_by_id((int) $submission['form_id'])
+            ),
         ));
     }
 
@@ -694,6 +663,40 @@ class Forms_public extends CI_Controller {
         $this->session->set_userdata($session_key, $tokens);
 
         redirect('forms/' . rawurlencode($sub_slug) . '?link_token=' . rawurlencode($tokens[$widget_name]));
+    }
+
+    /**
+     * Serves an image asset stored under uploads/formulaires/{code}/images/.
+     * The form directory denies direct static access (.htaccess), so images
+     * referenced from a form's HTML (e.g. a logo) must go through this route.
+     * No publish-status check: form content itself is meant to be openable as
+     * a static artifact (EF2-bis), images follow the same rule.
+     */
+    public function image($code = '', $filename = '') {
+        $code     = trim((string) $code);
+        $filename = trim((string) $filename);
+        if ($code === '' || $filename === '') {
+            show_404();
+            return;
+        }
+
+        $path       = $this->forms_file_storage->image_path($code, $filename);
+        $images_dir = realpath($this->forms_file_storage->images_dir($code));
+        $resolved   = realpath($path);
+
+        if ($resolved === false || $images_dir === false || strpos($resolved, $images_dir) !== 0 || !is_file($resolved)) {
+            show_404();
+            return;
+        }
+
+        $info = getimagesize($resolved);
+        $mime = $info ? $info['mime'] : 'application/octet-stream';
+
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($resolved));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: public, max-age=86400');
+        readfile($resolved);
     }
 
     /**
@@ -998,7 +1001,12 @@ class Forms_public extends CI_Controller {
 
             $submission = $this->form_submissions_model->get_by_link_token($token);
             $status  = $submission ? 'submitted' : 'empty';
-            $summary = $submission ? $this->form_submissions_model->get_submission_summary((int) $submission['id']) : array();
+            $summary = $submission
+                ? $this->form_submissions_model->get_submission_summary(
+                    (int) $submission['id'],
+                    $this->_parse_form_fields_by_id((int) $submission['form_id'])
+                  )
+                : array();
 
             $widget_state[$name] = array(
                 'sub_url'    => site_url('forms/' . rawurlencode($sub_slug)) . '?link_token=' . rawurlencode($token),

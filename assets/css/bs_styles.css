@@ -66,23 +66,25 @@ footer p {
 	background: inherit;
 }
 
-form {
+/* :not(.forms-public-root *) excludes the "formulaires" module content,
+   which brings its own CSS and must not inherit these generic GVV rules. */
+form:not(.forms-public-root *) {
     background-color: #e1e4e7;
 	border: 1px solid #7e9bae;
 	border-radius: 4px;
 	padding: 10px;
 }
 
-form input[type="text"],
-form input[type="email"],
-form input[type="password"],
-form input[type="number"],
-form textarea,
-form select {
+form:not(.forms-public-root *) input[type="text"],
+form:not(.forms-public-root *) input[type="email"],
+form:not(.forms-public-root *) input[type="password"],
+form:not(.forms-public-root *) input[type="number"],
+form:not(.forms-public-root *) textarea,
+form:not(.forms-public-root *) select {
     background-color: white;
 }
 
-form textarea {
+form:not(.forms-public-root *) textarea {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;

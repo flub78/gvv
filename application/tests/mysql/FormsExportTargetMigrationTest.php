@@ -91,7 +91,6 @@ class FormsExportTargetMigrationTest extends TestCase
 
         $CI = &get_instance();
         $CI->load->model('form_submissions_model');
-        $CI->load->model('form_fields_model');
 
         $this->db->insert('forms', array(
             'code'        => 'mig145_export_test_' . time(),
@@ -104,33 +103,29 @@ class FormsExportTargetMigrationTest extends TestCase
         $this->db->insert('form_pages', array('form_id' => $form_id, 'page_number' => 1));
         $page_id = $this->db->insert_id();
 
-        $field_nom = $CI->form_fields_model->create_field(array(
-            'form_id' => $form_id, 'page_id' => $page_id, 'sort_order' => 1,
-            'name' => 'nom', 'label' => 'Nom', 'field_type' => 'text',
-        ));
-        $field_file = $CI->form_fields_model->create_field(array(
-            'form_id' => $form_id, 'page_id' => $page_id, 'sort_order' => 2,
-            'name' => 'scan', 'label' => 'Scan', 'field_type' => 'file',
-        ));
-        $field_multi = $CI->form_fields_model->create_field(array(
-            'form_id' => $form_id, 'page_id' => $page_id, 'sort_order' => 3,
-            'name' => 'options', 'label' => 'Options', 'field_type' => 'select',
-        ));
+        // Field structure is no longer persisted (migration 166) — parsed on demand
+        // from HTML in production; here we build the descriptor array directly,
+        // matching Forms_field_parser::parse_fields()'s output shape.
+        $fields = array(
+            array('name' => 'nom', 'label' => 'Nom', 'field_type' => 'text'),
+            array('name' => 'scan', 'label' => 'Scan', 'field_type' => 'file'),
+            array('name' => 'options', 'label' => 'Options', 'field_type' => 'select'),
+        );
 
         $submission_id = $CI->form_submissions_model->create_submission(array(
             'form_id' => $form_id,
             'status'  => 'submitted',
             'values'  => array(
-                $field_nom   => 'Dupont',
-                $field_file  => 'scan.pdf',
-                $field_multi => array('a', 'b'),
+                'nom'     => 'Dupont',
+                'scan'    => 'scan.pdf',
+                'options' => array('a', 'b'),
             ),
         ));
 
-        $params = $CI->form_submissions_model->get_export_query_params($submission_id);
+        $params = $CI->form_submissions_model->get_export_query_params($submission_id, $fields);
         $this->assertSame(array('nom' => 'Dupont'), $params);
 
-        $url = $CI->form_submissions_model->build_export_url('membre/create', $submission_id);
+        $url = $CI->form_submissions_model->build_export_url('membre/create', $submission_id, $fields);
         $this->assertStringContainsString('membre/create', $url);
         $this->assertStringContainsString('nom=Dupont', $url);
         $this->assertStringNotContainsString('scan=', $url);
@@ -138,7 +133,6 @@ class FormsExportTargetMigrationTest extends TestCase
 
         $this->db->where('submission_id', $submission_id)->delete('form_submission_values');
         $this->db->where('form_id', $form_id)->delete('form_submissions');
-        $this->db->where('page_id', $page_id)->delete('form_fields');
         $this->db->where('id', $page_id)->delete('form_pages');
         $this->db->where('id', $form_id)->delete('forms');
     }

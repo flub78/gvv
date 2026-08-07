@@ -217,37 +217,8 @@ class Forms_model extends CI_Model {
             $page_map[(int) $page['id']] = (int) $this->db->insert_id();
         }
 
-        $source_fields = $this->db
-            ->where('form_id', (int) $id)
-            ->order_by('page_id', 'ASC')
-            ->order_by('sort_order', 'ASC')
-            ->order_by('id', 'ASC')
-            ->get('form_fields')
-            ->result_array();
-
-        foreach ($source_fields as $field) {
-            $old_page_id = (int) $field['page_id'];
-            if (!isset($page_map[$old_page_id])) {
-                continue;
-            }
-
-            $row = array(
-                'form_id'          => (int) $new_form_id,
-                'page_id'          => (int) $page_map[$old_page_id],
-                'name'             => $field['name'],
-                'label'            => $field['label'],
-                'field_type'       => $field['field_type'],
-                'is_required'      => (int) $field['is_required'],
-                'sort_order'       => (int) $field['sort_order'],
-                'options_json'     => $field['options_json'],
-                'validation_rules' => $field['validation_rules'],
-                'created_at'       => $now,
-                'updated_at'       => $now,
-                'created_by'       => $created_by,
-                'updated_by'       => $created_by,
-            );
-            $this->db->insert('form_fields', $row);
-        }
+        // Field structure is no longer persisted (migration 166): it is derived
+        // on demand from each page's content_html, which was already cloned above.
 
         $this->db->trans_complete();
         if (!$this->db->trans_status()) {

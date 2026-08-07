@@ -53,6 +53,7 @@ $lang['forms_label_number']               = '#';
 $lang['forms_label_identifier']           = 'Identification';
 $lang['forms_checkbox_identifier']        = 'Identifiant de réponse';
 $lang['forms_help_identifier']            = 'Les champs cochés sont concaténés (séparés par un espace) pour former l\'identifiant visible dans la liste des réponses.';
+$lang['forms_help_fields_readonly']       = 'Liste en lecture seule, détectée automatiquement depuis le HTML de la page. Pour modifier un champ (nom, type, obligatoire), éditez le HTML de la page.';
 
 // Buttons
 $lang['forms_button_new_form']            = 'Nouveau formulaire';
@@ -73,6 +74,7 @@ $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
 $lang['forms_button_backup']              = 'Sauvegarder (ZIP)';
 $lang['forms_button_restore']             = 'Restaurer depuis ZIP';
+$lang['forms_button_upload_image']        = 'Envoyer l\'image';
 $lang['forms_button_import_html']         = 'Import depuis HTML';
 $lang['forms_button_import_zip']          = 'Import depuis sauvegarde';
 $lang['forms_title_import_zip']           = 'Créer un formulaire depuis une sauvegarde';
@@ -87,6 +89,7 @@ $lang['forms_button_back_responses']      = 'Voir les réponses';
 $lang['forms_button_back_to_responses']   = 'Voir les réponses';
 $lang['forms_button_back_form']           = 'Modification du formulaire';
 $lang['forms_button_back_pages']          = 'Retour pages';
+$lang['forms_button_edit_page']           = 'Modifier la page';
 $lang['forms_button_back_fields']         = 'Retour champs';
 $lang['forms_button_pdf']                 = 'Générer PDF';
 $lang['forms_button_back_submissions']    = 'Retour réponses';
@@ -117,6 +120,7 @@ $lang['forms_title_new_page']             = 'Nouvelle page';
 $lang['forms_title_edit_page']            = 'Modifier la page';
 $lang['forms_title_import_page']          = 'Importer une page';
 $lang['forms_title_backup_restore']       = 'Sauvegarde et restauration';
+$lang['forms_title_images']               = 'Images';
 $lang['forms_title_fields']               = 'Champs — page';
 $lang['forms_title_import_html']          = 'Créer un formulaire depuis une page HTML';
 $lang['forms_title_add_field']            = 'Ajouter un champ';
@@ -184,6 +188,9 @@ $lang['forms_help_options_format']        = '(une par ligne)';
 $lang['forms_help_options_usage']         = 'Chaque ligne correspond à une option proposée à l\'utilisateur.';
 $lang['forms_help_import_content']        = 'Le contenu sera ajouté comme nouvelle page en fin de formulaire.';
 $lang['forms_help_restore']              = 'Le fichier ZIP doit provenir d\'une sauvegarde GVV. Le titre, la description, le CSS et les pages sont remplacés. Le code, le statut et le lien public restent inchangés.';
+$lang['forms_help_backup']                = 'Exporte le formulaire complet (métadonnées, CSS, pages HTML et images) dans un fichier ZIP.';
+$lang['forms_help_images']                = 'Images utilisables dans le HTML des pages (logo, etc.). Copiez l\'URL affichée sous chaque image dans un attribut src="...". Formats acceptés : PNG, JPEG, GIF, WEBP — 2 Mo maximum.';
+$lang['forms_confirm_delete_image']       = 'Supprimer cette image ? Les pages qui la référencent ne l\'afficheront plus.';
 $lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields
