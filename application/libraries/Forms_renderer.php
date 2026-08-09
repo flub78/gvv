@@ -206,6 +206,56 @@ class Forms_renderer {
     }
 
     /**
+     * Marks required fields with a red asterisk at render time, so the
+     * stored file itself stays plain HTML (no GVV-specific markup baked in —
+     * same rewrite-only rationale as rewrite_local_image_urls()).
+     *
+     * Only handles the `<label for="x">...</label>` / `<input id="x" required>`
+     * pairing (covers every current form: text/date/tel/email fields, and
+     * checkboxes whose wrapping <label> also carries a matching `for`). Forms
+     * that reference fields by `name` only (no `id`) or that already mark
+     * required fields by hand (e.g. a manual `text-danger` span) are left
+     * untouched — nothing to pair against, or already handled.
+     *
+     * Signature/subform widgets are not handled here: render_signature_widget()/
+     * the subform widget renderer already append the same `text-danger` marker
+     * from their own `required` flag.
+     */
+    public function inject_required_markers($html) {
+        $html = (string) $html;
+        if (stripos($html, 'required') === false || stripos($html, '<label') === false) {
+            return $html;
+        }
+
+        $required_ids = array();
+        preg_match_all('/<(?:input|select|textarea)\b([^>]*)>/is', $html, $field_matches);
+        foreach ($field_matches[1] as $attrs) {
+            if (preg_match('/\brequired\b/i', $attrs) && preg_match('/\bid=["\']([^"\']+)["\']/', $attrs, $idm)) {
+                $required_ids[$idm[1]] = true;
+            }
+        }
+        if (empty($required_ids)) {
+            return $html;
+        }
+
+        $result = preg_replace_callback(
+            '/<label\b([^>]*)>(.*?)<\/label>/is',
+            function ($m) use ($required_ids) {
+                if (!preg_match('/\bfor=["\']([^"\']+)["\']/', $m[1], $fm) || !isset($required_ids[$fm[1]])) {
+                    return $m[0];
+                }
+                if (stripos($m[2], 'text-danger') !== false) {
+                    return $m[0]; // already marked by hand, avoid a duplicate star
+                }
+                return '<label' . $m[1] . '>' . $m[2] . ' <span class="text-danger">*</span></label>';
+            },
+            $html
+        );
+
+        return ($result !== null) ? $result : $html;
+    }
+
+    /**
      * Rewrites the `.commun/style.css` reference in a form's own style.css
      * (`@import url(".commun/style.css");`) into the actual serving route —
      * same rationale as rewrite_local_image_urls(). Left as a plain string

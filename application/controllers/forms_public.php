@@ -44,7 +44,8 @@ class Forms_public extends CI_Controller {
         foreach ($pages as &$page) {
             $file_html = $this->forms_file_storage->read_page($code, (int) $page['page_number']);
             if ($file_html !== null) {
-                $page['content_html'] = $this->forms_renderer->rewrite_local_image_urls($file_html, $code);
+                $content = $this->forms_renderer->rewrite_local_image_urls($file_html, $code);
+                $page['content_html'] = $this->forms_renderer->inject_required_markers($content);
             }
         }
         unset($page);
