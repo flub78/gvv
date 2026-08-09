@@ -34,7 +34,6 @@ $lang['forms_label_label']                = 'Libellé';
 $lang['forms_label_technical_name']       = 'Nom technique';
 $lang['forms_label_required']             = 'Requis';
 $lang['forms_label_page_number']          = 'Numéro de page';
-$lang['forms_label_content_html']         = 'Contenu HTML';
 $lang['forms_label_format']               = 'Format source';
 $lang['forms_label_content']              = 'Contenu';
 $lang['forms_label_preview']              = 'Aperçu';
@@ -43,7 +42,6 @@ $lang['forms_label_anonymous']            = 'Anonyme';
 $lang['forms_label_reference']            = 'Référence';
 $lang['forms_label_files_attached']       = 'Fichiers joints';
 $lang['forms_label_css_scope']            = 'CSS scope';
-$lang['forms_label_global_css']           = 'CSS global du formulaire';
 $lang['forms_label_display_order']        = 'Ordre d\'affichage';
 $lang['forms_label_options']              = 'Options';
 $lang['forms_label_name_optional']        = 'Nom (optionnel)';
@@ -68,8 +66,6 @@ $lang['forms_button_copy_link']           = 'Copier le lien';
 $lang['forms_button_manage_pages']        = 'Gérer les pages';
 $lang['forms_button_view_responses']      = 'Voir les réponses';
 $lang['forms_button_preview_css']         = 'Preview CSS';
-$lang['forms_button_new_page']            = 'Nouvelle page';
-$lang['forms_button_import']              = 'Importer';
 $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
 $lang['forms_button_backup']              = 'Sauvegarder (ZIP)';
@@ -89,7 +85,6 @@ $lang['forms_button_back_responses']      = 'Voir les réponses';
 $lang['forms_button_back_to_responses']   = 'Voir les réponses';
 $lang['forms_button_back_form']           = 'Modification du formulaire';
 $lang['forms_button_back_pages']          = 'Retour pages';
-$lang['forms_button_edit_page']           = 'Modifier la page';
 $lang['forms_button_back_fields']         = 'Retour champs';
 $lang['forms_button_pdf']                 = 'Générer PDF';
 $lang['forms_button_back_submissions']    = 'Retour réponses';
@@ -116,10 +111,7 @@ $lang['forms_upload_error_file_type']     = 'Fichier refusé (formats acceptés 
 $lang['forms_title_new_form']             = 'Nouveau formulaire';
 $lang['forms_title_edit_form']            = 'Modifier le formulaire';
 $lang['forms_title_pages']                = 'Pages du formulaire';
-$lang['forms_title_new_page']             = 'Nouvelle page';
-$lang['forms_title_edit_page']            = 'Modifier la page';
-$lang['forms_title_import_page']          = 'Importer une page';
-$lang['forms_title_backup_restore']       = 'Sauvegarde et restauration';
+$lang['forms_title_content_archive']      = 'Contenu du formulaire (archive)';
 $lang['forms_title_images']               = 'Images';
 $lang['forms_title_fields']               = 'Champs — page';
 $lang['forms_title_import_html']          = 'Créer un formulaire depuis une page HTML';
@@ -181,17 +173,17 @@ $lang['forms_type_file']                  = 'Fichier';
 
 // Help texts
 $lang['forms_help_code']                  = 'Identifiant stable en snake_case ou kebab-case.';
-$lang['forms_help_global_css']            = 'Ce CSS est injecté sur le rendu public et dans la preview admin.';
 $lang['forms_help_technical_name']        = 'Lettres, chiffres, underscore, tiret. Utilisé comme identifiant du champ.';
 $lang['forms_help_display_order']         = 'Laissez vide pour ajouter en fin de liste.';
 $lang['forms_help_options_format']        = '(une par ligne)';
 $lang['forms_help_options_usage']         = 'Chaque ligne correspond à une option proposée à l\'utilisateur.';
-$lang['forms_help_import_content']        = 'Le contenu sera ajouté comme nouvelle page en fin de formulaire.';
-$lang['forms_help_restore']              = 'Le fichier ZIP doit provenir d\'une sauvegarde GVV. Le titre, la description, le CSS et les pages sont remplacés. Le code, le statut et le lien public restent inchangés.';
-$lang['forms_help_backup']                = 'Exporte le formulaire complet (métadonnées, CSS, pages HTML et images) dans un fichier ZIP.';
-$lang['forms_help_images']                = 'Images utilisables dans le HTML des pages (logo, etc.). Copiez l\'URL affichée sous chaque image dans un attribut src="...". Formats acceptés : PNG, JPEG, GIF, WEBP — 2 Mo maximum.';
+$lang['forms_help_content_archive']       = 'Les pages, le CSS et les métadonnées de contenu du formulaire s\'éditent uniquement par dépôt d\'archive (ZIP) — plus de zone de texte HTML/CSS dans GVV. Téléchargez l\'archive actuelle, modifiez-la (avec un éditeur de texte ou un assistant IA), puis déposez-la : c\'est le fonctionnement normal pour faire évoluer un formulaire, pas seulement un secours.';
+$lang['forms_help_restore']              = 'Remplace intégralement le contenu (titre, description, CSS, pages, images) par celui de l\'archive déposée. Le code, le statut et le lien public restent inchangés.';
+$lang['forms_help_backup']                = 'Télécharge le contenu actuel du formulaire (métadonnées, CSS, pages HTML et images) dans un fichier ZIP, prêt à être modifié puis redéposé.';
+$lang['forms_confirm_restore']            = 'Déposer cette archive ? Le contenu actuel (pages, CSS, images) sera remplacé.';
+$lang['forms_help_pages_via_archive']     = 'Le contenu des pages s\'édite par dépôt d\'archive, pas depuis cette liste — voir la section';
+$lang['forms_help_images']                = 'Images utilisables dans le HTML des pages (logo, etc.). Copiez le chemin affiché sous chaque image dans un attribut src="..." — il correspond au dossier images/ de l\'archive du formulaire. Formats acceptés : PNG, JPEG, GIF, WEBP — 2 Mo maximum.';
 $lang['forms_confirm_delete_image']       = 'Supprimer cette image ? Les pages qui la référencent ne l\'afficheront plus.';
-$lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Formulaire global (non rattaché à une section)';
@@ -203,8 +195,6 @@ $lang['forms_placeholder_select']         = 'Sélectionner...';
 $lang['forms_label_yes']                  = 'Oui';
 $lang['forms_label_no']                   = 'Non';
 $lang['forms_unit_bytes']                 = 'octets';
-$lang['forms_option_html']                = 'HTML';
-$lang['forms_option_text']                = 'Texte';
 $lang['forms_label_form_context']         = 'Formulaire :';
 
 // Config params

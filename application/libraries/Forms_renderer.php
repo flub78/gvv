@@ -153,6 +153,73 @@ class Forms_renderer {
         return $selectors;
     }
 
+    /**
+     * Rewrites <img src="..."> values written as a plain relative path
+     * (never a route URL) into the actual serving route — `images/{file}`
+     * for images specific to this form, `.commun/images/{file}` for images
+     * shared across forms. This is what keeps a form's stored page directly
+     * openable in a browser (`file://`) or an editor, and portable across
+     * GVV installations (no domain ever baked into the stored file) — see
+     * "Ressources locales et partagées" in the design notes. Absolute URLs
+     * (`http(s)://`), root-relative URLs (`/...`) and `data:` URIs are left
+     * untouched.
+     */
+    public function rewrite_local_image_urls($html, $code) {
+        $html = (string) $html;
+        if (strpos($html, '<img') === false) {
+            return $html;
+        }
+
+        $rewrite_src = function ($src) use ($code) {
+            if (preg_match('#^(?:[a-z][a-z0-9+.-]*:|//|/)#i', $src)) {
+                // Absolute URL (any scheme, incl. data:), protocol-relative, or
+                // root-relative — already resolvable as-is, leave untouched.
+                return $src;
+            }
+            if (strpos($src, '.commun/images/') === 0) {
+                $filename = substr($src, strlen('.commun/images/'));
+                return site_url('forms_public/shared_image/' . $filename);
+            }
+            if (strpos($src, 'images/') === 0) {
+                $filename = substr($src, strlen('images/'));
+                return site_url('forms_public/image/' . $code . '/' . $filename);
+            }
+            return $src;
+        };
+
+        $html = preg_replace_callback(
+            '/(<img\b[^>]*\bsrc=")([^"]+)(")/i',
+            function ($m) use ($rewrite_src) {
+                return $m[1] . $rewrite_src($m[2]) . $m[3];
+            },
+            $html
+        );
+        $html = preg_replace_callback(
+            "/(<img\\b[^>]*\\bsrc=')([^']+)(')/i",
+            function ($m) use ($rewrite_src) {
+                return $m[1] . $rewrite_src($m[2]) . $m[3];
+            },
+            $html
+        );
+
+        return $html;
+    }
+
+    /**
+     * Rewrites the `.commun/style.css` reference in a form's own style.css
+     * (`@import url(".commun/style.css");`) into the actual serving route —
+     * same rationale as rewrite_local_image_urls(). Left as a plain string
+     * replacement (not scoped to @import syntax) since `.commun/style.css`
+     * is specific enough not to collide with anything else in a CSS file.
+     */
+    public function rewrite_shared_css_import($css) {
+        $css = (string) $css;
+        if (strpos($css, '.commun/style.css') === false) {
+            return $css;
+        }
+        return str_replace('.commun/style.css', site_url('forms_public/shared_css'), $css);
+    }
+
     public function normalize_fields_for_view(array $fields, array $old_values = array()) {
         $normalized = array();
 

@@ -66,12 +66,6 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" for="global_css"><?= $this->lang->line('forms_label_global_css') ?></label>
-                    <textarea class="form-control" id="global_css" name="global_css" rows="8" placeholder="<?= $this->lang->line('forms_help_css_placeholder') ?>"><?= html_escape(isset($form['global_css']) ? $form['global_css'] : '') ?></textarea>
-                    <div class="form-text"><?= $this->lang->line('forms_help_global_css') ?></div>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label" for="required_params"><?= $this->lang->line('forms_label_required_params') ?></label>
                     <?php
                     $rp_current = isset($form['required_params']) ? $form['required_params'] : 'none';
@@ -182,6 +176,36 @@
     </div>
 
     <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
+    <div class="card shadow-sm mt-4" id="forms-content-archive">
+        <div class="card-header">
+            <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_content_archive') ?></h2>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3"><?= $this->lang->line('forms_help_content_archive') ?></p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_backup') ?></p>
+                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/form_backup/' . (int) $form['id']) ?>">
+                        <?= $this->lang->line('forms_button_backup') ?>
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_restore') ?></p>
+                    <form method="post" enctype="multipart/form-data"
+                          action="<?= site_url('forms_admin/form_restore/' . (int) $form['id']) ?>"
+                          onsubmit="return confirm('<?= $this->lang->line('forms_confirm_restore') ?>');">
+                        <div class="input-group">
+                            <input type="file" class="form-control form-control-sm" name="restore_zip" accept=".zip" required>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <?= $this->lang->line('forms_button_restore') ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm mt-4">
         <div class="card-header">
             <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_images') ?></h2>
@@ -196,7 +220,7 @@
                     <div class="text-center" style="width:130px;">
                         <img src="<?= $image_url ?>" alt="<?= html_escape($image_name) ?>" class="border rounded mb-1" style="max-width:120px; max-height:80px; object-fit:contain;">
                         <div class="small text-truncate" title="<?= html_escape($image_name) ?>"><?= html_escape($image_name) ?></div>
-                        <input type="text" class="form-control form-control-sm mb-1" value="<?= html_escape($image_url) ?>" readonly onclick="this.select();">
+                        <input type="text" class="form-control form-control-sm mb-1" value="images/<?= html_escape($image_name) ?>" readonly onclick="this.select();">
                         <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_image') ?>');">
                             <button type="submit" class="btn btn-sm btn-outline-danger w-100"><?= $this->lang->line('forms_button_delete') ?></button>
                         </form>
@@ -211,35 +235,6 @@
                     <button type="submit" class="btn btn-sm btn-primary"><?= $this->lang->line('forms_button_upload_image') ?></button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <div class="card shadow-sm mt-4">
-        <div class="card-header">
-            <h2 class="h6 mb-0"><?= $this->lang->line('forms_title_backup_restore') ?></h2>
-        </div>
-        <div class="card-body">
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_backup') ?></p>
-                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/form_backup/' . (int) $form['id']) ?>">
-                        <?= $this->lang->line('forms_button_backup') ?>
-                    </a>
-                </div>
-                <div class="col-md-8">
-                    <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_restore') ?></p>
-                    <form method="post" enctype="multipart/form-data"
-                          action="<?= site_url('forms_admin/form_restore/' . (int) $form['id']) ?>"
-                          onsubmit="return confirm('Restaurer ce formulaire depuis le ZIP ? Le contenu actuel sera remplacé.');">
-                        <div class="input-group">
-                            <input type="file" class="form-control form-control-sm" name="restore_zip" accept=".zip" required>
-                            <button type="submit" class="btn btn-sm btn-warning">
-                                <?= $this->lang->line('forms_button_restore') ?>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
     <?php endif; ?>

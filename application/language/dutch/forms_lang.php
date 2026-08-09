@@ -34,7 +34,6 @@ $lang['forms_label_label']                = 'Label';
 $lang['forms_label_technical_name']       = 'Technische naam';
 $lang['forms_label_required']             = 'Verplicht';
 $lang['forms_label_page_number']          = 'Paginanummer';
-$lang['forms_label_content_html']         = 'HTML-inhoud';
 $lang['forms_label_format']               = 'Bronformaat';
 $lang['forms_label_content']              = 'Inhoud';
 $lang['forms_label_preview']              = 'Voorbeeld';
@@ -43,7 +42,6 @@ $lang['forms_label_anonymous']            = 'Anoniem';
 $lang['forms_label_reference']            = 'Referentie';
 $lang['forms_label_files_attached']       = 'Bijgevoegde bestanden';
 $lang['forms_label_css_scope']            = 'CSS-scope';
-$lang['forms_label_global_css']           = 'Globale formulier-CSS';
 $lang['forms_label_display_order']        = 'Weergavevolgorde';
 $lang['forms_label_options']              = 'Opties';
 $lang['forms_label_name_optional']        = 'Naam (optioneel)';
@@ -68,8 +66,6 @@ $lang['forms_button_copy_link']           = 'Link kopiëren';
 $lang['forms_button_manage_pages']        = 'Pagina\'s beheren';
 $lang['forms_button_view_responses']      = 'Reacties bekijken';
 $lang['forms_button_preview_css']         = 'CSS-voorbeeld';
-$lang['forms_button_new_page']            = 'Nieuwe pagina';
-$lang['forms_button_import']              = 'Importeren';
 $lang['forms_button_export_html']         = 'Exporteren HTML';
 $lang['forms_button_export_txt']          = 'Exporteren TXT';
 $lang['forms_button_backup']              = 'Opslaan (ZIP)';
@@ -89,7 +85,6 @@ $lang['forms_button_back_responses']      = 'Reacties bekijken';
 $lang['forms_button_back_to_responses']   = 'Reacties bekijken';
 $lang['forms_button_back_form']           = 'Formulier bewerken';
 $lang['forms_button_back_pages']          = 'Terug naar pagina\'s';
-$lang['forms_button_edit_page']           = 'Pagina bewerken';
 $lang['forms_button_back_fields']         = 'Terug naar velden';
 $lang['forms_button_pdf']                 = 'PDF genereren';
 $lang['forms_button_back_submissions']    = 'Terug naar reacties';
@@ -116,11 +111,9 @@ $lang['forms_upload_error_file_type']     = 'Bestand geweigerd (toegestane forma
 $lang['forms_title_new_form']             = 'Nieuw formulier';
 $lang['forms_title_edit_form']            = 'Formulier bewerken';
 $lang['forms_title_pages']                = 'Formulierpagina\'s';
-$lang['forms_title_new_page']             = 'Nieuwe pagina';
-$lang['forms_title_edit_page']            = 'Pagina bewerken';
-$lang['forms_title_import_page']          = 'Pagina importeren';
 $lang['forms_title_import_html']          = 'Formulier aanmaken vanuit HTML-pagina';
 $lang['forms_title_backup_restore']       = 'Back-up en herstel';
+$lang['forms_title_content_archive']      = 'Formulierinhoud (archief)';
 $lang['forms_title_images']               = 'Afbeeldingen';
 $lang['forms_title_fields']               = 'Velden — pagina';
 $lang['forms_title_add_field']            = 'Veld toevoegen';
@@ -181,17 +174,17 @@ $lang['forms_type_file']                  = 'Bestand';
 
 // Help texts
 $lang['forms_help_code']                  = 'Stabiele identifier in snake_case of kebab-case.';
-$lang['forms_help_global_css']            = 'Deze CSS wordt toegepast op de publieke weergave en de adminvoorvertoning.';
 $lang['forms_help_technical_name']        = 'Letters, cijfers, underscore, koppelteken. Gebruikt als veldidentificator.';
 $lang['forms_help_display_order']         = 'Laat leeg om aan het einde van de lijst toe te voegen.';
 $lang['forms_help_options_format']        = '(één per regel)';
 $lang['forms_help_options_usage']         = 'Elke regel is een optie die aan de gebruiker wordt aangeboden.';
-$lang['forms_help_import_content']        = 'De inhoud wordt als nieuwe pagina aan het einde van het formulier toegevoegd.';
-$lang['forms_help_restore']              = 'Het ZIP-bestand moet afkomstig zijn van een GVV-back-up. Titel, beschrijving, CSS en pagina\'s worden vervangen. Code, status en publieke link blijven ongewijzigd.';
-$lang['forms_help_backup']                = 'Exporteert het volledige formulier (metadata, CSS, HTML-pagina\'s en afbeeldingen) als ZIP-bestand.';
-$lang['forms_help_images']                = 'Afbeeldingen bruikbaar in de HTML van de pagina\'s (logo, enz.). Kopieer de URL onder elke afbeelding naar een src="..." attribuut. Toegestane formaten: PNG, JPEG, GIF, WEBP — maximaal 2 MB.';
+$lang['forms_help_content_archive']       = 'Pagina\'s, CSS en inhoudsmetadata worden uitsluitend bewerkt door een archief (ZIP) te deponeren — er is geen HTML/CSS-tekstvak in GVV. Download het huidige archief, bewerk het (met een teksteditor of een AI-assistent) en deponeer het opnieuw: dit is de normale manier om een formulier te laten evolueren, niet enkel een noodoplossing.';
+$lang['forms_help_restore']              = 'Vervangt de volledige inhoud (titel, beschrijving, CSS, pagina\'s, afbeeldingen) door die van het gedeponeerde archief. Code, status en publieke link blijven ongewijzigd.';
+$lang['forms_help_backup']                = 'Downloadt de huidige inhoud van het formulier (metadata, CSS, HTML-pagina\'s en afbeeldingen) als ZIP-bestand, klaar om bewerkt en opnieuw gedeponeerd te worden.';
+$lang['forms_confirm_restore']            = 'Dit archief deponeren? De huidige inhoud (pagina\'s, CSS, afbeeldingen) wordt vervangen.';
+$lang['forms_help_pages_via_archive']     = 'De inhoud van de pagina\'s wordt bewerkt door een archief te deponeren, niet vanuit deze lijst — zie de sectie';
+$lang['forms_help_images']                = 'Afbeeldingen bruikbaar in de HTML van de pagina\'s (logo, enz.). Kopieer het pad onder elke afbeelding naar een src="..." attribuut — het komt overeen met de map images/ van het formulierarchief. Toegestane formaten: PNG, JPEG, GIF, WEBP — maximaal 2 MB.';
 $lang['forms_confirm_delete_image']       = 'Deze afbeelding verwijderen? Pagina\'s die ernaar verwijzen tonen ze niet meer.';
-$lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Globaal formulier (niet gekoppeld aan een sectie)';
@@ -203,8 +196,6 @@ $lang['forms_placeholder_select']         = 'Selecteren...';
 $lang['forms_label_yes']                  = 'Ja';
 $lang['forms_label_no']                   = 'Nee';
 $lang['forms_unit_bytes']                 = 'bytes';
-$lang['forms_option_html']                = 'HTML';
-$lang['forms_option_text']                = 'Tekst';
 $lang['forms_label_form_context']         = 'Formulier:';
 
 // Config params

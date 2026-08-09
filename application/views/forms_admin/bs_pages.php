@@ -12,7 +12,6 @@
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/edit/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_form') ?></a>
-            <a class="btn btn-primary" href="<?= site_url('forms_admin/page_create/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_new_page') ?></a>
         </div>
     </div>
 
@@ -23,6 +22,11 @@
     <?php if (!empty($error)): ?>
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
+
+    <p class="text-muted small">
+        <?= $this->lang->line('forms_help_pages_via_archive') ?>
+        <a href="<?= site_url('forms_admin/edit/' . (int) $form['id']) ?>#forms-content-archive"><?= $this->lang->line('forms_title_content_archive') ?></a>.
+    </p>
 
     <div class="card shadow-sm mb-4">
         <div class="card-body p-0">
@@ -48,7 +52,6 @@
                                     <td><?= html_escape((string) $page['title']) ?></td>
                                     <td class="text-muted"><?= html_escape(mb_substr(trim(strip_tags((string) $page['content_html'])), 0, 120)) ?></td>
                                     <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/page_edit/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_edit') ?></a>
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_fields') ?></a>
                                         <form method="post" action="<?= site_url('forms_admin/page_delete/' . (int) $form['id'] . '/' . (int) $page['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_page') ?>');">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>

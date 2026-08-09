@@ -217,7 +217,6 @@ class Forms_admin extends MY_Controller {
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
-        $this->form_validation->set_rules('global_css', 'CSS global', 'max_length[65535]');
         $this->form_validation->set_rules('target_url', 'URL cible', 'max_length[255]');
         $this->form_validation->set_rules('target_label', 'Libellé du bouton', 'max_length[100]');
 
@@ -236,7 +235,6 @@ class Forms_admin extends MY_Controller {
         $is_global = (int) $this->input->post('is_global');
         $club = ($section_id > 0 && !$is_global) ? $section_id : null;
         $code = trim($this->input->post('code'));
-        $global_css = (string) $this->input->post('global_css');
 
         $id = $this->forms_model->create_form(array(
             'club'            => $club,
@@ -245,7 +243,6 @@ class Forms_admin extends MY_Controller {
             'description'     => trim($this->input->post('description')),
             'public_slug'     => trim($this->input->post('public_slug')),
             'css_scope'       => trim($this->input->post('css_scope')),
-            'global_css'      => $global_css,
             'required_params' => $this->input->post('required_params') ?: 'none',
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
@@ -266,10 +263,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $this->forms_file_storage->write_css($code, $global_css);
+        $this->forms_file_storage->ensure_dir($code);
+        $this->_sync_meta_file($id);
 
-        $this->session->set_flashdata('forms_success', 'Formulaire cree.');
-        redirect('forms_admin');
+        $this->session->set_flashdata('forms_success', 'Formulaire cree. Déposez une archive pour ajouter son contenu (pages, CSS, images).');
+        redirect('forms_admin/edit/' . (int) $id);
     }
 
     public function update($id = 0) {
@@ -287,7 +285,6 @@ class Forms_admin extends MY_Controller {
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
         $this->form_validation->set_rules('public_slug', 'Lien public', 'max_length[100]');
         $this->form_validation->set_rules('css_scope', 'CSS scope', 'max_length[100]');
-        $this->form_validation->set_rules('global_css', 'CSS global', 'max_length[65535]');
         $this->form_validation->set_rules('target_url', 'URL cible', 'max_length[255]');
         $this->form_validation->set_rules('target_label', 'Libellé du bouton', 'max_length[100]');
         $this->form_validation->set_rules('status', 'Statut', 'in_list[draft,published,archived]');
@@ -339,8 +336,6 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $global_css = (string) $this->input->post('global_css');
-
         $ok = $this->forms_model->update_form($id, array(
             'code'            => $new_code,
             'club'            => $club,
@@ -348,7 +343,6 @@ class Forms_admin extends MY_Controller {
             'description'     => trim($this->input->post('description')),
             'public_slug'     => trim($this->input->post('public_slug')),
             'css_scope'       => trim($this->input->post('css_scope')),
-            'global_css'      => $global_css,
             'required_params' => $this->input->post('required_params') ?: $current['required_params'],
             'allow_upload_response' => (int) $this->input->post('allow_upload_response'),
             'handler_class'   => $this->_validated_handler_class($this->input->post('handler_class')),
@@ -367,7 +361,7 @@ class Forms_admin extends MY_Controller {
         if ($new_code !== $current['code']) {
             $this->forms_file_storage->rename_form_dir($current['code'], $new_code);
         }
-        $this->forms_file_storage->write_css($new_code, $global_css);
+        $this->_sync_meta_file($id);
 
         $this->session->set_flashdata('forms_success', 'Formulaire « ' . trim($this->input->post('title')) . ' » mis à jour.');
         redirect('forms_admin');
@@ -416,6 +410,9 @@ class Forms_admin extends MY_Controller {
             $new_form = $this->forms_model->get_by_id($new_id);
             if ($new_form) {
                 $this->forms_file_storage->copy_form_dir($source['code'], $new_form['code']);
+                // Regenerate meta.json under the new code: the copied one still
+                // carries the source form's title (duplicate_form() appends " (copie)").
+                $this->_sync_meta_file($new_id);
             }
         }
 
@@ -515,189 +512,6 @@ class Forms_admin extends MY_Controller {
         $this->render_view('forms_admin/bs_pages', $data);
     }
 
-    public function page_create($form_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-
-        $data = array(
-            'controller'    => $this->controller,
-            'form'          => $form,
-            'page_mode'     => 'create',
-            'form_action'   => site_url('forms_admin/page_store/' . (int) $form['id']),
-            'submit_label'  => 'Ajouter la page',
-            'page'          => array(
-                'page_number'  => $this->form_pages_model->next_page_number((int) $form['id']),
-                'title'        => '',
-                'content_html' => '',
-            ),
-            'error'         => '',
-        );
-
-        $this->render_view('forms_admin/bs_page_form', $data);
-    }
-
-    public function page_store($form_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-
-        $this->form_validation->set_rules('page_number', 'Numero de page', 'required|integer|greater_than[0]');
-        $this->form_validation->set_rules('title', 'Titre', 'max_length[255]');
-
-        if ($this->form_validation->run() === FALSE) {
-            $data = array(
-                'controller'    => $this->controller,
-                'form'          => $form,
-                'page_mode'     => 'create',
-                'form_action'   => site_url('forms_admin/page_store/' . (int) $form['id']),
-                'submit_label'  => 'Ajouter la page',
-                'page'          => $this->input->post(),
-                'error'         => validation_errors(),
-            );
-            $this->render_view('forms_admin/bs_page_form', $data);
-            return;
-        }
-
-        $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $extracted    = $this->extract_html_fields($content_html);
-        $field_names  = array_column($extracted, 'name');
-        $conflict     = $this->validate_html_field_names($form, 0, $field_names);
-
-        if ($conflict) {
-            $data = array(
-                'controller'    => $this->controller,
-                'form'          => $form,
-                'page_mode'     => 'create',
-                'form_action'   => site_url('forms_admin/page_store/' . (int) $form['id']),
-                'submit_label'  => 'Ajouter la page',
-                'page'          => $this->input->post(),
-                'error'         => $conflict,
-            );
-            $this->render_view('forms_admin/bs_page_form', $data);
-            return;
-        }
-
-        $page_number = (int) $this->input->post('page_number');
-
-        $page_id = $this->form_pages_model->create_page(array(
-            'form_id'      => (int) $form['id'],
-            'page_number'  => $page_number,
-            'title'        => trim((string) $this->input->post('title')),
-            'content_html' => $content_html,
-            'created_by'   => $this->dx_auth->get_username(),
-        ));
-
-        if (!$page_id) {
-            $this->session->set_flashdata('forms_error', 'Impossible d\'ajouter la page.');
-            redirect('forms_admin/pages/' . (int) $form['id']);
-            return;
-        }
-
-        $this->forms_file_storage->write_page($form['code'], $page_number, $content_html);
-
-        $this->session->set_flashdata('forms_success', 'Page ajoutee.');
-        redirect('forms_admin/pages/' . (int) $form['id']);
-    }
-
-    public function page_edit($form_id = 0, $page_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $data = array(
-            'controller'    => $this->controller,
-            'form'          => $form,
-            'page_mode'     => 'edit',
-            'form_action'   => site_url('forms_admin/page_update/' . (int) $form['id'] . '/' . (int) $page['id']),
-            'submit_label'  => 'Enregistrer',
-            'page'          => $page,
-            'error'         => '',
-        );
-
-        $this->render_view('forms_admin/bs_page_form', $data);
-    }
-
-    public function page_update($form_id = 0, $page_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-
-        $page = $this->load_page_for_form_or_redirect($form, $page_id);
-        if (!$page) {
-            return;
-        }
-
-        $this->form_validation->set_rules('page_number', 'Numero de page', 'required|integer|greater_than[0]');
-        $this->form_validation->set_rules('title', 'Titre', 'max_length[255]');
-
-        if ($this->form_validation->run() === FALSE) {
-            $data = array(
-                'controller'    => $this->controller,
-                'form'          => $form,
-                'page_mode'     => 'edit',
-                'form_action'   => site_url('forms_admin/page_update/' . (int) $form['id'] . '/' . (int) $page['id']),
-                'submit_label'  => 'Enregistrer',
-                'page'          => array_merge($page, $this->input->post()),
-                'error'         => validation_errors(),
-            );
-            $this->render_view('forms_admin/bs_page_form', $data);
-            return;
-        }
-
-        $content_html = html_entity_decode((string) $this->input->post('content_html', FALSE), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $extracted    = $this->extract_html_fields($content_html);
-        $field_names  = array_column($extracted, 'name');
-        $conflict     = $this->validate_html_field_names($form, (int) $page['id'], $field_names);
-
-        if ($conflict) {
-            $data = array(
-                'controller'    => $this->controller,
-                'form'          => $form,
-                'page_mode'     => 'edit',
-                'form_action'   => site_url('forms_admin/page_update/' . (int) $form['id'] . '/' . (int) $page['id']),
-                'submit_label'  => 'Enregistrer',
-                'page'          => array_merge($page, $this->input->post()),
-                'error'         => $conflict,
-            );
-            $this->render_view('forms_admin/bs_page_form', $data);
-            return;
-        }
-
-        $old_page_number = (int) $page['page_number'];
-        $new_page_number = (int) $this->input->post('page_number');
-
-        $ok = $this->form_pages_model->update_page((int) $page['id'], array(
-            'page_number'  => $new_page_number,
-            'title'        => trim((string) $this->input->post('title')),
-            'content_html' => $content_html,
-            'updated_by'   => $this->dx_auth->get_username(),
-        ));
-
-        if (!$ok) {
-            $this->session->set_flashdata('forms_error', 'Impossible de modifier la page.');
-            redirect('forms_admin/pages/' . (int) $form['id']);
-            return;
-        }
-
-        if ($new_page_number !== $old_page_number) {
-            $this->forms_file_storage->delete_page($form['code'], $old_page_number);
-        }
-        $this->forms_file_storage->write_page($form['code'], $new_page_number, $content_html);
-
-        $this->session->set_flashdata('forms_success', 'Page mise a jour.');
-        redirect('forms_admin/pages/' . (int) $form['id']);
-    }
-
     public function page_delete($form_id = 0, $page_id = 0) {
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
             show_error('Méthode non autorisée.', 405);
@@ -720,63 +534,9 @@ class Forms_admin extends MY_Controller {
         }
 
         $this->forms_file_storage->delete_page($form['code'], (int) $page['page_number']);
+        $this->_sync_meta_file((int) $form['id']);
 
         $this->session->set_flashdata('forms_success', 'Page supprimee.');
-        redirect('forms_admin/pages/' . (int) $form['id']);
-    }
-
-    public function page_import($form_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
-        if (!$form) {
-            return;
-        }
-
-        $this->form_validation->set_rules('import_title', 'Titre', 'max_length[255]');
-        $this->form_validation->set_rules('import_content', 'Contenu', 'required');
-        $this->form_validation->set_rules('import_format', 'Format', 'required|in_list[text,html]');
-
-        if ($this->form_validation->run() === FALSE) {
-            $this->session->set_flashdata('forms_error', validation_errors());
-            redirect('forms_admin/pages/' . (int) $form['id']);
-            return;
-        }
-
-        $format       = (string) $this->input->post('import_format');
-        $raw_content  = (string) $this->input->post('import_content', FALSE);
-        $content_html = $format === 'text'
-            ? nl2br(html_escape($raw_content))
-            : html_entity_decode($raw_content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-        $extracted   = $this->extract_html_fields($content_html);
-        $field_names = array_column($extracted, 'name');
-        $conflict    = $this->validate_html_field_names($form, 0, $field_names);
-
-        if ($conflict) {
-            $this->session->set_flashdata('forms_error', $conflict);
-            redirect('forms_admin/pages/' . (int) $form['id']);
-            return;
-        }
-
-        $page_number = $this->form_pages_model->next_page_number((int) $form['id']);
-
-        $page_id = $this->form_pages_model->create_page(array(
-            'form_id'      => (int) $form['id'],
-            'page_number'  => $page_number,
-            'title'        => trim((string) $this->input->post('import_title')),
-            'content_html' => $content_html,
-            'created_by'   => $this->dx_auth->get_username(),
-        ));
-
-        if (!$page_id) {
-            $this->session->set_flashdata('forms_error', 'Impossible d\'importer la page.');
-            redirect('forms_admin/pages/' . (int) $form['id']);
-            return;
-        }
-
-        $this->forms_file_storage->write_page($form['code'], $page_number, $content_html);
-
-        $count = count($extracted);
-        $this->session->set_flashdata('forms_success', 'Page importee.' . ($count > 0 ? ' ' . $count . ' champ(s) détecté(s).' : ''));
         redirect('forms_admin/pages/' . (int) $form['id']);
     }
 
@@ -1446,6 +1206,18 @@ class Forms_admin extends MY_Controller {
             // root-relative or prefixed with the full base_url.
             if (preg_match('~^(?:https?://[^/]+)?/forms_public/image/([^/]+)/([^/?#]+)~i', $src, $m)) {
                 $abs_path = $this->forms_file_storage->image_path(rawurldecode($m[1]), rawurldecode($m[2]));
+                if (!file_exists($abs_path) || !is_readable($abs_path)) {
+                    return null;
+                }
+                $info = getimagesize($abs_path);
+                $mime = $info ? $info['mime'] : 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($abs_path));
+            }
+
+            // Same reasoning for images shared across forms (Lot 2-quater) —
+            // served through forms_public/shared_image/{filename}.
+            if (preg_match('~^(?:https?://[^/]+)?/forms_public/shared_image/([^/?#]+)~i', $src, $m)) {
+                $abs_path = $this->forms_file_storage->shared_image_path(rawurldecode($m[1]));
                 if (!file_exists($abs_path) || !is_readable($abs_path)) {
                     return null;
                 }
@@ -2223,7 +1995,7 @@ class Forms_admin extends MY_Controller {
     private function _overlay_css_from_file(array $form) {
         $file_css = $this->forms_file_storage->read_css($form['code']);
         if ($file_css !== null) {
-            $form['global_css'] = $file_css;
+            $form['global_css'] = $this->forms_renderer->rewrite_shared_css_import($file_css);
         }
         return $form;
     }
@@ -2231,7 +2003,7 @@ class Forms_admin extends MY_Controller {
     private function _overlay_page_from_file($code, array $page) {
         $file_html = $this->forms_file_storage->read_page($code, (int) $page['page_number']);
         if ($file_html !== null) {
-            $page['content_html'] = $file_html;
+            $page['content_html'] = $this->forms_renderer->rewrite_local_image_urls($file_html, $code);
         }
         return $page;
     }
@@ -2242,6 +2014,43 @@ class Forms_admin extends MY_Controller {
         }
         unset($page);
         return $pages;
+    }
+
+    /**
+     * Writes meta.json from the current DB row + page list — called after
+     * every mutation of a form's metadata or page list, so the directory
+     * stays self-describing at all times, not only at export (EF2-quater).
+     * Deliberately excludes code/status/public_slug/section: those stay
+     * admin-only and are never carried by an archive (see form_restore()).
+     */
+    private function _sync_meta_file($form_id) {
+        $form = $this->forms_model->get_by_id((int) $form_id);
+        if (!$form) {
+            return;
+        }
+
+        $pages = $this->form_pages_model->get_form_pages((int) $form_id);
+        $meta_pages = array();
+        foreach ($pages as $page) {
+            $meta_pages[] = array(
+                'page_number' => (int) $page['page_number'],
+                'title'       => (string) $page['title'],
+            );
+        }
+
+        $meta = array(
+            'title'                 => (string) $form['title'],
+            'description'           => (string) $form['description'],
+            'css_scope'             => (string) $form['css_scope'],
+            'required_params'       => (string) $form['required_params'],
+            'allow_upload_response' => !empty($form['allow_upload_response']),
+            'handler_class'         => !empty($form['handler_class']) ? (string) $form['handler_class'] : null,
+            'target_url'            => !empty($form['target_url']) ? (string) $form['target_url'] : null,
+            'target_label'          => !empty($form['target_label']) ? (string) $form['target_label'] : null,
+            'pages'                 => $meta_pages,
+        );
+
+        $this->forms_file_storage->write_meta($form['code'], $meta);
     }
 
     /**
@@ -2384,6 +2193,8 @@ class Forms_admin extends MY_Controller {
             $this->forms_file_storage->write_page($code, 1, $content_html);
         }
 
+        $this->_sync_meta_file($form_id);
+
         $this->session->set_flashdata('forms_success', 'Formulaire « ' . html_escape($html_title) . ' » créé depuis le fichier HTML.');
         redirect('forms_admin/edit/' . (int) $form_id);
     }
@@ -2448,75 +2259,45 @@ class Forms_admin extends MY_Controller {
         redirect('forms_admin/edit/' . (int) $form['id']);
     }
 
+    /**
+     * The exported archive is a direct mirror of uploads/formulaires/{code}/
+     * (same pageNN.html files already wrapped as standalone HTML5 documents,
+     * same style.css, same meta.json) — no separate archive format to
+     * maintain (EF2-quater). meta.json is refreshed first so the archive
+     * reflects the current DB-held metadata even if it drifted. Shared
+     * resources (.commun/) are bundled too, under a .commun/ subfolder in
+     * the archive, so it stays self-contained and viewable outside GVV —
+     * never restored on import, see form_import_zip()/form_restore() and
+     * "Ressources locales et partagées" in the design notes.
+     */
     public function form_backup($form_id = 0) {
         $form = $this->load_form_or_redirect($form_id);
         if (!$form) {
             return;
         }
 
-        $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
-        $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+        $this->_sync_meta_file((int) $form['id']);
 
-        $meta = array(
-            'version'         => '1',
-            'code'            => (string) $form['code'],
-            'title'           => (string) $form['title'],
-            'description'     => (string) $form['description'],
-            'css_scope'       => (string) $form['css_scope'],
-            'public_slug'     => (string) $form['public_slug'],
-            'required_params' => (string) $form['required_params'],
-            'pages'           => array(),
-        );
-
-        // Build content in a temp directory then zip with the system zip command (same as DB backup)
-        $tmp_dir = sys_get_temp_dir() . '/gvv_form_' . uniqid();
-        mkdir($tmp_dir . '/pages', 0700, true);
-
-        foreach ($pages as $page) {
-            $num = (int) $page['page_number'];
-            $meta['pages'][] = array(
-                'page_number' => $num,
-                'title'       => (string) $page['title'],
-            );
-            file_put_contents(
-                sprintf('%s/pages/%02d.html', $tmp_dir, $num),
-                (string) $page['content_html']
-            );
-        }
-
-        file_put_contents($tmp_dir . '/meta.json', json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        file_put_contents($tmp_dir . '/styles.css', (string) $form['global_css']);
-
-        $images = $this->forms_file_storage->list_images($form['code']);
-        if (!empty($images)) {
-            mkdir($tmp_dir . '/images', 0700, true);
-            foreach ($images as $image_name) {
-                copy(
-                    $this->forms_file_storage->image_path($form['code'], $image_name),
-                    $tmp_dir . '/images/' . $image_name
-                );
-            }
-        }
-
-        $safe_code = preg_replace('/[^a-zA-Z0-9_-]+/', '-', (string) $form['code']);
-        $zip_path  = sys_get_temp_dir() . '/' . $safe_code . '.zip';
+        $code      = $form['code'];
+        $dir       = $this->forms_file_storage->form_dir($code);
+        $safe_code = $this->forms_file_storage->safe_code($code);
+        $zip_path  = sys_get_temp_dir() . '/' . $safe_code . '_' . uniqid() . '.zip';
 
         $original_dir = getcwd();
-        chdir($tmp_dir);
-        exec('zip -r ' . escapeshellarg($zip_path) . ' .', $output, $return_code);
-        chdir($original_dir);
+        chdir($dir);
+        exec('zip -r ' . escapeshellarg($zip_path) . ' . -x .htaccess', $output, $return_code);
 
-        // Clean up temp directory
-        foreach (glob($tmp_dir . '/pages/*.html') as $f) { unlink($f); }
-        rmdir($tmp_dir . '/pages');
-        if (is_dir($tmp_dir . '/images')) {
-            foreach (glob($tmp_dir . '/images/*') as $f) { unlink($f); }
-            rmdir($tmp_dir . '/images');
+        $shared_dir = $this->forms_file_storage->shared_dir();
+        if ($return_code === 0 && is_dir($shared_dir)) {
+            chdir(dirname($shared_dir));
+            exec(
+                'zip -r ' . escapeshellarg($zip_path) . ' ' . escapeshellarg(basename($shared_dir))
+                . ' -x ' . escapeshellarg(basename($shared_dir) . '/.htaccess'),
+                $output,
+                $return_code
+            );
         }
-        foreach (array('meta.json', 'styles.css') as $f) {
-            if (file_exists($tmp_dir . '/' . $f)) { unlink($tmp_dir . '/' . $f); }
-        }
-        rmdir($tmp_dir);
+        chdir($original_dir);
 
         if ($return_code !== 0 || !file_exists($zip_path)) {
             $this->session->set_flashdata('forms_error', 'Erreur lors de la création du fichier ZIP.');
@@ -2551,27 +2332,26 @@ class Forms_admin extends MY_Controller {
         }
 
         $meta_path = $tmp_dir . '/meta.json';
-        if (!file_exists($meta_path)) {
+        if (!file_exists($meta_path) || empty(glob($tmp_dir . '/page*.html'))) {
             $this->_cleanup_tmpdir($tmp_dir);
-            $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive — ce fichier n\'est pas une sauvegarde de formulaire GVV.');
+            $this->session->set_flashdata('forms_error', 'meta.json ou pages HTML absents de l\'archive — ce n\'est pas une archive de formulaire GVV valide.');
             redirect('forms_admin');
             return;
         }
 
         $meta = json_decode(file_get_contents($meta_path), true);
-        if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
+        if (!is_array($meta)) {
             $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
             redirect('forms_admin');
             return;
         }
 
-        $css_path = $tmp_dir . '/styles.css';
-        $css = file_exists($css_path) ? file_get_contents($css_path) : '';
-
-        // Build a unique code: use the one from the backup, suffix _2/_3/... on conflict
-        $base_code = preg_replace('/[^a-zA-Z0-9_-]+/', '_', isset($meta['code']) ? (string) $meta['code'] : 'form');
-        $base_code = trim($base_code, '_');
+        // Build a unique code: from the optional form field, else the archive's own file name
+        $code_input = trim((string) $this->input->post('import_code'));
+        $base_code  = $code_input !== '' ? $code_input : pathinfo((string) $_FILES['import_zip']['name'], PATHINFO_FILENAME);
+        $base_code  = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $base_code);
+        $base_code  = trim($base_code, '_');
         if ($base_code === '') {
             $base_code = 'form_' . date('Ymd');
         }
@@ -2594,48 +2374,72 @@ class Forms_admin extends MY_Controller {
             'description'     => isset($meta['description'])     ? (string) $meta['description']     : '',
             'css_scope'       => isset($meta['css_scope'])       ? (string) $meta['css_scope']       : '',
             'required_params' => isset($meta['required_params']) ? (string) $meta['required_params'] : 'none',
-            'global_css'      => $css,
+            'allow_upload_response' => !empty($meta['allow_upload_response']),
+            'handler_class'   => isset($meta['handler_class']) ? $this->_validated_handler_class($meta['handler_class']) : null,
+            'target_url'      => isset($meta['target_url'])   ? (string) $meta['target_url']   : '',
+            'target_label'    => isset($meta['target_label']) ? (string) $meta['target_label'] : '',
             'created_by'      => $by,
         ));
 
         if (!$form_id) {
             $this->_cleanup_tmpdir($tmp_dir);
-            $this->session->set_flashdata('forms_error', 'Impossible de créer le formulaire depuis la sauvegarde.');
+            $this->session->set_flashdata('forms_error', 'Impossible de créer le formulaire depuis l\'archive.');
             redirect('forms_admin');
             return;
         }
 
-        $this->forms_file_storage->write_css($code, $css);
-
-        $page_count = 0;
-        foreach ($meta['pages'] as $pm) {
-            $num      = (int) $pm['page_number'];
-            $page_file = $tmp_dir . sprintf('/pages/%02d.html', $num);
-            $content_html = file_exists($page_file) ? file_get_contents($page_file) : '';
-
-            $page_id = $this->form_pages_model->create_page(array(
-                'form_id'      => (int) $form_id,
-                'page_number'  => $num,
-                'title'        => isset($pm['title']) ? (string) $pm['title'] : '',
-                'content_html' => $content_html,
-                'created_by'   => $by,
-            ));
-
-            if ($page_id) {
-                $this->forms_file_storage->write_page($code, $num, $content_html);
-                $page_count++;
-            }
-        }
-
+        $this->forms_file_storage->replace_all_from_dir($code, $tmp_dir);
         $image_count = $this->_import_images_from_tmpdir($tmp_dir, $code);
+        $page_count  = $this->_sync_pages_from_files($form_id, $code);
+        $this->_sync_meta_file($form_id);
 
         $this->_cleanup_tmpdir($tmp_dir);
 
         $title = isset($meta['title']) ? (string) $meta['title'] : $code;
-        $message = 'Formulaire « ' . html_escape($title) . ' » importé depuis la sauvegarde (' . $page_count . ' page(s)';
+        $message = 'Formulaire « ' . html_escape($title) . ' » importé depuis l\'archive (' . $page_count . ' page(s)';
         $message .= $image_count > 0 ? ', ' . $image_count . ' image(s)).' : ').';
         $this->session->set_flashdata('forms_success', $message);
         redirect('forms_admin/edit/' . (int) $form_id);
+    }
+
+    /**
+     * Rebuilds the form_pages DB mirror from the files actually on disk —
+     * called after replace_all_from_dir() has installed an archive's pages,
+     * since the DB row set must match the new file set exactly (old rows for
+     * pages removed by the archive must not linger). Page titles come from
+     * meta.json (already in place on disk at this point); content from
+     * read_page(), which un-wraps the stored HTML5 document back to a bare
+     * fragment. Shared by form_import_zip() and form_restore(). Returns the
+     * number of pages created.
+     */
+    private function _sync_pages_from_files($form_id, $code) {
+        foreach ($this->form_pages_model->get_form_pages((int) $form_id) as $existing) {
+            $this->form_pages_model->delete_page((int) $existing['id']);
+        }
+
+        $meta = $this->forms_file_storage->read_meta($code);
+        $titles_by_number = array();
+        if ($meta && !empty($meta['pages']) && is_array($meta['pages'])) {
+            foreach ($meta['pages'] as $pm) {
+                $titles_by_number[(int) $pm['page_number']] = isset($pm['title']) ? (string) $pm['title'] : '';
+            }
+        }
+
+        $by    = $this->dx_auth->get_username();
+        $count = 0;
+        foreach ($this->forms_file_storage->page_numbers($code) as $num) {
+            $page_id = $this->form_pages_model->create_page(array(
+                'form_id'      => (int) $form_id,
+                'page_number'  => $num,
+                'title'        => isset($titles_by_number[$num]) ? $titles_by_number[$num] : '',
+                'content_html' => (string) $this->forms_file_storage->read_page($code, $num),
+                'created_by'   => $by,
+            ));
+            if ($page_id) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**
@@ -2683,72 +2487,47 @@ class Forms_admin extends MY_Controller {
         }
 
         $meta_path = $tmp_dir . '/meta.json';
-        if (!file_exists($meta_path)) {
+        if (!file_exists($meta_path) || empty(glob($tmp_dir . '/page*.html'))) {
             $this->_cleanup_tmpdir($tmp_dir);
-            $this->session->set_flashdata('forms_error', 'meta.json absent de l\'archive.');
+            $this->session->set_flashdata('forms_error', 'meta.json ou pages HTML absents de l\'archive — ce n\'est pas une archive de formulaire GVV valide.');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
         $meta = json_decode(file_get_contents($meta_path), true);
-        if (!is_array($meta) || !isset($meta['pages']) || !is_array($meta['pages'])) {
+        if (!is_array($meta)) {
             $this->_cleanup_tmpdir($tmp_dir);
             $this->session->set_flashdata('forms_error', 'meta.json invalide ou mal formé.');
             redirect('forms_admin/edit/' . (int) $form['id']);
             return;
         }
 
-        $css_path = $tmp_dir . '/styles.css';
-        $css = file_exists($css_path) ? file_get_contents($css_path) : '';
-
-        // Update metadata — code, status and public_slug are not overwritten
+        // Update metadata — code, status and public_slug are never overwritten by an archive
         $this->forms_model->update_form((int) $form['id'], array(
-            'title'       => isset($meta['title'])       ? (string) $meta['title']       : $form['title'],
-            'description' => isset($meta['description']) ? (string) $meta['description'] : '',
-            'css_scope'   => isset($meta['css_scope'])   ? (string) $meta['css_scope']   : '',
-            'global_css'  => $css,
-            'updated_by'  => $this->dx_auth->get_username(),
+            'title'           => isset($meta['title'])           ? (string) $meta['title']           : $form['title'],
+            'description'     => isset($meta['description'])     ? (string) $meta['description']     : '',
+            'css_scope'       => isset($meta['css_scope'])       ? (string) $meta['css_scope']       : '',
+            'required_params' => isset($meta['required_params']) ? (string) $meta['required_params'] : $form['required_params'],
+            'allow_upload_response' => !empty($meta['allow_upload_response']),
+            'handler_class'   => isset($meta['handler_class']) ? $this->_validated_handler_class($meta['handler_class']) : null,
+            'target_url'      => isset($meta['target_url'])   ? (string) $meta['target_url']   : '',
+            'target_label'    => isset($meta['target_label']) ? (string) $meta['target_label'] : '',
+            'updated_by'      => $this->dx_auth->get_username(),
         ));
-        $this->forms_file_storage->write_css($form['code'], $css);
-
-        // Remove all existing pages (cascade removes their fields)
-        foreach ($this->form_pages_model->get_form_pages((int) $form['id']) as $ep) {
-            $this->form_pages_model->delete_page((int) $ep['id']);
-            $this->forms_file_storage->delete_page($form['code'], (int) $ep['page_number']);
-        }
 
         // Remove all existing images — the archive's images/ folder is the new full set
         foreach ($this->forms_file_storage->list_images($form['code']) as $existing_image) {
             $this->forms_file_storage->delete_image($form['code'], $existing_image);
         }
 
-        // Recreate pages from the extracted ZIP
-        $by         = $this->dx_auth->get_username();
-        $page_count = 0;
-        foreach ($meta['pages'] as $pm) {
-            $num       = (int) $pm['page_number'];
-            $page_file = $tmp_dir . sprintf('/pages/%02d.html', $num);
-            $content_html = file_exists($page_file) ? file_get_contents($page_file) : '';
-
-            $page_id = $this->form_pages_model->create_page(array(
-                'form_id'      => (int) $form['id'],
-                'page_number'  => $num,
-                'title'        => isset($pm['title']) ? (string) $pm['title'] : '',
-                'content_html' => $content_html,
-                'created_by'   => $by,
-            ));
-
-            if ($page_id) {
-                $this->forms_file_storage->write_page($form['code'], $num, $content_html);
-                $page_count++;
-            }
-        }
-
+        $this->forms_file_storage->replace_all_from_dir($form['code'], $tmp_dir);
         $image_count = $this->_import_images_from_tmpdir($tmp_dir, $form['code']);
+        $page_count  = $this->_sync_pages_from_files((int) $form['id'], $form['code']);
+        $this->_sync_meta_file((int) $form['id']);
 
         $this->_cleanup_tmpdir($tmp_dir);
 
-        $message = 'Formulaire restauré : ' . $page_count . ' page(s)';
+        $message = 'Contenu du formulaire remplacé : ' . $page_count . ' page(s)';
         $message .= $image_count > 0 ? ', ' . $image_count . ' image(s) importée(s).' : ' importée(s).';
         $this->session->set_flashdata('forms_success', $message);
         redirect('forms_admin/edit/' . (int) $form['id']);

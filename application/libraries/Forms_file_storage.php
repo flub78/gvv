@@ -39,6 +39,10 @@ class Forms_file_storage {
         return $this->form_dir($code) . '/style.css';
     }
 
+    private function meta_path($code) {
+        return $this->form_dir($code) . '/meta.json';
+    }
+
     public function images_dir($code) {
         return $this->form_dir($code) . '/images';
     }
@@ -152,6 +156,160 @@ class Forms_file_storage {
     public function read_css($code) {
         $path = $this->css_path($code);
         return file_exists($path) ? file_get_contents($path) : null;
+    }
+
+    /**
+     * Sorted list of stored page numbers, read directly from the pageNN.html
+     * files present on disk (used to enumerate a form's content without
+     * depending on the form_pages DB mirror, e.g. after an archive import).
+     */
+    public function page_numbers($code) {
+        $numbers = array();
+        foreach (glob($this->form_dir($code) . '/page*.html') as $file) {
+            if (preg_match('/page(\d+)\.html$/', basename($file), $m)) {
+                $numbers[] = (int) $m[1];
+            }
+        }
+        sort($numbers);
+        return $numbers;
+    }
+
+    /**
+     * meta.json carries the form's content-related configuration (title,
+     * description, css scope, submission options, page titles) — everything
+     * except code/status/public_slug/section, which stay admin-only (see
+     * EF2-quater). Written on every mutation, not only at export, so the
+     * directory stays self-describing — see doc/design_notes/formulaires_sync_fichiers_design.md.
+     */
+    public function write_meta($code, array $meta) {
+        $this->ensure_dir($code);
+        $this->write_file($this->meta_path($code), json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    public function read_meta($code) {
+        $path = $this->meta_path($code);
+        if (!file_exists($path)) {
+            return null;
+        }
+        $decoded = json_decode(file_get_contents($path), true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Wholesale-replaces a form's pages, style.css and meta.json from an
+     * extracted archive directory that already uses the on-disk layout
+     * (pageNN.html already wrapped, style.css, meta.json) — the archive is a
+     * direct mirror of storage, so this is a plain file swap, not a parse/
+     * rebuild. Images are handled separately by the caller (via write_image(),
+     * which sanitizes uploaded filenames). Deliberately never looks at a
+     * `.commun/` entry the archive might contain (form_backup() bundles one
+     * for offline viewing, see "Ressources locales et partagées" in the
+     * design notes): shared resources belong to every form on the
+     * installation, a single form's import must never overwrite them.
+     */
+    public function replace_all_from_dir($code, $src_dir) {
+        $this->ensure_dir($code);
+        $dir = $this->form_dir($code);
+
+        foreach (glob($dir . '/page*.html') as $file) {
+            unlink($file);
+        }
+        if (file_exists($this->css_path($code))) {
+            unlink($this->css_path($code));
+        }
+        if (file_exists($this->meta_path($code))) {
+            unlink($this->meta_path($code));
+        }
+
+        foreach (glob($src_dir . '/page*.html') as $file) {
+            $this->copy_file($file, $dir . '/' . basename($file));
+        }
+        if (file_exists($src_dir . '/style.css')) {
+            $this->copy_file($src_dir . '/style.css', $this->css_path($code));
+        }
+        if (file_exists($src_dir . '/meta.json')) {
+            $this->copy_file($src_dir . '/meta.json', $this->meta_path($code));
+        }
+    }
+
+    /**
+     * CSS and images shared across several forms, referenced from a form's
+     * own style.css/pages via a relative path (`.commun/style.css`,
+     * `.commun/images/{file}`) that Forms_renderer rewrites at render time —
+     * see "Ressources locales et partagées" in the design notes. Stored
+     * under a reserved directory name (.commun) that is never derived
+     * from — and cannot collide with — a form's `code` (dot is outside the
+     * alpha_dash alphabet validated for codes), so it is deliberately kept
+     * out of form_dir()/safe_code().
+     */
+    public function shared_dir() {
+        return $this->base_dir . '/.commun';
+    }
+
+    /**
+     * Same deny-all protection as ensure_dir() for a per-form directory —
+     * .commun/ is just as web-writable and must never be served as a static
+     * file, only through forms_public/shared_css and forms_public/shared_image.
+     */
+    private function ensure_shared_dir() {
+        $dir = $this->shared_dir();
+        $this->make_dir($dir);
+        $htaccess = $dir . '/.htaccess';
+        if (!file_exists($htaccess)) {
+            $this->write_file($htaccess, "Require all denied\n");
+        }
+        return $dir;
+    }
+
+    private function shared_css_path() {
+        return $this->shared_dir() . '/style.css';
+    }
+
+    public function read_shared_css() {
+        $path = $this->shared_css_path();
+        return file_exists($path) ? file_get_contents($path) : null;
+    }
+
+    public function write_shared_css($css) {
+        $this->ensure_shared_dir();
+        $this->write_file($this->shared_css_path(), (string) $css);
+    }
+
+    public function shared_images_dir() {
+        return $this->shared_dir() . '/images';
+    }
+
+    public function shared_image_path($filename) {
+        return $this->shared_images_dir() . '/' . $this->safe_image_name($filename);
+    }
+
+    public function read_shared_image($filename) {
+        $path = $this->shared_image_path($filename);
+        return file_exists($path) ? file_get_contents($path) : null;
+    }
+
+    public function write_shared_image($filename, $content) {
+        $this->ensure_shared_dir();
+        $this->make_dir($this->shared_images_dir());
+        $safe_name = $this->safe_image_name($filename);
+        $this->write_file($this->shared_images_dir() . '/' . $safe_name, $content);
+        return $safe_name;
+    }
+
+    /** Sorted list of shared image filenames — mirrors list_images(). */
+    public function list_shared_images() {
+        $dir = $this->shared_images_dir();
+        if (!is_dir($dir)) {
+            return array();
+        }
+        $names = array();
+        foreach (glob($dir . '/*') as $file) {
+            if (is_file($file)) {
+                $names[] = basename($file);
+            }
+        }
+        sort($names);
+        return $names;
     }
 
     /**

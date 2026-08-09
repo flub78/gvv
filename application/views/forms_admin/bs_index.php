@@ -119,9 +119,16 @@
                         <label class="form-label fw-semibold" for="import_zip">Fichier ZIP <span class="text-danger">*</span></label>
                         <input type="file" class="form-control" id="import_zip" name="import_zip" accept=".zip" required>
                         <div class="form-text">
-                            Sauvegarde exportée depuis la page d'édition d'un formulaire GVV (<code>.zip</code>).
+                            Archive exportée depuis la page d'édition d'un formulaire GVV (<code>.zip</code>).
                             Un nouveau formulaire est créé ; le lien public n'est pas importé.
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="import_zip_code"><?= $this->lang->line('forms_label_code') ?> <small class="text-muted">(optionnel)</small></label>
+                        <input type="text" class="form-control" id="import_zip_code" name="import_code"
+                               maxlength="50" placeholder="auto-généré depuis le nom du fichier ZIP"
+                               pattern="[a-zA-Z0-9_\-]+">
+                        <div class="form-text"><?= $this->lang->line('forms_help_code') ?></div>
                     </div>
                 </div>
                 <div class="modal-footer">

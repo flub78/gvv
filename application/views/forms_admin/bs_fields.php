@@ -27,7 +27,6 @@
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/pages/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_pages') ?></a>
-            <a class="btn btn-outline-primary" href="<?= site_url('forms_admin/page_edit/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_edit_page') ?></a>
         </div>
     </div>
 

@@ -50,13 +50,13 @@ Un formulaire GVV est composé de :
 Flux de travail :
 
 ```
-Créer le formulaire → Ajouter des pages (contenu HTML, champs inclus)
+Créer le conteneur du formulaire → Déposer une archive (pages HTML, CSS, images)
 → Publier → Partager le lien public → Consulter les réponses
 ```
 
 Le lien public a la forme : `http://gvv.net/index.php/forms/{slug-public}`
 
-Le contenu de chaque page (HTML + CSS) est stocké sous forme de fichiers dans `uploads/formulaires/{code}/` — voir [Gérer les pages](#gérer-les-pages) pour ce que ça change concrètement pour l'administrateur.
+Le contenu de chaque page (HTML + CSS) est stocké sous forme de fichiers dans `uploads/formulaires/{code}/` et s'édite exclusivement par dépôt d'archive — voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive).
 
 ![Liste des formulaires](../screenshots/formulaires/admin_liste_formulaires.png)
 
@@ -77,7 +77,6 @@ Navigation : **Formulaires → Nouveau formulaire**
 | **Description** | Texte optionnel affiché sous le titre |
 | **Lien public** | Segment d'URL (ex. `inscription-club`) — voir la distinction avec **Code** ci-dessous |
 | **CSS scope** | Préfixe optionnel pour isoler le CSS global de ce formulaire des autres |
-| **CSS global du formulaire** | Styles injectés dans la page publique et dans la preview admin (voir [Règles CSS](#règles-css)) |
 | **Contexte GVV** | Sélecteur(s) de pré-remplissage nécessaires : aucun, membre, instructeur, ou les deux — voir [Pré-remplissage — mécanisme A](#pré-remplissage--mécanisme-a-attributs-data-gvv-source) |
 | **Formulaire global** | Rend le formulaire visible dans toutes les sections plutôt que la seule section active |
 | **Autoriser la soumission par téléchargement (scan)** | Active le bouton "Télécharger un formulaire prérempli" — voir [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan) |
@@ -87,19 +86,62 @@ Navigation : **Formulaires → Nouveau formulaire**
 
 Le **Code** sert de nom de dossier de stockage (`uploads/formulaires/{code}/` : pages HTML, CSS, images) et de clé unique en base pour retrouver le formulaire côté admin. Si l'admin le renomme, GVV renomme aussi le dossier physique correspondant. Il est distinct du **Lien public**, qui est le segment d'URL vu par les visiteurs externes (`forms/{slug}`) : les deux sont indépendants et modifiables séparément une fois le formulaire créé.
 
+Ce formulaire de création ne définit que les métadonnées du conteneur : il n'y a pas de champ pour saisir le HTML ou le CSS des pages. Une fois le formulaire créé, ajoutez son contenu (pages, CSS, images) par **dépôt d'archive** — voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive).
+
 ### Gérer les pages
 
 Chaque formulaire comporte une ou plusieurs pages affichées séquentiellement. GVV gère automatiquement la navigation Précédent / Suivant et le bouton de soumission finale.
 
-Le contenu HTML de chaque page est la **source de vérité** du formulaire : il n'y a pas de copie séparée des champs à maintenir en base. GVV stocke ce contenu sous forme de fichier, dans `uploads/formulaires/{code}/pageNN.html`, aux côtés du CSS global (`style.css`) et des images éventuelles (`images/`) — voir [Images du formulaire](#images-du-formulaire).
-
-Ce fichier est un document HTML5 autonome (avec son propre `<link rel="stylesheet" href="style.css">`) : il peut s'ouvrir directement dans un navigateur, même sans connexion au serveur GVV — pratique pour relire une mise en page ou dépanner un CSS localement. La zone de texte de l'admin, elle, continue à n'afficher que le contenu utile de la page (sans l'enveloppe HTML) : GVV l'ajoute et la retire automatiquement à l'écriture/la lecture du fichier.
-
 ![Gestion des pages](../screenshots/formulaires/admin_pages.png)
 
-![Édition d'une page](../screenshots/formulaires/admin_edition_page.png)
+Cette liste est une vue **en lecture seule** de ce que contient le dossier de stockage du formulaire (`uploads/formulaires/{code}/pageNN.html`) : numéro, titre, aperçu du texte et bouton **"Champs"** (voir [Champs détectés automatiquement](#champs-détectés-automatiquement)). Le contenu d'une page ne se modifie pas depuis cette liste — voir la section suivante.
 
-Les champs de saisie (texte, email, liste déroulante, signature, etc.) sont **détectés automatiquement** dans ce contenu HTML — voir [Champs détectés automatiquement](#champs-détectés-automatiquement). Il n'y a pas d'étape de déclaration séparée : ajouter un `<input name="...">` dans la page suffit.
+### Gérer le contenu d'un formulaire (archive)
+
+Le contenu d'un formulaire — pages HTML, CSS global, images, et les options qui en dépendent (portée CSS, paramètres requis, traitement après soumission...) — s'édite **exclusivement par dépôt d'archive ZIP**. Il n'y a pas de zone de texte HTML ou CSS dans l'interface d'administration : le seul moyen d'ajouter ou de corriger une page est de déposer un fichier ZIP construit en local (à la main ou avec l'aide d'un assistant IA — voir le [tutoriel](13_formulaires_tutoriel.md)).
+
+C'est le fonctionnement normal pour faire évoluer un formulaire, pas seulement un mécanisme de secours : créer un formulaire, ajouter une page, corriger une coquille, changer le CSS passent tous par ce même geste — déposer une archive.
+
+#### Format de l'archive
+
+Un fichier ZIP dont le contenu est un miroir exact du dossier de stockage du formulaire :
+
+```
+mon-formulaire.zip
+├── meta.json        ← titre, description, portée CSS, paramètres requis, options d'export, liste des pages
+├── page01.html       ← document HTML5 autonome (ouvrable tel quel dans un navigateur)
+├── page02.html
+├── style.css
+└── images/
+    └── logo.png
+```
+
+Chaque `pageNN.html` est un document HTML5 complet (`<!DOCTYPE>`, `<head>` avec `<link rel="stylesheet" href="style.css">`, `<body>`) : il s'ouvre directement dans un navigateur, même sans connexion au serveur GVV — pratique pour relire une mise en page ou dépanner un CSS en local avant de déposer l'archive. Seul le contenu du `<body>` est réellement utilisé par GVV — voir [Règles CSS](#règles-css).
+
+`meta.json` porte le contenu/la configuration du formulaire (titre, description, CSS scope, paramètres requis, options d'export, titres des pages). Le **code** du formulaire (nom du dossier), son **statut** et son **lien public** n'y figurent jamais : ils restent pilotés uniquement depuis l'interface d'administration et ne sont jamais modifiés par un dépôt d'archive.
+
+#### Créer un formulaire par archive
+
+Depuis la liste des formulaires, le bouton **"Import depuis sauvegarde"** crée un **nouveau** formulaire à partir d'une archive. Le champ **Code** de la fenêtre d'import est optionnel : laissé vide, GVV en déduit un depuis le nom du fichier ZIP déposé ; en cas de collision avec un code existant, un suffixe (`_2`, `_3`, ...) est ajouté automatiquement.
+
+#### Modifier le contenu d'un formulaire existant
+
+Dans la fiche d'édition d'un formulaire, la carte **"Contenu du formulaire (archive)"** permet :
+
+- de **télécharger l'archive actuelle** (bouton "Sauvegarder (ZIP)"), pour la modifier en local puis la redéposer ;
+- de **déposer une archive** (bouton à côté du champ de dépôt de fichier) qui **remplace intégralement** le contenu du formulaire (pages, CSS, images, métadonnées). Le code, le statut et le lien public ne sont **jamais** modifiés par un dépôt.
+
+> Un dépôt remplace intégralement le contenu existant — les pages et images qui ne figurent pas dans l'archive déposée sont supprimées. Télécharger l'archive actuelle avant de déposer une modification si le contenu doit pouvoir être restauré en cas d'erreur.
+
+#### CSS partagé entre formulaires
+
+Pour partager une base de style entre plusieurs formulaires (même charte graphique, déclinaison d'un même concours d'une année sur l'autre...) sans dupliquer le CSS dans chaque archive, placez en tête du `style.css` d'un formulaire :
+
+```css
+@import url(".commun/style.css");
+```
+
+GVV réécrit automatiquement cette référence vers la bonne adresse au moment d'afficher la page — le fichier stocké garde `.commun/style.css` tel quel, jamais une adresse en dur, ce qui le garde ouvrable directement dans un navigateur et transportable d'une installation GVV à une autre par simple export/import d'archive. Le CSS partagé lui-même est propre à l'installation GVV et modifiable uniquement par un administrateur ayant accès au serveur (fichier `uploads/formulaires/.commun/style.css`, hors du contenu de chaque formulaire).
 
 ### Images du formulaire
 
@@ -107,8 +149,10 @@ Un formulaire peut avoir besoin d'images propres (logo, en-tête, etc.), sépar�
 
 - de **déposer** une image (PNG, JPEG, GIF ou WEBP, 2 Mo maximum) ;
 - de consulter la **liste** des images déjà déposées, avec un aperçu miniature ;
-- de **copier l'URL** de chaque image, à coller dans un attribut `src="..."` du contenu HTML de la page (ex. `<img src="{url copiée}" alt="Logo du club">`) ;
+- de **copier le chemin** de chaque image, à coller dans un attribut `src="..."` du contenu HTML de la page (ex. `<img src="{chemin copié}" alt="Logo du club">`) — un chemin relatif (`images/{fichier}`), pas une adresse GVV en dur, pour les mêmes raisons que le CSS partagé ci-dessus : le fichier stocké reste ouvrable en `file://` et déplaçable d'une installation à l'autre. GVV le réécrit vers la bonne adresse au moment de l'affichage ;
 - de **supprimer** une image qui n'est plus utilisée.
+
+Une image partagée entre plusieurs formulaires (logo de club commun, par exemple) suit la même logique que le CSS partagé : référencée par `.commun/images/{fichier}` (fichier réservé `uploads/formulaires/.commun/images/`, modifiable uniquement par un administrateur ayant accès au serveur — pas encore de carte dédiée dans l'admin pour ce cas).
 
 > Une image collée en base64 directement dans le HTML (comme le fait déjà l'exemple `inscription_bia`) fonctionne toujours, mais alourdit le fichier de la page à chaque relecture. Pour un logo ou une image réutilisée, préférer le dépôt via la carte Images.
 
@@ -118,7 +162,7 @@ GVV n'intègre pas de convertisseur PDF → HTML automatique. Pour numériser un
 
 1. Demander à un outil d'IA (Claude, ChatGPT, etc.) de convertir le PDF en HTML, en lui donnant les contraintes de ce document : Bootstrap 5, pas de `<head>`/`<style>` ni de balise `<form>` dans le contenu de page — voir [Règles CSS](#règles-css).
 2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main pour que GVV les reconnaisse ensuite — voir [Champs détectés automatiquement](#champs-détectés-automatiquement).
-3. Coller le résultat dans le contenu de la page. Aucune déclaration supplémentaire n'est nécessaire : GVV détecte les champs à l'enregistrement de la page.
+3. Enregistrer le résultat comme `page01.html`, l'assembler avec un `style.css` dans une archive ZIP (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)), puis déposer cette archive. Aucune déclaration supplémentaire n'est nécessaire : GVV détecte les champs au dépôt de l'archive.
 4. Vérifier le rendu sur la page publique : la fidélité visuelle au PDF d'origine n'est pas garantie et demande souvent des retouches CSS.
 
 **Limites** : pas de détection automatique des champs du PDF source, pas de garantie de fidélité visuelle, relecture manuelle obligatoire avant publication.
@@ -150,7 +194,7 @@ Deux attributs optionnels complètent le comportement d'un champ, sans équivale
        data-gvv-validation="max_length[10]|numeric">
 ```
 
-Depuis **Gérer les pages**, le bouton **"Champs"** d'une page affiche la liste en lecture seule de ce que GVV a détecté — utile pour vérifier qu'un `name` n'a pas été oublié après un copier-coller. Toute correction se fait en modifiant directement le HTML de la page (bouton **"Modifier la page"**), pas depuis cette liste.
+Depuis **Gérer les pages**, le bouton **"Champs"** d'une page affiche la liste en lecture seule de ce que GVV a détecté — utile pour vérifier qu'un `name` n'a pas été oublié après un copier-coller. Toute correction se fait en modifiant le HTML dans une archive puis en la redéposant — voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive) —, pas depuis cette liste.
 
 > **Important** : c'est l'attribut `name` de l'élément HTML qui identifie le champ pour GVV — aucune correspondance à saisir ailleurs. Renommer ce `name` change l'identité du champ (les réponses déjà soumises sous l'ancien nom ne sont pas rattachées automatiquement au nouveau).
 
@@ -312,7 +356,7 @@ Classes Bootstrap utiles :
 | Champ obligatoire | `<span class="text-danger">*</span>` |
 | Groupement visuel | `card`, `card-body` |
 
-**2. CSS dans le champ `global_css` du formulaire** — pour les styles personnalisés, utiliser le champ CSS global de l'interface admin. Ce CSS est injecté dans la page publique avant le formulaire.
+**2. CSS dans `style.css`** — pour les styles personnalisés, utiliser le fichier `style.css` de l'archive du formulaire (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)). Ce CSS est injecté dans la page publique avant le formulaire.
 
 Portée recommandée : `.forms-public-root` (classe appliquée automatiquement au conteneur).
 
@@ -339,13 +383,14 @@ Portée recommandée : `.forms-public-root` (classe appliquée automatiquement a
 | `<form>` dans le HTML | Supprimé ; GVV génère sa propre balise `<form>` |
 | `<button type="submit">` | Supprimé ; GVV génère les boutons de navigation |
 
+> Un `@import url(...)` placé en tête du fichier **`style.css`** de l'archive, lui, fonctionne — c'est le mécanisme utilisé pour le [CSS partagé entre formulaires](#css-partagé-entre-formulaires) ou pour charger une police externe. Seul un `@import` placé dans `<head>` du HTML de page est perdu.
+
 ### Développement local
 
-Développer le HTML comme un fichier autonome avec CSS inline dans `<head>` pour la prévisualisation. Lors de l'import dans GVV :
+Développer chaque page comme un fichier HTML autonome (`pageNN.html`, avec un `<link rel="stylesheet" href="style.css">`) accompagné de son `style.css`, exactement dans le format attendu par l'archive — voir [Format de l'archive](#gérer-le-contenu-dun-formulaire-archive). Avant de déposer l'archive dans GVV :
 
-1. Copier uniquement le contenu du `<body>` dans le champ `content_html`
-2. Déplacer le CSS dans le champ `global_css`, scopé avec `.forms-public-root`
-3. Supprimer les `<form>`, les boutons `submit`/`reset` et les `@import` de polices
+1. Vérifier que le CSS personnalisé est bien scopé avec `.forms-public-root`
+2. Supprimer les `<form>`, les boutons `submit`/`reset` et tout `@import` de polices placé dans `<head>` (déplacer un tel `@import` en tête de `style.css` s'il doit être conservé)
 
 ---
 
@@ -783,25 +828,7 @@ Le bouton n'est visible que dans la liste admin des réponses, déjà protégée
 
 ## Exporter / importer un formulaire complet (archive)
 
-Un formulaire (pages HTML, CSS, images, métadonnées) peut être manipulé comme un seul fichier ZIP téléchargeable — utile pour une sauvegarde avant une modification risquée, un transfert entre installations GVV, ou le partage d'un formulaire entre clubs.
-
-### Sauvegarder
-
-Dans la fiche d'édition d'un formulaire, le bouton **"Sauvegarder (ZIP)"** télécharge une archive contenant :
-
-- les pages HTML et le CSS global ;
-- les images déposées via la carte [Images du formulaire](#images-du-formulaire) ;
-- les métadonnées du formulaire (titre, description, portée CSS, slug public, paramètres requis).
-
-### Importer comme nouveau formulaire
-
-Depuis la liste des formulaires, le bouton **"Import depuis sauvegarde"** crée un **nouveau** formulaire à partir d'une archive. Si le code du formulaire sauvegardé existe déjà, GVV lui ajoute automatiquement un suffixe (`_2`, `_3`, ...) plutôt que d'échouer ou d'écraser l'existant.
-
-### Restaurer un formulaire existant
-
-Dans la fiche d'édition d'un formulaire, la section **"Sauvegarde et restauration"** permet aussi de déposer une archive pour **remplacer** le contenu du formulaire courant (pages, CSS, images, métadonnées). Le code, le statut et le lien public du formulaire ne sont **pas** modifiés par une restauration.
-
-> Une restauration remplace intégralement le contenu existant — les pages et images qui ne figurent pas dans l'archive déposée sont supprimées. Faire une sauvegarde avant de restaurer si le contenu actuel doit être conservé en cas d'erreur.
+Un formulaire (pages HTML, CSS, images, métadonnées) se manipule comme un seul fichier ZIP téléchargeable — le même mécanisme sert à la fois d'**édition courante** (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)), de **transfert entre installations GVV** et de **partage d'un formulaire entre clubs** : télécharger l'archive d'un formulaire sur une installation, l'importer comme nouveau formulaire sur une autre.
 
 ---
 
@@ -966,7 +993,7 @@ Formulaire réaliste couvrant tous les types de champs supportés, y compris la 
 </div>
 ```
 
-**CSS global du formulaire :**
+**Contenu de `style.css` :**
 
 ```css
 .forms-public-root .bloc-section {
@@ -996,7 +1023,7 @@ Formulaire réaliste couvrant tous les types de champs supportés, y compris la 
 | ✅ Recommandé | ❌ À éviter |
 |---|---|
 | Classes Bootstrap 5 pour la grille et les champs | CSS dans `<head>` du HTML de page |
-| CSS personnalisé dans le champ `global_css` du formulaire | `@import url(...)` de polices dans `<head>` |
+| CSS personnalisé dans le fichier `style.css` de l'archive | `@import url(...)` de polices dans `<head>` |
 | Portée CSS avec `.forms-public-root` | Sélecteurs nus `input`, `label` sans portée |
 | `name="champ[]"` pour les checkboxes | Balise `<form>` dans le HTML de page |
 | `<div data-gvv-type="signature">` pour les signatures | Boutons `submit`/`reset` dans le HTML de page |

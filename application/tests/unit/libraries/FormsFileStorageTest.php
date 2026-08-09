@@ -294,4 +294,176 @@ class FormsFileStorageTest extends TestCase
         $this->storage->delete_form_dir('inexistant');
         $this->assertFalse(is_dir($this->storage->form_dir('inexistant')));
     }
+
+    // -------------------------------------------------------------------
+    // page_numbers() (Lot 2-ter)
+    // -------------------------------------------------------------------
+
+    public function testPageNumbersReturnsSortedNumbersFromFilesOnDisk()
+    {
+        $this->storage->write_page('multi', 2, '<p>deux</p>');
+        $this->storage->write_page('multi', 1, '<p>un</p>');
+        $this->storage->write_page('multi', 10, '<p>dix</p>');
+
+        $this->assertSame(array(1, 2, 10), $this->storage->page_numbers('multi'));
+    }
+
+    public function testPageNumbersEmptyWhenFormDoesNotExist()
+    {
+        $this->assertSame(array(), $this->storage->page_numbers('inexistant'));
+    }
+
+    // -------------------------------------------------------------------
+    // meta.json (Lot 2-ter)
+    // -------------------------------------------------------------------
+
+    public function testWriteThenReadMetaRoundTrips()
+    {
+        $meta = array(
+            'title'           => 'Inscription au concours',
+            'description'     => 'Formulaire du club',
+            'css_scope'       => '',
+            'required_params' => 'none',
+            'pages'           => array(
+                array('page_number' => 1, 'title' => 'Pilote'),
+            ),
+        );
+
+        $this->storage->write_meta('mon-form', $meta);
+
+        $this->assertSame($meta, $this->storage->read_meta('mon-form'));
+    }
+
+    public function testReadMetaReturnsNullWhenAbsent()
+    {
+        $this->assertNull($this->storage->read_meta('inexistant'));
+    }
+
+    public function testReadMetaReturnsNullWhenFileIsNotValidJson()
+    {
+        $this->storage->ensure_dir('broken-meta');
+        file_put_contents($this->storage->form_dir('broken-meta') . '/meta.json', 'not json');
+
+        $this->assertNull($this->storage->read_meta('broken-meta'));
+    }
+
+    public function testWriteMetaProducesHumanReadableUnescapedJson()
+    {
+        $this->storage->write_meta('accents', array('title' => 'Épreuve à Nîmes'));
+
+        $raw = file_get_contents($this->storage->form_dir('accents') . '/meta.json');
+
+        $this->assertStringContainsString('Épreuve à Nîmes', $raw);
+        $this->assertStringContainsString("\n", $raw, 'expected pretty-printed JSON');
+    }
+
+    // -------------------------------------------------------------------
+    // replace_all_from_dir() (Lot 2-ter) — archive/directory symmetry
+    // -------------------------------------------------------------------
+
+    public function testReplaceAllFromDirInstallsPagesCssAndMeta()
+    {
+        $src = self::$tmp_root . '/archive_src_' . uniqid();
+        mkdir($src, 0770, true);
+        file_put_contents($src . '/page01.html', '<!DOCTYPE html><html><body class="forms-public-root"><p>Un</p></body></html>');
+        file_put_contents($src . '/page02.html', '<!DOCTYPE html><html><body class="forms-public-root"><p>Deux</p></body></html>');
+        file_put_contents($src . '/style.css', '.forms-public-root { color: red; }');
+        file_put_contents($src . '/meta.json', json_encode(array('title' => 'Depuis archive')));
+
+        $this->storage->replace_all_from_dir('cible', $src);
+
+        $this->assertSame('<p>Un</p>', $this->storage->read_page('cible', 1));
+        $this->assertSame('<p>Deux</p>', $this->storage->read_page('cible', 2));
+        $this->assertSame('.forms-public-root { color: red; }', $this->storage->read_css('cible'));
+        $this->assertSame(array('title' => 'Depuis archive'), $this->storage->read_meta('cible'));
+
+        self::_rrmdir_static($src);
+    }
+
+    public function testReplaceAllFromDirRemovesPagesNoLongerPresentInArchive()
+    {
+        // Existing form has 2 pages; the deposited archive only has 1 — the
+        // old page 2 must not linger on disk after the replacement.
+        $this->storage->write_page('existant', 1, '<p>ancien un</p>');
+        $this->storage->write_page('existant', 2, '<p>ancien deux</p>');
+
+        $src = self::$tmp_root . '/archive_src_' . uniqid();
+        mkdir($src, 0770, true);
+        file_put_contents($src . '/page01.html', '<!DOCTYPE html><html><body class="forms-public-root"><p>nouveau un</p></body></html>');
+
+        $this->storage->replace_all_from_dir('existant', $src);
+
+        $this->assertSame('<p>nouveau un</p>', $this->storage->read_page('existant', 1));
+        $this->assertNull($this->storage->read_page('existant', 2));
+
+        self::_rrmdir_static($src);
+    }
+
+    // -------------------------------------------------------------------
+    // shared CSS (.commun/style.css) (Lot 2-ter)
+    // -------------------------------------------------------------------
+
+    public function testWriteThenReadSharedCssRoundTrips()
+    {
+        $this->storage->write_shared_css('.club-header { color: navy; }');
+
+        $this->assertSame('.club-header { color: navy; }', $this->storage->read_shared_css());
+    }
+
+    public function testReadSharedCssReturnsNullWhenAbsent()
+    {
+        $this->assertNull($this->storage->read_shared_css());
+    }
+
+    public function testSharedCssDirectoryDoesNotCollideWithAFormCodeSanitizedFromDotCommun()
+    {
+        // safe_code() must never be used to build the shared-CSS path — a
+        // form whose sanitized code happens to be "commun" must not be able
+        // to shadow the reserved shared CSS.
+        $this->storage->write_shared_css('shared');
+        $this->storage->write_css('commun', 'form-specific');
+
+        $this->assertSame('shared', $this->storage->read_shared_css());
+        $this->assertSame('form-specific', $this->storage->read_css('commun'));
+    }
+
+    public function testWriteSharedCssCreatesDenyAllHtaccess()
+    {
+        $this->storage->write_shared_css('body {}');
+
+        $htaccess = $this->storage->shared_dir() . '/.htaccess';
+        $this->assertFileExists($htaccess);
+        $this->assertStringContainsString('Require all denied', file_get_contents($htaccess));
+    }
+
+    // -------------------------------------------------------------------
+    // shared images (.commun/images/) (Lot 2-quater)
+    // -------------------------------------------------------------------
+
+    public function testWriteThenReadSharedImageRoundTrips()
+    {
+        $stored_name = $this->storage->write_shared_image('Logo Club.png', 'PNGDATA');
+
+        $this->assertSame('Logo-Club.png', $stored_name);
+        $this->assertSame(array('Logo-Club.png'), $this->storage->list_shared_images());
+        $this->assertSame('PNGDATA', $this->storage->read_shared_image('Logo-Club.png'));
+    }
+
+    public function testReadSharedImageReturnsNullWhenAbsent()
+    {
+        $this->assertNull($this->storage->read_shared_image('inexistant.png'));
+    }
+
+    public function testListSharedImagesEmptyWhenNoSharedImagesDir()
+    {
+        $this->assertSame(array(), $this->storage->list_shared_images());
+    }
+
+    public function testWriteSharedImageCreatesDenyAllHtaccessAtSharedRootNotOnlyImagesDir()
+    {
+        $this->storage->write_shared_image('logo.png', 'X');
+
+        $htaccess = $this->storage->shared_dir() . '/.htaccess';
+        $this->assertFileExists($htaccess);
+    }
 }

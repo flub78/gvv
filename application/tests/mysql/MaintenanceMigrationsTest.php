@@ -450,6 +450,20 @@ class MaintenanceMigrationsTest extends TestCase
 
     public function testDownUpRoundtripAllMigrations()
     {
+        // Defensive: archived_documents rows left behind by other test suites
+        // (e.g. the Playwright maintenance smoke tests, which upload fixtures
+        // but never delete them) reference these document_types and would
+        // block the DELETE in migration 162's down() via the RESTRICT delete
+        // rule on fk_archived_documents_type. This test verifies migration
+        // reversibility, not data left over by unrelated suites, so clear it
+        // unconditionally first — maintenance_bulletin_statuts cascades and
+        // maintenance_programmes/operations.document_id is set NULL automatically.
+        $this->db->query(
+            "DELETE ad FROM archived_documents ad
+             JOIN document_types dt ON dt.id = ad.document_type_id
+             WHERE dt.code IN ('maintenance_programme', 'maintenance_bulletin')"
+        );
+
         $this->assertTrue((new Migration_Maintenance_compte_rendu_document_type())->down(), 'down() 163 doit reussir');
         $this->assertTrue((new Migration_Maintenance_document_types())->down(), 'down() 162 doit reussir');
         $this->assertTrue((new Migration_Maintenance_bulletin_statuts())->down(), 'down() 160 doit reussir');

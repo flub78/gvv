@@ -34,7 +34,6 @@ $lang['forms_label_label']                = 'Label';
 $lang['forms_label_technical_name']       = 'Technical name';
 $lang['forms_label_required']             = 'Required';
 $lang['forms_label_page_number']          = 'Page number';
-$lang['forms_label_content_html']         = 'HTML content';
 $lang['forms_label_format']               = 'Source format';
 $lang['forms_label_content']              = 'Content';
 $lang['forms_label_preview']              = 'Preview';
@@ -43,7 +42,6 @@ $lang['forms_label_anonymous']            = 'Anonymous';
 $lang['forms_label_reference']            = 'Reference';
 $lang['forms_label_files_attached']       = 'Attached files';
 $lang['forms_label_css_scope']            = 'CSS scope';
-$lang['forms_label_global_css']           = 'Form global CSS';
 $lang['forms_label_display_order']        = 'Display order';
 $lang['forms_label_options']              = 'Options';
 $lang['forms_label_name_optional']        = 'Name (optional)';
@@ -68,8 +66,6 @@ $lang['forms_button_copy_link']           = 'Copy link';
 $lang['forms_button_manage_pages']        = 'Manage pages';
 $lang['forms_button_view_responses']      = 'View responses';
 $lang['forms_button_preview_css']         = 'CSS preview';
-$lang['forms_button_new_page']            = 'New page';
-$lang['forms_button_import']              = 'Import';
 $lang['forms_button_export_html']         = 'Export HTML';
 $lang['forms_button_export_txt']          = 'Export TXT';
 $lang['forms_button_backup']              = 'Backup (ZIP)';
@@ -89,7 +85,6 @@ $lang['forms_button_back_responses']      = 'View responses';
 $lang['forms_button_back_to_responses']   = 'View responses';
 $lang['forms_button_back_form']           = 'Edit form';
 $lang['forms_button_back_pages']          = 'Back to pages';
-$lang['forms_button_edit_page']           = 'Edit page';
 $lang['forms_button_back_fields']         = 'Back to fields';
 $lang['forms_button_pdf']                 = 'Generate PDF';
 $lang['forms_button_back_submissions']    = 'Back to responses';
@@ -116,11 +111,9 @@ $lang['forms_upload_error_file_type']     = 'File rejected (accepted formats: PD
 $lang['forms_title_new_form']             = 'New form';
 $lang['forms_title_edit_form']            = 'Edit form';
 $lang['forms_title_pages']                = 'Form pages';
-$lang['forms_title_new_page']             = 'New page';
-$lang['forms_title_edit_page']            = 'Edit page';
-$lang['forms_title_import_page']          = 'Import page';
 $lang['forms_title_import_html']          = 'Create a form from an HTML page';
 $lang['forms_title_backup_restore']       = 'Backup and restore';
+$lang['forms_title_content_archive']      = 'Form content (archive)';
 $lang['forms_title_images']               = 'Images';
 $lang['forms_title_fields']               = 'Fields — page';
 $lang['forms_title_add_field']            = 'Add field';
@@ -181,17 +174,17 @@ $lang['forms_type_file']                  = 'File';
 
 // Help texts
 $lang['forms_help_code']                  = 'Stable identifier in snake_case or kebab-case.';
-$lang['forms_help_global_css']            = 'This CSS is injected in the public render and admin preview.';
 $lang['forms_help_technical_name']        = 'Letters, digits, underscore, dash. Used as field identifier.';
 $lang['forms_help_display_order']         = 'Leave empty to add at the end of the list.';
 $lang['forms_help_options_format']        = '(one per line)';
 $lang['forms_help_options_usage']         = 'Each line is an option presented to the user.';
-$lang['forms_help_import_content']        = 'Content will be added as a new page at the end of the form.';
-$lang['forms_help_restore']              = 'The ZIP file must come from a GVV backup. Title, description, CSS and pages are replaced. Code, status and public slug remain unchanged.';
-$lang['forms_help_backup']                = 'Exports the complete form (metadata, CSS, HTML pages and images) as a ZIP file.';
-$lang['forms_help_images']                = 'Images usable in the pages\' HTML (logo, etc.). Copy the URL shown below each image into a src="..." attribute. Accepted formats: PNG, JPEG, GIF, WEBP — 2 MB maximum.';
+$lang['forms_help_content_archive']       = 'Pages, CSS and content metadata are edited only by depositing an archive (ZIP) — there is no HTML/CSS text box in GVV. Download the current archive, edit it (with a text editor or an AI assistant), then deposit it: this is the normal way to evolve a form, not just a fallback.';
+$lang['forms_help_restore']              = 'Fully replaces the content (title, description, CSS, pages, images) with the one in the deposited archive. Code, status and public link remain unchanged.';
+$lang['forms_help_backup']                = 'Downloads the form\'s current content (metadata, CSS, HTML pages and images) as a ZIP file, ready to be edited and deposited again.';
+$lang['forms_confirm_restore']            = 'Deposit this archive? The current content (pages, CSS, images) will be replaced.';
+$lang['forms_help_pages_via_archive']     = 'Page content is edited by depositing an archive, not from this list — see the';
+$lang['forms_help_images']                = 'Images usable in the pages\' HTML (logo, etc.). Copy the path shown below each image into a src="..." attribute — it matches the form archive\'s images/ folder. Accepted formats: PNG, JPEG, GIF, WEBP — 2 MB maximum.';
 $lang['forms_confirm_delete_image']       = 'Delete this image? Pages referencing it will no longer display it.';
-$lang['forms_help_css_placeholder']       = '.forms-public-root h1 { color: #0d6efd; }';
 
 // Form fields
 $lang['forms_checkbox_global_form']       = 'Global form (not attached to a section)';
@@ -203,8 +196,6 @@ $lang['forms_placeholder_select']         = 'Select...';
 $lang['forms_label_yes']                  = 'Yes';
 $lang['forms_label_no']                   = 'No';
 $lang['forms_unit_bytes']                 = 'bytes';
-$lang['forms_option_html']                = 'HTML';
-$lang['forms_option_text']                = 'Text';
 $lang['forms_label_form_context']         = 'Form:';
 
 // Config params

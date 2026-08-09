@@ -35,7 +35,7 @@ class Forms_public extends CI_Controller {
     private function _overlay_css_from_file(array $form) {
         $file_css = $this->forms_file_storage->read_css($form['code']);
         if ($file_css !== null) {
-            $form['global_css'] = $file_css;
+            $form['global_css'] = $this->forms_renderer->rewrite_shared_css_import($file_css);
         }
         return $form;
     }
@@ -44,7 +44,7 @@ class Forms_public extends CI_Controller {
         foreach ($pages as &$page) {
             $file_html = $this->forms_file_storage->read_page($code, (int) $page['page_number']);
             if ($file_html !== null) {
-                $page['content_html'] = $file_html;
+                $page['content_html'] = $this->forms_renderer->rewrite_local_image_urls($file_html, $code);
             }
         }
         unset($page);
@@ -683,6 +683,53 @@ class Forms_public extends CI_Controller {
         $path       = $this->forms_file_storage->image_path($code, $filename);
         $images_dir = realpath($this->forms_file_storage->images_dir($code));
         $resolved   = realpath($path);
+
+        if ($resolved === false || $images_dir === false || strpos($resolved, $images_dir) !== 0 || !is_file($resolved)) {
+            show_404();
+            return;
+        }
+
+        $info = getimagesize($resolved);
+        $mime = $info ? $info['mime'] : 'application/octet-stream';
+
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($resolved));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: public, max-age=86400');
+        readfile($resolved);
+    }
+
+    /**
+     * Serves the CSS shared across several forms (uploads/formulaires/.commun/style.css).
+     * A form's own style.css references it as the relative path
+     * `.commun/style.css`, rewritten to this route by
+     * Forms_renderer::rewrite_shared_css_import() at render time — see
+     * "Ressources locales et partagées" in the design notes.
+     */
+    public function shared_css() {
+        $css = $this->forms_file_storage->read_shared_css();
+
+        header('Content-Type: text/css; charset=utf-8');
+        header('Cache-Control: public, max-age=3600');
+        echo $css !== null ? $css : '';
+    }
+
+    /**
+     * Serves an image shared across several forms (uploads/formulaires/.commun/images/{filename}).
+     * Referenced in a form's HTML as the relative path
+     * `.commun/images/{filename}`, rewritten to this route by
+     * Forms_renderer::rewrite_local_image_urls() at render time.
+     */
+    public function shared_image($filename = '') {
+        $filename = trim((string) $filename);
+        if ($filename === '') {
+            show_404();
+            return;
+        }
+
+        $path        = $this->forms_file_storage->shared_image_path($filename);
+        $images_dir  = realpath($this->forms_file_storage->shared_images_dir());
+        $resolved    = realpath($path);
 
         if ($resolved === false || $images_dir === false || strpos($resolved, $images_dir) !== 0 || !is_file($resolved)) {
             show_404();
