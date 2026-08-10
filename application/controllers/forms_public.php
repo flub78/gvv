@@ -1207,10 +1207,11 @@ class Forms_public extends CI_Controller {
         if ($this->_event_type_map_ulm === null) {
             $this->_event_type_map_ulm = array();
             $rows = $this->db->select('id, name')->from('events_types')
-                ->where_in('name', array('FI ULM', 'FE ULM'))->get()->result_array();
+                ->where_in('name', array('FI ULM', 'FE ULM', 'Test brevet ULM'))->get()->result_array();
             foreach ($rows as $row) {
                 if ($row['name'] === 'FI ULM') $this->_event_type_map_ulm['fi_ulm'] = (int) $row['id'];
                 if ($row['name'] === 'FE ULM') $this->_event_type_map_ulm['fe_ulm'] = (int) $row['id'];
+                if ($row['name'] === 'Test brevet ULM') $this->_event_type_map_ulm['test_brevet_ulm'] = (int) $row['id'];
             }
         }
         return isset($this->_event_type_map_ulm[$type_key]) ? $this->_event_type_map_ulm[$type_key] : null;
