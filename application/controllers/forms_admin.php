@@ -39,6 +39,7 @@ class Forms_admin extends MY_Controller {
         $this->load->model('forms_model');
         $this->load->model('form_pages_model');
         $this->load->model('form_submissions_model');
+        $this->load->model('sections_model');
         $this->load->library('form_validation');
         $this->load->library('forms_validation');
         $this->load->library('forms_renderer');
@@ -127,9 +128,10 @@ class Forms_admin extends MY_Controller {
                 'handler_class' => '',
                 'target_url'   => '',
                 'target_label' => '',
-                'is_global'   => ($section_id <= 0) ? 1 : 0,
+                'club'        => ($section_id > 0) ? $section_id : '',
             ),
             'section_id' => $section_id,
+            'section_selector' => $this->sections_model->section_selector_with_null(),
             'handler_classes' => $this->_available_handler_classes(),
             'error'      => '',
         );
@@ -148,7 +150,7 @@ class Forms_admin extends MY_Controller {
         $row = $this->_overlay_css_from_file($row);
 
         $section_id = (int) $this->session->userdata('section');
-        $row['is_global'] = empty($row['club']) ? 1 : 0;
+        $row['club'] = ($row['club'] !== null) ? (int) $row['club'] : '';
 
         $data = array(
             'controller'       => $this->controller,
@@ -157,6 +159,7 @@ class Forms_admin extends MY_Controller {
             'submit_label'     => 'Enregistrer',
             'form'             => $row,
             'section_id'       => $section_id,
+            'section_selector' => $this->sections_model->section_selector_with_null(),
             'handler_classes'  => $this->_available_handler_classes(),
             'is_workflow_form' => in_array($row['public_slug'], $this->workflow_form_slugs, true),
             'is_currently_published' => $row['status'] === 'published',
@@ -210,6 +213,20 @@ class Forms_admin extends MY_Controller {
         return in_array($value, $this->_available_handler_classes(), true) ? $value : null;
     }
 
+    /**
+     * Only accept a club (section) value that matches an existing section
+     * (or empty, for a global form) — the select is the only intended input
+     * path, this guards against a forged POST setting an arbitrary id.
+     */
+    private function _validated_club($value) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        $value = (int) $value;
+        return ($this->db->where('id', $value)->count_all_results('sections') > 0) ? $value : null;
+    }
+
     public function store() {
         $section_id = (int) $this->session->userdata('section');
 
@@ -225,6 +242,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'error'      => validation_errors(),
             );
@@ -232,8 +250,7 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $is_global = (int) $this->input->post('is_global');
-        $club = ($section_id > 0 && !$is_global) ? $section_id : null;
+        $club = $this->_validated_club($this->input->post('club'));
         $code = trim($this->input->post('code'));
 
         $id = $this->forms_model->create_form(array(
@@ -256,6 +273,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'error'      => 'Impossible de creer le formulaire.',
             );
@@ -291,7 +309,6 @@ class Forms_admin extends MY_Controller {
 
         if ($this->form_validation->run() === FALSE) {
             $form = array_merge($current, $this->input->post());
-            $form['is_global'] = !empty($form['is_global']) ? 1 : 0;
 
             $data = array(
                 'controller' => $this->controller,
@@ -300,6 +317,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'       => $form,
                 'section_id' => $section_id,
+                'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
                 'is_currently_published' => $current['status'] === 'published',
@@ -309,8 +327,7 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        $is_global = (int) $this->input->post('is_global');
-        $club = ($section_id > 0 && !$is_global) ? $section_id : null;
+        $club = $this->_validated_club($this->input->post('club'));
 
         $new_status = $this->input->post('status');
         $allowed    = array('draft', 'published', 'archived');
@@ -319,7 +336,6 @@ class Forms_admin extends MY_Controller {
         $new_code = trim($this->input->post('code'));
         if ($new_code !== $current['code'] && $this->forms_model->code_exists($new_code, $id)) {
             $form = array_merge($current, $this->input->post());
-            $form['is_global'] = !empty($form['is_global']) ? 1 : 0;
             $data = array(
                 'controller'   => $this->controller,
                 'form_mode'    => 'edit',
@@ -327,6 +343,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'         => $form,
                 'section_id'   => $section_id,
+                'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
                 'is_currently_published' => $current['status'] === 'published',

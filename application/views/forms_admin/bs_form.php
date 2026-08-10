@@ -84,17 +84,17 @@
                     <div class="form-text"><?= $this->lang->line('forms_help_required_params') ?></div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="is_global"
-                        name="is_global"
-                        value="1"
-                        <?= !empty($form['is_global']) ? 'checked' : '' ?>
-                        <?= (!empty($section_id) && (int) $section_id <= 0) ? 'checked disabled' : '' ?>
-                    >
-                    <label class="form-check-label" for="is_global"><?= $this->lang->line('forms_checkbox_global_form') ?></label>
+                <div class="mb-3">
+                    <label class="form-label" for="club"><?= $this->lang->line('forms_label_section') ?></label>
+                    <?php
+                    $club_current    = isset($form['club']) && $form['club'] !== null ? $form['club'] : '';
+                    $section_options = isset($section_selector) ? $section_selector : array();
+                    ?>
+                    <select class="form-select" id="club" name="club" style="max-width:320px;">
+                        <?php foreach ($section_options as $val => $label): ?>
+                            <option value="<?= html_escape($val) ?>" <?= ((string) $club_current === (string) $val) ? 'selected' : '' ?>><?= html_escape($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="form-check mb-3">

@@ -142,7 +142,7 @@ $lang['forms_empty_no_files']             = 'No files for this submission.';
 // Alerts and messages
 $lang['forms_alert_section_active']       = 'Active section:';
 $lang['forms_alert_no_section']           = 'No active section: the form will be created as global.';
-$lang['forms_alert_global_checkbox']      = 'Check "Global form" to create a form visible in all sections.';
+$lang['forms_alert_global_checkbox']      = 'Choose "Globale (toutes sections)" in the Section field to create a form visible in all sections.';
 $lang['forms_alert_published_warning']    = 'This form is <strong>published</strong> and accessible via the public link. Any modification is immediately visible.';
 $lang['forms_alert_preview_mode']         = 'Preview mode — the form cannot be submitted here.';
 $lang['forms_alert_no_pages']             = 'This form contains no pages.';

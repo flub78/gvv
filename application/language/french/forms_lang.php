@@ -141,7 +141,7 @@ $lang['forms_empty_no_files']             = 'Aucun fichier pour cette soumission
 // Alerts and messages
 $lang['forms_alert_section_active']       = 'Section active :';
 $lang['forms_alert_no_section']           = 'Aucune section active : le formulaire sera créé comme global.';
-$lang['forms_alert_global_checkbox']      = 'Cochez "Formulaire global" pour créer un formulaire visible dans toutes les sections.';
+$lang['forms_alert_global_checkbox']      = 'Choisissez "Globale (toutes sections)" dans le champ Section pour créer un formulaire visible dans toutes les sections.';
 $lang['forms_alert_published_warning']    = 'Ce formulaire est <strong>publié</strong> et accessible via le lien public. Toute modification est immédiatement visible.';
 $lang['forms_alert_preview_mode']         = 'Mode prévisualisation — le formulaire n\'est pas soumissible ici.';
 $lang['forms_alert_no_pages']             = 'Ce formulaire ne contient aucune page.';

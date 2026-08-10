@@ -142,7 +142,7 @@ $lang['forms_empty_no_files']             = 'Geen bestanden voor deze inzending.
 // Alerts and messages
 $lang['forms_alert_section_active']       = 'Actieve sectie:';
 $lang['forms_alert_no_section']           = 'Geen actieve sectie: het formulier wordt aangemaakt als globaal.';
-$lang['forms_alert_global_checkbox']      = 'Vink "Globaal formulier" aan om een formulier zichtbaar in alle secties te maken.';
+$lang['forms_alert_global_checkbox']      = 'Kies "Globale (toutes sections)" in het veld Sectie om een formulier zichtbaar in alle secties te maken.';
 $lang['forms_alert_published_warning']    = 'Dit formulier is <strong>gepubliceerd</strong> en toegankelijk via de publieke link. Elke wijziging is direct zichtbaar.';
 $lang['forms_alert_preview_mode']         = 'Voorbeeldmodus — het formulier kan hier niet worden ingediend.';
 $lang['forms_alert_no_pages']             = 'Dit formulier bevat geen pagina\'s.';
