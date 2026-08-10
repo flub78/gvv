@@ -23,8 +23,8 @@
  */
 
 $this->load->view('bs_header');
-$this->load->view('bs_banner');
 $this->load->view('bs_menu');
+$this->load->view('bs_banner');
 
 $this->lang->load('migration');
 

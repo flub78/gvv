@@ -48,8 +48,21 @@ class Vols_avion_model extends Common_Model {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
 
         $this->db->select("MIN('vaduree'), MIN('mdaten')")
-            ->from('volsa, membres, machinesa')
-            ->select_sum($field)
+            ->from('volsa, membres, machinesa');
+
+        if ($field === 'vaduree') {
+            // vaduree est affichée ligne par ligne arrondie à la minute
+            // (centieme_to_hhmm()) ; sommer les valeurs brutes puis arrondir une
+            // seule fois dérive du total obtenu en additionnant les lignes
+            // affichées. On somme ici les minutes déjà arrondies par ligne, puis
+            // on reconvertit en heures décimales pour garder le même contrat de
+            // retour (centieme_to_hhmm() appliqué ensuite par l'appelant).
+            $this->db->select("SUM(ROUND($field * 60)) / 60 as $field", false);
+        } else {
+            $this->db->select_sum($field);
+        }
+
+        $this->db
             ->where($where2)
             ->where($where)
             ->where($selection);
@@ -105,7 +118,8 @@ class Vols_avion_model extends Common_Model {
     public function stats_by_category($where = array(), $extra = array()) {
         $where2 = 'volsa.vapilid = membres.mlogin and volsa.vamacid = machinesa.macimmat';
 
-        $this->db->select('vacategorie, SUM(vaatt) as total_flights, SUM(vaduree) as total_hours', false)
+        // total_hours : somme des minutes arrondies ligne par ligne (voir sum() ci-dessus)
+        $this->db->select('vacategorie, SUM(vaatt) as total_flights, SUM(ROUND(vaduree * 60)) / 60 as total_hours', false)
             ->from('volsa, membres, machinesa')
             ->where($where2)
             ->where($where)
