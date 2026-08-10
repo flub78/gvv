@@ -553,7 +553,9 @@ class Gvv_Controller extends MY_Controller {
         if (isset($this->rules)) {
             // Méthode basée sur les méta-données
             $table = $this->gvv_model->table();
-            $fields_list = $this->gvvmetadata->fields_list($table);
+            // A la création, la clé auto-incrémentée ne doit pas être envoyée en base
+            // (le champ caché du formulaire est vide et ferait échouer l'INSERT en mode strict)
+            $fields_list = $this->gvvmetadata->fields_list($table, $action == CREATION);
             foreach ($fields_list as $field) {
                 $value = $this->input->post($field);
                 if ($table === 'preparation_cards' && $field === 'html_fragment') {

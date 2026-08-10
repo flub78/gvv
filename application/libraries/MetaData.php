@@ -103,15 +103,18 @@ abstract class Metadata {
      * @param string $table Table name
      * @param bool $no_autogen_key When true, excludes auto-generated key
      * @return string[] Field names
-     *
-     * @todo BUG: No occurrences of calls with $no_autogen_key - verify if needed
      */
     function fields_list($table, $no_autogen_key = FALSE) {
         $tmp = $this->fields[$table];
         if ($no_autogen_key) {
-            $key = $this->autogen_key();
-            if ($key)
-                unset($tmp[$key]);
+            $key = $this->autogen_key($table);
+            if ($key) {
+                // $tmp is a plain numerically indexed list of field names,
+                // so the key field must be located by value, not by array key
+                $index = array_search($key, $tmp);
+                if ($index !== FALSE)
+                    unset($tmp[$index]);
+            }
         }
         return $tmp;
     }
