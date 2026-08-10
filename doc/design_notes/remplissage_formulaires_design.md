@@ -658,12 +658,12 @@ Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être
 
 ### 10. Import PDF -> HTML
 
-Pas de service de conversion intégré à GVV. Processus manuel, assisté par un outil d'IA externe (Claude, ChatGPT, ...) : voir [guide utilisateur — Convertir un formulaire PDF existant](../users/fr/13_formulaires.md#convertir-un-formulaire-pdf-existant).
+Pas de service de conversion intégré à GVV. Processus manuel, assisté par un outil d'IA externe (Claude, ChatGPT, ...) : voir [guide de rédaction — Convertir un formulaire PDF existant](../users/fr/13_formulaires_creation.md#convertir-un-formulaire-pdf-existant).
 
 **Limites** :
 - pas de détection automatique des champs du PDF source — les `name="..."` sont ajoutés/vérifiés manuellement après conversion ;
 - pas de garantie de fidélité visuelle au document d'origine ;
-- relecture manuelle obligatoire avant publication (contraintes de rendu — voir [Règles CSS](../users/fr/13_formulaires.md#règles-css) du guide utilisateur).
+- relecture manuelle obligatoire avant publication (contraintes de rendu — voir [Règles CSS](../users/fr/13_formulaires_creation.md#règles-css) du guide de rédaction).
 
 ### 11. Export PDF imprimable
 
@@ -1211,6 +1211,6 @@ Sans objet pour la migration : le nouveau mécanisme ne produit plus d'`archived
 
 ## Documentation
 
-Guide utilisateur/admin complet : [doc/users/fr/13_formulaires.md](../users/fr/13_formulaires.md) — vue d'ensemble, interface d'administration, types de champs, règles CSS, exemples de formulaires et de CSS global, rôles de champs GVV, pré-remplissage (mécanismes A et B), page de génération, consultation des réponses et fichiers, soumission par téléchargement.
+Guide utilisateur/admin complet, en deux documents : [doc/users/fr/13_formulaires.md](../users/fr/13_formulaires.md) — vue d'ensemble, création du conteneur, page de génération, consultation des réponses et fichiers, soumission par téléchargement ; et [doc/users/fr/13_formulaires_creation.md](../users/fr/13_formulaires_creation.md) — types de champs, règles CSS, exemples de formulaires et de CSS global, rôles de champs GVV, pré-remplissage (mécanismes A et B).
 
 Taxonomie, architecture, handlers post-soumission : ce document (sections « Taxonomie des formulaires », « 13. Intégration workflow GVV »).

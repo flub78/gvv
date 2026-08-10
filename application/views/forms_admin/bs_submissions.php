@@ -34,7 +34,6 @@
                     <?= $this->lang->line('forms_button_upload_response') ?>
                 </button>
             <?php endif; ?>
-            <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/edit/' . (int) $form['id']) ?>"><?= $this->lang->line('forms_button_back_form') ?></a>
         </div>
     </div>
 

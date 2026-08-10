@@ -23,7 +23,7 @@
                     foreach ($instructor_selector as $login => $label) {
                         $inst_opts .= '<option value="' . html_escape($login) . '">' . html_escape($label) . '</option>';
                     }
-                    echo '<select class="form-select" id="instructor_login" name="instructor_login" style="max-width:380px;">';
+                    echo '<select class="form-select big_select" id="instructor_login" name="instructor_login" style="max-width:380px;">';
                     echo '<option value="">' . $this->lang->line('forms_generate_select_placeholder') . '</option>';
                     echo $inst_opts;
                     echo '</select>';
@@ -41,7 +41,7 @@
                     foreach ($pilot_selector as $login => $label) {
                         $pilot_opts .= '<option value="' . html_escape($login) . '">' . html_escape($label) . '</option>';
                     }
-                    echo '<select class="form-select" id="pilot_login" name="pilot_login" style="max-width:380px;">';
+                    echo '<select class="form-select big_select" id="pilot_login" name="pilot_login" style="max-width:380px;">';
                     echo '<option value="">' . $this->lang->line('forms_generate_select_placeholder') . '</option>';
                     echo $pilot_opts;
                     echo '</select>';

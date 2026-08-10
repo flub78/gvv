@@ -141,9 +141,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 #### [13. Gestion des Formulaires](13_formulaires.md)
 **Formulaires HTML publiables en ligne**
 - Création et publication de formulaires multi-pages
-- Types de champs : texte, email, date, nombre, liste, radio, case à cocher, fichier
-- CSS compatible avec l'environnement GVV (Bootstrap 5)
-- Consultation et export des réponses
+- Génération de liens pré-remplis, consultation et export des réponses
+- Voir aussi [Rédiger le contenu d'un formulaire (HTML/CSS)](13_formulaires_creation.md) : types de champs, CSS, pré-remplissage — pour qui rédige le HTML des pages
 
 #### [14. Rappels de Réservations](14_rappels_reservations.md)
 **Rappels email et SMS automatiques avant chaque réservation**
@@ -197,7 +196,7 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 4. **[📈 Rapports](08_rapports.md)** - Analyser les performances
 5. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
 6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
-7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données
+7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données ([rédiger le contenu HTML/CSS](13_formulaires_creation.md))
 8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
 9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
 10. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes

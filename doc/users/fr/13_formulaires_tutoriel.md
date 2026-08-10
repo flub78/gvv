@@ -1,8 +1,8 @@
 # Tutoriel — Créer un formulaire avec l'aide d'un assistant IA
 
-Ce tutoriel construit, étape par étape, un formulaire réel : **l'inscription au concours régional de vol à voile Hauts de France 2026**. Il complète la [documentation de référence du module Formulaires](13_formulaires.md), qu'il est utile d'avoir parcourue au moins une fois.
+Ce tutoriel construit, étape par étape, un formulaire réel : **l'inscription au concours régional de vol à voile Hauts de France 2026**. Il complète la documentation de référence du module Formulaires — [Gestion des formulaires](13_formulaires.md) (créer le conteneur, publier, consulter les réponses) et [Rédiger le contenu d'un formulaire (HTML/CSS)](13_formulaires_creation.md) (pages, champs, CSS) — qu'il est utile d'avoir parcourue au moins une fois.
 
-L'idée directrice : plutôt que d'écrire le HTML à la main, on le demande à un assistant IA (ChatGPT, Claude, Gemini...) en lui donnant les contraintes de GVV, puis on assemble le résultat en une archive qu'on dépose dans l'interface d'administration (voir [Gérer le contenu d'un formulaire (archive)](13_formulaires.md#gérer-le-contenu-dun-formulaire-archive) : dans GVV, le contenu d'un formulaire s'édite exclusivement de cette façon, il n'y a pas de zone de texte HTML/CSS). On part d'un formulaire minimal d'une seule page à trois champs, et on le complexifie progressivement — nouvelles pages, nouveaux types de champs, mise en forme — jusqu'au formulaire final à trois pages.
+L'idée directrice : plutôt que d'écrire le HTML à la main, on le demande à un assistant IA (ChatGPT, Claude, Gemini...) en lui donnant les contraintes de GVV, puis on assemble le résultat en une archive qu'on dépose dans l'interface d'administration (voir [Gérer le contenu d'un formulaire (archive)](13_formulaires_creation.md#gérer-le-contenu-dun-formulaire-archive) : dans GVV, le contenu d'un formulaire s'édite exclusivement de cette façon, il n'y a pas de zone de texte HTML/CSS). On part d'un formulaire minimal d'une seule page à trois champs, et on le complexifie progressivement — nouvelles pages, nouveaux types de champs, mise en forme — jusqu'au formulaire final à trois pages.
 
 Les exemples de ce tutoriel utilisent ChatGPT, mais la même approche fonctionne avec n'importe quel assistant IA généraliste.
 
@@ -20,7 +20,7 @@ Les exemples de ce tutoriel utilisent ChatGPT, mais la même approche fonctionne
 | 2. Informations planeur | Type, Immatriculation, Numéro de concours | select, number |
 | 3. Engagement | Texte d'engagement, case "lu et approuvé", signature | checkbox, signature |
 
-Ce tutoriel n'aborde pas le pré-remplissage depuis les données GVV (mécanismes A et B) ni le traitement après soumission — ce formulaire est un formulaire public autonome, sans lien avec les fiches membres. Voir [Pré-remplissage — mécanisme A](13_formulaires.md#pré-remplissage--mécanisme-a-attributs-data-gvv-source) si ce besoin se présente pour un autre formulaire.
+Ce tutoriel n'aborde pas le pré-remplissage depuis les données GVV (mécanismes A et B) ni le traitement après soumission — ce formulaire est un formulaire public autonome, sans lien avec les fiches membres. Voir [Pré-remplissage — mécanisme A](13_formulaires_creation.md#pré-remplissage--mécanisme-a-attributs-data-gvv-source) si ce besoin se présente pour un autre formulaire.
 
 ## Aperçu local : à chaque page, deux fichiers, plus un manifeste
 
@@ -31,10 +31,10 @@ Chaque page générée par l'IA est demandée sous forme de **deux fichiers**, �
 
 En ouvrant `pageN.html` directement dans un navigateur (double-clic sur le fichier), tu vois le rendu réel — utile pour juger du résultat et itérer avec l'IA avant même de toucher à GVV.
 
-C'est exactement ce que GVV stocke réellement en interne une fois le contenu déposé : chaque page comme un document HTML autonome référençant `style.css` (voir [Gérer le contenu d'un formulaire (archive)](13_formulaires.md#gérer-le-contenu-dun-formulaire-archive)). Deux différences à connaître entre l'aperçu local et le rendu GVV réel :
+C'est exactement ce que GVV stocke réellement en interne une fois le contenu déposé : chaque page comme un document HTML autonome référençant `style.css` (voir [Gérer le contenu d'un formulaire (archive)](13_formulaires_creation.md#gérer-le-contenu-dun-formulaire-archive)). Deux différences à connaître entre l'aperçu local et le rendu GVV réel :
 
 1. **Bootstrap** : GVV le charge automatiquement sur la page publique — inutile d'y penser une fois déposé dans GVV. Le lien CDN n'est là que pour l'aperçu local.
-2. **La classe `.forms-public-root`** : sur la page publique réelle, GVV enveloppe automatiquement le contenu de la page dans un conteneur portant cette classe (c'est la portée recommandée pour le CSS — voir [Ce qui fonctionne](13_formulaires.md#ce-qui-fonctionne)). Pour que l'aperçu local se comporte à l'identique, on demande à l'IA d'envelopper elle-même le contenu du `<body>` dans un `<div class="forms-public-root">` — cette div ne sera **pas** recopiée dans l'archive, seul son contenu l'est.
+2. **La classe `.forms-public-root`** : sur la page publique réelle, GVV enveloppe automatiquement le contenu de la page dans un conteneur portant cette classe (c'est la portée recommandée pour le CSS — voir [Ce qui fonctionne](13_formulaires_creation.md#ce-qui-fonctionne)). Pour que l'aperçu local se comporte à l'identique, on demande à l'IA d'envelopper elle-même le contenu du `<body>` dans un `<div class="forms-public-root">` — cette div ne sera **pas** recopiée dans l'archive, seul son contenu l'est.
 
 À ces fichiers s'ajoute un troisième, écrit une seule fois puis mis à jour au fil des étapes : `meta.json`, qui décrit le formulaire (titre, description, liste des pages avec leur titre). C'est un simple fichier texte, à la main ou en le demandant lui aussi à l'IA :
 
@@ -63,7 +63,7 @@ Le lien Bootstrap est une dépendance *locale uniquement* — GVV ne doit jamais
 - **Une fois le rendu validé**, avant le dépôt dans GVV : commenter la ligne (`<!-- <link ...> -->`). Le fichier reste un document valide et complet, juste sans dépendance externe active — c'est cet état "figé" qui vaut la peine d'être gardé comme référence de la page, plutôt que jeté après le dépôt.
 - **Pour rééditer plus tard** : décommenter, ajuster, recommenter. Le fichier fait à la fois office de brouillon de travail et d'archive lisible du rendu voulu.
 
-Ce commentaire ne change rien au dépôt dans GVV : le fichier `pageN.html` est déposé tel quel (voir [Format de l'archive](13_formulaires.md#gérer-le-contenu-dun-formulaire-archive)), et cette ligne vit dans le `<head>`, qui n'est de toute façon jamais affiché sur la page publique — voir [Règles CSS](13_formulaires.md#règles-css).
+Ce commentaire ne change rien au dépôt dans GVV : le fichier `pageN.html` est déposé tel quel (voir [Format de l'archive](13_formulaires_creation.md#gérer-le-contenu-dun-formulaire-archive)), et cette ligne vit dans le `<head>`, qui n'est de toute façon jamais affiché sur la page publique — voir [Règles CSS](13_formulaires_creation.md#règles-css).
 
 ### Assembler et déposer l'archive
 
@@ -73,7 +73,7 @@ Ce commentaire ne change rien au dépôt dans GVV : le fichier `pageN.html` est 
 2. Compresser ce dossier en `.zip` (le contenu du ZIP doit être à la racine de l'archive, pas dans un sous-dossier).
 3. Dans GVV, aller sur la fiche du formulaire (**Formulaires → [le formulaire] → Modifier**), et dans la carte **"Contenu du formulaire (archive)"**, déposer ce ZIP avec le bouton de dépôt.
 
-(voir aussi [Développement local](13_formulaires.md#développement-local) dans la référence)
+(voir aussi [Développement local](13_formulaires_creation.md#développement-local) dans la référence)
 
 ---
 
@@ -325,7 +325,7 @@ Dans `page1.html`, à ajouter dans la `row` existante, après le champ `date_nai
 
 Deux détails à noter :
 
-- `type="tel"` n'est pas un des [types de champs](13_formulaires.md#types-de-champs) reconnus par GVV : il est enregistré comme `text` (comportement de repli documenté), ce qui est très bien ici — on veut juste un clavier téléphone sur mobile, pas de validation de format particulière.
+- `type="tel"` n'est pas un des [types de champs](13_formulaires_creation.md#types-de-champs) reconnus par GVV : il est enregistré comme `text` (comportement de repli documenté), ce qui est très bien ici — on veut juste un clavier téléphone sur mobile, pas de validation de format particulière.
 - `data-gvv-identifier="true"` sur `numero_spl` fait apparaître ce numéro comme identifiant de chaque réponse dans la liste admin, à la place d'un générique "Anonyme" — voir [Consulter les réponses](13_formulaires.md#consulter-les-réponses).
 
 Revérifier dans le navigateur avec `page1.html` en local, puis redéposer l'archive (`page1.html` mis à jour + `style.css` + `meta.json`, inchangés à part `page1.html` — voir [Assembler et déposer l'archive](#assembler-et-déposer-larchive)), et revérifier avec le bouton **Champs**.
@@ -422,7 +422,7 @@ dans le contenu, name en snake_case avec <label for>.
 
 `style.css` ne change pas : les classes `concours-hero`, `concours-badge` et `concours-card` sont déjà stylées et réutilisées telles quelles.
 
-`data-gvv-validation="numeric"` ajoute une règle de validation côté serveur en plus du type — voir [Champs détectés automatiquement](13_formulaires.md#champs-détectés-automatiquement) pour les autres règles disponibles (`max_length[n]`, `min_length[n]`, `valid_email`).
+`data-gvv-validation="numeric"` ajoute une règle de validation côté serveur en plus du type — voir [Champs détectés automatiquement](13_formulaires_creation.md#champs-détectés-automatiquement) pour les autres règles disponibles (`max_length[n]`, `min_length[n]`, `valid_email`).
 
 Prévisualiser `page2.html` en local (même dossier que `style.css`), commenter la ligne Bootstrap une fois satisfait, puis mettre à jour `meta.json` pour ajouter la page :
 
@@ -522,7 +522,7 @@ submit/reset dans le contenu).
 </html>
 ```
 
-Note : dans l'aperçu local (hors GVV), le widget de signature ne s'affiche pas comme un vrai widget interactif — c'est juste le `<div>` déclaratif tel quel, tant qu'il n'est pas rendu par GVV. Voir [Champ signature](13_formulaires.md#champ-signature) : GVV le remplace par le widget fonctionnel uniquement sur la page publique réelle. Le vrai rendu ne se vérifie qu'après collage dans GVV.
+Note : dans l'aperçu local (hors GVV), le widget de signature ne s'affiche pas comme un vrai widget interactif — c'est juste le `<div>` déclaratif tel quel, tant qu'il n'est pas rendu par GVV. Voir [Champ signature](13_formulaires_creation.md#champ-signature) : GVV le remplace par le widget fonctionnel uniquement sur la page publique réelle. Le vrai rendu ne se vérifie qu'après collage dans GVV.
 
 Commenter la ligne Bootstrap une fois l'aperçu local validé, ajouter la page 3 dans `meta.json` (même principe qu'à l'étape précédente, `{ "page_number": 3, "title": "Engagement" }`), puis redéposer l'archive complète (`page1.html`, `page2.html`, `page3.html`, `style.css`, `meta.json`) — voir [Assembler et déposer l'archive](#assembler-et-déposer-larchive).
 
@@ -545,11 +545,11 @@ douce, en gardant le même esprit "jeune et dynamique" et le même scope
 .forms-public-root.
 ```
 
-Mettre à jour `style.css` en local avec le résultat, revérifier sur les trois `pageN.html` en local, puis redéposer l'archive complète (voir [Assembler et déposer l'archive](#assembler-et-déposer-larchive)) — voir [Règles CSS](13_formulaires.md#règles-css) pour les contraintes à ne pas oublier : pas de `@import` dans `<head>` (mais un `@import` en tête de `style.css` fonctionne, voir [CSS partagé entre formulaires](13_formulaires.md#css-partagé-entre-formulaires)), pas de sélecteur non scopé.
+Mettre à jour `style.css` en local avec le résultat, revérifier sur les trois `pageN.html` en local, puis redéposer l'archive complète (voir [Assembler et déposer l'archive](#assembler-et-déposer-larchive)) — voir [Règles CSS](13_formulaires_creation.md#règles-css) pour les contraintes à ne pas oublier : pas de `@import` dans `<head>` (mais un `@import` en tête de `style.css` fonctionne, voir [CSS partagé entre formulaires](13_formulaires_creation.md#css-partagé-entre-formulaires)), pas de sélecteur non scopé.
 
 ### Ajuster la mise en page
 
-La mise en page (colonnes, largeur des champs) se pilote uniquement avec les classes de grille Bootstrap déjà présentes dans le HTML généré — `row`, `col-md-4`, `col-md-6`, `col-12`. Pour changer la disposition (ex. mettre `immatriculation` et `numero_concours` sur toute la largeur au lieu d'un tiers), il suffit de changer la classe `col-md-*` du `<div>` concerné directement dans `page2.html` en local, sans repasser par l'IA — voir [Ce qui fonctionne](13_formulaires.md#ce-qui-fonctionne) pour la liste des classes Bootstrap disponibles. Revérifier l'aperçu local puis redéposer l'archive.
+La mise en page (colonnes, largeur des champs) se pilote uniquement avec les classes de grille Bootstrap déjà présentes dans le HTML généré — `row`, `col-md-4`, `col-md-6`, `col-12`. Pour changer la disposition (ex. mettre `immatriculation` et `numero_concours` sur toute la largeur au lieu d'un tiers), il suffit de changer la classe `col-md-*` du `<div>` concerné directement dans `page2.html` en local, sans repasser par l'IA — voir [Ce qui fonctionne](13_formulaires_creation.md#ce-qui-fonctionne) pour la liste des classes Bootstrap disponibles. Revérifier l'aperçu local puis redéposer l'archive.
 
 > 📸 **Capture à intégrer ici** : `../screenshots/formulaires/tutoriel/08-css-ajuste.png` — les 3 pages avec le CSS retouché.
 
@@ -567,7 +567,7 @@ La mise en page (colonnes, largeur des champs) se pilote uniquement avec les cla
 
 ## Pour aller plus loin
 
-Ce formulaire n'utilise pas tous les types de champs disponibles dans GVV — cela n'aurait pas eu de sens de les forcer dans ce contexte précis. Trois types ne sont pas illustrés ici : `email`, `radio`, `textarea`. Leur syntaxe suit exactement le même principe (Bootstrap 5 + attribut `name`) — voir [Exemples HTML par type](13_formulaires.md#exemples-html-par-type) pour les copier-coller directement. À titre d'exercice, on pourrait par exemple ajouter sur la page 1 un champ email de contact, ou sur la page 3 un champ radio « Besoin d'un hébergement sur place ? Oui / Non ».
+Ce formulaire n'utilise pas tous les types de champs disponibles dans GVV — cela n'aurait pas eu de sens de les forcer dans ce contexte précis. Trois types ne sont pas illustrés ici : `email`, `radio`, `textarea`. Leur syntaxe suit exactement le même principe (Bootstrap 5 + attribut `name`) — voir [Exemples HTML par type](13_formulaires_creation.md#exemples-html-par-type) pour les copier-coller directement. À titre d'exercice, on pourrait par exemple ajouter sur la page 1 un champ email de contact, ou sur la page 3 un champ radio « Besoin d'un hébergement sur place ? Oui / Non ».
 
 ---
 

@@ -62,7 +62,8 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 - **[OpenFlyers Integration](openflyers_user.md)** - External billing system sync
 
 ### Forms & Documents
-- **[Forms Management](fr/13_formulaires.md)** - HTML forms, field types, CSS constraints, public submission
+- **[Forms Management](fr/13_formulaires.md)** - Create a form container, publish, generate links, review and manage submissions
+- **[Writing Form Content (HTML/CSS)](fr/13_formulaires_creation.md)** - Field types, CSS constraints, pre-fill mechanisms, for whoever authors the page HTML
 
 ### Notifications
 - **[Reservation Reminders](fr/14_rappels_reservations.md)** - Automated email/SMS reminders before flights, admin setup (cron, Brevo SMS), per-pilot preferences
@@ -86,7 +87,7 @@ This repository contains comprehensive user guides for GVV (Gestion Vol à Voile
 1. **[📊 Accounting](fr/07_comptabilite.md)** - Financial control
 2. **[📈 Reports](fr/08_rapports.md)** - Analyze performance
 3. **[💳 Online Payments](fr/12_paiements_en_ligne.md)** - HelloAsso, CB, QR Code
-4. **[📄 Forms](fr/13_formulaires.md)** - Online forms and data collection
+4. **[📄 Forms](fr/13_formulaires.md)** - Online forms and data collection ([writing form content](fr/13_formulaires_creation.md))
 5. **[🔗 Integration](openflyers_user.md)** - External systems
 
 ---
