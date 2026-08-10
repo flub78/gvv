@@ -116,6 +116,28 @@ Dans la fiche admin du formulaire, le champ **Paramètres requis** définit quel
 
 Ce pré-remplissage n'est actif que si les champs de la page ont été annotés lors de la rédaction du formulaire — voir [Pré-remplissage — mécanisme A](13_formulaires_creation.md#pré-remplissage--mécanisme-a-attributs-data-gvv-source).
 
+### Exposer la génération dans un dashboard (raccourcis)
+
+Plutôt que de naviguer jusqu'à **Formulaires → Générer** à chaque fois, un club-admin peut ajouter une carte de raccourci directement dans un tableau de bord GVV, pointant vers la page de génération d'un formulaire précis.
+
+Navigation : tableau de bord **Administration club** → carte **"Raccourcis dashboard"**.
+
+| Champ | Rôle |
+|---|---|
+| **Dashboard** | Tableau de bord cible (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev`) |
+| **Section** | Sous-titre de regroupement optionnel dans le dashboard (ex. "Formation") |
+| **Titre** / **Clé de langue (titre)** | Texte de la carte ; si la clé de langue est renseignée et reconnue par GVV, elle prime sur le titre brut |
+| **Description** / **Clé de langue (description)** | Texte secondaire, même logique de priorité que le titre |
+| **URL** | Chemin relatif GVV (ex. `forms_admin/generate/attestation-de-formation-ulm`) ou URL externe complète (ouverte dans un nouvel onglet) |
+| **Icône** | Classe Font Awesome, ex. `fa-file-signature` |
+| **Couleur** | Classe Bootstrap (`text-primary`, …) |
+| **Rôle requis** | Si renseigné, la carte n'est visible que pour les utilisateurs ayant ce rôle dans la section active |
+| **Ordre d'affichage** | Ordre croissant au sein d'un même regroupement |
+| **Actif** | Une carte désactivée n'apparaît plus, sans être supprimée |
+| **Portée** | Globale (tous les clubs) ou limitée à la section active au moment de la création |
+
+⚠️ La page de génération (`forms_admin/generate/...`) reste réservée aux `ca`/club-admins, comme le reste de l'administration des formulaires. Un raccourci qui y pointe n'est donc réellement utilisable que placé sur un dashboard **admin_club** ou **admin_sys** (ou avec **Rôle requis** = `ca`/`club-admin`). Pour un raccourci destiné aux dashboards pilote/instructeur (`user`, `flights`, `formation`), pointer plutôt vers le lien public direct du formulaire (`forms/{slug}`), éventuellement déjà pré-rempli — voir [Pré-remplissage — mécanisme B](13_formulaires_creation.md#pré-remplissage--mécanisme-b-paramètres-durl).
+
 ---
 
 ## Consulter les réponses

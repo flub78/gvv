@@ -1095,6 +1095,10 @@ class MockDxAuth {
     public function is_logged_in() {
         return TRUE;
     }
+
+    public function is_admin() {
+        return FALSE;
+    }
 }
 
 // Create a mock CI instance

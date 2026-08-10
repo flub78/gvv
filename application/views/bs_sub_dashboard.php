@@ -25,6 +25,7 @@ $this->load->view('bs_banner');
 
 $this->lang->load('welcome');
 $this->lang->load('tableaux_de_bord');
+$this->lang->load('shortcuts');
 
 $show_planeurs  = empty($section) || !empty($section['gestion_planeurs']);
 $show_avions    = empty($section) || !empty($section['gestion_avions']);
@@ -968,6 +969,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('motd/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-thumbtack text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('shortcuts_dashboard_card_title') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('shortcuts_dashboard_card_description') ?></div>
+                <a href="<?= controller_url('shortcuts_admin') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
         <?php endif; ?>
 
         <?php if (has_role('ca')): ?>
@@ -1561,6 +1571,12 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
     </div>
 
+    <?php endif; ?>
+
+    <?php if (!empty($shortcuts)): ?>
+    <div class="row g-2">
+        <?php $this->load->view('welcome/_dashboard_shortcuts', array('shortcuts' => $shortcuts)); ?>
+    </div>
     <?php endif; ?>
 
 </div>

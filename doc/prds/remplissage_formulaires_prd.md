@@ -64,8 +64,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Champ signature : widget composite (dessin canvas + upload image) avec stockage dans `form_submission_files`.
 - Pré-remplissage d'une signature depuis le profil GVV (`membres.signature_path`, sources `member.signature` / `instructor.signature`).
 - Génération d'un PDF imprimable de la réponse.
-- Import d'un PDF formulaire pour produire une base HTML éditable.
-- Création d'un document archivé depuis une réponse via le formulaire documentaire existant, avec PDF imprimable pré-rempli.
+
 - Soumission par téléchargement d'un scan/photo du formulaire imprimé, en alternative au remplissage en ligne, activable par formulaire (EF12).
 - Paiement en ligne HelloAsso intégré à un formulaire, obligatoire ou facultatif selon configuration (EF13).
 - Sous-formulaires : widget de lien vers un autre formulaire, ouvert dans un nouvel onglet, avec injection de la réponse dans le formulaire maître (EF14).
@@ -77,7 +76,6 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 ### Exclu
 
 - OCR avancé sur PDF scannés non structurés en V1.
-- Rendu pixel-perfect garanti identique au PDF source importé.
 - Sauvegarde/reprise multi-session du remplissage public en V1 (prévue en extension ultérieure).
 - Pages/sections conditionnelles basées sur les réponses en V1 (prévu en extension ultérieure).
 - Plusieurs paiements sur un même formulaire, ou choix entre plusieurs moyens de paiement, en V1 (EF13) — un seul widget de paiement HelloAsso par formulaire.
@@ -344,14 +342,14 @@ Pour les formulaires de catégorie 3 (intégrés dans un workflow GVV), deux bes
 Un mécanisme de configuration piloté par données permet aux club-admins d'ajouter des raccourcis de navigation sous forme de cartes dans n'importe quel dashboard GVV, sans développement. Le cas d'usage principal est l'exposition de formulaires (génération d'attestation, briefing passager) depuis les dashboards pilote et instructeur.
 
 1. Un club-admin peut créer, modifier, désactiver et supprimer des raccourcis de dashboard via une interface CRUD dédiée.
-2. Chaque raccourci est défini par : dashboard cible, section cible (optionnelle), titre, description (optionnelle), URL de destination, icône (Bootstrap Icons), couleur (classe Bootstrap ou valeur hex), ordre d'affichage, statut actif.
+2. Chaque raccourci est défini par : dashboard cible, section cible (optionnelle), titre, description (optionnelle), URL de destination, icône (Font Awesome, cohérent avec le reste des dashboards GVV), couleur (classe Bootstrap ou valeur hex), ordre d'affichage, statut actif.
 3. L'URL de destination peut être interne (chemin relatif GVV) ou externe (URL absolue) ; les URLs externes s'ouvrent dans un nouvel onglet (`target="_blank"`).
 4. **Multi-langue** : chaque champ titre et description peut stocker une clé de fichier de langue GVV. Si la clé est reconnue par `$this->lang->line()`, la valeur traduite est utilisée ; sinon, le texte brut de la table est affiché.
 5. Seuls les club-admins peuvent créer, modifier et supprimer des raccourcis.
 6. Un raccourci peut être restreint à un rôle minimum (`role_required`) : les utilisateurs sans ce rôle ne voient pas la carte.
-7. Les dashboards instrumentés au premier déploiement sont : `accueil`, `pilote`, `instructeur`, `formations`. Tout nouveau dashboard peut être instrumenté sans modification de la table.
+7. Les dashboards instrumentés sont les 8 sections du contrôleur unique `welcome.php` (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev` — GVV n'a pas de contrôleurs de dashboard séparés par profil). Tout nouveau dashboard peut être instrumenté sans modification de la table.
 8. Dans chaque dashboard instrumenté, les raccourcis actifs et visibles pour l'utilisateur courant sont récupérés via un appel modèle unique et rendus dans la section correspondante.
-9. Les tests Playwright qui vérifient l'accessibilité de toutes les URLs visibles doivent être mis à jour pour couvrir les raccourcis dynamiques : soit en les excluant du test d'accessibilité automatique, soit en les testant séparément avec les paramètres d'authentification appropriés.
+9. Les tests Playwright qui vérifient l'accessibilité de toutes les URLs visibles n'ont pas besoin d'être adaptés tant que la table `dashboard_shortcuts` ne contient aucun raccourci réel (elle démarre vide) ; le filtrage par rôle des cartes suit le même principe que les cartes existantes codées en dur.
 
 ### EF12 : Soumission par téléchargement (scan)
 

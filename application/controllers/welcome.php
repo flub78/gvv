@@ -112,6 +112,11 @@ class Welcome extends Gvv_Controller {
 
         $data = $this->_prepare_dashboard_data();
         $data['dashboard_section'] = $name;
+
+        $this->load->model('dashboard_shortcuts_model');
+        $section_id = (int) $this->session->userdata('section');
+        $data['shortcuts'] = $this->dashboard_shortcuts_model->get_for_dashboard($name, $section_id > 0 ? $section_id : null);
+
         load_last_view('sub_dashboard', $data);
     }
 

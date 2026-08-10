@@ -590,19 +590,21 @@ La soumission est déjà créée avant l'appel du handler. En cas d'erreur :
 
 Un mécanisme piloté par données permet aux club-admins d'injecter des cartes de raccourci dans n'importe quel dashboard GVV sans modifier le code. Le cas d'usage principal est l'exposition de formulaires (génération d'attestation, briefing passager) depuis les dashboards pilote et instructeur.
 
+**Implémentation réelle (Lot 7)** : GVV n'a pas de contrôleurs de dashboard séparés — un seul contrôleur `welcome.php` avec une méthode `section($name)` dont les valeurs sont `user, flights, treasurer, formation, maintenance, admin_club, admin_sys, dev`, rendues par une unique vue `bs_sub_dashboard.php` (un bloc `if/elseif` par section). La colonne `dashboard` ci-dessous utilise directement ces 8 valeurs plutôt que des noms de contrôleurs. Seule `bs_sub_dashboard.php` est instrumentée (pas le dashboard racine `bs_dashboard.php`, simple grille de tuiles de navigation vers les sections). L'icône utilise des classes Font Awesome (`fas fa-...`), déjà utilisées partout dans ces dashboards, plutôt que Bootstrap Icons (non chargé globalement dans l'application).
+
 #### Table `dashboard_shortcuts`
 
 | Colonne | Type | Contrainte |
 |---|---|---|
 | `id` | INT AUTO_INCREMENT | PRIMARY KEY |
-| `dashboard` | VARCHAR(50) NOT NULL | Identifiant du dashboard cible (`accueil`, `pilote`, `instructeur`, `formations`, …) |
-| `section` | VARCHAR(50) NULL | Section cible dans le dashboard, NULL = non catégorisé |
+| `dashboard` | VARCHAR(50) NOT NULL | Valeur `welcome.php` section() : `user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev` |
+| `section` | VARCHAR(100) NULL | Sous-titre de regroupement dans le dashboard, NULL = non catégorisé |
 | `title_key` | VARCHAR(100) NULL | Clé de langue GVV (optionnelle) |
 | `title` | VARCHAR(100) NOT NULL | Texte affiché si `title_key` absent ou clé non trouvée |
 | `description_key` | VARCHAR(255) NULL | Clé de langue GVV (optionnelle) |
 | `description` | TEXT NULL | Texte affiché si clé absente ou non trouvée |
 | `url` | VARCHAR(255) NOT NULL | URL relative (interne GVV) ou absolue (externe) |
-| `icon` | VARCHAR(50) NULL | Nom Bootstrap Icons, ex. `bi-file-earmark-check` |
+| `icon` | VARCHAR(50) NULL | Classe Font Awesome, ex. `fa-file-signature` |
 | `color` | VARCHAR(20) NULL | Classe Bootstrap (`primary`, `success`, …) ou hex `#3d6b84` |
 | `role_required` | VARCHAR(50) NULL | NULL = tous ; sinon rôle GVV minimum requis pour voir la carte |
 | `sort_order` | INT DEFAULT 0 | Ordre dans la section, croissant |
@@ -633,28 +635,28 @@ $title = ($title_key && $this->lang->line($title_key) !== false)
 
 Contrôleur dédié `shortcuts_admin` :
 - CRUD complet : liste, créer, modifier, supprimer, activer/désactiver.
-- Accès réservé au rôle club-admin.
-- Accessible depuis une carte "Raccourcis dashboard" sur `forms_admin/index`.
+- Accès réservé `ca`/`club-admin` (même garde que `forms_admin`).
+- Accessible depuis une carte "Raccourcis dashboard" dans le bloc `admin_club` de `bs_sub_dashboard.php` (public cible cohérent, plutôt que `forms_admin/index`).
 
 #### Intégration dans les dashboards
 
-Chaque dashboard instrumenté charge ses raccourcis via un appel unique au modèle, puis inclut un partial view commun :
+`Welcome::section($name)` charge les raccourcis via un appel unique au modèle, puis `bs_sub_dashboard.php` inclut un partial view commun :
 
 ```php
-// Contrôleur dashboard
-$data['shortcuts'] = $this->shortcuts_model
-    ->get_for_dashboard('pilote', $user_role, $club_id);
-// Vue dashboard
-$this->load->view('common/_shortcuts', $data);
+// Welcome::section($name)
+$data['shortcuts'] = $this->dashboard_shortcuts_model
+    ->get_for_dashboard($name, $club_id);
+// bs_sub_dashboard.php, après le bloc if/elseif par section
+$this->load->view('welcome/_dashboard_shortcuts', array('shortcuts' => $shortcuts));
 ```
 
-Le partial `common/_shortcuts.php` parcourt les raccourcis par section et rend chaque carte Bootstrap.
+Le partial `welcome/_dashboard_shortcuts.php` parcourt les raccourcis (déjà filtrés par dashboard/actif/club/rôle) groupés par `section` et rend chaque carte au même format `.sub-card` que les cartes existantes.
 
-**Dashboards à instrumenter** : `accueil`, `pilote`, `instructeur`, `formations`. Tout contrôleur de dashboard peut être instrumenté en ajoutant l'appel modèle et en incluant le partial dans sa vue.
+**Sections instrumentées** : les 8 valeurs `welcome.php` (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev`) — un seul point d'intégration (`Welcome::section()`/`bs_sub_dashboard.php`) couvre l'ensemble, contrairement à l'hypothèse initiale de plusieurs contrôleurs à instrumenter individuellement.
 
 #### Impact sur les tests Playwright
 
-Les tests d'accessibilité qui parcourent toutes les URLs visibles doivent être adaptés : les raccourcis dynamiques pointent vers des URLs de contexte (formulaires pré-remplis, pages admin spécifiques) qui peuvent ne pas être accessibles sans les bons paramètres. Deux options : exclure les cartes dynamiques du parcours automatique, ou ajouter un test dédié avec les paramètres d'authentification appropriés.
+La table démarre vide (pas de seed dans la migration) : aucun lien nouveau n'apparaît dans les dashboards tant qu'un admin ne crée pas de raccourci réel, donc les tests d'accessibilité qui parcourent toutes les URLs visibles (`*-recursive-authorizations.spec.js`) n'ont pas nécessité de modification pour ce lot. Le filtrage par rôle (`role_required` non satisfait ⇒ carte non rendue) suit le même principe que les cartes actuellement codées en dur dans `bs_sub_dashboard.php`, donc pas de régression attendue si un raccourci réel est créé plus tard.
 
 ### 10. Import PDF -> HTML
 

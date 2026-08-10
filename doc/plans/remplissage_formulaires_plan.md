@@ -145,8 +145,6 @@ Constat (9 août 2026) : un formulaire réel ouvert en `file://` a ses logos et 
 ### Lot 3 — Impression et archivage (approche simplifiée)
 
 - [x] Implémenter rendu PDF imprimable d'une réponse.
-- [ ] Ajouter dans la liste des réponses un bouton qui ouvre le formulaire existant de création de document archivé.
-- [ ] Pré-remplir le formulaire de création de document avec le PDF imprimable de la réponse à la place du sélecteur de fichier.
 - [x] Journalisation dans les fichiers de logs (considérée implémentée si déjà présente lors de la création d'un document archivé).
 
 ### Lot 4 — Documents inline dans les formulaires
@@ -329,21 +327,21 @@ Réalisée en mode transitoire (juillet 2026) : l'étape 6.5 n'étant pas encore
 
 Objectif : permettre aux club-admins d'ajouter des raccourcis de navigation dans les dashboards GVV sans développement. Indépendant des lots de formulaires — peut être réalisé dès que le socle (Lot 1) est terminé.
 
-A faire lorsque le premier cas d'utilisation se présentera.
-
 Voir : [Design cartes dynamiques](../design_notes/remplissage_formulaires_design.md#14-cartes-dynamiques-dans-les-dashboards)
 
-- [ ] Migration `1XX_dashboard_shortcuts.php` : table `dashboard_shortcuts` (id, dashboard, section, title_key, title, description_key, description, url, icon, color, role_required, sort_order, active, club_id, audit fields).
-- [ ] Mettre à jour `application/config/migration.php`.
-- [ ] Créer `application/models/shortcuts_model.php` : `get_for_dashboard($dashboard, $role, $club_id)` avec filtrage rôle et club, CRUD complet, résolution multi-langue.
-- [ ] Créer contrôleur `shortcuts_admin` + vues CRUD (liste, créer, modifier, supprimer, activer/désactiver). Accès réservé club-admin.
-- [ ] Créer partial view `application/views/common/_shortcuts.php` : rendu Bootstrap des cartes groupées par section, résolution titre/description multi-langue, gestion URL interne vs externe.
-- [ ] Ajouter une carte "Raccourcis dashboard" sur `forms_admin/index` pointant vers `shortcuts_admin`.
-- [ ] Instrumenter les dashboards `accueil`, `pilote`, `instructeur`, `formations` : appel `shortcuts_model::get_for_dashboard()` dans les contrôleurs + inclusion du partial dans les vues.
-- [ ] Ajouter les traductions (`shortcuts_title`, `shortcuts_description`, etc.) dans les fichiers de langue français, anglais, néerlandais.
-- [ ] **Mettre à jour les tests Playwright** : adapter les tests qui parcourent toutes les URLs visibles pour exclure ou traiter correctement les raccourcis dynamiques (URLs de contexte, paramètres d'authentification requis).
-- [ ] Tests PHPUnit : migration up/down, `get_for_dashboard` (filtrage rôle, filtrage club, actif/inactif), résolution multi-langue (clé trouvée / clé absente).
-- [ ] **Validation** : créer un raccourci pointant vers `forms_admin/generate/attestation-de-formation-ulm`, vérifier qu'il apparaît dans le dashboard cible pour un club-admin et qu'il est invisible pour un rôle sans accès.
+**Écart avec le design initial** : celui-ci suppose 4 contrôleurs de dashboard séparés (`accueil`, `pilote`, `instructeur`, `formations`). En réalité GVV n'a qu'un seul contrôleur `welcome.php` avec une méthode `section($name)` dont les valeurs sont `user, flights, treasurer, formation, maintenance, admin_club, admin_sys, dev`, rendues par une seule vue `bs_sub_dashboard.php`. La colonne `dashboard` utilise directement ces 8 valeurs. Seul `bs_sub_dashboard.php` est instrumenté (pas le dashboard racine `bs_dashboard.php`, simple grille de tuiles de navigation). Le champ `icon` utilise des classes Font Awesome (`fas fa-...`), déjà utilisées partout dans les dashboards, plutôt que Bootstrap Icons (non chargé globalement).
+
+- [x] Migration `167_dashboard_shortcuts.php` : table `dashboard_shortcuts` (id, dashboard, section, title_key, title, description_key, description, url, icon, color, role_required, sort_order, active, club_id, audit fields).
+- [x] Mettre à jour `application/config/migration.php`.
+- [x] Créer `application/models/dashboard_shortcuts_model.php` : `get_for_dashboard($dashboard, $club_id)` avec filtrage dashboard/actif/club/rôle (via le helper global `has_role()`), CRUD complet (`list_shortcuts`, `create`, `update`, `delete`, `toggle_active`).
+- [x] Créer contrôleur `shortcuts_admin` + vues CRUD (liste, créer, modifier, supprimer, activer/désactiver). Accès réservé `ca`/`club-admin` (même garde que `forms_admin`).
+- [x] Créer partial view `application/views/welcome/_dashboard_shortcuts.php` : rendu Bootstrap des cartes (`.sub-card`, cohérent avec le style des dashboards existants) groupées par `section`, résolution titre/description multi-langue (clé trouvée / repli sur texte brut), gestion URL interne vs externe.
+- [x] Ajouter une carte "Raccourcis dashboard" dans le bloc `admin_club` de `bs_sub_dashboard.php` (gated `has_role('club-admin')`), pointant vers `shortcuts_admin` — emplacement plus cohérent que `forms_admin/index` avec le public ciblé.
+- [x] Instrumenter les 8 sections de `welcome.php` (au lieu des 4 dashboards théoriques) : `Welcome::section()` appelle `dashboard_shortcuts_model::get_for_dashboard()`, `bs_sub_dashboard.php` inclut le partial après le bloc if/elseif.
+- [x] Ajouter les traductions (`shortcuts_title`, `shortcuts_label_*`, etc.) dans `application/language/{french,english,dutch}/shortcuts_lang.php`.
+- [x] **Tests Playwright existants scannant toutes les URLs** : la table démarre vide (pas de seed dans la migration), donc aucun lien nouveau n'apparaît tant qu'un admin ne crée pas de raccourci réel — pas de modification nécessaire des specs `*-recursive-authorizations.spec.js` dans ce lot.
+- [x] Tests PHPUnit : `application/tests/mysql/Dashboard_shortcuts_test.php` — migration up/down + colonnes, CRUD modèle, `get_for_dashboard` (filtrage dashboard, actif/inactif, club_id global/section, rôle requis), tri section/sort_order (12 tests).
+- [x] **Validation** : `playwright/tests/dashboard-shortcuts-smoke.spec.js` — création d'un raccourci pointant vers `forms_admin/generate/attestation-de-formation-ulm` dans la section `formation`, vérifié visible pour testadmin, invisible pour asterix une fois `role_required=ca` posé, réapparaît/disparaît avec le toggle actif/inactif, suppression. Vérifié aussi en conditions réelles sur gvv.net (`./run-all-tests.sh` : 1854 tests, 0 échec, mêmes skips préexistants).
 
 ### Lot 8 — Documentation et validation finale
 
