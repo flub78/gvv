@@ -314,6 +314,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
             <?php endif; ?>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('gvv_dashboard_payments_title')); ?>
         <?php endif; ?>
     </div>
 
@@ -355,6 +356,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_glider')); ?>
         <?php endif; ?>
 
         <?php if ($show_avions): ?>
@@ -392,6 +394,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $label_avions); ?>
         <?php endif; ?>
 
         <?php if ($this->config->item('gestion_vd') && has_vd_role()) : ?>
@@ -448,6 +451,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_discovery')); ?>
         <?php endif; ?>
     </div>
 
@@ -595,6 +599,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_accounting')); ?>
 
         <?php if (has_role('tresorier')) : ?>
         <div class="col-12 mt-3">
@@ -773,6 +778,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_entries')); ?>
         <?php endif; ?>
 
         <?php if ($is_treasurer_in_section): ?>
@@ -806,6 +812,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_accounting_config')); ?>
         <?php endif; ?>
     </div>
 
@@ -853,6 +860,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('formation_seances_theoriques') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_instructor')); ?>
 
         <div class="col-12 mt-3">
             <h6 class="text-muted mb-2"><i class="fas fa-user-tie"></i> <?= $this->lang->line('db_sub_training_manager') ?></h6>
@@ -893,6 +901,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_training_manager')); ?>
     </div>
 
     <?php elseif ($dashboard_section === 'maintenance'): ?>
@@ -1095,6 +1104,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_h5_member_management')); ?>
     </div>
 
     <?php if ($this->config->item('gestion_documentaire')) : ?>
@@ -1135,7 +1145,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
             </div>
         </div>
-
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_h5_doc_management')); ?>
     </div>
     <?php endif; ?>
 
@@ -1156,6 +1166,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/backup_form') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_database')); ?>
 
         <?php if ($is_admin): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1231,6 +1242,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('paiements_en_ligne/admin_config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_configurer') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_config_section')); ?>
 
         <div class="col-12 mt-3">
             <h6 class="text-muted mb-2"><i class="fas fa-sitemap"></i> <?= $this->lang->line('db_sub_organisation') ?></h6>
@@ -1262,6 +1274,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('events_types') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_organisation')); ?>
 
         <?php if ($this->config->item('gestion_documentaire')) : ?>
         <div class="col-12 mt-3">
@@ -1294,6 +1307,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('forms_admin/config') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_doc_management')); ?>
         <?php endif; ?>
 
         <div class="col-12 mt-3">
@@ -1317,6 +1331,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/system_resources') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_supervision')); ?>
         <?php endif; // $is_admin ?>
     </div>
 
@@ -1450,6 +1465,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_tests')); ?>
 
         <?php if ($is_admin && !empty($is_dev_authorized)): ?>
         <div class="col-12 mt-3">
@@ -1492,6 +1508,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('admin/generate_initial_schema') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_generer') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_dev_tools')); ?>
         <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1569,13 +1586,14 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('dbchecks/associations_orphelines') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_verifier') ?></a>
             </div>
         </div>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_db_consistency')); ?>
     </div>
 
     <?php endif; ?>
 
-    <?php if (!empty($shortcuts)): ?>
+    <?php if (!empty($shortcuts_by_section)): ?>
     <div class="row g-2">
-        <?php $this->load->view('welcome/_dashboard_shortcuts', array('shortcuts' => $shortcuts)); ?>
+        <?php $this->load->view('welcome/_dashboard_shortcuts', array('shortcuts_by_section' => $shortcuts_by_section)); ?>
     </div>
     <?php endif; ?>
 
