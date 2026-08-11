@@ -114,8 +114,19 @@ class Welcome extends Gvv_Controller {
         $data['dashboard_section'] = $name;
 
         $this->load->model('dashboard_shortcuts_model');
+        $this->load->helper('dashboard_shortcuts');
         $section_id = (int) $this->session->userdata('section');
-        $data['shortcuts'] = $this->dashboard_shortcuts_model->get_for_dashboard($name, $section_id > 0 ? $section_id : null);
+        $shortcuts  = $this->dashboard_shortcuts_model->get_for_dashboard($name, $section_id > 0 ? $section_id : null);
+
+        // Grouped by their 'section' sub-heading so bs_sub_dashboard.php can merge
+        // each card into the matching existing section title, falling back to a
+        // dedicated new section (or "Raccourcis" for uncategorized) — see
+        // render_dashboard_shortcut_cards() in dashboard_shortcuts_helper.php.
+        $data['shortcuts_by_section'] = array();
+        foreach ($shortcuts as $s) {
+            $key = (isset($s['section']) && trim((string) $s['section']) !== '') ? trim($s['section']) : '';
+            $data['shortcuts_by_section'][$key][] = $s;
+        }
 
         load_last_view('sub_dashboard', $data);
     }
