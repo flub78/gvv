@@ -12,6 +12,21 @@ class Dashboard_shortcuts_test extends TestCase {
 
     private $db;
 
+    /**
+     * Whether dashboard_shortcuts already existed before this class ran.
+     * Environments running these tests share a single real database (no
+     * dedicated test DB) — a table that pre-existed may hold real data, so
+     * it must never be dropped by this suite. Only a table this suite
+     * created itself is safe to drop again in tearDownAfterClass().
+     */
+    private static $table_preexisted;
+
+    public static function setUpBeforeClass(): void {
+        $CI = &get_instance();
+        $q = $CI->db->query("SHOW TABLES LIKE 'dashboard_shortcuts'");
+        self::$table_preexisted = $q->num_rows() > 0;
+    }
+
     protected function setUp(): void {
         $CI = &get_instance();
         $this->db = $CI->db;
@@ -20,10 +35,6 @@ class Dashboard_shortcuts_test extends TestCase {
             require_once BASEPATH . 'libraries/Migration.php';
         }
         require_once APPPATH . 'migrations/167_dashboard_shortcuts.php';
-
-        if ($this->tableExists()) {
-            $this->db->query("DROP TABLE IF EXISTS `dashboard_shortcuts`");
-        }
     }
 
     protected function tearDown(): void {
@@ -33,6 +44,9 @@ class Dashboard_shortcuts_test extends TestCase {
     }
 
     public static function tearDownAfterClass(): void {
+        if (self::$table_preexisted) {
+            return;
+        }
         $CI = &get_instance();
         $CI->db->query("DROP TABLE IF EXISTS `dashboard_shortcuts`");
     }
@@ -51,11 +65,23 @@ class Dashboard_shortcuts_test extends TestCase {
         return $CI->dashboard_shortcuts_model;
     }
 
+    /**
+     * Create/drop lifecycle tests below would DROP a table that may hold
+     * real data if it pre-existed — skip them in that case rather than
+     * running against a live table just to exercise the migration class.
+     */
+    private function skipIfTablePreexisted(): void {
+        if (self::$table_preexisted) {
+            $this->markTestSkipped('dashboard_shortcuts already exists in this environment — skipping to avoid dropping a table that may hold real data.');
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Migration
     // -------------------------------------------------------------------------
 
     public function test_migration_up_creates_table(): void {
+        $this->skipIfTablePreexisted();
         $this->assertFalse($this->tableExists(), 'La table ne doit pas exister avant up()');
         (new Migration_Dashboard_shortcuts())->up();
         $this->assertTrue($this->tableExists(), 'La table doit exister après up()');
@@ -74,6 +100,7 @@ class Dashboard_shortcuts_test extends TestCase {
     }
 
     public function test_migration_down_drops_table(): void {
+        $this->skipIfTablePreexisted();
         (new Migration_Dashboard_shortcuts())->up();
         $this->assertTrue($this->tableExists());
         (new Migration_Dashboard_shortcuts())->down();

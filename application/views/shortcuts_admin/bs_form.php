@@ -103,17 +103,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label"><?= $this->lang->line('shortcuts_label_scope') ?></label>
-                    <?php if ($section_id > 0): ?>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_global" name="is_global" value="1"
-                                   <?= empty($shortcut['club_id']) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="is_global"><?= $this->lang->line('shortcuts_scope_global') ?></label>
-                        </div>
-                        <div class="form-text"><?= $this->lang->line('shortcuts_label_section') ?> : <strong><?= html_escape($section_name) ?></strong></div>
-                    <?php else: ?>
-                        <p class="form-control-plaintext text-muted"><?= $this->lang->line('shortcuts_scope_global') ?></p>
-                    <?php endif; ?>
+                    <label class="form-label" for="club_id"><?= $this->lang->line('shortcuts_label_scope') ?></label>
+                    <?php
+                    $club_current    = isset($shortcut['club_id']) && $shortcut['club_id'] !== null ? $shortcut['club_id'] : '';
+                    $section_options = isset($section_selector) ? $section_selector : array();
+                    ?>
+                    <select class="form-select" id="club_id" name="club_id" style="max-width:320px;">
+                        <?php foreach ($section_options as $val => $label): ?>
+                            <option value="<?= html_escape($val) ?>" <?= ((string) $club_current === (string) $val) ? 'selected' : '' ?>><?= html_escape($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="d-flex gap-2">

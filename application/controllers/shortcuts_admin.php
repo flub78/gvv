@@ -22,6 +22,7 @@ class Shortcuts_admin extends MY_Controller {
         parent::__construct();
 
         $this->load->model('dashboard_shortcuts_model');
+        $this->load->model('sections_model');
         $this->lang->load('shortcuts');
         $this->lang->load('gvv');
 
@@ -63,6 +64,7 @@ class Shortcuts_admin extends MY_Controller {
     }
 
     public function create() {
+        $section_id = (int) $this->session->userdata('section');
         $data = $this->_form_data('create', site_url('shortcuts_admin/store'), array(
             'dashboard'       => '',
             'section'         => '',
@@ -76,7 +78,7 @@ class Shortcuts_admin extends MY_Controller {
             'role_required'   => '',
             'sort_order'      => 0,
             'active'          => 1,
-            'club_id'         => null,
+            'club_id'         => ($section_id > 0) ? $section_id : null,
         ), '');
         $this->render_view('shortcuts_admin/bs_form', $data);
     }
@@ -88,9 +90,7 @@ class Shortcuts_admin extends MY_Controller {
             return;
         }
 
-        $section_id = (int) $this->session->userdata('section');
-        $is_global  = (bool) $this->input->post('is_global');
-        $club_id    = ($section_id > 0 && !$is_global) ? $section_id : null;
+        $club_id = $this->_validated_club($this->input->post('club_id'));
 
         $by = $this->dx_auth->get_username();
         $this->dashboard_shortcuts_model->create(array_merge($this->_post_fields(), array('club_id' => $club_id)), $by);
@@ -123,9 +123,7 @@ class Shortcuts_admin extends MY_Controller {
             return;
         }
 
-        $section_id = (int) $this->session->userdata('section');
-        $is_global  = (bool) $this->input->post('is_global');
-        $club_id    = ($section_id > 0 && !$is_global) ? $section_id : null;
+        $club_id = $this->_validated_club($this->input->post('club_id'));
 
         $by = $this->dx_auth->get_username();
         $this->dashboard_shortcuts_model->update((int) $id, array_merge($this->_post_fields(), array('club_id' => $club_id)), $by);
@@ -179,6 +177,20 @@ class Shortcuts_admin extends MY_Controller {
         );
     }
 
+    /**
+     * Only accept a club_id (section) value that matches an existing section
+     * (or empty, for a global shortcut) — the select is the only intended input
+     * path, this guards against a forged POST setting an arbitrary id.
+     */
+    private function _validated_club($value) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        $value = (int) $value;
+        return ($this->db->where('id', $value)->count_all_results('sections') > 0) ? $value : null;
+    }
+
     private function _form_data($mode, $form_action, array $shortcut, $error) {
         $section_id = (int) $this->session->userdata('section');
         $section_name = '';
@@ -193,6 +205,7 @@ class Shortcuts_admin extends MY_Controller {
             'form_action'        => $form_action,
             'section_id'         => $section_id,
             'section_name'       => $section_name,
+            'section_selector'   => $this->sections_model->section_selector_with_null(),
             'shortcut'           => $shortcut,
             'allowed_dashboards' => $this->allowed_dashboards,
             'roles'              => $this->_role_names(),
@@ -203,7 +216,7 @@ class Shortcuts_admin extends MY_Controller {
     private function _form_error($mode, $error_msg, $id = 0) {
         $shortcut = $id ? $this->dashboard_shortcuts_model->get_by_id($id) : array_merge(
             $this->_post_fields(),
-            array('club_id' => null)
+            array('club_id' => $this->_validated_club($this->input->post('club_id')))
         );
         $form_action = $mode === 'edit'
             ? site_url('shortcuts_admin/update/' . $id)
