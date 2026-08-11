@@ -78,6 +78,53 @@ class MaintenanceModelsTest extends TestCase
         $this->db->where('id', $id)->delete('maintenance_equipements');
     }
 
+    public function testEquipementModelListingsAndDeactivation()
+    {
+        if (!$this->macimmat) {
+            $this->markTestSkipped('Aucun aeronef disponible pour ce test');
+        }
+
+        $id = $this->CI->maintenance_equipement_model->create(array(
+            'aeronef_id' => $this->macimmat, 'nom' => 'Equipement listing test',
+        ));
+
+        $tous = array_column($this->CI->maintenance_equipement_model->get_all(false), 'id');
+        $this->assertContains($id, $tous);
+
+        $actifs = array_column($this->CI->maintenance_equipement_model->get_all(true), 'id');
+        $this->assertContains($id, $actifs);
+
+        $selector = $this->CI->maintenance_equipement_model->get_all_selector();
+        $this->assertArrayHasKey($id, $selector);
+        $this->assertStringContainsString($this->macimmat, $selector[$id]);
+
+        // get_aeronef_selector()/get_aeronefs_by_section() ne listent que les
+        // aeronefs actifs (machinesa.actif=1) -- l'aeronef de fixture n'est
+        // pas necessairement actif, on cherche donc un aeronef actif reel.
+        $actif = $this->db->where('actif', 1)->limit(1)->get('machinesa')->row_array();
+        if ($actif) {
+            $aeronef_selector = $this->CI->maintenance_equipement_model->get_aeronef_selector();
+            $this->assertArrayHasKey($actif['macimmat'], $aeronef_selector);
+
+            $aeronefs = array_column($this->CI->maintenance_equipement_model->get_aeronefs_by_section(null), 'macimmat');
+            $this->assertContains($actif['macimmat'], $aeronefs);
+        } else {
+            $this->assertArrayHasKey('', $this->CI->maintenance_equipement_model->get_aeronef_selector());
+        }
+
+        $this->assertTrue($this->CI->maintenance_equipement_model->desactiver($id));
+        $actifs_apres = array_column($this->CI->maintenance_equipement_model->get_all(true), 'id');
+        $this->assertNotContains($id, $actifs_apres);
+        $tous_apres = array_column($this->CI->maintenance_equipement_model->get_all(false), 'id');
+        $this->assertContains($id, $tous_apres);
+
+        $this->assertTrue($this->CI->maintenance_equipement_model->reactiver($id));
+        $actifs_reactive = array_column($this->CI->maintenance_equipement_model->get_all(true), 'id');
+        $this->assertContains($id, $actifs_reactive);
+
+        $this->db->where('id', $id)->delete('maintenance_equipements');
+    }
+
     // ---------------------------------------------------------------
     // maintenance_programme_model
     // ---------------------------------------------------------------
@@ -276,6 +323,10 @@ class MaintenanceModelsTest extends TestCase
         $by_dossier = $this->CI->maintenance_operation_model->get_by_dossier($dossier_id);
         $this->assertCount(1, $by_dossier);
         $this->assertNotEmpty($this->CI->maintenance_operation_model->image($operation_id));
+
+        // get_all() -- liste toutes sections (point d'entree dashboard, Etape 5.7)
+        $toutes_sections = array_column($this->CI->maintenance_operation_model->get_all(null), 'id');
+        $this->assertContains($operation_id, $toutes_sections);
 
         // Realisations : batch vide -> no-op valide (operation compte_rendu sans tache cochee, PRD EF4)
         $this->assertTrue($this->CI->maintenance_realisation_model->save_batch($operation_id, array()));

@@ -23,6 +23,7 @@ class Maintenance_dossiers extends MY_Controller {
         $this->load->model('maintenance_equipement_model');
         $this->load->model('maintenance_operation_model');
         $this->load->library('form_validation');
+        $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
 
@@ -30,7 +31,10 @@ class Maintenance_dossiers extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('mecano')) {
+        // Lecture (index/view = historique) ouverte a mecano/admin/ca/tresorier
+        // (PRD EF8.3) ; ecriture restreinte a mecano/admin, verifiee action par
+        // action via $this->maintenance_access->require_write().
+        if (!$this->maintenance_access->can_view_historique()) {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
@@ -76,6 +80,8 @@ class Maintenance_dossiers extends MY_Controller {
      * @param string $entite_type 'aeronef' ou 'equipement' (defaut aeronef)
      */
     public function ouvrir_form($entite_type = 'aeronef') {
+        $this->maintenance_access->require_write();
+
         if (!in_array($entite_type, array('aeronef', 'equipement'))) {
             $entite_type = 'aeronef';
         }
@@ -106,6 +112,8 @@ class Maintenance_dossiers extends MY_Controller {
      * Enregistrement de l'ouverture d'un dossier
      */
     public function ouvrir_store() {
+        $this->maintenance_access->require_write();
+
         $entite_type = $this->input->post('entite_type');
         $entite_id = $this->input->post('entite_id');
         $programme_id = $this->input->post('programme_id');
@@ -174,6 +182,8 @@ class Maintenance_dossiers extends MY_Controller {
      * @param int $id
      */
     public function suspend($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }
@@ -188,6 +198,8 @@ class Maintenance_dossiers extends MY_Controller {
      * @param int $id
      */
     public function reactivate($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }
@@ -202,6 +214,8 @@ class Maintenance_dossiers extends MY_Controller {
      * @param int $id
      */
     public function close($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }
@@ -216,6 +230,8 @@ class Maintenance_dossiers extends MY_Controller {
      * @param int $id
      */
     public function abandon($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }

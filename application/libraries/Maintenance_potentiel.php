@@ -238,6 +238,51 @@ class Maintenance_potentiel {
     }
 
     /**
+     * Liste les echeances actives (dossiers ouverts), pour le futur
+     * mecanisme d'alarmes generiques qui doit pouvoir les lire sans
+     * dupliquer le calcul du potentiel (PRD EF10.1). Structure de donnees
+     * pure -- aucun HTML, aucune dependance a une vue -- reutilisant
+     * calculer_etat() plutot que de recalculer l'etat autrement.
+     *
+     * N'affecte jamais le statut "Maintenance" des reservations
+     * (doc/prds/aircraft_booking_prd.md) : lecture seule, aucune ecriture.
+     *
+     * @param int|string|null $section_id Section a filtrer (NULL/'' = toutes sections)
+     * @return array Liste de tableaux associatifs : dossier_id, entite_type,
+     *   entite_id, entite_label, programme_id, programme_code,
+     *   programme_titre, regle_butee_date, regle_butee_heures,
+     *   echeance_courante, heures_restantes_courant, etat
+     */
+    public function lister_echeances_actives($section_id = null) {
+        $echeances = array();
+
+        foreach ($this->CI->maintenance_dossier_model->get_all($section_id) as $dossier) {
+            if ($dossier['statut'] !== 'ouvert') {
+                continue;
+            }
+
+            $programme = $this->CI->maintenance_programme_model->get($dossier['programme_id']);
+
+            $echeances[] = array(
+                'dossier_id'               => $dossier['id'],
+                'entite_type'              => $dossier['entite_type'],
+                'entite_id'                => $dossier['entite_id'],
+                'entite_label'             => $this->CI->maintenance_dossier_model->entite_label($dossier['entite_type'], $dossier['entite_id']),
+                'programme_id'             => $dossier['programme_id'],
+                'programme_code'           => $dossier['programme_code'],
+                'programme_titre'          => $dossier['programme_titre'],
+                'regle_butee_date'         => !empty($programme['regle_butee_date']),
+                'regle_butee_heures'       => !empty($programme['regle_butee_heures']),
+                'echeance_courante'        => $dossier['echeance_courante'],
+                'heures_restantes_courant' => $dossier['heures_restantes_courant'],
+                'etat'                     => $this->calculer_etat($dossier),
+            );
+        }
+
+        return $echeances;
+    }
+
+    /**
      * Corrige le potentiel d'un dossier hors operation (PRD EF5.3).
      * Journalise avec le marqueur MAINTENANCE pour permettre le filtrage
      * des logs applicatifs.

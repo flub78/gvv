@@ -30,6 +30,7 @@ class Maintenance_programmes extends MY_Controller {
         $this->load->model('archived_documents_model');
         $this->load->library('form_validation');
         $this->load->library('Maintenance_markdown_parser');
+        $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
 
@@ -37,7 +38,10 @@ class Maintenance_programmes extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('mecano')) {
+        // Lecture (index/view/code_unique) ouverte a mecano/admin/ca/tresorier
+        // (PRD EF7.4 : documents rattaches accessibles selon les droits) ;
+        // ecriture (creation, depot de version...) reservee a mecano/admin.
+        if (!$this->maintenance_access->can_view_historique()) {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
@@ -72,6 +76,8 @@ class Maintenance_programmes extends MY_Controller {
      * Formulaire de creation (metadonnees uniquement, pas de document a cette etape)
      */
     public function create() {
+        $this->maintenance_access->require_write();
+
         $data = array(
             'controller'       => 'maintenance_programmes',
             'action'           => 'create',
@@ -110,6 +116,8 @@ class Maintenance_programmes extends MY_Controller {
      * Enregistrement d'un nouveau programme
      */
     public function store() {
+        $this->maintenance_access->require_write();
+
         $this->set_programme_validation_rules();
 
         if ($this->form_validation->run() === FALSE) {
@@ -171,6 +179,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function edit($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }
@@ -196,6 +206,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function update($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }
@@ -243,6 +255,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function deactivate($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }
@@ -257,6 +271,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function reactivate($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }
@@ -271,6 +287,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function upload_form($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }
@@ -296,6 +314,8 @@ class Maintenance_programmes extends MY_Controller {
      * @param int $id
      */
     public function upload($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_programmes');
         }

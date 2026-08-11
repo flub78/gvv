@@ -33,6 +33,7 @@ class Maintenance_operations extends MY_Controller {
         $this->load->model('archived_documents_model');
         $this->load->library('form_validation');
         $this->load->library('Maintenance_potentiel');
+        $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
 
@@ -40,7 +41,11 @@ class Maintenance_operations extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('mecano')) {
+        // Lecture (index = historique) ouverte a mecano/admin/ca/tresorier
+        // (PRD EF8.3) ; le detail d'une operation (create/edit) reste reserve
+        // a l'ecriture -- pas de mode lecture seule pour ce formulaire (PRD
+        // EF8.4 exclut de toute facon le pilote du detail d'intervention).
+        if (!$this->maintenance_access->can_view_historique()) {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
@@ -76,6 +81,8 @@ class Maintenance_operations extends MY_Controller {
      * @param int $dossier_id
      */
     public function create($dossier_id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($dossier_id)) {
             redirect('maintenance_dossiers');
         }
@@ -107,6 +114,8 @@ class Maintenance_operations extends MY_Controller {
      * @param int $dossier_id
      */
     public function store($dossier_id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($dossier_id)) {
             redirect('maintenance_dossiers');
         }
@@ -162,6 +171,8 @@ class Maintenance_operations extends MY_Controller {
      * @param int $id
      */
     public function edit($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }
@@ -198,6 +209,8 @@ class Maintenance_operations extends MY_Controller {
      * @param int $id
      */
     public function update($id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($id)) {
             redirect('maintenance_dossiers');
         }

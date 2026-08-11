@@ -1,7 +1,7 @@
 # Plan d'implémentation — Gestion de la Maintenance des Aéronefs
 
-**Date :** 4 août 2026 — mis à jour le 5 août 2026 (Phases 0 à 5 terminées)
-**Statut :** Phase 5 terminée (7/7 étapes) — Phase 6 (rôles et accès) à démarrer
+**Date :** 4 août 2026 — mis à jour le 11 août 2026 (Phases 0 à 9 terminées)
+**Statut :** Phase 9 terminée (3/3 étapes) — Phase 10 (tests Playwright) à démarrer
 **PRD :** [doc/prds/maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
 **Design :** [doc/design_notes/maintenance_aeronefs_design.md](../design_notes/maintenance_aeronefs_design.md)
 
@@ -522,6 +522,8 @@ La Phase 6 (rôles et accès) doit maintenant affiner la matrice de droits PRD E
 
 ## Phase 6 — Rôles et accès
 
+**Statut : Terminée (11 août 2026).**
+
 ### Étape 6.1 — Vérifications d'autorisation
 
 **Objectif :** Appliquer la matrice de droits du PRD (EF8) sur l'ensemble des contrôleurs créés en Phase 5.
@@ -530,28 +532,50 @@ La Phase 6 (rôles et accès) doit maintenant affiner la matrice de droits PRD E
 - Responsable de section/trésorier : lecture seule (synthèse + historique).
 - Pilote : lecture seule limitée à l'état de navigabilité, sans détail d'intervention.
 
+**Fichier :** `application/libraries/Maintenance_access.php` (nouveau) — centralise la matrice de droits, miroir de `Formation_access` (déjà utilisé par le module Formation), plutôt que de dupliquer des `user_has_role()` bruts dans chaque contrôleur. Méthodes : `is_mecano()`/`can_write()` (mecano ou admin, section courante pour mecano), `can_view_historique()` (mecano/admin + rôles `ca`/`tresorier`, section courante), `can_view_synthese()` (tout membre connecté), `require_write()` (403 explicite si écriture refusée).
+
+**Décision d'implémentation — correspondance des rôles PRD → rôles GVV existants :** le PRD emploie « responsable de section » sans nom de rôle technique. Le rôle GVV le plus proche, déjà utilisé partout ailleurs dans la base pour ce même profil (lecture globale d'une section, y compris données financières), est `ca` (Conseil d'Administration) — c'est ce rôle qui a été retenu pour `can_view_historique()`, aux côtés de `tresorier` (rôle explicite dans le PRD). Le « pilote » du PRD n'est pas un rôle technique séparé : c'est tout membre connecté ne disposant d'aucun des rôles ci-dessus, donc `can_view_synthese()` ne vérifie que `dx_auth->is_logged_in()`.
+
+**Répartition retenue par contrôleur** (lecture élargie seulement là où le PRD la prévoit explicitement — EF8.3 « synthèse + historique », EF7.4 « documents rattachés accessibles selon les droits ») :
+- `maintenance_synthese` (état de navigabilité, EF7) : lecture (`index`/`aeronef`/`export_pdf`) ouverte à **tout membre connecté**, y compris le pilote — aucune méthode de ce contrôleur n'expose de détail d'intervention (commentaires, tâches réalisées), seulement des états agrégés (`a_jour`/`echeance_proche`/`depasse`).
+- `maintenance_dossiers`, `maintenance_operations`, `maintenance_bulletins`, `maintenance_programmes` (historique) : lecture (`index`/`view`/`code_unique`) ouverte à **mecano/admin/ca/tresorier** ; toute action d'écriture (`ouvrir_form`, `store`, `edit`, `update`, `upload`, `set_statut`, `deactivate`...) reste réservée à **mecano/admin** via `require_write()` appelé en tête de chaque méthode. Le pilote reste bloqué (403 explicite) sur ces quatre contrôleurs — pas de mode "détail d'intervention" en lecture seule pour lui (PRD EF8.4 l'exclut explicitement, et `maintenance_operations::edit()` n'a de toute façon pas de variante lecture seule, une seule vue sert les deux modes).
+- `maintenance_equipements` : **inchangé**, reste réservé à mecano/admin dans son intégralité. Ce contrôleur gère des données maîtres (fiches équipement, transfert) qui ne relèvent ni de la « synthèse » ni de l'« historique » du PRD — les ouvrir en lecture n'était pas demandé.
+- `maintenance_dashboard` : **inchangé**, reste réservé à mecano/admin (cohérent avec EF9.3, qui fige explicitement la visibilité des cartes du tableau de bord principal sur `is_mecano || is_admin` sans mention de révision en Phase 6). Conséquence assumée : le responsable de section/trésorier/pilote n'a pour l'instant aucun point d'entrée menu vers `maintenance_synthese` — uniquement l'URL directe (`/maintenance_synthese`). Câbler une navigation dédiée pour ces rôles n'était pas dans le périmètre de cette étape ; à reconsidérer si le besoin est exprimé.
+
+**Sectionnement (mecano vs admin, ca/tresorier) :** le sectionnement était déjà en place au niveau modèle depuis la Phase 5 (`$this->session->userdata('section')` passé à `get_all()`/`get_by_section_admin()`/`get_aeronefs_by_section()`) ; `Maintenance_access` réutilise la même section courante de session pour les vérifications de rôle, donc un mecano/ca/trésorier ne voit que les données de sa section, tandis qu'un admin (bypass `dx_auth->is_admin()`) voit tout sans restriction.
+
+**Tests :** `playwright/tests/maintenance-roles-smoke.spec.js` (3 tests contre gvv.net, utilisateurs `asterix` (pilote), `testca` (responsable de section), `testtresorier` (trésorier), tous prévus par `bin/create_test_users.sh`) : pilote → synthèse OK, 403 explicite partout ailleurs ; ca/trésorier → lecture OK sur synthèse + les 4 contrôleurs d'historique, 403 explicite sur toute action d'écriture et sur équipements. Suite complète des 7 tests smoke Phase 5 rejouée sans régression (mecano/admin inchangés). Suite PHPUnit complète : 1860 tests, 0 échec, 61 skips préexistants.
+
 **Validation :**
-- [ ] Chaque contrôleur vérifie le rôle avant toute action d'écriture
-- [ ] Un pilote ne peut pas ouvrir le détail d'une opération (redirection ou message explicite)
-- [ ] Un responsable de section ne voit que sa section, un admin voit tout
+- [x] Chaque contrôleur vérifie le rôle avant toute action d'écriture
+- [x] Un pilote ne peut pas ouvrir le détail d'une opération (403 explicite)
+- [x] Un responsable de section ne voit que sa section, un admin voit tout
 
 ---
 
 ## Phase 7 — Point d'ancrage alarmes et réservations (sans implémentation)
 
+**Statut : Terminée (11 août 2026).**
+
 ### Étape 7.1 — API interne d'exposition des échéances
 
 **Objectif :** Permettre au futur mécanisme d'alarmes génériques de lire les échéances de maintenance sans dupliquer le calcul (PRD EF10).
 
-**Fichier :** méthode publique sur `Maintenance_potentiel`, ex. `lister_echeances_actives($section_id = null)` retournant entité, type de butée, échéance/heures restantes, état.
+**Fichier :** `application/libraries/Maintenance_potentiel.php` — nouvelle méthode publique `lister_echeances_actives($section_id = null)`. Ne touche à aucun autre fichier : lecture seule, réutilise les modèles déjà chargés par le constructeur de la bibliothèque (`maintenance_dossier_model::get_all()` pour les dossiers scopés par section — filtrage en PHP sur `statut === 'ouvert'`, `maintenance_programme_model::get()` pour la règle de butée du programme, `entite_label()` pour le libellé) plutôt que d'ajouter une méthode dédiée aux modèles.
+
+Structure retournée, un tableau associatif par dossier ouvert : `dossier_id`, `entite_type`, `entite_id`, `entite_label`, `programme_id`, `programme_code`, `programme_titre`, `regle_butee_date`, `regle_butee_heures`, `echeance_courante`, `heures_restantes_courant`, `etat` (réutilise `calculer_etat()`, pas de recalcul dupliqué).
+
+**Tests :** `application/tests/mysql/MaintenancePotentielTest.php` étendu (3 tests : ne retient que les dossiers `ouvert` — un suspendu et un clôturé sont explicitement exclus ; structure complète vérifiée sans aucun balisage HTML dans les valeurs ; filtrage par section vérifié avec deux sections réelles distinctes). Suite complète : 1863 tests, 0 échec, 61 skips préexistants — y compris la suite réservations (`aircraft_booking`), intégralement inchangée.
 
 **Validation :**
-- [ ] Méthode retourne une structure exploitable indépendamment de l'UI (pas de HTML, pas de dépendance vue)
-- [ ] Aucune modification du statut "Maintenance" des réservations (`doc/prds/aircraft_booking_prd.md`) — vérifié par non-régression des tests réservations existants
+- [x] Méthode retourne une structure exploitable indépendamment de l'UI (pas de HTML, pas de dépendance vue)
+- [x] Aucune modification du statut "Maintenance" des réservations (`doc/prds/aircraft_booking_prd.md`) — vérifié par non-régression des tests réservations existants (aucun fichier du module réservations touché)
 
 ---
 
 ## Phase 8 — Fichiers de langue
+
+**Statut : Terminée (11 août 2026), sans aucune modification de code.**
 
 ### Étape 8.1 — Clés FR / EN / NL
 
@@ -562,19 +586,26 @@ La Phase 6 (rôles et accès) doit maintenant affiner la matrice de droits PRD E
 
 Couvrant : équipements, programmes, tâches, dossiers (statuts), opérations, bulletins, synthèse, messages de confirmation/erreur.
 
+**Constat :** cette étape était déjà entièrement satisfaite par construction — chaque étape de la Phase 5 (5.1 à 5.7) a livré ses propres clés dans les trois langues au fur et à mesure (décision actée dès l'Étape 5.1, cf. note correspondante), plutôt que d'attendre cette Phase 8 pour tout centraliser. Vérifié explicitement ici (11 août 2026), sans code à écrire :
+- `php -l` sans erreur sur les 3 fichiers `maintenance_lang.php` (206 lignes chacun, FR/EN/NL).
+- `LanguageCompletenessTest` (6 tests) : passe, les 3 fichiers ont un jeu de clés identique.
+- Audit complémentaire (grep de tous les appels `$this->lang->line(...)` dans `application/controllers/maintenance_*.php`, `application/views/maintenance_*/*.php`, `application/libraries/Maintenance_*.php`, y compris les clés composées dynamiquement — `'maintenance_bulletin_statut_' . $statut`, `'maintenance_realisation_' . $statut`) : toutes les clés utilisées sont définies, soit dans `maintenance_lang.php`, soit dans `tableaux_de_bord_lang.php` (cartes/libellés du dashboard, chargé explicitement par chaque contrôleur), sans aucune clé manquante.
+
 **Validation :**
-- [ ] Fichiers créés sans erreur de syntaxe
-- [ ] Tous les `$this->lang->line(...)` utilisés ont une clé définie dans les trois langues (couvert par le test existant `LanguageCompletenessTest`)
+- [x] Fichiers créés sans erreur de syntaxe
+- [x] Tous les `$this->lang->line(...)` utilisés ont une clé définie dans les trois langues (couvert par le test existant `LanguageCompletenessTest`, complété par un audit manuel des clés composées dynamiquement, hors de portée d'un grep statique simple)
 
 ---
 
 ## Phase 9 — Tests PHPUnit
 
+**Statut : Terminée (11 août 2026).**
+
 ### Étape 9.1 — Tests unitaires
 
-**Fichiers :**
-- `application/tests/unit/libraries/MaintenancePotentielTest.php`
-- `application/tests/unit/libraries/MaintenanceMarkdownParserTest.php`
+**Statut : déjà satisfaite**, livrée dès les Phases 3 et 4 plutôt qu'en fin de plan (même logique que la Phase 8 pour les langues) :
+- `application/tests/unit/libraries/MaintenancePotentielTest.php` (11 tests, Étape 3.1)
+- `application/tests/unit/libraries/MaintenanceMarkdownParserTest.php` (15 tests, Étape 4.1)
 
 Cas de test : calcul d'état selon règle de butée (date/heures/les deux), seuil "échéance proche", mise à jour manuelle avec marqueur de log, parsing markdown (ordre, titres, cas limites).
 
@@ -582,21 +613,38 @@ Cas de test : calcul d'état selon règle de butée (date/heures/les deux), seui
 
 ### Étape 9.2 — Tests d'intégration
 
-**Fichiers :**
-- `application/tests/integration/MaintenanceEquipementModelTest.php`
-- `application/tests/integration/MaintenanceDossierModelTest.php`
-- `application/tests/integration/MaintenanceOperationModelTest.php`
-- `application/tests/integration/MaintenanceBulletinModelTest.php`
+**Décision d'implémentation — localisation réelle des tests :** contrairement au sketch initial de cette étape (`application/tests/integration/Maintenance*ModelTest.php`), les tests de modèles du module vivent dans `application/tests/mysql/` (CRUD réel contre la base de test, cohérent avec la distinction du projet entre `tests/integration/` — dépendances framework sans accès BDD — et `tests/mysql/` — opérations CRUD réelles). Les 5 cas de test explicitement demandés par cette étape étaient déjà couverts, livrés incrémentalement dès les Phases 1 et 2 :
+- **CRUD** : `application/tests/mysql/MaintenanceModelsTest.php` (Phase 2, 7 tests après extension ci-dessous)
+- **Transfert d'équipement (historique préservé)** : `MaintenanceMigrationsTest::testEquipementCanBeTransferredToAnotherAeronef` (Phase 1) + `MaintenanceModelsTest::testEquipementCrudAndTransfer` (Phase 2) + vérification end-to-end réelle en base via Playwright (Étape 5.1)
+- **Dossiers multiples simultanés sur une même entité** : `MaintenanceMigrationsTest::testEntiteCanHaveMultipleOpenDossiersOnDifferentProgrammes` (Phase 1)
+- **Opération `compte_rendu` sans tâche cochée** : `MaintenanceMigrationsTest::testCompteRenduOperationWithoutRealisationIsValid` (Phase 1) + `MaintenanceModelsTest::testOperationAndRealisationModels` (`save_batch()` avec tableau vide, Phase 2)
+- **Changement de statut bulletin restreint par rôle** : testé en conditions réelles via Playwright (`maintenance-bulletins-smoke.spec.js` Étape 5.5, `maintenance-roles-smoke.spec.js` Étape 6.1), pas en PHPUnit — cohérent avec l'absence de précédent PHPUnit pour ce type de vérification dans tout le projet (aucun test de ce genre n'existe non plus pour `Formation_access`) ; la restriction de rôle est un comportement de contrôleur (403 via `show_error()`, qui termine le process — non testable en isolation PHPUnit), pas de modèle.
 
-Cas de test : CRUD, transfert d'équipement (historique préservé), dossiers multiples simultanés sur une même entité, opération en mode `compte_rendu` sans tâche cochée, changement de statut bulletin restreint par rôle.
+**Ajouts faits dans cette étape** pour combler les seuls véritables trous de couverture identifiés en 9.3 (voir ci-dessous) :
+- `application/tests/mysql/MaintenanceAccessTest.php` (nouveau, 5 tests) : couvre `Maintenance_access` (Phase 6), qui n'avait encore aucun test PHPUnit (seulement Playwright) — `is_mecano()`/`can_write()`/`can_view_historique()`/`can_view_synthese()` pour aucun rôle, mecano, ca, trésorier, et un rôle accordé dans une autre section (sans effet sur la section courante). Utilise le même pattern que `AuthorizationIntegrationTest` (attribution/retrait réel de rôles en base pour l'utilisateur fixé par le mock de test, `user_id=1`, créé à la volée si absent). `require_write()` n'est testé que sur son chemin positif (son chemin de refus appelle `show_error()`, qui termine le process — non testable en PHPUnit, déjà couvert par Playwright).
+- `application/tests/mysql/MaintenanceModelsTest.php` étendu : nouveau test `testEquipementModelListingsAndDeactivation` (`get_all()`, `get_all_selector()`, `get_aeronef_selector()`, `get_aeronefs_by_section()`, `desactiver()`/`reactiver()` — méthodes ajoutées en Phase 5 sans test modèle dédié jusqu'ici) ; `testOperationAndRealisationModels` complété avec `maintenance_operation_model::get_all()` (Étape 5.7).
+
+**Incident de test corrigé en cours d'étape :** la première version de `testRoleScopeSurUneAutreSectionNeDonneAucunDroitIci` nettoyait sa section secondaire à la fin du corps de test plutôt que dans `tearDown()` — un run intermédiaire ayant échoué avant ce correctif a laissé une section orpheline en base, faisant échouer `TestUsersCoherenceTest::testPanoramixIsClubAdminInAllSections` (qui énumère toutes les sections). Section orpheline supprimée, test corrigé pour stocker l'id dans une propriété nettoyée par `tearDown()` (donc sûr même si une assertion échoue en cours de test) — leçon similaire à celle déjà notée en Étape 5.2 sur le nettoyage de données de test.
 
 ---
 
 ### Étape 9.3 — Exécution de la suite complète
 
+**Résultats (11 août 2026) :** suite complète verte, 1869 tests (1808 passants, 61 skips préexistants sans rapport avec ce module, 0 échec). Couverture (`./run-all-tests.sh --coverage`) de tous les fichiers `libraries`/`models` du module ≥ 70 %, y compris après comblement des trous identifiés :
+
+| Fichier | Avant complément | Après complément |
+|---|---|---|
+| `Maintenance_access.php` | 0 % (aucun test PHPUnit) | 85.7 % |
+| `maintenance_equipement_model.php` | 39.3 % | 95.1 % |
+| `maintenance_operation_model.php` | 60.5 % | 88.4 % |
+| `maintenance_programme_model.php` | 70.9 % (déjà conforme) | 70.9 % |
+| Autres fichiers `Maintenance_*`/`maintenance_*_model` | 90–97 % | inchangé |
+
+**Note sur les contrôleurs :** aucun contrôleur `maintenance_*.php` n'apparaît dans le rapport de couverture PHPUnit — cohérent avec le reste du projet (un seul contrôleur sur ~50 apparaît dans `build/logs/clover.xml`) : les contrôleurs de ce module, comme ceux de Formation, sont vérifiés par Playwright en conditions réelles plutôt que par PHPUnit, qui ne les charge jamais. Le seuil de 70 % s'applique donc naturellement aux `libraries`/`models`, seuls fichiers réellement mesurés par la suite PHPUnit.
+
 **Validation :**
-- [ ] `source setenv-php7.sh && ./run-all-tests.sh` (et/ou `setenv-php8.sh`) passe sans régression
-- [ ] Couverture des nouveaux fichiers ≥ 70 %
+- [x] `source setenv-php7.sh && ./run-all-tests.sh` (et/ou `setenv-php8.sh`) passe sans régression
+- [x] Couverture des nouveaux fichiers ≥ 70 %
 
 ---
 
@@ -655,10 +703,10 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 | 3 | Calcul du potentiel (`Maintenance_potentiel`) | ✅ Terminé |
 | 4 | Parsing et versioning des programmes | ✅ Terminé (mécanisme ; écran Phase 5) |
 | 5 | Contrôleurs et vues | ✅ Terminé (7/7 étapes) |
-| 6 | Rôles et accès | ⬜ Non démarré |
-| 7 | Point d'ancrage alarmes/réservations | ⬜ Non démarré |
-| 8 | Fichiers de langue FR/EN/NL | ⬜ Non démarré |
-| 9 | Tests PHPUnit | ⬜ Non démarré |
+| 6 | Rôles et accès | ✅ Terminé |
+| 7 | Point d'ancrage alarmes/réservations | ✅ Terminé |
+| 8 | Fichiers de langue FR/EN/NL | ✅ Terminé (déjà satisfait, livré incrémentalement en Phase 5) |
+| 9 | Tests PHPUnit | ✅ Terminé |
 | 10 | Tests Playwright | ⬜ Non démarré |
 | 11 | Documentation | ⬜ Non démarré |
 

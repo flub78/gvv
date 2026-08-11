@@ -10,9 +10,9 @@ if (!defined('BASEPATH'))
  * machine_immat, avec un statut applicatif (a_traiter / traite /
  * non_applicable) porte par maintenance_bulletin_statuts.
  *
- * Seuls mecano/admin peuvent acceder a cet ecran (PRD EF6.3) -- deja
- * garanti par le filtre de role du controleur, comme les autres ecrans
- * du module.
+ * Lecture (liste + statut) ouverte a mecano/admin/ca/tresorier (PRD
+ * EF8.3, EF7.4) ; changement de statut et depot reserves a mecano/admin
+ * (PRD EF6.3), verifies action par action via Maintenance_access.
  *
  * @package controllers
  * @see doc/prds/maintenance_aeronefs_prd.md (EF6)
@@ -28,6 +28,7 @@ class Maintenance_bulletins extends MY_Controller {
         $this->load->model('document_types_model');
         $this->load->model('archived_documents_model');
         $this->load->library('form_validation');
+        $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
 
@@ -35,7 +36,7 @@ class Maintenance_bulletins extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('mecano')) {
+        if (!$this->maintenance_access->can_view_historique()) {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
@@ -87,6 +88,8 @@ class Maintenance_bulletins extends MY_Controller {
      * @param string $machine_immat
      */
     public function upload_form($machine_immat = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($machine_immat)) {
             redirect('maintenance_bulletins');
         }
@@ -105,6 +108,8 @@ class Maintenance_bulletins extends MY_Controller {
      * @param string $machine_immat
      */
     public function upload($machine_immat = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($machine_immat)) {
             redirect('maintenance_bulletins');
         }
@@ -164,6 +169,8 @@ class Maintenance_bulletins extends MY_Controller {
      * @param int $archived_document_id
      */
     public function set_statut($archived_document_id = '') {
+        $this->maintenance_access->require_write();
+
         if (empty($archived_document_id)) {
             redirect('maintenance_bulletins');
         }

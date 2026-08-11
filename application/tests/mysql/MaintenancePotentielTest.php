@@ -262,6 +262,99 @@ class MaintenancePotentielTest extends TestCase
 
         $this->nettoyer($programme_id, $dossier_id);
     }
+
+    // ---------------------------------------------------------------
+    // lister_echeances_actives() -- Phase 7, point d'ancrage alarmes (PRD EF10.1)
+    // ---------------------------------------------------------------
+
+    public function testListerEcheancesActivesNeRetientQueLesDossiersOuverts()
+    {
+        $programme_id = $this->creerProgramme(array('regle_butee_date' => 1, 'periodicite_mois' => 6));
+
+        $dossier_ouvert = $this->creerDossier($programme_id);
+        $this->db->where('id', $dossier_ouvert)->update('maintenance_dossiers', array(
+            'echeance_courante' => date('Y-m-d', strtotime('+5 days')),
+        ));
+
+        $dossier_suspendu = $this->creerDossier($programme_id);
+        $this->CI->maintenance_dossier_model->suspendre($dossier_suspendu);
+
+        $dossier_cloture = $this->creerDossier($programme_id);
+        $this->CI->maintenance_dossier_model->cloturer($dossier_cloture);
+
+        $echeances = $this->potentiel->lister_echeances_actives();
+        $dossier_ids = array_column($echeances, 'dossier_id');
+
+        $this->assertContains($dossier_ouvert, $dossier_ids);
+        $this->assertNotContains($dossier_suspendu, $dossier_ids);
+        $this->assertNotContains($dossier_cloture, $dossier_ids);
+
+        $this->db->where('id', $dossier_cloture)->delete('maintenance_dossiers');
+        $this->db->where('id', $dossier_suspendu)->delete('maintenance_dossiers');
+        $this->nettoyer($programme_id, $dossier_ouvert);
+    }
+
+    public function testListerEcheancesActivesStructureExploitableSansHtml()
+    {
+        $programme_id = $this->creerProgramme(array(
+            'regle_butee_date' => 1, 'regle_butee_heures' => 1,
+            'periodicite_mois' => 12, 'seuil_heures' => 50.00,
+        ));
+        $dossier_id = $this->creerDossier($programme_id);
+        $operation_id = $this->creerOperation($dossier_id, array('horametre_releve' => 500.00));
+        $this->potentiel->appliquer_operation($operation_id);
+
+        $echeances = $this->potentiel->lister_echeances_actives();
+        $entry = null;
+        foreach ($echeances as $candidate) {
+            if ($candidate['dossier_id'] == $dossier_id) {
+                $entry = $candidate;
+                break;
+            }
+        }
+        $this->assertNotNull($entry);
+
+        $this->assertSame('aeronef', $entry['entite_type']);
+        $this->assertSame($this->macimmat, $entry['entite_id']);
+        $this->assertStringContainsString($this->macimmat, $entry['entite_label']);
+        $this->assertEquals($programme_id, $entry['programme_id']);
+        $this->assertTrue($entry['regle_butee_date']);
+        $this->assertTrue($entry['regle_butee_heures']);
+        $this->assertSame(date('Y-m-d', strtotime('+12 months')), $entry['echeance_courante']);
+        $this->assertEqualsWithDelta(50.00, (float) $entry['heures_restantes_courant'], 0.001);
+        $this->assertContains($entry['etat'], array('a_jour', 'echeance_proche', 'depasse'));
+
+        // Structure pure : aucune cle ne doit contenir de balisage HTML.
+        foreach ($entry as $valeur) {
+            if (is_string($valeur)) {
+                $this->assertStringNotContainsString('<', $valeur);
+            }
+        }
+
+        $this->nettoyer($programme_id, $dossier_id, $operation_id);
+    }
+
+    public function testListerEcheancesActivesFiltrageParSection()
+    {
+        $sections = $this->db->limit(2)->get('sections')->result_array();
+        if (count($sections) < 2) {
+            $this->markTestSkipped('Au moins 2 sections sont necessaires pour ce test');
+        }
+        list($section, $autre_section) = $sections;
+
+        $programme_section = $this->creerProgramme(array(
+            'regle_butee_date' => 1, 'periodicite_mois' => 6, 'section_id' => $section['id'],
+        ));
+        $dossier_section = $this->creerDossier($programme_section);
+
+        $echeances_section = $this->potentiel->lister_echeances_actives($section['id']);
+        $this->assertContains($dossier_section, array_column($echeances_section, 'dossier_id'));
+
+        $echeances_autre_section = $this->potentiel->lister_echeances_actives($autre_section['id']);
+        $this->assertNotContains($dossier_section, array_column($echeances_autre_section, 'dossier_id'));
+
+        $this->nettoyer($programme_section, $dossier_section);
+    }
 }
 
 /* End of file MaintenancePotentielTest.php */

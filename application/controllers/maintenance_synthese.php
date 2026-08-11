@@ -31,6 +31,7 @@ class Maintenance_synthese extends MY_Controller {
         $this->load->model('maintenance_dossier_model');
         $this->load->model('sections_model');
         $this->load->library('Maintenance_potentiel');
+        $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
 
@@ -38,7 +39,11 @@ class Maintenance_synthese extends MY_Controller {
             redirect('auth/login');
         }
 
-        if (!$this->user_has_role('mecano')) {
+        // Etat de navigabilite : accessible a tout membre connecte, y compris
+        // le pilote (PRD EF8.4) -- aucune methode de ce controleur n'expose de
+        // detail d'intervention (commentaires, taches realisees), seulement
+        // des etats agreges par dossier/entite.
+        if (!$this->maintenance_access->can_view_synthese()) {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
