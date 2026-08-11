@@ -93,6 +93,8 @@ class Forms_admin extends MY_Controller {
             'nav_back_url'   => 'welcome/section/admin_sys',
             'nav_back_label' => 'Administration système',
         ]);
+        $this->session->set_userdata('nav_from_url',   'forms_admin');
+        $this->session->set_userdata('nav_from_label', 'Liste des formulaires');
         $section_id = (int) $this->session->userdata('section');
         $forms      = $this->forms_model->list_forms(array('section_context' => $section_id));
         $form_ids   = array_column($forms, 'id');
@@ -148,6 +150,9 @@ class Forms_admin extends MY_Controller {
             return;
         }
         $row = $this->_overlay_css_from_file($row);
+
+        $this->session->set_userdata('nav_from_url',   'forms_admin/edit/' . $id);
+        $this->session->set_userdata('nav_from_label', $row['title']);
 
         $section_id = (int) $this->session->userdata('section');
         $row['club'] = ($row['club'] !== null) ? (int) $row['club'] : '';
@@ -591,6 +596,11 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
+        $this->load->vars([
+            'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'forms_admin',
+            'nav_back_label' => $this->session->userdata('nav_from_label') ?: 'Liste des formulaires',
+        ]);
+
         $fields = $this->_parse_form_fields($form);
         $identifier_names = array();
         foreach ($fields as $f) {
@@ -762,7 +772,9 @@ class Forms_admin extends MY_Controller {
             $body_parts[] = $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name, $sig_files);
         }
 
+        $scope_class  = $this->_scope_class_for_form($form);
         $global_css   = !empty($form['global_css']) ? (string) $form['global_css'] : '';
+        $global_css   = $this->forms_renderer->scope_css($global_css, $scope_class);
         $title_safe   = htmlspecialchars($form['title'] . ' — Réponse #' . (int) $submission['id'], ENT_QUOTES, 'UTF-8');
         $meta_safe    = htmlspecialchars($form['title'], ENT_QUOTES, 'UTF-8')
                       . ' — Réponse&nbsp;#' . (int) $submission['id']
@@ -801,7 +813,9 @@ class Forms_admin extends MY_Controller {
               . '  <span class="pt-title">' . $meta_safe . '</span>' . "\n"
               . '</div>' . "\n"
               . '<div style="padding:8px;">' . "\n"
+              . '<div class="' . html_escape($scope_class) . '">' . "\n"
               . $content . "\n"
+              . '</div>' . "\n"
               . '</div>' . "\n"
               . '</body></html>';
 
@@ -850,7 +864,9 @@ class Forms_admin extends MY_Controller {
             }
         }
 
+        $scope_class = $this->_scope_class_for_form($form);
         $css = !empty($form['global_css']) ? (string) $form['global_css'] : '';
+        $css = $this->forms_renderer->scope_css($css, $scope_class);
 
         $body_parts = array();
         foreach ($pages as $page) {
@@ -922,7 +938,9 @@ class Forms_admin extends MY_Controller {
               . '<style>' . $pdf_bg_fix . '</style>'
               . '<style>' . $css . '</style>'
               . '</head><body>'
+              . '<div class="' . html_escape($scope_class) . '">'
               . implode('<p style="page-break-after:always;"></p>', $body_parts)
+              . '</div>'
               . '</body></html>';
 
         $html = $this->_embed_local_images_as_base64($html);
@@ -2024,6 +2042,22 @@ class Forms_admin extends MY_Controller {
             $page['content_html'] = $this->forms_renderer->inject_required_markers($content);
         }
         return $page;
+    }
+
+    /**
+     * Builds the scope class a form's content must be wrapped in for its
+     * global_css (always authored against .forms-public-root, optionally
+     * extended by a per-form css_scope) to apply — see
+     * doc/design_notes/formulaires_css_isolation_design.md. Mirrors the
+     * logic in views/forms_admin/bs_submission_edit.php.
+     */
+    private function _scope_class_for_form(array $form) {
+        $scope_class = 'forms-public-root';
+        $css_scope   = trim(isset($form['css_scope']) ? (string) $form['css_scope'] : '');
+        if ($css_scope !== '') {
+            $scope_class .= ' ' . preg_replace('/[^a-zA-Z0-9_-]+/', '-', $css_scope);
+        }
+        return $scope_class;
     }
 
     private function _overlay_pages_from_file($code, array $pages) {
