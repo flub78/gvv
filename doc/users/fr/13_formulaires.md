@@ -1,16 +1,8 @@
 # Gestion des formulaires
 
-Les formulaires permettent deux choses:
+Un formulaire GVV sert à collecter des informations en ligne — comme un formulaire papier, mais archivé et retrouvable — et à s'interfacer avec GVV (pré-remplissage à partir des données du club, déclenchement d'actions). Ce document guide l'administrateur qui **fait remplir** un formulaire déjà existant : le créer, publier un lien, consulter les réponses, les corriger, accepter un dépôt scanné.
 
-1. Collecter des informations comme un formulaire papier. Dans GVV, cela gère également l'archivage. Les formulaires peuvent être remplis en ligne, mais on sait ou retrouver toutes les réponses.
-
-2. C'est un mécanisme pour étendre GVV sans modifier le code. Les formulaires ont des interfaces qui permettre de les intégrer profondément dans GVV. Ils peuvent être pré-remplis avec des informations contenues dans GVV et il peuvent également déclencher des actions dans GVV.
-
-C'est donc un moyen d'étendre GVV sans être informaticien.
-
-Ce document s'adresse à qui **fait remplir** un formulaire déjà existant : ouvrir le lien, faire remplir, retrouver les réponses, les modifier et créer un pdf avec une réponse.
-
-Pour **créer le contenu HTML/CSS d'un formulaire** et **l'intégrer à GVV** (page de génération, pré-remplissage, sous-formulaires, export vers un formulaire de création), voir le document séparé [Rédiger et intégrer un formulaire (HTML/CSS)](13_formulaires_creation.md).
+Pour **rédiger le contenu HTML/CSS d'un formulaire** ou **l'intégrer aux données GVV** (pré-remplissage, sous-formulaires, export), voir [Rédiger et intégrer un formulaire (HTML/CSS)](13_formulaires_creation.md).
 
 > 💡 **Envie de construire un formulaire pas à pas ?** Voir le [tutoriel — Créer un formulaire avec l'aide d'un assistant IA](13_formulaires_tutoriel.md), qui construit un exemple complet (3 pages, upload, signature) en s'appuyant sur ChatGPT pour générer le HTML.
 
@@ -19,208 +11,123 @@ Pour **créer le contenu HTML/CSS d'un formulaire** et **l'intégrer à GVV** (p
 - [Gestion des formulaires](#gestion-des-formulaires)
   - [Sommaire](#sommaire)
   - [Vue d'ensemble](#vue-densemble)
-  - [Créer un formulaire](#créer-un-formulaire)
-  - [Gérer les pages](#gérer-les-pages)
-  - [Formulaires pré-remplis](#formulaires-pré-remplis)
-  - [Consulter les réponses](#consulter-les-réponses)
-    - [Ouvrir une réponse](#ouvrir-une-réponse)
-    - [Export PDF imprimable](#export-pdf-imprimable)
-    - [Téléchargement sécurisé des fichiers](#téléchargement-sécurisé-des-fichiers)
-    - [Rétention](#rétention)
-  - [Modifier une réponse déjà soumise](#modifier-une-réponse-déjà-soumise)
-    - [Déclencher la modification](#déclencher-la-modification)
-    - [Formulaire pré-rempli](#formulaire-pré-rempli)
-    - [Enregistrer les modifications](#enregistrer-les-modifications)
-  - [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan)
-    - [Activer la fonctionnalité sur un formulaire](#activer-la-fonctionnalité-sur-un-formulaire)
-    - [Côté public](#côté-public)
-    - [Côté admin — liste des réponses](#côté-admin--liste-des-réponses)
-  - [Pour aller plus loin — rédiger et intégrer un formulaire](#pour-aller-plus-loin--rédiger-et-intégrer-un-formulaire)
+  - [Créer un nouveau formulaire](#créer-un-nouveau-formulaire)
+  - [Générer un lien pré-rempli pour un membre ou un instructeur](#générer-un-lien-pré-rempli-pour-un-membre-ou-un-instructeur)
+  - [Consulter les réponses reçues](#consulter-les-réponses-reçues)
+  - [Corriger une réponse déjà soumise](#corriger-une-réponse-déjà-soumise)
+  - [Accepter une réponse déposée par scan ou photo](#accepter-une-réponse-déposée-par-scan-ou-photo)
+  - [Référence — champs et métadonnées du formulaire](#référence--champs-et-métadonnées-du-formulaire)
+  - [Pour aller plus loin](#pour-aller-plus-loin)
 
 ---
 
 ## Vue d'ensemble
 
-Un formulaire est un ensemble de pages HTML contenant des champs de saisie. Il est publié via un lien public anonyme, et les réponses sont collectées dans GVV. L'administrateur peut consulter les réponses, les exporter en PDF et supprimer celles qui ne sont plus utiles.
-
-Un formulaire permet également de collecter des fichiers (photos, documents PDF, etc.) et des signatures électroniques. Les fichiers sont stockés de manière sécurisée et ne sont accessibles que depuis l'interface d'administration.
-
-Il est possible de remplir un formulaire en une ou plusieurs fois, et de modifier une réponse déjà soumise si le formulaire est conçu pour cela. Cela permet par exemple de suivre la mise en place d'une procédure ou de compléter un dossier. La procédure n'est considérée comme terminées que lorsque tous les documents ont été fournis et touts les champs obligatoires remplis.
-
-Un formulaire GVV est composé de :
-
-- **Métadonnées** : titre, code interne, slug public (URL d'accès anonyme), CSS global, statut (brouillon / publié / archivé)
-- **Pages** : un formulaire peut comporter plusieurs pages ; chaque page contient du HTML libre et des champs
-- **Champs** : éléments de saisie détectés automatiquement dans le HTML de la page (voir [Champs détectés automatiquement](13_formulaires_creation.md#champs-détectés-automatiquement) dans le document de rédaction) — rien à déclarer séparément côté administration
-- **Réponses** : soumissions anonymes, consultables et exportables en PDF
+Un formulaire GVV est un conteneur (métadonnées + statut) associé à une ou plusieurs pages HTML stockées dans `uploads/formulaires/{code}/`, publié via un lien public anonyme de la forme `http://gvv.net/index.php/forms/{slug-public}`. Les réponses soumises sont archivées et consultables depuis l'administration ; les fichiers joints (photos, PDF, signatures) sont stockés de manière sécurisée.
 
 Flux de travail :
 
 ```
-Créer le conteneur du formulaire → Déposer une archive (pages HTML, CSS, images)
-→ Publier → Partager le lien public → Consulter les réponses
+Créer le conteneur → Déposer une archive (pages HTML, CSS, images)
+→ Publier → Partager le lien (brut ou pré-rempli) → Consulter les réponses
 ```
-
-La deuxième étape (« Déposer une archive ») est le travail de la personne qui rédige le contenu — voir [Rédiger le contenu d'un formulaire (HTML/CSS)](13_formulaires_creation.md). Les autres étapes sont couvertes dans ce document.
-
-Le lien public a la forme : `http://gvv.net/index.php/forms/{slug-public}`
-
-Le contenu de chaque page (HTML + CSS) est stocké sous forme de fichiers dans `uploads/formulaires/{code}/` et s'édite exclusivement par dépôt d'archive — voir [Gérer le contenu d'un formulaire (archive)](13_formulaires_creation.md#gérer-le-contenu-dun-formulaire-archive).
 
 ![Liste des formulaires](../screenshots/formulaires/admin_liste_formulaires.png)
 
 ---
 
-## Créer un formulaire
+## Créer un nouveau formulaire
 
-Navigation : **Formulaires → Nouveau formulaire**
+1. **Formulaires → Nouveau formulaire**.
+2. Renseigner au minimum le **Code** et le **Titre** (voir la [référence des champs](#référence--champs-et-métadonnées-du-formulaire) pour le rôle de chaque champ).
+3. Valider : le conteneur est créé, sans contenu.
+4. Déposer une archive HTML/CSS pour donner du contenu au formulaire — voir [Créer le contenu d'un nouveau formulaire](13_formulaires_creation.md#créer-le-contenu-dun-nouveau-formulaire). Sans cette étape, le formulaire reste vide.
+5. Vérifier les pages détectées : la fiche du formulaire liste, en lecture seule, les pages du dossier de stockage (numéro, titre, aperçu, bouton **"Champs"** pour voir les champs détectés sur la page).
+6. Passer le **Statut** à `publié` quand le formulaire est prêt à être partagé.
 
 ![Création d'un formulaire](../screenshots/formulaires/admin_creation_formulaire.png)
+![Gestion des pages](../screenshots/formulaires/admin_pages.png)
+
+Pour sauvegarder ou transférer un formulaire complet vers une autre installation GVV ou vers un autre club, voir [Sauvegarder ou transférer un formulaire complet](13_formulaires_creation.md#sauvegarder-ou-transférer-un-formulaire-complet).
+
+---
+
+## Générer un lien pré-rempli pour un membre ou un instructeur
+
+Si le formulaire a été configuré avec un **Contexte GVV** (voir référence ci-dessous), il peut être ouvert déjà rempli avec les informations d'un pilote et/ou d'un instructeur :
+
+1. Dans la liste des formulaires, cliquer sur **"Générer"** — visible seulement si le formulaire a un contexte GVV configuré.
+2. Sélectionner le pilote et/ou l'instructeur.
+3. Cliquer sur **"Ouvrir le formulaire"** : GVV ouvre le lien avec les bons paramètres.
+
+Un club-admin peut aussi épingler cette page de génération comme raccourci sur un tableau de bord GVV, pour l'atteindre en un clic.
+
+Ce pré-remplissage suppose que les champs de la page ont été annotés à la rédaction — voir [Pré-remplir un champ avec les données GVV](13_formulaires_creation.md#pré-remplir-un-champ-avec-les-données-gvv) et [Générer un lien pré-rempli (page de génération)](13_formulaires_creation.md#générer-un-lien-pré-rempli-page-de-génération) dans le document de rédaction.
+
+---
+
+## Consulter les réponses reçues
+
+1. **Formulaires → [nom du formulaire] → Réponses**.
+2. La liste indique, pour chaque soumission, l'**Identification** (champs marqués comme identifiants, ou le commentaire pour un dépôt scanné) et **Soumis par** (nom/email captés, ou "Anonyme").
+3. **"Ouvrir"** affiche le détail : toutes les valeurs saisies, et un aperçu intégré des fichiers/signatures joints (image affichée directement, PDF dans un cadre de prévisualisation) ; "Aperçu" et "Télécharger" restent disponibles.
+4. **"PDF"** ouvre une version imprimable de la réponse.
+5. **"Supprimer"** retire définitivement la réponse, ses valeurs et ses fichiers — il n'y a pas d'expiration automatique, la rétention est illimitée tant qu'une réponse n'est pas supprimée manuellement.
+
+Les fichiers joints ne sont jamais accessibles par une URL prévisible côté public : seul un administrateur authentifié ayant accès à la section peut les consulter, et le navigateur n'est pas autorisé à les mettre en cache.
+
+---
+
+## Corriger une réponse déjà soumise
+
+Pour suivre une procédure (attestation à compléter, dossier à mettre à jour...), une réponse déjà envoyée peut être rouverte et corrigée sans créer de nouvelle réponse.
+
+1. Depuis la liste des réponses ou le détail d'une réponse, cliquer sur **"Modifier"** — disponible uniquement pour les réponses saisies en ligne (pas pour un [dépôt par scan](#accepter-une-réponse-déposée-par-scan-ou-photo), où seule la rotation du fichier est possible) et réservé à un administrateur de la section (ce n'est pas un lien renvoyé à la personne qui a rempli le formulaire).
+2. Le formulaire public se rouvre, page par page, avec les valeurs déjà soumises. Pour un champ **fichier** ou **signature**, laisser le champ inchangé **conserve** la valeur existante ; en fournir une nouvelle la **remplace**.
+3. Cliquer sur **"Enregistrer les modifications"** : la réponse est mise à jour en place (même identifiant, même date de soumission initiale, même rattachement GVV), avec une **date de dernière modification** affichée en plus.
+
+---
+
+## Accepter une réponse déposée par scan ou photo
+
+Pour les documents à imprimer, signer à la main puis renumériser (attestations, documents administratifs), GVV propose un dépôt de fichier en complément — jamais à la place — de la saisie en ligne.
+
+1. Activer l'option sur la fiche du formulaire : cocher **"Autoriser la soumission par téléchargement (scan)"** (désactivée par défaut).
+2. Côté public, un bouton **"Télécharger un formulaire prérempli"** apparaît sur la dernière page à côté du bouton d'envoi habituel : dépôt d'un seul fichier (PDF, JPG, PNG, GIF, WEBP) avec un commentaire optionnel qui sert d'identifiant dans la liste admin.
+3. Un administrateur peut aussi déposer une réponse au nom d'un usager, avec le même bouton en haut de la liste des réponses.
+4. Dans la liste, une réponse déposée se reconnaît à sa miniature cliquable (à la place du bouton PDF) et aux boutons de **rotation** (↺ / ↻) pour redresser une photo mal orientée — il n'y a pas de bouton "Ouvrir" puisqu'il n'y a pas de champs à afficher, seulement le fichier. La suppression retire le fichier et sa miniature.
+
+![Case à cocher "Autoriser la soumission par téléchargement"](../screenshots/formulaires/admin_upload_checkbox.png)
+![Modale de téléchargement d'un formulaire prérempli](../screenshots/formulaires/form_upload_modal.png)
+![Réponse par téléchargement dans la liste admin — miniature et rotation](../screenshots/formulaires/submissions_upload_thumbnail.png)
+
+---
+
+## Référence — champs et métadonnées du formulaire
+
+Champs de la fiche de création/modification d'un formulaire (**Formulaires → Nouveau formulaire**, ou fiche d'un formulaire existant) :
 
 | Champ | Rôle |
 |---|---|
-| **Code** | Identifiant interne (lettres, chiffres, tirets) |
+| **Code** | Identifiant interne (lettres, chiffres, tirets). Sert de nom de dossier de stockage (`uploads/formulaires/{code}/`) et de clé unique en base ; renommer le Code renomme aussi le dossier physique. |
 | **Titre** | Affiché en en-tête du formulaire public |
 | **Description** | Texte optionnel affiché sous le titre |
-| **Lien public** | Segment d'URL (ex. `inscription-club`) — voir la distinction avec **Code** ci-dessous |
+| **Lien public** | Segment d'URL public (ex. `inscription-club`) vu par les visiteurs (`forms/{slug}`) — indépendant du Code, modifiable séparément |
 | **CSS scope** | Préfixe optionnel pour isoler le CSS global de ce formulaire des autres |
-| **Contexte GVV** | Sélecteur(s) de pré-remplissage nécessaires : aucun, membre, instructeur, ou les deux — voir [Pré-remplissage — mécanisme A](13_formulaires_creation.md#pré-remplissage--mécanisme-a-attributs-data-gvv-source) dans le document de rédaction |
+| **Contexte GVV** | Sélecteur(s) de pré-remplissage nécessaires : aucun, membre, instructeur, ou les deux — active le bouton "Générer" (voir [Générer un lien pré-rempli](#générer-un-lien-pré-rempli-pour-un-membre-ou-un-instructeur)) |
 | **Formulaire global** | Rend le formulaire visible dans toutes les sections plutôt que la seule section active |
-| **Autoriser la soumission par téléchargement (scan)** | Active le bouton "Télécharger un formulaire prérempli" — voir [Soumission par téléchargement (scan)](#soumission-par-téléchargement-scan) |
+| **Autoriser la soumission par téléchargement (scan)** | Active le dépôt de fichier — voir [Accepter une réponse déposée par scan ou photo](#accepter-une-réponse-déposée-par-scan-ou-photo) |
 | **Traitement après soumission** | Déclenche une action GVV (ex. mise à jour d'un vol de découverte) juste après l'enregistrement de la réponse |
-| **Formulaire de création cible (export)** + **Libellé du bouton export** | Si les deux sont renseignés, un bouton apparaît sur chaque réponse pour ouvrir ce formulaire GVV pré-rempli avec les valeurs de la réponse (ex. `membre/create`) — voir [Exporter une réponse vers un formulaire de création](13_formulaires_creation.md#exporter-une-réponse-vers-un-formulaire-de-création) dans le document de rédaction |
+| **Formulaire de création cible (export)** + **Libellé du bouton export** | Si les deux sont renseignés, un bouton apparaît sur chaque réponse pour ouvrir un formulaire GVV pré-rempli avec les valeurs de la réponse — voir [Exporter une réponse vers un formulaire de création](13_formulaires_creation.md#exporter-une-réponse-vers-un-formulaire-de-création) |
 | **Statut** *(en modification uniquement)* | `brouillon` : non accessible ; `publié` : accessible via le lien public ; `archivé` |
 
-Le **Code** sert de nom de dossier de stockage (`uploads/formulaires/{code}/` : pages HTML, CSS, images) et de clé unique en base pour retrouver le formulaire côté admin. Si l'admin le renomme, GVV renomme aussi le dossier physique correspondant. Il est distinct du **Lien public**, qui est le segment d'URL vu par les visiteurs externes (`forms/{slug}`) : les deux sont indépendants et modifiables séparément une fois le formulaire créé.
+Le formulaire de création ne définit que ces métadonnées du conteneur — pas de champ pour saisir le HTML ou le CSS des pages, qui s'ajoute par dépôt d'archive (voir [Créer un nouveau formulaire](#créer-un-nouveau-formulaire)).
 
-Ce formulaire de création ne définit que les métadonnées du conteneur : il n'y a pas de champ pour saisir le HTML ou le CSS des pages. Une fois le formulaire créé, son contenu (pages, CSS, images) s'ajoute par **dépôt d'archive**, une opération de rédaction — voir [Rédiger le contenu d'un formulaire (HTML/CSS)](13_formulaires_creation.md).
-
-Pour sauvegarder ou transférer un formulaire complet (pages, CSS, images, métadonnées) vers une autre installation GVV ou vers un autre club, voir [Exporter / importer un formulaire complet (archive)](13_formulaires_creation.md#exporter--importer-un-formulaire-complet-archive).
-
-## Gérer les pages
-
-Chaque formulaire comporte une ou plusieurs pages affichées séquentiellement. GVV gère automatiquement la navigation Précédent / Suivant et le bouton de soumission finale.
-
-![Gestion des pages](../screenshots/formulaires/admin_pages.png)
-
-Cette liste est une vue **en lecture seule** de ce que contient le dossier de stockage du formulaire (`uploads/formulaires/{code}/pageNN.html`) : numéro, titre, aperçu du texte et bouton **"Champs"** (voir [Champs détectés automatiquement](13_formulaires_creation.md#champs-détectés-automatiquement)). Le contenu d'une page ne se modifie pas depuis cette liste : toute correction du HTML ou du CSS se fait via un dépôt d'archive — voir [Gérer le contenu d'un formulaire (archive)](13_formulaires_creation.md#gérer-le-contenu-dun-formulaire-archive).
+Pour la liste des types de champs de saisie possibles dans les pages (texte, date, fichier, signature...) et des attributs `data-gvv-*` qui les enrichissent, voir [Référence — champs, types et métadonnées](13_formulaires_creation.md#référence--champs-types-et-métadonnées) dans le document de rédaction.
 
 ---
 
-## Formulaires pré-remplis
+## Pour aller plus loin
 
-Un formulaire peut être ouvert avec des valeurs déjà connues de GVV (identité du pilote, qualifications de l'instructeur, informations d'un vol...), pour éviter à l'utilisateur de ressaisir ce que GVV sait déjà. Pour qu'un lien de formulaire soit ainsi pré-rempli, il faut utiliser une **URL de génération** plutôt que le lien public brut.
-
-Cette URL se construit via le bouton **"Générer"** dans la liste des formulaires (réservé aux club-admins), ou est produite automatiquement par certains workflows GVV (ex. un vol de découverte envoyant un lien de briefing passager déjà rempli). Le mécanisme complet (page de génération, paramètres d'URL, verrouillage des champs, sources de données disponibles) est décrit dans le document de rédaction — voir [Page de génération](13_formulaires_creation.md#page-de-génération) et [Pré-remplissage — mécanisme A](13_formulaires_creation.md#pré-remplissage--mécanisme-a-attributs-data-gvv-source).
-
----
-
-## Consulter les réponses
-
-Navigation : **Formulaires → [nom du formulaire] → Réponses**
-
-La liste affiche, pour chaque soumission, deux colonnes distinctes en plus de la date et des actions :
-
-- **Identification** : valeur des champs marqués `data-gvv-identifier="true"` (voir [Champs détectés automatiquement](13_formulaires_creation.md#champs-détectés-automatiquement)), concaténés ; pour une [réponse déposée par scan](#soumission-par-téléchargement-scan), c'est le commentaire saisi au dépôt.
-- **Soumis par** : nom et/ou email captés via [`data-gvv-role`](13_formulaires_creation.md#rôles-de-champs-gvv), ou "Anonyme" si aucun champ n'est ainsi marqué.
-
-### Ouvrir une réponse
-
-Le bouton **"Ouvrir"** affiche le détail d'une réponse en ligne :
-
-- toutes les valeurs saisies, champ par champ, avec leur libellé et leur type ;
-- les fichiers joints (champs de type `file` et signatures) avec **aperçu intégré** : une image est affichée directement, un PDF s'affiche dans un cadre de prévisualisation intégré à la page ; les boutons "Aperçu" (nouvel onglet) et "Télécharger" restent disponibles pour tout type de fichier.
-
-### Export PDF imprimable
-
-Le bouton **"PDF"** ouvre une version imprimable de la réponse (page HTML avec un bouton "Imprimer / Enregistrer en PDF"), reprenant le CSS global du formulaire.
-
-### Téléchargement sécurisé des fichiers
-
-Les fichiers joints (uploads et signatures) ne sont accessibles que depuis l'interface d'administration, à un utilisateur authentifié ayant accès à la section du formulaire — jamais par une URL prévisible côté public. Le navigateur n'est pas autorisé à mettre ces fichiers en cache.
-
-### Rétention
-
-Les réponses et leurs fichiers sont conservés sans limite de durée ; il n'y a pas d'expiration automatique. La suppression (bouton "Supprimer") est manuelle et retire à la fois la réponse, ses valeurs et les fichiers associés (y compris les miniatures).
-
----
-
-## Modifier une réponse déjà soumise
-
-Pour utiliser un formulaire comme support de suivi de procédure (attestation à compléter, dossier à mettre à jour...), une réponse déjà envoyée peut être rouverte et corrigée sans créer une nouvelle réponse.
-
-### Déclencher la modification
-
-Le bouton **"Modifier"** apparaît à côté de "Ouvrir" et "PDF" :
-
-- dans la liste des réponses d'un formulaire ;
-- dans le détail d'une réponse (bouton en haut à droite).
-
-Il n'est disponible que pour les réponses saisies en ligne. Une réponse envoyée par [téléchargement de scan](#soumission-par-téléchargement-scan) ne peut pas être modifiée par ce mécanisme — seule la rotation du fichier déposé est possible pour ce type de réponse.
-
-Seul un administrateur ayant accès à la section du formulaire peut déclencher une modification ; ce n'est pas un lien renvoyé à la personne qui a rempli le formulaire.
-
-### Formulaire pré-rempli
-
-Le bouton rouvre le formulaire public, page par page, avec les valeurs déjà soumises :
-
-- les champs texte, date, nombre, case à cocher, liste déroulante, etc. affichent leur valeur enregistrée ;
-- un champ **fichier** déjà soumis affiche le nom du fichier existant avec un lien pour le consulter ; laisser le champ vide à la resoumission **conserve** le fichier, en choisir un nouveau le **remplace** ;
-- un champ **signature** déjà soumis affiche la signature existante en aperçu ; ne pas y toucher **conserve** la signature initiale, dessiner/téléverser/taper une nouvelle signature la **remplace**.
-
-### Enregistrer les modifications
-
-Le bouton **"Enregistrer les modifications"** valide et enregistre la réponse en place :
-
-- l'identifiant de la réponse ne change pas — ce n'est pas une nouvelle réponse ;
-- la date de soumission initiale, le rattachement éventuel à une entité GVV et le mode de soumission ne sont pas modifiés ;
-- quand un fichier ou une signature est remplacé, l'ancien est supprimé du stockage une fois le nouveau enregistré avec succès ;
-- le détail de la réponse affiche alors une **date de dernière modification**, en plus de la date de soumission initiale.
-
----
-
-## Soumission par téléchargement (scan)
-
-Pour certains formulaires (attestations à signer, documents administratifs), il est plus simple pour l'utilisateur d'imprimer le formulaire, de le remplir à la main, puis de téléverser une photo ou un scan de la page remplie plutôt que de ressaisir chaque champ en ligne. GVV propose cette alternative en complément — jamais à la place — de la saisie en ligne habituelle.
-
-### Activer la fonctionnalité sur un formulaire
-
-Dans la fiche admin du formulaire (création ou modification), cocher **"Autoriser la soumission par téléchargement (scan)"** :
-
-![Case à cocher "Autoriser la soumission par téléchargement"](../screenshots/formulaires/admin_upload_checkbox.png)
-
-Cette option est désactivée par défaut : chaque formulaire décide individuellement s'il accepte ce mode de réponse.
-
-### Côté public
-
-Quand l'option est active, un bouton **"Télécharger un formulaire prérempli"** apparaît à côté du bouton d'envoi habituel, sur la dernière page du formulaire. Il ouvre une fenêtre de dépôt de fichier (glisser-déposer ou sélection sur le disque) avec un champ de commentaire libre :
-
-![Modale de téléchargement d'un formulaire prérempli](../screenshots/formulaires/form_upload_modal.png)
-
-- **Formats acceptés** : PDF, JPG, PNG, GIF, WEBP.
-- **Un seul fichier par réponse.**
-- Le commentaire est optionnel ; il sert d'**identifiant** de la réponse dans la liste admin (voir ci-dessous).
-- Cette soumission est indépendante de la saisie en ligne : les champs de la page ne sont pas utilisés pour ce mode.
-
-### Côté admin — liste des réponses
-
-Le bouton "Télécharger un formulaire prérempli" est aussi disponible en haut de la liste des réponses, pour qu'un administrateur puisse déposer une réponse au nom d'un usager.
-
-Dans la liste, une réponse envoyée par téléchargement se distingue des réponses classiques :
-
-![Réponse par téléchargement dans la liste admin — miniature et rotation](../screenshots/formulaires/submissions_upload_thumbnail.png)
-
-- **Colonne Identification** : le commentaire saisi lors du dépôt.
-- **Miniature cliquable** à la place du bouton "Générer PDF" — un clic ouvre le fichier en grand.
-- **Rotation** (boutons ↺ / ↻) : pour redresser un scan ou une photo qui n'a pas été prise droite. La rotation modifie le fichier stocké.
-- Pas de bouton "Ouvrir" : il n'y a pas de champs à afficher pour ce type de réponse, seulement le fichier déposé.
-- La **suppression** de la réponse supprime aussi le fichier et sa miniature.
-
----
-
-## Pour aller plus loin — rédiger et intégrer un formulaire
-
-Ce document couvre le cycle de vie administratif d'un formulaire : conteneur, publication, réponses. La rédaction du contenu (pages HTML, CSS, types de champs, images) et son intégration à GVV (page de génération, pré-remplissage, sous-formulaires, export vers un formulaire de création, export/import d'archive complète, exemples) sont documentées séparément :
-
-- [Rédiger et intégrer un formulaire (HTML/CSS)](13_formulaires_creation.md) — document de référence pour qui construit ou modifie le HTML/CSS d'un formulaire, ou le connecte aux données GVV.
+- [Rédiger et intégrer un formulaire (HTML/CSS)](13_formulaires_creation.md) — rédiger le contenu HTML/CSS d'un formulaire et l'intégrer aux données GVV (pré-remplissage, sous-formulaires, export).
 - [Tutoriel — Créer un formulaire avec l'aide d'un assistant IA](13_formulaires_tutoriel.md) — construction pas à pas d'un exemple complet.

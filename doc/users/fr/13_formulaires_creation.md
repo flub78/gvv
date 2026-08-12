@@ -1,27 +1,26 @@
 # Rédiger et intégrer un formulaire (HTML/CSS)
 
-Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire GVV (pages HTML, CSS, images, types de champs) et à qui **l'intègre à GVV** (page de génération, pré-remplissage à partir des données GVV, sous-formulaires, export vers un formulaire de création). Pour créer le conteneur d'un formulaire, le publier ou consulter/gérer les réponses, voir le document d'utilisation [Gestion des formulaires](13_formulaires.md).
+Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire GVV (pages HTML, CSS, images) et à qui **l'intègre à GVV** (pré-remplissage, sous-formulaires, export vers un formulaire de création). Pour créer le conteneur d'un formulaire, le publier ou consulter/gérer les réponses, voir le document d'utilisation [Gestion des formulaires](13_formulaires.md).
 
 > 💡 **Envie de construire un formulaire pas à pas ?** Voir le [tutoriel — Créer un formulaire avec l'aide d'un assistant IA](13_formulaires_tutoriel.md), qui construit un exemple complet (3 pages, upload, signature) en s'appuyant sur ChatGPT pour générer le HTML.
 
 ## Sommaire
 
 1. [Principes](#principes)
-2. [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)
-3. [Images du formulaire](#images-du-formulaire)
-4. [Convertir un formulaire PDF existant](#convertir-un-formulaire-pdf-existant)
-5. [Champs détectés automatiquement](#champs-détectés-automatiquement)
-6. [Types de champs](#types-de-champs)
-7. [Règles CSS](#règles-css)
-8. [Rôles de champs GVV](#rôles-de-champs-gvv)
-9. [Page de génération](#page-de-génération)
-10. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
-11. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
-12. [Sous-formulaires](#sous-formulaires)
-13. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
-14. [Exporter / importer un formulaire complet (archive)](#exporter--importer-un-formulaire-complet-archive)
+2. [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire)
+3. [Modifier le contenu d'un formulaire existant](#modifier-le-contenu-dun-formulaire-existant)
+4. [Ajouter une image](#ajouter-une-image)
+5. [Convertir un formulaire PDF existant](#convertir-un-formulaire-pdf-existant)
+6. [Ajouter un champ à une page](#ajouter-un-champ-à-une-page)
+7. [Ajouter une signature](#ajouter-une-signature)
+8. [Styliser une page (CSS)](#styliser-une-page-css)
+9. [Pré-remplir un champ avec les données GVV](#pré-remplir-un-champ-avec-les-données-gvv)
+10. [Générer un lien pré-rempli (page de génération)](#générer-un-lien-pré-rempli-page-de-génération)
+11. [Ajouter un sous-formulaire](#ajouter-un-sous-formulaire)
+12. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
+13. [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet)
+14. [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées)
 15. [Exemples de formulaires](#exemples-de-formulaires)
-16. [À retenir](#à-retenir)
 
 ---
 
@@ -35,15 +34,12 @@ De plus les agents IA comme ChatGPT, Claude ou Gemini sont assez compétents pou
 
 ---
 
-## Gérer le contenu d'un formulaire (archive)
+## Créer le contenu d'un nouveau formulaire
 
-Le contenu d'un formulaire — pages HTML, CSS global, images, et les options qui en dépendent (portée CSS, paramètres requis, traitement après soumission...) — s'édite **exclusivement par dépôt d'archive ZIP**. Il n'y a pas de zone de texte HTML ou CSS dans l'interface d'administration : le seul moyen d'ajouter ou de corriger une page est de déposer un fichier ZIP construit en local (à la main ou avec l'aide d'un assistant IA — voir le [tutoriel](13_formulaires_tutoriel.md)).
+Le contenu d'un formulaire — pages HTML, CSS, images — s'ajoute **exclusivement par dépôt d'archive ZIP** ; il n'y a pas de zone de texte HTML/CSS dans l'administration.
 
-C'est le fonctionnement normal pour faire évoluer un formulaire, pas seulement un mécanisme de secours : créer un formulaire, ajouter une page, corriger une coquille, changer le CSS passent tous par ce même geste — déposer une archive.
-
-### Format de l'archive
-
-Un fichier ZIP dont le contenu est un miroir exact du dossier de stockage du formulaire :
+1. Créer le conteneur dans GVV si ce n'est pas déjà fait — voir [Créer un nouveau formulaire](13_formulaires.md#créer-un-nouveau-formulaire) — ou déposer directement une archive depuis la liste des formulaires avec **"Import depuis sauvegarde"** : le **Code** est alors déduit du nom du fichier ZIP si laissé vide (suffixe `_2`, `_3`... en cas de collision).
+2. Construire en local un dossier miroir du stockage du formulaire, puis le compresser en ZIP :
 
 ```
 mon-formulaire.zip
@@ -55,47 +51,49 @@ mon-formulaire.zip
     └── logo.png
 ```
 
-Chaque `pageNN.html` est un document HTML5 complet (`<!DOCTYPE>`, `<head>` avec `<link rel="stylesheet" href="style.css">`, `<body>`) : il s'ouvre directement dans un navigateur, même sans connexion au serveur GVV — pratique pour relire une mise en page ou dépanner un CSS en local avant de déposer l'archive. Seul le contenu du `<body>` est réellement utilisé par GVV — voir [Règles CSS](#règles-css).
+Chaque `pageNN.html` est un document HTML5 complet (`<!DOCTYPE>`, `<head>` avec `<link rel="stylesheet" href="style.css">`, `<body>`) : il s'ouvre directement dans un navigateur, même sans connexion au serveur GVV — pratique pour relire une mise en page ou dépanner un CSS en local avant de déposer l'archive. Seul le contenu du `<body>` est réellement utilisé par GVV — voir [Styliser une page (CSS)](#styliser-une-page-css).
 
-`meta.json` porte le contenu/la configuration du formulaire (titre, description, CSS scope, paramètres requis, options d'export, titres des pages). Le **code** du formulaire (nom du dossier), son **statut** et son **lien public** n'y figurent jamais : ils restent pilotés uniquement depuis l'interface d'administration (voir [Créer un formulaire](13_formulaires.md#créer-un-formulaire)) et ne sont jamais modifiés par un dépôt d'archive.
+`meta.json` porte le contenu/la configuration du formulaire. Le **code** du formulaire (nom du dossier), son **statut** et son **lien public** n'y figurent jamais : ils restent pilotés uniquement depuis l'interface d'administration et ne sont jamais modifiés par un dépôt d'archive.
 
-### Créer un formulaire par archive
+3. Ajouter les champs de saisie dans le HTML — voir [Ajouter un champ à une page](#ajouter-un-champ-à-une-page).
+4. Déposer l'archive ZIP depuis la fiche du formulaire (carte "Contenu du formulaire (archive)", bouton de dépôt).
+5. Vérifier les pages et les champs détectés depuis la fiche du formulaire — voir [Créer un nouveau formulaire](13_formulaires.md#créer-un-nouveau-formulaire) dans le document d'utilisation.
 
-Depuis la liste des formulaires, le bouton **"Import depuis sauvegarde"** crée un **nouveau** formulaire à partir d'une archive. Le champ **Code** de la fenêtre d'import est optionnel : laissé vide, GVV en déduit un depuis le nom du fichier ZIP déposé ; en cas de collision avec un code existant, un suffixe (`_2`, `_3`, ...) est ajouté automatiquement.
+Pour dupliquer un formulaire existant comme point de départ, ou le transférer vers une autre installation, voir [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet).
 
-### Modifier le contenu d'un formulaire existant
+---
 
-Dans la fiche d'édition d'un formulaire, la carte **"Contenu du formulaire (archive)"** permet :
+## Modifier le contenu d'un formulaire existant
 
-- de **télécharger l'archive actuelle** (bouton "Sauvegarder (ZIP)"), pour la modifier en local puis la redéposer ;
-- de **déposer une archive** (bouton à côté du champ de dépôt de fichier) qui **remplace intégralement** le contenu du formulaire (pages, CSS, images, métadonnées). Le code, le statut et le lien public ne sont **jamais** modifiés par un dépôt.
+1. Dans la fiche d'édition du formulaire, carte **"Contenu du formulaire (archive)"**, télécharger l'archive actuelle (bouton **"Sauvegarder (ZIP)"**).
+2. La modifier en local (ajouter/corriger une page, changer le CSS, ajouter une image...).
+3. La redéposer avec le champ de dépôt de fichier de la même carte : le dépôt **remplace intégralement** le contenu du formulaire (pages, CSS, images). Le code, le statut et le lien public ne sont **jamais** modifiés par un dépôt.
 
-> Un dépôt remplace intégralement le contenu existant — les pages et images qui ne figurent pas dans l'archive déposée sont supprimées. Télécharger l'archive actuelle avant de déposer une modification si le contenu doit pouvoir être restauré en cas d'erreur.
+> Un dépôt remplace intégralement le contenu existant — les pages et images absentes de l'archive déposée sont supprimées. Toujours télécharger l'archive actuelle avant de déposer une modification, pour pouvoir revenir en arrière en cas d'erreur.
 
-### CSS partagé entre formulaires
+### Partager une base de style entre formulaires
 
-Pour partager une base de style entre plusieurs formulaires (même charte graphique, déclinaison d'un même concours d'une année sur l'autre...) sans dupliquer le CSS dans chaque archive, placez en tête du `style.css` d'un formulaire :
+Pour éviter de dupliquer un CSS commun (même charte graphique, déclinaison d'un même concours d'une année sur l'autre...) dans chaque archive, placer en tête du `style.css` d'un formulaire :
 
 ```css
 @import url(".commun/style.css");
 ```
 
-GVV réécrit automatiquement cette référence vers la bonne adresse au moment d'afficher la page — le fichier stocké garde `.commun/style.css` tel quel, jamais une adresse en dur, ce qui le garde ouvrable directement dans un navigateur et transportable d'une installation GVV à une autre par simple export/import d'archive. Le CSS partagé lui-même est propre à l'installation GVV et modifiable uniquement par un administrateur ayant accès au serveur (fichier `uploads/formulaires/.commun/style.css`, hors du contenu de chaque formulaire).
+GVV réécrit automatiquement cette référence vers la bonne adresse au moment d'afficher la page — le fichier stocké garde `.commun/style.css` tel quel, ce qui le garde ouvrable directement dans un navigateur et transportable d'une installation GVV à une autre. Le CSS partagé lui-même (`uploads/formulaires/.commun/style.css`) est propre à l'installation GVV et modifiable uniquement par un administrateur ayant accès au serveur.
 
 ---
 
-## Images du formulaire
+## Ajouter une image
 
-Un formulaire peut avoir besoin d'images propres (logo, en-tête, etc.), séparées du CSS et du HTML. Dans la fiche d'édition d'un formulaire, la carte **Images** permet :
+Dans la fiche d'édition d'un formulaire, la carte **Images** permet :
 
-- de **déposer** une image (PNG, JPEG, GIF ou WEBP, 2 Mo maximum) ;
-- de consulter la **liste** des images déjà déposées, avec un aperçu miniature ;
-- de **copier le chemin** de chaque image, à coller dans un attribut `src="..."` du contenu HTML de la page (ex. `<img src="{chemin copié}" alt="Logo du club">`) — un chemin relatif (`images/{fichier}`), pas une adresse GVV en dur, pour les mêmes raisons que le CSS partagé ci-dessus : le fichier stocké reste ouvrable en `file://` et déplaçable d'une installation à l'autre. GVV le réécrit vers la bonne adresse au moment de l'affichage ;
-- de **supprimer** une image qui n'est plus utilisée.
+1. de **déposer** une image (PNG, JPEG, GIF ou WEBP, 2 Mo maximum) ;
+2. de **copier le chemin** de l'image déposée, à coller dans un attribut `src="..."` du HTML de la page (ex. `<img src="{chemin copié}" alt="Logo du club">`) — un chemin relatif (`images/{fichier}`), jamais une adresse GVV en dur, pour que le fichier stocké reste ouvrable en `file://` et déplaçable d'une installation à l'autre ;
+3. de **supprimer** une image qui n'est plus utilisée.
 
-Une image partagée entre plusieurs formulaires (logo de club commun, par exemple) suit la même logique que le CSS partagé : référencée par `.commun/images/{fichier}` (fichier réservé `uploads/formulaires/.commun/images/`, modifiable uniquement par un administrateur ayant accès au serveur — pas encore de carte dédiée dans l'admin pour ce cas).
+Une image partagée entre plusieurs formulaires (logo de club commun) suit la même logique que le [CSS partagé](#partager-une-base-de-style-entre-formulaires) : référencée par `.commun/images/{fichier}` (fichier réservé, modifiable uniquement par un administrateur ayant accès au serveur — pas encore de carte dédiée dans l'admin pour ce cas).
 
-> Une image collée en base64 directement dans le HTML (comme le fait déjà l'exemple `inscription_bia`) fonctionne toujours, mais alourdit le fichier de la page à chaque relecture. Pour un logo ou une image réutilisée, préférer le dépôt via la carte Images.
+> Une image collée en base64 directement dans le HTML fonctionne toujours, mais alourdit le fichier de la page à chaque relecture. Pour un logo ou une image réutilisée, préférer le dépôt via la carte Images.
 
 ---
 
@@ -103,49 +101,276 @@ Une image partagée entre plusieurs formulaires (logo de club commun, par exempl
 
 GVV n'intègre pas de convertisseur PDF → HTML automatique. Pour numériser un formulaire existant (papier ou PDF) :
 
-1. Demander à un outil d'IA (Claude, ChatGPT, etc.) de convertir le PDF en HTML, en lui donnant les contraintes de ce document : Bootstrap 5, pas de `<head>`/`<style>` ni de balise `<form>` dans le contenu de page — voir [Règles CSS](#règles-css).
-2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main pour que GVV les reconnaisse ensuite — voir [Champs détectés automatiquement](#champs-détectés-automatiquement).
-3. Enregistrer le résultat comme `page01.html`, l'assembler avec un `style.css` dans une archive ZIP (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)), puis déposer cette archive. Aucune déclaration supplémentaire n'est nécessaire : GVV détecte les champs au dépôt de l'archive.
+1. Demander à un outil d'IA (Claude, ChatGPT, etc.) de convertir le PDF en HTML, en lui donnant les contraintes de ce document : Bootstrap 5, pas de `<head>`/`<style>` ni de balise `<form>` dans le contenu de page — voir [Styliser une page (CSS)](#styliser-une-page-css).
+2. Relire et corriger le HTML généré : les champs ne sont pas détectés automatiquement par l'outil d'IA, les attributs `name="..."` doivent être vérifiés ou ajoutés à la main — voir [Ajouter un champ à une page](#ajouter-un-champ-à-une-page).
+3. Enregistrer le résultat comme `page01.html`, l'assembler avec un `style.css` dans une archive ZIP — voir [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire) — puis déposer cette archive. Aucune déclaration supplémentaire n'est nécessaire : GVV détecte les champs au dépôt.
 4. Vérifier le rendu sur la page publique : la fidélité visuelle au PDF d'origine n'est pas garantie et demande souvent des retouches CSS.
 
 **Limites** : pas de détection automatique des champs du PDF source, pas de garantie de fidélité visuelle, relecture manuelle obligatoire avant publication.
 
 ---
 
-## Champs détectés automatiquement
+## Ajouter un champ à une page
 
-GVV analyse le HTML de chaque page à la volée (à l'affichage public, à l'enregistrement d'une réponse, dans la liste admin des champs) pour en extraire la liste des champs — il n'y a rien à déclarer séparément, ni de bouton "Ajouter un champ".
+GVV détecte automatiquement, à la volée, tout `<input name="...">`, `<select name="...">` ou `<textarea name="...">` du HTML d'une page (hors `hidden`, `submit`, `reset`, `button`, `image`) — il n'y a rien à déclarer séparément, ni bouton "Ajouter un champ" côté admin.
 
-Sont détectés : tout `<input name="...">`, `<select name="...">` ou `<textarea name="...">` (hors `hidden`, `submit`, `reset`, `button`, `image`), ainsi que les widgets `<div data-gvv-type="signature">` et `<div data-gvv-type="subform">`.
+1. Choisir le type de champ voulu et copier le HTML correspondant depuis la [référence des types de champs](#types-de-champs-supportés).
+2. Donner au champ un `name="..."` unique dans la page : c'est cet attribut, et lui seul, qui identifie le champ pour GVV. Le renommer change l'identité du champ (les réponses déjà soumises sous l'ancien nom ne s'y rattachent pas automatiquement).
+3. Ajouter `required` si le champ est obligatoire.
+4. Optionnel : marquer le champ comme identifiant de réponse ou ajouter une validation serveur — voir [Attributs data-gvv complémentaires](#attributs-data-gvv-complémentaires).
+
+Exemple minimal (texte) :
+
+```html
+<div class="mb-3">
+  <label class="form-label" for="nom">Nom <span class="text-danger">*</span></label>
+  <input type="text" class="form-control" id="nom" name="nom" required>
+</div>
+```
+
+Depuis la fiche du formulaire ([Créer un nouveau formulaire](13_formulaires.md#créer-un-nouveau-formulaire) dans le document d'utilisation), le bouton **"Champs"** d'une page affiche la liste en lecture seule de ce que GVV a détecté — utile pour vérifier qu'un `name` n'a pas été oublié après un copier-coller. Toute correction se fait en modifiant le HTML puis en redéposant l'archive — voir [Modifier le contenu d'un formulaire existant](#modifier-le-contenu-dun-formulaire-existant).
+
+---
+
+## Ajouter une signature
+
+Le champ signature est un widget interactif qui offre trois modes à l'utilisateur : dessin à la souris/tactile, import d'une image, ou frappe au clavier (rendue en écriture manuscrite). La valeur est transmise comme image PNG encodée en base64.
+
+1. Déclarer le widget dans le HTML :
+
+```html
+<div data-gvv-type="signature"
+     data-gvv-name="signature_candidat"
+     data-gvv-required="true">
+  Signature du candidat
+</div>
+```
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-type="signature"` | Identifie le widget (obligatoire) |
+| `data-gvv-name` | Nom technique du champ (équivalent du `name` d'un `<input>`) |
+| `data-gvv-required` | `true` = champ obligatoire |
+
+GVV remplace automatiquement ce `<div>` par le widget interactif lors du rendu public ; le texte contenu dans le `<div>` sert de libellé affiché au-dessus.
+
+2. Optionnel — repère visuel hors ligne : comme le fichier de page est ouvrable directement dans un navigateur, ajouter une image de repère à l'intérieur du `<div>` aide à le repérer visuellement en développement local (GVV l'ignore au rendu réel, le `<div>` entier étant remplacé) :
+
+```html
+<div data-gvv-type="signature"
+     data-gvv-name="signature_candidat"
+     data-gvv-required="true">
+  <img src="/assets/images/forms-widgets/signature-placeholder.svg" alt="Zone de signature"><br>
+  Signature du candidat
+</div>
+```
+
+Pour pré-remplir une signature avec celle déjà enregistrée dans GVV (profil membre, événement), voir [Pré-remplir un champ avec les données GVV](#pré-remplir-un-champ-avec-les-données-gvv).
+
+---
+
+## Styliser une page (CSS)
+
+Lors du rendu dans GVV, seul le contenu du `<body>` d'une page est utilisé : `<!DOCTYPE>`, `<html>`, `<head>` (et tout son contenu, y compris `<style>`), ainsi que les balises `<form>` et les boutons `submit`/`reset` sont supprimés automatiquement (GVV gère lui-même la navigation).
+
+1. Utiliser en priorité les **classes Bootstrap 5** (chargées par GVV) — voir la [liste des classes utiles](#classes-css-utiles).
+2. Pour un style personnalisé, l'écrire dans le fichier `style.css` de l'archive (voir [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire)) plutôt que dans une balise `<style>` de la page — celle-ci est supprimée au rendu. Scoper les règles avec `.forms-public-root` (classe appliquée automatiquement au conteneur) :
+
+```css
+.forms-public-root .section-titre {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2d465a;
+  border-left: 3px solid #3b6f8f;
+  padding-left: 8px;
+  margin-bottom: 0.75rem;
+}
+```
+
+3. Éviter les pratiques qui échouent silencieusement — voir [À éviter en CSS](#à-éviter-en-css).
+4. Avant de déposer l'archive, développer et relire chaque page comme un fichier HTML autonome (`pageNN.html` + `style.css`, tel quel dans le format de l'archive), en vérifiant que le CSS personnalisé est bien scopé avec `.forms-public-root` et qu'aucun `<form>`, bouton `submit`/`reset` ou `@import` de police ne traîne dans le `<head>`.
+
+> Un `@import url(...)` placé en tête du fichier **`style.css`** de l'archive (pas dans le `<head>` du HTML), lui, fonctionne — c'est le mécanisme utilisé pour le [CSS partagé entre formulaires](#partager-une-base-de-style-entre-formulaires) ou pour charger une police externe.
+
+---
+
+## Pré-remplir un champ avec les données GVV
+
+Deux mécanismes, à choisir selon l'origine de la donnée à pré-remplir.
+
+### Mécanisme A — données liées à un membre ou un instructeur (`data-gvv-source`)
+
+À utiliser quand la donnée vient du profil ou des qualifications d'un membre/instructeur identifié par son login (transmis dans l'URL via `pilot_login`/`instructor_login`, typiquement par la [page de génération](#générer-un-lien-pré-rempli-page-de-génération)).
+
+1. Ajouter `data-gvv-source="..."` sur le champ, avec une valeur prise dans la [taxonomie des sources](#taxonomie-des-sources-de-pré-remplissage).
+2. Ajouter `data-gvv-lock="true"` si la valeur ne doit pas pouvoir être modifiée par l'utilisateur (readonly à l'affichage, valeur GVV réimposée même si le POST est falsifié).
+
+```html
+<!-- Nom du candidat (verrouillé) -->
+<input name="candidat_nom" type="text"
+       data-gvv-source="member.nom_prenom"
+       data-gvv-lock="true">
+
+<!-- Date du jour (automatique, pas de paramètre URL) -->
+<input name="date_signature" type="date"
+       data-gvv-source="date.today">
+```
+
+### Mécanisme B — données liées à une autre entité GVV (paramètres d'URL)
+
+À utiliser quand le contexte vient d'une entité GVV autre qu'un membre (vol de découverte, réservation, dossier...), sans attribut `data-gvv-*` à déclarer : tout paramètre d'URL dont le nom correspond au `name=` d'un champ le pré-remplit.
+
+```
+/forms/{slug}
+  ?{nom_champ}={valeur}    ← injecté dans le champ correspondant
+  &lock[]={nom_champ}      ← champ readonly + valeur imposée à la soumission
+```
+
+Sans `lock[]`, la valeur est une **suggestion** modifiable. Avec `lock[]`, elle est **imposée** : affichage readonly, et le serveur réinjecte la valeur de session même si le POST est falsifié. Noms réservés (jamais injectés dans un champ) : `page`, `token`, `vld_id`, `pilot_login`, `instructor_login`, `lock`.
+
+Exemple — un vol de découverte envoie ce lien au passager :
+
+```
+/forms/briefing-passager-ulm
+  ?date_vol=2026-07-15&site_decollage=Abbeville&identification_ulm=F-JXXX
+  &nom=Dupont&personne_a_prevenir=Marie+Dupont
+  &lock[]=date_vol&lock[]=site_decollage&lock[]=identification_ulm
+```
+
+Résultat : `date_vol`, `site_decollage` et `identification_ulm` sont verrouillés (données du vol) ; `nom` et `personne_a_prevenir` sont pré-remplis mais modifiables.
+
+### Coexistence des deux mécanismes
+
+Les deux peuvent coexister dans le même formulaire : les sources automatiques (`date.today`, `config.*`, `club.*`) utilisent toujours le mécanisme A ; le mécanisme B cible les champs par `name=` sans attribut HTML. Priorité en cas de conflit (du plus au moins prioritaire) : erreur de validation (re-affichage après refus) → mécanisme A → mécanisme B.
+
+---
+
+## Générer un lien pré-rempli (page de génération)
+
+Pour que le bouton **"Générer"** apparaisse côté admin (voir [Générer un lien pré-rempli](13_formulaires.md#générer-un-lien-pré-rempli-pour-un-membre-ou-un-instructeur) dans le document d'utilisation), configurer le formulaire :
+
+1. Dans la fiche admin du formulaire, régler le champ **Paramètres requis** selon les sélecteurs souhaités sur la page de génération :
+
+| Valeur | Sélecteurs affichés |
+|---|---|
+| `aucun` | Aucun — pas de bouton "Générer" |
+| `pilote` | Sélecteur membre (pilote) |
+| `instructeur` | Sélecteur membre (instructeur) |
+| `pilote + instructeur` | Les deux sélecteurs |
+
+2. Annoter les champs de la page avec `data-gvv-source` pour qu'ils profitent réellement du pré-remplissage — voir [Mécanisme A](#pré-remplir-un-champ-avec-les-données-gvv). Sans annotation, la page de génération construit l'URL (`pilot_login`/`instructor_login`) mais aucun champ ne se remplit.
+
+### Raccourcis dashboard
+
+Pour exposer directement la page de génération comme raccourci sur un tableau de bord GVV, plutôt que de naviguer jusqu'à **Formulaires → Générer** à chaque fois : tableau de bord **Administration club** → carte **"Raccourcis dashboard"**.
+
+| Champ | Rôle |
+|---|---|
+| **Dashboard** | Tableau de bord cible (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev`) |
+| **Section** | Sous-titre de regroupement optionnel dans le dashboard (ex. "Formation") |
+| **Titre** / **Clé de langue (titre)** | Texte de la carte ; si la clé de langue est renseignée et reconnue par GVV, elle prime sur le titre brut |
+| **Description** / **Clé de langue (description)** | Texte secondaire, même logique de priorité que le titre |
+| **URL** | Chemin relatif GVV (ex. `forms_admin/generate/attestation-de-formation-ulm`) ou URL externe complète (ouverte dans un nouvel onglet) |
+| **Icône** | Classe Font Awesome, ex. `fa-file-signature` |
+| **Couleur** | Classe Bootstrap (`text-primary`, …) |
+| **Rôle requis** | Si renseigné, la carte n'est visible que pour les utilisateurs ayant ce rôle dans la section active |
+| **Ordre d'affichage** | Ordre croissant au sein d'un même regroupement |
+| **Actif** | Une carte désactivée n'apparaît plus, sans être supprimée |
+| **Portée** | Globale (tous les clubs) ou limitée à la section active au moment de la création |
+
+⚠️ La page de génération (`forms_admin/generate/...`) reste réservée aux `ca`/club-admins. Un raccourci qui y pointe n'est réellement utilisable que sur un dashboard **admin_club** ou **admin_sys** (ou avec **Rôle requis** = `ca`/`club-admin`). Pour un raccourci destiné aux dashboards pilote/instructeur (`user`, `flights`, `formation`), pointer plutôt vers le lien public direct du formulaire (`forms/{slug}`), éventuellement déjà pré-rempli via le [mécanisme B](#pré-remplir-un-champ-avec-les-données-gvv).
+
+---
+
+## Ajouter un sous-formulaire
+
+Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans un **nouvel onglet** — jamais en iframe ni fusionné dans la page, pour que chaque formulaire garde son propre CSS/JS.
+
+1. Déclarer le widget dans le HTML :
+
+```html
+<div data-gvv-type="subform"
+     data-gvv-name="briefing_passager"
+     data-gvv-form-slug="briefing-passager-ulm"
+     data-gvv-required="true">
+  Briefing passager
+</div>
+```
+
+| Attribut | Rôle |
+|---|---|
+| `data-gvv-type="subform"` | Identifie le widget (obligatoire) |
+| `data-gvv-name` | Nom technique du widget |
+| `data-gvv-form-slug` | Lien public (`public_slug`) du formulaire à ouvrir comme sous-formulaire |
+| `data-gvv-required` | `true` = le formulaire maître ne peut être soumis sans réponse liée au sous-formulaire |
+
+2. Optionnel — comme pour la [signature](#ajouter-une-signature), ajouter une image de repère dans le `<div>` pour le développement local (ignorée par GVV au rendu réel) :
+
+```html
+<div data-gvv-type="subform"
+     data-gvv-name="briefing_passager"
+     data-gvv-form-slug="briefing-passager-ulm"
+     data-gvv-required="true">
+  <img src="/assets/images/forms-widgets/subform-placeholder.svg" alt="Sous-formulaire à compléter"><br>
+  Briefing passager
+</div>
+```
+
+Déroulement côté utilisateur : il ouvre le sous-formulaire dans un nouvel onglet, le remplit, puis revient sur l'onglet maître où le bouton **"J'ai terminé, vérifier"** devient visible — un clic vérifie l'enregistrement sans recharger la page (la saisie déjà en cours sur le maître n'est jamais perdue) et affiche un résumé lecture seule à la place du lien, avec un bouton **Remplir à nouveau** pour recommencer. Si le widget est obligatoire, la soumission du maître est bloquée tant que le sous-formulaire n'a pas été vérifié comme rempli.
+
+Rattachement des réponses : le lien entre les deux réponses n'est définitif qu'à la soumission finale du maître (un jeton technique `link_token` fait la correspondance pendant la saisie). Si l'utilisateur remplit le sous-formulaire mais n'achève jamais le maître, la réponse du sous-formulaire est **conservée** et apparaît dans la [liste des réponses](13_formulaires.md#consulter-les-réponses-reçues) avec le badge **Non rattaché**.
+
+> **Cas particulier** : si le formulaire utilisé comme sous-formulaire est par ailleurs rattaché directement à un enregistrement GVV (ex. `briefing-passager-ulm` rattaché à un vol de découverte), cet attachement d'origine reste toujours prioritaire.
+
+**Limites (V1)** : un seul niveau d'imbrication (un sous-formulaire ne peut pas lui-même contenir un widget sous-formulaire) ; une seule réponse liée par widget (pas de répétition) ; pas d'édition en place d'une réponse de sous-formulaire déjà soumise, seulement une nouvelle soumission complète.
+
+---
+
+## Exporter une réponse vers un formulaire de création
+
+Un formulaire peut déclarer une **cible d'export** : un formulaire de création GVV standard (ex. création de membre) à ouvrir, pré-rempli, à partir des valeurs d'une réponse. Le sens du flux est ici inversé par rapport au pré-remplissage : c'est une réponse `forms` qui alimente un formulaire GVV situé en dehors du module.
+
+1. Dans l'admin d'édition du formulaire (voir [Créer un nouveau formulaire](13_formulaires.md#créer-un-nouveau-formulaire)), renseigner les deux champs optionnels :
+   - **Formulaire de création cible** : chemin relatif du contrôleur/méthode GVV à ouvrir (ex. `membre/create`) ;
+   - **Libellé du bouton export** : texte affiché sur le bouton dans la liste des réponses.
+
+   Le bouton n'apparaît que si **les deux** champs sont renseignés.
+
+2. Nommer les champs du formulaire source comme les colonnes attendues côté formulaire cible (ex. `mnom` pour le nom d'un membre) — il n'y a pas de correspondance configurable ailleurs, c'est une règle de conception à respecter en rédigeant le HTML. Les champs **fichier**, **signature** et **sous-formulaire** sont toujours exclus de l'export (pas de valeur exploitable en paramètre d'URL), de même que les champs à **choix multiples** en V1.
+
+Depuis la liste des réponses (voir [Consulter les réponses reçues](13_formulaires.md#consulter-les-réponses-reçues)), un clic sur le bouton ouvre le formulaire cible avec un paramètre par champ :
+
+```
+membre/create?mnom=Dupont&memail=dupont%40example.com
+```
+
+Le bouton n'est visible que dans la liste admin, déjà protégée par l'authentification GVV. Ouvrir le lien pré-rempli ne fait qu'afficher un formulaire de création déjà soumis à la validation standard : aucune donnée n'est enregistrée tant que l'administrateur ne valide pas explicitement ce formulaire.
+
+---
+
+## Sauvegarder ou transférer un formulaire complet
+
+Un formulaire (pages HTML, CSS, images, métadonnées) se manipule comme un seul fichier ZIP téléchargeable — le même mécanisme que la [modification du contenu](#modifier-le-contenu-dun-formulaire-existant) sert aussi de **transfert entre installations GVV** et de **partage d'un formulaire entre clubs** : télécharger l'archive d'un formulaire sur une installation, l'importer comme nouveau formulaire sur une autre (voir [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire) pour l'import).
+
+---
+
+## Référence — champs, types et métadonnées
+
+### Détection automatique des champs
+
+GVV analyse le HTML de chaque page à la volée (affichage public, enregistrement d'une réponse, liste admin des champs) pour en extraire la liste des champs — rien à déclarer séparément, pas de bouton "Ajouter un champ" :
 
 | Propriété détectée | Provenance |
 |---|---|
 | **Nom technique** | Attribut `name` (ou `data-gvv-name` pour signature/sous-formulaire) |
 | **Libellé** | Texte du `<label for="id_du_champ">` correspondant ; à défaut, le nom technique |
-| **Type** | Type HTML de l'élément — voir [Types de champs](#types-de-champs) |
+| **Type** | Type HTML de l'élément — voir [Types de champs supportés](#types-de-champs-supportés) |
 | **Obligatoire** | Attribut `required` sur l'élément (`data-gvv-required="true"` pour signature/sous-formulaire) |
 | **Options** | Options du `<select>`, ou boutons `radio`/`checkbox` partageant le même `name` |
 
-Deux attributs optionnels complètent le comportement d'un champ, sans équivalent visuel dans le rendu :
-
-| Attribut | Effet |
-|---|---|
-| `data-gvv-identifier="true"` | La valeur de ce champ est concaténée avec celles des autres champs identifiants pour former l'identifiant affiché dans la [liste des réponses](13_formulaires.md#consulter-les-réponses) |
-| `data-gvv-validation="regle1\|regle2"` | Règles de validation serveur supplémentaires, en plus du type. Reconnues : `max_length[n]`, `min_length[n]`, `valid_email`, `numeric` |
-
-```html
-<input type="text" name="numero_licence"
-       data-gvv-identifier="true"
-       data-gvv-validation="max_length[10]|numeric">
-```
-
-Depuis [Gérer les pages](13_formulaires.md#gérer-les-pages), le bouton **"Champs"** d'une page affiche la liste en lecture seule de ce que GVV a détecté — utile pour vérifier qu'un `name` n'a pas été oublié après un copier-coller. Toute correction se fait en modifiant le HTML dans une archive puis en la redéposant — voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive) —, pas depuis cette liste.
-
-> **Important** : c'est l'attribut `name` de l'élément HTML qui identifie le champ pour GVV — aucune correspondance à saisir ailleurs. Renommer ce `name` change l'identité du champ (les réponses déjà soumises sous l'ancien nom ne sont pas rattachées automatiquement au nouveau).
-
----
-
-## Types de champs
+### Types de champs supportés
 
 | Type | Élément HTML | Notes |
 |---|---|---|
@@ -158,9 +383,9 @@ Depuis [Gérer les pages](13_formulaires.md#gérer-les-pages), le bouton **"Cham
 | `radio` | `<input type="radio">` (groupe) | Options = les valeurs des boutons partageant le même `name` |
 | `checkbox` | `<input type="checkbox">` (groupe) | `name="champ[]"` pour les valeurs multiples |
 | `file` | `<input type="file">` | MIME et taille contrôlés |
-| `signature` | `<div data-gvv-type="signature" ...>` | Widget interactif — voir ci-dessous |
+| `signature` | `<div data-gvv-type="signature" ...>` | Widget interactif — voir [Ajouter une signature](#ajouter-une-signature) |
 
-### Exemples HTML par type
+Exemples HTML par type :
 
 ```html
 <!-- text -->
@@ -171,7 +396,7 @@ Depuis [Gérer les pages](13_formulaires.md#gérer-les-pages), le bouton **"Cham
 
 <!-- email -->
 <div class="mb-3">
-  <label class="form-label" for="email">Adresse email</label>
+  <label class="form-label" for="email">Email</label>
   <input type="email" class="form-control" id="email" name="email">
 </div>
 
@@ -238,108 +463,22 @@ Depuis [Gérer les pages](13_formulaires.md#gérer-les-pages), le bouton **"Cham
 </div>
 ```
 
-### Champ signature
+### Attributs data-gvv complémentaires
 
-Le champ signature est un widget interactif qui offre trois modes à l'utilisateur : dessin à la souris/tactile, import d'une image, ou frappe au clavier (rendue en écriture manuscrite). La valeur est transmise comme image PNG encodée en base64.
+Deux attributs optionnels complètent le comportement d'un champ, sans équivalent visuel dans le rendu :
 
-**Déclaration dans le HTML :**
+| Attribut | Effet |
+|---|---|
+| `data-gvv-identifier="true"` | La valeur de ce champ est concaténée avec celles des autres champs identifiants pour former l'identifiant affiché dans la [liste des réponses](13_formulaires.md#consulter-les-réponses-reçues) |
+| `data-gvv-validation="regle1\|regle2"` | Règles de validation serveur supplémentaires, en plus du type. Reconnues : `max_length[n]`, `min_length[n]`, `valid_email`, `numeric` |
 
 ```html
-<div data-gvv-type="signature"
-     data-gvv-name="signature_candidat"
-     data-gvv-required="true">
-  Signature du candidat
-</div>
+<input type="text" name="numero_licence"
+       data-gvv-identifier="true"
+       data-gvv-validation="max_length[10]|numeric">
 ```
 
-| Attribut | Rôle |
-|---|---|
-| `data-gvv-type="signature"` | Identifie le widget (obligatoire) |
-| `data-gvv-name` | Nom technique du champ — voir [Champs détectés automatiquement](#champs-détectés-automatiquement) |
-| `data-gvv-required` | `true` = champ obligatoire |
-
-GVV remplace automatiquement ce `<div>` par le widget interactif lors du rendu public. Le texte contenu dans le div sert de libellé affiché au-dessus du widget.
-
-**Aperçu hors ligne** : comme le fichier de la page est ouvrable directement dans un navigateur (voir [Développement local](#développement-local)), il est utile d'ajouter une image de repère à l'intérieur du `<div>` du widget, pour qu'il reste visuellement identifiable même sans passer par GVV. GVV ignore cette image au rendu réel (le `<div>` entier est remplacé par le widget fonctionnel) :
-
-```html
-<div data-gvv-type="signature"
-     data-gvv-name="signature_candidat"
-     data-gvv-required="true">
-  <img src="/assets/images/forms-widgets/signature-placeholder.svg" alt="Zone de signature"><br>
-  Signature du candidat
-</div>
-```
-
----
-
-## Règles CSS
-
-### Principe : la balise `<head>` est supprimée
-
-Lors du rendu dans GVV, seul le contenu du `<body>` est utilisé. Les éléments suivants sont **supprimés automatiquement** :
-
-- `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`
-- Tout le contenu de `<head>` — **`<style>` et `@import url(...)` placés dans `<head>` sont perdus**
-- Les balises `<form>`, les boutons `type="submit"` et `type="reset"` (GVV gère la navigation)
-
-### Ce qui fonctionne
-
-**1. Classes Bootstrap 5 (recommandé)** — Bootstrap est chargé par GVV, ses classes sont disponibles directement.
-
-Classes Bootstrap utiles :
-
-| Usage | Classe |
-|---|---|
-| Grille 12 colonnes | `row`, `col-md-3`, `col-md-6`, `col-12` |
-| Espacement de grille | `g-3` sur le `row` |
-| Champ texte/date/number/file | `form-control` |
-| Liste déroulante | `form-select` |
-| Case à cocher / radio | `form-check`, `form-check-input`, `form-check-label` |
-| Libellé | `form-label` |
-| Texte d'aide | `form-text` |
-| Champ obligatoire | `<span class="text-danger">*</span>` |
-| Groupement visuel | `card`, `card-body` |
-
-**2. CSS dans `style.css`** — pour les styles personnalisés, utiliser le fichier `style.css` de l'archive du formulaire (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)). Ce CSS est injecté dans la page publique avant le formulaire.
-
-Portée recommandée : `.forms-public-root` (classe appliquée automatiquement au conteneur).
-
-```css
-.forms-public-root .section-titre {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #2d465a;
-  border-left: 3px solid #3b6f8f;
-  padding-left: 8px;
-  margin-bottom: 0.75rem;
-}
-```
-
-### Ce qui ne fonctionne pas
-
-| Pratique | Pourquoi ça échoue |
-|---|---|
-| `<style>` dans `<head>` | Supprimé avec `<head>` |
-| `@import url(...)` de polices dans `<head>` | Supprimé avec `<head>` |
-| Sélecteurs nus `input`, `label` sans portée | Conflits avec Bootstrap 5 |
-| `<form>` dans le HTML | Supprimé ; GVV génère sa propre balise `<form>` |
-| `<button type="submit">` | Supprimé ; GVV génère les boutons de navigation |
-
-> Un `@import url(...)` placé en tête du fichier **`style.css`** de l'archive, lui, fonctionne — c'est le mécanisme utilisé pour le [CSS partagé entre formulaires](#css-partagé-entre-formulaires) ou pour charger une police externe. Seul un `@import` placé dans `<head>` du HTML de page est perdu.
-
-### Développement local
-
-Développer chaque page comme un fichier HTML autonome (`pageNN.html`, avec un `<link rel="stylesheet" href="style.css">`) accompagné de son `style.css`, exactement dans le format attendu par l'archive — voir [Format de l'archive](#gérer-le-contenu-dun-formulaire-archive). Avant de déposer l'archive dans GVV :
-
-1. Vérifier que le CSS personnalisé est bien scopé avec `.forms-public-root`
-2. Supprimer les `<form>`, les boutons `submit`/`reset` et tout `@import` de polices placé dans `<head>` (déplacer un tel `@import` en tête de `style.css` s'il doit être conservé)
-
----
-
-## Rôles de champs GVV
+### Rôles de champs GVV
 
 L'attribut `data-gvv-role` sur un `<input>` ou `<textarea>` permet à GVV d'enregistrer la valeur saisie comme métadonnée de la réponse (nom et email du soumettant), visible dans la liste des réponses admin.
 
@@ -358,102 +497,9 @@ L'attribut `data-gvv-role` sur un `<input>` ou `<textarea>` permet à GVV d'enre
 
 Quand un utilisateur GVV connecté soumet un formulaire, GVV complète ces métadonnées automatiquement avec ses informations de profil, même sans champs explicites.
 
----
+### Taxonomie des sources de pré-remplissage
 
-## Page de génération
-
-Pour les formulaires qui nécessitent un contexte GVV (membre, instructeur), l'administrateur peut utiliser la **page de génération** plutôt que de construire l'URL manuellement.
-
-La page de génération est accessible via le bouton **"Générer"** dans la liste des formulaires (document d'utilisation, [Gestion des formulaires](13_formulaires.md)), disponible uniquement pour les formulaires dont le champ `Paramètres requis` est différent de `aucun`.
-
-### Configuration du formulaire
-
-Dans la fiche admin du formulaire (voir [Créer un formulaire](13_formulaires.md#créer-un-formulaire)), le champ **Paramètres requis** définit quels sélecteurs apparaissent sur la page de génération :
-
-| Valeur | Sélecteurs affichés |
-|---|---|
-| `aucun` | Aucun — pas de bouton "Générer" |
-| `pilote` | Sélecteur membre (pilote) |
-| `instructeur` | Sélecteur membre (instructeur) |
-| `pilote + instructeur` | Les deux sélecteurs |
-
-### Utilisation
-
-1. Cliquer sur **"Générer"** dans la liste des formulaires.
-2. Sélectionner le pilote et/ou l'instructeur selon la configuration.
-3. Cliquer sur **"Ouvrir le formulaire"** : GVV construit l'URL avec `pilot_login` et/ou `instructor_login` et ouvre le formulaire pré-rempli.
-
-Ce pré-remplissage n'est actif que si les champs de la page ont été annotés lors de la rédaction du formulaire — voir [Pré-remplissage — mécanisme A](#pré-remplissage--mécanisme-a-attributs-data-gvv-source) ci-dessous.
-
-### Exposer la génération dans un dashboard (raccourcis)
-
-Plutôt que de naviguer jusqu'à **Formulaires → Générer** à chaque fois, un club-admin peut ajouter une carte de raccourci directement dans un tableau de bord GVV, pointant vers la page de génération d'un formulaire précis.
-
-Navigation : tableau de bord **Administration club** → carte **"Raccourcis dashboard"**.
-
-| Champ | Rôle |
-|---|---|
-| **Dashboard** | Tableau de bord cible (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev`) |
-| **Section** | Sous-titre de regroupement optionnel dans le dashboard (ex. "Formation") |
-| **Titre** / **Clé de langue (titre)** | Texte de la carte ; si la clé de langue est renseignée et reconnue par GVV, elle prime sur le titre brut |
-| **Description** / **Clé de langue (description)** | Texte secondaire, même logique de priorité que le titre |
-| **URL** | Chemin relatif GVV (ex. `forms_admin/generate/attestation-de-formation-ulm`) ou URL externe complète (ouverte dans un nouvel onglet) |
-| **Icône** | Classe Font Awesome, ex. `fa-file-signature` |
-| **Couleur** | Classe Bootstrap (`text-primary`, …) |
-| **Rôle requis** | Si renseigné, la carte n'est visible que pour les utilisateurs ayant ce rôle dans la section active |
-| **Ordre d'affichage** | Ordre croissant au sein d'un même regroupement |
-| **Actif** | Une carte désactivée n'apparaît plus, sans être supprimée |
-| **Portée** | Globale (tous les clubs) ou limitée à la section active au moment de la création |
-
-⚠️ La page de génération (`forms_admin/generate/...`) reste réservée aux `ca`/club-admins, comme le reste de l'administration des formulaires. Un raccourci qui y pointe n'est donc réellement utilisable que placé sur un dashboard **admin_club** ou **admin_sys** (ou avec **Rôle requis** = `ca`/`club-admin`). Pour un raccourci destiné aux dashboards pilote/instructeur (`user`, `flights`, `formation`), pointer plutôt vers le lien public direct du formulaire (`forms/{slug}`), éventuellement déjà pré-rempli — voir [Pré-remplissage — mécanisme B](#pré-remplissage--mécanisme-b-paramètres-durl) ci-dessous.
-
----
-
-## Pré-remplissage — mécanisme A (attributs `data-gvv-source`)
-
-Le mécanisme A permet de pré-remplir des champs HTML avec des données issues de GVV (membres, événements, configuration club, date du jour) en déclarant des attributs `data-gvv-*` directement sur les éléments `<input>`, `<textarea>`, `<select>` ou sur les `<div data-gvv-type="signature">`.
-
-### Attributs
-
-| Attribut | Rôle |
-|---|---|
-| `data-gvv-source` | Source de la donnée à injecter (voir taxonomie ci-dessous) |
-| `data-gvv-lock` | `true` = champ readonly à l'affichage **et** valeur GVV imposée à la soumission |
-
-Le login du pilote et de l'instructeur sont transmis dans l'URL :
-```
-…/forms/mon-formulaire?pilot_login=dupont_j&instructor_login=martin_p
-```
-
-### Exemple
-
-```html
-<!-- Nom du candidat (verrouillé) -->
-<input name="candidat_nom" type="text"
-       data-gvv-source="member.nom_prenom"
-       data-gvv-lock="true">
-
-<!-- Numéro ITP de l'instructeur (verrouillé) -->
-<input name="num_itp" type="text"
-       data-gvv-source="instructor.event.itp.numero"
-       data-gvv-lock="true">
-
-<!-- Organisme de formation (paramètre de configuration) -->
-<input name="organisme" type="text"
-       data-gvv-source="config.organisme_formation">
-
-<!-- Date du jour (automatique, pas de paramètre URL) -->
-<input name="date_signature" type="date"
-       data-gvv-source="date.today">
-
-<!-- Signature de l'instructeur (pré-remplie, remplaçable) -->
-<div data-gvv-type="signature"
-     data-gvv-name="signature_instructeur"
-     data-gvv-source="instructor.event.itp.signature"
-     data-gvv-lock="false">Signature instructeur</div>
-```
-
-### Taxonomie des sources
+Sources disponibles pour `data-gvv-source` — voir [Pré-remplir un champ avec les données GVV, mécanisme A](#pré-remplir-un-champ-avec-les-données-gvv).
 
 #### Configuration et données club
 
@@ -534,167 +580,42 @@ Préfixe `user.*` : résolu depuis la session GVV courante.
 | `bpp` | BPP |
 | `spl` | SPL |
 
----
+### Classes CSS utiles
 
-## Pré-remplissage — mécanisme B (paramètres d'URL)
+Classes Bootstrap 5 utiles pour styliser une page — voir [Styliser une page (CSS)](#styliser-une-page-css) :
 
-Le mécanisme B permet de pré-remplir des champs à partir de **valeurs passées directement dans l'URL**, sans aucun attribut `data-gvv-*` dans le HTML. C'est le mécanisme naturel quand le contexte vient d'une entité GVV autre qu'un membre (vol de découverte, réservation, dossier).
-
-### Principe
-
-Tout paramètre d'URL dont le nom correspond à un `name=` d'un champ du formulaire est injecté comme valeur par défaut. Les valeurs sont stockées en session par slug et persistent sur toutes les pages du formulaire.
-
-```
-/forms/{slug}
-  ?{nom_champ}={valeur}    ← injecté dans le champ correspondant
-  &lock[]={nom_champ}      ← champ readonly + valeur imposée à la soumission
-```
-
-**Noms réservés** (jamais injectés dans un champ) : `page`, `token`, `vld_id`, `pilot_login`, `instructor_login`, `lock`.
-
-### Rôle de `lock[]`
-
-Sans `lock[]`, la valeur est une **suggestion** : le champ est pré-rempli mais l'utilisateur peut le modifier.
-
-Avec `lock[]`, la protection est double :
-- **Affichage** : le champ reçoit l'attribut `readonly` — l'utilisateur voit la valeur mais ne peut pas la changer.
-- **Soumission** : même si la valeur POST est falsifiée (modification du HTML côté client), le serveur réinjecte la valeur stockée en session. Il est impossible de soumettre une valeur différente.
-
-### Exemple — briefing passager ULM
-
-Un workflow GVV (vol de découverte) génère ce lien et l'envoie au passager :
-
-```
-/forms/briefing-passager-ulm
-  ?date_vol=2026-07-15
-  &site_decollage=Abbeville
-  &identification_ulm=F-JXXX
-  &nom=Dupont
-  &personne_a_prevenir=Marie+Dupont
-  &lock[]=date_vol
-  &lock[]=site_decollage
-  &lock[]=identification_ulm
-```
-
-Résultat :
-
-| Champ | Valeur | Comportement |
-|---|---|---|
-| `date_vol` | 2026-07-15 | Readonly — valeur imposée (données VLD) |
-| `site_decollage` | Abbeville | Readonly — valeur imposée |
-| `identification_ulm` | F-JXXX | Readonly — valeur imposée |
-| `nom` | Dupont | Pré-rempli — modifiable (suggestion) |
-| `personne_a_prevenir` | Marie Dupont | Pré-rempli — modifiable (suggestion) |
-
-### Coexistence avec le mécanisme A
-
-Les deux mécanismes peuvent coexister dans le même formulaire. Les sources automatiques (`date.today`, `config.*`, `club.*`) utilisent toujours le mécanisme A. Le mécanisme B cible les champs par `name=` sans aucun attribut HTML supplémentaire.
-
-Priorité appliquée (du plus au moins prioritaire) :
-1. **Erreur de validation** (re-affichage après soumission refusée)
-2. **Mécanisme A** (`data-gvv-source`)
-3. **Mécanisme B** (paramètres d'URL)
-
----
-
-## Sous-formulaires
-
-Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans un **nouvel onglet** — jamais en iframe ni fusionné dans la page, pour que chaque formulaire garde son propre CSS/JS. Une fois le sous-formulaire rempli, un résumé lecture seule de sa réponse s'affiche dans le formulaire maître.
-
-### Déclaration dans le HTML
-
-```html
-<div data-gvv-type="subform"
-     data-gvv-name="briefing_passager"
-     data-gvv-form-slug="briefing-passager-ulm"
-     data-gvv-required="true">
-  Briefing passager
-</div>
-```
-
-| Attribut | Rôle |
+| Usage | Classe |
 |---|---|
-| `data-gvv-type="subform"` | Identifie le widget (obligatoire) |
-| `data-gvv-name` | Nom technique du widget |
-| `data-gvv-form-slug` | Lien public (`public_slug`) du formulaire à ouvrir comme sous-formulaire |
-| `data-gvv-required` | `true` = le formulaire maître ne peut être soumis sans réponse liée au sous-formulaire |
+| Grille 12 colonnes | `row`, `col-md-3`, `col-md-6`, `col-12` |
+| Espacement de grille | `g-3` sur le `row` |
+| Champ texte/date/number/file | `form-control` |
+| Liste déroulante | `form-select` |
+| Case à cocher / radio | `form-check`, `form-check-input`, `form-check-label` |
+| Libellé | `form-label` |
+| Texte d'aide | `form-text` |
+| Champ obligatoire | `<span class="text-danger">*</span>` |
+| Groupement visuel | `card`, `card-body` |
 
-Comme pour le [champ signature](#champ-signature), une image de repère peut être ajoutée dans le `<div>` pour que le widget reste identifiable à l'ouverture directe du fichier de la page :
+### À éviter en CSS
 
-```html
-<div data-gvv-type="subform"
-     data-gvv-name="briefing_passager"
-     data-gvv-form-slug="briefing-passager-ulm"
-     data-gvv-required="true">
-  <img src="/assets/images/forms-widgets/subform-placeholder.svg" alt="Sous-formulaire à compléter"><br>
-  Briefing passager
-</div>
-```
+| Pratique | Pourquoi ça échoue |
+|---|---|
+| `<style>` dans `<head>` | Supprimé avec `<head>` |
+| `@import url(...)` de polices dans `<head>` | Supprimé avec `<head>` |
+| Sélecteurs nus `input`, `label` sans portée | Conflits avec Bootstrap 5 |
+| `<form>` dans le HTML | Supprimé ; GVV génère sa propre balise `<form>` |
+| `<button type="submit">` | Supprimé ; GVV génère les boutons de navigation |
 
-### Déroulement pour l'utilisateur
+### À retenir
 
-1. **Remplir le sous-formulaire** — clic sur le lien, ouverture dans un nouvel onglet.
-2. **J'ai terminé, vérifier** — de retour sur l'onglet du maître, ce bouton devient visible ; un clic vérifie si la réponse a bien été enregistrée, sans recharger la page (la saisie déjà en cours sur les autres champs du maître n'est jamais perdue).
-3. **Résumé affiché** — une fois la réponse trouvée, un résumé lecture seule des valeurs saisies remplace le lien, avec un bouton **Remplir à nouveau** pour recommencer une réponse indépendante.
-
-Si le widget est obligatoire, la soumission du formulaire maître est bloquée tant que le sous-formulaire n'a pas été vérifié comme rempli.
-
-### Rattachement au formulaire maître
-
-Avant que le maître ne soit soumis, la réponse du sous-formulaire n'est reliée à rien de définitif : un jeton technique (`link_token`) assure la correspondance le temps de la saisie. À la soumission finale du maître, cette réponse est rattachée à lui de façon durable.
-
-Si l'utilisateur remplit le sous-formulaire mais ne termine jamais le formulaire maître, la réponse du sous-formulaire est **conservée** (jamais supprimée automatiquement) et apparaît dans la liste des réponses — voir [Consulter les réponses](13_formulaires.md#consulter-les-réponses) — avec le badge **Non rattaché**.
-
-> **Cas particulier** : si le formulaire utilisé comme sous-formulaire est par ailleurs rattaché directement à un enregistrement GVV (ex. `briefing-passager-ulm` rattaché à un vol de découverte), cet attachement d'origine est toujours prioritaire et n'est jamais remplacé par le rattachement au formulaire maître.
-
-### Limites (V1)
-
-- Un seul niveau d'imbrication : un sous-formulaire ne peut pas lui-même contenir un widget sous-formulaire.
-- Une seule réponse liée par widget (pas de sous-formulaire répétable).
-- Pas d'édition en place d'une réponse de sous-formulaire déjà soumise — seulement une nouvelle soumission complète (« Remplir à nouveau »).
-
----
-
-## Exporter une réponse vers un formulaire de création
-
-Un formulaire peut déclarer une **cible d'export** : un formulaire de création GVV standard (ex. création de membre) à ouvrir, pré-rempli, à partir des valeurs d'une réponse. Contrairement au pré-remplissage GVV (mécanismes A et B), le sens du flux est ici inversé : c'est une réponse `forms` qui alimente un formulaire GVV situé en dehors du module.
-
-### Configurer un formulaire
-
-Dans l'admin d'édition d'un formulaire (voir [Créer un formulaire](13_formulaires.md#créer-un-formulaire)), deux champs optionnels :
-
-- **Formulaire de création cible** : chemin relatif du contrôleur/méthode GVV à ouvrir (ex. `membre/create`).
-- **Libellé du bouton export** : texte affiché sur le bouton dans la liste des réponses.
-
-Le bouton n'apparaît que si **les deux** champs sont renseignés.
-
-### Fonctionnement
-
-Depuis la liste des réponses (voir [Consulter les réponses](13_formulaires.md#consulter-les-réponses)), un clic sur le bouton ouvre le formulaire cible avec un paramètre par champ de la réponse :
-
-```
-membre/create?mnom=Dupont&memail=dupont%40example.com
-```
-
-### Noms de champs
-
-Règles de construction à respecter en rédigeant le HTML source :
-
-- un paramètre est généré par champ, nommé comme le **nom technique** du champ source — il doit être identique au nom de colonne attendu côté formulaire cible (ex. `mnom` pour le nom d'un membre) ;
-- les champs de type **fichier**, **signature** et **sous-formulaire** sont toujours exclus (pas de valeur exploitable en paramètre d'URL) ;
-- les champs à **choix multiples** (ex. liste déroulante à sélection multiple) sont exclus en V1.
-
-> Il n'y a pas de correspondance configurable entre noms de champs : nommer un champ du formulaire source comme la colonne GVV attendue est à la charge de qui rédige le formulaire.
-
-### Sécurité
-
-Le bouton n'est visible que dans la liste admin des réponses, déjà protégée par l'authentification GVV. Ouvrir le lien pré-rempli ne fait qu'afficher un formulaire de création déjà soumis à la validation standard : aucune donnée n'est enregistrée tant que l'administrateur ne valide pas explicitement ce formulaire.
-
----
-
-## Exporter / importer un formulaire complet (archive)
-
-Un formulaire (pages HTML, CSS, images, métadonnées) se manipule comme un seul fichier ZIP téléchargeable — le même mécanisme sert à la fois d'**édition courante** (voir [Gérer le contenu d'un formulaire (archive)](#gérer-le-contenu-dun-formulaire-archive)), de **transfert entre installations GVV** et de **partage d'un formulaire entre clubs** : télécharger l'archive d'un formulaire sur une installation, l'importer comme nouveau formulaire sur une autre.
+| ✅ Recommandé | ❌ À éviter |
+|---|---|
+| Classes Bootstrap 5 pour la grille et les champs | CSS dans `<head>` du HTML de page |
+| CSS personnalisé dans le fichier `style.css` de l'archive | `@import url(...)` de polices dans `<head>` |
+| Portée CSS avec `.forms-public-root` | Sélecteurs nus `input`, `label` sans portée |
+| `name="champ[]"` pour les checkboxes | Balise `<form>` dans le HTML de page |
+| `<div data-gvv-type="signature">` pour les signatures | Boutons `submit`/`reset` dans le HTML de page |
+| Carte **Images** de la fiche formulaire pour un logo réutilisé | Image en base64 collée directement dans le HTML (alourdit le fichier) |
 
 ---
 
@@ -881,16 +802,3 @@ Formulaire réaliste couvrant tous les types de champs supportés, y compris la 
   margin-bottom: 0.85rem;
 }
 ```
-
----
-
-## À retenir
-
-| ✅ Recommandé | ❌ À éviter |
-|---|---|
-| Classes Bootstrap 5 pour la grille et les champs | CSS dans `<head>` du HTML de page |
-| CSS personnalisé dans le fichier `style.css` de l'archive | `@import url(...)` de polices dans `<head>` |
-| Portée CSS avec `.forms-public-root` | Sélecteurs nus `input`, `label` sans portée |
-| `name="champ[]"` pour les checkboxes | Balise `<form>` dans le HTML de page |
-| `<div data-gvv-type="signature">` pour les signatures | Boutons `submit`/`reset` dans le HTML de page |
-| Carte **Images** de la fiche formulaire pour un logo réutilisé | Image en base64 collée directement dans le HTML (alourdit le fichier) |
