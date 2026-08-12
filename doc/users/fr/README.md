@@ -158,6 +158,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Création et administration des messages
 - Limite importante : n'atteint que les membres qui se connectent régulièrement
 
+#### [16. Gestion de la Maintenance des Aéronefs](16_maintenance_aeronefs.md)
+**Suivi de navigabilité de la flotte**
+- Équipements maintenables, programmes d'entretien (dépôt et versioning Markdown)
+- Dossiers d'entretien et opérations (saisie directe ou compte rendu)
+- Bulletins de service constructeur
+- Synthèse de navigabilité en lecture seule pour tout pilote
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -199,7 +206,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données ([rédiger le contenu HTML/CSS](13_formulaires_creation.md))
 8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
 9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
-10. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
+11. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

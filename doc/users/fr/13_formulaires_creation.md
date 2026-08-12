@@ -1,6 +1,6 @@
-# Rédiger le contenu d'un formulaire (HTML/CSS)
+# Rédiger et intégrer un formulaire (HTML/CSS)
 
-Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire GVV : pages HTML, CSS, images, types de champs, pré-remplissage. Pour créer le conteneur d'un formulaire, le publier, générer des liens pré-remplis ou consulter/gérer les réponses, voir le document d'utilisation [Gestion des formulaires](13_formulaires.md).
+Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire GVV (pages HTML, CSS, images, types de champs) et à qui **l'intègre à GVV** (page de génération, pré-remplissage à partir des données GVV, sous-formulaires, export vers un formulaire de création). Pour créer le conteneur d'un formulaire, le publier ou consulter/gérer les réponses, voir le document d'utilisation [Gestion des formulaires](13_formulaires.md).
 
 > 💡 **Envie de construire un formulaire pas à pas ?** Voir le [tutoriel — Créer un formulaire avec l'aide d'un assistant IA](13_formulaires_tutoriel.md), qui construit un exemple complet (3 pages, upload, signature) en s'appuyant sur ChatGPT pour générer le HTML.
 
@@ -14,13 +14,14 @@ Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire G
 6. [Types de champs](#types-de-champs)
 7. [Règles CSS](#règles-css)
 8. [Rôles de champs GVV](#rôles-de-champs-gvv)
-9. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
-10. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
-11. [Sous-formulaires (déclaration HTML)](#sous-formulaires-déclaration-html)
-12. [Export vers un formulaire de création — noms de champs](#export-vers-un-formulaire-de-création--noms-de-champs)
-13. [Exporter / importer un formulaire complet (archive)](#exporter--importer-un-formulaire-complet-archive)
-14. [Exemples de formulaires](#exemples-de-formulaires)
-15. [À retenir](#à-retenir)
+9. [Page de génération](#page-de-génération)
+10. [Pré-remplissage — mécanisme A (attributs `data-gvv-source`)](#pré-remplissage--mécanisme-a-attributs-data-gvv-source)
+11. [Pré-remplissage — mécanisme B (paramètres d'URL)](#pré-remplissage--mécanisme-b-paramètres-durl)
+12. [Sous-formulaires](#sous-formulaires)
+13. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
+14. [Exporter / importer un formulaire complet (archive)](#exporter--importer-un-formulaire-complet-archive)
+15. [Exemples de formulaires](#exemples-de-formulaires)
+16. [À retenir](#à-retenir)
 
 ---
 
@@ -359,6 +360,55 @@ Quand un utilisateur GVV connecté soumet un formulaire, GVV complète ces méta
 
 ---
 
+## Page de génération
+
+Pour les formulaires qui nécessitent un contexte GVV (membre, instructeur), l'administrateur peut utiliser la **page de génération** plutôt que de construire l'URL manuellement.
+
+La page de génération est accessible via le bouton **"Générer"** dans la liste des formulaires (document d'utilisation, [Gestion des formulaires](13_formulaires.md)), disponible uniquement pour les formulaires dont le champ `Paramètres requis` est différent de `aucun`.
+
+### Configuration du formulaire
+
+Dans la fiche admin du formulaire (voir [Créer un formulaire](13_formulaires.md#créer-un-formulaire)), le champ **Paramètres requis** définit quels sélecteurs apparaissent sur la page de génération :
+
+| Valeur | Sélecteurs affichés |
+|---|---|
+| `aucun` | Aucun — pas de bouton "Générer" |
+| `pilote` | Sélecteur membre (pilote) |
+| `instructeur` | Sélecteur membre (instructeur) |
+| `pilote + instructeur` | Les deux sélecteurs |
+
+### Utilisation
+
+1. Cliquer sur **"Générer"** dans la liste des formulaires.
+2. Sélectionner le pilote et/ou l'instructeur selon la configuration.
+3. Cliquer sur **"Ouvrir le formulaire"** : GVV construit l'URL avec `pilot_login` et/ou `instructor_login` et ouvre le formulaire pré-rempli.
+
+Ce pré-remplissage n'est actif que si les champs de la page ont été annotés lors de la rédaction du formulaire — voir [Pré-remplissage — mécanisme A](#pré-remplissage--mécanisme-a-attributs-data-gvv-source) ci-dessous.
+
+### Exposer la génération dans un dashboard (raccourcis)
+
+Plutôt que de naviguer jusqu'à **Formulaires → Générer** à chaque fois, un club-admin peut ajouter une carte de raccourci directement dans un tableau de bord GVV, pointant vers la page de génération d'un formulaire précis.
+
+Navigation : tableau de bord **Administration club** → carte **"Raccourcis dashboard"**.
+
+| Champ | Rôle |
+|---|---|
+| **Dashboard** | Tableau de bord cible (`user`, `flights`, `treasurer`, `formation`, `maintenance`, `admin_club`, `admin_sys`, `dev`) |
+| **Section** | Sous-titre de regroupement optionnel dans le dashboard (ex. "Formation") |
+| **Titre** / **Clé de langue (titre)** | Texte de la carte ; si la clé de langue est renseignée et reconnue par GVV, elle prime sur le titre brut |
+| **Description** / **Clé de langue (description)** | Texte secondaire, même logique de priorité que le titre |
+| **URL** | Chemin relatif GVV (ex. `forms_admin/generate/attestation-de-formation-ulm`) ou URL externe complète (ouverte dans un nouvel onglet) |
+| **Icône** | Classe Font Awesome, ex. `fa-file-signature` |
+| **Couleur** | Classe Bootstrap (`text-primary`, …) |
+| **Rôle requis** | Si renseigné, la carte n'est visible que pour les utilisateurs ayant ce rôle dans la section active |
+| **Ordre d'affichage** | Ordre croissant au sein d'un même regroupement |
+| **Actif** | Une carte désactivée n'apparaît plus, sans être supprimée |
+| **Portée** | Globale (tous les clubs) ou limitée à la section active au moment de la création |
+
+⚠️ La page de génération (`forms_admin/generate/...`) reste réservée aux `ca`/club-admins, comme le reste de l'administration des formulaires. Un raccourci qui y pointe n'est donc réellement utilisable que placé sur un dashboard **admin_club** ou **admin_sys** (ou avec **Rôle requis** = `ca`/`club-admin`). Pour un raccourci destiné aux dashboards pilote/instructeur (`user`, `flights`, `formation`), pointer plutôt vers le lien public direct du formulaire (`forms/{slug}`), éventuellement déjà pré-rempli — voir [Pré-remplissage — mécanisme B](#pré-remplissage--mécanisme-b-paramètres-durl) ci-dessous.
+
+---
+
 ## Pré-remplissage — mécanisme A (attributs `data-gvv-source`)
 
 Le mécanisme A permet de pré-remplir des champs HTML avec des données issues de GVV (membres, événements, configuration club, date du jour) en déclarant des attributs `data-gvv-*` directement sur les éléments `<input>`, `<textarea>`, `<select>` ou sur les `<div data-gvv-type="signature">`.
@@ -547,11 +597,11 @@ Priorité appliquée (du plus au moins prioritaire) :
 
 ---
 
-## Sous-formulaires (déclaration HTML)
+## Sous-formulaires
 
-Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans un **nouvel onglet** — jamais en iframe ni fusionné dans la page, pour que chaque formulaire garde son propre CSS/JS. Pour le déroulement côté utilisateur et le rattachement des réponses, voir [Sous-formulaires](13_formulaires.md#sous-formulaires) dans le document d'utilisation.
+Un formulaire peut inclure un lien vers un **autre** formulaire GVV, ouvert dans un **nouvel onglet** — jamais en iframe ni fusionné dans la page, pour que chaque formulaire garde son propre CSS/JS. Une fois le sous-formulaire rempli, un résumé lecture seule de sa réponse s'affiche dans le formulaire maître.
 
-**Déclaration dans le HTML :**
+### Déclaration dans le HTML
 
 ```html
 <div data-gvv-type="subform"
@@ -581,6 +631,22 @@ Comme pour le [champ signature](#champ-signature), une image de repère peut êt
 </div>
 ```
 
+### Déroulement pour l'utilisateur
+
+1. **Remplir le sous-formulaire** — clic sur le lien, ouverture dans un nouvel onglet.
+2. **J'ai terminé, vérifier** — de retour sur l'onglet du maître, ce bouton devient visible ; un clic vérifie si la réponse a bien été enregistrée, sans recharger la page (la saisie déjà en cours sur les autres champs du maître n'est jamais perdue).
+3. **Résumé affiché** — une fois la réponse trouvée, un résumé lecture seule des valeurs saisies remplace le lien, avec un bouton **Remplir à nouveau** pour recommencer une réponse indépendante.
+
+Si le widget est obligatoire, la soumission du formulaire maître est bloquée tant que le sous-formulaire n'a pas été vérifié comme rempli.
+
+### Rattachement au formulaire maître
+
+Avant que le maître ne soit soumis, la réponse du sous-formulaire n'est reliée à rien de définitif : un jeton technique (`link_token`) assure la correspondance le temps de la saisie. À la soumission finale du maître, cette réponse est rattachée à lui de façon durable.
+
+Si l'utilisateur remplit le sous-formulaire mais ne termine jamais le formulaire maître, la réponse du sous-formulaire est **conservée** (jamais supprimée automatiquement) et apparaît dans la liste des réponses — voir [Consulter les réponses](13_formulaires.md#consulter-les-réponses) — avec le badge **Non rattaché**.
+
+> **Cas particulier** : si le formulaire utilisé comme sous-formulaire est par ailleurs rattaché directement à un enregistrement GVV (ex. `briefing-passager-ulm` rattaché à un vol de découverte), cet attachement d'origine est toujours prioritaire et n'est jamais remplacé par le rattachement au formulaire maître.
+
 ### Limites (V1)
 
 - Un seul niveau d'imbrication : un sous-formulaire ne peut pas lui-même contenir un widget sous-formulaire.
@@ -589,15 +655,40 @@ Comme pour le [champ signature](#champ-signature), une image de repère peut êt
 
 ---
 
-## Export vers un formulaire de création — noms de champs
+## Exporter une réponse vers un formulaire de création
 
-Voir [Exporter une réponse vers un formulaire de création](13_formulaires.md#exporter-une-réponse-vers-un-formulaire-de-création) dans le document d'utilisation pour la configuration et le fonctionnement du bouton d'export. Règles de construction à respecter en rédigeant le HTML source :
+Un formulaire peut déclarer une **cible d'export** : un formulaire de création GVV standard (ex. création de membre) à ouvrir, pré-rempli, à partir des valeurs d'une réponse. Contrairement au pré-remplissage GVV (mécanismes A et B), le sens du flux est ici inversé : c'est une réponse `forms` qui alimente un formulaire GVV situé en dehors du module.
+
+### Configurer un formulaire
+
+Dans l'admin d'édition d'un formulaire (voir [Créer un formulaire](13_formulaires.md#créer-un-formulaire)), deux champs optionnels :
+
+- **Formulaire de création cible** : chemin relatif du contrôleur/méthode GVV à ouvrir (ex. `membre/create`).
+- **Libellé du bouton export** : texte affiché sur le bouton dans la liste des réponses.
+
+Le bouton n'apparaît que si **les deux** champs sont renseignés.
+
+### Fonctionnement
+
+Depuis la liste des réponses (voir [Consulter les réponses](13_formulaires.md#consulter-les-réponses)), un clic sur le bouton ouvre le formulaire cible avec un paramètre par champ de la réponse :
+
+```
+membre/create?mnom=Dupont&memail=dupont%40example.com
+```
+
+### Noms de champs
+
+Règles de construction à respecter en rédigeant le HTML source :
 
 - un paramètre est généré par champ, nommé comme le **nom technique** du champ source — il doit être identique au nom de colonne attendu côté formulaire cible (ex. `mnom` pour le nom d'un membre) ;
 - les champs de type **fichier**, **signature** et **sous-formulaire** sont toujours exclus (pas de valeur exploitable en paramètre d'URL) ;
 - les champs à **choix multiples** (ex. liste déroulante à sélection multiple) sont exclus en V1.
 
 > Il n'y a pas de correspondance configurable entre noms de champs : nommer un champ du formulaire source comme la colonne GVV attendue est à la charge de qui rédige le formulaire.
+
+### Sécurité
+
+Le bouton n'est visible que dans la liste admin des réponses, déjà protégée par l'authentification GVV. Ouvrir le lien pré-rempli ne fait qu'afficher un formulaire de création déjà soumis à la validation standard : aucune donnée n'est enregistrée tant que l'administrateur ne valide pas explicitement ce formulaire.
 
 ---
 

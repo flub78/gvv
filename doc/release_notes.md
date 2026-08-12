@@ -6,6 +6,10 @@ Sauf exception la dernière version est la meilleure. C'est elle qui corrige le 
 
 Ce fichier retrace les dernières évolutions de façon un peu plus synthétique que les descriptions Github.
 
+## Août 2026 — Gestion de la Maintenance des Aéronefs
+
+Nouveau module de suivi de navigabilité de la flotte : équipements maintenables, programmes d'entretien structurés déposés en Markdown, dossiers et opérations de maintenance (saisie directe ou compte rendu papier), bulletins de service constructeur, synthèse de navigabilité en lecture seule pour tout pilote. Voir [le guide utilisateur](users/fr/16_maintenance_aeronefs.md).
+
 ## Depuis le migration sous Github (juin 2024):
 
 La liste des modifications est dans l'historique github.

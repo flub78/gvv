@@ -1,7 +1,7 @@
 # Plan d'implémentation — Gestion de la Maintenance des Aéronefs
 
-**Date :** 4 août 2026 — mis à jour le 11 août 2026 (Phases 0 à 9 terminées)
-**Statut :** Phase 9 terminée (3/3 étapes) — Phase 10 (tests Playwright) à démarrer
+**Date :** 4 août 2026 — mis à jour le 12 août 2026 (Phases 0 à 11 terminées — plan complet)
+**Statut :** Toutes les phases terminées (11/11)
 **PRD :** [doc/prds/maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
 **Design :** [doc/design_notes/maintenance_aeronefs_design.md](../design_notes/maintenance_aeronefs_design.md)
 
@@ -650,46 +650,56 @@ Cas de test : calcul d'état selon règle de butée (date/heures/les deux), seui
 
 ## Phase 10 — Tests Playwright (smoke tests)
 
+**Statut : Terminée (12 août 2026).**
+
+**Constat de démarrage :** la quasi-totalité des scénarios listés ci-dessous était déjà couverte, dispersée dans les fichiers `maintenance-*-smoke.spec.js` créés au fil des Phases 5 et 6 (un fichier par contrôleur, conservés pour la régression par écran — cf. note de l'Étape 5.1 : « la Phase 10 l'étendra plutôt que de le dupliquer »). Seuls deux points manquaient réellement : un parcours transverse unique enchaînant équipement → dossier → opération → potentiel visible → transfert (jamais chaîné bout en bout dans un seul test), et le mode « compte rendu » de la saisie d'opération (jamais exercé, seule la saisie directe l'était).
+
 ### Étape 10.1 — Parcours mécano
 
-**Fichier :** `playwright/tests/maintenance-smoke.spec.js`
+**Fichier :** `playwright/tests/maintenance-smoke.spec.js` (nouveau, 1 test)
 
 Scénarios :
-- [ ] Connexion mecano → dashboard maintenance accessible
-- [ ] Création d'un équipement, ouverture d'un dossier, enregistrement d'une opération en saisie directe → potentiel mis à jour visible
-- [ ] Enregistrement d'une opération avec dépôt d'un compte rendu → document consultable depuis l'historique
-- [ ] Transfert d'un équipement vers un autre aéronef → historique préservé
+- [x] Connexion mecano → dashboard maintenance accessible
+- [x] Création d'un équipement, ouverture d'un dossier, enregistrement d'une opération en saisie directe → potentiel mis à jour visible (vérifié dans `maintenance_synthese/aeronef/<immat>` : carte de l'équipement affichant le potentiel recalculé « 100 h »)
+- [x] Enregistrement d'une opération avec dépôt d'un compte rendu → document consultable depuis l'historique (badge « Compte rendu papier » sur l'opération, lien vers `archived_documents/preview/<id>` vérifié avec une requête HTTP réelle, statut 200)
+- [x] Transfert d'un équipement vers un autre aéronef → historique préservé (l'identifiant de l'équipement ne change pas lors d'un transfert — seul son `aeronef_id` change — donc le dossier reste consultable via `maintenance_dossiers?entite_type=equipement&entite_id=<id>` après transfert ; vérifié explicitement)
 
 ### Étape 10.2 — Parcours pilote (lecture seule)
 
-- [ ] Connexion pilote → accès à la synthèse de navigabilité en lecture seule
-- [ ] Aucun accès au détail des opérations (contrôle négatif)
+- [x] Connexion pilote → accès à la synthèse de navigabilité en lecture seule
+- [x] Aucun accès au détail des opérations (contrôle négatif)
+
+Déjà entièrement couvert par `playwright/tests/maintenance-roles-smoke.spec.js` (test « pilote: acces en lecture a la synthese, refus explicite partout ailleurs », Phase 6, Étape 6.1) : accès autorisé à `maintenance_synthese`, refus explicite (403, jamais silencieux) sur `maintenance_dossiers`, `maintenance_operations`, `maintenance_bulletins`, `maintenance_programmes`, `maintenance_equipements`. Aucune duplication ajoutée.
+
+**Tests :** suite Playwright maintenance complète (15 tests, 8 fichiers) exécutée avec succès contre gvv.net : `maintenance-smoke.spec.js` (nouveau), `maintenance-roles-smoke.spec.js`, `maintenance-equipements-smoke.spec.js`, `maintenance-programmes-smoke.spec.js`, `maintenance-dossiers-smoke.spec.js`, `maintenance-operations-smoke.spec.js`, `maintenance-bulletins-smoke.spec.js`, `maintenance-dashboard-smoke.spec.js`, `maintenance-synthese-smoke.spec.js`.
 
 ---
 
 ## Phase 11 — Documentation
 
+**Statut : Terminée (12 août 2026).**
+
 ### Étape 11.1 — Compléter le design
 
-- [ ] Schéma final des tables intégré au design (`doc/design_notes/maintenance_aeronefs_design.md`)
-- [ ] Décisions de la Phase 0 confirmées ou ajustées selon ce qui a été effectivement implémenté
-- [ ] Réévaluation de la mutualisation `Formation_markdown_parser`/`Maintenance_markdown_parser` : conclusion consignée (mutualiser maintenant, ou reporter à nouveau avec justification)
+- [x] Schéma final des tables intégré au design (`doc/design_notes/maintenance_aeronefs_design.md`) — vérifié contre les migrations finales (155–163) et le diagramme PlantUML, aucun écart trouvé
+- [x] Décisions de la Phase 0 confirmées ou ajustées selon ce qui a été effectivement implémenté — les 4 décisions actées en Phase 0 sont confirmées sans changement ; la table « Rôles et accès » du design a été corrigée pour refléter la matrice réellement implémentée en Phase 6 (elle ne mentionnait qu'un clivage binaire mecano/reste, alors que le rôle `ca`/trésorier a un accès intermédiaire à l'historique)
+- [x] Réévaluation de la mutualisation `Formation_markdown_parser`/`Maintenance_markdown_parser` : conclusion consignée — **pas de mutualisation**, décision confirmée. La comparaison ligne à ligne des deux classes après implémentation complète montre une divergence réelle (numérotation des titres, split description/objectifs, méthode `export()`), directement dictée par des schémas de données différents, pas un choix arbitraire réversible facilement
 
 ### Étape 11.2 — Documentation utilisateur
 
-**Fichier :** `doc/users/fr/15_maintenance_aeronefs.md` (numérotation à ajuster selon le sommaire courant de `doc/users/fr/README.md`)
+**Fichier :** `doc/users/fr/16_maintenance_aeronefs.md` (16 était le prochain numéro disponible, après `15_gestion_messages.md`)
 
-Contenu : équipements, programmes d'entretien (dépôt et versioning), ouverture d'un dossier, enregistrement d'une opération (les deux modes), bulletins de service, lecture de la synthèse de navigabilité, export PDF.
+Contenu : équipements, programmes d'entretien (dépôt et versioning Markdown), ouverture d'un dossier, enregistrement d'une opération (les deux modes), bulletins de service, lecture de la synthèse de navigabilité, export PDF, tableau des droits d'accès par profil.
 
-**Captures d'écran :** `doc/users/screenshots/maintenance_aeronefs/`
+**Captures d'écran :** `doc/users/screenshots/maintenance_aeronefs/` (8 images : dashboard, équipements, programme, dossier, formulaire d'opération, bulletins, synthèse flotte, synthèse aéronef), produites en pilotant gvv.net avec le mécano de test `obelix` (chromium via le Playwright déjà installé du projet, capture directe plutôt qu'un test de régression puisqu'il s'agit d'un script ponctuel de documentation, non ajouté à la suite).
 
 **Validation :**
-- [ ] Fichier créé et référencé dans `doc/users/fr/README.md` et `doc/users/README.md`
-- [ ] Captures d'écran produites (Playwright)
+- [x] Fichier créé et référencé dans `doc/users/fr/README.md` et `doc/users/README.md`
+- [x] Captures d'écran produites (via Playwright/chromium, conditions réelles sur gvv.net)
 
 ### Étape 11.3 — Release notes
 
-- [ ] Entrée ajoutée dans `doc/release_notes.md`
+- [x] Entrée ajoutée dans `doc/release_notes.md`
 
 ---
 
@@ -707,8 +717,8 @@ Contenu : équipements, programmes d'entretien (dépôt et versioning), ouvertur
 | 7 | Point d'ancrage alarmes/réservations | ✅ Terminé |
 | 8 | Fichiers de langue FR/EN/NL | ✅ Terminé (déjà satisfait, livré incrémentalement en Phase 5) |
 | 9 | Tests PHPUnit | ✅ Terminé |
-| 10 | Tests Playwright | ⬜ Non démarré |
-| 11 | Documentation | ⬜ Non démarré |
+| 10 | Tests Playwright | ✅ Terminé (2/2 étapes) |
+| 11 | Documentation | ✅ Terminé (3/3 étapes) |
 
 ---
 

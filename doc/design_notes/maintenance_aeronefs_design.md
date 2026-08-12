@@ -1,6 +1,6 @@
 # Design Notes — Gestion de la Maintenance des Aéronefs
 
-Date : 5 août 2026
+Date : 5 août 2026 — bilan Phase 11 ajouté le 12 août 2026
 
 **PRD** : [maintenance_aeronefs_prd.md](../prds/maintenance_aeronefs_prd.md)
 **Plan** : [maintenance_aeronefs_plan.md](../plans/maintenance_aeronefs_plan.md)
@@ -31,7 +31,15 @@ Une différence assumée par rapport à Formation : `formation_programmes.conten
 
 ### 1. Parseur markdown : duplication, pas de mutualisation
 
-`Maintenance_markdown_parser` est une classe dédiée, indépendante de `Formation_markdown_parser`, malgré un format isomorphe (H1 = titre du programme, H2 = section, H3 = tâche, contre H1/H2/H3 = programme/leçon/sujet côté Formation). Objectif : ne pas toucher un module Formation stable et déjà en production tant que le module Maintenance n'a pas fait ses preuves. Réévaluation prévue en fin d'implémentation (Phase 4/11 du plan, tableau des risques) : si aucune raison de diverger n'est apparue en pratique, extraction d'un composant commun.
+`Maintenance_markdown_parser` est une classe dédiée, indépendante de `Formation_markdown_parser`, malgré un format isomorphe (H1 = titre du programme, H2 = section, H3 = tâche, contre H1/H2/H3 = programme/leçon/sujet côté Formation). Objectif : ne pas toucher un module Formation stable et déjà en production tant que le module Maintenance n'a pas fait ses preuves.
+
+**Réévaluation (Phase 11, 12 août 2026) : décision confirmée, pas de mutualisation.** La comparaison des deux classes une fois l'implémentation terminée montre une divergence réelle, pas seulement potentielle :
+- `Formation_markdown_parser` impose un format de titre numéroté et le valide par regex (`Leçon X : titre`, `Sujet X.Y : titre`), avec repli si absent ; `Maintenance_markdown_parser` n'a pas de numérotation dans le titre (`maintenance_programme_sections`/`maintenance_taches` n'ont qu'un champ `ordre`, pas de `numero`).
+- `Formation_markdown_parser` scinde le contenu d'un sujet en `description`/`objectifs` (premier paragraphe vs. reste) ; `maintenance_taches` n'a qu'une seule colonne `description`, donc `Maintenance_markdown_parser` ne fait aucun split.
+- `Formation_markdown_parser` conserve le texte libre placé sous un H2 avant le premier H3 comme description de la leçon ; côté Maintenance ce texte est ignoré (`maintenance_programme_sections` n'a pas de colonne description).
+- `Formation_markdown_parser` expose une méthode `export()` (regénération Markdown depuis les données structurées), inutilisée côté Maintenance et donc absente.
+
+Ces différences découlent directement du schéma de données de chaque module (colonnes disponibles), pas d'un choix arbitraire — une mutualisation forcerait soit à ajouter des colonnes inutiles à `maintenance_taches`/`maintenance_programme_sections`, soit à complexifier un parseur commun avec des branches spécifiques à chaque module. La duplication reste le choix le plus simple ; pas de nouvelle réévaluation prévue sauf évolution du schéma de l'un des deux modules.
 
 ### 2. Nommage : `maintenance_programme_sections`, jamais `maintenance_sections`
 
@@ -44,6 +52,8 @@ GVV dispose déjà d'une table de configuration générique clé/valeur (`config
 ### 4. Statut des bulletins de service : table compagnon `maintenance_bulletin_statuts`
 
 `archived_documents` reste générique (utilisée par de nombreux autres modules : médical, assurance, licences, etc.). Le statut spécifique à la maintenance (à traiter/traité/non applicable, PRD EF6) est porté par une table compagnon légère, `maintenance_bulletin_statuts`, en relation 1—0..1 avec `archived_documents` (`archived_document_id` UNIQUE), plutôt que d'ajouter des colonnes propres à la maintenance dans la table générique.
+
+**Confirmation (Phase 11) :** les décisions 2 à 4 ont été implémentées sans changement — vérifié contre les migrations finales (155 à 163) et le code des modèles/contrôleurs correspondants. Aucun ajustement nécessaire.
 
 ---
 
@@ -96,7 +106,7 @@ GVV dispose déjà d'une table de configuration générique clé/valeur (`config
 | Historisation des interventions | `maintenance_operations`, `maintenance_realisations` |
 | Calcul et mise à jour du potentiel | `Maintenance_potentiel` |
 | Statut des bulletins de service | `maintenance_bulletin_statuts` |
-| Rôles et accès (mecano/admin en écriture, autres en lecture) | Vérifications par contrôleur (Phase 6 du plan), sur le modèle de `Formation_access` |
+| Rôles et accès : mecano/admin en écriture (mecano borné à sa section) ; « responsable de section » (rôle `ca`) et trésorier en lecture seule de la synthèse et de l'historique ; pilote (membre standard) en lecture seule de la synthèse uniquement (PRD EF8) | `Maintenance_access` (Phase 6 du plan), classe dédiée sur le modèle de `Formation_access` |
 
 ---
 
