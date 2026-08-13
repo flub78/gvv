@@ -70,18 +70,22 @@ class Cotisation_produits_model extends common_model {
 
     /**
      * Bascule l'état actif/inactif d'un produit.
+     *
+     * Mise sous commentaire le 2026-08-13 : code mort, aucun appelant trouvé
+     * dans tout le projet (grep -rn "toggle_actif"). À supprimer une fois
+     * confirmé qu'il n'est utilisé par aucune intégration externe.
      */
-    public function toggle_actif($id, $username) {
-        $current = $this->db->where('id', (int) $id)->get($this->table)->row_array();
-        if (!$current) {
-            return false;
-        }
-        $new_actif = $current['actif'] ? 0 : 1;
-        $this->db->where('id', (int) $id)->update($this->table, array(
-            'actif'      => $new_actif,
-            'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => $username,
-        ));
-        return true;
-    }
+    // public function toggle_actif($id, $username) {
+    //     $current = $this->db->where('id', (int) $id)->get($this->table)->row_array();
+    //     if (!$current) {
+    //         return false;
+    //     }
+    //     $new_actif = $current['actif'] ? 0 : 1;
+    //     $this->db->where('id', (int) $id)->update($this->table, array(
+    //         'actif'      => $new_actif,
+    //         'updated_at' => date('Y-m-d H:i:s'),
+    //         'updated_by' => $username,
+    //     ));
+    //     return true;
+    // }
 }

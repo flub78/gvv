@@ -842,16 +842,19 @@ class Paiements_en_ligne extends MY_Controller {
         ));
 
         if (!$ecriture_id) {
+            log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$mlogin - membre=$mlogin - annee=$annee - etat_final=ECHEC - motif=ecriture - canal=paiement_en_ligne");
             $this->session->set_flashdata('error', $this->lang->line('gvv_bar_error_creation'));
             redirect('paiements_en_ligne/cotisation');
             return;
         }
 
         // Création de la licence
-        $this->licences_model->create_cotisation(
+        $licence_id = $this->licences_model->create_cotisation(
             $mlogin, 0, $annee, date('Y-m-d'),
             'Cotisation enregistrée en ligne (débit compte)'
         );
+
+        log_message('info', "COTISATION/LICENCE - operation=CREATION - operateur=$mlogin - membre=$mlogin - annee=$annee - etat_final=ACTIF - licence_id=$licence_id - ecriture_id=$ecriture_id - canal=paiement_en_ligne");
 
         $this->session->set_flashdata('success', sprintf(
             $this->lang->line('gvv_cotisation_success'),

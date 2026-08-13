@@ -1270,7 +1270,7 @@ class Compta extends Gvv_Controller {
             log_message('debug', "Ecriture encaissement créée: ID=$ecriture_id_1");
 
             if (!$ecriture_id_1) {
-                log_message('error', 'Échec création écriture encaissement');
+                log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$username - membre=$pilote - annee=$annee_cotisation - etat_final=ECHEC - motif=ecriture_encaissement");
                 throw new Exception('Erreur lors de la création de l\'écriture encaissement');
             }
 
@@ -1295,7 +1295,7 @@ class Compta extends Gvv_Controller {
             log_message('debug', "Ecriture facturation créée: ID=$ecriture_id_2");
 
             if (!$ecriture_id_2) {
-                log_message('error', 'Échec création écriture facturation');
+                log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$username - membre=$pilote - annee=$annee_cotisation - etat_final=ECHEC - motif=ecriture_facturation");
                 throw new Exception('Erreur lors de la création de l\'écriture facturation');
             }
 
@@ -1311,7 +1311,7 @@ class Compta extends Gvv_Controller {
             log_message('debug', "Licence créée: ID=$licence_id");
 
             if (!$licence_id) {
-                log_message('error', 'Échec création licence');
+                log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$username - membre=$pilote - annee=$annee_cotisation - etat_final=ECHEC - motif=licence");
                 throw new Exception('Erreur lors de la création de la licence');
             }
 
@@ -1328,17 +1328,18 @@ class Compta extends Gvv_Controller {
 
             // Vérifier le statut de la transaction
             if ($this->db->trans_status() === FALSE) {
-                log_message('error', 'Transaction échouée (trans_status = FALSE)');
+                log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$username - membre=$pilote - annee=$annee_cotisation - etat_final=ECHEC - motif=transaction");
                 return false;
             }
 
-            log_message('info', "Cotisation enregistrée avec succès - Écritures: $ecriture_id_1, $ecriture_id_2 - Licence: $licence_id");
+            log_message('info', "COTISATION/LICENCE - operation=CREATION - operateur=$username - membre=$pilote - annee=$annee_cotisation - etat_final=ACTIF - licence_id=$licence_id - ecritures=$ecriture_id_1,$ecriture_id_2");
             return true;
 
         } catch (Exception $e) {
             // En cas d'erreur, rollback automatique
             $this->db->trans_rollback();
-            log_message('error', 'Erreur process_saisie_cotisation: ' . $e->getMessage());
+            $username_log = isset($username) ? $username : 'inconnu';
+            log_message('error', "COTISATION/LICENCE - operation=CREATION - operateur=$username_log - membre=$pilote - annee=$annee_cotisation - etat_final=ECHEC - motif=exception:" . $e->getMessage());
             return false;
         }
     }

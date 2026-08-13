@@ -129,6 +129,9 @@ class Licences extends Gvv_Controller {
         $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
+        $username = $this->dx_auth->get_username();
+        $categorie = ($type == 0) ? 'COTISATION' : 'LICENCE';
+
         log_message('debug', "Licences::set - pilote=$pilote, year=$year, type=$type, ajax=" . ($is_ajax ? 'YES' : 'NO'));
 
         $row = array (
@@ -151,6 +154,7 @@ class Licences extends Gvv_Controller {
         if (!empty($db_error_msg) || !empty($db_error_num)) {
             $error_text = "Error #$db_error_num: $db_error_msg";
             log_message('error', "Database error creating licence: " . $error_text);
+            log_message('error', "COTISATION/LICENCE - operation=ACTIVATION - operateur=$username - membre=$pilote - annee=$year - categorie=$categorie - type=$type - etat_final=ECHEC - motif=" . $error_text);
 
             if ($is_ajax) {
                 while (ob_get_level()) {
@@ -166,6 +170,8 @@ class Licences extends Gvv_Controller {
                 show_error('Erreur lors de la création de la licence: ' . $error_text);
             }
         }
+
+        log_message('info', "COTISATION/LICENCE - operation=ACTIVATION - operateur=$username - membre=$pilote - annee=$year - categorie=$categorie - type=$type - etat_final=ACTIF");
 
         // Si c'est une requête AJAX, retourner JSON
         if ($is_ajax) {
@@ -193,6 +199,9 @@ class Licences extends Gvv_Controller {
         $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
+        $username = $this->dx_auth->get_username();
+        $categorie = ($type == 0) ? 'COTISATION' : 'LICENCE';
+
         log_message('debug', "Licences::switch_it - pilote=$pilote, year=$year, type=$type, ajax=" . ($is_ajax ? 'YES' : 'NO'));
 
         // Activer le mode strict des erreurs DB pour cette opération
@@ -211,6 +220,7 @@ class Licences extends Gvv_Controller {
         if (!empty($db_error_msg) || !empty($db_error_num)) {
             $error_text = "Error #$db_error_num: $db_error_msg";
             log_message('error', "Database error deleting licence: " . $error_text);
+            log_message('error', "COTISATION/LICENCE - operation=DESACTIVATION - operateur=$username - membre=$pilote - annee=$year - categorie=$categorie - type=$type - etat_final=ECHEC - motif=" . $error_text);
 
             if ($is_ajax) {
                 while (ob_get_level()) {
@@ -226,6 +236,8 @@ class Licences extends Gvv_Controller {
                 show_error('Erreur lors de la suppression de la licence: ' . $error_text);
             }
         }
+
+        log_message('info', "COTISATION/LICENCE - operation=DESACTIVATION - operateur=$username - membre=$pilote - annee=$year - categorie=$categorie - type=$type - etat_final=INACTIF");
 
         // Si c'est une requête AJAX, retourner JSON
         if ($is_ajax) {

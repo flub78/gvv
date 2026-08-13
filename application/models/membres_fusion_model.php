@@ -35,6 +35,12 @@ class Membres_fusion_model extends CI_Model {
         array('table' => 'formation_autorisations_solo',  'columns' => array('eleve_id', 'instructeur_id')),
         array('table' => 'formation_seances_participants','columns' => array('pilote_id'),
               'unique_key' => array('seance_id', 'pilote_id')),
+        // licences.type=0 = cotisation, type=1..3 = licences de vol (PLA/AVI/ULM).
+        // En cas de doublon (source et destination ont déjà (year,type)), la ligne
+        // de la destination est conservée : le membre cible garde la licence/cotisation
+        // dès que l'un des deux comptes l'avait (union par année/type).
+        array('table' => 'licences',                      'columns' => array('pilote'),
+              'unique_key' => array('pilote', 'year', 'type')),
         array('table' => 'acceptance_records',            'columns' => array('user_login', 'linked_pilot_login', 'linked_by')),
         array('table' => 'acceptance_items',              'columns' => array('created_by')),
         array('table' => 'archived_documents',            'columns' => array('pilot_login')),
@@ -161,6 +167,10 @@ class Membres_fusion_model extends CI_Model {
 
         $this->db->trans_start();
 
+        // Snapshot des licences/cotisations du source, pris avant toute modification,
+        // pour la traçabilité détaillée (marqueur COTISATION/LICENCE) émise en fin de fusion.
+        $licences_src_before = $this->db->where('pilote', $source)->get('licences')->result_array();
+
         // 1. Fusion des champs de la fiche membre
         $updates = array();
         $email_to_copy = null;
@@ -201,11 +211,15 @@ class Membres_fusion_model extends CI_Model {
 
         // 4. Conflits d'unicité : supprimer les enregistrements source en doublon avant UPDATE
         $conflicts = $this->_detect_conflicts($source, $destination);
+        $licences_conflict_ids = array();
         foreach ($conflicts as $conflict) {
             foreach ($conflict['conflict_ids'] as $id) {
                 $this->db->where('id', $id)->delete($conflict['table']);
             }
             $log[] = $conflict['table'] . ' : ' . count($conflict['conflict_ids']) . ' doublon(s) supprimé(s).';
+            if ($conflict['table'] === 'licences') {
+                $licences_conflict_ids = $conflict['conflict_ids'];
+            }
         }
 
         // 5. Réaffectation des références dans toutes les tables
@@ -240,6 +254,14 @@ class Membres_fusion_model extends CI_Model {
         if ($success) {
             $by = get_instance()->dx_auth->get_username();
             log_message('info', "GVV fusion_membres: $by a fusionné '$source' dans '$destination'. " . implode(' | ', $log));
+
+            foreach ($licences_src_before as $row) {
+                $categorie = ($row['type'] == 0) ? 'COTISATION' : 'LICENCE';
+                $etat_final = in_array($row['id'], $licences_conflict_ids)
+                    ? 'DOUBLON_CONSERVE_DESTINATION'
+                    : 'REAFFECTE';
+                log_message('info', "COTISATION/LICENCE - operation=FUSION - operateur=$by - membre_source=$source - membre_cible=$destination - annee={$row['year']} - categorie=$categorie - type={$row['type']} - etat_final=$etat_final");
+            }
         } else {
             $error = 'La transaction a échoué. Aucune modification n\'a été appliquée.';
             log_message('error', "GVV fusion_membres: échec de la fusion '$source' → '$destination'.");

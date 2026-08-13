@@ -540,4 +540,85 @@ class MembresFusionTest extends TransactionalTestCase
         // Pas de références attendues
         $this->assertEmpty($rapport['references'], 'Aucune référence attendue pour des membres vierges');
     }
+
+    // -------------------------------------------------------------------------
+    // Test 14 : Licences/cotisations — union par (année, type)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Insère une ligne licences (type=0 -> cotisation, 1..3 -> licence de vol).
+     */
+    private function _create_licence(string $pilote, int $year, int $type = 0): int
+    {
+        $this->CI->db->insert('licences', [
+            'pilote'  => $pilote,
+            'type'    => $type,
+            'year'    => $year,
+            'date'    => date('Y-m-d'),
+            'comment' => 'test_fusion',
+        ]);
+        return (int) $this->CI->db->insert_id();
+    }
+
+    public function testFusionLicencesReaffecteSiSeuleSourceLaPossede()
+    {
+        $src = $this->_create_membre();
+        $dst = $this->_create_membre();
+        $year = (int) date('Y');
+
+        // Seul le source a une cotisation (type=0) pour cette année
+        $this->_create_licence($src, $year, 0);
+
+        $result = $this->model->fusionner($src, $dst);
+        $this->assertTrue($result['success']);
+
+        $this->assertEquals(0, $this->CI->db->where('pilote', $src)->where('year', $year)->where('type', 0)
+            ->count_all_results('licences'), 'La ligne source doit avoir été réaffectée');
+        $this->assertEquals(1, $this->CI->db->where('pilote', $dst)->where('year', $year)->where('type', 0)
+            ->count_all_results('licences'), 'La destination doit posséder la cotisation après fusion');
+    }
+
+    public function testFusionLicencesDoublonConserveLigneDestination()
+    {
+        $src = $this->_create_membre();
+        $dst = $this->_create_membre();
+        $year = (int) date('Y');
+
+        // Les deux ont déjà une licence PLA (type=1) pour la même année → conflit
+        $id_src = $this->_create_licence($src, $year, 1);
+        $id_dst = $this->_create_licence($dst, $year, 1);
+
+        $result = $this->model->fusionner($src, $dst);
+        $this->assertTrue($result['success'], 'La fusion doit réussir malgré le doublon licences');
+
+        // La ligne destination préexistante doit être conservée telle quelle (même id)
+        $this->assertEquals(1, $this->CI->db->where('id', $id_dst)->count_all_results('licences'),
+            'La ligne destination doit être conservée');
+        // La ligne source en doublon doit avoir été supprimée, pas réaffectée
+        $this->assertEquals(0, $this->CI->db->where('id', $id_src)->count_all_results('licences'),
+            'La ligne source en doublon doit être supprimée');
+        // Une seule ligne (year=year, type=1) doit subsister, sur la destination
+        $this->assertEquals(1, $this->CI->db->where('pilote', $dst)->where('year', $year)->where('type', 1)
+            ->count_all_results('licences'));
+    }
+
+    public function testFusionLicencesUnionAnneesTypesDistincts()
+    {
+        $src = $this->_create_membre();
+        $dst = $this->_create_membre();
+        $year = (int) date('Y');
+
+        // Source a une cotisation (type=0), destination a une licence PLA (type=1) : pas de conflit,
+        // le membre cible doit posséder les deux après fusion (union).
+        $this->_create_licence($src, $year, 0);
+        $this->_create_licence($dst, $year, 1);
+
+        $result = $this->model->fusionner($src, $dst);
+        $this->assertTrue($result['success']);
+
+        $this->assertEquals(1, $this->CI->db->where('pilote', $dst)->where('year', $year)->where('type', 0)
+            ->count_all_results('licences'), 'La cotisation du source doit être réaffectée à la destination');
+        $this->assertEquals(1, $this->CI->db->where('pilote', $dst)->where('year', $year)->where('type', 1)
+            ->count_all_results('licences'), 'La licence déjà présente sur la destination doit être conservée');
+    }
 }
