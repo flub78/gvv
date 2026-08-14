@@ -14,6 +14,10 @@ $lang['acceptance_dual_validation'] = 'Dubbele validatie';
 $lang['acceptance_role_1'] = 'Rol 1';
 $lang['acceptance_role_2'] = 'Rol 2';
 $lang['acceptance_target_roles'] = 'Doelrollen';
+$lang['acceptance_target_user_login'] = 'Doelgebruiker';
+$lang['acceptance_target_mode'] = 'Doelgroep';
+$lang['acceptance_target_mode_roles'] = 'Categorieën';
+$lang['acceptance_target_mode_user'] = 'Individuele gebruiker';
 $lang['acceptance_active'] = 'Actief';
 $lang['acceptance_created_by'] = 'Aangemaakt door';
 $lang['acceptance_created_at'] = 'Aangemaakt op';
@@ -116,6 +120,7 @@ $lang['acceptance_role_1_placeholder'] = 'bijv. instructeur';
 $lang['acceptance_role_2_placeholder'] = 'bijv. leerling';
 $lang['acceptance_target_roles_placeholder'] = 'bijv. piloten, instructeurs, bestuur';
 $lang['acceptance_target_roles_help'] = 'Rollen gescheiden door komma\'s. Leeg = alle leden.';
+$lang['acceptance_target_user_help'] = 'Een item richt zich op een individuele gebruiker of op een of meer categorieën, nooit op beide.';
 $lang['acceptance_active_help'] = 'Alleen actieve elementen worden aan leden getoond';
 
 // Error messages

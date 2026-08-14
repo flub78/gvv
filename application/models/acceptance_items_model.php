@@ -74,16 +74,27 @@ class Acceptance_items_model extends Common_Model {
     }
 
     /**
-     * Get items targeting specific roles (comma-separated in target_roles)
+     * Get items targeting specific roles (comma-separated in target_roles),
+     * or individually targeting this user (target_user_login) — the two are
+     * exclusive per item (cf. formulaire admin). Items with no targeting
+     * restriction at all (both columns NULL/empty) apply to everyone.
      * @param string $user_login User login
-     * @return array Active items where target_roles matches user's roles or is empty (all users)
+     * @return array Active items excluding those individually targeting a
+     *   different user. Items with target_roles still need to be filtered in
+     *   PHP by the caller (comma-separated list), unchanged from before.
      */
     public function get_items_for_user($user_login) {
         $this->db->select('acceptance_items.*');
         $this->db->from($this->table);
         $this->db->where('active', 1);
-        // Items with no target_roles restriction (NULL or empty) apply to everyone
-        // Items with target_roles need to be filtered in PHP (comma-separated list)
+        // Exclude items individually targeting a different user; items with
+        // no target_user_login (NULL/empty) or targeting this user remain.
+        $this->db->group_start();
+        $this->db->where('target_user_login', $user_login);
+        $this->db->or_where('target_user_login', null);
+        $this->db->or_where("target_user_login = ''", null, false);
+        $this->db->group_end();
+        // Items with target_roles need to be filtered in PHP (comma-separated list).
         $this->db->order_by('title', 'asc');
         $query = $this->db->get();
         return $this->get_to_array($query);

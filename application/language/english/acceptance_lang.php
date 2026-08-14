@@ -14,6 +14,10 @@ $lang['acceptance_dual_validation'] = 'Dual validation';
 $lang['acceptance_role_1'] = 'Role 1';
 $lang['acceptance_role_2'] = 'Role 2';
 $lang['acceptance_target_roles'] = 'Target roles';
+$lang['acceptance_target_user_login'] = 'Target user';
+$lang['acceptance_target_mode'] = 'Targeting';
+$lang['acceptance_target_mode_roles'] = 'Categories';
+$lang['acceptance_target_mode_user'] = 'Individual user';
 $lang['acceptance_active'] = 'Active';
 $lang['acceptance_created_by'] = 'Created by';
 $lang['acceptance_created_at'] = 'Created at';
@@ -116,6 +120,7 @@ $lang['acceptance_role_1_placeholder'] = 'e.g. instructor';
 $lang['acceptance_role_2_placeholder'] = 'e.g. student';
 $lang['acceptance_target_roles_placeholder'] = 'e.g. pilots, instructors, board';
 $lang['acceptance_target_roles_help'] = 'Roles separated by commas. Empty = all members.';
+$lang['acceptance_target_user_help'] = 'An item targets either an individual user or one or more categories, never both.';
 $lang['acceptance_active_help'] = 'Only active items are presented to members';
 
 // Error messages

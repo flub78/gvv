@@ -156,6 +156,7 @@ class Acceptance_admin extends Gvv_Controller {
         $this->data['original_' . $this->kid] = $id;
         $this->data[$this->kid] = $id;
         $this->data['kid'] = $this->kid;
+        $this->data['target_mode'] = !empty($this->data['target_user_login']) ? 'user' : 'roles';
 
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
@@ -181,6 +182,8 @@ class Acceptance_admin extends Gvv_Controller {
             'internal' => $this->lang->line('acceptance_target_type_internal'),
             'external' => $this->lang->line('acceptance_target_type_external')
         );
+
+        $this->data['member_selector'] = $this->membres_model->selector(array('actif' => 1));
 
         $this->data['is_admin'] = $this->_is_admin();
     }
@@ -220,6 +223,18 @@ class Acceptance_admin extends Gvv_Controller {
             return;
         }
 
+        // Targeting is exclusive: either an individual user, or one or more
+        // categories (target_roles) — never both (cf. PRD, Cas d'utilisation
+        // Administrateur).
+        $target_mode = $this->input->post('target_mode') ?: 'roles';
+        if ($target_mode === 'user') {
+            $target_user_login = $this->input->post('target_user_login') ?: null;
+            $target_roles = null;
+        } else {
+            $target_user_login = null;
+            $target_roles = $this->input->post('target_roles') ?: null;
+        }
+
         // Build item data
         $item_data = array(
             'title' => $title,
@@ -231,7 +246,8 @@ class Acceptance_admin extends Gvv_Controller {
             'dual_validation' => $this->input->post('dual_validation') ? 1 : 0,
             'role_1' => $this->input->post('role_1') ?: null,
             'role_2' => $this->input->post('role_2') ?: null,
-            'target_roles' => $this->input->post('target_roles') ?: null,
+            'target_roles' => $target_roles,
+            'target_user_login' => $target_user_login,
             'active' => $this->input->post('active') ? 1 : 0,
             'updated_at' => date('Y-m-d H:i:s')
         );
@@ -512,6 +528,7 @@ class Acceptance_admin extends Gvv_Controller {
             $this->data['original_id'] = $this->input->post('original_id');
             $this->data['id'] = $this->input->post('original_id');
         }
+        $this->data['target_mode'] = $this->input->post('target_mode') ?: 'roles';
         $this->form_static_element($action);
         load_last_view($this->form_view, $this->data);
     }

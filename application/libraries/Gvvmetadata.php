@@ -1124,6 +1124,9 @@ class GVVMetadata extends Metadata {
                 $this->field['acceptance_items']['role_1']['Name'] = $CI->lang->line('acceptance_role_1');
                 $this->field['acceptance_items']['role_2']['Name'] = $CI->lang->line('acceptance_role_2');
                 $this->field['acceptance_items']['target_roles']['Name'] = $CI->lang->line('acceptance_target_roles');
+                $this->field['acceptance_items']['target_user_login']['Name'] = $CI->lang->line('acceptance_target_user_login');
+                $this->field['acceptance_items']['target_user_login']['Subtype'] = 'selector';
+                $this->field['acceptance_items']['target_user_login']['Selector'] = 'acceptance_target_user_selector';
                 $this->field['acceptance_items']['active']['Name'] = $CI->lang->line('acceptance_active');
                 $this->field['acceptance_items']['active']['Subtype'] = 'boolean';
                 $this->field['acceptance_items']['created_by']['Name'] = $CI->lang->line('acceptance_created_by');

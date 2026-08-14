@@ -2,16 +2,22 @@
 
 ## Objectif
 
-Permettre de définir des éléments (documents, formations, briefings) devant être acceptés ou reconnus par les utilisateurs, avec traçabilité complète. Le système gère différentes catégories d'acceptation : prise en compte de documents, reconnaissance de délivrance de formation, etc. Autorisations parentales pour les mineurs (passagers ou élèves) sont également prises en charge. Les acceptations peuvent être réalisées par des utilisateurs internes (membres du club) ou externes (passagers, parents). Le système doit garantir la conformité réglementaire et offrir une expérience utilisateur fluide.
+Permettre de définir des éléments (documents, formations, briefings) devant être acceptés ou reconnus par les utilisateurs, avec traçabilité complète. Le système gère différentes catégories d'acceptation : prise en compte de documents, reconnaissance de délivrance de formation, etc. Les autorisations parentales pour les mineurs (passagers ou élèves) ainsi que l'acceptation des risques pour les briefing passager ULM sont prises en charge par la gestion des formulaires. On ne parle ici que des acceptations par des utilisateurs internes (membres du club). Le système doit garantir la conformité réglementaire et offrir une expérience utilisateur fluide.
+
+## Stratégie de livraison
+
+Le premier lot livré porte sur l'acceptation de documents déjà archivés (catégorie `document`, appuyée sur le module d'archivage documentaire existant — `archived_documents`/`document_types`) : un membre accepte en un clic un document qui lui est rattaché dans GVV. Les catégories à double validation (`formation`, `controle`) et la catégorie `briefing` restent définies dans le modèle mais ne sont pas prioritaires pour cette première livraison.
+
+### Note d'orientation (évolution probable)
+
+Plutôt que d'ajouter de nouvelles catégories ou de nouvelles sources d'éléments à faire accepter dans ce module, l'évolution privilégiée consiste à compléter le module Formulaires pour permettre de transformer une réponse de formulaire en document archivé (`archived_documents`) — ce document devient alors naturellement un élément à faire accepter par le mécanisme générique déjà en place, sans multiplier les sources spécialisées d'acceptation.
 
 ## Contexte
 
-Dans le cadre des vols de découverte ULM et d'autres activités réglementées, les clubs doivent archiver et tracer divers types d'acceptations :
-- **Documents réglementaires** : déclaration initiale, renouvellements, manuel d'exploitation, briefing passager
+Dans le cadre de leurs activités réglementées, les clubs doivent archiver et tracer divers types d'acceptations par leurs membres :
+- **Documents réglementaires** : déclaration initiale, renouvellements, manuel d'exploitation
 - **Formations** : formation opérationnelle, facteurs humains, avec confirmation par l'instructeur ET l'élève
 - **Contrôles de compétence** : vols de contrôle avec validation mutuelle
-- **Conditions passager** : acceptation des conditions de vol par un passager de vol de découverte
-- **Autorisations parentales** : autorisation signée par un parent ou tuteur légal pour un mineur (passager ou élève)
 
 La réglementation exige une traçabilité des acceptations par signature des documents concernés.
 
@@ -21,21 +27,20 @@ Le système supporte plusieurs catégories d'acceptation avec des comportements 
 
 | Catégorie | Description | Parties impliquées |
 |-----------|-------------|-------------------|
-| `document` | Acceptation simple d'un document | Une seule personne (interne ou externe) |
+| `document` | Acceptation simple d'un document | Un membre du club |
 | `formation` | Reconnaissance de délivrance/réception de formation | Instructeur + Élève (double validation) |
 | `controle` | Validation d'un contrôle de compétence | Contrôleur + Pilote contrôlé |
-| `briefing` | Prise en compte d'un briefing | Une ou plusieurs personnes |
-| `autorisation` | Autorisation donnée par un tiers pour un bénéficiaire (ex: autorisation parentale) | Signataire (parent/tuteur) pour le compte d'un bénéficiaire (mineur) |
+| `briefing` | Prise en compte d'un briefing | Un ou plusieurs membres |
 
 L'administrateur peut définir de nouvelles catégories selon les besoins.
 
+**Acceptation implicite du rédacteur** : pour les catégories à double validation (`formation`, `controle`), la personne qui saisit l'information est réputée l'avoir acceptée par le simple fait de la saisir — son acceptation n'est pas redemandée dans une étape séparée. Seule l'autre partie doit valider explicitement pour compléter la double validation. Exemple : l'instructeur qui valide la délivrance d'une formation n'a pas besoin de confirmer une seconde fois qu'il l'accepte, seul l'élève doit confirmer la réception.
+
 ## Périmètre Fonctionnel
 
-### Types d'Utilisateurs
+### Utilisateurs concernés
 
-**Utilisateurs internes** : Membres du club identifiés dans le système, connectés lors de l'acceptation.
-
-**Utilisateurs externes** : Personnes non-membres (passagers, visiteurs) qui ne sont pas connectées lors de leur acceptation.
+Seuls les membres du club identifiés dans GVV, connectés lors de l'acceptation, sont concernés par ce système. Aucune acceptation par une personne non-inscrite dans GVV (passager, tuteur/parent, tiers externe) n'est traitée ici — ces cas sont couverts par le module Formulaires.
 
 ---
 
@@ -46,11 +51,10 @@ L'administrateur peut définir de nouvelles catégories selon les besoins.
 **Gestion des éléments à accepter**
 - Définir un nouvel élément à faire accepter (document, formation, contrôle, briefing)
 - Choisir la catégorie d'acceptation
-- Spécifier si l'élément est destiné aux utilisateurs internes ou externes
 - Renseigner la date de création/version
-- Indiquer si l'acceptation est obligatoire ou facultative
-- Associer l'élément à une ou plusieurs catégories d'utilisateurs qui devront valider (pilotes, instructeurs, membres du bureau, etc.)
-- Pour les catégories à double validation : définir les deux rôles impliqués
+- Indiquer le niveau d'obligation de l'acceptation : facultatif, obligatoire non bloquant, ou obligatoire bloquant (voir Canal de notification et niveaux d'obligation)
+- Associer l'élément à un utilisateur ou à une ou plusieurs catégories d'utilisateurs qui devront valider (pilotes, instructeurs, membres du bureau, etc.)
+- Pour les catégories à double validation : définir les deux rôles impliqués (le rôle du rédacteur, dont l'acceptation est implicite, et le rôle de l'autre partie, qui doit valider explicitement)
 
 **Suivi des acceptations**
 - Consulter la liste des acceptations par élément
@@ -58,17 +62,10 @@ L'administrateur peut définir de nouvelles catégories selon les besoins.
 - Pour les doubles validations : voir le statut de chaque partie (instructeur validé, élève en attente, etc.)
 - Exporter les données d'acceptation
 
-**Rattachement d'une acceptation externe à un pilote**
-- Les acceptations signées par des utilisateurs externes ne sont initialement rattachées à aucun pilote dans le système
-- Un administrateur ou responsable peut ultérieurement rattacher une acceptation externe au dossier d'un pilote inscrit
-- Cas d'usage principal : un parent signe une autorisation parentale avant que l'élève mineur ne soit inscrit au club ; une fois l'inscription effectuée, l'autorisation est rattachée au dossier de l'élève
-- Le rattachement est une action explicite (sélection du pilote dans la liste des membres) et ne modifie pas l'acceptation elle-même (signataire, date, signature inchangés)
-- L'historique du rattachement est tracé (qui a rattaché, quand)
-
-### Utilisateur Interne (Membre)
+### Membre
 
 **Notification et acceptation simple**
-- Être informé des éléments à prendre en compte (notification à la connexion ou dans un tableau de bord)
+- Être informé des éléments à prendre en compte via un message du jour (canal de notification par défaut) donnant accès à la page de validation
 - Lire le contenu du document/élément
 - **Accepter en un clic** via un bouton d'acceptation simple
 - Possibilité de refuser explicitement si nécessaire
@@ -85,7 +82,7 @@ L'acceptation enregistre automatiquement :
 **Délivrance de formation**
 - Sélectionner l'élève concerné
 - Sélectionner le type de formation dispensée
-- Valider la délivrance de la formation en un clic
+- Valider la délivrance de la formation en un clic — cette action vaut acceptation de l'instructeur, sans étape de confirmation distincte
 - L'élève reçoit une notification pour confirmer réception
 - Consulter l'historique des formations dispensées et leur statut de validation
 
@@ -103,92 +100,23 @@ L'acceptation enregistre automatiquement :
 **Formule de réception**
 > "Je soussigné(e) [Prénom Nom Élève], reconnais avoir reçu la formation [titre] dispensée par [Prénom Nom Instructeur] le [date]."
 
-### Responsable Club / Pilote Vol de Découverte
-
-**Initiation d'une signature externe**
-- Déclencher une session de signature pour un document externe
-- Quatre modes de présentation :
-  - **Mode direct** : présenter la page de signature sur un smartphone/tablette au club
-  - **Mode lien** : générer un lien temporaire à envoyer sur le smartphone de la personne
-  - **Mode QR code** : générer un QR code à usage unique pointant vers la page de signature temporaire, affichable à l'écran ou imprimable
-  - **Mode papier** : imprimer le formulaire, le faire signer manuscritement, puis télécharger la copie numérisée
-- Le lien temporaire (modes lien et QR code) a une durée de validité limitée (ex: 24h) et est à usage unique
-- Visualiser les sessions de signature en cours et leur statut
-
-**Mode papier (formulaire imprimé)**
-
-Ce mode est adapté aux situations où la signature numérique n'est pas pratique (pas de tablette disponible, passager peu à l'aise avec le numérique, conditions terrain).
-
-Processus :
-1. Le pilote imprime le formulaire vierge depuis le système (PDF pré-formaté)
-2. Le passager remplit et signe le formulaire papier
-3. Le pilote prend en photo ou scanne le document signé
-4. Le pilote télécharge l'image dans le système en renseignant :
-   - Nom et prénom du signataire (tels qu'inscrits sur le formulaire)
-   - Date de signature
-   - Fichier image (JPEG, PNG) ou PDF du document signé
-5. Le système archive le document avec les métadonnées
-
-**Formule d'attestation pilote** (enregistrée automatiquement) :
-> "Je soussigné(e) [Prénom Nom Pilote], certifie que le document ci-joint a été signé en ma présence par [Prénom Nom Passager] le [date de signature]."
-
-### Passager de Vol de Découverte
-
-Le passager est un utilisateur externe. Le responsable club ou pilote initie une session de signature (mode direct, lien ou papier) pour le document "Conditions de vol de découverte".
-
-**Acceptation des conditions de vol**
-- Lire les conditions de vol présentées via le viewer PDF intégré (défilement obligatoire)
-- Saisir son nom et prénom
-- Signer (signature tactile, upload de document signé, ou mode papier)
-- Le système enregistre l'acceptation avec horodatage
-
-**Formule d'acceptation passager** (enregistrée automatiquement) :
-> "Je soussigné(e) [Prénom Nom Passager], reconnais avoir pris connaissance et accepter les conditions de vol de découverte en date du [date]."
-
-### Parent / Tuteur Légal (Autorisation Parentale)
-
-Le parent ou tuteur est un utilisateur externe qui signe pour le compte d'un bénéficiaire mineur. Le responsable club ou pilote initie la session de signature.
-
-**Signature d'une autorisation parentale**
-- Lire le document d'autorisation via le viewer PDF intégré (défilement obligatoire)
-- Saisir ses informations :
-  - Nom et prénom du signataire (parent/tuteur)
-  - Qualité du signataire : père, mère, tuteur légal
-  - Nom et prénom du bénéficiaire (mineur)
-- Signer (signature tactile, upload de document signé, ou mode papier)
-- Le système enregistre l'autorisation avec horodatage
-- L'autorisation n'est pas nécessairement rattachée à un pilote au moment de la signature (le mineur peut ne pas encore être inscrit)
-- Le rattachement au dossier du pilote mineur peut être effectué ultérieurement par un administrateur ou responsable
-
-**Formule d'autorisation parentale** (enregistrée automatiquement) :
-> "Je soussigné(e) [Prénom Nom Signataire], en qualité de [qualité], autorise [Prénom Nom Mineur] à [objet de l'autorisation] en date du [date]."
-
-### Utilisateur Externe
-
-**Consultation et signature** (via session initiée par un responsable)
-- Accéder au document via le lien temporaire fourni
-- Lire le document en ligne
-- Télécharger le document au format PDF
-- Saisir son nom et prénom
-- Choisir l'une des méthodes de signature :
-  - Télécharger le document signé manuellement (scan ou photo)
-  - Signer électroniquement sur téléphone ou tablette graphique
-
-**Note** : Aucune page publique permanente n'est exposée. L'accès est uniquement possible via un lien temporaire généré par un responsable club.
-
 ---
 
 ## Contraintes
 
 - Les documents sont au format PDF et archivés sur le serveur
 - L'horodatage des acceptations doit être fiable
-- Pour les utilisateurs internes, l'identité est garantie par l'authentification
-- Pour les utilisateurs externes, la signature manuscrite ou électronique fait foi
-- Les données personnelles des utilisateurs externes doivent être protégées (RGPD)
-- Les liens de signature externe (mode lien et mode QR code) doivent être temporaires, à usage unique, et non devinables (token aléatoire)
-- Le QR code encode le lien temporaire à usage unique ; une fois utilisé ou expiré, le QR code devient invalide
-- Pour le mode papier : les fichiers uploadés (JPEG, PNG, PDF) sont limités à 10 Mo
-- Le pilote qui uploade un document papier engage sa responsabilité via l'attestation de présence
+- L'identité de l'utilisateur est garantie par l'authentification GVV
+
+### Canal de notification et niveaux d'obligation
+
+- Par défaut, la notification d'une validation nécessaire se fait par message du jour : le message informe l'utilisateur qu'une validation est nécessaire et donne le lien vers la page de validation correspondante.
+- Pour la catégorie `document`, la page de validation permet simplement de visualiser le document archivé à valider (viewer intégré, voir Processus de lecture obligatoire).
+- Un élément à accepter porte l'un des trois niveaux d'obligation suivants :
+  - **Facultatif** : l'utilisateur peut accepter, refuser, ignorer ou reporter (bouton "Plus tard") librement.
+  - **Obligatoire non bloquant** : le message du jour associé ne peut pas être masqué tant que la validation n'a pas été faite (pas de bouton "Plus tard" ni de masquage), mais l'utilisateur peut continuer à utiliser normalement le reste de GVV.
+  - **Obligatoire bloquant** : comme le niveau non bloquant, mais en plus l'utilisateur ne peut effectuer aucune autre action dans GVV tant qu'il n'a pas validé l'élément — le blocage s'étend à l'ensemble de l'application, pas seulement au message du jour.
+- Le blocage (niveau obligatoire bloquant) exempte toujours la déconnexion et la page de validation elle-même. Les club-admins ne sont jamais bloqués par une acceptation, quel que soit le niveau d'obligation, pour ne pas risquer de perdre l'accès à l'administration du club.
 
 ### Processus de lecture obligatoire
 
@@ -202,7 +130,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 ### Date limite d'acceptation
 
 - L'administrateur peut définir une date limite d'acceptation pour chaque élément
-- L'utilisateur peut reporter l'acceptation (bouton "Plus tard") tant que la date limite n'est pas atteinte
+- Pour un élément facultatif, l'utilisateur peut reporter l'acceptation (bouton "Plus tard") tant que la date limite n'est pas atteinte — un élément obligatoire (bloquant ou non) ne peut pas être reporté, voir Canal de notification et niveaux d'obligation
 - L'interface affiche clairement la date limite : "À accepter avant le [date]"
 - À l'approche de la date limite, le rappel devient plus visible (ex: couleur d'alerte)
 - Après la date limite, l'acceptation reste possible mais l'élément est signalé comme "en retard" dans les rapports
@@ -212,7 +140,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 ### Administration
 
 **Liste des éléments**
-- Tableau des éléments définis avec catégorie et statut (actif/inactif)
+- Tableau des éléments définis avec catégorie, statut (actif/inactif) et niveau d'obligation
 - Nombre d'acceptations par élément
 - Pour double validation : nombre de validations complètes vs partielles
 - Actions : éditer, activer/désactiver, voir acceptations
@@ -221,11 +149,10 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Titre de l'élément
 - Catégorie d'acceptation (document, formation, contrôle, briefing)
 - Fichier PDF à téléverser (stocké sur le serveur)
-- Type : interne ou externe
 - Date de version
-- Obligatoire : oui/non
+- Niveau d'obligation : facultatif / obligatoire non bloquant / obligatoire bloquant
 - **Date limite d'acceptation** (optionnelle)
-- Catégories d'utilisateurs ciblées (pour éléments internes)
+- Ciblage : un utilisateur individuel (ex: un pilote précis) ou une ou plusieurs catégories d'utilisateurs
 - Pour double validation : rôles impliqués (ex: instructeur/élève)
 
 **Suivi des acceptations**
@@ -233,20 +160,18 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Indicateur de respect de la date limite (dans les temps / en retard)
 - Date et heure de chaque action
 - Pour double validation : statut de chaque partie (ex: "Instructeur: validé, Élève: en attente")
-- Pour les externes : nom, prénom, fichier de signature, responsable ayant initié la session, mode utilisé (direct/lien/QR code/papier)
 - Filtre pour afficher uniquement les acceptations en retard ou proches de l'échéance
-- Pour les acceptations externes non rattachées : bouton "Rattacher à un pilote" ouvrant un sélecteur de membre
-- Indicateur visuel distinguant les acceptations rattachées et non rattachées à un pilote
 
-### Utilisateur Interne (Membre)
+### Membre
 
 **Tableau de bord**
-- Badge ou notification indiquant le nombre d'éléments en attente
+- Message du jour (canal par défaut) pour chaque élément en attente, avec lien vers sa page de validation — non masquable pour un élément obligatoire (bloquant ou non), jusqu'à validation
+- Badge ou notification indiquant le nombre d'éléments en attente, en complément du message du jour
 - Liste des éléments à traiter avec :
   - Titre et date limite ("À accepter avant le [date]")
   - Indicateur visuel si proche de la date limite ou en retard
   - Bouton "Lire et accepter"
-  - Bouton "Plus tard" (si date limite non atteinte)
+  - Bouton "Plus tard" (élément facultatif uniquement, si date limite non atteinte)
 
 **Écran de lecture et acceptation**
 - Message informatif en haut : "Veuillez lire l'intégralité du document. Le bouton d'acceptation apparaîtra à la fin."
@@ -282,46 +207,11 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 **Historique des formations reçues**
 - Liste des formations confirmées avec dates et instructeurs
 
-### Responsable Club / Pilote Vol de Découverte
-
-**Initiation de signature externe**
-- Sélection du document à faire signer
-- Choix du mode :
-  - Bouton "Présenter sur cet écran" → affiche directement la page de signature
-  - Bouton "Envoyer un lien" → génère un lien temporaire avec option de copie ou envoi par email/SMS
-  - Bouton "Générer un QR code" → affiche un QR code à usage unique que la personne scanne avec son smartphone pour accéder à la page de signature ; possibilité de télécharger ou imprimer le QR code
-  - Bouton "Mode papier" → accède au formulaire d'upload de document signé
-- Liste des sessions en cours avec statut (en attente, signé, expiré) et mode utilisé
-
-**Mode papier**
-- Bouton "Imprimer le formulaire vierge" → génère et télécharge le PDF à imprimer
-- Formulaire d'upload après signature :
-  - Champ : Nom du signataire
-  - Champ : Prénom du signataire
-  - Pour la catégorie `autorisation` : champs supplémentaires — qualité (père, mère, tuteur légal), nom et prénom du bénéficiaire (mineur)
-  - Champ : Date de signature (par défaut : aujourd'hui)
-  - Zone d'upload : glisser-déposer ou sélection de fichier (formats acceptés : JPEG, PNG, PDF)
-  - Case à cocher : "J'atteste que ce document a été signé en ma présence"
-  - Bouton "Valider et archiver"
-- Message de confirmation après validation
-
-### Utilisateur Externe
-
-**Page de signature** (accessible uniquement via lien temporaire)
-- Message informatif en haut : "Veuillez lire l'intégralité du document. Le formulaire de signature apparaîtra à la fin."
-- Viewer PDF intégré avec défilement obligatoire
-- Bouton de téléchargement du PDF
-- Après défilement complet, affichage du formulaire :
-  - Champs : nom, prénom du signataire
-  - Pour la catégorie `autorisation` : champs supplémentaires — qualité (père, mère, tuteur légal), nom et prénom du bénéficiaire (mineur)
-  - Zone de signature tactile ou upload de fichier signé
-  - Bouton de validation
-- Message d'erreur explicite si le lien est expiré ou invalide
-
 ---
 
 ## Hors Périmètre
 
+- Acceptations par des personnes non-inscrites dans GVV (passagers, tuteurs/parents, tiers externes) — couvertes par le module Formulaires, y compris les autorisations parentales et l'acceptation des risques pour le briefing passager ULM
 - Signature électronique certifiée (eIDAS) - signature simple uniquement
 - Workflow d'approbation multi-niveaux
 - Versioning automatique des documents avec migration des acceptations
@@ -329,11 +219,9 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 
 ## Bénéfices Attendus
 
-- Conformité réglementaire pour les vols de découverte ULM
-- Traçabilité complète des acceptations (documents, formations, contrôles, autorisations parentales)
+- Conformité réglementaire pour la prise en compte des documents internes (déclaration initiale, manuel d'exploitation, etc.)
+- Traçabilité complète des acceptations (documents, formations, contrôles)
 - Réduction de la gestion papier
-- Simplification du processus pour les passagers (signature sur tablette ou papier)
-- Gestion des autorisations parentales pour les mineurs (passagers ou élèves)
 - Acceptation en un clic pour les membres connectés
 - Double validation instructeur/élève pour les formations
 - Visibilité immédiate des éléments non acceptés ou en attente de confirmation

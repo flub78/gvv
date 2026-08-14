@@ -43,6 +43,19 @@ class AcceptanceItemsModelTest extends TestCase
     }
 
     /**
+     * Helper to get two distinct member logins from the database
+     */
+    protected function getTwoTestLogins()
+    {
+        $query = $this->db->query("SELECT mlogin FROM membres LIMIT 2");
+        $rows = $query->result_array();
+        if (count($rows) < 2) {
+            $this->markTestSkipped('At least two members are required for this test');
+        }
+        return array($rows[0]['mlogin'], $rows[1]['mlogin']);
+    }
+
+    /**
      * Helper to create a test item
      */
     protected function createTestItem($overrides = array())
@@ -265,5 +278,64 @@ class AcceptanceItemsModelTest extends TestCase
 
         $this->assertEquals('internal', $internal['target_type']);
         $this->assertEquals('external', $external['target_type']);
+    }
+
+    // ==================== target_user_login tests (Lot 3c) ====================
+
+    public function testCreate_WithTargetUserLogin()
+    {
+        $login = $this->getTestLogin();
+        $id = $this->createTestItem(array('target_user_login' => $login));
+
+        $item = $this->model->get_by_id('id', $id);
+        $this->assertEquals($login, $item['target_user_login']);
+    }
+
+    public function testGetItemsForUser_IncludesUntargetedItem()
+    {
+        list($login_a, $login_b) = $this->getTwoTestLogins();
+        $id = $this->createTestItem(array('title' => 'Untargeted ' . uniqid()));
+
+        $results = $this->model->get_items_for_user($login_a);
+
+        $found = false;
+        foreach ($results as $row) {
+            if ($row['id'] == $id) $found = true;
+        }
+        $this->assertTrue($found, 'An item with no targeting restriction should be returned for any user');
+    }
+
+    public function testGetItemsForUser_IncludesIndividuallyTargetedItem()
+    {
+        list($login_a, $login_b) = $this->getTwoTestLogins();
+        $id = $this->createTestItem(array(
+            'title' => 'Targeted at A ' . uniqid(),
+            'target_user_login' => $login_a,
+        ));
+
+        $results = $this->model->get_items_for_user($login_a);
+
+        $found = false;
+        foreach ($results as $row) {
+            if ($row['id'] == $id) $found = true;
+        }
+        $this->assertTrue($found, 'An item individually targeting this user should be returned');
+    }
+
+    public function testGetItemsForUser_ExcludesItemTargetedAtAnotherUser()
+    {
+        list($login_a, $login_b) = $this->getTwoTestLogins();
+        $id = $this->createTestItem(array(
+            'title' => 'Targeted at B ' . uniqid(),
+            'target_user_login' => $login_b,
+        ));
+
+        $results = $this->model->get_items_for_user($login_a);
+
+        $found = false;
+        foreach ($results as $row) {
+            if ($row['id'] == $id) $found = true;
+        }
+        $this->assertFalse($found, 'An item individually targeting another user should not be returned');
     }
 }

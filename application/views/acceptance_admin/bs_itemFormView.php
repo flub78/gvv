@@ -155,14 +155,45 @@ $this->lang->load('acceptance');
             </div>
         </div>
 
-        <!-- Target roles -->
+        <!-- Targeting: individual user or categories, exclusive -->
         <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label">
+                <?= $this->lang->line('acceptance_target_mode') ?>
+            </label>
+            <div class="col-sm-10">
+                <?php $current_target_mode = isset($target_mode) ? $target_mode : 'roles'; ?>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="target_mode" id="target_mode_roles" value="roles"
+                        <?= ($current_target_mode !== 'user') ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="target_mode_roles"><?= $this->lang->line('acceptance_target_mode_roles') ?></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="target_mode" id="target_mode_user" value="user"
+                        <?= ($current_target_mode === 'user') ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="target_mode_user"><?= $this->lang->line('acceptance_target_mode_user') ?></label>
+                </div>
+                <small class="text-muted d-block"><?= $this->lang->line('acceptance_target_user_help') ?></small>
+            </div>
+        </div>
+
+        <!-- Target roles (shown when targeting by categories) -->
+        <div class="mb-3 row" id="target_roles_row">
             <label for="target_roles" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('acceptance_target_roles') ?>
             </label>
             <div class="col-sm-10">
                 <?= form_input('target_roles', set_value('target_roles', isset($target_roles) ? $target_roles : ''), 'class="form-control" id="target_roles" placeholder="' . $this->lang->line('acceptance_target_roles_placeholder') . '"') ?>
                 <small class="text-muted"><?= $this->lang->line('acceptance_target_roles_help') ?></small>
+            </div>
+        </div>
+
+        <!-- Target user (shown when targeting an individual user) -->
+        <div class="mb-3 row" id="target_user_row">
+            <label for="target_user_login" class="col-sm-2 col-form-label">
+                <?= $this->lang->line('acceptance_target_user_login') ?>
+            </label>
+            <div class="col-sm-10">
+                <?= form_dropdown('target_user_login', $member_selector, set_value('target_user_login', isset($target_user_login) ? $target_user_login : ''), 'class="form-select" id="target_user_login"') ?>
             </div>
         </div>
 
@@ -217,5 +248,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     dualCheckbox.addEventListener('change', toggleRoles);
     toggleRoles(); // Initial state
+
+    // Show/hide targeting fields based on target_mode radio (exclusive: user or categories)
+    var targetModeRadios = document.getElementsByName('target_mode');
+    var targetRolesRow = document.getElementById('target_roles_row');
+    var targetUserRow = document.getElementById('target_user_row');
+
+    function toggleTargetMode() {
+        var isUser = document.getElementById('target_mode_user').checked;
+        targetRolesRow.style.display = isUser ? 'none' : '';
+        targetUserRow.style.display = isUser ? '' : 'none';
+    }
+
+    targetModeRadios.forEach(function (radio) {
+        radio.addEventListener('change', toggleTargetMode);
+    });
+    toggleTargetMode(); // Initial state
 });
 </script>

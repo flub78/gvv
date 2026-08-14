@@ -9,30 +9,39 @@ Date : 8 février 2026
 
 ## Objectif
 
-Livrer un système complet d'acceptation et reconnaissance de documents, formations, contrôles et autorisations, avec :
-- Acceptation simple (un clic) pour utilisateurs internes
+Livrer un système complet d'acceptation et reconnaissance de documents, formations et contrôles pour les membres du club identifiés dans GVV, avec :
+- Acceptation simple (un clic) pour les membres
 - Double validation (instructeur/élève) pour les formations et contrôles
-- Signature externe (directe, lien, QR code, papier) pour utilisateurs non-membres
-- Autorisation parentale pour mineurs
-- Rattachement différé d'une acceptation externe au dossier d'un pilote
 - Traçabilité complète avec horodatage
+
+## Note de réduction de périmètre (révision PRD)
+
+Le PRD a été révisé pour exclure toute acceptation par une personne non-inscrite dans GVV : signature externe (directe, lien, QR code, papier), autorisation parentale et rattachement différé au dossier d'un pilote sont désormais couverts par le module Formulaires, pas par ce système.
+
+Conséquences sur ce plan :
+- Les anciens Lots 6 (signature externe), 7 (page publique de signature) et 8 (mode papier) sont retirés — non commencés, ils n'ont plus lieu d'être.
+- Les Lots 1 à 3 étaient déjà livrés avant cette révision et incluent des éléments désormais hors périmètre : catégorie `autorisation`, colonne `target_type` (interne/externe), rattachement d'une acceptation externe à un pilote (3.7), table `acceptance_signatures`, table `acceptance_tokens`. Ce code et ce schéma restent en place tels quels (aucun retrait rétroactif) mais ne reçoivent plus de développement complémentaire ; les nouveaux éléments créés par l'administration n'utilisent plus la catégorie `autorisation` ni le mode externe.
+- Les lots suivants ont été renumérotés en conséquence (ancien Lot 9 → Lot 6, etc.).
+
+## Note de priorité (premier lot)
+
+Le premier lot fonctionnel livré est le Lot 4 — l'acceptation de documents déjà archivés (catégorie `document`, appuyée sur `archived_documents`/`document_types`, existant réutilisé). Le Lot 5 (double validation formation/contrôle) est secondaire et n'est pas requis pour cette première livraison.
+
+**Évolution probable** : plutôt que d'étendre ce module avec de nouvelles catégories/sources d'éléments à accepter, l'évolution privilégiée consiste à compléter le module Formulaires pour transformer une réponse en document archivé — ce document devient alors un élément à accepter par le mécanisme générique du Lot 4, sans multiplier les sources spécialisées.
 
 ## Analyse de l'existant
 
 ### Infrastructure réutilisable
 - **Module archivage documentaire** : tables `document_types` et `archived_documents` (migration 067), contrôleur, modèles et vues déjà en place
-- **Bibliothèque QR code** : `application/third_party/phpqrcode/` prête à l'emploi
-- **TCPDF** : génération PDF pour les formulaires imprimables
+- **Module Messages du jour (MOTD)** : tables `motd_messages`/`motd_user_message_state`, contrôleur, modèles déjà en place (migration 143, module livré) — canal de notification par défaut, voir `doc/prds/messages_du_jour_prd.md`
 - **File_compressor** : compression images/PDF pour les uploads
 - **Système email** : helpers et contrôleur existants
 - **Gvvmetadata** : système de métadonnées pour formulaires et tables
 
 ### Gaps identifiés
-- Pas de signature tactile (signature pad JavaScript)
 - Pas de viewer PDF intégré (PDF.js) — le navigateur affiche nativement
-- Pas de système de liens temporaires / tokens
-- Pas de page publique (sans authentification)
-- Pas de notifications automatiques à la connexion
+- Le module Messages du jour ne supporte pas aujourd'hui un message non masquable (`motd_user_message_state.hidden` toujours modifiable par l'utilisateur) — nécessaire pour les niveaux `mandatory_soft`/`mandatory_hard`, voir Lot 3d
+- Pas de mécanisme de blocage applicatif global empêchant toute action tant qu'une validation obligatoire bloquante n'est pas faite, voir Lot 3d
 
 ## Architecture
 
@@ -46,20 +55,16 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 | `acceptance_tokens` | Liens temporaires pour signatures externes |
 
 ### Relations avec l'existant
-- `acceptance_items.category` utilise les catégories du PRD (document, formation, controle, briefing, autorisation)
+- `acceptance_items.category` utilise les catégories du PRD (document, formation, controle, briefing) — la valeur `autorisation` reste définie dans l'enum existant pour compatibilité avec les éléments déjà créés avant la révision du PRD, mais n'est plus proposée pour un nouvel élément
 - Les fichiers PDF des éléments sont stockés dans `uploads/acceptances/items/`
-- Les signatures/uploads sont stockés dans `uploads/acceptances/signatures/`
-- Les liens temporaires pointent vers un contrôleur public dédié
 
 ### Contrôleurs
 
 | Contrôleur | Rôle |
 |------------|------|
 | `acceptance_admin` | CRUD éléments, suivi acceptations (admin) |
-| `acceptance` | Acceptation interne, historique personnel (membre) |
+| `acceptance` | Acceptation, historique personnel (membre) |
 | `acceptance_training` | Délivrance/réception formations (instructeur/élève) |
-| `acceptance_external` | Initiation signature externe (pilote/responsable) |
-| `acceptance_sign` | Page publique de signature (sans auth, via token) |
 
 ---
 
@@ -112,11 +117,40 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 
 > Ce champ est requis par le Module 4 (Orchestrateur) qui référence les éléments d'acceptation via `acceptance_code` dans `workflows.json`. NULL autorisé pour les éléments non gérés par l'orchestrateur.
 
-### Lot 4 — Acceptation interne (utilisateurs membres)
+### Lot 3c — Ciblage d'un utilisateur individuel sur `acceptance_items`
+
+- [x] 3c.1 Créer une migration `168_acceptance_items_target_user.php` : ajout colonne `target_user_login VARCHAR(25) NULL COMMENT 'Membre individuel cible, alternative a target_roles'` + FK vers `membres(mlogin)` ON DELETE CASCADE
+- [x] 3c.2 Mettre à jour `application/config/migration.php` (version 168)
+- [x] 3c.3 Ajouter `target_user_login` dans `Gvvmetadata.php` pour `acceptance_items` (sélecteur membre, optionnel)
+- [x] 3c.4 Adapter le formulaire de création/édition d'élément (`bs_itemFormView.php`) : choix exclusif entre un utilisateur individuel (`target_user_login`) et une ou plusieurs catégories (`target_roles`), piloté par un radio `target_mode`
+- [x] 3c.5 Adapter la résolution des destinataires dans `acceptance_items_model.php` (`get_items_for_user`) pour exclure les éléments ciblant individuellement un autre utilisateur — `get_active_items` reste inchangé (non spécifique à un utilisateur)
+- [x] 3c.6 Fichiers de langue FR/EN/NL
+- [x] 3c.7 Écrire le test PHPUnit de migration (up, FK, down) + tests modèle pour la résolution utilisateur individuel — `AcceptanceItemsTargetUserMigrationTest.php` (3 tests) + tests ajoutés à `AcceptanceItemsModelTest.php` (4 tests), 90 tests acceptance au total, tous verts
+
+> Complète le schéma du Lot 1 (`target_roles` seul, catégories uniquement) pour permettre de cibler un pilote précis plutôt qu'une catégorie — cf. PRD, Cas d'utilisation Administrateur.
+
+### Lot 3d — Niveaux d'obligation et intégration message du jour (prérequis Lot 4)
+
+- [ ] 3d.1 Migration : remplacer `acceptance_items.mandatory` (TINYINT booléen, Lot 1) par `mandatory_level ENUM('optional','mandatory_soft','mandatory_hard') NOT NULL DEFAULT 'optional'`
+- [ ] 3d.2 Migration sur `motd_messages` : ajout colonne `dismissible TINYINT(1) NOT NULL DEFAULT 1` (message non masquable si `0`) — extension du module Messages du jour (migration 143), cf. `doc/prds/messages_du_jour_prd.md`
+- [ ] 3d.3 Adapter `Motd_model`/gestion de `motd_user_message_state` pour refuser le masquage (`hidden`) d'un message `dismissible = 0` tant que la validation associée n'est pas faite
+- [ ] 3d.4 À la mise en cible d'un `acceptance_items` obligatoire, créer automatiquement le message du jour associé (non masquable si obligatoire, lien vers la page de validation) ; le retirer ou le rendre masquable une fois la validation faite
+- [ ] 3d.5 Implémenter le blocage applicatif global pour `mandatory_hard` : filtre/hook redirigeant toute requête utilisateur vers la page de validation tant que l'élément n'est pas validé (exceptions : page de validation elle-même, déconnexion)
+- [ ] 3d.6 Adapter `Gvvmetadata.php` et le formulaire admin (`bs_itemFormView.php`) pour `mandatory_level`
+- [ ] 3d.7 Fichiers de langue FR/EN/NL
+- [ ] 3d.8 Écrire les tests PHPUnit : migration, non-masquage MOTD pour un message `dismissible = 0`, blocage global `mandatory_hard`
+
+> **Tranché** : le blocage `mandatory_hard` (3d.5) exempte la déconnexion et la page de validation elle-même. Les club-admins (rôle `club-admin`) ne sont jamais bloqués par une acceptation, quel que soit le niveau d'obligation — ils gardent un accès complet à GVV pour ne pas risquer de se bloquer eux-mêmes hors d'état d'administrer le club. Cf. PRD, Canal de notification et niveaux d'obligation.
+
+### Lot 4 — Acceptation interne (utilisateurs membres) — priorité (voir Note de priorité)
+
+Premier lot fonctionnel livré, centré sur la catégorie `document` et son lien avec les documents déjà archivés (`archived_documents`). Dépend du Lot 3d pour les niveaux d'obligation et la notification par message du jour.
+
+> **Tranché** : un élément `acceptance_items` de catégorie `document` référence un `archived_documents.id` existant (nouvelle colonne `archived_document_id` nullable, FK) plutôt que de téléverser un nouveau `pdf_path` propre à l'acceptation — cohérent avec l'intitulé du lot et l'évolution probable notée dans le PRD (formulaires → document archivé → acceptance). `pdf_path` (Lot 1) reste utilisable pour les autres catégories qui n'ont pas de document archivé source.
 
 - [ ] 4.1 Créer le contrôleur `acceptance.php` (tableau de bord, lecture, acceptation, refus, historique)
 - [ ] 4.2 Créer la vue tableau de bord des éléments en attente (`bs_acceptance_dashboard.php`)
-- [ ] 4.3 Implémenter le badge/notification du nombre d'éléments en attente (intégrer dans `bs_menu.php` ou layout)
+- [ ] 4.3 Implémenter le badge/notification du nombre d'éléments en attente (intégrer dans `bs_menu.php` ou layout) — en complément du message du jour (canal par défaut, Lot 3d)
 - [ ] 4.4 Créer la vue lecture et acceptation (`bs_acceptance_read.php`) avec :
   - [ ] 4.4.1 Viewer PDF intégré (iframe ou PDF.js)
   - [ ] 4.4.2 Détection défilement complet (JavaScript)
@@ -130,7 +164,7 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 - [ ] 4.8 Fichiers de langue FR/EN/NL pour les membres
 - [ ] 4.9 Valider : test PHPUnit workflow acceptation, test Playwright lecture et clic accepter
 
-### Lot 5 — Double validation (formations et contrôles)
+### Lot 5 — Double validation (formations et contrôles) — secondaire (voir Note de priorité)
 
 - [ ] 5.1 Créer le contrôleur `acceptance_training.php` (délivrance, confirmation, suivi)
 - [ ] 5.2 Créer la vue délivrance de formation (`bs_training_deliver.php`) :
@@ -146,102 +180,57 @@ Livrer un système complet d'acceptation et reconnaissance de documents, formati
 - [ ] 5.8 Fichiers de langue FR/EN/NL
 - [ ] 5.9 Valider : test PHPUnit double validation, test Playwright workflow complet instructeur→élève
 
-### Lot 6 — Signature externe
+### Lot 6 — Notifications
 
-- [ ] 6.1 Créer le contrôleur `acceptance_external.php` (initiation session, choix mode, suivi sessions)
-- [ ] 6.2 Implémenter la génération de tokens temporaires (aléatoires, à usage unique, durée limitée 24h)
-- [ ] 6.3 Créer la vue choix du mode de signature (`bs_external_initiate.php`) :
-  - [ ] 6.3.1 Bouton "Présenter sur cet écran" (mode direct)
-  - [ ] 6.3.2 Bouton "Envoyer un lien" (mode lien) avec copie/envoi email
-  - [ ] 6.3.3 Bouton "Générer un QR code" (utiliser `phpqrcode`) avec affichage/impression
-  - [ ] 6.3.4 Bouton "Mode papier" (formulaire upload)
-- [ ] 6.4 Créer la vue suivi des sessions en cours (`bs_external_sessions.php`)
-- [ ] 6.5 Fichiers de langue FR/EN/NL
-- [ ] 6.6 Valider : test PHPUnit génération token, test Playwright initiation session
+- [ ] 6.1 Implémenter la détection des éléments en attente à la connexion (hook dans le contrôleur de login ou layout)
+- [ ] 6.2 Afficher un badge dans le menu avec le nombre d'éléments en attente
+- [ ] 6.3 Créer le script/cron de détection des acceptations proches de la date limite
+- [ ] 6.4 Implémenter l'envoi d'emails de rappel (réutiliser l'infrastructure email existante)
+- [ ] 6.5 Notifications pour les doubles validations en attente (instructeur notifié quand élève n'a pas confirmé)
+- [ ] 6.6 Valider : test PHPUnit détection en attente, vérifier affichage badge
 
-### Lot 7 — Page publique de signature (sans authentification)
+### Lot 7 — Indicateurs visuels & date limite
 
-- [ ] 7.1 Créer le contrôleur `acceptance_sign.php` (accès par token uniquement, sans auth CI)
-- [ ] 7.2 Implémenter la validation du token (existence, expiration, usage unique)
-- [ ] 7.3 Créer la vue page de signature (`bs_sign_page.php`) :
-  - [ ] 7.3.1 Message informatif + viewer PDF avec défilement obligatoire
-  - [ ] 7.3.2 Bouton téléchargement PDF
-  - [ ] 7.3.3 Formulaire : nom, prénom du signataire
-  - [ ] 7.3.4 Pour catégorie `autorisation` : champs qualité, nom/prénom bénéficiaire mineur
-  - [ ] 7.3.5 Zone signature tactile (intégrer bibliothèque Signature Pad JS)
-  - [ ] 7.3.6 Alternative : upload fichier signé (JPEG, PNG, PDF, max 10 Mo)
-  - [ ] 7.3.7 Bouton de validation
-- [ ] 7.4 Créer la vue erreur lien expiré/invalide (`bs_sign_expired.php`)
-- [ ] 7.5 Enregistrer la signature (image base64 ou fichier) et l'acceptation avec horodatage
-- [ ] 7.6 Marquer le token comme utilisé après signature
-- [ ] 7.7 Fichiers de langue FR/EN/NL
-- [ ] 7.8 Valider : test PHPUnit validation token, test Playwright parcours complet signature externe
+- [ ] 7.1 Implémenter les indicateurs visuels Bootstrap 5 :
+  - [ ] 7.1.1 Badge "en retard" (rouge) après date limite
+  - [ ] 7.1.2 Badge "proche échéance" (orange) dans les X jours avant
+  - [ ] 7.1.3 Badge "en attente" (bleu)
+  - [ ] 7.1.4 Badge "accepté" (vert) / "refusé" (gris)
+- [ ] 7.2 Afficher clairement "À accepter avant le [date]" sur chaque élément
+- [ ] 7.3 Implémenter le filtre admin : en retard, proches échéance, en attente
+- [ ] 7.4 Valider : vérification visuelle des badges, test Playwright
 
-### Lot 8 — Mode papier
+### Lot 8 — Export et rapports
 
-- [ ] 8.1 Créer la génération PDF formulaire vierge via TCPDF (format pré-rempli avec espace signature)
-- [ ] 8.2 Créer la vue upload document signé (`bs_paper_upload.php`) :
-  - [ ] 8.2.1 Champs nom/prénom signataire
-  - [ ] 8.2.2 Pour `autorisation` : qualité, nom/prénom bénéficiaire
-  - [ ] 8.2.3 Date de signature
-  - [ ] 8.2.4 Zone upload (drag & drop, formats JPEG/PNG/PDF, max 10 Mo)
-  - [ ] 8.2.5 Case à cocher attestation présence pilote
-  - [ ] 8.2.6 Bouton "Valider et archiver"
-- [ ] 8.3 Implémenter la compression du fichier uploadé (réutiliser `File_compressor`)
-- [ ] 8.4 Enregistrer l'attestation du pilote avec formule automatique
-- [ ] 8.5 Fichiers de langue FR/EN/NL
-- [ ] 8.6 Valider : test PHPUnit upload et archivage, test Playwright formulaire papier
+- [ ] 8.1 Implémenter l'export CSV des acceptations par élément (admin)
+- [ ] 8.2 Implémenter l'export de la liste des personnes n'ayant pas encore accepté
+- [ ] 8.3 Valider : test PHPUnit format CSV, test Playwright téléchargement
 
-### Lot 9 — Notifications
+### Lot 9 — Internationalisation complète
 
-- [ ] 9.1 Implémenter la détection des éléments en attente à la connexion (hook dans le contrôleur de login ou layout)
-- [ ] 9.2 Afficher un badge dans le menu avec le nombre d'éléments en attente
-- [ ] 9.3 Créer le script/cron de détection des acceptations proches de la date limite
-- [ ] 9.4 Implémenter l'envoi d'emails de rappel (réutiliser l'infrastructure email existante)
-- [ ] 9.5 Notifications pour les doubles validations en attente (instructeur notifié quand élève n'a pas confirmé)
-- [ ] 9.6 Valider : test PHPUnit détection en attente, vérifier affichage badge
+- [ ] 9.1 Vérifier que tous les libellés UI utilisent `$this->lang->line()`
+- [ ] 9.2 Compléter les traductions EN et NL
+- [ ] 9.3 Vérifier les formules d'acceptation dans les 3 langues
+- [ ] 9.4 Valider : revue des fichiers de langue, aucune chaîne en dur dans les vues
 
-### Lot 10 — Indicateurs visuels & date limite
+### Lot 10 — Tests finaux & intégration
 
-- [ ] 10.1 Implémenter les indicateurs visuels Bootstrap 5 :
-  - [ ] 10.1.1 Badge "en retard" (rouge) après date limite
-  - [ ] 10.1.2 Badge "proche échéance" (orange) dans les X jours avant
-  - [ ] 10.1.3 Badge "en attente" (bleu)
-  - [ ] 10.1.4 Badge "accepté" (vert) / "refusé" (gris)
-- [ ] 10.2 Afficher clairement "À accepter avant le [date]" sur chaque élément
-- [ ] 10.3 Implémenter le filtre admin : en retard, proches échéance, en attente
-- [ ] 10.4 Valider : vérification visuelle des badges, test Playwright
-
-### Lot 11 — Export et rapports
-
-- [ ] 11.1 Implémenter l'export CSV des acceptations par élément (admin)
-- [ ] 11.2 Implémenter l'export de la liste des personnes n'ayant pas encore accepté
-- [ ] 11.3 Valider : test PHPUnit format CSV, test Playwright téléchargement
-
-### Lot 12 — Internationalisation complète
-
-- [ ] 12.1 Vérifier que tous les libellés UI utilisent `$this->lang->line()`
-- [ ] 12.2 Compléter les traductions EN et NL
-- [ ] 12.3 Vérifier les formules d'acceptation dans les 3 langues
-- [ ] 12.4 Valider : revue des fichiers de langue, aucune chaîne en dur dans les vues
-
-### Lot 13 — Tests finaux & intégration
-
-- [ ] 13.1 Exécuter `./run-all-tests.sh` — tous les tests PHPUnit passent
-- [ ] 13.2 Tests Playwright smoke : accès aux pages admin, membre, externe
-- [ ] 13.3 Test Playwright E2E : parcours complet acceptation interne
-- [ ] 13.4 Test Playwright E2E : parcours complet double validation formation
-- [ ] 13.5 Test Playwright E2E : parcours complet signature externe (lien + QR code)
-- [ ] 13.6 Test Playwright E2E : parcours mode papier
-- [ ] 13.7 Test Playwright E2E : autorisation parentale
-- [ ] 13.8 Test Playwright E2E : rattachement d'une acceptation externe au dossier d'un pilote
-- [ ] 13.9 Vérifier les permissions (rôles admin, membre, instructeur, externe)
-- [ ] 13.10 Vérifier le nettoyage des tokens expirés
-- [ ] 13.11 Revue de sécurité : tokens non devinables, expiration, CSRF, upload sécurisé, XSS
+- [ ] 10.1 Exécuter `./run-all-tests.sh` — tous les tests PHPUnit passent
+- [ ] 10.2 Tests Playwright smoke : accès aux pages admin, membre
+- [ ] 10.3 Test Playwright E2E : parcours complet acceptation
+- [ ] 10.4 Test Playwright E2E : parcours complet double validation formation
+- [ ] 10.5 Vérifier les permissions (rôles admin, membre, instructeur)
+- [ ] 10.6 Revue de sécurité : CSRF, XSS
 
 ---
 
 ## Schéma de base de données proposé
+
+Schéma tel que livré par le Lot 1 (migration `068_acceptance_system.php`), avant la révision du PRD. Les colonnes/tables `target_type` (externe), `signature_mode`, `linked_pilot_login`/`linked_by`/`linked_at`, `acceptance_signatures` et `acceptance_tokens` couvrent la signature externe et le rattachement différé, désormais hors périmètre — elles restent en base sans retrait rétroactif mais ne sont plus alimentées par un nouveau développement.
+
+`target_roles` ne couvre que le ciblage par catégorie. Le Lot 3c ajoute `target_user_login` pour cibler un utilisateur individuel, cf. PRD (Cas d'utilisation Administrateur).
+
+`mandatory` (TINYINT booléen) ne couvre qu'un obligatoire/facultatif binaire. Le Lot 3d le remplace par `mandatory_level` (trois niveaux) et ajoute `motd_messages.dismissible`, cf. PRD (Canal de notification et niveaux d'obligation).
 
 ### Table `acceptance_items`
 
@@ -363,23 +352,18 @@ CREATE TABLE `acceptance_tokens` (
 ```
 uploads/
 └── acceptances/
-    ├── items/              # PDF des éléments à accepter
-    │   └── <item_id>/
-    │       └── document.pdf
-    └── signatures/         # Signatures et documents signés
-        └── <record_id>/
-            └── signature.png | document_signe.pdf
+    └── items/              # PDF des éléments à accepter
+        └── <item_id>/
+            └── document.pdf
 ```
+
+Le sous-répertoire `signatures/` (signatures et documents signés externes) a été livré avec le Lot 1 mais ne reçoit plus de nouveau contenu depuis la révision du PRD.
 
 ---
 
 ## Dépendances externes à intégrer
 
-| Bibliothèque | Usage | Intégration |
-|---------------|-------|-------------|
-| [Signature Pad](https://github.com/nicejqr/jSignature) ou équivalent JS | Signature tactile | Fichier JS dans `assets/js/` |
-| phpqrcode (existant) | Génération QR codes | Déjà en `application/third_party/` |
-| TCPDF (existant) | Génération de rendus PDF imprimables | Déjà en `application/third_party/` |
+Aucune — les dépendances propres à la signature externe (Signature Pad JS, `phpqrcode`) ne sont plus nécessaires depuis la révision du PRD.
 
 ---
 
@@ -387,9 +371,6 @@ uploads/
 
 - [ ] Workflow acceptation simple : création élément → notification → lecture → acceptation en un clic → traçabilité
 - [ ] Workflow double validation : instructeur valide → élève notifié → élève confirme → traçabilité complète
-- [ ] Workflow signature externe : initiation → 4 modes (direct/lien/QR/papier) → signature → archivage
-- [ ] Autorisation parentale : champs spécifiques signataire/bénéficiaire → signature → archivage
-- [ ] Rattachement différé : acceptation externe non rattachée → rattachement à un pilote → visible dans le dossier pilote
 - [ ] Date limite : affichage, indicateurs visuels, filtres en retard
 - [ ] Processus lecture obligatoire : défilement complet avant bouton accepter
 - [ ] Export des acceptations

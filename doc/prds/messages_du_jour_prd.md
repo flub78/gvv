@@ -111,3 +111,4 @@ Les clubs souhaitent communiquer rapidement des informations importantes aux mem
 - Les messages expirés doivent-ils rester visibles sur la page dédiée ?
 - Y a-t-il un ordre de priorité (ex. messages urgents en premier) ?
 - Quelle limite de taille/frequence de televersement image retenir par club et par message ?
+- Le module Acceptations et Reconnaissances (`doc/prds/approbation_de_documents_prd.md`) a besoin d'un message non masquable par l'utilisateur (`dismissible = 0`) pour notifier une validation obligatoire — extension de schéma non couverte aujourd'hui (`motd_user_message_state.hidden` toujours modifiable), voir Lot 3d de `doc/plans/acceptations_reconnaissances_plan.md`.

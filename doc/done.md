@@ -238,7 +238,9 @@
 
 * [x] Support des messages du jour, qui pourront inclure les alarmes.
 
-* [] Gérer le contexte des filtres par page.
+* [x] Gérer le contexte des filtres par page.
+
+* [x] Refactoring split produits et tarifs.
 
 
 

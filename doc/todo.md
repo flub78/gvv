@@ -5,8 +5,6 @@
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
 ## Reste à faire
-    
-* [x] Refactoring split produits et tarifs.
 
 * [ ] Type de vol solo supervisé.
 

@@ -14,6 +14,10 @@ $lang['acceptance_dual_validation'] = 'Double validation';
 $lang['acceptance_role_1'] = 'Rôle 1';
 $lang['acceptance_role_2'] = 'Rôle 2';
 $lang['acceptance_target_roles'] = 'Rôles cibles';
+$lang['acceptance_target_user_login'] = 'Utilisateur cible';
+$lang['acceptance_target_mode'] = 'Ciblage';
+$lang['acceptance_target_mode_roles'] = 'Catégories';
+$lang['acceptance_target_mode_user'] = 'Utilisateur individuel';
 $lang['acceptance_active'] = 'Actif';
 $lang['acceptance_created_by'] = 'Créé par';
 $lang['acceptance_created_at'] = 'Créé le';
@@ -116,6 +120,7 @@ $lang['acceptance_role_1_placeholder'] = 'ex: instructeur';
 $lang['acceptance_role_2_placeholder'] = 'ex: élève';
 $lang['acceptance_target_roles_placeholder'] = 'ex: pilotes, instructeurs, bureau';
 $lang['acceptance_target_roles_help'] = 'Rôles séparés par des virgules. Vide = tous les membres.';
+$lang['acceptance_target_user_help'] = 'Un élément cible soit un utilisateur individuel, soit une ou plusieurs catégories, jamais les deux.';
 $lang['acceptance_active_help'] = 'Seuls les éléments actifs sont présentés aux membres';
 
 // Error messages

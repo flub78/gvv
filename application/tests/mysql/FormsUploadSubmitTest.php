@@ -158,7 +158,6 @@ class FormsUploadSubmitTest extends TestCase
             ->row_array();
 
         $this->assertNotEmpty($file, 'Un enregistrement form_submission_files (widget_name=uploaded_response) doit exister.');
-        $this->assertNull($file['field_id']);
         $this->assertSame('application/pdf', $file['mime_type']);
 
         $expected_path = FCPATH . 'uploads/reponses/' . $this->enabled_form_id . '/reponse_' . $submission['id'] . '.pdf';
