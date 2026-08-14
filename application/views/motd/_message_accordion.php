@@ -39,6 +39,31 @@
 #motdAccordion .accordion-item:last-child {
     margin-bottom: 0;
 }
+/* Hide/acknowledge stay next to the header (outside .accordion-collapse) so
+   they remain visible and clickable even when a message is collapsed. The
+   wrapper row holds the <h2> toggle heading and the actions as flex
+   siblings (kept out of the <h2> itself: a <div> is not valid heading
+   content). */
+#motdAccordion .motd-header-row {
+    display: flex;
+    align-items: stretch;
+}
+#motdAccordion .accordion-header {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#motdAccordion .accordion-button {
+    height: 100%;
+}
+#motdAccordion .motd-header-actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-left: 1px solid var(--bs-accordion-border-color, rgba(0, 0, 0, .175));
+}
 </style>
 <div class="accordion" id="motdAccordion">
     <?php
@@ -53,20 +78,44 @@
         $motd_badge_class = isset($motd_level_badges[$motd_message['level']]) ? $motd_level_badges[$motd_message['level']] : 'secondary';
         ?>
         <div class="accordion-item" data-unread="<?= empty($motd_message['acknowledged']) ? '1' : '0' ?>">
-            <h2 class="accordion-header" id="heading<?= $motd_item_id ?>">
-                <button class="accordion-button <?= $motd_expand_item ? '' : 'collapsed' ?>" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#collapse<?= $motd_item_id ?>">
-                    <span class="d-flex align-items-center flex-wrap gap-2 w-100">
-                        <?php if (!empty($motd_message['level'])): ?>
-                            <span class="badge bg-<?= $motd_badge_class ?>"><?= $this->lang->line('motd_level_' . $motd_message['level']) ?></span>
-                        <?php endif; ?>
-                        <span><?= !empty($motd_message['title']) ? htmlspecialchars($motd_message['title']) : $this->lang->line('motd_no_title') ?></span>
-                        <small class="text-muted ms-auto me-2">
-                            <?= date('d/m/Y H:i', strtotime($motd_message['start_date'])) ?> - <?= date('d/m/Y H:i', strtotime($motd_message['end_date'])) ?>
-                        </small>
-                    </span>
-                </button>
-            </h2>
+            <div class="motd-header-row">
+                <h2 class="accordion-header" id="heading<?= $motd_item_id ?>">
+                    <button class="accordion-button <?= $motd_expand_item ? '' : 'collapsed' ?>" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse<?= $motd_item_id ?>">
+                        <span class="d-flex align-items-center flex-wrap gap-2 w-100">
+                            <?php if (!empty($motd_message['level'])): ?>
+                                <span class="badge bg-<?= $motd_badge_class ?>"><?= $this->lang->line('motd_level_' . $motd_message['level']) ?></span>
+                            <?php endif; ?>
+                            <span><?= !empty($motd_message['title']) ? htmlspecialchars($motd_message['title']) : $this->lang->line('motd_no_title') ?></span>
+                            <small class="text-muted ms-auto me-2">
+                                <?= date('d/m/Y H:i', strtotime($motd_message['start_date'])) ?> - <?= date('d/m/Y H:i', strtotime($motd_message['end_date'])) ?>
+                            </small>
+                        </span>
+                    </button>
+                </h2>
+                <!-- Sibling of the <h2>, not nested inside its toggle button, so
+                     clicking these never collapses/expands the message; outside
+                     .accordion-collapse so they stay visible while collapsed. -->
+                <div class="motd-header-actions motd-message-actions">
+                    <?php if (!isset($motd_message['dismissible']) || $motd_message['dismissible']): ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary motd-hide-btn" data-message-id="<?= $motd_message['id'] ?>">
+                            <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide') ?>
+                        </button>
+                    <?php else: ?>
+                        <span class="badge bg-secondary" title="<?= $this->lang->line('motd_error_not_dismissible') ?>">
+                            <i class="fas fa-lock" aria-hidden="true"></i> <?= $this->lang->line('motd_not_dismissible_badge') ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (empty($motd_message['acknowledged'])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-success motd-ack-btn" data-message-id="<?= $motd_message['id'] ?>">
+                            <i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('motd_action_acknowledge') ?>
+                        </button>
+                    <?php else: ?>
+                        <span class="badge bg-success"><i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('motd_acknowledged_badge') ?></span>
+                    <?php endif; ?>
+                    <span class="text-danger small motd-action-error"></span>
+                </div>
+            </div>
             <div id="collapse<?= $motd_item_id ?>"
                  class="accordion-collapse collapse <?= $motd_expand_item ? 'show' : '' ?>">
                 <!-- No data-bs-parent: several unread urgent/important messages
@@ -75,20 +124,6 @@
                      collapse back down on page load. -->
                 <div class="accordion-body">
                     <div class="markdown-content"><?= markdown($motd_message['content']) ?></div>
-
-                    <div class="d-flex align-items-center gap-2 mt-2 mb-2 motd-message-actions">
-                        <button type="button" class="btn btn-sm btn-outline-secondary motd-hide-btn" data-message-id="<?= $motd_message['id'] ?>">
-                            <i class="fas fa-eye-slash" aria-hidden="true"></i> <?= $this->lang->line('motd_action_hide') ?>
-                        </button>
-                        <?php if (empty($motd_message['acknowledged'])): ?>
-                            <button type="button" class="btn btn-sm btn-outline-success motd-ack-btn" data-message-id="<?= $motd_message['id'] ?>">
-                                <i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('motd_action_acknowledge') ?>
-                            </button>
-                        <?php else: ?>
-                            <span class="badge bg-success"><i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('motd_acknowledged_badge') ?></span>
-                        <?php endif; ?>
-                        <span class="text-danger small motd-action-error"></span>
-                    </div>
 
                     <div class="motd-replies-list" id="motdReplies<?= $motd_message['id'] ?>">
                         <?php if (!empty($motd_message['replies'])): ?>

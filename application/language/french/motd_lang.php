@@ -88,6 +88,8 @@ $lang['motd_reply_cancel'] = 'Annuler';
 $lang['motd_reply_replying_to'] = 'En réponse à';
 $lang['motd_error_reply_empty'] = 'La réponse ne peut pas être vide.';
 $lang['motd_error_action_failed'] = 'Une erreur est survenue, veuillez réessayer.';
+$lang['motd_error_not_dismissible'] = 'Ce message ne peut pas être masqué tant que la validation associée n\'est pas faite.';
+$lang['motd_not_dismissible_badge'] = 'Non masquable';
 
 $lang['motd_section_empty'] = 'Aucun message ne vous est actuellement adressé.';
 $lang['motd_section_all_hidden'] = "Vous n'avez aucun message non masqué. Utilisez le bouton \"Afficher tous les messages\" ci-dessus pour les retrouver.";

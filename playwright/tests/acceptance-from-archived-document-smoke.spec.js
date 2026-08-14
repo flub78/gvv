@@ -19,6 +19,10 @@ const ARCHIVED_DOCS_LIST_URL = '/index.php/archived_documents/page';
 const ACCEPTANCE_ADMIN_URL = '/index.php/acceptance_admin/page';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
+// testadmin has no membres row (application login only), so it cannot be
+// selected in the target_user_login dropdown (Membres_model::selector()
+// only lists actual club members) — use testuser to target an individual.
+const MEMBER_LOGIN = 'testuser';
 const PDF_FIXTURE = path.resolve(__dirname, '../../application/tests/data/attachments/documents/small_invoice_90kb.pdf');
 const GVV_ROOT = path.resolve(__dirname, '../..');
 
@@ -63,6 +67,13 @@ async function cleanup(conn) {
     fs.promises.unlink(thumb).catch(() => {});
   }
 
+  // motd_messages.source_ref is a soft link (no FK) to acceptance_items.id,
+  // so it must be cleaned up before the item row disappears, or generated
+  // messages targeting real members are left orphaned on the dashboard.
+  await conn.query(
+    "DELETE FROM motd_messages WHERE source_type = 'acceptance_item' AND source_ref IN " +
+    "(SELECT id FROM acceptance_items WHERE title LIKE 'Acceptance from doc %')"
+  );
   await conn.query("DELETE FROM acceptance_items WHERE title LIKE 'Acceptance from doc %'");
   await conn.query("DELETE FROM archived_documents WHERE description LIKE 'Acceptance smoke doc %'");
 }
@@ -96,7 +107,7 @@ test.describe.serial('Acceptance from archived document smoke test', () => {
     await checkNoPhpErrors(page);
 
     // 2. On the admin documents list, find the row for this document and use
-    // the "create acceptance" action button.
+    // the "view acceptances" action button.
     await page.goto(ARCHIVED_DOCS_LIST_URL);
     await page.waitForLoadState('networkidle');
 
@@ -108,7 +119,20 @@ test.describe.serial('Acceptance from archived document smoke test', () => {
     const row = page.locator('tr', { hasText: description });
     await expect(row).toBeVisible();
 
-    const createAcceptanceBtn = row.locator('a[href*="acceptance_admin/create/"]');
+    const viewAcceptancesBtn = row.locator('a[href*="acceptance_admin/page?filter_archived_document_id="]');
+    await expect(viewAcceptancesBtn).toBeVisible();
+    await viewAcceptancesBtn.click();
+    await page.waitForLoadState('networkidle');
+
+    await checkNoPhpErrors(page);
+
+    // 2bis. That list is scoped to the document and offers a "new acceptance
+    // request for this document" button leading to the pre-filled create form.
+    expect(page.url()).toContain('filter_archived_document_id=');
+    const listBodyText = await page.textContent('body');
+    expect(listBodyText).toContain(description);
+
+    const createAcceptanceBtn = page.locator('a[href*="acceptance_admin/create/"]');
     await expect(createAcceptanceBtn).toBeVisible();
     await createAcceptanceBtn.click();
     await page.waitForLoadState('networkidle');
@@ -134,6 +158,11 @@ test.describe.serial('Acceptance from archived document smoke test', () => {
     // 4. Fill remaining required field and submit.
     const itemTitle = 'Acceptance from doc ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
+    // Target a member individually rather than leaving it unrestricted: an
+    // unrestricted item generates a message du jour for every active member
+    // (Lot 3d.4), which would spam real accounts on this shared DB.
+    await page.check('#target_mode_user');
+    await page.selectOption('select[name="target_user_login"]', MEMBER_LOGIN);
     await page.locator('button[type="submit"].btn-primary').first().click();
     await page.waitForLoadState('networkidle');
 

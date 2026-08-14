@@ -213,8 +213,9 @@ function motd_init_dashboard_actions(opts) {
 					decrementUnreadBadge();
 				}
 			})
-			.fail(function() {
-				showError($actions, opts.errorFallback);
+			.fail(function(xhr) {
+				var response = xhr.responseJSON;
+				showError($actions, response && response.error ? response.error : opts.errorFallback);
 			});
 	});
 

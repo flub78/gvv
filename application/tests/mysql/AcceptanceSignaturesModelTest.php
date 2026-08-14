@@ -63,7 +63,7 @@ class AcceptanceSignaturesModelTest extends TestCase
             'title' => 'Sig Test Item ' . uniqid(),
             'category' => 'autorisation',
             'target_type' => 'external',
-            'mandatory' => 0,
+            'mandatory_level' => 'optional',
             'dual_validation' => 0,
             'active' => 1,
             'created_by' => $login,

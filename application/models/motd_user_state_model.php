@@ -29,26 +29,41 @@ class Motd_user_state_model extends Common_Model {
         return $this->get_first(array('message_id' => $message_id, 'user_login' => $user_login));
     }
 
+    /**
+     * @return int|FALSE The state row id on success, FALSE if the message is
+     *   not dismissible or the write failed.
+     */
     public function hide_message($message_id, $user_login) {
+        $message = $this->motd_model->get_message($message_id);
+        if (!$message || empty($message['dismissible'])) {
+            return FALSE;
+        }
         return $this->upsert_state($message_id, $user_login, array('hidden' => 1));
     }
 
     /**
      * Hide every message currently active and visible to the user, in a
-     * single bulk upsert query rather than one per message.
+     * single bulk upsert query rather than one per message. Messages with
+     * dismissible = 0 are left visible (not counted, not touched) — this is
+     * a "hide everything you're allowed to" bulk action, not a per-item
+     * request, so silently skipping them is not a silent failure: they
+     * simply remain on the dashboard.
      *
      * @return int|FALSE Number of messages hidden, or FALSE if the write failed.
      */
     public function hide_all_messages($user_login) {
         $active = $this->motd_model->active_messages_for_user($user_login, 'priority', TRUE);
-        if (empty($active)) {
+        $dismissible = array_values(array_filter($active, function ($message) {
+            return !empty($message['dismissible']);
+        }));
+        if (empty($dismissible)) {
             return 0;
         }
 
         $now = date('Y-m-d H:i:s');
         $placeholders = array();
         $bindings = array();
-        foreach ($active as $message) {
+        foreach ($dismissible as $message) {
             $placeholders[] = '(?, ?, 1, ?, ?, ?, ?)';
             array_push($bindings, $message['id'], $user_login, $now, $now, $user_login, $user_login);
         }
@@ -62,7 +77,7 @@ class Motd_user_state_model extends Common_Model {
             gvv_error("motd_user_state_model::hide_all_messages failed: " . $this->db->_error_message());
             return FALSE;
         }
-        return count($active);
+        return count($dismissible);
     }
 
     /**

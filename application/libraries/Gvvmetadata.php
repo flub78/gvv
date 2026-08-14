@@ -1117,8 +1117,13 @@ class GVVMetadata extends Metadata {
                 );
                 $this->field['acceptance_items']['version_date']['Name'] = $CI->lang->line('acceptance_version_date');
                 $this->field['acceptance_items']['version_date']['Type'] = 'date';
-                $this->field['acceptance_items']['mandatory']['Name'] = $CI->lang->line('acceptance_mandatory');
-                $this->field['acceptance_items']['mandatory']['Subtype'] = 'boolean';
+                $this->field['acceptance_items']['mandatory_level']['Name'] = $CI->lang->line('acceptance_mandatory');
+                $this->field['acceptance_items']['mandatory_level']['Subtype'] = 'enumerate';
+                $this->field['acceptance_items']['mandatory_level']['Enumerate'] = array(
+                    'optional' => $CI->lang->line('acceptance_mandatory_optional'),
+                    'mandatory_soft' => $CI->lang->line('acceptance_mandatory_soft'),
+                    'mandatory_hard' => $CI->lang->line('acceptance_mandatory_hard')
+                );
                 $this->field['acceptance_items']['deadline']['Name'] = $CI->lang->line('acceptance_deadline');
                 $this->field['acceptance_items']['deadline']['Type'] = 'date';
                 $this->field['acceptance_items']['dual_validation']['Name'] = $CI->lang->line('acceptance_dual_validation');
@@ -1145,8 +1150,13 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_acceptance_items']['title']['Name'] = $CI->lang->line('acceptance_title');
                 $this->field['vue_acceptance_items']['category']['Name'] = $CI->lang->line('acceptance_category');
                 $this->field['vue_acceptance_items']['target_type']['Name'] = $CI->lang->line('acceptance_target_type');
-                $this->field['vue_acceptance_items']['mandatory']['Name'] = $CI->lang->line('acceptance_mandatory');
-                $this->field['vue_acceptance_items']['mandatory']['Subtype'] = 'boolean';
+                $this->field['vue_acceptance_items']['mandatory_level']['Name'] = $CI->lang->line('acceptance_mandatory');
+                $this->field['vue_acceptance_items']['mandatory_level']['Subtype'] = 'enumerate';
+                $this->field['vue_acceptance_items']['mandatory_level']['Enumerate'] = array(
+                    'optional' => $CI->lang->line('acceptance_mandatory_optional'),
+                    'mandatory_soft' => $CI->lang->line('acceptance_mandatory_soft'),
+                    'mandatory_hard' => $CI->lang->line('acceptance_mandatory_hard')
+                );
                 $this->field['vue_acceptance_items']['deadline']['Name'] = $CI->lang->line('acceptance_deadline');
                 $this->field['vue_acceptance_items']['deadline']['Type'] = 'date';
                 $this->field['vue_acceptance_items']['active']['Name'] = $CI->lang->line('acceptance_active');
@@ -1154,7 +1164,7 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_acceptance_items']['created_by_name']['Name'] = $CI->lang->line('acceptance_created_by');
 
                 $this->db['default_fields']['vue_acceptance_items'] = array(
-                    'title', 'category', 'target_type', 'mandatory', 'deadline', 'active', 'created_by_name'
+                    'title', 'category', 'target_type', 'mandatory_level', 'deadline', 'active', 'created_by_name'
                 );
 
                 /**

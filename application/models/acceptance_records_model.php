@@ -128,6 +128,32 @@ class Acceptance_records_model extends Common_Model {
     }
 
     /**
+     * Get or lazily create the personal record for (item_id, user_login).
+     * Returns the existing record regardless of its status (pending,
+     * accepted or refused) — only creates a new 'pending' one when the user
+     * visits the item for the first time.
+     * @param int $item_id Item ID
+     * @param string $user_login Member login
+     * @return array|null The record, or NULL if creation failed
+     */
+    public function get_or_create_pending($item_id, $user_login) {
+        $existing = $this->get_first(array('item_id' => $item_id, 'user_login' => $user_login));
+        if ($existing) {
+            return $existing;
+        }
+
+        $id = $this->create(array(
+            'item_id' => $item_id,
+            'user_login' => $user_login,
+            'status' => 'pending',
+        ));
+        if (!$id) {
+            return null;
+        }
+        return $this->get_by_id('id', $id);
+    }
+
+    /**
      * Accept a record
      * @param int $record_id Record ID
      * @param string $formula_text Acceptance formula text

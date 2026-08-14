@@ -121,7 +121,7 @@ class AcceptanceSystemMigrationTest extends TestCase
         $columns = $this->getTableColumns('acceptance_items');
         $expected_columns = [
             'id', 'title', 'category', 'pdf_path', 'target_type',
-            'version_date', 'mandatory', 'deadline', 'dual_validation',
+            'version_date', 'mandatory_level', 'deadline', 'dual_validation',
             'role_1', 'role_2', 'target_roles', 'active',
             'created_by', 'created_at', 'updated_at'
         ];
@@ -157,14 +157,17 @@ class AcceptanceSystemMigrationTest extends TestCase
         $this->assertStringContainsString('internal', $info['COLUMN_DEFAULT']);
     }
 
-    public function testAcceptanceItemsTable_MandatoryDefaultZero()
+    public function testAcceptanceItemsTable_MandatoryLevelDefaultOptional()
     {
         if (!$this->tableExists('acceptance_items')) {
             $this->markTestSkipped('Table acceptance_items does not exist');
         }
 
-        $info = $this->getColumnInfo('acceptance_items', 'mandatory');
-        $this->assertEquals('0', $info['COLUMN_DEFAULT']);
+        $info = $this->getColumnInfo('acceptance_items', 'mandatory_level');
+        $this->assertEquals('optional', trim($info['COLUMN_DEFAULT'], "'"));
+        $this->assertStringContainsString("'optional'", $info['COLUMN_TYPE']);
+        $this->assertStringContainsString("'mandatory_soft'", $info['COLUMN_TYPE']);
+        $this->assertStringContainsString("'mandatory_hard'", $info['COLUMN_TYPE']);
     }
 
     public function testAcceptanceItemsTable_Indexes()

@@ -124,19 +124,21 @@ $archived_document = isset($archived_document) ? $archived_document : null;
             </div>
         </div>
 
-        <!-- Mandatory -->
+        <!-- Mandatory level -->
         <div class="mb-3 row">
-            <label class="col-sm-2 col-form-label">
+            <label for="mandatory_level" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('acceptance_mandatory') ?>
             </label>
             <div class="col-sm-10">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="mandatory" id="mandatory" value="1"
-                        <?= (isset($mandatory) && $mandatory) ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="mandatory">
-                        <?= $this->lang->line('acceptance_mandatory_help') ?>
-                    </label>
-                </div>
+                <?php
+                    $mandatory_level_options = array(
+                        'optional' => $this->lang->line('acceptance_mandatory_optional'),
+                        'mandatory_soft' => $this->lang->line('acceptance_mandatory_soft'),
+                        'mandatory_hard' => $this->lang->line('acceptance_mandatory_hard')
+                    );
+                ?>
+                <?= form_dropdown('mandatory_level', $mandatory_level_options, set_value('mandatory_level', isset($mandatory_level) ? $mandatory_level : 'optional'), 'class="form-select" id="mandatory_level"') ?>
+                <small class="text-muted"><?= $this->lang->line('acceptance_mandatory_help') ?></small>
             </div>
         </div>
 

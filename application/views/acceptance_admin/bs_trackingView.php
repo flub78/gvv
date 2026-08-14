@@ -45,8 +45,10 @@ $filter_linked = isset($filter_linked) ? $filter_linked : '';
                 <strong><?= $this->lang->line('acceptance_target_type') ?>:</strong>
                 <?= $item['target_type'] === 'external' ? $this->lang->line('acceptance_target_type_external') : $this->lang->line('acceptance_target_type_internal') ?>
 
-                <?php if ($item['mandatory']): ?>
-                    &bull; <span class="badge bg-danger"><?= $this->lang->line('acceptance_mandatory') ?></span>
+                <?php if ($item['mandatory_level'] === 'mandatory_hard'): ?>
+                    &bull; <span class="badge bg-danger"><?= $this->lang->line('acceptance_mandatory_hard') ?></span>
+                <?php elseif ($item['mandatory_level'] === 'mandatory_soft'): ?>
+                    &bull; <span class="badge bg-warning text-dark"><?= $this->lang->line('acceptance_mandatory_soft') ?></span>
                 <?php endif; ?>
 
                 <?php if (!empty($item['deadline'])): ?>

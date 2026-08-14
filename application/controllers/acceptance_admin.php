@@ -87,6 +87,7 @@ class Acceptance_admin extends Gvv_Controller {
         $filter_category = $this->input->get('filter_category') ?: '';
         $filter_active = $this->input->get('filter_active') ?: 'all';
         $filter_overdue = $this->input->get('filter_overdue') ?: '';
+        $filter_archived_document_id = $this->input->get('filter_archived_document_id') ?: '';
 
         $where = array();
         if (!empty($filter_category)) {
@@ -94,6 +95,9 @@ class Acceptance_admin extends Gvv_Controller {
         }
         if ($filter_active !== 'all') {
             $where['acceptance_items.active'] = (int) $filter_active;
+        }
+        if (!empty($filter_archived_document_id)) {
+            $where['acceptance_items.archived_document_id'] = (int) $filter_archived_document_id;
         }
 
         $this->data['select_result'] = $this->gvv_model->select_page(0, 0, $where);
@@ -113,6 +117,10 @@ class Acceptance_admin extends Gvv_Controller {
         $this->data['filter_category'] = $filter_category;
         $this->data['filter_active'] = $filter_active;
         $this->data['filter_overdue'] = $filter_overdue;
+        $this->data['filter_archived_document_id'] = $filter_archived_document_id;
+        if (!empty($filter_archived_document_id)) {
+            $this->data['filter_archived_document'] = $this->archived_documents_model->get_by_id('id', $filter_archived_document_id);
+        }
         $this->data['kid'] = $this->kid;
         $this->data['controller'] = $this->controller;
         $this->data['has_modification_rights'] = true;
@@ -301,6 +309,12 @@ class Acceptance_admin extends Gvv_Controller {
             $version_date = mysql_date($this->input->post('version_date')) ?: null;
         }
 
+        // Obligation level: optional / mandatory_soft / mandatory_hard (Lot 3d).
+        $mandatory_level = $this->input->post('mandatory_level');
+        if (!in_array($mandatory_level, array('optional', 'mandatory_soft', 'mandatory_hard'), true)) {
+            $mandatory_level = 'optional';
+        }
+
         // Build item data
         $item_data = array(
             'title' => $title,
@@ -308,7 +322,7 @@ class Acceptance_admin extends Gvv_Controller {
             'archived_document_id' => $archived_document_id ?: null,
             'target_type' => $this->input->post('target_type') ?: 'internal',
             'version_date' => $version_date,
-            'mandatory' => $this->input->post('mandatory') ? 1 : 0,
+            'mandatory_level' => $mandatory_level,
             'deadline' => mysql_date($this->input->post('deadline')) ?: null,
             'dual_validation' => $this->input->post('dual_validation') ? 1 : 0,
             'role_1' => $this->input->post('role_1') ?: null,
@@ -336,6 +350,7 @@ class Acceptance_admin extends Gvv_Controller {
 
             if ($id) {
                 $this->acceptance_item_roles_model->replace_for_item($id, $role_values, $this->dx_auth->get_username());
+                $this->gvv_model->sync_target_motd($id);
                 $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_item_created') . '</div>');
                 redirect('acceptance_admin/page');
             } else {
@@ -358,6 +373,7 @@ class Acceptance_admin extends Gvv_Controller {
             }
 
             $this->acceptance_item_roles_model->replace_for_item($id, $role_values, $this->dx_auth->get_username());
+            $this->gvv_model->sync_target_motd($id);
             $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_item_updated') . '</div>');
             redirect('acceptance_admin/page');
         }
@@ -384,11 +400,43 @@ class Acceptance_admin extends Gvv_Controller {
             'active' => $new_active,
             'updated_at' => date('Y-m-d H:i:s')
         ), $id);
+        $this->gvv_model->sync_target_motd($id);
 
         $msg = $new_active
             ? $this->lang->line('acceptance_item_activated')
             : $this->lang->line('acceptance_item_deactivated');
         $this->session->set_flashdata('message', '<div class="alert alert-success">' . $msg . '</div>');
+        redirect('acceptance_admin/page');
+    }
+
+    /**
+     * Delete an item. Cascades in DB to its acceptance_records (and their
+     * acceptance_signatures) and acceptance_item_roles (migrations 068/170,
+     * ON DELETE CASCADE) — the confirmation dialog warns about this. Its
+     * generated message(s) du jour are cleared explicitly (source_type/
+     * source_ref is a soft link, no FK). The referenced archived_documents
+     * file (if any) is NOT touched, it belongs to the document archiving
+     * module; only a PDF uploaded for this item specifically (pdf_path) is
+     * removed from disk.
+     */
+    function delete($id) {
+        if (!$this->_is_admin()) {
+            show_404();
+            return;
+        }
+
+        $item = $this->gvv_model->get_by_id('id', $id);
+        if (!$item) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_item_not_found') . '</div>');
+            redirect('acceptance_admin/page');
+            return;
+        }
+
+        $this->_delete_item_pdf($item);
+        $this->gvv_model->clear_target_motd($id);
+        $this->gvv_model->delete(array('id' => $id));
+
+        $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_item_deleted') . '</div>');
         redirect('acceptance_admin/page');
     }
 
@@ -545,6 +593,29 @@ class Acceptance_admin extends Gvv_Controller {
      */
     private function _is_admin() {
         return $this->user_has_role('ca') || $this->user_has_role('club-admin');
+    }
+
+    /**
+     * Remove the PDF uploaded specifically for this item (uploads/acceptances/items/<id>/),
+     * if any. Does nothing when the item references an archived_documents
+     * file instead (that file belongs to the document archiving module).
+     */
+    private function _delete_item_pdf($item) {
+        if (empty($item['pdf_path']) || !empty($item['archived_document_id'])) {
+            return;
+        }
+
+        $dir = dirname($item['pdf_path']);
+        if (strpos($dir, 'uploads/acceptances/items/') === false || !is_dir($dir)) {
+            return;
+        }
+
+        foreach (glob($dir . '/*') ?: array() as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
+        @rmdir($dir);
     }
 
     /**

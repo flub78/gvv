@@ -69,6 +69,13 @@ if ($CI->dx_auth->is_logged_in()) {
     $section_selector = $CI->sections_model->selector_with_all();
 }
 
+// Nombre d'elements d'acceptation en attente pour le badge de menu (Lot 4)
+$acceptance_pending_count = 0;
+if ($CI->dx_auth->is_logged_in()) {
+    $CI->load->model('acceptance_items_model');
+    $acceptance_pending_count = count($CI->acceptance_items_model->get_pending_items_for_user($CI->dx_auth->get_username()));
+}
+
 ?>
 
 <body>
@@ -283,6 +290,14 @@ if ($CI->dx_auth->is_logged_in()) {
             <?php if ($this->config->item('gestion_documentaire')) : ?>
             <li><a class="dropdown-item" href="<?= controller_url("archived_documents/my_documents") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_my_documents") ?></a></li>
             <?php endif; ?>
+            <li>
+              <a class="dropdown-item" href="<?= controller_url("acceptance") ?>">
+                <i class="fas fa-clipboard-check text-info"></i> <?= translation("acceptance_menu_my_acceptances") ?>
+                <?php if ($acceptance_pending_count > 0) : ?>
+                  <span class="badge bg-danger"><?= $acceptance_pending_count ?></span>
+                <?php endif; ?>
+              </a>
+            </li>
 
           </ul>
         </li>

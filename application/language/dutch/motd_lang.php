@@ -88,6 +88,8 @@ $lang['motd_reply_cancel'] = 'Annuleren';
 $lang['motd_reply_replying_to'] = 'Antwoord op';
 $lang['motd_error_reply_empty'] = 'De reactie mag niet leeg zijn.';
 $lang['motd_error_action_failed'] = 'Er is een fout opgetreden, probeer het opnieuw.';
+$lang['motd_error_not_dismissible'] = 'Dit bericht kan niet worden verborgen totdat de bijbehorende validatie is voltooid.';
+$lang['motd_not_dismissible_badge'] = 'Niet verbergbaar';
 
 $lang['motd_section_empty'] = 'Er is momenteel geen bericht aan u gericht.';
 $lang['motd_section_all_hidden'] = 'U heeft geen zichtbaar bericht meer. Gebruik de knop "Alle berichten weergeven" hierboven om ze terug te vinden.';

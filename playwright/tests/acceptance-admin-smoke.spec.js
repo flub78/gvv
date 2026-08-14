@@ -23,6 +23,10 @@ const TEST_USER = {
   username: 'testadmin',
   password: 'password'
 };
+// testadmin has no membres row (application login only), so it cannot be
+// selected in the target_user_login dropdown (Membres_model::selector()
+// only lists actual club members) — use testuser to target an individual.
+const MEMBER_LOGIN = 'testuser';
 
 const DB_CONFIG = {
   host: 'localhost',
@@ -58,6 +62,13 @@ async function checkNoPhpErrors(page) {
 // activate/deactivate), so items created by this suite are removed directly
 // in the database rather than through the UI.
 async function cleanup(conn) {
+  // motd_messages.source_ref is a soft link (no FK) to acceptance_items.id,
+  // so it must be cleaned up before the item row disappears, or generated
+  // messages targeting real members are left orphaned on the dashboard.
+  await conn.query(
+    "DELETE FROM motd_messages WHERE source_type = 'acceptance_item' AND source_ref IN " +
+    "(SELECT id FROM acceptance_items WHERE title LIKE 'Test Acceptance Item %' OR title LIKE 'Tracking Test %')"
+  );
   await conn.query("DELETE FROM acceptance_items WHERE title LIKE 'Test Acceptance Item %' OR title LIKE 'Tracking Test %'");
 }
 
@@ -108,6 +119,7 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     // Check form elements are present
     await expect(page.locator('input[name="title"]')).toBeVisible();
     await expect(page.locator('select[name="category"]')).toBeVisible();
+    await expect(page.locator('select[name="mandatory_level"]')).toBeVisible();
 
     // target_type, dual_validation and role_1/role_2 are hidden (unused for now).
     await expect(page.locator('select[name="target_type"]')).toHaveCount(0);
@@ -133,8 +145,8 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     await page.fill('input[name="title"]', itemTitle);
     await page.selectOption('select[name="category"]', 'document');
 
-    // Check mandatory checkbox
-    await page.check('input[name="mandatory"]');
+    // Obligation level (replaces the former boolean "mandatory" checkbox).
+    await page.selectOption('select[name="mandatory_level"]', 'mandatory_hard');
 
     // Target one role in the role x section grid.
     await page.locator('input[name="roles[]"]').first().check();
@@ -171,6 +183,47 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     console.log('Role targeting persisted to acceptance_item_roles');
   });
 
+  test('should delete an acceptance item from the list', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    // Create an item to delete.
+    await page.goto(ACCEPTANCE_CREATE_URL);
+    await page.waitForLoadState('networkidle');
+    const itemTitle = 'Test Acceptance Item ' + Date.now();
+    await page.fill('input[name="title"]', itemTitle);
+    await page.selectOption('select[name="category"]', 'briefing');
+    // Target a member individually rather than leaving it unrestricted:
+    // an unrestricted item generates a message du jour for every active
+    // member (Lot 3d.4), which would spam real accounts on this shared DB.
+    await page.check('#target_mode_user');
+    await page.selectOption('select[name="target_user_login"]', MEMBER_LOGIN);
+    await page.locator('button[type="submit"].btn-primary').first().click();
+    await page.waitForLoadState('networkidle');
+
+    await page.goto(ACCEPTANCE_ADMIN_URL);
+    await page.waitForLoadState('networkidle');
+    const row = page.locator('tr', { hasText: itemTitle });
+    await expect(row).toBeVisible();
+
+    const [itemsBefore] = await conn.query('SELECT id FROM acceptance_items WHERE title = ?', [itemTitle]);
+    expect(itemsBefore.length).toBe(1);
+    const itemId = itemsBefore[0].id;
+
+    page.once('dialog', dialog => dialog.accept());
+    await row.locator('a[title="Supprimer"]').click();
+    await page.waitForLoadState('networkidle');
+
+    await checkNoPhpErrors(page);
+    const bodyText = await page.textContent('body');
+    expect(bodyText).toContain('supprimé');
+    await expect(page.locator('tr', { hasText: itemTitle })).toHaveCount(0);
+
+    const [itemsAfter] = await conn.query('SELECT id FROM acceptance_items WHERE id = ?', [itemId]);
+    expect(itemsAfter.length).toBe(0);
+
+    console.log('Item deleted successfully');
+  });
+
   test('should access tracking view for an item', async ({ page }) => {
     await loginAsAdmin(page);
 
@@ -181,6 +234,11 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     const itemTitle = 'Tracking Test ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
     await page.selectOption('select[name="category"]', 'briefing');
+    // Target a member individually rather than leaving it unrestricted:
+    // an unrestricted item generates a message du jour for every active
+    // member (Lot 3d.4), which would spam real accounts on this shared DB.
+    await page.check('#target_mode_user');
+    await page.selectOption('select[name="target_user_login"]', MEMBER_LOGIN);
     await page.locator('button[type="submit"].btn-primary').first().click();
     await page.waitForLoadState('networkidle');
 

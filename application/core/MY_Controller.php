@@ -24,6 +24,19 @@ class MY_Controller extends CI_Controller
     {
         parent::__construct();
 
+        // Common ancestor for both Gvv_Controller variants (libraries/ and
+        // core/) — set here so every controller gets a consistent timezone,
+        // not just the ones using libraries/Gvv_Controller.php (which also
+        // sets it, redundantly but harmlessly, for its own callers). Without
+        // this, controllers using core/Gvv_Controller.php (Welcome, Auth,
+        // Login_as, ...) compute date()/time() in PHP's ini default (UTC)
+        // while the rest of the app uses Europe/Paris, a 1-2h discrepancy
+        // that silently breaks any cross-controller time comparison — e.g.
+        // a motd_messages row inserted with a Europe/Paris start_date looked
+        // like it started in the future to Welcome's UTC-based "now" and
+        // stayed invisible on the dashboard for up to 2 hours.
+        date_default_timezone_set('Europe/Paris');
+
         // Note: dx_auth is autoloaded in application/config/autoload.php
 
         $this->load->library('Gvv_Authorization');

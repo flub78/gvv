@@ -436,6 +436,47 @@ class MotdModelTest extends TestCase
         $this->assertEquals(1, $state2['hidden']);
     }
 
+    /**
+     * Lot 3d: a message with dismissible = 0 must not be hideable, neither
+     * individually nor via "hide all" (which must still hide the other,
+     * dismissible messages).
+     */
+    public function testHideMessage_RefusedWhenNotDismissible()
+    {
+        $id = $this->motd_model->create_message($this->base_message(array(
+            'title' => 'Not dismissible',
+            'dismissible' => 0,
+        )));
+        $this->test_message_ids[] = $id;
+
+        $result = $this->motd_user_state_model->hide_message($id, $this->pilot_a);
+        $this->assertFalse($result, 'hide_message() must refuse a dismissible=0 message');
+
+        $titles = array_column($this->motd_model->active_messages_for_user($this->pilot_a), 'title');
+        $this->assertContains('Not dismissible', $titles, 'The message must remain visible');
+
+        $state = $this->motd_user_state_model->get_state($id, $this->pilot_a);
+        $this->assertFalse((bool) ($state && $state['hidden']), 'No hidden state should have been written');
+    }
+
+    public function testHideAllMessages_SkipsNonDismissible()
+    {
+        $dismissible_id = $this->motd_model->create_message($this->base_message(array('title' => 'Dismissible one')));
+        $this->test_message_ids[] = $dismissible_id;
+        $locked_id = $this->motd_model->create_message($this->base_message(array(
+            'title' => 'Locked one',
+            'dismissible' => 0,
+        )));
+        $this->test_message_ids[] = $locked_id;
+
+        $hidden_count = $this->motd_user_state_model->hide_all_messages($this->pilot_a);
+        $this->assertGreaterThanOrEqual(1, $hidden_count);
+
+        $titles = array_column($this->motd_model->active_messages_for_user($this->pilot_a), 'title');
+        $this->assertNotContains('Dismissible one', $titles, 'Dismissible message must be hidden');
+        $this->assertContains('Locked one', $titles, 'Non-dismissible message must remain visible');
+    }
+
     public function testAcknowledgeMessage()
     {
         $id = $this->motd_model->create_message($this->base_message());

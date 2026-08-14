@@ -63,7 +63,7 @@ class AcceptanceRecordsModelTest extends TestCase
             'title' => 'Test Item ' . uniqid(),
             'category' => 'document',
             'target_type' => 'internal',
-            'mandatory' => 0,
+            'mandatory_level' => 'optional',
             'dual_validation' => 0,
             'active' => 1,
             'created_by' => $login,
@@ -257,6 +257,35 @@ class AcceptanceRecordsModelTest extends TestCase
         $record = $this->model->get_by_id('id', $record_id);
         $this->assertEquals('refused', $record['status']);
         $this->assertNotNull($record['acted_at']);
+    }
+
+    // ==================== get_or_create_pending tests (Lot 4) ====================
+
+    public function testGetOrCreatePending_CreatesOnFirstCall()
+    {
+        $item_id = $this->createTestItem();
+        $login = $this->getTestLogin();
+
+        $record = $this->model->get_or_create_pending($item_id, $login);
+        $this->assertNotNull($record);
+        $this->assertEquals('pending', $record['status']);
+        $this->assertEquals($item_id, $record['item_id']);
+        $this->assertEquals($login, $record['user_login']);
+        $this->test_record_ids[] = $record['id'];
+    }
+
+    public function testGetOrCreatePending_ReturnsExistingRecordUnchanged()
+    {
+        $item_id = $this->createTestItem();
+        $record_id = $this->createTestRecord($item_id, array('status' => 'accepted', 'acted_at' => date('Y-m-d H:i:s')));
+        $login = $this->getTestLogin();
+
+        $record = $this->model->get_or_create_pending($item_id, $login);
+        $this->assertEquals($record_id, $record['id']);
+        $this->assertEquals('accepted', $record['status'], 'Must return the existing record as-is, not reset it to pending');
+
+        $count = $this->db->where('item_id', $item_id)->where('user_login', $login)->count_all_results('acceptance_records');
+        $this->assertEquals(1, $count, 'Must not create a second record when one already exists');
     }
 
     // ==================== link_to_pilot tests ====================

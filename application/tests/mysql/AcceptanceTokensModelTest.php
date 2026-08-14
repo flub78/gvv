@@ -56,7 +56,7 @@ class AcceptanceTokensModelTest extends TestCase
             'title' => 'Token Test Item ' . uniqid(),
             'category' => 'document',
             'target_type' => 'external',
-            'mandatory' => 0,
+            'mandatory_level' => 'optional',
             'dual_validation' => 0,
             'active' => 1,
             'created_by' => $login,

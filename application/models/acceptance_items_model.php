@@ -17,6 +17,10 @@ class Acceptance_items_model extends Common_Model {
     public $table = 'acceptance_items';
     protected $primary_key = 'id';
 
+    // motd_messages.source_type tag for messages generated from an item's
+    // targeting (see sync_target_motd())
+    const MOTD_SOURCE_TYPE = 'acceptance_item';
+
     /**
      * Constructor
      */
@@ -74,30 +78,211 @@ class Acceptance_items_model extends Common_Model {
     }
 
     /**
-     * Get items targeting specific roles (comma-separated in target_roles),
-     * or individually targeting this user (target_user_login) — the two are
-     * exclusive per item (cf. formulaire admin). Items with no targeting
-     * restriction at all (both columns NULL/empty) apply to everyone.
+     * Get active items targeting this user, either individually
+     * (target_user_login) or through one or more roles held in a matching
+     * section (acceptance_item_roles, section_id NULL = all sections) — the
+     * two are exclusive per item (cf. formulaire admin). Items with no
+     * targeting restriction at all (target_user_login NULL and no
+     * acceptance_item_roles rows) apply to everyone.
      * @param string $user_login User login
-     * @return array Active items excluding those individually targeting a
-     *   different user. Items with target_roles still need to be filtered in
-     *   PHP by the caller (comma-separated list), unchanged from before.
+     * @return array Active items eligible for this user
      */
     public function get_items_for_user($user_login) {
-        $this->db->select('acceptance_items.*');
-        $this->db->from($this->table);
-        $this->db->where('active', 1);
-        // Exclude items individually targeting a different user; items with
-        // no target_user_login (NULL/empty) or targeting this user remain.
-        $this->db->group_start();
-        $this->db->where('target_user_login', $user_login);
-        $this->db->or_where('target_user_login', null);
-        $this->db->or_where("target_user_login = ''", null, false);
-        $this->db->group_end();
-        // Items with target_roles need to be filtered in PHP (comma-separated list).
-        $this->db->order_by('title', 'asc');
-        $query = $this->db->get();
+        $login = $this->db->escape($user_login);
+        $sql = "SELECT DISTINCT acceptance_items.*
+            FROM acceptance_items
+            WHERE acceptance_items.active = 1
+            AND (
+                acceptance_items.target_user_login = $login
+                OR (
+                    (acceptance_items.target_user_login IS NULL OR acceptance_items.target_user_login = '')
+                    AND (
+                        NOT EXISTS (
+                            SELECT 1 FROM acceptance_item_roles air
+                            WHERE air.item_id = acceptance_items.id
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM acceptance_item_roles air
+                            JOIN user_roles_per_section urps
+                                ON urps.types_roles_id = air.types_roles_id
+                                AND (air.section_id IS NULL OR urps.section_id = air.section_id)
+                            JOIN users u ON u.id = urps.user_id
+                            WHERE air.item_id = acceptance_items.id
+                            AND u.username = $login
+                            AND urps.revoked_at IS NULL
+                        )
+                    )
+                )
+            )
+            ORDER BY acceptance_items.title ASC";
+
+        $query = $this->db->query($sql);
         return $this->get_to_array($query);
+    }
+
+    /**
+     * Items in get_items_for_user() the user has not yet accepted or refused
+     * (drives the member dashboard and the pending-count badge).
+     * @param string $user_login User login
+     * @return array
+     */
+    public function get_pending_items_for_user($user_login) {
+        $items = $this->get_items_for_user($user_login);
+        if (empty($items)) {
+            return array();
+        }
+
+        $item_ids = array_column($items, 'id');
+        $this->db->select('item_id');
+        $this->db->from('acceptance_records');
+        $this->db->where_in('item_id', $item_ids);
+        $this->db->where('user_login', $user_login);
+        $this->db->where_in('status', array('accepted', 'refused'));
+        $handled_ids = array_column($this->db->get()->result_array(), 'item_id');
+
+        return array_values(array_filter($items, function ($item) use ($handled_ids) {
+            return !in_array($item['id'], $handled_ids);
+        }));
+    }
+
+    /**
+     * Ensure a message du jour exists for every person currently targeted by
+     * this item and not yet accepted/refused, matching the item's current
+     * targeting and mandatory_level (Lot 3d.4 — the message du jour is the
+     * default notification channel, cf. PRD "Canal de notification").
+     *
+     * Full replace on every call (delete then regenerate): admins can edit
+     * targeting/deadline/obligation freely, and messages are cheap to
+     * recreate, so this is simpler and more robust than diffing old vs new
+     * targets. Always resolves to one message per person, never
+     * target_type='all' — a shared broadcast row could not become
+     * dismissible for one person without affecting everyone else, breaking
+     * the per-person "cannot hide until validated" rule (Lot 3d.3) for
+     * mandatory items.
+     *
+     * @param int $item_id
+     */
+    public function sync_target_motd($item_id) {
+        $this->clear_target_motd($item_id);
+
+        $item = $this->get_by_id('id', $item_id);
+        if (!$item || empty($item['active'])) {
+            return;
+        }
+
+        $targets = $this->_resolve_targets($item);
+        if (empty($targets)) {
+            return;
+        }
+
+        $this->db->select('user_login');
+        $this->db->from('acceptance_records');
+        $this->db->where('item_id', $item_id);
+        $this->db->where_in('status', array('accepted', 'refused'));
+        $handled = array_column($this->db->get()->result_array(), 'user_login');
+
+        $pending_targets = array_diff($targets, $handled);
+        if (empty($pending_targets)) {
+            return;
+        }
+
+        $this->load->model('motd_model');
+        $this->lang->load('acceptance');
+
+        $mandatory_level = isset($item['mandatory_level']) ? $item['mandatory_level'] : 'optional';
+        $level = ($mandatory_level === 'mandatory_hard') ? 'urgent'
+            : (($mandatory_level === 'mandatory_soft') ? 'important' : 'info');
+
+        $url = site_url('acceptance/read/' . $item_id);
+        $base = array(
+            'title' => sprintf($this->lang->line('acceptance_motd_title'), $item['title']),
+            'content' => sprintf($this->lang->line('acceptance_motd_content'), $item['title'], $url),
+            'level' => $level,
+            // Dismissible mirrors Lot 3d.3: an optional item can be hidden
+            // freely, a mandatory one (soft or hard) cannot be hidden until
+            // the person accepts/refuses (which removes this row entirely).
+            'dismissible' => ($mandatory_level === 'optional') ? 1 : 0,
+            'end_date' => !empty($item['deadline'])
+                ? $item['deadline'] . ' 23:59:59'
+                : date('Y-m-d H:i:s', strtotime('+1 year')),
+            'source_type' => self::MOTD_SOURCE_TYPE,
+            'source_ref' => (string) $item_id,
+            'created_by' => 'system',
+        );
+
+        foreach ($pending_targets as $login) {
+            $this->motd_model->generate_system_message(array_merge($base, array(
+                'target_type' => 'user',
+                'target_user_login' => $login,
+            )));
+        }
+    }
+
+    /**
+     * Remove every message du jour generated for this item's targeting
+     * (cascades to motd_user_message_state). Safe to call even if none exist.
+     * @param int $item_id
+     */
+    public function clear_target_motd($item_id) {
+        $this->db->where('source_type', self::MOTD_SOURCE_TYPE);
+        $this->db->where('source_ref', $item_id);
+        $this->db->delete('motd_messages');
+    }
+
+    /**
+     * Remove only $user_login's own message for this item (they just
+     * accepted or refused; others targeted by the same item are unaffected).
+     * @param int $item_id
+     * @param string $user_login
+     */
+    public function clear_target_motd_for_user($item_id, $user_login) {
+        $this->db->where('source_type', self::MOTD_SOURCE_TYPE);
+        $this->db->where('source_ref', $item_id);
+        $this->db->where('target_type', 'user');
+        $this->db->where('target_user_login', $user_login);
+        $this->db->delete('motd_messages');
+    }
+
+    /**
+     * Resolve an item's targeting to a flat list of member logins: the
+     * individual target_user_login, or every member reached by its
+     * acceptance_item_roles rows (role x section, mirroring
+     * get_items_for_user()'s targeting rules), or — when neither is set —
+     * every active member club-wide (an unrestricted item applies to
+     * everyone).
+     * @param array $item acceptance_items row
+     * @return string[] Unique mlogin values
+     */
+    private function _resolve_targets($item) {
+        if (!empty($item['target_user_login'])) {
+            return array($item['target_user_login']);
+        }
+
+        $this->load->model('acceptance_item_roles_model');
+        $roles = $this->acceptance_item_roles_model->get_for_item($item['id']);
+
+        $logins = array();
+
+        if (empty($roles)) {
+            $rows = $this->db->select('mlogin')->where('actif', 1)->get('membres')->result_array();
+            foreach ($rows as $row) {
+                $logins[$row['mlogin']] = true;
+            }
+            return array_keys($logins);
+        }
+
+        $this->load->model('email_lists_model');
+        foreach ($roles as $role) {
+            $members = $this->email_lists_model->get_users_by_role_and_section(
+                $role['types_roles_id'], $role['section_id'], 'all', false
+            );
+            foreach ($members as $member) {
+                if (!empty($member['mlogin'])) {
+                    $logins[$member['mlogin']] = true;
+                }
+            }
+        }
+        return array_keys($logins);
     }
 
     /**

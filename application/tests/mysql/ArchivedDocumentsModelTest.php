@@ -726,4 +726,5 @@ class ArchivedDocumentsModelTest extends TestCase
         // Cleanup: only v2 was deleted, v1 still needs cleanup
         $this->test_document_ids = array_diff($this->test_document_ids, array($v2_id));
     }
+
 }

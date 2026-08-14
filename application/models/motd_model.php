@@ -166,7 +166,7 @@ class Motd_model extends Common_Model {
      *
      * @param array $params title?, content, level?, start_date?, end_date,
      *                      target_type?, target_list_id?, target_user_login?,
-     *                      source_type, source_ref?
+     *                      dismissible?, source_type, source_ref?
      * @return int|false
      */
     public function generate_system_message($params) {
@@ -183,6 +183,12 @@ class Motd_model extends Common_Model {
             'source_type' => $params['source_type'],
             'source_ref' => isset($params['source_ref']) ? $params['source_ref'] : NULL,
         );
+
+        // Optional: caller-provided fields with a column default that would
+        // otherwise apply unconditionally (dismissible defaults to 1).
+        if (isset($params['dismissible'])) {
+            $data['dismissible'] = $params['dismissible'];
+        }
 
         // Optional: let the caller identify itself (e.g. a cron job) when no
         // interactive session is available for Common_Model's audit fields.

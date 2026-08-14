@@ -131,14 +131,16 @@ Le premier lot fonctionnel livré est le Lot 4 — l'acceptation de documents d�
 
 ### Lot 3d — Niveaux d'obligation et intégration message du jour (prérequis Lot 4)
 
-- [ ] 3d.1 Migration : remplacer `acceptance_items.mandatory` (TINYINT booléen, Lot 1) par `mandatory_level ENUM('optional','mandatory_soft','mandatory_hard') NOT NULL DEFAULT 'optional'`
-- [ ] 3d.2 Migration sur `motd_messages` : ajout colonne `dismissible TINYINT(1) NOT NULL DEFAULT 1` (message non masquable si `0`) — extension du module Messages du jour (migration 143), cf. `doc/prds/messages_du_jour_prd.md`
-- [ ] 3d.3 Adapter `Motd_model`/gestion de `motd_user_message_state` pour refuser le masquage (`hidden`) d'un message `dismissible = 0` tant que la validation associée n'est pas faite
-- [ ] 3d.4 À la mise en cible d'un `acceptance_items` obligatoire, créer automatiquement le message du jour associé (non masquable si obligatoire, lien vers la page de validation) ; le retirer ou le rendre masquable une fois la validation faite
-- [ ] 3d.5 Implémenter le blocage applicatif global pour `mandatory_hard` : filtre/hook redirigeant toute requête utilisateur vers la page de validation tant que l'élément n'est pas validé (exceptions : page de validation elle-même, déconnexion)
-- [ ] 3d.6 Adapter `Gvvmetadata.php` et le formulaire admin (`bs_itemFormView.php`) pour `mandatory_level`
-- [ ] 3d.7 Fichiers de langue FR/EN/NL
-- [ ] 3d.8 Écrire les tests PHPUnit : migration, non-masquage MOTD pour un message `dismissible = 0`, blocage global `mandatory_hard`
+> **Tranché** : 3d.4 et 3d.5 référencent tous les deux la page de validation membre (Lot 4, contrôleur `acceptance.php`, non encore implémenté) — 3d.4 pour son lien depuis le message du jour, 3d.5 comme destination du blocage. Plutôt que de créer une page de validation minimale hors plan, le schéma/modèle de ce lot (3d.1-3d.3, 3d.6-3d.8) est livré seul ; 3d.4 et 3d.5 restent à faire une fois le Lot 4 disponible. Le Lot 4 étant désormais livré, 3d.4 est fait ; 3d.5 (blocage applicatif) reste à faire.
+
+- [x] 3d.1 Migration : remplacer `acceptance_items.mandatory` (TINYINT booléen, Lot 1) par `mandatory_level ENUM('optional','mandatory_soft','mandatory_hard') NOT NULL DEFAULT 'optional'` — migration `171_acceptance_items_mandatory_level.php`, backfill `mandatory=1 → mandatory_hard`
+- [x] 3d.2 Migration sur `motd_messages` : ajout colonne `dismissible TINYINT(1) NOT NULL DEFAULT 1` (message non masquable si `0`) — migration `172_motd_messages_dismissible.php`
+- [x] 3d.3 Adapter `Motd_user_state_model` pour refuser le masquage (`hidden`) d'un message `dismissible = 0` : `hide_message()` renvoie `FALSE` (contrôleur `motd.php` renvoie une erreur HTTP 403 explicite, bouton masqué côté vue si non masquable) ; `hide_all_messages()` masque les messages masquables et laisse les autres visibles (pas d'échec silencieux : ils restent affichés)
+- [x] 3d.4 À la création/modification/(dés)activation d'un `acceptance_items`, générer un message du jour par destinataire ciblé (résolution `target_user_login` individuel, ou rôle x section via `acceptance_item_roles`/`Email_lists_model::get_users_by_role_and_section()`, ou — sans ciblage — tous les membres actifs), en excluant ceux ayant déjà accepté/refusé ; niveau/masquabilité dérivés de `mandatory_level` (`optional` → masquable, `mandatory_soft`/`mandatory_hard` → non masquable), lien vers `acceptance/read/<item_id>` — `Acceptance_items_model::sync_target_motd()`/`clear_target_motd()`/`clear_target_motd_for_user()`, appelés depuis `acceptance_admin.php` (création/édition/`toggle_active`/`delete`) et `acceptance.php` (`accept`/`refuse`, retrait du message de l'utilisateur qui vient de traiter l'élément). **Tranché** : toujours `target_type='user'` (un message par destinataire), jamais de diffusion `target_type='all'`/liste partagée, pour que chaque personne puisse faire disparaître son propre message indépendamment des autres destinataires sans casser la règle 3d.3 (non-masquable tant que non validé) — tests `AcceptanceItemsModelTest.php` (section `sync_target_motd`)
+- [ ] 3d.5 Implémenter le blocage applicatif global pour `mandatory_hard` : filtre/hook redirigeant toute requête utilisateur vers la page de validation tant que l'élément n'est pas validé (exceptions : page de validation elle-même, déconnexion) — **bloqué sur le Lot 4** ; précédent identifié dans le code existant : `MY_Controller::_check_login_permission()` (`application/core/MY_Controller.php`), seul mécanisme actuel de redirection globale conditionnelle exécuté pour tous les contrôleurs
+- [x] 3d.6 Adapter `Gvvmetadata.php` et le formulaire admin (`bs_itemFormView.php`) pour `mandatory_level` (menu déroulant à 3 valeurs, badges liste/suivi)
+- [x] 3d.7 Fichiers de langue FR/EN/NL
+- [x] 3d.8 Tests PHPUnit : migrations 171/172 (up/idempotence/down), refus de masquage MOTD pour `dismissible = 0` (unitaire + `hide_all_messages`), mise à jour des fixtures existantes (`mandatory` → `mandatory_level`)
 
 > **Tranché** : le blocage `mandatory_hard` (3d.5) exempte la déconnexion et la page de validation elle-même. Les club-admins (rôle `club-admin`) ne sont jamais bloqués par une acceptation, quel que soit le niveau d'obligation — ils gardent un accès complet à GVV pour ne pas risquer de se bloquer eux-mêmes hors d'état d'administrer le club. Cf. PRD, Canal de notification et niveaux d'obligation.
 
@@ -150,23 +152,25 @@ Premier lot fonctionnel livré, centré sur la catégorie `document` et son lien
 
 > **Tranché** : le ciblage par rôle(s) utilise une table de jointure `acceptance_item_roles` (item_id, types_roles_id, section_id nullable = toutes sections), sur le modèle de `email_list_roles`/`_criteria_tab.php` (grille rôle x section), plutôt que le champ texte libre `acceptance_items.target_roles` (noms de rôles en clair, sans notion de section). `target_roles` est conservé en base pour compatibilité mais n'est plus alimenté par le formulaire admin.
 
-- [x] 4.0 Colonne `acceptance_items.archived_document_id` (migration `169_acceptance_items_archived_document.php`, FK `ON DELETE SET NULL`) et création d'un élément d'acceptation directement depuis la liste des documents archivés : bouton d'action sur chaque document PDF (`archived_documents/page`) menant à `acceptance_admin/create/<archived_document_id>`, formulaire pré-rempli (catégorie verrouillée sur `document`, document affiché en lecture seule à la place de l'upload PDF)
+- [x] 4.0 Colonne `acceptance_items.archived_document_id` (migration `169_acceptance_items_archived_document.php`, FK `ON DELETE SET NULL`). Bouton d'action sur chaque document PDF de la liste des documents archivés (`archived_documents/page`) menant à la liste des acceptations déjà liées à ce document (`acceptance_admin/page?filter_archived_document_id=<id>`, bannière + filtre persistant), avec un bouton "Nouvelle demande d'acceptation pour ce document" menant au formulaire pré-rempli (`acceptance_admin/create/<archived_document_id>`, catégorie verrouillée sur `document`, document affiché en lecture seule à la place de l'upload PDF)
 - [x] 4.0bis Simplification du formulaire de création/édition (`bs_itemFormView.php`) : `target_type` et double validation (`dual_validation`/`role_1`/`role_2`) masqués (inutilisés pour l'instant) ; ciblage par rôle remplacé par une grille rôle x section (table `acceptance_item_roles`, migration `170_acceptance_item_roles.php`), réutilisant le sélecteur des listes d'email (`Email_lists_model::get_available_roles/get_available_sections`) ; date de version verrouillée sur la date de dépôt du document archivé lorsque l'élément en référence un
-- [ ] 4.1 Créer le contrôleur `acceptance.php` (tableau de bord, lecture, acceptation, refus, historique)
-- [ ] 4.2 Créer la vue tableau de bord des éléments en attente (`bs_acceptance_dashboard.php`)
-- [ ] 4.3 Implémenter le badge/notification du nombre d'éléments en attente (intégrer dans `bs_menu.php` ou layout) — en complément du message du jour (canal par défaut, Lot 3d)
-- [ ] 4.4 Créer la vue lecture et acceptation (`bs_acceptance_read.php`) avec :
-  - [ ] 4.4.1 Viewer PDF intégré (iframe ou PDF.js)
-  - [ ] 4.4.2 Détection défilement complet (JavaScript)
-  - [ ] 4.4.3 Bouton "Accepter" masqué jusqu'au défilement complet
-  - [ ] 4.4.4 Bouton "Refuser" optionnel
-  - [ ] 4.4.5 Bouton "Plus tard" (si date limite non atteinte)
-  - [ ] 4.4.6 Message informatif en haut de page
-- [ ] 4.5 Enregistrer la formule d'acceptation automatique avec horodatage
-- [ ] 4.6 Créer la vue historique personnel (`bs_acceptance_history.php`)
-- [ ] 4.7 Permettre de relire et modifier une réponse précédente
-- [ ] 4.8 Fichiers de langue FR/EN/NL pour les membres
-- [ ] 4.9 Valider : test PHPUnit workflow acceptation, test Playwright lecture et clic accepter
+> **Tranché** : le viewer PDF (4.4.1) est un simple `<iframe>` — un navigateur affiche un PDF via son lecteur natif (PDFium, etc.), dont le défilement interne n'est pas observable en JS depuis la page GVV. La détection de « défilement complet » (4.4.2) porte donc sur la page GVV elle-même : un repère (`#acceptanceReadSentinel`) est placé juste après l'iframe, et un `IntersectionObserver` révèle les boutons Accepter/Refuser quand ce repère devient visible. PDF.js (rendu page par page, défilement interne réellement observable) a été écarté pour cette première livraison — plus robuste mais nouvelle dépendance JS tierce à vendorer manuellement.
+
+- [x] 4.1 Contrôleur membre `acceptance.php` (distinct de `acceptance_admin.php`) : `dashboard()`, `read($item_id)`, `accept($item_id)`, `refuse($item_id)`, `pdf($item_id)` (flux inline pour l'iframe), `history()`. Autorisation : élément actuellement ciblé pour l'utilisateur (`Acceptance_items_model::get_items_for_user()`, réécrite pour résoudre le ciblage rôle x section de `acceptance_item_roles` — l'ancienne version ne traitait que `target_user_login`), ou élément déjà pourvu d'un enregistrement personnel (relecture même si le ciblage a changé depuis), ou administrateur
+- [x] 4.2 Vue tableau de bord (`acceptance/bs_dashboardView.php`) : cartes des éléments en attente (`Acceptance_items_model::get_pending_items_for_user()`), badges niveau d'obligation et échéance (en retard / proche)
+- [x] 4.3 Badge du nombre d'éléments en attente dans `bs_menu.php` (menu Membres → « Mes acceptations »)
+- [x] 4.4 Vue lecture et acceptation (`acceptance/bs_readView.php`) :
+  - [x] 4.4.1 Viewer PDF intégré (iframe, cf. Tranché ci-dessus)
+  - [x] 4.4.2 Détection défilement complet (IntersectionObserver sur repère de page, cf. Tranché ci-dessus)
+  - [x] 4.4.3 Boutons Accepter/Refuser masqués (`.d-none`) jusqu'au défilement complet
+  - [x] 4.4.4 Bouton "Refuser" (confirmation JS)
+  - [x] 4.4.6 Message informatif en haut de page
+- [x] 4.4.5bis Bouton "Plus tard" — implémenté sur le tableau de bord (`bs_dashboardView.php`), pas sur la vue de lecture, conformément à la section "Interfaces Utilisateur > Membre > Tableau de bord" du PRD ; affiché uniquement pour un élément facultatif dont la date limite n'est pas atteinte. Aucun état "reporté" n'existe en base (le modèle de données ne prévoit que pending/accepted/refused) : le bouton ramène simplement au tableau de bord, l'élément y reste tant qu'il n'est pas traité
+- [x] 4.5 Formule d'acceptation enregistrée automatiquement (`acceptance_records.formula_text`) avec horodatage (`acted_at`), au clic sur Accepter — `Acceptance_records_model::get_or_create_pending()` + `accept()`/`refuse()` existants (Lot 2)
+- [x] 4.6 Vue historique personnel (`acceptance/bs_historyView.php`) : éléments déjà acceptés/refusés, indicateur de retard
+- [x] 4.7 Relire et modifier une réponse précédente : le lien "Relire" de l'historique rouvre `acceptance/read/<id>`, qui réaffiche le statut actuel et permet de changer de décision (accepter après refus, etc.)
+- [x] 4.8 Fichiers de langue FR/EN/NL pour les membres (`acceptance_lang.php`, section "Member interface")
+- [x] 4.9 Validé : tests PHPUnit modèle (ciblage rôle x section, `get_pending_items_for_user`, `get_or_create_pending`) + test Playwright bout en bout (admin cible un membre → membre lit, défile, accepte → disparaît du tableau de bord → apparaît dans l'historique)
 
 ### Lot 5 — Double validation (formations et contrôles) — secondaire (voir Note de priorité)
 

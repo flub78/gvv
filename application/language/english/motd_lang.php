@@ -88,6 +88,8 @@ $lang['motd_reply_cancel'] = 'Cancel';
 $lang['motd_reply_replying_to'] = 'Replying to';
 $lang['motd_error_reply_empty'] = 'The reply cannot be empty.';
 $lang['motd_error_action_failed'] = 'An error occurred, please try again.';
+$lang['motd_error_not_dismissible'] = 'This message cannot be hidden until the associated validation is done.';
+$lang['motd_not_dismissible_badge'] = 'Cannot be hidden';
 
 $lang['motd_section_empty'] = 'No message is currently addressed to you.';
 $lang['motd_section_all_hidden'] = 'You have no unhidden message. Use the "Show all messages" button above to find them again.';

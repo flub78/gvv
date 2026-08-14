@@ -360,8 +360,13 @@ class Motd extends Gvv_Controller {
             show_404();
             return;
         }
-        $ok = $this->motd_user_state_model->hide_message($id, $username);
         header('Content-Type: application/json');
+        if (empty($message['dismissible'])) {
+            http_response_code(403);
+            echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_not_dismissible')));
+            return;
+        }
+        $ok = $this->motd_user_state_model->hide_message($id, $username);
         if ($ok === FALSE) {
             http_response_code(500);
             echo json_encode(array('success' => FALSE, 'error' => $this->lang->line('motd_error_action_failed')));

@@ -266,7 +266,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                     </a>
                     <?php endif; ?>
                     <?php if (!empty($is_admin) && !empty($doc['mime_type']) && $doc['mime_type'] === 'application/pdf'): ?>
-                    <a href="<?= site_url('acceptance_admin/create/' . $doc['id']) ?>" class="btn btn-sm btn-outline-success" title="<?= $this->lang->line('archived_documents_create_acceptance') ?>">
+                    <a href="<?= site_url('acceptance_admin/page?filter_archived_document_id=' . $doc['id']) ?>" class="btn btn-sm btn-outline-success" title="<?= $this->lang->line('archived_documents_view_acceptances') ?>">
                         <i class="fas fa-clipboard-check"></i>
                     </a>
                     <?php endif; ?>
