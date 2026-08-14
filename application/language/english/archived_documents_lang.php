@@ -17,6 +17,7 @@ $lang['archived_documents_view'] = 'View Document';
 $lang['archived_documents_delete'] = 'Delete';
 $lang['archived_documents_download'] = 'Download';
 $lang['archived_documents_manage_types'] = 'Manage Types';
+$lang['archived_documents_create_acceptance'] = 'Create an acceptance from this document';
 
 $lang['archived_documents_type'] = 'Type';
 $lang['archived_documents_type_other'] = 'Other .. (undefined)';

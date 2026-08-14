@@ -13,6 +13,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
@@ -21,6 +22,13 @@ const ACCEPTANCE_CREATE_URL = '/index.php/acceptance_admin/create';
 const TEST_USER = {
   username: 'testadmin',
   password: 'password'
+};
+
+const DB_CONFIG = {
+  host: 'localhost',
+  user: 'gvv_user',
+  password: 'lfoyfgbj',
+  database: 'gvv2',
 };
 
 /**
@@ -46,7 +54,25 @@ async function checkNoPhpErrors(page) {
   expect(bodyText).not.toContain('An uncaught Exception was encountered');
 }
 
-test.describe('Acceptance Admin Smoke Tests', () => {
+// The controller has no delete action for acceptance_items (only
+// activate/deactivate), so items created by this suite are removed directly
+// in the database rather than through the UI.
+async function cleanup(conn) {
+  await conn.query("DELETE FROM acceptance_items WHERE title LIKE 'Test Acceptance Item %' OR title LIKE 'Tracking Test %'");
+}
+
+test.describe.serial('Acceptance Admin Smoke Tests', () => {
+  let conn;
+
+  test.beforeAll(async () => {
+    conn = await mysql.createConnection(DB_CONFIG);
+    await cleanup(conn);
+  });
+
+  test.afterAll(async () => {
+    await cleanup(conn);
+    await conn.end();
+  });
 
   test('should access acceptance admin page after login', async ({ page }) => {
     await loginAsAdmin(page);
@@ -82,7 +108,15 @@ test.describe('Acceptance Admin Smoke Tests', () => {
     // Check form elements are present
     await expect(page.locator('input[name="title"]')).toBeVisible();
     await expect(page.locator('select[name="category"]')).toBeVisible();
-    await expect(page.locator('select[name="target_type"]')).toBeVisible();
+
+    // target_type, dual_validation and role_1/role_2 are hidden (unused for now).
+    await expect(page.locator('select[name="target_type"]')).toHaveCount(0);
+    await expect(page.locator('input[name="dual_validation"]')).toHaveCount(0);
+    await expect(page.locator('input[name="role_1"]')).toHaveCount(0);
+    await expect(page.locator('input[name="role_2"]')).toHaveCount(0);
+
+    // Role x section grid (replaces the former free-text target_roles field).
+    await expect(page.locator('input[name="roles[]"]').first()).toBeVisible();
 
     console.log('Create form loaded with all fields');
   });
@@ -98,10 +132,12 @@ test.describe('Acceptance Admin Smoke Tests', () => {
     const itemTitle = 'Test Acceptance Item ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
     await page.selectOption('select[name="category"]', 'document');
-    await page.selectOption('select[name="target_type"]', 'internal');
 
     // Check mandatory checkbox
     await page.check('input[name="mandatory"]');
+
+    // Target one role in the role x section grid.
+    await page.locator('input[name="roles[]"]').first().check();
 
     // Submit the form
     // Click the submit button (first submit button, which is "Valider")
@@ -125,6 +161,14 @@ test.describe('Acceptance Admin Smoke Tests', () => {
     expect(listText).toContain(itemTitle);
 
     console.log('Item appears in the list');
+
+    // The checked role must have been persisted to acceptance_item_roles.
+    const [items] = await conn.query('SELECT id FROM acceptance_items WHERE title = ?', [itemTitle]);
+    expect(items.length).toBe(1);
+    const [roleRows] = await conn.query('SELECT * FROM acceptance_item_roles WHERE item_id = ?', [items[0].id]);
+    expect(roleRows.length).toBe(1);
+
+    console.log('Role targeting persisted to acceptance_item_roles');
   });
 
   test('should access tracking view for an item', async ({ page }) => {

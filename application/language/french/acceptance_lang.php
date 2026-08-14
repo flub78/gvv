@@ -48,6 +48,7 @@ $lang['acceptance_used'] = 'Utilisé';
 $lang['acceptance_used_at'] = 'Utilisé le';
 $lang['acceptance_item'] = 'Élément';
 $lang['acceptance_pdf_path'] = 'Fichier PDF';
+$lang['acceptance_archived_document'] = 'Document archivé';
 
 // Category enum values
 $lang['acceptance_category_document'] = 'Document';
@@ -114,13 +115,15 @@ $lang['acceptance_no'] = 'Non';
 
 // Form help texts
 $lang['acceptance_pdf_help'] = 'Format PDF uniquement, 10 Mo maximum';
+$lang['acceptance_archived_document_help'] = 'Ce document provient du module d\'archivage documentaire. Il ne peut pas être remplacé depuis ce formulaire.';
 $lang['acceptance_mandatory_help'] = 'Cet élément doit être accepté par les personnes ciblées';
 $lang['acceptance_dual_validation_help'] = 'Nécessite la validation par deux personnes (ex: instructeur et élève)';
 $lang['acceptance_role_1_placeholder'] = 'ex: instructeur';
 $lang['acceptance_role_2_placeholder'] = 'ex: élève';
 $lang['acceptance_target_roles_placeholder'] = 'ex: pilotes, instructeurs, bureau';
-$lang['acceptance_target_roles_help'] = 'Rôles séparés par des virgules. Vide = tous les membres.';
+$lang['acceptance_target_roles_help'] = 'Cochez un ou plusieurs rôles, dans une section précise ou toutes sections. Vide = tous les membres.';
 $lang['acceptance_target_user_help'] = 'Un élément cible soit un utilisateur individuel, soit une ou plusieurs catégories, jamais les deux.';
+$lang['acceptance_version_date_archived_help'] = 'Date de dépôt du document archivé, non modifiable depuis ce formulaire.';
 $lang['acceptance_active_help'] = 'Seuls les éléments actifs sont présentés aux membres';
 
 // Error messages
@@ -130,6 +133,7 @@ $lang['acceptance_error_create'] = 'Erreur lors de la création';
 $lang['acceptance_error_directory'] = 'Impossible de créer le répertoire de stockage';
 $lang['acceptance_error_pilot_required'] = 'Veuillez sélectionner un pilote';
 $lang['acceptance_error_link'] = 'Erreur lors du rattachement';
+$lang['acceptance_archived_document_not_found'] = 'Document archivé introuvable';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/french/acceptance_lang.php */

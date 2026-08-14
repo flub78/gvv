@@ -17,6 +17,7 @@ $lang['archived_documents_view'] = 'Document Bekijken';
 $lang['archived_documents_delete'] = 'Verwijderen';
 $lang['archived_documents_download'] = 'Downloaden';
 $lang['archived_documents_manage_types'] = 'Types Beheren';
+$lang['archived_documents_create_acceptance'] = 'Aanvaarding aanmaken vanuit dit document';
 
 $lang['archived_documents_type'] = 'Type';
 $lang['archived_documents_type_other'] = 'Andere .. (niet gedefinieerd)';

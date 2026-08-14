@@ -48,6 +48,7 @@ $lang['acceptance_used'] = 'Used';
 $lang['acceptance_used_at'] = 'Used at';
 $lang['acceptance_item'] = 'Item';
 $lang['acceptance_pdf_path'] = 'PDF file';
+$lang['acceptance_archived_document'] = 'Archived document';
 
 // Category enum values
 $lang['acceptance_category_document'] = 'Document';
@@ -114,13 +115,15 @@ $lang['acceptance_no'] = 'No';
 
 // Form help texts
 $lang['acceptance_pdf_help'] = 'PDF format only, 10 MB maximum';
+$lang['acceptance_archived_document_help'] = 'This document comes from the document archiving module. It cannot be replaced from this form.';
 $lang['acceptance_mandatory_help'] = 'This item must be accepted by targeted persons';
 $lang['acceptance_dual_validation_help'] = 'Requires validation by two persons (e.g. instructor and student)';
 $lang['acceptance_role_1_placeholder'] = 'e.g. instructor';
 $lang['acceptance_role_2_placeholder'] = 'e.g. student';
 $lang['acceptance_target_roles_placeholder'] = 'e.g. pilots, instructors, board';
-$lang['acceptance_target_roles_help'] = 'Roles separated by commas. Empty = all members.';
+$lang['acceptance_target_roles_help'] = 'Check one or more roles, in a specific section or all sections. Empty = all members.';
 $lang['acceptance_target_user_help'] = 'An item targets either an individual user or one or more categories, never both.';
+$lang['acceptance_version_date_archived_help'] = 'Archived document deposit date, not editable from this form.';
 $lang['acceptance_active_help'] = 'Only active items are presented to members';
 
 // Error messages
@@ -130,6 +133,7 @@ $lang['acceptance_error_create'] = 'Error during creation';
 $lang['acceptance_error_directory'] = 'Cannot create storage directory';
 $lang['acceptance_error_pilot_required'] = 'Please select a pilot';
 $lang['acceptance_error_link'] = 'Error during linking';
+$lang['acceptance_archived_document_not_found'] = 'Archived document not found';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/english/acceptance_lang.php */

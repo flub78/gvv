@@ -265,6 +265,11 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         <i class="fas fa-download"></i>
                     </a>
                     <?php endif; ?>
+                    <?php if (!empty($is_admin) && !empty($doc['mime_type']) && $doc['mime_type'] === 'application/pdf'): ?>
+                    <a href="<?= site_url('acceptance_admin/create/' . $doc['id']) ?>" class="btn btn-sm btn-outline-success" title="<?= $this->lang->line('archived_documents_create_acceptance') ?>">
+                        <i class="fas fa-clipboard-check"></i>
+                    </a>
+                    <?php endif; ?>
                     <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"

@@ -1107,6 +1107,8 @@ class GVVMetadata extends Metadata {
                     'autorisation' => $CI->lang->line('acceptance_category_autorisation')
                 );
                 $this->field['acceptance_items']['pdf_path']['Name'] = $CI->lang->line('acceptance_pdf_path');
+                $this->field['acceptance_items']['archived_document_id']['Name'] = $CI->lang->line('acceptance_archived_document');
+                $this->field['acceptance_items']['archived_document_id']['Type'] = 'int';
                 $this->field['acceptance_items']['target_type']['Name'] = $CI->lang->line('acceptance_target_type');
                 $this->field['acceptance_items']['target_type']['Subtype'] = 'enumerate';
                 $this->field['acceptance_items']['target_type']['Enumerate'] = array(

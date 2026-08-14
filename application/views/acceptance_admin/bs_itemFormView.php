@@ -9,6 +9,11 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
 $this->lang->load('acceptance');
+$this->lang->load('archived_documents');
+$this->lang->load('email_lists');
+
+$archived_document_id = isset($archived_document_id) ? $archived_document_id : '';
+$archived_document = isset($archived_document) ? $archived_document : null;
 ?>
 
 <div id="body" class="body container-fluid">
@@ -50,20 +55,39 @@ $this->lang->load('acceptance');
                 <?= $this->lang->line('acceptance_category') ?> <span class="text-danger">*</span>
             </label>
             <div class="col-sm-10">
-                <?= form_dropdown('category', $category_options, set_value('category', isset($category) ? $category : ''), 'class="form-select" id="category" required') ?>
+                <?php if (!empty($archived_document_id)): ?>
+                    <?= form_hidden('category', 'document') ?>
+                    <input type="text" class="form-control" value="<?= $this->lang->line('acceptance_category_document') ?>" disabled>
+                <?php else: ?>
+                    <?= form_dropdown('category', $category_options, set_value('category', isset($category) ? $category : ''), 'class="form-select" id="category" required') ?>
+                <?php endif; ?>
             </div>
         </div>
 
-        <!-- Target type -->
+        <?php if (!empty($archived_document_id)): ?>
+        <!-- Linked archived document (read-only, replaces the PDF upload) -->
+        <?= form_hidden('archived_document_id', $archived_document_id) ?>
         <div class="mb-3 row">
-            <label for="target_type" class="col-sm-2 col-form-label">
-                <?= $this->lang->line('acceptance_target_type') ?>
+            <label class="col-sm-2 col-form-label">
+                <?= $this->lang->line('acceptance_archived_document') ?>
             </label>
             <div class="col-sm-10">
-                <?= form_dropdown('target_type', $target_type_options, set_value('target_type', isset($target_type) ? $target_type : 'internal'), 'class="form-select" id="target_type"') ?>
+                <div class="alert alert-secondary d-flex align-items-center gap-2 mb-1">
+                    <i class="fas fa-file-pdf text-danger"></i>
+                    <span>
+                        <?= htmlspecialchars($archived_document['original_filename'] ?? '') ?>
+                        <?php if (!empty($archived_document['description'])): ?>
+                            &mdash; <?= htmlspecialchars($archived_document['description']) ?>
+                        <?php endif; ?>
+                    </span>
+                    <a href="<?= site_url('archived_documents/view/' . $archived_document_id) ?>" class="btn btn-sm btn-outline-secondary ms-auto" target="_blank">
+                        <i class="fas fa-eye"></i> <?= $this->lang->line('archived_documents_view') ?>
+                    </a>
+                </div>
+                <small class="text-muted"><?= $this->lang->line('acceptance_archived_document_help') ?></small>
             </div>
         </div>
-
+        <?php else: ?>
         <!-- PDF file upload -->
         <div class="mb-3 row">
             <label for="pdf_file" class="col-sm-2 col-form-label">
@@ -82,6 +106,7 @@ $this->lang->load('acceptance');
                 <small class="text-muted"><?= $this->lang->line('acceptance_pdf_help') ?></small>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Version date -->
         <div class="mb-3 row">
@@ -89,7 +114,13 @@ $this->lang->load('acceptance');
                 <?= $this->lang->line('acceptance_version_date') ?>
             </label>
             <div class="col-sm-10">
-                <?= form_input('version_date', set_value('version_date', isset($version_date) ? $version_date : ''), 'class="form-control datepicker" id="version_date" placeholder="jj/mm/aaaa"') ?>
+                <?php if (!empty($archived_document_id)): ?>
+                    <?= form_hidden('version_date', isset($version_date) ? $version_date : '') ?>
+                    <input type="text" class="form-control" value="<?= isset($version_date) ? htmlspecialchars($version_date) : '' ?>" disabled>
+                    <small class="text-muted"><?= $this->lang->line('acceptance_version_date_archived_help') ?></small>
+                <?php else: ?>
+                    <?= form_input('version_date', set_value('version_date', isset($version_date) ? $version_date : ''), 'class="form-control datepicker" id="version_date" placeholder="jj/mm/aaaa"') ?>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -119,42 +150,6 @@ $this->lang->load('acceptance');
             </div>
         </div>
 
-        <!-- Dual validation -->
-        <div class="mb-3 row">
-            <label class="col-sm-2 col-form-label">
-                <?= $this->lang->line('acceptance_dual_validation') ?>
-            </label>
-            <div class="col-sm-10">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="dual_validation" id="dual_validation" value="1"
-                        <?= (isset($dual_validation) && $dual_validation) ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="dual_validation">
-                        <?= $this->lang->line('acceptance_dual_validation_help') ?>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Role 1 (shown when dual validation) -->
-        <div class="mb-3 row" id="role1_row">
-            <label for="role_1" class="col-sm-2 col-form-label">
-                <?= $this->lang->line('acceptance_role_1') ?>
-            </label>
-            <div class="col-sm-10">
-                <?= form_input('role_1', set_value('role_1', isset($role_1) ? $role_1 : ''), 'class="form-control" id="role_1" placeholder="' . $this->lang->line('acceptance_role_1_placeholder') . '"') ?>
-            </div>
-        </div>
-
-        <!-- Role 2 -->
-        <div class="mb-3 row" id="role2_row">
-            <label for="role_2" class="col-sm-2 col-form-label">
-                <?= $this->lang->line('acceptance_role_2') ?>
-            </label>
-            <div class="col-sm-10">
-                <?= form_input('role_2', set_value('role_2', isset($role_2) ? $role_2 : ''), 'class="form-control" id="role_2" placeholder="' . $this->lang->line('acceptance_role_2_placeholder') . '"') ?>
-            </div>
-        </div>
-
         <!-- Targeting: individual user or categories, exclusive -->
         <div class="mb-3 row">
             <label class="col-sm-2 col-form-label">
@@ -176,13 +171,94 @@ $this->lang->load('acceptance');
             </div>
         </div>
 
-        <!-- Target roles (shown when targeting by categories) -->
+        <!-- Target roles (shown when targeting by categories): role x section
+             grid, same layout/value convention as email_lists/_criteria_tab.php
+             ("role_id_section_id", "role_id_0" for all sections). -->
         <div class="mb-3 row" id="target_roles_row">
-            <label for="target_roles" class="col-sm-2 col-form-label">
+            <label class="col-sm-2 col-form-label">
                 <?= $this->lang->line('acceptance_target_roles') ?>
             </label>
             <div class="col-sm-10">
-                <?= form_input('target_roles', set_value('target_roles', isset($target_roles) ? $target_roles : ''), 'class="form-control" id="target_roles" placeholder="' . $this->lang->line('acceptance_target_roles_placeholder') . '"') ?>
+                <?php
+                    $checked_roles = isset($checked_roles) ? $checked_roles : array();
+                    $available_roles = isset($available_roles) ? $available_roles : array();
+                    $available_sections = isset($available_sections) ? $available_sections : array();
+                    $global_roles = array();
+                    $section_roles = array();
+                    foreach ($available_roles as $role) {
+                        if ($role['scope'] === 'global') {
+                            $global_roles[] = $role;
+                        } else {
+                            $section_roles[] = $role;
+                        }
+                    }
+                    $ordered_roles = array_merge($global_roles, $section_roles);
+                ?>
+                <?php if (empty($ordered_roles)): ?>
+                    <div class="alert alert-warning mb-1"><?= $this->lang->line('email_lists_no_roles_available') ?></div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm mb-1">
+                            <thead>
+                                <tr>
+                                    <th><?= $this->lang->line('authorization_role') ?></th>
+                                    <th>Global</th>
+                                    <th>Toutes sections</th>
+                                    <?php foreach ($available_sections as $section): ?>
+                                        <th style="background-color: <?= htmlspecialchars($section['couleur'] ?? '#e9ecef') ?>; color: black;">
+                                            <?= htmlspecialchars($section['nom']) ?>
+                                        </th>
+                                    <?php endforeach; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($ordered_roles as $role): ?>
+                                <tr>
+                                    <td>
+                                        <?php if ($role['scope'] === 'global'): ?><strong><?php endif; ?>
+                                        <?php
+                                            if (!empty($role['translation_key']) && $this->lang->line($role['translation_key'])) {
+                                                echo htmlspecialchars($this->lang->line($role['translation_key']));
+                                            } else {
+                                                echo htmlspecialchars($role['nom']);
+                                            }
+                                        ?>
+                                        <?php if ($role['scope'] === 'global'): ?></strong><?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($role['scope'] === 'global'): ?>
+                                            <input type="checkbox" class="form-check-input" name="roles[]"
+                                                value="<?= $role['id'] ?>_0"
+                                                <?= isset($checked_roles[$role['id'] . '_0']) ? 'checked' : '' ?>>
+                                        <?php else: ?>
+                                            <span class="text-muted small">&mdash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($role['scope'] === 'section'): ?>
+                                            <input type="checkbox" class="form-check-input check-all-sections" data-role-id="<?= $role['id'] ?>">
+                                        <?php else: ?>
+                                            <span class="text-muted small">&mdash;</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php foreach ($available_sections as $section): ?>
+                                        <td class="text-center">
+                                            <?php if ($role['scope'] === 'section'): ?>
+                                                <?php $key = $role['id'] . '_' . $section['id']; ?>
+                                                <input type="checkbox" class="form-check-input section-checkbox" name="roles[]"
+                                                    value="<?= $key ?>" data-role-id="<?= $role['id'] ?>"
+                                                    <?= isset($checked_roles[$key]) ? 'checked' : '' ?>>
+                                            <?php else: ?>
+                                                <span class="text-muted small">&mdash;</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
                 <small class="text-muted"><?= $this->lang->line('acceptance_target_roles_help') ?></small>
             </div>
         </div>
@@ -234,21 +310,7 @@ $this->lang->load('acceptance');
 </div>
 
 <script>
-// Show/hide dual validation roles based on checkbox
 document.addEventListener('DOMContentLoaded', function() {
-    var dualCheckbox = document.getElementById('dual_validation');
-    var role1Row = document.getElementById('role1_row');
-    var role2Row = document.getElementById('role2_row');
-
-    function toggleRoles() {
-        var display = dualCheckbox.checked ? '' : 'none';
-        role1Row.style.display = display;
-        role2Row.style.display = display;
-    }
-
-    dualCheckbox.addEventListener('change', toggleRoles);
-    toggleRoles(); // Initial state
-
     // Show/hide targeting fields based on target_mode radio (exclusive: user or categories)
     var targetModeRadios = document.getElementsByName('target_mode');
     var targetRolesRow = document.getElementById('target_roles_row');
@@ -264,5 +326,34 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', toggleTargetMode);
     });
     toggleTargetMode(); // Initial state
+
+    // "Toutes sections" checkbox checks/unchecks every section box for that role
+    // (same behavior as email_lists/_criteria_tab.php).
+    document.querySelectorAll('.check-all-sections').forEach(function(checkAllBox) {
+        checkAllBox.addEventListener('change', function() {
+            var roleId = this.dataset.roleId;
+            var isChecked = this.checked;
+            document.querySelectorAll('.section-checkbox[data-role-id="' + roleId + '"]').forEach(function(sectionBox) {
+                sectionBox.checked = isChecked;
+            });
+        });
+    });
+
+    document.querySelectorAll('.section-checkbox').forEach(function(sectionBox) {
+        sectionBox.addEventListener('change', function() {
+            var roleId = this.dataset.roleId;
+            var allSectionBoxes = document.querySelectorAll('.section-checkbox[data-role-id="' + roleId + '"]');
+            var checkAllBox = document.querySelector('.check-all-sections[data-role-id="' + roleId + '"]');
+            if (checkAllBox) {
+                var allChecked = true;
+                allSectionBoxes.forEach(function(box) {
+                    if (!box.checked) {
+                        allChecked = false;
+                    }
+                });
+                checkAllBox.checked = allChecked;
+            }
+        });
+    });
 });
 </script>

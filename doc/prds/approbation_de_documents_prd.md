@@ -148,12 +148,12 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 **Formulaire de création/édition**
 - Titre de l'élément
 - Catégorie d'acceptation (document, formation, contrôle, briefing)
-- Fichier PDF à téléverser (stocké sur le serveur)
-- Date de version
+- Pour la catégorie `document` : référence à un document déjà archivé (`archived_documents`), sélectionné via un bouton d'action depuis la liste des documents archivés plutôt qu'un nouveau téléversement. Pour les autres catégories : fichier PDF à téléverser (stocké sur le serveur)
+- Date de version : pour un document déjà archivé, verrouillée sur sa date de dépôt (non modifiable depuis ce formulaire) ; sinon saisie libre
 - Niveau d'obligation : facultatif / obligatoire non bloquant / obligatoire bloquant
 - **Date limite d'acceptation** (optionnelle)
-- Ciblage : un utilisateur individuel (ex: un pilote précis) ou une ou plusieurs catégories d'utilisateurs
-- Pour double validation : rôles impliqués (ex: instructeur/élève)
+- Ciblage : un utilisateur individuel (ex: un pilote précis), ou un ou plusieurs rôles — chacun pouvant être limité à une section précise ou étendu à toutes les sections (même sélecteur que le ciblage par rôle des listes de diffusion email)
+- Type de cible (interne/externe) et double validation (rôles instructeur/élève) : prévus dans le modèle de données mais non exposés dans ce formulaire pour cette première livraison
 
 **Suivi des acceptations**
 - Liste des acceptations avec statut (complète, partielle, refusée, en attente)

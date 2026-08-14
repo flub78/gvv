@@ -48,6 +48,7 @@ $lang['acceptance_used'] = 'Gebruikt';
 $lang['acceptance_used_at'] = 'Gebruikt op';
 $lang['acceptance_item'] = 'Element';
 $lang['acceptance_pdf_path'] = 'PDF-bestand';
+$lang['acceptance_archived_document'] = 'Gearchiveerd document';
 
 // Category enum values
 $lang['acceptance_category_document'] = 'Document';
@@ -114,13 +115,15 @@ $lang['acceptance_no'] = 'Nee';
 
 // Form help texts
 $lang['acceptance_pdf_help'] = 'Alleen PDF-formaat, maximaal 10 MB';
+$lang['acceptance_archived_document_help'] = 'Dit document komt uit de documentarchiveringsmodule. Het kan niet worden vervangen vanuit dit formulier.';
 $lang['acceptance_mandatory_help'] = 'Dit element moet worden geaccepteerd door de doelpersonen';
 $lang['acceptance_dual_validation_help'] = 'Vereist validatie door twee personen (bijv. instructeur en leerling)';
 $lang['acceptance_role_1_placeholder'] = 'bijv. instructeur';
 $lang['acceptance_role_2_placeholder'] = 'bijv. leerling';
 $lang['acceptance_target_roles_placeholder'] = 'bijv. piloten, instructeurs, bestuur';
-$lang['acceptance_target_roles_help'] = 'Rollen gescheiden door komma\'s. Leeg = alle leden.';
+$lang['acceptance_target_roles_help'] = 'Vink een of meer rollen aan, in een specifieke sectie of alle secties. Leeg = alle leden.';
 $lang['acceptance_target_user_help'] = 'Een item richt zich op een individuele gebruiker of op een of meer categorieën, nooit op beide.';
+$lang['acceptance_version_date_archived_help'] = 'Depotdatum van het gearchiveerde document, niet bewerkbaar vanuit dit formulier.';
 $lang['acceptance_active_help'] = 'Alleen actieve elementen worden aan leden getoond';
 
 // Error messages
@@ -130,6 +133,7 @@ $lang['acceptance_error_create'] = 'Fout bij het aanmaken';
 $lang['acceptance_error_directory'] = 'Kan opslagmap niet aanmaken';
 $lang['acceptance_error_pilot_required'] = 'Selecteer een piloot';
 $lang['acceptance_error_link'] = 'Fout bij het koppelen';
+$lang['acceptance_archived_document_not_found'] = 'Gearchiveerd document niet gevonden';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/dutch/acceptance_lang.php */

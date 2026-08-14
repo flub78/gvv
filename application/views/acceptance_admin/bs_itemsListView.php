@@ -96,7 +96,7 @@ $filter_overdue = isset($filter_overdue) ? $filter_overdue : '';
             <tr>
                 <td>
                     <?= htmlspecialchars($item['title']) ?>
-                    <?php if (!empty($item['pdf_path'])): ?>
+                    <?php if (!empty($item['pdf_path']) || !empty($item['archived_document_id'])): ?>
                         <i class="fas fa-file-pdf text-danger" title="PDF"></i>
                     <?php endif; ?>
                 </td>
@@ -155,7 +155,7 @@ $filter_overdue = isset($filter_overdue) ? $filter_overdue : '';
                         <a href="<?= site_url('acceptance_admin/tracking/' . $item['id']) ?>" class="btn btn-outline-info" title="<?= $this->lang->line('acceptance_tracking') ?>">
                             <i class="fas fa-chart-bar"></i>
                         </a>
-                        <?php if (!empty($item['pdf_path'])): ?>
+                        <?php if (!empty($item['pdf_path']) || !empty($item['archived_document_id'])): ?>
                         <a href="<?= site_url('acceptance_admin/download/' . $item['id']) ?>" class="btn btn-outline-secondary" title="<?= $this->lang->line('acceptance_download_pdf') ?>">
                             <i class="fas fa-download"></i>
                         </a>

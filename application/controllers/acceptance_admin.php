@@ -55,6 +55,11 @@ class Acceptance_admin extends Gvv_Controller {
         $this->lang->load('acceptance');
         $this->load->model('acceptance_records_model');
         $this->load->model('membres_model');
+        $this->load->model('archived_documents_model');
+        $this->load->model('acceptance_item_roles_model');
+        // Role x section lookups (get_available_roles/get_available_sections)
+        // are generic and already implemented for the email lists role grid.
+        $this->load->model('email_lists_model');
 
         $this->table_view = $this->controller . '/itemsListView';
         $this->form_view = $this->controller . '/itemFormView';
@@ -118,8 +123,11 @@ class Acceptance_admin extends Gvv_Controller {
 
     /**
      * Create form
+     * @param int|null $archived_document_id When set, pre-fills the form to create a
+     *   'document' category item referencing an already archived document
+     *   (application/controllers/archived_documents.php) instead of uploading a new PDF.
      */
-    function create() {
+    function create($archived_document_id = null) {
         if (!$this->_is_admin()) {
             show_404();
             return;
@@ -129,6 +137,20 @@ class Acceptance_admin extends Gvv_Controller {
         $this->data = $this->gvvmetadata->defaults_list($table);
 
         $this->data['created_by'] = $this->dx_auth->get_username();
+
+        if (!empty($archived_document_id)) {
+            $archived_document = $this->archived_documents_model->get_by_id('id', $archived_document_id);
+            if (!$archived_document) {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_archived_document_not_found') . '</div>');
+                redirect('acceptance_admin/create');
+                return;
+            }
+            $this->data['archived_document_id'] = $archived_document_id;
+            $this->data['archived_document'] = $archived_document;
+            $this->data['category'] = 'document';
+            $this->data['title'] = $archived_document['description'] ?: $archived_document['original_filename'];
+            $this->data['version_date'] = $this->_archived_document_date($archived_document);
+        }
 
         $this->form_static_element(CREATION);
 
@@ -157,6 +179,12 @@ class Acceptance_admin extends Gvv_Controller {
         $this->data[$this->kid] = $id;
         $this->data['kid'] = $this->kid;
         $this->data['target_mode'] = !empty($this->data['target_user_login']) ? 'user' : 'roles';
+        $this->data['checked_roles'] = $this->acceptance_item_roles_model->get_checked_map($id);
+
+        if (!empty($this->data['archived_document_id'])) {
+            $this->data['archived_document'] = $this->archived_documents_model->get_by_id('id', $this->data['archived_document_id']);
+            $this->data['version_date'] = $this->_archived_document_date($this->data['archived_document']);
+        }
 
         if ($load_view) {
             return load_last_view($this->form_view, $this->data, $this->unit_test);
@@ -178,14 +206,27 @@ class Acceptance_admin extends Gvv_Controller {
             'autorisation' => $this->lang->line('acceptance_category_autorisation')
         );
 
-        $this->data['target_type_options'] = array(
-            'internal' => $this->lang->line('acceptance_target_type_internal'),
-            'external' => $this->lang->line('acceptance_target_type_external')
-        );
-
         $this->data['member_selector'] = $this->membres_model->selector(array('actif' => 1));
+        $this->data['available_roles'] = $this->email_lists_model->get_available_roles();
+        $this->data['available_sections'] = $this->email_lists_model->get_available_sections();
+        if (!isset($this->data['checked_roles'])) {
+            $this->data['checked_roles'] = array();
+        }
 
         $this->data['is_admin'] = $this->_is_admin();
+    }
+
+    /**
+     * Version date to display/enforce when an item references an archived
+     * document: the document's deposit date, not a freely edited value.
+     * @param array $archived_document
+     * @return string Date formatted jj/mm/aaaa (matches mysql_date() input)
+     */
+    private function _archived_document_date($archived_document) {
+        if (empty($archived_document['uploaded_at'])) {
+            return '';
+        }
+        return date('d/m/Y', strtotime($archived_document['uploaded_at']));
     }
 
     /**
@@ -223,37 +264,63 @@ class Acceptance_admin extends Gvv_Controller {
             return;
         }
 
+        // Item referencing an already archived document (cf. archived_documents.php)
+        // instead of a PDF uploaded specifically for the acceptance. Category is forced
+        // to 'document' server-side regardless of the posted value, since the hidden
+        // category field is not meant to be tampered with.
+        $archived_document_id = $this->input->post('archived_document_id') ?: null;
+        if (!empty($archived_document_id)) {
+            $archived_document = $this->archived_documents_model->get_by_id('id', $archived_document_id);
+            if (!$archived_document) {
+                $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('acceptance_archived_document_not_found') . '</div>';
+                $this->_reload_form($action);
+                return;
+            }
+            $category = 'document';
+        }
+
         // Targeting is exclusive: either an individual user, or one or more
-        // categories (target_roles) — never both (cf. PRD, Cas d'utilisation
-        // Administrateur).
+        // role x section entries (acceptance_item_roles) — never both (cf.
+        // PRD, Cas d'utilisation Administrateur). Role targeting uses the
+        // same role x section grid as the email lists selector; target_roles
+        // (free text) is legacy and no longer written by this form.
         $target_mode = $this->input->post('target_mode') ?: 'roles';
         if ($target_mode === 'user') {
             $target_user_login = $this->input->post('target_user_login') ?: null;
-            $target_roles = null;
+            $role_values = array();
         } else {
             $target_user_login = null;
-            $target_roles = $this->input->post('target_roles') ?: null;
+            $role_values = $this->input->post('roles') ?: array();
+        }
+
+        // Version date is not user-editable when the item references an
+        // archived document: it must match that document's deposit date.
+        if (!empty($archived_document_id)) {
+            $version_date = mysql_date($this->_archived_document_date($archived_document)) ?: null;
+        } else {
+            $version_date = mysql_date($this->input->post('version_date')) ?: null;
         }
 
         // Build item data
         $item_data = array(
             'title' => $title,
             'category' => $category,
+            'archived_document_id' => $archived_document_id ?: null,
             'target_type' => $this->input->post('target_type') ?: 'internal',
-            'version_date' => mysql_date($this->input->post('version_date')) ?: null,
+            'version_date' => $version_date,
             'mandatory' => $this->input->post('mandatory') ? 1 : 0,
             'deadline' => mysql_date($this->input->post('deadline')) ?: null,
             'dual_validation' => $this->input->post('dual_validation') ? 1 : 0,
             'role_1' => $this->input->post('role_1') ?: null,
             'role_2' => $this->input->post('role_2') ?: null,
-            'target_roles' => $target_roles,
             'target_user_login' => $target_user_login,
             'active' => $this->input->post('active') ? 1 : 0,
             'updated_at' => date('Y-m-d H:i:s')
         );
 
-        // Handle PDF upload (only if a file was selected)
-        if (!empty($_FILES['pdf_file']['name'])) {
+        // Handle PDF upload (only if a file was selected and the item isn't
+        // referencing an archived document, which already has its own file)
+        if (empty($archived_document_id) && !empty($_FILES['pdf_file']['name'])) {
             $upload_result = $this->_handle_pdf_upload($action);
             if ($upload_result === false) {
                 return; // Error already displayed
@@ -268,6 +335,7 @@ class Acceptance_admin extends Gvv_Controller {
             $id = $this->gvv_model->create($item_data);
 
             if ($id) {
+                $this->acceptance_item_roles_model->replace_for_item($id, $role_values, $this->dx_auth->get_username());
                 $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_item_created') . '</div>');
                 redirect('acceptance_admin/page');
             } else {
@@ -289,6 +357,7 @@ class Acceptance_admin extends Gvv_Controller {
                 return;
             }
 
+            $this->acceptance_item_roles_model->replace_for_item($id, $role_values, $this->dx_auth->get_username());
             $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_item_updated') . '</div>');
             redirect('acceptance_admin/page');
         }
@@ -441,7 +510,17 @@ class Acceptance_admin extends Gvv_Controller {
         }
 
         $item = $this->gvv_model->get_by_id('id', $id);
-        if (!$item || empty($item['pdf_path'])) {
+        if (!$item) {
+            show_404();
+            return;
+        }
+
+        if (!empty($item['archived_document_id'])) {
+            redirect('archived_documents/download/' . $item['archived_document_id']);
+            return;
+        }
+
+        if (empty($item['pdf_path'])) {
             show_404();
             return;
         }
@@ -529,6 +608,14 @@ class Acceptance_admin extends Gvv_Controller {
             $this->data['id'] = $this->input->post('original_id');
         }
         $this->data['target_mode'] = $this->input->post('target_mode') ?: 'roles';
+        if (!empty($this->data['archived_document_id'])) {
+            $this->data['archived_document'] = $this->archived_documents_model->get_by_id('id', $this->data['archived_document_id']);
+            $this->data['version_date'] = $this->_archived_document_date($this->data['archived_document']);
+        }
+        // Re-check the role x section boxes the admin had selected, from POST
+        // (not yet persisted since validation failed before saving).
+        $posted_roles = $this->input->post('roles') ?: array();
+        $this->data['checked_roles'] = array_fill_keys($posted_roles, true);
         $this->form_static_element($action);
         load_last_view($this->form_view, $this->data);
     }
