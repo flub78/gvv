@@ -19,8 +19,9 @@ Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire G
 11. [Ajouter un sous-formulaire](#ajouter-un-sous-formulaire)
 12. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
 13. [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet)
-14. [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées)
-15. [Exemples de formulaires](#exemples-de-formulaires)
+14. [Référence — métadonnées du conteneur](#référence--métadonnées-du-conteneur)
+15. [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées)
+16. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -353,6 +354,34 @@ Le bouton n'est visible que dans la liste admin, déjà protégée par l'authent
 ## Sauvegarder ou transférer un formulaire complet
 
 Un formulaire (pages HTML, CSS, images, métadonnées) se manipule comme un seul fichier ZIP téléchargeable — le même mécanisme que la [modification du contenu](#modifier-le-contenu-dun-formulaire-existant) sert aussi de **transfert entre installations GVV** et de **partage d'un formulaire entre clubs** : télécharger l'archive d'un formulaire sur une installation, l'importer comme nouveau formulaire sur une autre (voir [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire) pour l'import).
+
+---
+
+## Référence — métadonnées du conteneur
+
+Champs de la fiche d'un formulaire existant (**Formulaires → [nom du formulaire]**), et clé correspondante dans `meta.json` :
+
+| Champ | Clé `meta.json` | Rôle |
+|---|---|---|
+| **Code** | *(absente)* | Identifiant interne (lettres, chiffres, tirets). Sert de nom de dossier de stockage (`uploads/formulaires/{code}/`) et de clé unique en base ; renommer le Code renomme aussi le dossier physique. |
+| **Titre** | `title` (chaîne) | Affiché en en-tête du formulaire public |
+| **Description** | `description` (chaîne) | Texte optionnel affiché sous le titre |
+| **Lien public** | *(absente)* | Segment d'URL public (ex. `inscription-club`) vu par les visiteurs (`forms/{slug}`) — indépendant du Code, modifiable séparément |
+| **CSS scope** | `css_scope` (chaîne) | Préfixe optionnel pour isoler le CSS global de ce formulaire des autres |
+| **Contexte GVV** | `required_params` — `"none"` \| `"pilot"` \| `"instructor"` \| `"pilot+instructor"` | Sélecteur(s) de pré-remplissage nécessaires : aucun, membre, instructeur, ou les deux — active le bouton "Générer" (voir [Générer un lien pré-rempli](13_formulaires.md#générer-un-lien-pré-rempli-pour-un-membre-ou-un-instructeur) dans le document d'utilisation) |
+| **Formulaire global** | *(absente)* | Rend le formulaire visible dans toutes les sections plutôt que la seule section active |
+| **Autoriser la soumission par téléchargement (scan)** | `allow_upload_response` (booléen) | Active le dépôt de fichier — voir [Accepter une réponse déposée par scan ou photo](13_formulaires.md#accepter-une-réponse-déposée-par-scan-ou-photo) dans le document d'utilisation |
+| **Traitement après soumission** | `handler_class` (chaîne ou `null`) | Déclenche une action GVV (ex. mise à jour d'un vol de découverte) juste après l'enregistrement de la réponse |
+| **Formulaire de création cible (export)** | `target_url` (chaîne ou `null`) | Si renseigné avec le libellé, un bouton apparaît sur chaque réponse pour ouvrir un formulaire GVV pré-rempli avec les valeurs de la réponse — voir [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création) |
+| **Libellé du bouton export** | `target_label` (chaîne ou `null`) | Texte affiché sur ce bouton — sans effet si `target_url` est vide |
+| **Statut** *(en modification uniquement)* | *(absente)* | `brouillon` : non accessible ; `publié` : accessible via le lien public ; `archivé` |
+| *(pas de champ fiche correspondant)* | `pages` — tableau de `{page_number, title}` | Numéro et titre de chaque page, dans l'ordre — reflète la carte "Gestion des pages" de la fiche |
+
+Ces champs ne définissent que les métadonnées du conteneur — pas le HTML ou le CSS des pages, qui s'ajoute par dépôt d'archive (voir [Créer le contenu d'un nouveau formulaire](#créer-le-contenu-dun-nouveau-formulaire)).
+
+`meta.json` est réécrit automatiquement par GVV à chaque modification faite depuis l'admin (fiche ou pages) — ce n'est pas un fichier à maintenir à la main au quotidien. Il ne compte réellement que dans deux cas : le **dépôt initial d'une archive pour un nouveau formulaire** (ses valeurs pré-remplissent la fiche à la création) et le **transfert vers une autre installation** (voir [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet)). Le Code, le Lien public, le Formulaire global et le Statut n'y figurent jamais : ils restent toujours pilotés depuis l'admin, même dans ces deux cas.
+
+Pour la liste des types de champs de saisie possibles dans les pages (texte, date, fichier, signature...) et des attributs `data-gvv-*` qui les enrichissent, voir [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées) ci-dessous.
 
 ---
 
