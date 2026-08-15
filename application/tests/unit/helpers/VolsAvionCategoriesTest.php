@@ -18,6 +18,8 @@ require_once dirname(__DIR__, 3) . '/helpers/vols_avion_categories_helper.php';
  *   Vol BIA (6)           : instructeur, club_admin, pilote_vd
  *   Convoyage (7)         : instructeur, club_admin, pilote_rem
  *   Standardisation (9)   : instructeur, club_admin
+ *   Vol solo supervisé (10): auto_planchiste, instructeur, club_admin, pilote_vd, pilote_rem
+ *   Vol DC (11)           : auto_planchiste, instructeur, club_admin, pilote_vd, pilote_rem
  */
 class VolsAvionCategoriesTest extends TestCase
 {
@@ -31,6 +33,8 @@ class VolsAvionCategoriesTest extends TestCase
         6 => 'Vol BIA',
         7 => 'Convoyage',
         9 => 'Vol de standardisation',
+        10 => 'Vol solo supervisé',
+        11 => 'Vol DC',
     );
 
     private function roles($overrides = array())
@@ -68,7 +72,7 @@ class VolsAvionCategoriesTest extends TestCase
     public function test_auto_planchiste_only_standard()
     {
         $result = $this->compute($this->roles(['auto_planchiste' => true]));
-        $this->assertSame([0], array_keys($result));
+        $this->assertSame([0, 10, 11], array_keys($result));
     }
 
     // ------------------------------------------------------------------
@@ -87,6 +91,8 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(6, $result, 'Vol BIA');
         $this->assertArrayHasKey(7, $result, 'Convoyage');
         $this->assertArrayHasKey(9, $result, 'Vol de standardisation');
+        $this->assertArrayHasKey(10, $result, 'Vol solo supervisé');
+        $this->assertArrayHasKey(11, $result, 'Vol DC');
     }
 
     // ------------------------------------------------------------------
@@ -119,6 +125,8 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(0, $result, 'Standard');
         $this->assertArrayHasKey(3, $result, 'Remorquage');
         $this->assertArrayHasKey(7, $result, 'Convoyage');
+        $this->assertArrayHasKey(10, $result, 'Vol solo supervisé');
+        $this->assertArrayHasKey(11, $result, 'Vol DC');
         $this->assertArrayNotHasKey(1, $result, 'VD interdit');
         $this->assertArrayNotHasKey(2, $result, 'Essai interdit');
         $this->assertArrayNotHasKey(4, $result, 'Propriétaire interdit');
@@ -143,6 +151,8 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(6, $result, 'Vol BIA');
         $this->assertArrayNotHasKey(7, $result, 'Convoyage interdit');
         $this->assertArrayNotHasKey(9, $result, 'Standardisation interdite');
+        $this->assertArrayHasKey(10, $result, 'Vol solo supervisé');
+        $this->assertArrayHasKey(11, $result, 'Vol DC');
     }
 
     // ------------------------------------------------------------------
@@ -154,6 +164,8 @@ class VolsAvionCategoriesTest extends TestCase
         $result = $this->compute($this->roles(['auto_planchiste' => true, 'owns_machine' => true]));
         $this->assertArrayHasKey(0, $result, 'Standard');
         $this->assertArrayHasKey(4, $result, 'Vol propriétaire');
+        $this->assertArrayHasKey(10, $result, 'Vol solo supervisé');
+        $this->assertArrayHasKey(11, $result, 'Vol DC');
         $this->assertArrayNotHasKey(1, $result, 'VD interdit');
         $this->assertArrayNotHasKey(2, $result, 'Essai interdit');
         $this->assertArrayNotHasKey(3, $result, 'Remorquage interdit');
@@ -183,6 +195,8 @@ class VolsAvionCategoriesTest extends TestCase
         $this->assertArrayHasKey(5, $result);
         $this->assertArrayHasKey(6, $result);
         $this->assertArrayHasKey(7, $result);
+        $this->assertArrayHasKey(10, $result);
+        $this->assertArrayHasKey(11, $result);
         $this->assertArrayNotHasKey(2, $result);
         $this->assertArrayNotHasKey(4, $result);
     }

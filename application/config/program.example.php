@@ -67,7 +67,7 @@ $config['categories_pilote'] = array(
  * Catégories des vols avion
  */
 $config['categories_vol_avion'] = array(
-  0 => 'Standard',
+  0 => 'Standard pilote breveté',
   1 => "Vol de découverte",
   2 => "Vol d'essai",
   3 => "Remorquage",
@@ -75,7 +75,9 @@ $config['categories_vol_avion'] = array(
   5 => "Vol porte ouverte",
   6 => "Vol BIA",
   7 => "Convoyage",
-  9 => "Vol de standardisation"
+  9 => "Vol de standardisation",
+  10 => "Vol solo supervisé",
+  11 => "Vol DC"
 );
 
 /*
@@ -90,7 +92,9 @@ $config['categories_vol_avion_short'] = array(
   5 => "PO",
   6 => "BIA",
   7 => "Conv",
-  9 => "Stdz"
+  9 => "Stdz",
+  10 => "SoloSup",
+  11 => "DC"
 );
 
 /*

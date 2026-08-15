@@ -358,6 +358,12 @@ class Facturation {
             // Vol de standardisation
             $desc .= " Standardisation";
             $free = TRUE;
+        } elseif ($vol['vacategorie'] == VOL_SOLO_SUPERVISE || $vol['vacategorie'] == VOL_DC) {
+            // Vol solo supervisé / Vol DC : facturés comme un vol standard,
+            // mais le supplément double commande est toujours dû, indépendamment
+            // de la case à cocher "vadc" du formulaire.
+            $desc .= ($vol['vacategorie'] == VOL_SOLO_SUPERVISE) ? " Solo supervisé" : " DC";
+            $dc_a_facturer = ($tarif_dc_info['prix'] > 0);
         }
 
         // Cas de base, le vol est payé par le pilote, au prix de l'heure de vol

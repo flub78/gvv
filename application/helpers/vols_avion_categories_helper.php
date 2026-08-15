@@ -8,12 +8,12 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *
  * Règles :
  *   - admin / planchiste       : toutes les catégories
- *   - instructeur              : Standard, VD, Essai, Propriétaire, PO, BIA, Convoyage, Standardisation
- *   - pilote_vd                : Standard, VD, PO, BIA
- *   - pilote_rem               : Standard, Remorquage, Convoyage (JS filtre selon machine)
+ *   - instructeur              : Standard, VD, Essai, Propriétaire, PO, BIA, Convoyage, Standardisation, Solo supervisé, DC
+ *   - pilote_vd                : Standard, VD, PO, BIA, Solo supervisé, DC
+ *   - pilote_rem               : Standard, Remorquage, Convoyage, Solo supervisé, DC (JS filtre selon machine)
  *   - propriétaire de machine  : Standard, Vol propriétaire (JS filtre selon machine)
  *   - mecano                   : Vol d'essai uniquement
- *   - auto_planchiste seul     : Standard uniquement
+ *   - auto_planchiste seul     : Standard, Solo supervisé, DC
  *
  * @param array $all   Tableau complet [int => string] (config categories_vol_avion)
  * @param array $roles Drapeaux booléens : admin, planchiste, instructeur,
@@ -39,9 +39,15 @@ function compute_vols_avion_categories(array $all, array $roles)
 
     $allowed = array();
 
-    // Standard (0)
+    // Standard (0), Vol solo supervisé (10), Vol DC (11) : mêmes règles d'accès
     if ($r['instructeur'] || $r['pilote_vd'] || $r['pilote_rem'] || $r['auto_planchiste']) {
         $allowed[0] = $all[0];
+        if (isset($all[10])) {
+            $allowed[10] = $all[10];
+        }
+        if (isset($all[11])) {
+            $allowed[11] = $all[11];
+        }
     }
 
     // Vol de découverte (1), Vol porte ouverte (5), Vol BIA (6)

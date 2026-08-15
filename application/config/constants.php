@@ -86,6 +86,8 @@ define('BIA', 6);       // Vol BIA
 define('CONVOYAGE', 7);      // Vol de convoyage (facturé à demi-tarif)
 define('REMISE_EN_VOL', 8);  // Remise en vol (heures facturées, pas de supplément DC)
 define('STANDARDISATION', 9); // Vol de standardisation (gratuit)
+define('VOL_SOLO_SUPERVISE', 10); // Vol solo supervisé (facturé comme Standard + supplément DC)
+define('VOL_DC', 11);        // Vol DC (facturé comme Standard + supplément DC)
 
 define('PROPRIO_PRIVE', 1);
 
