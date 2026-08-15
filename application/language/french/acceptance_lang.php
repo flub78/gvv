@@ -170,6 +170,13 @@ $lang['acceptance_back_to_list'] = 'Retour à la liste';
 $lang['acceptance_formula_member'] = 'Je soussigné(e) %s, membre du club identifié par le système, reconnais avoir pris connaissance et accepter %s en date du %s.';
 $lang['acceptance_motd_title'] = 'À accepter : %s';
 $lang['acceptance_motd_content'] = 'Une validation est nécessaire : **%s**. [Lire et accepter](%s)';
+$lang['acceptance_my_documents_title'] = 'Mes documents à accepter';
+$lang['acceptance_my_documents_card_desc'] = 'Documents à valider';
+$lang['acceptance_my_documents_empty'] = 'Vous n\'avez aucun document à accepter.';
+$lang['acceptance_status_to_accept'] = 'À accepter';
+$lang['acceptance_status_accepted_on'] = 'Accepté le %s';
+$lang['acceptance_status_refused_on'] = 'Refusé le %s';
+$lang['acceptance_error_no_member_record'] = 'Votre compte n\'est pas rattaché à une fiche membre : cette action n\'est pas disponible.';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/french/acceptance_lang.php */

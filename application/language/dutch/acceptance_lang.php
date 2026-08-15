@@ -170,6 +170,13 @@ $lang['acceptance_back_to_list'] = 'Terug naar lijst';
 $lang['acceptance_formula_member'] = 'Ik, ondergetekende %s, lid van de club geïdentificeerd door het systeem, erken kennis te hebben genomen van en accepteer %s op %s.';
 $lang['acceptance_motd_title'] = 'Te accepteren: %s';
 $lang['acceptance_motd_content'] = 'Een validatie is vereist: **%s**. [Lezen en accepteren](%s)';
+$lang['acceptance_my_documents_title'] = 'Mijn te accepteren documenten';
+$lang['acceptance_my_documents_card_desc'] = 'Te controleren documenten';
+$lang['acceptance_my_documents_empty'] = 'U heeft geen document te accepteren.';
+$lang['acceptance_status_to_accept'] = 'Te accepteren';
+$lang['acceptance_status_accepted_on'] = 'Geaccepteerd op %s';
+$lang['acceptance_status_refused_on'] = 'Geweigerd op %s';
+$lang['acceptance_error_no_member_record'] = 'Uw account is niet gekoppeld aan een ledenkaart: deze actie is niet beschikbaar.';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/dutch/acceptance_lang.php */

@@ -14,6 +14,7 @@ class AcceptanceItemsModelTest extends TestCase
     protected $db;
     protected $model;
     protected $test_ids = array();
+    protected $temp_role_ids = array();
 
     protected function setUp(): void
     {
@@ -36,6 +37,9 @@ class AcceptanceItemsModelTest extends TestCase
         // Clean up test data in reverse order
         foreach (array_reverse($this->test_ids) as $id) {
             $this->db->delete('acceptance_items', array('id' => $id));
+        }
+        foreach ($this->temp_role_ids as $id) {
+            $this->db->delete('user_roles_per_section', array('id' => $id));
         }
     }
 
@@ -632,5 +636,214 @@ class AcceptanceItemsModelTest extends TestCase
         $after = $this->motdMessagesForItem($id);
         $this->assertCount($before - 1, $after);
         $this->assertNotContains($role['mlogin'], array_column($after, 'target_user_login'));
+    }
+
+    // ==================== clear_dangling_motd_for_user ====================
+
+    /**
+     * Grants $login a temporary, synthetic role/section assignment — by
+     * default any existing role and section row (the pairing itself doesn't
+     * matter unless the caller passes explicit ids to match a specific
+     * item's targeting) — so a test can simulate gaining/losing it
+     * afterwards without touching a real club member's actual roles.
+     * Tracked for teardown.
+     * @param string $login
+     * @param int|null $types_roles_id Explicit role id, or null to pick any
+     * @param int|null $section_id Explicit section id, or null to pick any
+     * @return array ['types_roles_id' => int, 'section_id' => int, 'urps_id' => int]
+     */
+    protected function grantTempRole($login, $types_roles_id = null, $section_id = null)
+    {
+        $user = $this->db->where('username', $login)->get('users')->row_array();
+        if (!$user) {
+            $this->markTestSkipped("No users row for login $login");
+        }
+        if ($types_roles_id === null) {
+            $role = $this->db->limit(1)->get('types_roles')->row_array();
+            if (!$role) {
+                $this->markTestSkipped('No role row available for this test');
+            }
+            $types_roles_id = $role['id'];
+        }
+        if ($section_id === null) {
+            $section = $this->db->limit(1)->get('sections')->row_array();
+            if (!$section) {
+                $this->markTestSkipped('No section row available for this test');
+            }
+            $section_id = $section['id'];
+        }
+
+        $urps_id = $this->db->insert('user_roles_per_section', array(
+            'user_id' => $user['id'],
+            'types_roles_id' => $types_roles_id,
+            'section_id' => $section_id,
+        )) ? $this->db->insert_id() : null;
+        $this->assertNotNull($urps_id, 'Failed to grant temporary test role');
+        $this->temp_role_ids[] = $urps_id;
+
+        return array('types_roles_id' => $types_roles_id, 'section_id' => $section_id, 'urps_id' => $urps_id);
+    }
+
+    public function testClearDanglingMotdForUser_RemovesNotificationForLostRole()
+    {
+        list($login, ) = $this->getTwoTestLogins();
+        $role = $this->grantTempRole($login);
+
+        $id = $this->createTestItem(array('title' => 'Dangling after revoke ' . uniqid()));
+        $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $login);
+        $this->model->sync_target_motd($id);
+        $this->assertContains($login, array_column($this->motdMessagesForItem($id), 'target_user_login'),
+            'Precondition: the role holder must have been notified');
+
+        // Simulate the role being revoked (cf. Gvv_Authorization::revoke_role()).
+        $this->db->where('id', $role['urps_id'])->update('user_roles_per_section', array(
+            'revoked_at' => date('Y-m-d H:i:s'),
+        ));
+
+        $this->model->clear_dangling_motd_for_user($login);
+
+        $this->assertNotContains($login, array_column($this->motdMessagesForItem($id), 'target_user_login'),
+            'A notification for an item the user is no longer eligible for must not keep linking to it');
+    }
+
+    public function testClearDanglingMotdForUser_KeepsNotificationForStillEligibleItem()
+    {
+        $role = $this->getUserWithRole();
+        $id = $this->createTestItem(array('title' => 'Still eligible ' . uniqid()));
+        $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $role['mlogin']);
+        $this->model->sync_target_motd($id);
+        $before = $this->motdMessagesForItem($id);
+        $this->assertContains($role['mlogin'], array_column($before, 'target_user_login'));
+
+        $this->model->clear_dangling_motd_for_user($role['mlogin']);
+
+        $after = $this->motdMessagesForItem($id);
+        $this->assertContains($role['mlogin'], array_column($after, 'target_user_login'),
+            'A notification the user is still eligible for must not be removed');
+    }
+
+    // ==================== Message actually displayed to the role holder ====================
+    //
+    // The tests above only check that a motd_messages row was created for
+    // the right login (motdMessagesForItem()). None of them go through
+    // Motd_model::active_messages_for_user() — the query that actually
+    // decides what a member sees on their dashboard. The two below close
+    // that gap.
+
+    public function testActiveMessagesForUser_DisplaysNotificationToRoleHolder()
+    {
+        $role = $this->getUserWithRole();
+        $id = $this->createTestItem(array('title' => 'Displayed to role holder ' . uniqid()));
+        $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $role['mlogin']);
+        $this->model->sync_target_motd($id);
+
+        $this->CI->load->model('motd_model');
+        $messages = $this->CI->motd_model->active_messages_for_user($role['mlogin']);
+
+        // Note: content is not checked for the interpolated read link here —
+        // MockLang::line() (application/tests/integration_bootstrap.php)
+        // returns the key itself rather than the real translation in this
+        // test environment, same limitation as testSyncTargetMotd_IndividualTarget().
+        $found = false;
+        foreach ($messages as $m) {
+            if ($m['source_type'] === Acceptance_items_model::MOTD_SOURCE_TYPE && (int) $m['source_ref'] === (int) $id) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found, 'The role holder must actually see the generated notification, not just have a row created for them');
+    }
+
+    public function testActiveMessagesForUser_HidesNotificationFromUserWithoutTheRole()
+    {
+        list($login_a, ) = $this->getTwoTestLogins();
+        $role = $this->getUserWithRole();
+        if ($role['mlogin'] === $login_a) {
+            $this->markTestSkipped('Test login already holds the sampled role, cannot build a negative case');
+        }
+
+        $id = $this->createTestItem(array('title' => 'Not displayed without role ' . uniqid()));
+        $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $role['mlogin']);
+        $this->model->sync_target_motd($id);
+
+        $this->CI->load->model('motd_model');
+        $messages = $this->CI->motd_model->active_messages_for_user($login_a);
+
+        foreach ($messages as $m) {
+            $this->assertFalse(
+                $m['source_type'] === Acceptance_items_model::MOTD_SOURCE_TYPE && (int) $m['source_ref'] === (int) $id,
+                'A user who does not hold the targeted role must not see the notification'
+            );
+        }
+    }
+
+    // ==================== Role granted or revoked after the item exists ====================
+    //
+    // Full lifecycle for a single user/item pair, matching how roles are
+    // actually granted/revoked in production (Gvv_Authorization::grant_role()
+    // / revoke_role()): before holding the role the item must be invisible
+    // everywhere; once granted, the dashboard must reflect it immediately
+    // (dynamic query) even though no motd is generated retroactively (an
+    // accepted limitation); once revoked, both the dashboard and any
+    // leftover motd link must go away (the dead-link fix under test above).
+
+    public function testRoleLifecycle_ItemVisibilityAndNotificationTrackGrantAndRevoke()
+    {
+        list($login, ) = $this->getTwoTestLogins();
+        $role_row = $this->db->limit(1)->get('types_roles')->row_array();
+        $section_row = $this->db->limit(1)->get('sections')->row_array();
+        if (!$role_row || !$section_row) {
+            $this->markTestSkipped('No role/section row available for this test');
+        }
+
+        $id = $this->createTestItem(array('title' => 'Role lifecycle ' . uniqid()));
+        $this->addItemRole($id, $role_row['id'], $section_row['id'], $login);
+        $this->model->sync_target_motd($id);
+        $this->CI->load->model('motd_model');
+
+        // --- Before the role is granted: invisible everywhere ---
+        $pending = $this->model->get_pending_items_for_user($login);
+        $this->assertNotContains($id, array_column($pending, 'id'),
+            'Before the role is granted, the item must not appear on the dashboard');
+        $messages = $this->CI->motd_model->active_messages_for_user($login);
+        $this->assertNotContains($id, $this->acceptanceSourceRefs($messages),
+            'Before the role is granted, no notification should target this user');
+
+        // --- Role granted (mirrors Gvv_Authorization::grant_role()) ---
+        $role = $this->grantTempRole($login, $role_row['id'], $section_row['id']);
+
+        $pending = $this->model->get_pending_items_for_user($login);
+        $this->assertContains($id, array_column($pending, 'id'),
+            'Once the role is granted, the item must appear on the dashboard immediately (dynamic query)');
+        $messages = $this->CI->motd_model->active_messages_for_user($login);
+        $this->assertNotContains($id, $this->acceptanceSourceRefs($messages),
+            'Gaining a role does not retroactively generate a notification (accepted limitation, cf. sync_target_motd() is only triggered by admin edits)');
+
+        // --- Role revoked (mirrors Gvv_Authorization::revoke_role(), including the dead-link fix) ---
+        $this->db->where('id', $role['urps_id'])->update('user_roles_per_section', array(
+            'revoked_at' => date('Y-m-d H:i:s'),
+        ));
+        $this->model->clear_dangling_motd_for_user($login);
+
+        $pending = $this->model->get_pending_items_for_user($login);
+        $this->assertNotContains($id, array_column($pending, 'id'),
+            'Once the role is revoked, the item must disappear from the dashboard immediately');
+        $messages = $this->CI->motd_model->active_messages_for_user($login);
+        $this->assertNotContains($id, $this->acceptanceSourceRefs($messages),
+            'Once the role is revoked, no dangling notification/dead link must remain displayed');
+    }
+
+    /**
+     * @param array $messages Rows from Motd_model::active_messages_for_user()
+     * @return int[] source_ref of this item's acceptance-sourced messages, as ints
+     */
+    protected function acceptanceSourceRefs($messages)
+    {
+        $refs = array();
+        foreach ($messages as $m) {
+            if ($m['source_type'] === Acceptance_items_model::MOTD_SOURCE_TYPE) {
+                $refs[] = (int) $m['source_ref'];
+            }
+        }
+        return $refs;
     }
 }

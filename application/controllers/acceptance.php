@@ -82,6 +82,34 @@ class Acceptance extends Gvv_Controller {
     }
 
     /**
+     * All items eligible for the user, each annotated with the user's
+     * personal status for it (pending/accepted/refused) and action date.
+     * Unlike dashboard() (pending only) and history() (already acted upon
+     * only), this combines both into a single "my documents" overview.
+     */
+    function my_documents() {
+        $user_login = $this->dx_auth->get_username();
+
+        $items = $this->acceptance_items_model->get_items_for_user($user_login);
+        $records_by_item = array();
+        foreach ($this->gvv_model->get_by_user($user_login) as $record) {
+            $records_by_item[$record['item_id']] = $record;
+        }
+
+        foreach ($items as &$item) {
+            $record = isset($records_by_item[$item['id']]) ? $records_by_item[$item['id']] : null;
+            $item['status'] = $record ? $record['status'] : 'pending';
+            $item['acted_at'] = $record ? $record['acted_at'] : null;
+        }
+        unset($item);
+
+        $this->data['items'] = $items;
+        $this->data['controller'] = $this->controller;
+
+        return load_last_view('acceptance/bs_myDocumentsView', $this->data, $this->unit_test);
+    }
+
+    /**
      * Read and accept/refuse screen for a single item
      */
     function read($item_id) {
@@ -115,6 +143,12 @@ class Acceptance extends Gvv_Controller {
         }
 
         $record = $this->gvv_model->get_or_create_pending($item_id, $user_login);
+        if (!$record) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_error_no_member_record') . '</div>');
+            redirect('acceptance');
+            return;
+        }
+
         $formula = $this->_acceptance_formula($user_login, $item['title']);
         $this->gvv_model->accept($record['id'], $formula);
         $this->acceptance_items_model->clear_target_motd_for_user($item_id, $user_login);
@@ -135,6 +169,12 @@ class Acceptance extends Gvv_Controller {
         }
 
         $record = $this->gvv_model->get_or_create_pending($item_id, $user_login);
+        if (!$record) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_error_no_member_record') . '</div>');
+            redirect('acceptance');
+            return;
+        }
+
         $this->gvv_model->refuse($record['id']);
         $this->acceptance_items_model->clear_target_motd_for_user($item_id, $user_login);
 

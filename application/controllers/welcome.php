@@ -343,6 +343,13 @@ class Welcome extends Gvv_Controller {
         }
         $data['motd_hidden_count'] = $motd_hidden_count;
 
+        // Carte "Mes documents à accepter" : nombre de documents en attente
+        $this->load->model('acceptance_items_model');
+        $this->lang->load('acceptance');
+        $data['acceptance_pending_count'] = count(
+            $this->acceptance_items_model->get_pending_items_for_user($data['username'])
+        );
+
         return $data;
     }
 

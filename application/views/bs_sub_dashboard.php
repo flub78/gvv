@@ -83,6 +83,13 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     font-size: 0.75rem;
     padding: 0.25rem 0.75rem;
 }
+
+.sub-card .badge-corner {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 0.7rem;
+}
 </style>
 
 <div id="body" class="body container-fluid py-3">
@@ -237,6 +244,20 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= translation('authorization_my_authorizations_title') ?></div>
                 <div class="card-text text-muted"><?= translation('authorization_my_authorizations_desc') ?></div>
                 <a href="<?= controller_url('membre/mes_autorisations') ?>" class="btn btn-danger btn-sm"><?= translation('dashboard_consult') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (true): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <?php if (!empty($acceptance_pending_count)): ?>
+                <span class="badge rounded-pill bg-danger badge-corner"><?= $acceptance_pending_count ?></span>
+                <?php endif; ?>
+                <i class="fas fa-clipboard-check text-info"></i>
+                <div class="card-title"><?= translation('acceptance_my_documents_title') ?></div>
+                <div class="card-text text-muted"><?= translation('acceptance_my_documents_card_desc') ?></div>
+                <a href="<?= controller_url('acceptance/my_documents') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
         <?php endif; ?>

@@ -304,11 +304,31 @@ class Gvv_Authorization
             log_message('info', 'revoke_role: SUCCESS - Role revoked from user=' . $user_id);
             $this->clear_cache($user_id);
             $this->_audit_log('revoke_role', $revoked_by, $user_id, $types_roles_id, $section_id, NULL);
+            $this->_clear_dangling_acceptance_motd($user_id);
             return TRUE;
         }
 
         log_message('error', 'revoke_role: FAILED - Role not found or already revoked for user=' . $user_id);
         return FALSE;
+    }
+
+    /**
+     * Drop acceptance module notifications (message du jour) that the user
+     * is no longer eligible for after losing a role, so they never link to
+     * an inaccessible acceptance item. See
+     * Acceptance_items_model::clear_dangling_motd_for_user().
+     * @param int $user_id
+     */
+    private function _clear_dangling_acceptance_motd($user_id)
+    {
+        $user = $this->CI->db->where('id', $user_id)->get('users')->row_array();
+        if (empty($user['username'])) {
+            return;
+        }
+        $username = $user['username'];
+
+        $this->CI->load->model('acceptance_items_model');
+        $this->CI->acceptance_items_model->clear_dangling_motd_for_user($username);
     }
 
     /**

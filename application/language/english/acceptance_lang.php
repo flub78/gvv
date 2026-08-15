@@ -170,6 +170,13 @@ $lang['acceptance_back_to_list'] = 'Back to list';
 $lang['acceptance_formula_member'] = 'I, the undersigned %s, member of the club identified by the system, acknowledge having read and accept %s on %s.';
 $lang['acceptance_motd_title'] = 'To accept: %s';
 $lang['acceptance_motd_content'] = 'A validation is required: **%s**. [Read and accept](%s)';
+$lang['acceptance_my_documents_title'] = 'My documents to accept';
+$lang['acceptance_my_documents_card_desc'] = 'Documents to review';
+$lang['acceptance_my_documents_empty'] = 'You have no document to accept.';
+$lang['acceptance_status_to_accept'] = 'To accept';
+$lang['acceptance_status_accepted_on'] = 'Accepted on %s';
+$lang['acceptance_status_refused_on'] = 'Refused on %s';
+$lang['acceptance_error_no_member_record'] = 'Your account is not linked to a member record: this action is not available.';
 
 /* End of file acceptance_lang.php */
 /* Location: ./application/language/english/acceptance_lang.php */

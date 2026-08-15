@@ -244,6 +244,37 @@ class Acceptance_items_model extends Common_Model {
     }
 
     /**
+     * Drop any acceptance motd notification $user_login is no longer
+     * eligible for. Notifications link to acceptance/read/<item_id>, which
+     * denies access once the user holds neither the item's targeting nor an
+     * existing personal record (cf. Acceptance::_get_authorized_item()) —
+     * so a role change that drops eligibility would otherwise leave a dead
+     * link sitting in the message du jour indefinitely. Called after any
+     * role revocation, regardless of which role/section, since eligibility
+     * can combine several roles (cf. get_items_for_user()); cheap no-op
+     * when the user has no acceptance notification at all.
+     * @param string $user_login
+     */
+    public function clear_dangling_motd_for_user($user_login) {
+        $this->db->select('source_ref');
+        $this->db->distinct();
+        $this->db->from('motd_messages');
+        $this->db->where('source_type', self::MOTD_SOURCE_TYPE);
+        $this->db->where('target_type', 'user');
+        $this->db->where('target_user_login', $user_login);
+        $notified_ids = array_column($this->db->get()->result_array(), 'source_ref');
+        if (empty($notified_ids)) {
+            return;
+        }
+
+        $eligible_ids = array_map('strval', array_column($this->get_items_for_user($user_login), 'id'));
+
+        foreach (array_diff($notified_ids, $eligible_ids) as $item_id) {
+            $this->clear_target_motd_for_user((int) $item_id, $user_login);
+        }
+    }
+
+    /**
      * Resolve an item's targeting to a flat list of member logins: the
      * individual target_user_login, or every member reached by its
      * acceptance_item_roles rows (role x section, mirroring
