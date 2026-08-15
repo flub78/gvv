@@ -4,8 +4,14 @@
  * Tests:
  * - Login as admin and navigate to acceptance admin page
  * - Access the items list page
- * - Access the create form
+ * - Access the create form (document picker step, then the pre-filled form)
  * - Create an item and verify it appears in the list
+ *
+ * Since the Lot 4 amendment (doc/plans/acceptations_reconnaissances_plan.md),
+ * a new acceptance item must reference an already archived document: creation
+ * always goes through the picker (bs_selectDocumentView.php) before reaching
+ * the pre-filled form. This suite creates one fixture archived_documents row
+ * to select from.
  *
  * Usage:
  *   cd playwright
@@ -27,6 +33,7 @@ const TEST_USER = {
 // selected in the target_user_login dropdown (Membres_model::selector()
 // only lists actual club members) — use testuser to target an individual.
 const MEMBER_LOGIN = 'testuser';
+const FIXTURE_DOC_DESCRIPTION = 'Acceptance admin smoke fixture doc';
 
 const DB_CONFIG = {
   host: 'localhost',
@@ -44,6 +51,18 @@ async function loginAsAdmin(page) {
   await page.fill('input[name="username"]', TEST_USER.username);
   await page.fill('input[name="password"]', TEST_USER.password);
   await page.click('button[type="submit"], input[type="submit"]');
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Helper: from the document picker step (ACCEPTANCE_CREATE_URL with no id),
+ * pick the fixture document and land on the pre-filled create form.
+ */
+async function goToCreateFormForFixtureDocument(page, documentId) {
+  await page.goto(ACCEPTANCE_CREATE_URL);
+  await page.waitForLoadState('networkidle');
+  await page.selectOption('#archived_document_id_select', String(documentId));
+  await page.locator('#chooseDocumentBtn').click();
   await page.waitForLoadState('networkidle');
 }
 
@@ -70,14 +89,25 @@ async function cleanup(conn) {
     "(SELECT id FROM acceptance_items WHERE title LIKE 'Test Acceptance Item %' OR title LIKE 'Tracking Test %')"
   );
   await conn.query("DELETE FROM acceptance_items WHERE title LIKE 'Test Acceptance Item %' OR title LIKE 'Tracking Test %'");
+  await conn.query("DELETE FROM archived_documents WHERE description = ?", [FIXTURE_DOC_DESCRIPTION]);
 }
 
 test.describe.serial('Acceptance Admin Smoke Tests', () => {
   let conn;
+  let fixtureDocumentId;
 
   test.beforeAll(async () => {
     conn = await mysql.createConnection(DB_CONFIG);
     await cleanup(conn);
+
+    const [types] = await conn.query('SELECT id FROM document_types LIMIT 1');
+    const [result] = await conn.query(
+      `INSERT INTO archived_documents (document_type_id, original_filename, description,
+         file_path, is_current_version, uploaded_by, uploaded_at, updated_by)
+       VALUES (?, 'fixture.pdf', ?, 'uploads/documents/test/fixture.pdf', 1, ?, NOW(), ?)`,
+      [types[0].id, FIXTURE_DOC_DESCRIPTION, TEST_USER.username, TEST_USER.username]
+    );
+    fixtureDocumentId = result.insertId;
   });
 
   test.afterAll(async () => {
@@ -107,19 +137,33 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
   test('should access create form', async ({ page }) => {
     await loginAsAdmin(page);
 
-    // Navigate to create form
+    // Step 1: the picker (no document chosen yet) — only the big select is present.
     await page.goto(ACCEPTANCE_CREATE_URL);
     await page.waitForLoadState('networkidle');
 
     console.log('Navigated to:', page.url());
 
-    // Check no PHP errors
+    await checkNoPhpErrors(page);
+    await expect(page.locator('#archived_document_id_select')).toBeVisible();
+    await expect(page.locator('input[name="title"]')).toHaveCount(0);
+
+    // Step 2: choosing the fixture document lands on the pre-filled form.
+    await page.selectOption('#archived_document_id_select', String(fixtureDocumentId));
+    await page.locator('#chooseDocumentBtn').click();
+    await page.waitForLoadState('networkidle');
+
     await checkNoPhpErrors(page);
 
     // Check form elements are present
     await expect(page.locator('input[name="title"]')).toBeVisible();
-    await expect(page.locator('select[name="category"]')).toBeVisible();
+    await expect(page.locator('input[name="archived_document_id"]')).toHaveCount(1);
     await expect(page.locator('select[name="mandatory_level"]')).toBeVisible();
+
+    // Category is no longer a free choice for new items (amendment Lot 4):
+    // forced to 'document' via a hidden field, no dropdown offered.
+    await expect(page.locator('select[name="category"]')).toHaveCount(0);
+    // No PDF upload either: the item references the archived document instead.
+    await expect(page.locator('input[name="pdf_file"]')).toHaveCount(0);
 
     // target_type, dual_validation and role_1/role_2 are hidden (unused for now).
     await expect(page.locator('select[name="target_type"]')).toHaveCount(0);
@@ -136,14 +180,11 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
   test('should create an acceptance item', async ({ page }) => {
     await loginAsAdmin(page);
 
-    // Navigate to create form
-    await page.goto(ACCEPTANCE_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await goToCreateFormForFixtureDocument(page, fixtureDocumentId);
 
-    // Fill in the form
+    // Fill in the form (category is already forced to 'document')
     const itemTitle = 'Test Acceptance Item ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
-    await page.selectOption('select[name="category"]', 'document');
 
     // Obligation level (replaces the former boolean "mandatory" checkbox).
     await page.selectOption('select[name="mandatory_level"]', 'mandatory_hard');
@@ -187,11 +228,9 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     await loginAsAdmin(page);
 
     // Create an item to delete.
-    await page.goto(ACCEPTANCE_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await goToCreateFormForFixtureDocument(page, fixtureDocumentId);
     const itemTitle = 'Test Acceptance Item ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
-    await page.selectOption('select[name="category"]', 'briefing');
     // Target a member individually rather than leaving it unrestricted:
     // an unrestricted item generates a message du jour for every active
     // member (Lot 3d.4), which would spam real accounts on this shared DB.
@@ -228,12 +267,10 @@ test.describe.serial('Acceptance Admin Smoke Tests', () => {
     await loginAsAdmin(page);
 
     // First create an item so we have something to track
-    await page.goto(ACCEPTANCE_CREATE_URL);
-    await page.waitForLoadState('networkidle');
+    await goToCreateFormForFixtureDocument(page, fixtureDocumentId);
 
     const itemTitle = 'Tracking Test ' + Date.now();
     await page.fill('input[name="title"]', itemTitle);
-    await page.selectOption('select[name="category"]', 'briefing');
     // Target a member individually rather than leaving it unrestricted:
     // an unrestricted item generates a message du jour for every active
     // member (Lot 3d.4), which would spam real accounts on this shared DB.

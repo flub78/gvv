@@ -89,6 +89,7 @@ $lang['acceptance_unknown_record'] = 'Onbekend record';
 $lang['acceptance_admin_title'] = 'Acceptatiebeheer';
 $lang['acceptance_admin_menu'] = 'Acceptaties';
 $lang['acceptance_add_item'] = 'Nieuw element';
+$lang['acceptance_choose_document'] = 'Dit document kiezen';
 $lang['acceptance_add_item_for_document'] = 'Nieuwe acceptatieaanvraag voor dit document';
 $lang['acceptance_filtered_by_document'] = 'Acceptaties gekoppeld aan document: %s';
 $lang['acceptance_clear_document_filter'] = 'Alle acceptaties bekijken';
@@ -132,6 +133,7 @@ $lang['acceptance_role_2_placeholder'] = 'bijv. leerling';
 $lang['acceptance_target_roles_placeholder'] = 'bijv. piloten, instructeurs, bestuur';
 $lang['acceptance_target_roles_help'] = 'Vink een of meer rollen aan, in een specifieke sectie of alle secties. Leeg = alle leden.';
 $lang['acceptance_target_user_help'] = 'Een item richt zich op een individuele gebruiker of op een of meer categorieën, nooit op beide.';
+$lang['acceptance_select_document_help'] = 'Een nieuw te accepteren element moet verwijzen naar een reeds gearchiveerd document. Alle secties samen.';
 $lang['acceptance_version_date_archived_help'] = 'Depotdatum van het gearchiveerde document, niet bewerkbaar vanuit dit formulier.';
 $lang['acceptance_active_help'] = 'Alleen actieve elementen worden aan leden getoond';
 

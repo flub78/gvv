@@ -134,6 +134,9 @@ class Acceptance_admin extends Gvv_Controller {
      * @param int|null $archived_document_id When set, pre-fills the form to create a
      *   'document' category item referencing an already archived document
      *   (application/controllers/archived_documents.php) instead of uploading a new PDF.
+     *   When absent, a new item can only be created by first picking an archived
+     *   document (amendment Lot 4, doc/plans/acceptations_reconnaissances_plan.md) —
+     *   free category choice and PDF upload are no longer offered for new items.
      */
     function create($archived_document_id = null) {
         if (!$this->_is_admin()) {
@@ -141,24 +144,27 @@ class Acceptance_admin extends Gvv_Controller {
             return;
         }
 
+        if (empty($archived_document_id)) {
+            $this->data['archived_document_selector'] = $this->archived_documents_model->selector();
+            return load_last_view($this->controller . '/selectDocumentView', $this->data, $this->unit_test);
+        }
+
         $table = $this->gvv_model->table();
         $this->data = $this->gvvmetadata->defaults_list($table);
 
         $this->data['created_by'] = $this->dx_auth->get_username();
 
-        if (!empty($archived_document_id)) {
-            $archived_document = $this->archived_documents_model->get_by_id('id', $archived_document_id);
-            if (!$archived_document) {
-                $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_archived_document_not_found') . '</div>');
-                redirect('acceptance_admin/create');
-                return;
-            }
-            $this->data['archived_document_id'] = $archived_document_id;
-            $this->data['archived_document'] = $archived_document;
-            $this->data['category'] = 'document';
-            $this->data['title'] = $archived_document['description'] ?: $archived_document['original_filename'];
-            $this->data['version_date'] = $this->_archived_document_date($archived_document);
+        $archived_document = $this->archived_documents_model->get_by_id('id', $archived_document_id);
+        if (!$archived_document) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_archived_document_not_found') . '</div>');
+            redirect('acceptance_admin/create');
+            return;
         }
+        $this->data['archived_document_id'] = $archived_document_id;
+        $this->data['archived_document'] = $archived_document;
+        $this->data['category'] = 'document';
+        $this->data['title'] = $archived_document['description'] ?: $archived_document['original_filename'];
+        $this->data['version_date'] = $this->_archived_document_date($archived_document);
 
         $this->form_static_element(CREATION);
 

@@ -6,8 +6,6 @@
 
 ## Reste à faire
 
-* [ ] Type de vol solo supervisé.
-
 * [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
   
 * [] Page archived_documents/view/154 il suffit modifier le lien pour afficher les documents archivés d'un autre pilote. Faire une étude globale sur les vulnérabilités.
@@ -16,21 +14,29 @@
 
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
 
-* [] Approbation de documents
-
-* [~] Support de la gestion de la maintenance,                 (PRD à rédiger)
+* [~] Support de la gestion de la maintenance,  
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
 
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
-
-* [] Blocage des réservations pour les pilotes qui doivent approuver des documents.
-     
+    
 * [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
-* [] Utiliser la nouvelle configuration en base. Cela devrait permettre de désactiver le mécanisme précédant? Il faut peut-être ajouter un type de paramètre de configuration et les présenter de façon hiérarchique
+* [] Unifier la configuration globale de l'application avec des onglets ou des pages, un peu comme la procédure d'installation.
+Suivant les cas, la procédure éditera des fichiers de configuration ou des enregistrements dans la base de données. 
+  * [] Gestion des emails (smtp, etc)
+  * [] Gestion des documents (chemin, etc)
+  * [] Gestion des vols de découverte
+  * [] Gestion des tarifs et produits
+  * [] Gestion des types de vol
+  * [] Gestion des types d'écriture comptable
+  * [] Gestion des types de qualification
+  * [] Gestion des types de documents
+  * [] Gestion des types d'alerte
+  * [] Gestion des types de maintenance.
+  
 
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   

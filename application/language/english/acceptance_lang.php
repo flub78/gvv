@@ -89,6 +89,7 @@ $lang['acceptance_unknown_record'] = 'Unknown record';
 $lang['acceptance_admin_title'] = 'Acceptance administration';
 $lang['acceptance_admin_menu'] = 'Acceptances';
 $lang['acceptance_add_item'] = 'New item';
+$lang['acceptance_choose_document'] = 'Choose this document';
 $lang['acceptance_add_item_for_document'] = 'New acceptance request for this document';
 $lang['acceptance_filtered_by_document'] = 'Acceptances linked to document: %s';
 $lang['acceptance_clear_document_filter'] = 'View all acceptances';
@@ -132,6 +133,7 @@ $lang['acceptance_role_2_placeholder'] = 'e.g. student';
 $lang['acceptance_target_roles_placeholder'] = 'e.g. pilots, instructors, board';
 $lang['acceptance_target_roles_help'] = 'Check one or more roles, in a specific section or all sections. Empty = all members.';
 $lang['acceptance_target_user_help'] = 'An item targets either an individual user or one or more categories, never both.';
+$lang['acceptance_select_document_help'] = 'A new item to accept must reference an already archived document. All sections combined.';
 $lang['acceptance_version_date_archived_help'] = 'Archived document deposit date, not editable from this form.';
 $lang['acceptance_active_help'] = 'Only active items are presented to members';
 

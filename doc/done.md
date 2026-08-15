@@ -242,6 +242,10 @@
 
 * [x] Refactoring split produits et tarifs.
 
+* [x] Type de vol solo supervisé.
+
+* [x] Approbation de documents
+
 
 
 

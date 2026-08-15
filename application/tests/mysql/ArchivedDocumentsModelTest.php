@@ -727,4 +727,135 @@ class ArchivedDocumentsModelTest extends TestCase
         $this->test_document_ids = array_diff($this->test_document_ids, array($v2_id));
     }
 
+    // ==================== image() / selector() (Lot 4 amendment) ====================
+    // acceptance_admin/create now requires picking an archived document via a
+    // selector — image() supplies the identification chain shown in that list.
+    // @see doc/plans/acceptations_reconnaissances_plan.md (Lot 4, 4.10)
+
+    public function testArchivedDocumentsModel_Image_Empty()
+    {
+        $this->assertEquals('', $this->archived_documents_model->image(''));
+    }
+
+    public function testArchivedDocumentsModel_Image_UnknownId()
+    {
+        $this->assertStringContainsString('document inconnu', $this->archived_documents_model->image(999999999));
+    }
+
+    public function testArchivedDocumentsModel_Image_WithPilot()
+    {
+        $query = $this->db->query("SELECT mlogin, mnom, mprenom FROM membres LIMIT 1");
+        $pilot = $query->row_array();
+        if (!$pilot) {
+            $this->markTestSkipped('No pilot in database for testing');
+        }
+
+        $medical = $this->document_types_model->get_by_code('medical');
+        $this->assertNotEmpty($medical, 'Medical document type should exist');
+
+        $doc_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'  => $medical['id'],
+            'pilot_login'       => $pilot['mlogin'],
+            'file_path'         => 'uploads/documents/test/image_pilot.pdf',
+            'original_filename' => 'image_pilot.pdf',
+            'description'       => 'Test image() pilot document',
+            'uploaded_by'       => $pilot['mlogin'],
+        ));
+        $this->test_document_ids[] = $doc_id;
+
+        $image = $this->archived_documents_model->image($doc_id);
+        $this->assertStringContainsString($medical['name'], $image);
+        $this->assertStringContainsString('Test image() pilot document', $image);
+        $this->assertStringContainsString('Pilote: ' . $pilot['mnom'] . ' ' . $pilot['mprenom'], $image);
+        $this->assertStringNotContainsString('Immat:', $image);
+    }
+
+    public function testArchivedDocumentsModel_Image_WithMachine()
+    {
+        $maintenance = $this->document_types_model->get_by_code('maintenance_programme');
+        $this->assertNotEmpty($maintenance, 'maintenance_programme document type should exist');
+
+        $doc_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'  => $maintenance['id'],
+            'machine_immat'     => 'F-TEST',
+            'file_path'         => 'uploads/documents/test/image_machine.pdf',
+            'original_filename' => 'image_machine.pdf',
+            'description'       => 'Test image() machine document',
+            'uploaded_by'       => 'testadmin',
+        ));
+        $this->test_document_ids[] = $doc_id;
+
+        $image = $this->archived_documents_model->image($doc_id);
+        $this->assertStringContainsString($maintenance['name'], $image);
+        $this->assertStringContainsString('Test image() machine document', $image);
+        $this->assertStringContainsString('Immat: F-TEST', $image);
+        $this->assertStringNotContainsString('Pilote:', $image);
+    }
+
+    public function testArchivedDocumentsModel_Image_FallsBackToFilename()
+    {
+        $medical = $this->document_types_model->get_by_code('medical');
+        $this->assertNotEmpty($medical, 'Medical document type should exist');
+
+        $doc_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'  => $medical['id'],
+            'file_path'         => 'uploads/documents/test/image_no_description.pdf',
+            'original_filename' => 'image_no_description.pdf',
+            'uploaded_by'       => 'testadmin',
+        ));
+        $this->test_document_ids[] = $doc_id;
+
+        $image = $this->archived_documents_model->image($doc_id);
+        $this->assertStringContainsString('image_no_description.pdf', $image);
+    }
+
+    public function testArchivedDocumentsModel_Selector()
+    {
+        $medical = $this->document_types_model->get_by_code('medical');
+        $this->assertNotEmpty($medical, 'Medical document type should exist');
+
+        $doc_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'  => $medical['id'],
+            'file_path'         => 'uploads/documents/test/selector.pdf',
+            'original_filename' => 'selector.pdf',
+            'description'       => 'Test selector() document',
+            'uploaded_by'       => 'testadmin',
+        ));
+        $this->test_document_ids[] = $doc_id;
+
+        $selector = $this->archived_documents_model->selector();
+
+        $this->assertArrayHasKey('', $selector, 'Selector should have a blank first option');
+        $this->assertArrayHasKey($doc_id, $selector);
+        $this->assertStringContainsString('Test selector() document', $selector[$doc_id]);
+    }
+
+    public function testArchivedDocumentsModel_Selector_ExcludesOldVersions()
+    {
+        $medical = $this->document_types_model->get_by_code('medical');
+        $this->assertNotEmpty($medical, 'Medical document type should exist');
+
+        $v1_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'  => $medical['id'],
+            'file_path'         => 'uploads/documents/test/selector_v1.pdf',
+            'original_filename' => 'selector_v1.pdf',
+            'uploaded_by'       => 'testadmin',
+        ));
+        $this->test_document_ids[] = $v1_id;
+
+        $v2_id = $this->archived_documents_model->create_document(array(
+            'document_type_id'    => $medical['id'],
+            'file_path'           => 'uploads/documents/test/selector_v2.pdf',
+            'original_filename'   => 'selector_v2.pdf',
+            'uploaded_by'         => 'testadmin',
+            'previous_version_id' => $v1_id,
+        ));
+        $this->test_document_ids[] = $v2_id;
+
+        $selector = $this->archived_documents_model->selector();
+
+        $this->assertArrayNotHasKey($v1_id, $selector, 'Superseded version should not appear in the selector');
+        $this->assertArrayHasKey($v2_id, $selector);
+    }
+
 }

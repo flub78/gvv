@@ -89,6 +89,7 @@ $lang['acceptance_unknown_record'] = 'Enregistrement inconnu';
 $lang['acceptance_admin_title'] = 'Administration des acceptations';
 $lang['acceptance_admin_menu'] = 'Acceptations';
 $lang['acceptance_add_item'] = 'Nouvel élément';
+$lang['acceptance_choose_document'] = 'Choisir ce document';
 $lang['acceptance_add_item_for_document'] = 'Nouvelle demande d\'acceptation pour ce document';
 $lang['acceptance_filtered_by_document'] = 'Acceptations liées au document : %s';
 $lang['acceptance_clear_document_filter'] = 'Voir toutes les acceptations';
@@ -132,6 +133,7 @@ $lang['acceptance_role_2_placeholder'] = 'ex: élève';
 $lang['acceptance_target_roles_placeholder'] = 'ex: pilotes, instructeurs, bureau';
 $lang['acceptance_target_roles_help'] = 'Cochez un ou plusieurs rôles, dans une section précise ou toutes sections. Vide = tous les membres.';
 $lang['acceptance_target_user_help'] = 'Un élément cible soit un utilisateur individuel, soit une ou plusieurs catégories, jamais les deux.';
+$lang['acceptance_select_document_help'] = 'Un nouvel élément à accepter doit référencer un document déjà archivé. Toutes sections confondues.';
 $lang['acceptance_version_date_archived_help'] = 'Date de dépôt du document archivé, non modifiable depuis ce formulaire.';
 $lang['acceptance_active_help'] = 'Seuls les éléments actifs sont présentés aux membres';
 

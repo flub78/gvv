@@ -689,19 +689,66 @@ class Archived_documents_model extends Common_Model {
     }
 
     /**
-     * Returns a human-readable representation of a document
+     * Returns a human-readable representation of a document: type, description
+     * (or filename as fallback), and pilot name / machine registration when
+     * the document is attached to one — the identification chain needed to
+     * tell apart documents of the same type in a selector (cf. selector()).
      * @param mixed $key Document ID
      * @return string
      */
     public function image($key) {
         if ($key == "")
             return "";
-        $vals = $this->get_by_id('id', $key);
-        if ($vals && array_key_exists('original_filename', $vals)) {
-            return $vals['original_filename'];
-        } else {
+
+        $this->db->select('archived_documents.description, archived_documents.original_filename,
+            archived_documents.pilot_login, archived_documents.machine_immat,
+            document_types.name as type_name,
+            membres.mnom as pilot_nom, membres.mprenom as pilot_prenom');
+        $this->db->from($this->table);
+        $this->db->join('document_types', 'archived_documents.document_type_id = document_types.id', 'left');
+        $this->db->join('membres', 'archived_documents.pilot_login = membres.mlogin', 'left');
+        $this->db->where('archived_documents.id', $key);
+        $vals = $this->db->get()->row_array();
+
+        if (!$vals) {
             return "document inconnu $key";
         }
+
+        $label = !empty($vals['type_name']) ? $vals['type_name'] : 'Type inconnu';
+        $label .= ' — ' . (!empty($vals['description']) ? $vals['description'] : $vals['original_filename']);
+
+        if (!empty($vals['pilot_login'])) {
+            $label .= ' (Pilote: ' . trim($vals['pilot_nom'] . ' ' . $vals['pilot_prenom']) . ')';
+        } elseif (!empty($vals['machine_immat'])) {
+            $label .= ' (Immat: ' . $vals['machine_immat'] . ')';
+        }
+
+        return $label;
+    }
+
+    /**
+     * Returns selector array for dropdown (id => identification chain from
+     * image()), filtered to current versions, all sections combined.
+     * @param array $where Additional where conditions
+     * @param string $order Unused, kept for signature compatibility with Common_Model::selector()
+     * @param bool $filter_section Unused, kept for signature compatibility with Common_Model::selector()
+     * @return array
+     */
+    public function selector($where = array(), $order = "asc", $filter_section = false) {
+        $this->db->select('id');
+        $this->db->from($this->table);
+        $this->db->where('is_current_version', 1);
+        if (!empty($where)) {
+            $this->db->where($where);
+        }
+        $this->db->order_by('uploaded_at', 'desc');
+        $rows = $this->db->get()->result_array();
+
+        $result = array('' => '');
+        foreach ($rows as $row) {
+            $result[$row['id']] = $this->image($row['id']);
+        }
+        return $result;
     }
 
     /**

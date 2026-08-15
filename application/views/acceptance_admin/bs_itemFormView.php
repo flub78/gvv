@@ -55,7 +55,7 @@ $archived_document = isset($archived_document) ? $archived_document : null;
                 <?= $this->lang->line('acceptance_category') ?> <span class="text-danger">*</span>
             </label>
             <div class="col-sm-10">
-                <?php if (!empty($archived_document_id)): ?>
+                <?php if (!empty($archived_document_id) || $action == CREATION): ?>
                     <?= form_hidden('category', 'document') ?>
                     <input type="text" class="form-control" value="<?= $this->lang->line('acceptance_category_document') ?>" disabled>
                 <?php else: ?>
@@ -87,14 +87,15 @@ $archived_document = isset($archived_document) ? $archived_document : null;
                 <small class="text-muted"><?= $this->lang->line('acceptance_archived_document_help') ?></small>
             </div>
         </div>
-        <?php else: ?>
-        <!-- PDF file upload -->
+        <?php elseif ($action == MODIFICATION): ?>
+        <!-- PDF file upload — legacy items only (created before the Lot 4 amendment
+             restricting new items to a linked archived document) -->
         <div class="mb-3 row">
             <label for="pdf_file" class="col-sm-2 col-form-label">
                 <?= $this->lang->line('acceptance_pdf_path') ?>
             </label>
             <div class="col-sm-10">
-                <?php if ($action == MODIFICATION && !empty($pdf_path)): ?>
+                <?php if (!empty($pdf_path)): ?>
                     <div class="mb-2">
                         <span class="badge bg-info"><i class="fas fa-file-pdf"></i> <?= $this->lang->line('acceptance_current_pdf') ?></span>
                         <a href="<?= site_url('acceptance_admin/download/' . $id) ?>" class="btn btn-sm btn-outline-secondary">
