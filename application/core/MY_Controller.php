@@ -66,6 +66,7 @@ class MY_Controller extends CI_Controller
         }
 
         $this->_check_login_permission();
+        $this->_check_mandatory_acceptance();
     }
 
     /**
@@ -159,6 +160,45 @@ class MY_Controller extends CI_Controller
         }
 
         log_message('debug', "MY_Controller: User (ID: {$this->user_id}) login authorized for section {$section_id} - has 'user' role (id=1)");
+    }
+
+    /**
+     * Global block for mandatory_hard acceptance items (plan, Lot 3d.5): a
+     * member with at least one unhandled mandatory_hard item is redirected
+     * to the acceptance module on every request until they accept or
+     * refuse it, except to reach the acceptance module itself or to log
+     * out. club-admins are never blocked, regardless of obligation level
+     * (cf. plan — they must keep full access to administer the club).
+     * DX_Auth-only accounts with no membres row are exempt too: they
+     * cannot create an acceptance_records row at all (FK constraint, see
+     * Acceptance::accept()/refuse() error handling), so blocking them
+     * would be a permanent lockout with no way out.
+     * @return void
+     */
+    private function _check_mandatory_acceptance()
+    {
+        $class = strtolower($this->router->fetch_class());
+        if (in_array($class, array('acceptance', 'auth'), true)) {
+            return;
+        }
+
+        if ($this->dx_auth->is_admin() || $this->_has_role('club-admin')) {
+            return;
+        }
+
+        $username = $this->dx_auth->get_username();
+        $membre = $this->db->where('mlogin', $username)->get('membres')->row_array();
+        if (empty($membre)) {
+            return;
+        }
+
+        $this->load->model('acceptance_items_model');
+        $pending = $this->acceptance_items_model->get_pending_items_for_user($username);
+        foreach ($pending as $item) {
+            if ($item['mandatory_level'] === 'mandatory_hard') {
+                redirect('acceptance');
+            }
+        }
     }
 
     /**

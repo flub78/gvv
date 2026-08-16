@@ -119,5 +119,7 @@ $lang['gvv_vd_quota_complet_badge']       = "Vol";
 $lang['gvv_vd_quota_complet_reset']       = "Beschikbaar over %d d";
 $lang['gvv_vd_quota_erreur_post']         = "Deze sectie accepteert momenteel geen nieuwe reserveringen.";
 $lang['gvv_vd_date_vol_future']           = "Voer de datum in waarop de vlucht is uitgevoerd. Dit is geen planningsdatum";
+$lang['gvv_vd_button_create_and_debit']   = "Aanmaken en debiteren";
+$lang['gvv_vd_error_no_compte_411']       = "U heeft geen klantenrekening (411) in deze sectie. Neem contact op met de penningmeester om er een te laten aanmaken voordat u een ontdekkingsvlucht kunt aanmaken en debiteren.";
 $lang['gvv_vd_public_contact_us']        = "Voor vragen, neem contact met ons op:";
 $lang['gvv_vd_public_no_section_available'] = "De online boekingsservice voor ontdekkingsvluchten is momenteel niet beschikbaar.";

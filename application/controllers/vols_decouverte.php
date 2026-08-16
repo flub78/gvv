@@ -86,6 +86,50 @@ class Vols_decouverte extends Gvv_Controller {
         if (!empty($data[$this->kid])) {
             $this->_generate_and_store_vd_pdf($data[$this->kid]);
         }
+        if ($this->input->post('button') === 'create_and_debit') {
+            $this->_debit_operator_for_vd($data);
+        }
+    }
+
+    /**
+     * Nom affiché de l'utilisateur connecté (prénom nom, ou identifiant à défaut).
+     */
+    private function _operator_display_name() {
+        $username = $this->dx_auth->get_username();
+        $membre = $this->membres_model->get_by_id('mlogin', $username);
+        if (!empty($membre) && !empty($membre['mprenom']) && !empty($membre['mnom'])) {
+            return $membre['mprenom'] . ' ' . $membre['mnom'];
+        }
+        return $username;
+    }
+
+    /**
+     * Vérifie que l'utilisateur connecté dispose d'un compte 411 dans la
+     * section courante, condition nécessaire pour pouvoir le débiter.
+     */
+    private function _operator_has_compte_411() {
+        $this->load->model('comptes_model');
+        $username = $this->dx_auth->get_username();
+        return !empty($this->comptes_model->compte_pilote($username));
+    }
+
+    /**
+     * Débite le compte 411 de l'utilisateur connecté du prix du produit du
+     * bon découverte qui vient d'être créé, via un achat standard (même
+     * mécanisme que la facturation des vols, cf. Facturation::nouvel_achat).
+     */
+    private function _debit_operator_for_vd($data) {
+        $this->load->model('achats_model');
+        $username = $this->dx_auth->get_username();
+
+        $this->achats_model->create(array(
+            'date'        => $data['date_vente'],
+            'produit'     => $data['product'],
+            'quantite'    => 1,
+            'description' => 'Vol découverte n°' . $data[$this->kid] . ' - ' . $data['beneficiaire'],
+            'pilote'      => $username,
+            'club'        => $data['club'],
+        ));
     }
 
     /**
@@ -249,6 +293,9 @@ class Vols_decouverte extends Gvv_Controller {
 
         // Bouton "Créer" (paiement géré manuellement) : trésorier, bureau et admin uniquement
         $this->data['is_tresorier'] = has_role('tresorier') || has_role('bureau') || $this->user_has_role('club-admin');
+        // Bouton "Créer et débiter <opérateur>" : tous les utilisateurs ayant accès, débite le compte
+        // 411 de l'utilisateur connecté du prix du produit sélectionné.
+        $this->data['operator_name'] = $this->_operator_display_name();
         // Bouton "Payer par CB" : tous les utilisateurs ayant accès, dès que HelloAsso est activé pour la section
         $this->data['vd_par_cb_enabled'] = false;
         $section_id = (int) $this->session->userdata('section');
@@ -281,6 +328,15 @@ class Vols_decouverte extends Gvv_Controller {
 
         if ($button === 'payer_cb' && (int) $action === CREATION) {
             $this->_initiate_decouverte_helloasso();
+            return;
+        }
+
+        if ($button === 'create_and_debit' && (int) $action === CREATION && !$this->_operator_has_compte_411()) {
+            $this->lang->load('vols_decouverte');
+            $this->_redirect_decouverte_create_with_error(
+                $this->lang->line('gvv_vd_error_no_compte_411'),
+                $this->_get_decouverte_form_input()
+            );
             return;
         }
 

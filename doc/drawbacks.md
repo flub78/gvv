@@ -15,4 +15,6 @@ Elle a longtemps été insuffisante. En juin 2026 avec plus de 1300 tests phpuni
 
 ### Toujours sur php 7.4
 
-Une migration vers php 8.x est prévue mais elle n'est pas encore réalisée. 
+Cela a été longtemps un problème mais GVV tourne maintenant sur php 8.4. 
+
+Il tourne sur CodeIgniter 2.x, qui est une très vieille version de ce framework. Mais le bénéfice/risque d'une migration vers CodeIgniter 4.x est très défavorable. Il faudrait réécrire une grande partie du code et il n'y a pas de gain fonctionnel. Le projet est donc bloqué sur CodeIgniter 2.x pour le moment.

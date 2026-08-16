@@ -248,6 +248,15 @@ if ($action == CREATION) {
 			. '<i class="fas fa-credit-card"></i> ' . $cb_label
             . '</button></td>';
     }
+    if (!empty($operator_name)) {
+        $debit_label = $CI->lang->line('gvv_vd_button_create_and_debit');
+        if (!$debit_label) {
+            $debit_label = 'Créer et débiter';
+        }
+        echo '<td><button type="submit" name="button" value="create_and_debit" class="btn btn-success mt-3 ms-2">'
+            . '<i class="fas fa-euro-sign"></i> ' . htmlspecialchars($debit_label) . ' ' . htmlspecialchars($operator_name)
+            . '</button></td>';
+    }
     echo '</tr></table>';
 } else {
     echo validation_button($action);
