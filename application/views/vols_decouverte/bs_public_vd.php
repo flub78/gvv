@@ -16,6 +16,7 @@
  *   $errors                — erreurs de validation POST
  *   $form_data             — données saisies à réafficher
  *   $title                 — titre de la page
+ *   $carousel_images       — URLs des photos du carrousel (assets/images/vd_carousel/)
  */
 
 $this->load->helper('markdown');
@@ -47,6 +48,8 @@ if (!empty($errors) && is_array($errors)) {
   .section-card { cursor: pointer; transition: box-shadow .15s; }
   .section-card:hover { box-shadow: 0 0 0 3px #0d6efd44; }
   .section-card.active { border-color: #0d6efd; box-shadow: 0 0 0 3px #0d6efd88; }
+  .vd-carousel { margin-bottom: 1.5rem; border-radius: .5rem; overflow: hidden; }
+  .vd-carousel .carousel-item img { width: 100%; height: 220px; object-fit: cover; }
 </style>
 <div class="container py-4" style="max-width: 720px;">
 
@@ -57,6 +60,35 @@ if (!empty($errors) && is_array($errors)) {
       <div class="mt-2"><?= markdown($accueil_text) ?></div>
     <?php endif; ?>
   </div>
+
+  <?php if (!empty($carousel_images)): ?>
+  <div id="vd-photo-carousel" class="carousel slide vd-carousel" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      <?php foreach ($carousel_images as $i => $img_url): ?>
+      <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
+        <img src="<?= htmlspecialchars($img_url, ENT_QUOTES, 'UTF-8') ?>" alt="">
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php if (count($carousel_images) > 1): ?>
+    <button class="carousel-control-prev" type="button" data-bs-target="#vd-photo-carousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Précédent</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#vd-photo-carousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Suivant</span>
+    </button>
+    <div class="carousel-indicators">
+      <?php foreach ($carousel_images as $i => $img_url): ?>
+      <button type="button" data-bs-target="#vd-photo-carousel" data-bs-slide-to="<?= $i ?>"
+              class="<?= $i === 0 ? 'active' : '' ?>" <?= $i === 0 ? 'aria-current="true"' : '' ?>
+              aria-label="Photo <?= $i + 1 ?>"></button>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
 
   <?php if (!empty($section_error)): ?>
     <div class="alert alert-warning"><?= htmlspecialchars($section_error) ?></div>

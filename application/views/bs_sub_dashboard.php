@@ -994,6 +994,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
+                <i class="fas fa-gift text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_vd_looks') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_vd_looks') ?></div>
+                <a href="<?= controller_url('vols_decouverte_looks') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
                 <i class="fas fa-thumbtack text-primary"></i>
                 <div class="card-title"><?= $this->lang->line('shortcuts_dashboard_card_title') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('shortcuts_dashboard_card_description') ?></div>

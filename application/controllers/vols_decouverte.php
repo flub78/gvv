@@ -1665,6 +1665,31 @@ EOD;
      * @param array|null  $quota_status         Statut quota (si atteint, POST)
      * @param array       $form_data            Données saisies à réafficher
      */
+    /**
+     * Liste les images du carrousel de la page publique VD.
+     * Le contenu du répertoire assets/images/vd_carousel/ pilote le carrousel :
+     * ajouter ou supprimer un fichier image y suffit à changer les photos affichées.
+     *
+     * @return array URLs publiques des images, triées par nom de fichier
+     */
+    private function _get_carousel_images() {
+        $dir = FCPATH . image_dir() . 'vd_carousel/';
+        if (!is_dir($dir)) {
+            return array();
+        }
+
+        $extensions = array('jpg', 'jpeg', 'png', 'gif', 'webp');
+        $files = glob($dir . '*.{' . implode(',', $extensions) . '}', GLOB_BRACE) ?: array();
+        sort($files, SORT_STRING);
+
+        $base = base_url() . image_dir() . 'vd_carousel/';
+        $images = array();
+        foreach ($files as $file) {
+            $images[] = $base . rawurlencode(basename($file));
+        }
+        return $images;
+    }
+
     private function _render_public_vd(
         $section_id,
         $section_row,
@@ -1713,6 +1738,7 @@ EOD;
         $contact_signature = (string) ($this->configuration_model->get_param('vd.email.sender_signature') ?: '');
         $is_logged_in      = (bool) $this->dx_auth->is_logged_in();
         $poids_max         = $section_row ? $this->_get_poids_max($section_row) : 0;
+        $carousel_images   = $this->_get_carousel_images();
 
         $data = array(
             'section_id'           => $section_id,
@@ -1733,6 +1759,7 @@ EOD;
             'flash_error'          => $this->session->flashdata('error'),
             'poids_max'            => $poids_max,
             'section_fixed'        => $section_fixed,
+            'carousel_images'      => $carousel_images,
         );
 
         $this->load->vars(['nav_back_url' => '']);
