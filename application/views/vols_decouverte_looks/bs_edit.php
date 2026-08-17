@@ -16,6 +16,7 @@ $var_field_labels = array(
     'occasion'      => $this->lang->line('gvv_vd_looks_field_occasion'),
     'de_la_part'    => $this->lang->line('gvv_vd_looks_field_de_la_part'),
     'type_vol'      => $this->lang->line('gvv_vd_looks_field_type_vol'),
+    'beneficiaire_email' => $this->lang->line('gvv_vd_looks_field_beneficiaire_email'),
 );
 
 $font_options  = array('helvetica', 'times', 'courier');
@@ -48,6 +49,9 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
 
     <div class="row mb-4 g-3">
         <div class="col-12 d-flex gap-2 flex-wrap">
+            <a href="<?= controller_url('vols_decouverte_looks/test_pdf/' . $look['id']) ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-vial"></i> <?= $this->lang->line('gvv_vd_looks_test_pdf') ?>
+            </a>
             <a href="<?= controller_url('vols_decouverte_looks/layout_export/' . $look['id']) ?>" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-download"></i> <?= $this->lang->line('gvv_vd_looks_layout_export') ?>
             </a>

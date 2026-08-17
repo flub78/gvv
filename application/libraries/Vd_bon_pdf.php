@@ -61,6 +61,8 @@ class Vd_bon_pdf extends TCPDF {
                 return $data['occasion'] ?? '';
             case 'de_la_part':
                 return $data['de_la_part'] ?? '';
+            case 'beneficiaire_email':
+                return $data['beneficiaire_email'] ?? '';
             case 'type_vol':
                 return $data['type_vol'] ?? '';
             default:

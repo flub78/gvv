@@ -143,6 +143,41 @@ class Vols_decouverte_looks extends MY_Controller {
         redirect(controller_url('vols_decouverte_looks/edit/' . $id));
     }
 
+    /**
+     * Génère un aperçu PDF du look avec des valeurs de test, affiché inline
+     * (ouvert dans un nouvel onglet par le lien de bs_edit).
+     */
+    public function test_pdf($id) {
+        $look = $this->vols_decouverte_looks_model->get_by_id('id', $id);
+        if (empty($look)) {
+            show_error($this->lang->line('gvv_error_not_found'), 404);
+            return;
+        }
+
+        $this->load->helper('validation');
+        require_once(APPPATH . 'libraries/Vd_bon_pdf.php');
+
+        $layout = $this->vols_decouverte_looks_model->get_layout($look);
+        $fond_recto = !empty($look['fond_recto_path']) ? FCPATH . $look['fond_recto_path'] : image_dir() . 'Bon-Bapteme.png';
+        $fond_verso = !empty($look['fond_verso_path']) ? FCPATH . $look['fond_verso_path'] : null;
+
+        $data = array(
+            'numero'             => 'TEST',
+            'date_vente'         => date_db2ht(date('Y-m-d')),
+            'date_validite'      => date_db2ht(date('Y-m-d', strtotime('+1 year'))),
+            'beneficiaire'       => 'Jean Dupont',
+            'occasion'           => 'Anniversaire',
+            'de_la_part'         => 'Marie Dupont',
+            'beneficiaire_email' => 'jean.dupont@example.com',
+            'type_vol'           => 'Vol de découverte (exemple)',
+            'qr_url'             => site_url('vols_decouverte_looks/test_pdf/' . $id),
+        );
+
+        $pdf = new Vd_bon_pdf();
+        $pdf->generate($data, $layout, $fond_recto, $fond_verso);
+        $pdf->Output('test_look_' . $id . '.pdf', 'I');
+    }
+
     /** Télécharge la mise en page d'un look au format JSON. */
     public function layout_export($id) {
         $look = $this->vols_decouverte_looks_model->get_by_id('id', $id);

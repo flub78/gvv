@@ -223,14 +223,15 @@ class Vols_decouverte extends Gvv_Controller {
         $obfuscated_id = transformInteger($id);
 
         $data = array(
-            'numero'        => $id,
-            'date_vente'    => date_db2ht($vd['date_vente']),
-            'date_validite' => $date_validite,
-            'beneficiaire'  => $vd['beneficiaire'],
-            'occasion'      => $vd['occasion'],
-            'de_la_part'    => $vd['de_la_part'],
-            'type_vol'      => $type_vol,
-            'qr_url'        => site_url('vols_decouverte/action/' . $obfuscated_id),
+            'numero'             => $id,
+            'date_vente'         => date_db2ht($vd['date_vente']),
+            'date_validite'      => $date_validite,
+            'beneficiaire'       => $vd['beneficiaire'],
+            'occasion'           => $vd['occasion'],
+            'de_la_part'         => $vd['de_la_part'],
+            'beneficiaire_email' => $vd['beneficiaire_email'],
+            'type_vol'           => $type_vol,
+            'qr_url'             => site_url('vols_decouverte/action/' . $obfuscated_id),
         );
 
         $pdf = new Vd_bon_pdf();
