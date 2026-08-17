@@ -121,6 +121,7 @@ $lang['db_card_maintenance_ops']    = "Onderhoudsoperaties";
 $lang['db_card_maintenance_dossiers'] = "Onderhoudsdossiers";
 $lang['db_card_maintenance_bulletins'] = "Service bulletins";
 $lang['db_card_maintenance_synthese'] = "Luchtwaardigheidsoverzicht";
+$lang['db_card_maintenance_tableau'] = "Potentieeloverzicht";
 $lang['db_card_airworthiness']      = "Luchtwaardigheidsopvolging";
 $lang['db_card_fleet_mgmt']         = "Vlootbeheer";
 $lang['db_card_club_config']        = "Configuratie";

@@ -11,7 +11,8 @@ Le module Maintenance suit l'état de navigabilité de la flotte : équipements 
 5. [Opérations de maintenance](#opérations-de-maintenance)
 6. [Bulletins de service](#bulletins-de-service)
 7. [Synthèse de navigabilité](#synthèse-de-navigabilité)
-8. [Droits d'accès](#droits-daccès)
+8. [Tableau des potentiels](#tableau-des-potentiels)
+9. [Droits d'accès](#droits-daccès)
 
 ## Vue d'ensemble
 
@@ -123,6 +124,51 @@ En cliquant sur un aéronef, le détail affiche chaque entité (aéronef + ses �
 ![Détail d'un aéronef](../screenshots/maintenance_aeronefs/synthese_aeronef.png)
 
 Un export PDF est disponible pour chaque aéronef, utile pour un contrôle sans connexion.
+
+---
+
+## Tableau des potentiels
+
+Le tableau des potentiels reprend, à l'écran, la forme du tableau blanc physique tenu en atelier : une ligne par aéronef, une colonne par programme d'entretien (25h, 50h, 100h, 200h, CDN, etc.), avec pour chaque cellule l'échéance ou le potentiel restant. Contrairement à la synthèse de navigabilité (état global À jour / Échéance proche / Dépassé par aéronef), il donne directement la valeur affichée sur le tableau physique.
+
+Accessible depuis le tableau de bord Maintenance, carte **Tableau des potentiels**, ou directement via `maintenance_synthese/tableau`.
+
+- **Heures réelles** : dernier relevé d'horamètre enregistré sur une opération de maintenance de l'aéronef, tous programmes confondus
+- **Une colonne par programme actif** : générée automatiquement à partir des dossiers ouverts — aucune colonne n'est codée en dur, un club ajoute une colonne en créant un programme et en ouvrant un dossier par aéronef concerné
+- **Cellule vide (—)** : aucun dossier ouvert pour ce couple aéronef/programme
+- Couleur de la cellule : même code que la synthèse de navigabilité (vert = à jour, orange = échéance proche, rouge = dépassé)
+- Filtrable par section, comme la synthèse
+
+### Configurer le tableau pas à pas
+
+Pour retrouver les colonnes d'un tableau blanc d'atelier (par exemple 25h / 50h / 100h / 200h / CDN) :
+
+**1. Créer un programme par colonne** (menu **Maintenance → Programmes d'entretien → Nouveau programme**)
+
+Pour une colonne horaire (25h, 50h, 100h, 200h...) :
+- Code : ex. `VISITE100H`
+- Butée horaire activée, Seuil = 100 (heures)
+- Section : laisser vide si le programme s'applique à toutes les machines, ou choisir une section (Avion, ULM, Planeur)
+
+Pour la colonne CDN (certificat de navigabilité) :
+- Code : `CDN`
+- Butée calendaire activée, Périodicité = 12 mois (ou la valeur applicable)
+
+Répéter pour chaque colonne voulue.
+
+**2. Ouvrir un dossier par aéronef et par programme** (menu **Maintenance → Dossiers d'entretien → Ouvrir (aéronef)**)
+
+Chaque dossier ouvert fait apparaître une colonne remplie pour cet aéronef dans le tableau. Un aéronef sans dossier sur un programme donné affiche `—` pour cette colonne.
+
+**3. Enregistrer une opération pour initialiser le potentiel** (menu **Maintenance → Opérations de maintenance → Nouvelle opération**)
+
+C'est cette étape qui remplit les valeurs affichées :
+- Programme à butée horaire : saisir l'**horamètre relevé** — le potentiel repart au seuil du programme (ex. 100h), et cette valeur alimente aussi la colonne **Heures réelles**
+- Programme à butée calendaire (CDN) : laisser la **nouvelle échéance** vide pour un calcul automatique (+périodicité depuis la date de l'opération), ou saisir une échéance explicite
+
+**4. Consulter le tableau**
+
+Carte **Tableau des potentiels** du tableau de bord Maintenance. À chaque nouvelle opération enregistrée, la colonne correspondante se met à jour automatiquement — pas de ressaisie manuelle nécessaire au quotidien.
 
 ---
 

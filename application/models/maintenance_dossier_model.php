@@ -136,6 +136,44 @@ class Maintenance_dossier_model extends Common_Model {
     }
 
     /**
+     * Get all open aircraft dossiers (entite_type = 'aeronef'), with their
+     * program's butee rule, for the potential board (matrix aeronef x
+     * programme). Scoped to a section through the linked program, like
+     * get_all().
+     *
+     * @param int|null|string $section_id Section ID
+     * @return array List of dossiers, one row per (aeronef, programme)
+     */
+    public function get_ouverts_aeronefs($section_id = null) {
+        $section_exists = false;
+        if ($section_id !== null && $section_id !== '') {
+            $query = $this->db->where('id', $section_id)->get('sections');
+            $section_exists = $query->num_rows() > 0;
+        }
+
+        $this->db->select('d.*, p.code as programme_code, p.titre as programme_titre,
+            p.regle_butee_date as programme_regle_butee_date,
+            p.regle_butee_heures as programme_regle_butee_heures,
+            p.seuil_heures as programme_seuil_heures')
+            ->from($this->table . ' d')
+            ->join('maintenance_programmes p', 'd.programme_id = p.id', 'left')
+            ->where('d.entite_type', 'aeronef')
+            ->where('d.statut', 'ouvert');
+
+        if ($section_exists) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $section_id . ")", null, false);
+        }
+
+        $this->db->order_by('p.regle_butee_heures', 'desc')
+            ->order_by('p.seuil_heures', 'asc')
+            ->order_by('p.titre', 'asc');
+
+        $result = $this->db->get()->result_array();
+        gvv_debug("sql: " . $this->db->last_query());
+        return $result;
+    }
+
+    /**
      * Human-readable label for a maintainable entity, independent of the
      * SQL join (entite_type/entite_id is polymorphic, no native FK).
      *

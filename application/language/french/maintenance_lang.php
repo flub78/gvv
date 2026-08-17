@@ -195,6 +195,12 @@ $lang['maintenance_synthese_export_pdf'] = 'Export PDF';
 $lang['maintenance_synthese_echeance'] = 'Échéance';
 $lang['maintenance_synthese_potentiel'] = 'Potentiel restant';
 
+// Tableau des potentiels (matrice aeronef x programme, miroir du tableau blanc d'atelier)
+$lang['maintenance_tableau_titre'] = 'Tableau des potentiels';
+$lang['maintenance_tableau_heures_reelles'] = 'Heures réelles';
+$lang['maintenance_tableau_aucun_programme'] = 'Aucun programme d\'entretien avec un dossier ouvert sur un aéronef. Configurez d\'abord un';
+$lang['maintenance_tableau_pas_de_releve'] = 'Pas de relevé';
+
 // Etats de navigabilite (partages entre vue flotte, vue aeronef, PDF)
 $lang['maintenance_etat_a_jour'] = 'À jour';
 $lang['maintenance_etat_echeance_proche'] = 'Échéance proche';

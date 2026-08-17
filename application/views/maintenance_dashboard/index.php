@@ -71,6 +71,15 @@ $this->load->view('bs_banner');
                 <a href="<?= controller_url('maintenance_synthese') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-table text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_tableau') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_synthesis') ?></div>
+                <a href="<?= controller_url('maintenance_synthese') ?>/tableau" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
+            </div>
+        </div>
     </div>
 
 </div>

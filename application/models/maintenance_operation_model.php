@@ -108,6 +108,32 @@ class Maintenance_operation_model extends Common_Model {
     }
 
     /**
+     * Get the most recently recorded horametre_releve for a maintainable
+     * entity, across all its dossiers, for the potential board (colonne
+     * "Heures reelles"). Independent of any single dossier/programme :
+     * whichever operation was logged last wins.
+     *
+     * @param string $entite_type 'aeronef' ou 'equipement'
+     * @param string $entite_id Entity ID
+     * @return float|null
+     */
+    public function get_dernier_horametre($entite_type, $entite_id) {
+        $this->db->select('o.horametre_releve')
+            ->from($this->table . ' o')
+            ->join('maintenance_dossiers d', 'o.dossier_id = d.id')
+            ->where('d.entite_type', $entite_type)
+            ->where('d.entite_id', $entite_id)
+            ->where('o.horametre_releve IS NOT NULL', null, false)
+            ->order_by('o.date_operation', 'desc')
+            ->order_by('o.id', 'desc')
+            ->limit(1);
+
+        $row = $this->db->get()->row_array();
+        gvv_debug("sql: " . $this->db->last_query());
+        return $row ? $row['horametre_releve'] : null;
+    }
+
+    /**
      * Get operation image for display
      *
      * @param int $id Operation ID

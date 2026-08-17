@@ -29,6 +29,7 @@ class Maintenance_synthese extends MY_Controller {
 
         $this->load->model('maintenance_equipement_model');
         $this->load->model('maintenance_dossier_model');
+        $this->load->model('maintenance_operation_model');
         $this->load->model('sections_model');
         $this->load->library('Maintenance_potentiel');
         $this->load->library('Maintenance_access');
@@ -75,6 +76,57 @@ class Maintenance_synthese extends MY_Controller {
         );
 
         $this->load->view('maintenance_synthese/index', $data);
+    }
+
+    /**
+     * Tableau des potentiels : une ligne par aeronef, une colonne par
+     * programme d'entretien actif (heures restantes ou echeance
+     * calendaire selon la regle de butee du programme), a l'image du
+     * tableau blanc physique tenu en atelier.
+     *
+     * Les colonnes sont derivees dynamiquement des dossiers ouverts
+     * (aucune liste de programmes fixe en dur) : un club ajoute une
+     * colonne simplement en creant un programme et en ouvrant un dossier
+     * par aeronef concerne.
+     *
+     * @param int|string $section_id
+     */
+    public function tableau($section_id = '') {
+        $aeronefs = $this->maintenance_equipement_model->get_aeronefs_by_section($section_id);
+        $dossiers = $this->maintenance_dossier_model->get_ouverts_aeronefs($section_id);
+
+        $programmes = array();
+        $dossiers_par_aeronef = array();
+        foreach ($dossiers as $dossier) {
+            $programmes[$dossier['programme_id']] = array(
+                'id'                 => $dossier['programme_id'],
+                'code'               => $dossier['programme_code'],
+                'titre'              => $dossier['programme_titre'],
+                'regle_butee_date'   => !empty($dossier['programme_regle_butee_date']),
+                'regle_butee_heures' => !empty($dossier['programme_regle_butee_heures']),
+            );
+
+            $dossier['etat'] = $this->maintenance_potentiel->calculer_etat($dossier);
+            $dossiers_par_aeronef[$dossier['entite_id']][$dossier['programme_id']] = $dossier;
+        }
+
+        foreach ($aeronefs as &$aeronef) {
+            $aeronef['heures_reelles'] = $this->maintenance_operation_model->get_dernier_horametre('aeronef', $aeronef['macimmat']);
+            $aeronef['dossiers'] = isset($dossiers_par_aeronef[$aeronef['macimmat']]) ? $dossiers_par_aeronef[$aeronef['macimmat']] : array();
+        }
+        unset($aeronef);
+
+        $data = array(
+            'controller'       => 'maintenance_synthese',
+            'aeronefs'         => $aeronefs,
+            'programmes'       => $programmes,
+            'section_id'       => $section_id,
+            'section_selector' => $this->sections_model->section_selector_with_null(),
+            'etat_badges'      => self::ETAT_BADGES,
+            'etat_labels'      => $this->etat_labels(),
+        );
+
+        $this->load->view('maintenance_synthese/tableau', $data);
     }
 
     /**

@@ -121,6 +121,7 @@ $lang['db_card_maintenance_ops']    = "Opérations de maintenance";
 $lang['db_card_maintenance_dossiers'] = "Dossiers d'entretien";
 $lang['db_card_maintenance_bulletins'] = "Bulletins de service";
 $lang['db_card_maintenance_synthese'] = "Synthèse navigabilité";
+$lang['db_card_maintenance_tableau'] = "Tableau des potentiels";
 $lang['db_card_airworthiness']      = "Suivi de navigabilité";
 $lang['db_card_fleet_mgmt']         = "Gestion du parc";
 $lang['db_card_club_config']        = "Configuration";

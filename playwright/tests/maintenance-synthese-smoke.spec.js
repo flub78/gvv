@@ -60,4 +60,29 @@ test.describe('Maintenance - Synthese navigabilite (mecano)', () => {
         expect(pdfResponse.status()).toBe(200);
         expect(pdfResponse.headers()['content-type']).toContain('application/pdf');
     });
+
+    test('tableau des potentiels lists aircraft and program columns', async ({ page }) => {
+        await login(page, MECANO_USER);
+        await switchToPlaneurSection(page);
+
+        await page.goto('/index.php/maintenance_synthese/tableau');
+        await page.waitForLoadState('networkidle');
+        await expect(page.locator('h3')).toContainText('potentiels');
+        await expect(page.locator('table thead th').first()).toContainText('Aéronef');
+
+        // Filtrage par section (Planeur = 1)
+        await page.selectOption('#section_select', '1');
+        await page.click('#btn-filtrer-section');
+        await page.waitForLoadState('networkidle');
+        await expect(page.url()).toContain('/maintenance_synthese/tableau/1');
+
+        // Accessible depuis le dashboard maintenance
+        await page.goto('/index.php/maintenance_dashboard');
+        await page.waitForLoadState('networkidle');
+        const potentielsCard = page.locator('.sub-card', { hasText: 'potentiels' });
+        await expect(potentielsCard).toBeVisible();
+        await potentielsCard.locator('a').click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.url()).toContain('/maintenance_synthese/tableau');
+    });
 });

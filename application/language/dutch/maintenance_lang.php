@@ -195,6 +195,12 @@ $lang['maintenance_synthese_export_pdf'] = 'PDF-export';
 $lang['maintenance_synthese_echeance'] = 'Vervaldatum';
 $lang['maintenance_synthese_potentiel'] = 'Resterend potentieel';
 
+// Potentieeloverzicht (matrix luchtvaartuig x programma, spiegelt het whiteboard in de werkplaats)
+$lang['maintenance_tableau_titre'] = 'Potentieeloverzicht';
+$lang['maintenance_tableau_heures_reelles'] = 'Werkelijke uren';
+$lang['maintenance_tableau_aucun_programme'] = 'Nog geen onderhoudsprogramma met een open dossier op een luchtvaartuig. Stel er eerst een in via';
+$lang['maintenance_tableau_pas_de_releve'] = 'Nog geen meting';
+
 // Luchtwaardigheidsstatussen (gedeeld tussen vlootweergave, luchtvaartuigweergave, PDF)
 $lang['maintenance_etat_a_jour'] = 'Actueel';
 $lang['maintenance_etat_echeance_proche'] = 'Binnenkort vervallen';

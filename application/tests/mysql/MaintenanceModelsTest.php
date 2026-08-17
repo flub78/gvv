@@ -392,4 +392,56 @@ class MaintenanceModelsTest extends TestCase
         $this->db->where('archived_document_id', $document_id)->delete('maintenance_bulletin_statuts');
         $this->db->where('id', $document_id)->delete('archived_documents');
     }
+
+    // ---------------------------------------------------------------
+    // Tableau des potentiels : get_ouverts_aeronefs() / get_dernier_horametre()
+    // ---------------------------------------------------------------
+
+    public function testTableauPotentielsQueries()
+    {
+        if (!$this->macimmat || !$this->membre_login) {
+            $this->markTestSkipped('Aeronef et membre necessaires pour tester le tableau des potentiels');
+        }
+
+        $programme_id = $this->CI->maintenance_programme_model->create(array(
+            'code' => 'MPROG_TAB_' . time(), 'titre' => 'Programme tableau',
+            'regle_butee_heures' => 1, 'seuil_heures' => 100,
+        ));
+        $dossier_id = $this->CI->maintenance_dossier_model->ouvrir(array(
+            'entite_type' => 'aeronef', 'entite_id' => $this->macimmat, 'programme_id' => $programme_id,
+        ));
+        $operation_id = $this->CI->maintenance_operation_model->create(array(
+            'dossier_id' => $dossier_id, 'date_operation' => date('Y-m-d'),
+            'mecano_id' => $this->membre_login, 'mode_saisie' => 'directe',
+            'horametre_releve' => 1234.5,
+        ));
+        $this->CI->load->library('Maintenance_potentiel');
+        $this->CI->maintenance_potentiel->appliquer_operation($operation_id);
+
+        $ouverts = $this->CI->maintenance_dossier_model->get_ouverts_aeronefs();
+        $found = null;
+        foreach ($ouverts as $row) {
+            if ($row['id'] == $dossier_id) {
+                $found = $row;
+            }
+        }
+        $this->assertNotNull($found, 'get_ouverts_aeronefs() doit retourner le dossier ouvert');
+        $this->assertStringContainsString('MPROG_TAB_', $found['programme_code']);
+        $this->assertEquals(100, $found['heures_restantes_courant']);
+        $this->assertEquals(1, $found['programme_regle_butee_heures']);
+
+        // Filtre section : programme sans section_id (global) reste visible
+        if (!empty($this->section_ids)) {
+            $ouverts_section = $this->CI->maintenance_dossier_model->get_ouverts_aeronefs($this->section_ids[0]);
+            $ids = array_column($ouverts_section, 'id');
+            $this->assertContains($dossier_id, $ids);
+        }
+
+        $horametre = $this->CI->maintenance_operation_model->get_dernier_horametre('aeronef', $this->macimmat);
+        $this->assertEquals(1234.5, $horametre);
+
+        $this->db->where('id', $operation_id)->delete('maintenance_operations');
+        $this->db->where('id', $dossier_id)->delete('maintenance_dossiers');
+        $this->db->where('id', $programme_id)->delete('maintenance_programmes');
+    }
 }

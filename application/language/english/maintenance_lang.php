@@ -195,6 +195,12 @@ $lang['maintenance_synthese_export_pdf'] = 'PDF export';
 $lang['maintenance_synthese_echeance'] = 'Due date';
 $lang['maintenance_synthese_potentiel'] = 'Remaining potential';
 
+// Potential board (aircraft x program matrix, mirrors the workshop whiteboard)
+$lang['maintenance_tableau_titre'] = 'Potential board';
+$lang['maintenance_tableau_heures_reelles'] = 'Actual hours';
+$lang['maintenance_tableau_aucun_programme'] = 'No maintenance program with an open dossier on an aircraft yet. Set one up first in';
+$lang['maintenance_tableau_pas_de_releve'] = 'No reading yet';
+
 // Airworthiness states (shared across fleet view, aircraft view, PDF)
 $lang['maintenance_etat_a_jour'] = 'Up to date';
 $lang['maintenance_etat_echeance_proche'] = 'Due soon';
