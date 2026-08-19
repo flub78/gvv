@@ -2,7 +2,7 @@
 
 Il est possible de sauvegarder et restaurer la base de données.
 
-Attention une sauvegarde complète de l'environnement devrait également comprendre les fichiers de configurations ainsi que les fichiers qui ont été chargés dans l'application (photo des pilotes, pièces jointes, etc). Ces fichier peuvent être sauvegardés et restaurés en copiant les arborescences sur un support externe. Il n'y a pas de support dans GVV pour faire cela, cela doit être fait à la main.
+Attention une sauvegarde complète de l'environnement devrait également comprendre les fichiers de configurations, qui doivent être sauvegardés et restaurés à la main en copiant les arborescences sur un support externe. Les fichiers qui ont été chargés dans l'application (photo des pilotes, pièces jointes, etc) peuvent en revanche être sauvegardés automatiquement, voir "Sauvegarde des media" ci-dessous.
 
 ## Sauvegarde automatique
 
@@ -20,6 +20,17 @@ Pour lister les tâches cron :
 All files are under gvv/uploads
 
 Il y a des références dans la base de données sur les fichiers chargés.
+
+Il y a un script tools/autobackup_media.py qui sauvegarde automatiquement le
+répertoire uploads/ (hors sous-répertoire restore/) sous forme d'archive
+tar.gz. Il fonctionne sur le même principe que tools/autobackup.py : il doit
+être installé dans une tâche cron, et applique la même politique de
+rétention (sauvegardes quotidiennes gardées 1 semaine, hebdomadaires 1 mois,
+mensuelles 1 an). Il partage le répertoire backups/ et le journal
+logfile.txt avec les sauvegardes de base de données.
+
+Contrairement à la sauvegarde manuelle depuis l'interface d'administration
+(bouton "Sauvegarder les médias"), ce script ne propose pas de chiffrement.
 
 
 ## Problèmes liés à la sauvegarde
