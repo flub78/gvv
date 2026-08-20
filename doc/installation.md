@@ -218,6 +218,38 @@ alors être ajustées directement dans la configuration du pool PHP-FPM ou via u
 `.user.ini` déposé à la racine du site — via le panneau d'administration de l'hébergeur si l'accès
 au pool FPM n'est pas donné.
 
+##### Seule la page d'accueil fonctionne, tout le reste renvoie une 404 (Ionos)
+
+Autre symptôme constaté chez **Ionos**, une fois les deux points précédents corrigés : le site
+s'affiche à la racine (`https://votredomaine/`), mais toute autre URL — y compris celles vers
+lesquelles GVV redirige lui-même, comme `/auth/login` pour un utilisateur non connecté — renvoie
+une erreur 404 générique de l'hébergeur (pas la page 404 de GVV), *sans* passer par `index.php`.
+
+**Cause** : la racine fonctionne car Apache la sert directement via `DirectoryIndex`, sans avoir
+besoin de réécriture d'URL. Mais Ionos exige une directive `RewriteBase` explicite juste après
+`RewriteEngine On` pour que les `RewriteRule` d'un `.htaccess` s'appliquent réellement — sans elle,
+Apache ignore la règle pour toute URL autre que la racine et répond 404 avant même d'atteindre PHP.
+C'est documenté par Ionos lui-même (voir liens ci-dessous).
+
+**Piste à écarter** : `Options +FollowSymLinks` (parfois recommandé pour ce type de symptôme sur
+d'autres hébergeurs) provoque ici une erreur 500 `Options not allowed here` — Ionos interdit cette
+directive en `.htaccess`. Inutile d'insister sur cette piste chez Ionos.
+
+**Correctif** (appliqué dans `point.htaccess`) : ajouter `RewriteBase /` juste après
+`RewriteEngine On` :
+
+```apache
+RewriteEngine On
+RewriteBase /
+```
+
+Le `/` suppose que le domaine ou sous-domaine est mappé directement sur le répertoire de GVV dans
+le Domain Center Ionos (cas standard). Vérifiez aussi que le `.htaccess` a bien les permissions
+`644`.
+
+Sources : [Notes on Creating Rewrite Rules (Ionos)](https://www.ionos.com/help/hosting/htaccess/notes-on-creating-rewrite-rules/) ·
+[What is a rewrite engine? (Ionos)](https://www.ionos.com/digitalguide/hosting/technical-matters/what-is-a-rewrite-engine/)
+
 #### Étape 2 — Configuration de la base de données
 
 ![Etape 2](./images/install_2.png)

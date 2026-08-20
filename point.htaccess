@@ -24,6 +24,12 @@ php_value post_max_size 1024M
 </IfModule>
 
 RewriteEngine On
+# Certains hébergeurs mutualisés (Ionos notamment) exigent un RewriteBase
+# explicite pour que les règles ci-dessous s'appliquent : sans lui, seule la
+# racine du site fonctionne (servie via DirectoryIndex) et toute autre URL
+# renvoie une 404 sans même atteindre index.php. "/" suppose que le domaine
+# ou sous-domaine est mappé directement sur ce répertoire.
+RewriteBase /
 
 # Le répertoire tests/ existe sur disque ; cette règle force son routage
 # vers le contrôleur CI plutôt que vers la liste du répertoire.
