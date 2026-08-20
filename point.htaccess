@@ -4,13 +4,24 @@
 # dans lequel GVV est déployé.
 #
 # Note : les directives php_value ne sont actives qu'avec Apache + mod_php.
-# Avec PHP-FPM, configurez ces valeurs dans le pool php-fpm.conf.
+# Sur hébergement mutualisé (Ionos, OVH, o2switch…), PHP tourne généralement
+# en PHP-FPM/FastCGI : sans le <IfModule> ci-dessous, ces lignes provoquent
+# une erreur 500 (Invalid command 'php_value'). Avec PHP-FPM, configurez ces
+# valeurs dans le pool php-fpm.conf ou via un fichier .user.ini.
 
 # Limites pour les opérations de sauvegarde et restauration
+<IfModule mod_php7.c>
 php_value memory_limit 1024M
 php_value max_execution_time 300
 php_value upload_max_filesize 1024M
 php_value post_max_size 1024M
+</IfModule>
+<IfModule mod_php8.c>
+php_value memory_limit 1024M
+php_value max_execution_time 300
+php_value upload_max_filesize 1024M
+php_value post_max_size 1024M
+</IfModule>
 
 RewriteEngine On
 

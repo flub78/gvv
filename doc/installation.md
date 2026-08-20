@@ -117,6 +117,107 @@ https://gvvg.flub78.net/install/
 
 ![Etape 1](./images/install_1.png)
 
+##### "Impossible de vérifier automatiquement l'état de mod_rewrite" (hébergement mutualisé)
+
+Sur un hébergement mutualisé (OVH, Infomaniak, o2switch…), l'assistant d'installation n'a
+généralement pas accès aux fonctions `apache_get_modules()` ni `shell_exec()` : il ne peut donc
+pas déterminer automatiquement si le module Apache `mod_rewrite` est actif et affiche
+l'avertissement suivant à l'étape 1 :
+
+![Statut mod_rewrite indéterminé](./images/install_mod_rewrite_indetermine.png)
+
+Ce n'est pas une erreur bloquante : c'est une invitation à vérifier vous-même, car GVV a besoin
+de `mod_rewrite` pour que son fichier `.htaccess` fonctionne (sans lui, le serveur renvoie une
+erreur 500 `Invalid command 'RewriteEngine'` dès que le `.htaccess` est en place).
+
+En pratique, `mod_rewrite` est activé par défaut chez la quasi-totalité des hébergeurs
+mutualisés grand public (OVH, Infomaniak, o2switch, PlanetHoster…), donc cet avertissement peut
+souvent être ignoré. Pour en avoir la confirmation avant de poursuivre l'installation :
+
+1. Créez un répertoire de test à la racine du site, par exemple `public_html/rewrite-test/`.
+2. Dans ce répertoire, créez un fichier `.htaccess` avec :
+
+   ```apache
+   RewriteEngine On
+   RewriteRule ^ping$ ping.php [L]
+   ```
+
+3. Créez un fichier `ping.php` à côté, contenant :
+
+   ```php
+   <?php echo 'mod_rewrite OK';
+   ```
+
+4. Visitez `https://votredomaine/rewrite-test/ping` dans un navigateur :
+   * la page affiche `mod_rewrite OK` → le module est actif, vous pouvez poursuivre l'installation
+     sans crainte ;
+   * la page affiche une erreur 500 (souvent `Invalid command 'RewriteEngine'`) → le module est
+     inactif ou l'hébergement ne l'autorise pas dans les `.htaccess` ; contactez le support de
+     votre hébergeur pour le faire activer avant de continuer.
+5. Une fois la vérification faite, supprimez le répertoire `rewrite-test/`.
+
+Si vous avez un accès SSH, vous pouvez aussi tenter directement `apache2ctl -M | grep rewrite`
+ou `httpd -M | grep rewrite`, mais ces commandes sont rarement disponibles sur un mutualisé
+(c'est justement pour cela que l'assistant affiche "Indéterminé" plutôt que "OK"/"KO").
+
+##### Erreur 500 dès l'écriture du `.htaccess` (Ionos et autres mutualisés en PHP-FPM)
+
+Sur certains hébergements mutualisés (constaté chez **Ionos**), l'installation du `.htaccess`
+déclenche immédiatement une erreur serveur :
+
+```
+Internal Server Error
+The server encountered an internal error or misconfiguration and was unable to complete
+your request.
+...
+Additionally, a 500 Internal Server Error error was encountered while trying to use an
+ErrorDocument to handle the request.
+```
+
+Le double échec (même la page d'erreur personnalisée ne s'affiche pas) est un signe classique
+d'une **erreur de syntaxe/configuration dans le `.htaccess` lui-même** : comme le fichier est
+invalide, Apache le rejette pour *toutes* les requêtes du répertoire, y compris celle générée en
+interne pour afficher la page d'erreur.
+
+**Cause** : le `.htaccess` de GVV (généré à partir de `point.htaccess`) contient des directives
+`php_value` pour augmenter les limites mémoire/upload lors des sauvegardes. Ces directives ne
+sont valides qu'avec PHP en module Apache (`mod_php`). Or la plupart des hébergements mutualisés
+modernes (Ionos compris) exécutent PHP en **PHP-FPM/FastCGI**, où `php_value` dans un `.htaccess`
+est une directive inconnue → Apache refuse de charger le fichier → erreur 500 sur tout le site.
+
+**Diagnostic** (si le journal d'erreurs Apache n'est pas accessible depuis votre hébergeur, ce
+qui est le cas chez Ionos où seuls les `access.log` sont exposés dans `~/logs`) : tester par
+élimination directement sur le site.
+
+1. Remplacez temporairement le contenu du `.htaccess` par la version sans les lignes
+   `php_value` (juste `RewriteEngine On` + les règles de réécriture) et rechargez une page.
+2. Si l'erreur 500 disparaît, la cause est confirmée : ce sont les `php_value` qui posent
+   problème.
+
+**Correctif** : `point.htaccess` encadre désormais ces directives dans des blocs `<IfModule>`,
+qu'Apache ignore silencieusement si le module `mod_php` n'est pas chargé (cas PHP-FPM), au lieu
+de faire échouer le parsing de tout le fichier :
+
+```apache
+<IfModule mod_php7.c>
+php_value memory_limit 1024M
+php_value max_execution_time 300
+php_value upload_max_filesize 1024M
+php_value post_max_size 1024M
+</IfModule>
+<IfModule mod_php8.c>
+php_value memory_limit 1024M
+php_value max_execution_time 300
+php_value upload_max_filesize 1024M
+php_value post_max_size 1024M
+</IfModule>
+```
+
+Sur un hébergement en PHP-FPM, ces limites (mémoire, taille d'upload, temps d'exécution) doivent
+alors être ajustées directement dans la configuration du pool PHP-FPM ou via un fichier
+`.user.ini` déposé à la racine du site — via le panneau d'administration de l'hébergeur si l'accès
+au pool FPM n'est pas donné.
+
 #### Étape 2 — Configuration de la base de données
 
 ![Etape 2](./images/install_2.png)
