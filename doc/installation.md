@@ -450,6 +450,61 @@ Correctif: augmentez `memory_limit` dans `/etc/php/<version>/apache2/php.ini` (7
 
 #### Configuration de HelloAsso
 
+#### Erreur fatale après installation sur hébergement PHP 8 mutualisé (constaté chez Ionos)
+
+Sur certains hébergements mutualisés exécutant PHP 8 (constaté chez **Ionos**), le site reste
+inaccessible juste après l'installation — page blanche ou `HTTP ERROR 500` générique en mode
+production, ou en activant temporairement `ENVIRONMENT = "development"` dans `index.php` :
+
+```
+A PHP Error was encountered
+Severity: 8192
+Message: CI_Log::write_log(): Optional parameter $level declared before required
+parameter $msg is implicitly treated as a required parameter
+Filename: libraries/Log.php
+Line Number: 72
+
+Deprecated: CI_Log::write_log(): ... in .../system/libraries/Log.php on line 72
+
+Fatal error: Cannot redeclare class CI_Log (previously declared in
+.../system/libraries/Log.php:27) in .../system/libraries/Log.php on line 27
+```
+
+**Cause** : `system/libraries/Log.php` (cœur CodeIgniter 2.x, non modifié depuis l'import initial
+du projet) déclarait `write_log($level = 'error', $msg, $php_error = FALSE)` — un paramètre
+optionnel avant un paramètre obligatoire, ce qui est invalide depuis PHP 8.0 et génère un
+avertissement `E_DEPRECATED` **au moment de la compilation** du fichier. Le gestionnaire
+d'erreurs de CodeIgniter, déjà actif à ce stade du démarrage, intercepte cet avertissement et
+tente de journaliser l'erreur, ce qui redemande le chargement de la classe `Log` alors que son
+tout premier chargement n'est pas terminé : le fichier est inclus une seconde fois avant que la
+classe `CI_Log` n'ait fini d'être déclarée, d'où le `Fatal error: Cannot redeclare class CI_Log`.
+
+Ce plantage se produit **quel que soit le réglage `error_reporting`** : passer `ENVIRONMENT` en
+`production` (qui force `error_reporting(0)`) masque l'affichage mais n'empêche pas le crash, car
+ce diagnostic de compilation atteint le gestionnaire d'erreurs indépendamment de ce réglage.
+
+Il ne se manifeste pas forcément sur toutes les instances en PHP 8 : ce diagnostic n'est émis
+qu'à la *compilation* du fichier. Sur un serveur avec OPcache actif et persistant (VPS, machine
+de développement), le fichier n'est compilé qu'une fois puis servi depuis le cache — la notice ne
+réapparaît pas aux requêtes suivantes. Sur un mutualisé où chaque requête PHP est isolée (OPcache
+désactivé ou non partagé entre requêtes), le fichier est recompilé à chaque fois : le plantage est
+donc systématique.
+
+**Correctif** (appliqué dans le dépôt) : donner une valeur par défaut à `$msg` dans
+`system/libraries/Log.php` :
+
+```php
+public function write_log($level = 'error', $msg = '', $php_error = FALSE)
+{
+```
+
+Ce correctif est sans effet sur PHP 7.4 (la dépréciation n'existe pas avant PHP 8.0) et supprime
+la notice à la source sur PHP 8.x, quel que soit le comportement d'OPcache de l'hébergeur. Après
+mise à jour du code sur le serveur (`git pull` ou remplacement du fichier), rechargez le site ;
+n'oubliez pas de repasser `ENVIRONMENT` sur `"production"` dans `index.php` si vous l'aviez
+temporairement basculé en `"development"` pour le diagnostic (le mode développement expose des
+chemins serveur et des détails techniques aux visiteurs).
+
 ### Premiers pas
 
 ![Login](./images/login.png)
