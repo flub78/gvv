@@ -241,6 +241,11 @@ function db_from_session(): array {
 // ═══════════════════════════════════════════════════════════
 if (!isset($_SESSION['install'])) $_SESSION['install'] = [];
 
+// gvv_config.php n'a pas d'étape dédiée dans l'assistant (rien à saisir),
+// mais il est autoloadé par CodeIgniter : sans ce fichier, l'application
+// entière plante dès la première requête après l'installation.
+ensure_example('gvv_config');
+
 $STEPS = [
     1  => ['icon' => 'fa-check-circle',  'label' => 'Prérequis'],
     2  => ['icon' => 'fa-database',      'label' => 'Base de données'],
