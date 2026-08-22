@@ -102,6 +102,18 @@ class Acceptance_admin extends Gvv_Controller {
 
         $this->data['select_result'] = $this->gvv_model->select_page(0, 0, $where);
 
+        // Approvals done / expected per item. "Done" comes from actual
+        // acceptance_records; "expected" is the real targeted audience
+        // (resolve_targets()), not just the people who happen to already
+        // have a record — otherwise members who never opened the item are
+        // silently left out of the denominator.
+        $approval_counts = $this->acceptance_records_model->count_by_item();
+        foreach ($this->data['select_result'] as &$row) {
+            $row['approved_count'] = isset($approval_counts[$row['id']]) ? $approval_counts[$row['id']]['accepted'] : 0;
+            $row['expected_count'] = count($this->gvv_model->resolve_targets($row));
+        }
+        unset($row);
+
         // If overdue filter, keep only overdue items
         if (!empty($filter_overdue)) {
             $today = date('Y-m-d');
@@ -474,6 +486,51 @@ class Acceptance_admin extends Gvv_Controller {
         }
 
         $records = $this->acceptance_records_model->select_page(0, 0, $where);
+        $all_records = $this->acceptance_records_model->get_by_item($item_id);
+
+        // Targeted members who never opened/acted on the item have no
+        // acceptance_records row at all (rows are created lazily on first
+        // visit or action). Synthesize a virtual 'pending' row for each of
+        // them so they aren't invisible on this page.
+        $targeted_logins = $this->gvv_model->resolve_targets($item);
+        $existing_logins = array_filter(array_column($all_records, 'user_login'));
+        $missing_logins = array_values(array_diff($targeted_logins, $existing_logins));
+
+        if (!empty($missing_logins) && (empty($filter_status) || $filter_status === 'pending')) {
+            $this->load->model('membres_model');
+            $this->db->select('mlogin, mnom, mprenom');
+            $this->db->from('membres');
+            $this->db->where_in('mlogin', $missing_logins);
+            $names = array();
+            foreach ($this->db->get()->result_array() as $row) {
+                $names[$row['mlogin']] = $row;
+            }
+
+            $virtual_records = array();
+            foreach ($missing_logins as $login) {
+                $virtual_records[] = array(
+                    'id' => null,
+                    'item_id' => $item_id,
+                    'user_login' => $login,
+                    'external_name' => null,
+                    'status' => 'pending',
+                    'validation_role' => null,
+                    'formula_text' => null,
+                    'acted_at' => null,
+                    'created_at' => null,
+                    'signature_mode' => null,
+                    'linked_pilot_login' => null,
+                    'linked_by' => null,
+                    'linked_at' => null,
+                    'pilot_nom' => isset($names[$login]) ? $names[$login]['mnom'] : '',
+                    'pilot_prenom' => isset($names[$login]) ? $names[$login]['mprenom'] : '',
+                    'linked_pilot_nom' => null,
+                    'linked_pilot_prenom' => null,
+                );
+            }
+            $records = array_merge($records, $virtual_records);
+            $all_records = array_merge($all_records, $virtual_records);
+        }
 
         // Filter linked/unlinked
         if ($filter_linked === 'linked') {
@@ -487,7 +544,6 @@ class Acceptance_admin extends Gvv_Controller {
         }
 
         // Count stats
-        $all_records = $this->acceptance_records_model->get_by_item($item_id);
         $pending_count = 0;
         $accepted_count = 0;
         $refused_count = 0;
@@ -552,6 +608,72 @@ class Acceptance_admin extends Gvv_Controller {
         }
 
         redirect('acceptance_admin/tracking/' . $record['item_id']);
+    }
+
+    /**
+     * Reset an accepted/refused record back to pending, so the targeted
+     * person is asked to approve the item again.
+     */
+    function reset_approval($record_id) {
+        if (!$this->_is_admin()) {
+            show_404();
+            return;
+        }
+
+        $record = $this->acceptance_records_model->get_by_id('id', $record_id);
+        if (!$record) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_record_not_found') . '</div>');
+            redirect('acceptance_admin/page');
+            return;
+        }
+
+        $result = $this->acceptance_records_model->reset_to_pending($record_id);
+
+        if ($result) {
+            $this->gvv_model->sync_target_motd($record['item_id']);
+            $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('acceptance_reset_success') . '</div>');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">' . $this->lang->line('acceptance_error_reset') . '</div>');
+        }
+
+        redirect('acceptance_admin/tracking/' . $record['item_id']);
+    }
+
+    /**
+     * Stream the item's PDF inline, so it opens in a new browser tab instead
+     * of being downloaded (mirrors acceptance::pdf() for the member side).
+     */
+    function pdf($id) {
+        if (!$this->_is_admin()) {
+            show_404();
+            return;
+        }
+
+        $item = $this->gvv_model->get_by_id('id', $id);
+        if (!$item) {
+            show_404();
+            return;
+        }
+
+        if (!empty($item['archived_document_id'])) {
+            $doc = $this->archived_documents_model->get_by_id('id', $item['archived_document_id']);
+            $file_path = $doc ? $doc['file_path'] : null;
+            $filename = $doc ? $doc['original_filename'] : 'document.pdf';
+        } else {
+            $file_path = $item['pdf_path'];
+            $filename = $file_path ? basename($file_path) : 'document.pdf';
+        }
+
+        if (empty($file_path) || !file_exists($file_path)) {
+            show_404();
+            return;
+        }
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Length: ' . filesize($file_path));
+        readfile($file_path);
+        exit;
     }
 
     /**

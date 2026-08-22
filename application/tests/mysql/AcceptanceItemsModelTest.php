@@ -44,26 +44,73 @@ class AcceptanceItemsModelTest extends TestCase
     }
 
     /**
-     * Helper to get a valid member login from the database
+     * Helper to get a valid, currently active member login from the
+     * database (holds the 'user' role, unrevoked, in some section — cf.
+     * Membres_model::actif_dans_au_moins_une_section()). Targeting
+     * resolution now requires this, so an arbitrary/inactive membres row
+     * would silently fail to be picked up by resolve_targets().
      */
     protected function getTestLogin()
     {
-        $query = $this->db->query("SELECT mlogin FROM membres LIMIT 1");
+        $query = $this->db->query(
+            "SELECT m.mlogin FROM membres m
+             JOIN users u ON u.username = m.mlogin
+             JOIN user_roles_per_section urps ON urps.user_id = u.id
+             WHERE urps.types_roles_id = 1 AND urps.revoked_at IS NULL
+             LIMIT 1"
+        );
         $row = $query->row_array();
         return $row ? $row['mlogin'] : null;
     }
 
     /**
-     * Helper to get two distinct member logins from the database
+     * Helper to get two distinct, currently active member logins (see
+     * getTestLogin() for why activity is required).
      */
     protected function getTwoTestLogins()
     {
-        $query = $this->db->query("SELECT mlogin FROM membres LIMIT 2");
+        $query = $this->db->query(
+            "SELECT DISTINCT m.mlogin FROM membres m
+             JOIN users u ON u.username = m.mlogin
+             JOIN user_roles_per_section urps ON urps.user_id = u.id
+             WHERE urps.types_roles_id = 1 AND urps.revoked_at IS NULL
+             LIMIT 2"
+        );
         $rows = $query->result_array();
         if (count($rows) < 2) {
-            $this->markTestSkipped('At least two members are required for this test');
+            $this->markTestSkipped('At least two active members are required for this test');
         }
         return array($rows[0]['mlogin'], $rows[1]['mlogin']);
+    }
+
+    /**
+     * Helper: an active member (holds the base 'user' role somewhere, so
+     * resolve_targets() picks them up) who does NOT already hold
+     * $types_roles_id/$section_id — needed by grant/revoke lifecycle tests,
+     * since granting a role the member already has would be a no-op for
+     * eligibility once the temporary grant is revoked.
+     */
+    protected function getTestLoginWithoutRole($types_roles_id, $section_id)
+    {
+        $row = $this->db->query(
+            "SELECT m.mlogin FROM membres m
+             JOIN users u ON u.username = m.mlogin
+             JOIN user_roles_per_section urps_active ON urps_active.user_id = u.id
+                 AND urps_active.types_roles_id = 1 AND urps_active.revoked_at IS NULL
+             WHERE NOT EXISTS (
+                 SELECT 1 FROM user_roles_per_section urps_target
+                 WHERE urps_target.user_id = u.id
+                   AND urps_target.types_roles_id = ?
+                   AND urps_target.section_id = ?
+                   AND urps_target.revoked_at IS NULL
+             )
+             LIMIT 1",
+            array($types_roles_id, $section_id)
+        )->row_array();
+        if (!$row) {
+            $this->markTestSkipped('No active member without the sampled role/section available for this test');
+        }
+        return $row['mlogin'];
     }
 
     /**
@@ -355,6 +402,10 @@ class AcceptanceItemsModelTest extends TestCase
     /**
      * Helper: an active (non-revoked) user_roles_per_section row, joined to
      * its membre login, so tests exercise the real role-resolution join.
+     * The holder must also independently hold the base 'user' role
+     * somewhere (cf. Membres_model::actif_dans_au_moins_une_section()),
+     * otherwise resolve_targets() would silently drop them regardless of
+     * the specific role/section under test.
      */
     protected function getUserWithRole()
     {
@@ -364,6 +415,12 @@ class AcceptanceItemsModelTest extends TestCase
              JOIN users u ON u.id = urps.user_id
              JOIN membres m ON m.mlogin = u.username
              WHERE urps.revoked_at IS NULL
+               AND EXISTS (
+                   SELECT 1 FROM user_roles_per_section urps_active
+                   WHERE urps_active.user_id = urps.user_id
+                     AND urps_active.types_roles_id = 1
+                     AND urps_active.revoked_at IS NULL
+               )
              LIMIT 1"
         )->row_array();
         if (!$row) {
@@ -686,8 +743,13 @@ class AcceptanceItemsModelTest extends TestCase
 
     public function testClearDanglingMotdForUser_RemovesNotificationForLostRole()
     {
-        list($login, ) = $this->getTwoTestLogins();
-        $role = $this->grantTempRole($login);
+        $role_row = $this->db->limit(1)->get('types_roles')->row_array();
+        $section_row = $this->db->limit(1)->get('sections')->row_array();
+        if (!$role_row || !$section_row) {
+            $this->markTestSkipped('No role/section row available for this test');
+        }
+        $login = $this->getTestLoginWithoutRole($role_row['id'], $section_row['id']);
+        $role = $this->grantTempRole($login, $role_row['id'], $section_row['id']);
 
         $id = $this->createTestItem(array('title' => 'Dangling after revoke ' . uniqid()));
         $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $login);
@@ -788,12 +850,12 @@ class AcceptanceItemsModelTest extends TestCase
 
     public function testRoleLifecycle_ItemVisibilityAndNotificationTrackGrantAndRevoke()
     {
-        list($login, ) = $this->getTwoTestLogins();
         $role_row = $this->db->limit(1)->get('types_roles')->row_array();
         $section_row = $this->db->limit(1)->get('sections')->row_array();
         if (!$role_row || !$section_row) {
             $this->markTestSkipped('No role/section row available for this test');
         }
+        $login = $this->getTestLoginWithoutRole($role_row['id'], $section_row['id']);
 
         $id = $this->createTestItem(array('title' => 'Role lifecycle ' . uniqid()));
         $this->addItemRole($id, $role_row['id'], $section_row['id'], $login);

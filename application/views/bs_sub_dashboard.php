@@ -1159,14 +1159,16 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
 
+        <?php if (has_role('admin')) : ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center" style="opacity: 0.5;">
-                <i class="fas fa-stamp text-secondary"></i>
-                <div class="card-title text-muted"><?= $this->lang->line('db_card_doc_approval') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
-                <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+            <div class="sub-card text-center">
+                <i class="fas fa-stamp text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_doc_approval') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_doc_approval') ?></div>
+                <a href="<?= controller_url('acceptance_admin/page') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
+        <?php endif; ?>
         <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_h5_doc_management')); ?>
     </div>
     <?php endif; ?>

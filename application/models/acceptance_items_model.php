@@ -170,7 +170,7 @@ class Acceptance_items_model extends Common_Model {
             return;
         }
 
-        $targets = $this->_resolve_targets($item);
+        $targets = $this->resolve_targets($item);
         if (empty($targets)) {
             return;
         }
@@ -281,23 +281,31 @@ class Acceptance_items_model extends Common_Model {
      * get_items_for_user()'s targeting rules), or — when neither is set —
      * every active member club-wide (an unrestricted item applies to
      * everyone).
+     *
+     * Activity is checked with Membres_model::actif_dans_au_moins_une_section()
+     * (the legacy membres.actif flag is being phased out) for every case
+     * except an individually targeted user, who is always included regardless
+     * of their activity status.
      * @param array $item acceptance_items row
      * @return string[] Unique mlogin values
      */
-    private function _resolve_targets($item) {
+    public function resolve_targets($item) {
         if (!empty($item['target_user_login'])) {
             return array($item['target_user_login']);
         }
 
+        $this->load->model('membres_model');
         $this->load->model('acceptance_item_roles_model');
         $roles = $this->acceptance_item_roles_model->get_for_item($item['id']);
 
         $logins = array();
 
         if (empty($roles)) {
-            $rows = $this->db->select('mlogin')->where('actif', 1)->get('membres')->result_array();
+            $rows = $this->db->select('mlogin')->get('membres')->result_array();
             foreach ($rows as $row) {
-                $logins[$row['mlogin']] = true;
+                if ($this->membres_model->actif_dans_au_moins_une_section($row['mlogin'])) {
+                    $logins[$row['mlogin']] = true;
+                }
             }
             return array_keys($logins);
         }
@@ -308,7 +316,8 @@ class Acceptance_items_model extends Common_Model {
                 $role['types_roles_id'], $role['section_id'], 'all', false
             );
             foreach ($members as $member) {
-                if (!empty($member['mlogin'])) {
+                if (!empty($member['mlogin'])
+                    && $this->membres_model->actif_dans_au_moins_une_section($member['mlogin'])) {
                     $logins[$member['mlogin']] = true;
                 }
             }

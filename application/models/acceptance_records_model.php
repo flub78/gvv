@@ -108,6 +108,30 @@ class Acceptance_records_model extends Common_Model {
     }
 
     /**
+     * Count total and accepted records per item, for the admin items list.
+     * @return array item_id => array('total' => int, 'accepted' => int)
+     */
+    public function count_by_item() {
+        $this->db->select('item_id, status, COUNT(*) as nb');
+        $this->db->from($this->table);
+        $this->db->group_by(array('item_id', 'status'));
+        $query = $this->db->get();
+
+        $counts = array();
+        foreach ($this->get_to_array($query) as $row) {
+            $item_id = $row['item_id'];
+            if (!isset($counts[$item_id])) {
+                $counts[$item_id] = array('total' => 0, 'accepted' => 0);
+            }
+            $counts[$item_id]['total'] += (int) $row['nb'];
+            if ($row['status'] === 'accepted') {
+                $counts[$item_id]['accepted'] += (int) $row['nb'];
+            }
+        }
+        return $counts;
+    }
+
+    /**
      * Get pending records for a user
      * @param string $user_login Member login
      * @return array
@@ -178,6 +202,21 @@ class Acceptance_records_model extends Common_Model {
         return $this->db->update($this->table, array(
             'status' => 'refused',
             'acted_at' => date('Y-m-d H:i:s')
+        ));
+    }
+
+    /**
+     * Reset an accepted/refused record back to pending, so the targeted
+     * person is asked to approve the item again.
+     * @param int $record_id Record ID
+     * @return bool
+     */
+    public function reset_to_pending($record_id) {
+        $this->db->where('id', $record_id);
+        return $this->db->update($this->table, array(
+            'status' => 'pending',
+            'formula_text' => null,
+            'acted_at' => null
         ));
     }
 

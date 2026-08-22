@@ -23,7 +23,9 @@ $lang['acceptance_target_mode_roles'] = 'Catégories';
 $lang['acceptance_target_mode_user'] = 'Utilisateur individuel';
 $lang['acceptance_active'] = 'Actif';
 $lang['acceptance_created_by'] = 'Créé par';
+$lang['acceptance_approvals'] = 'Approbations';
 $lang['acceptance_created_at'] = 'Créé le';
+$lang['acceptance_never_opened'] = 'Jamais consulté';
 $lang['acceptance_updated_at'] = 'Modifié le';
 $lang['acceptance_status'] = 'Statut';
 $lang['acceptance_user'] = 'Utilisateur';
@@ -88,7 +90,7 @@ $lang['acceptance_unknown_record'] = 'Enregistrement inconnu';
 // Admin interface
 $lang['acceptance_admin_title'] = 'Administration des acceptations';
 $lang['acceptance_admin_menu'] = 'Acceptations';
-$lang['acceptance_add_item'] = 'Nouvel élément';
+$lang['acceptance_add_item'] = 'Ajout d\'une demande d\'approbation';
 $lang['acceptance_choose_document'] = 'Choisir ce document';
 $lang['acceptance_add_item_for_document'] = 'Nouvelle demande d\'acceptation pour ce document';
 $lang['acceptance_filtered_by_document'] = 'Acceptations liées au document : %s';
@@ -97,6 +99,7 @@ $lang['acceptance_edit_item'] = 'Modifier l\'élément';
 $lang['acceptance_tracking'] = 'Suivi des acceptations';
 $lang['acceptance_edit'] = 'Modifier';
 $lang['acceptance_download_pdf'] = 'Télécharger PDF';
+$lang['acceptance_view_pdf'] = 'Visualiser le document';
 $lang['acceptance_current_pdf'] = 'PDF actuel';
 $lang['acceptance_activate'] = 'Activer';
 $lang['acceptance_deactivate'] = 'Désactiver';
@@ -144,6 +147,10 @@ $lang['acceptance_error_create'] = 'Erreur lors de la création';
 $lang['acceptance_error_directory'] = 'Impossible de créer le répertoire de stockage';
 $lang['acceptance_error_pilot_required'] = 'Veuillez sélectionner un pilote';
 $lang['acceptance_error_link'] = 'Erreur lors du rattachement';
+$lang['acceptance_reset_approval'] = 'Réinitialiser (redemander l\'approbation)';
+$lang['acceptance_confirm_reset'] = 'Réinitialiser cette approbation ? La personne devra approuver à nouveau.';
+$lang['acceptance_reset_success'] = 'Approbation réinitialisée, la personne devra approuver à nouveau.';
+$lang['acceptance_error_reset'] = 'Erreur lors de la réinitialisation';
 $lang['acceptance_archived_document_not_found'] = 'Document archivé introuvable';
 
 // Member interface (Lot 4)

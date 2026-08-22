@@ -452,6 +452,34 @@ class Membres_model extends Common_Model {
     }
 
     /**
+     * A member is considered active if they still hold the 'user' role,
+     * unrevoked, in at least one section. Replaces the legacy membres.actif
+     * flag, which is being phased out in favour of per-section role activity.
+     * Memoized per request: acceptance targeting resolves this for the same
+     * logins across many items on the same page load.
+     *
+     * @param string $mlogin Member login (username)
+     * @return bool
+     */
+    public function actif_dans_au_moins_une_section($mlogin)
+    {
+        static $cache = array();
+        if (isset($cache[$mlogin])) {
+            return $cache[$mlogin];
+        }
+
+        $this->db->from('user_roles_per_section urps');
+        $this->db->join('users u', 'u.id = urps.user_id');
+        $this->db->where('u.username', $mlogin);
+        $this->db->where('urps.types_roles_id', 1);
+        $this->db->where('urps.revoked_at IS NULL');
+        $result = $this->db->count_all_results() > 0;
+
+        $cache[$mlogin] = $result;
+        return $result;
+    }
+
+    /**
      * Get list of section IDs where the member is registered.
      * Uses user_roles_per_section: a user belongs to a section if they have
      * at least one role assigned there.

@@ -58,9 +58,10 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = !select.value;
     }
 
-    // select2 (big_select) fires a native 'change' event on the underlying
-    // <select> too, so a plain listener is enough (no jQuery dependency here).
-    select.addEventListener('change', syncButton);
+    // select2 (big_select) only emits its change event through jQuery's
+    // synthetic event system, not as a native DOM 'change' event, so a
+    // plain addEventListener never sees it: bind through jQuery instead.
+    $(select).on('change', syncButton);
     syncButton();
 
     btn.addEventListener('click', function () {

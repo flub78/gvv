@@ -115,6 +115,7 @@ $filter_archived_document = isset($filter_archived_document) ? $filter_archived_
                 <th><?= $this->lang->line('acceptance_deadline') ?></th>
                 <th><?= $this->lang->line('acceptance_active') ?></th>
                 <th><?= $this->lang->line('acceptance_created_by') ?></th>
+                <th><?= $this->lang->line('acceptance_approvals') ?></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -183,6 +184,19 @@ $filter_archived_document = isset($filter_archived_document) ? $filter_archived_
                 </td>
                 <td><?= htmlspecialchars(isset($item['created_by_name']) ? $item['created_by_name'] : '') ?></td>
                 <td>
+                    <?php
+                        $expected_count = isset($item['expected_count']) ? (int) $item['expected_count'] : 0;
+                        $approved_count = isset($item['approved_count']) ? (int) $item['approved_count'] : 0;
+                        $approvals_badge = 'bg-secondary';
+                        if ($expected_count > 0) {
+                            $approvals_badge = ($approved_count >= $expected_count) ? 'bg-success' : 'bg-warning text-dark';
+                        }
+                    ?>
+                    <a href="<?= site_url('acceptance_admin/tracking/' . $item['id']) ?>" class="badge <?= $approvals_badge ?> text-decoration-none">
+                        <?= $approved_count ?> / <?= $expected_count ?>
+                    </a>
+                </td>
+                <td>
                     <div class="btn-group btn-group-sm">
                         <a href="<?= site_url('acceptance_admin/edit/' . $item['id']) ?>" class="btn btn-outline-primary" title="<?= $this->lang->line('acceptance_edit') ?>">
                             <i class="fas fa-edit"></i>
@@ -191,8 +205,8 @@ $filter_archived_document = isset($filter_archived_document) ? $filter_archived_
                             <i class="fas fa-chart-bar"></i>
                         </a>
                         <?php if (!empty($item['pdf_path']) || !empty($item['archived_document_id'])): ?>
-                        <a href="<?= site_url('acceptance_admin/download/' . $item['id']) ?>" class="btn btn-outline-secondary" title="<?= $this->lang->line('acceptance_download_pdf') ?>">
-                            <i class="fas fa-download"></i>
+                        <a href="<?= site_url('acceptance_admin/pdf/' . $item['id']) ?>" class="btn btn-outline-secondary" title="<?= $this->lang->line('acceptance_view_pdf') ?>" target="_blank" rel="noopener">
+                            <i class="fas fa-eye"></i>
                         </a>
                         <?php endif; ?>
                         <a href="<?= site_url('acceptance_admin/toggle_active/' . $item['id']) ?>"

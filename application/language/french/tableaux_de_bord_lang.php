@@ -227,6 +227,7 @@ $lang['db_desc_vd_looks']       = "Conception des bons de vol découverte";
 $lang['db_desc_motd']           = "Annonces affichées sur le tableau de bord";
 $lang['db_desc_per_user']       = "Par utilisateur";
 $lang['db_desc_documentation']  = "Documentation";
+$lang['db_desc_doc_approval']   = "Suivi des approbations de documents";
 $lang['db_desc_regulatory']     = "Réglementaires";
 $lang['db_desc_collection']     = "HelloAsso, (512 - 467)";
 

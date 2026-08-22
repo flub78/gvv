@@ -227,6 +227,7 @@ $lang['db_desc_vd_looks']       = "Vormgeving van kennismakingsvluchtbonnen";
 $lang['db_desc_motd']           = "Aankondigingen op het dashboard";
 $lang['db_desc_per_user']       = "Per gebruiker";
 $lang['db_desc_documentation']  = "Documentatie";
+$lang['db_desc_doc_approval']   = "Opvolging van documentgoedkeuringen";
 $lang['db_desc_regulatory']     = "Reglementair";
 $lang['db_desc_collection']     = "(512 - 467)";
 

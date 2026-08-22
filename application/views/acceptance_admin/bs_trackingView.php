@@ -95,14 +95,6 @@ $filter_linked = isset($filter_linked) ? $filter_linked : '';
                 'refused' => $this->lang->line('acceptance_status_refused')
             ), $filter_status, 'class="form-select" id="filter_status"') ?>
         </div>
-        <div class="col-sm-2">
-            <label for="filter_linked" class="form-label"><?= $this->lang->line('acceptance_link_status') ?></label>
-            <?= form_dropdown('filter_linked', array(
-                '' => $this->lang->line('acceptance_filter_all'),
-                'linked' => $this->lang->line('acceptance_linked'),
-                'unlinked' => $this->lang->line('acceptance_unlinked')
-            ), $filter_linked, 'class="form-select" id="filter_linked"') ?>
-        </div>
         <div class="col-sm-1">
             <button type="submit" class="btn btn-primary w-100">
                 <i class="fas fa-filter"></i>
@@ -167,7 +159,13 @@ $filter_linked = isset($filter_linked) ? $filter_linked : '';
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                <td><?= date('d/m/Y H:i', strtotime($record['created_at'])) ?></td>
+                <td>
+                    <?php if (!empty($record['created_at'])): ?>
+                        <?= date('d/m/Y H:i', strtotime($record['created_at'])) ?>
+                    <?php else: ?>
+                        <span class="text-muted" title="<?= $this->lang->line('acceptance_never_opened') ?>"><?= $this->lang->line('acceptance_never_opened') ?></span>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <?php if (!empty($record['signature_mode'])): ?>
                         <?php
@@ -207,6 +205,14 @@ $filter_linked = isset($filter_linked) ? $filter_linked : '';
                                 <i class="fas fa-link"></i>
                             </button>
                         <?= form_close() ?>
+                    <?php endif; ?>
+                    <?php if (in_array($record['status'], array('accepted', 'refused'))): ?>
+                        <a href="<?= site_url('acceptance_admin/reset_approval/' . $record['id']) ?>"
+                           class="btn btn-sm btn-outline-warning"
+                           title="<?= $this->lang->line('acceptance_reset_approval') ?>"
+                           onclick="return confirm('<?= $this->lang->line('acceptance_confirm_reset') ?>');">
+                            <i class="fas fa-rotate-left"></i>
+                        </a>
                     <?php endif; ?>
                 </td>
             </tr>

@@ -227,6 +227,7 @@ $lang['db_desc_vd_looks']       = "Design of discovery flight vouchers";
 $lang['db_desc_motd']           = "Announcements shown on the dashboard";
 $lang['db_desc_per_user']       = "Per user";
 $lang['db_desc_documentation']  = "Documentation";
+$lang['db_desc_doc_approval']   = "Track document approvals";
 $lang['db_desc_regulatory']     = "Regulatory";
 $lang['db_desc_collection']     = "(512 - 467)";
 
