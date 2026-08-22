@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 # Default values
 COVERAGE=false
-PHP_BIN="/usr/bin/php7.4"
+PHP_BIN="$(command -v php)"
 
 # Parse command line arguments
 show_help() {
@@ -85,9 +85,9 @@ echo -e "${BLUE}║  GVV Complete PHPUnit Test Suite      ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
-# Check PHP 7.4
-if [ ! -f "$PHP_BIN" ]; then
-    echo -e "${RED}Error: PHP 7.4 not found at $PHP_BIN${NC}"
+# Check PHP is available on the PATH
+if [ -z "$PHP_BIN" ] || [ ! -x "$PHP_BIN" ]; then
+    echo -e "${RED}Error: php not found in PATH. Source setenv-php7.sh or setenv-php8.sh first.${NC}"
     exit 1
 fi
 
