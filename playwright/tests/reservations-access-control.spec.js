@@ -144,7 +144,11 @@ test.describe('administrateur (panoramix) — accès complet', () => {
 
     test('création : sélecteur pilote libre (non désactivé)', async ({ page }) => {
         await loginAs(page, 'panoramix', AVION_SECTION);
-        await page.goto(TIMELINE_URL);
+        // Use tomorrow (like the auto_planchiste/instructeur variants of this test):
+        // today's timeline can have a resource marked "unavailable" all day (real club
+        // data, e.g. an aircraft under maintenance), whose overlay then intercepts the
+        // click on the first time-slot.
+        await page.goto(TIMELINE_URL_TOMORROW);
         await page.waitForLoadState('networkidle');
         await page.waitForSelector('.time-slot', { timeout: 10000 });
 

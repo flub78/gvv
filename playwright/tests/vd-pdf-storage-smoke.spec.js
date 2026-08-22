@@ -60,7 +60,13 @@ async function createVd(beneficiaire, sectionId) {
     return rows.insertId;
 }
 
-test.describe('Stockage du PDF des bons de vol de découverte — moteur activé', () => {
+// .serial: this suite toggles the shared 'vd.new_pdf_engine.enabled' config
+// flag in beforeAll/afterAll. With fullyParallel:true, an unserialized
+// describe block can have its tests scheduled across different workers, each
+// running its own beforeAll/afterAll — one worker's afterAll (flag -> '0')
+// can then race another worker's still-running test that needs flag === '1',
+// causing _generate_and_store_vd_pdf() to silently skip regeneration.
+test.describe.serial('Stockage du PDF des bons de vol de découverte — moteur activé', () => {
     /** @type {number[]} */
     let createdIds = [];
     /** @type {number[]} */

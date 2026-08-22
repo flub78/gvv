@@ -557,6 +557,14 @@ class Gvv_Controller extends MY_Controller {
             // (le champ caché du formulaire est vide et ferait échouer l'INSERT en mode strict)
             $fields_list = $this->gvvmetadata->fields_list($table, $action == CREATION);
             foreach ($fields_list as $field) {
+                if (!isset($_POST[$field])) {
+                    // No form widget for this DB column (e.g. an internal/computed
+                    // field with no metadata entry, such as vols_decouverte.pdf_path):
+                    // leave it untouched. $this->input->post() would return FALSE for
+                    // a missing key, which CodeIgniter's DB escaping casts to 0,
+                    // silently clobbering the column on every edit of the record.
+                    continue;
+                }
                 $value = $this->input->post($field);
                 if ($table === 'preparation_cards' && $field === 'html_fragment') {
                     $value = $this->raw_post_value($field);
