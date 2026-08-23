@@ -6,8 +6,6 @@
 
 ## Reste à faire
 
-* [] Continuer le test des documents à accepter.
-
 * [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
   
 * [] Page archived_documents/view/154 il suffit modifier le lien pour afficher les documents archivés d'un autre pilote. Faire une étude globale sur les vulnérabilités.

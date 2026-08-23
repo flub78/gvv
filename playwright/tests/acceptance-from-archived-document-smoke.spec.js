@@ -177,7 +177,7 @@ test.describe.serial('Acceptance from archived document smoke test', () => {
 
     const itemRow = page.locator('tr', { hasText: itemTitle });
     await expect(itemRow).toBeVisible();
-    await expect(itemRow.locator('a[title="Télécharger PDF"]')).toHaveCount(1);
+    await expect(itemRow.locator('a[title="Visualiser le document"]')).toHaveCount(1);
 
     console.log('Acceptance item created from archived document successfully');
   });

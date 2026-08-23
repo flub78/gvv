@@ -251,6 +251,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 - **Integration tests**: Real database operations, test component interactions
 - **Coverage target**: Aim for 75% overall (currently establishing baseline)
 - **Temporary tests**: Every times that you write a test to validate a modification evaluate if it is worth creating a phpunit test and adding it to the test base. Keep all phpunit tests that demonstrate that a bug has been fixed.
+- **Database state**: Tests that touch the real database (integration/enhanced/mysql suites, Playwright) must leave it exactly as they found it — create their own fixtures and delete/deactivate everything they created, including on failure (teardown/afterAll), rather than relying on manual cleanup afterwards. They must not depend on the database's pre-existing state (row counts, specific members/sections/roles already present) to pass, since that state is shared and changes over time; query for what they need or create it themselves instead of assuming it exists.
 
 ---
 

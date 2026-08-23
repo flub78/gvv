@@ -143,11 +143,20 @@ test.describe.serial('Acceptance member workflow smoke test', () => {
 
     // 2bis. A message du jour must have been generated for this member
     // targeting the item individually (Lot 3d.4, sync_target_motd()).
+    // Checked via the DB row below (source of truth) and via page body text
+    // rather than the #motdSectionCard landmark specifically: the shared
+    // gvv2 database may hold other, unrelated pending mandatory_hard
+    // acceptance items (created outside this test) that redirect the member
+    // from /welcome to /acceptance (Lot 3d.5 global block, MY_Controller::
+    // _check_mandatory_acceptance()). This test must not depend on that
+    // pre-existing state to pass — the item's title is visible on whichever
+    // page the member lands on (welcome's motd card, or the acceptance
+    // dashboard's pending list) as long as it is still unhandled.
     await page.goto(WELCOME_URL);
     await page.waitForLoadState('networkidle');
     await checkNoPhpErrors(page);
-    const motdSection = page.locator('#motdSectionCard');
-    await expect(motdSection).toContainText(itemTitle);
+    const beforeAcceptBody = await page.textContent('body');
+    expect(beforeAcceptBody).toContain(itemTitle);
 
     const [motdRowsBeforeAccept] = await conn.query(
       "SELECT id, dismissible FROM motd_messages WHERE source_type = 'acceptance_item' AND source_ref = ? AND target_user_login = ?",
