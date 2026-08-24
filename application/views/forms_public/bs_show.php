@@ -89,20 +89,19 @@
                 <div class="d-flex justify-content-between mt-4">
                     <div>
                         <?php if ($current_page_number > 1): ?>
-                            <a class="btn btn-outline-secondary"
-                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number - 1 . $gvv_qs ?>">
+                            <button class="btn btn-outline-secondary" type="submit"
+                                    name="nav_action" value="prev" formnovalidate>
                                 <?= $this->lang->line('forms_button_previous_page') ?>
-                            </a>
+                            </button>
                         <?php endif; ?>
                     </div>
                     <div>
                         <?php if ($current_page_number < $page_count): ?>
-                            <a class="btn btn-primary"
-                               href="<?= site_url('forms/' . rawurlencode($form['public_slug'])) ?>?page=<?= $current_page_number + 1 . $gvv_qs ?>">
+                            <button class="btn btn-primary" type="submit" name="nav_action" value="next">
                                 <?= $this->lang->line('forms_button_next_page') ?>
-                            </a>
+                            </button>
                         <?php else: ?>
-                            <button class="btn btn-success" type="submit"><?= $this->lang->line('forms_button_submit') ?></button>
+                            <button class="btn btn-success" type="submit" name="nav_action" value="finalize"><?= $this->lang->line('forms_button_submit') ?></button>
                             <?php if (!empty($form['allow_upload_response'])): ?>
                                 <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#uploadResponseModal">
                                     <?= $this->lang->line('forms_button_upload_response') ?>

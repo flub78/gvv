@@ -112,6 +112,17 @@ class Forms_public extends CI_Controller {
         $fields = $this->forms_field_parser->parse_fields((string) $current_page['content_html']);
         $old_values     = $this->session->flashdata('forms_public_old_values') ?: array();
         $sig_canvas_data = $this->session->flashdata('forms_public_sig_canvas')  ?: array();
+
+        // Multi-page accumulation (see submit()): repopulate this page with values the
+        // visitor already entered on a previous visit (e.g. navigating back with "Page
+        // précédente" then forward again). Flashdata (fresh validation-error redisplay)
+        // always takes priority over this older, persisted snapshot.
+        if (empty($old_values)) {
+            $page_values_store = $this->session->userdata('forms_page_values_' . md5($slug)) ?: array();
+            if (!empty($page_values_store[$current_page_number])) {
+                $old_values = $page_values_store[$current_page_number];
+            }
+        }
         $render_fields = $this->forms_renderer->normalize_fields_for_view(
             $fields,
             $old_values
@@ -235,8 +246,19 @@ class Forms_public extends CI_Controller {
             $page_number = 1;
         }
 
+        // Which button was clicked: 'prev'/'next' just persist this page's data and move
+        // to another page of the same in-progress submission; 'finalize' merges every page
+        // accumulated so far (see below) and actually creates the form_submissions row.
+        // Missing/unknown value (e.g. a single-page form's lone submit button predating
+        // this mechanism) behaves like a one-page form always has: finalize immediately.
+        $nav_action = trim((string) $this->input->post('nav_action'));
+        if (!in_array($nav_action, array('prev', 'next', 'finalize'), true)) {
+            $nav_action = 'finalize';
+        }
+
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
         $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+        $page_count = count($pages);
         $page = $this->find_page_by_number($pages, $page_number);
         if (!$page) {
             show_error('Page de formulaire introuvable.', 404);
@@ -343,30 +365,38 @@ class Forms_public extends CI_Controller {
             }
         }
 
-        $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
-
-        // Required sub-form widgets (Lot 11) can live on any page of a multi-page
-        // master, not just the one being submitted here — check across all pages.
         $subform_tokens = $this->session->userdata('forms_subform_tokens_' . md5($slug)) ?: array();
-        $errors = array_merge($errors, $this->_validate_required_subforms($pages, $subform_tokens));
 
-        if (!empty($errors)) {
-            $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
-            $this->session->set_flashdata('forms_public_old_values', $submitted_values);
-            if (!empty($signature_canvas_data)) {
-                $this->session->set_flashdata('forms_public_sig_canvas', $signature_canvas_data);
+        if ($nav_action !== 'prev') {
+            // Going back never blocks on missing required fields — the visitor is
+            // allowed to leave a page incomplete and come correct it later. Going
+            // forward (or finalizing) still validates this page like a single-page
+            // form always has.
+            $errors = $this->forms_validation->validate_fields($fields, $submitted_values);
+            if ($nav_action === 'finalize') {
+                // Required sub-form widgets (Lot 11) can live on any page of a multi-page
+                // master, not just the one being submitted here — check across all pages.
+                $errors = array_merge($errors, $this->_validate_required_subforms($pages, $subform_tokens));
             }
-            redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
-            return;
+
+            if (!empty($errors)) {
+                $this->session->set_flashdata('forms_public_error', implode('<br>', $errors));
+                $this->session->set_flashdata('forms_public_old_values', $submitted_values);
+                if (!empty($signature_canvas_data)) {
+                    $this->session->set_flashdata('forms_public_sig_canvas', $signature_canvas_data);
+                }
+                redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
+                return;
+            }
         }
 
-        $uploaded_files = array();
+        $this_page_uploaded_files = array();
 
         // Process canvas/text signature fields (base64 → PNG file)
         foreach ($signature_canvas_data as $field_name => $base64) {
             $result = $this->forms_renderer->make_signature_file($base64, $this->upload_base_dir, $field_name);
             if ($result) {
-                $uploaded_files[] = $result;
+                $this_page_uploaded_files[] = $result;
                 $submitted_values[$field_name] = $result['original_name'];
             }
         }
@@ -380,20 +410,72 @@ class Forms_public extends CI_Controller {
                 return;
             }
 
-            $uploaded_files = array_merge($uploaded_files, $upload_result['files']);
+            $this_page_uploaded_files = array_merge($this_page_uploaded_files, $upload_result['files']);
             foreach ($upload_result['files'] as $uploaded_file) {
                 $submitted_values[(string) $uploaded_file['widget_name']] = $uploaded_file['original_name'];
             }
         }
 
+        // Persist this page's values/files across navigation — a multi-page form's
+        // submission is only actually created once nav_action reaches 'finalize' on
+        // the last page, at which point every page accumulated here gets merged (see
+        // below). A single-page form's only page is both first and last, so it goes
+        // through this same accumulate-then-finalize path on its one and only submit.
+        $session_key_page_values = 'forms_page_values_' . md5($slug);
+        $session_key_page_files  = 'forms_page_files_'  . md5($slug);
+        $page_values_store = $this->session->userdata($session_key_page_values) ?: array();
+        $page_files_store  = $this->session->userdata($session_key_page_files)  ?: array();
+        $page_values_store[$page_number] = $submitted_values;
+        if (!empty($this_page_uploaded_files)) {
+            $page_files_store[$page_number] = array_merge(
+                isset($page_files_store[$page_number]) ? $page_files_store[$page_number] : array(),
+                $this_page_uploaded_files
+            );
+        }
+        $this->session->set_userdata($session_key_page_values, $page_values_store);
+        $this->session->set_userdata($session_key_page_files,  $page_files_store);
+
+        if ($nav_action === 'prev' || $nav_action === 'next') {
+            $target = $nav_action === 'prev' ? max(1, $page_number - 1) : min($page_count, $page_number + 1);
+            redirect('forms/' . rawurlencode($slug) . '?page=' . $target . $gvv_params);
+            return;
+        }
+
+        // nav_action === 'finalize' — merge every page accumulated so far (this one
+        // included) and validate the whole submission before creating it. The merged
+        // full-form validation also protects a form opened directly on its last page
+        // (e.g. a reused/bookmarked link) whose earlier pages were never visited.
+        $all_fields = $this->forms_field_parser->parse_form_pages($pages);
+        $merged_values = array();
+        foreach ($page_values_store as $page_vals) {
+            $merged_values = array_merge($merged_values, $page_vals);
+        }
+        $merged_uploaded_files = array();
+        foreach ($page_files_store as $page_files) {
+            $merged_uploaded_files = array_merge($merged_uploaded_files, $page_files);
+        }
+
+        $full_errors = $this->forms_validation->validate_fields($all_fields, $merged_values);
+        $full_errors = array_merge($full_errors, $this->_validate_required_subforms($pages, $subform_tokens));
+        if (!empty($full_errors)) {
+            $this->session->set_flashdata('forms_public_error', implode('<br>', $full_errors));
+            $this->session->set_flashdata('forms_public_old_values', $merged_values);
+            redirect('forms/' . rawurlencode($slug) . '?page=1' . $gvv_params);
+            return;
+        }
+
+        $submitted_values = $merged_values;
+        $uploaded_files   = $merged_uploaded_files;
+
         $submitter_email = '';
         $submitter_name  = '';
-        foreach ($fields as $field) {
+        foreach ($all_fields as $field) {
             $role = isset($field['gvv_role']) ? (string) $field['gvv_role'] : '';
+            $fname = (string) $field['name'];
             if ($role === 'submitter_email' && $submitter_email === '') {
-                $submitter_email = trim((string) $this->input->post((string) $field['name']));
+                $submitter_email = isset($merged_values[$fname]) ? trim((string) $merged_values[$fname]) : '';
             } elseif ($role === 'submitter_name' && $submitter_name === '') {
-                $submitter_name = trim((string) $this->input->post((string) $field['name']));
+                $submitter_name = isset($merged_values[$fname]) ? trim((string) $merged_values[$fname]) : '';
             }
         }
 
@@ -456,6 +538,8 @@ class Forms_public extends CI_Controller {
         // Clear mechanism B session after successful submission.
         $this->session->unset_userdata('forms_b_prefill_' . md5($slug));
         $this->session->unset_userdata('forms_b_lock_'    . md5($slug));
+        $this->session->unset_userdata($session_key_page_values);
+        $this->session->unset_userdata($session_key_page_files);
 
         // Sub-form backfill (Lot 11): this master submission now exists, switch every
         // linked sub-form submission's subject_type/subject_id to point at it — unless
@@ -1194,7 +1278,7 @@ class Forms_public extends CI_Controller {
 
         static $cache = array();
         if (!isset($cache[$login])) {
-            $row = $this->db->select('mnom, mprenom, memail, mtelf, mtelm, madresse, cp, ville, mdaten, place_of_birth, signature_path')
+            $row = $this->db->select('mnom, mprenom, memail, mtelf, mtelm, madresse, cp, ville, mdaten, place_of_birth, signature_path, trigramme')
                 ->from('membres')
                 ->where('mlogin', $login)
                 ->get()->row_array();
@@ -1207,6 +1291,7 @@ class Forms_public extends CI_Controller {
             case 'nom':               return $m['mnom'];
             case 'prenom':            return $m['mprenom'];
             case 'nom_prenom':        return trim($m['mnom'] . ' ' . $m['mprenom']);
+            case 'trigramme':         return $m['trigramme'];
             case 'email':             return $m['memail'];
             case 'telephone':         return !empty($m['mtelf']) ? $m['mtelf'] : $m['mtelm'];
             case 'adresse':           return $m['madresse'];

@@ -1139,6 +1139,12 @@ input.is-invalid,textarea.is-invalid,select.is-invalid{border-color:#dc3545!impo
         form.setAttribute('novalidate', 'novalidate');
 
         form.addEventListener('submit', function (e) {
+            /* "Page précédente" is always allowed to leave the page incomplete —
+             * the visitor comes back to finish it later (server accepts it too,
+             * see Forms_public::submit()'s nav_action === 'prev' branch). */
+            if (e.submitter && e.submitter.name === 'nav_action' && e.submitter.value === 'prev') {
+                return;
+            }
             clearErrors(form);
             var missing = [];
 
