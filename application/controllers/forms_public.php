@@ -211,6 +211,7 @@ class Forms_public extends CI_Controller {
             'has_signature_widget'   => $has_signature_widget,
             'pilot_login'            => $pilot_login,
             'instructor_login'       => $instructor_login,
+            'has_pdf_template'       => $this->forms_file_storage->has_pdf_template($form['code']),
         );
 
         $this->render_view('forms_public/bs_show', $data);
@@ -694,6 +695,37 @@ class Forms_public extends CI_Controller {
         $mime = $info ? $info['mime'] : 'application/octet-stream';
 
         header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($resolved));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: public, max-age=86400');
+        readfile($resolved);
+    }
+
+    /**
+     * Serves a form's blank PDF template (Lot 16 / EF18) —
+     * uploads/formulaires/{code}/template.pdf — offered as a download on the
+     * public page when allow_upload_response is enabled and a template has
+     * been uploaded. Never served statically: same realpath containment
+     * check as image(), the storage directory stays protected by its
+     * deny-all .htaccess.
+     */
+    public function pdf_template($code = '') {
+        $code = trim((string) $code);
+        if ($code === '') {
+            show_404();
+            return;
+        }
+
+        $path      = $this->forms_file_storage->pdf_template_path($code);
+        $form_dir  = realpath($this->forms_file_storage->form_dir($code));
+        $resolved  = realpath($path);
+
+        if ($resolved === false || $form_dir === false || strpos($resolved, $form_dir) !== 0 || !is_file($resolved)) {
+            show_404();
+            return;
+        }
+
+        header('Content-Type: application/pdf');
         header('Content-Length: ' . filesize($resolved));
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: public, max-age=86400');

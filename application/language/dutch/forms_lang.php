@@ -107,6 +107,19 @@ $lang['forms_upload_error_storage']       = 'Kan de opslagmap niet voorbereiden.
 $lang['forms_upload_error_generic']       = 'Uw reactie kan momenteel niet worden opgeslagen.';
 $lang['forms_upload_error_file_type']     = 'Bestand geweigerd (toegestane formaten: PDF, JPG, PNG, GIF, WEBP).';
 
+// Blank PDF template (Lot 16 / EF18)
+$lang['forms_title_pdf_template']         = 'Blanco formulier (PDF)';
+$lang['forms_help_pdf_template']          = 'Blanco PDF (afdrukbaar formulier) die op de publieke pagina gedownload kan worden wanneer inzending via upload is ingeschakeld. Eén bestand: een nieuwe upload vervangt het vorige. Optioneel — maximaal 10 MB.';
+$lang['forms_button_upload_pdf_template'] = 'PDF versturen';
+$lang['forms_button_download_pdf_template'] = 'Huidige PDF downloaden';
+$lang['forms_confirm_delete_pdf_template'] = 'De blanco PDF verwijderen? De downloadlink verdwijnt van de publieke pagina.';
+$lang['forms_success_pdf_template_uploaded'] = 'Blanco PDF opgeslagen.';
+$lang['forms_success_pdf_template_deleted'] = 'Blanco PDF verwijderd.';
+$lang['forms_error_pdf_template_missing'] = 'Selecteer een PDF-bestand.';
+$lang['forms_error_pdf_template_too_large'] = 'Bestand te groot (maximaal 10 MB).';
+$lang['forms_error_pdf_template_invalid'] = 'Het bestand moet een geldige PDF zijn.';
+$lang['forms_button_download_blank_pdf']  = 'Blanco formulier downloaden (PDF)';
+
 // Titles
 $lang['forms_title_new_form']             = 'Nieuw formulier';
 $lang['forms_title_edit_form']            = 'Formulier bewerken';

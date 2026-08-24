@@ -107,6 +107,19 @@ $lang['forms_upload_error_storage']       = 'Impossible de préparer le réperto
 $lang['forms_upload_error_generic']       = 'Impossible d\'enregistrer votre réponse pour le moment.';
 $lang['forms_upload_error_file_type']     = 'Fichier refusé (formats acceptés : PDF, JPG, PNG, GIF, WEBP).';
 
+// Blank PDF template (Lot 16 / EF18)
+$lang['forms_title_pdf_template']         = 'Formulaire vierge (PDF)';
+$lang['forms_help_pdf_template']          = 'PDF vierge (formulaire imprimable) proposé au téléchargement sur la page publique lorsque la soumission par téléchargement est activée. Un seul fichier : un nouvel envoi remplace le précédent. Facultatif — 10 Mo maximum.';
+$lang['forms_button_upload_pdf_template'] = 'Envoyer le PDF';
+$lang['forms_button_download_pdf_template'] = 'Télécharger le PDF actuel';
+$lang['forms_confirm_delete_pdf_template'] = 'Supprimer le PDF vierge ? Le lien de téléchargement disparaîtra de la page publique.';
+$lang['forms_success_pdf_template_uploaded'] = 'PDF vierge enregistré.';
+$lang['forms_success_pdf_template_deleted'] = 'PDF vierge supprimé.';
+$lang['forms_error_pdf_template_missing'] = 'Veuillez sélectionner un fichier PDF.';
+$lang['forms_error_pdf_template_too_large'] = 'Fichier trop volumineux (10 Mo maximum).';
+$lang['forms_error_pdf_template_invalid'] = 'Le fichier doit être un PDF valide.';
+$lang['forms_button_download_blank_pdf']  = 'Télécharger le formulaire vierge pour soumission papier (PDF)';
+
 // Titles
 $lang['forms_title_new_form']             = 'Nouveau formulaire';
 $lang['forms_title_edit_form']            = 'Modifier le formulaire';

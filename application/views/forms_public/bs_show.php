@@ -43,6 +43,11 @@
         <?php if (!empty($form['description'])): ?>
             <p class="text-muted mb-0"><?= nl2br(html_escape($form['description'])) ?></p>
         <?php endif; ?>
+        <?php if (!empty($form['allow_upload_response']) && !empty($has_pdf_template)): ?>
+            <a class="btn btn-outline-primary btn-sm mt-2" href="<?= site_url('forms_public/pdf_template/' . $form['code']) ?>" target="_blank">
+                <i class="fas fa-file-pdf"></i> <?= $this->lang->line('forms_button_download_blank_pdf') ?>
+            </a>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($error)): ?>

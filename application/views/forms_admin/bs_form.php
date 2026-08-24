@@ -21,7 +21,7 @@
             <form method="post" id="gvv-form-admin-form" action="<?= isset($form_action) ? $form_action : site_url('forms_admin/store') ?>">
                 <?php if (!empty($section_id) && (int) $section_id > 0): ?>
                     <div class="alert alert-info">
-                        <?= $this->lang->line('forms_alert_section_active') ?> <strong><?= (int) $section_id ?></strong>
+                        <?= $this->lang->line('forms_alert_section_active') ?> <strong><?= !empty($section_name) ? html_escape($section_name) : (int) $section_id ?></strong>
                         <br>
                         <?= $this->lang->line('forms_alert_global_checkbox') ?>
                     </div>
@@ -110,6 +110,37 @@
                     <div class="form-text"><?= $this->lang->line('forms_help_allow_upload_response') ?></div>
                 </div>
 
+                <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
+                <div class="border rounded p-3 mb-3 bg-light" id="forms-pdf-template-card" style="<?= !empty($form['allow_upload_response']) ? '' : 'display:none;' ?>">
+                    <h2 class="h6"><?= $this->lang->line('forms_title_pdf_template') ?></h2>
+                    <p class="text-muted small mb-3"><?= $this->lang->line('forms_help_pdf_template') ?></p>
+
+                    <?php if (!empty($has_pdf_template)): ?>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <a href="<?= site_url('forms_public/pdf_template/' . $form['code']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <?= $this->lang->line('forms_button_download_pdf_template') ?>
+                        </a>
+                        <button type="submit" form="forms-pdf-template-delete-form" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="input-group">
+                        <input type="file" class="form-control form-control-sm" name="pdf_template" accept="application/pdf" required form="forms-pdf-template-upload-form">
+                        <button type="submit" form="forms-pdf-template-upload-form" class="btn btn-sm btn-primary"><?= $this->lang->line('forms_button_upload_pdf_template') ?></button>
+                    </div>
+                </div>
+                <script>
+                (function () {
+                    var checkbox = document.getElementById('allow_upload_response');
+                    var card = document.getElementById('forms-pdf-template-card');
+                    if (!checkbox || !card) return;
+                    checkbox.addEventListener('change', function () {
+                        card.style.display = checkbox.checked ? '' : 'none';
+                    });
+                })();
+                </script>
+                <?php endif; ?>
+
                 <div class="mb-3">
                     <label class="form-label" for="handler_class"><?= $this->lang->line('forms_label_handler_class') ?></label>
                     <?php $handler_current = isset($form['handler_class']) ? $form['handler_class'] : ''; ?>
@@ -172,6 +203,17 @@
                     <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin') ?>"><?= $this->lang->line('forms_button_cancel') ?></a>
                 </div>
             </form>
+
+            <?php if (isset($form_mode) && $form_mode === 'edit' && !empty($form['id'])): ?>
+            <!-- Formulaire vierge (PDF) : les contrôles visibles vivent juste sous la case
+                 "Autoriser la soumission par téléchargement" (form="..." attribute) — un <form>
+                 ne peut pas être imbriqué dans le formulaire principal ci-dessus. -->
+            <form id="forms-pdf-template-upload-form" method="post" enctype="multipart/form-data"
+                  action="<?= site_url('forms_admin/pdf_template_upload/' . (int) $form['id']) ?>" style="display:none;"></form>
+            <form id="forms-pdf-template-delete-form" method="post"
+                  action="<?= site_url('forms_admin/pdf_template_delete/' . (int) $form['id']) ?>"
+                  onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_pdf_template') ?>');" style="display:none;"></form>
+            <?php endif; ?>
         </div>
     </div>
 

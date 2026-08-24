@@ -107,6 +107,19 @@ $lang['forms_upload_error_storage']       = 'Unable to prepare the storage direc
 $lang['forms_upload_error_generic']       = 'Unable to save your response at this time.';
 $lang['forms_upload_error_file_type']     = 'File rejected (accepted formats: PDF, JPG, PNG, GIF, WEBP).';
 
+// Blank PDF template (Lot 16 / EF18)
+$lang['forms_title_pdf_template']         = 'Blank form (PDF)';
+$lang['forms_help_pdf_template']          = 'Blank PDF (printable form) offered for download on the public page when upload submission is enabled. Single file: a new upload replaces the previous one. Optional — 10 MB maximum.';
+$lang['forms_button_upload_pdf_template'] = 'Upload PDF';
+$lang['forms_button_download_pdf_template'] = 'Download current PDF';
+$lang['forms_confirm_delete_pdf_template'] = 'Delete the blank PDF? The download link will disappear from the public page.';
+$lang['forms_success_pdf_template_uploaded'] = 'Blank PDF saved.';
+$lang['forms_success_pdf_template_deleted'] = 'Blank PDF deleted.';
+$lang['forms_error_pdf_template_missing'] = 'Please select a PDF file.';
+$lang['forms_error_pdf_template_too_large'] = 'File too large (10 MB maximum).';
+$lang['forms_error_pdf_template_invalid'] = 'The file must be a valid PDF.';
+$lang['forms_button_download_blank_pdf']  = 'Download blank form (PDF)';
+
 // Titles
 $lang['forms_title_new_form']             = 'New form';
 $lang['forms_title_edit_form']            = 'Edit form';

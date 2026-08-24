@@ -357,6 +357,43 @@ class Forms_file_storage {
     }
 
     /**
+     * Blank, printable PDF template for a form (EF18) — downloadable from the
+     * public page as an alternative to filling the form online, then
+     * returned via the upload-response mechanism (EF12). Single fixed
+     * filename at the root of the form's directory (not under images/): no
+     * versioning, a new upload simply overwrites the only possible file, so
+     * there is never an old file left to orphan. Storing it at the root
+     * (rather than a dedicated subfolder) means rename_form_dir(),
+     * copy_form_dir(), delete_form_dir() and forms_admin::form_backup()
+     * already carry it along for free — they already operate on every
+     * top-level file of the form's directory.
+     */
+    public function pdf_template_path($code) {
+        return $this->form_dir($code) . '/template.pdf';
+    }
+
+    public function write_pdf_template($code, $content) {
+        $this->ensure_dir($code);
+        $this->write_file($this->pdf_template_path($code), $content);
+    }
+
+    public function read_pdf_template($code) {
+        $path = $this->pdf_template_path($code);
+        return file_exists($path) ? file_get_contents($path) : null;
+    }
+
+    public function has_pdf_template($code) {
+        return file_exists($this->pdf_template_path($code));
+    }
+
+    public function delete_pdf_template($code) {
+        $path = $this->pdf_template_path($code);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
      * True if this form already has any content on disk (used by the
      * one-time base->file migration to skip already-migrated forms).
      */

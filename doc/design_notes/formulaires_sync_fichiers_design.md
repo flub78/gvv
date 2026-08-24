@@ -20,7 +20,7 @@ L'édition du contenu HTML d'une page de formulaire via le textarea de l'interfa
 | Source de vérité du contenu | Le fichier (HTML + CSS + images). La base ne garde que les métadonnées du formulaire (statut, section, slug, titre, options de soumission). |
 | Table `form_fields` | Supprimée. Les champs sont déterminés par parsing à la demande du fichier HTML (affichage admin, validation de soumission, mapping `gvv_role`). |
 | Emplacement des fichiers | `uploads/formulaires/{code}/` (un dossier par formulaire) |
-| Contenu du dossier | `pageNN.html` (une par page), `style.css`, `images/` (logo, etc.) |
+| Contenu du dossier | `pageNN.html` (une par page), `style.css`, `images/` (logo, etc.), `template.pdf` (formulaire vierge téléchargeable, optionnel — voir [remplissage_formulaires_design.md §22](remplissage_formulaires_design.md#22-modèle-pdf-vierge-téléchargeable-ef18)) |
 | Édition | Exclusivement par dépôt d'archive depuis l'admin web — pas de zone de saisie libre pour le HTML ou le CSS. Créer un formulaire dépose une nouvelle archive ; modifier son contenu dépose une archive de remplacement sur le formulaire existant (voir « Flux ») — aucun accès au système de fichiers serveur requis pour l'admin |
 | Export / Import | Un formulaire complet s'exporte/s'importe comme une seule archive téléchargeable, qui est un miroir direct du répertoire de stockage (mêmes fichiers, mêmes noms, même enveloppe HTML) — pas de format d'archive distinct à maintenir en parallèle |
 | Métadonnées du formulaire | Un fichier de métadonnées (`meta.json`) dans le répertoire de stockage porte le contenu/la configuration (titre, description, portée CSS, paramètres requis, options d'export...) ; il est écrit à chaque modification, pas seulement à l'export — voir « Métadonnées du formulaire » |
@@ -43,6 +43,7 @@ uploads/
     │   ├── meta.json
     │   ├── page01.html
     │   ├── style.css
+    │   ├── template.pdf       ← facultatif, formulaire vierge téléchargeable
     │   └── images/
     │       └── logo.jpg
     └── attestation-formation-procedures/
@@ -62,6 +63,7 @@ Le contenu/la configuration du formulaire — tout ce qui ne relève pas du stat
   "css_scope": "",
   "required_params": "none",
   "allow_upload_response": false,
+  "pdf_template": false,
   "handler_class": null,
   "target_url": null,
   "target_label": null,

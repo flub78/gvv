@@ -448,6 +448,17 @@ Voir : [Design lien de modification public](../design_notes/remplissage_formulai
 
 Voir : [Design complétude des pièces obligatoires](../design_notes/remplissage_formulaires_design.md#21-complétude-des-pièces-obligatoires-ef17)
 
+### EF18 : Modèle PDF vierge téléchargeable
+
+Sur un formulaire où la soumission par téléchargement (EF12) est activée, l'admin peut associer un PDF vierge (le formulaire imprimable, à remplir à la main) au formulaire. L'utilisateur peut le télécharger avant de le remplir et de le renvoyer scanné.
+
+1. L'admin dépose un PDF vierge depuis la fiche d'édition du formulaire ; un nouveau dépôt remplace simplement le précédent (pas de gestion de versions).
+2. Le PDF est optionnel même quand la soumission par téléchargement est activée — aucune erreur ni blocage si aucun PDF n'a été déposé.
+3. Sur la page publique du formulaire, un lien de téléchargement du PDF vierge est visible dès que la soumission par téléchargement est activée et qu'un PDF a été déposé.
+4. Le fichier ne consomme jamais d'espace disque au-delà du PDF actuellement associé au formulaire : un remplacement ou une suppression du formulaire ne laisse aucun fichier orphelin.
+
+Voir : [Design modèle PDF vierge téléchargeable](../design_notes/remplissage_formulaires_design.md#22-modèle-pdf-vierge-téléchargeable-ef18)
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).

@@ -591,6 +591,59 @@ Décisions retenues :
 - [ ] Documentation utilisateur (`doc/users/fr/13_formulaires.md`) : nouvelle section « Pièces obligatoires et complétude ».
 - [ ] **Validation non-régression** : formulaires sans champ fichier/signature obligatoire inchangés ; champs texte/select obligatoires restent bloquants ; suite PHPUnit/Playwright complète verte.
 
+### Lot 16 — Modèle PDF vierge téléchargeable (EF18)
+
+Objectif : sur un formulaire où la soumission par téléchargement est activée (Lot 9, `allow_upload_response`), permettre à l'admin d'associer un PDF vierge (le formulaire imprimable) que l'utilisateur télécharge avant de le remplir à la main et de le renvoyer scanné. Dépend de Lot 9 (colonne `allow_upload_response`) et de Lot 2-bis/2-ter (`Forms_file_storage`, `meta.json`). Indépendant des lots 3 à 8, 10 à 15.
+
+Voir : [Design modèle PDF vierge téléchargeable](../design_notes/remplissage_formulaires_design.md#22-modèle-pdf-vierge-téléchargeable-ef18) et PRD EF18.
+
+Décisions retenues :
+- Pas de nouvelle colonne DB : la présence/absence du PDF est purement fichier (`uploads/formulaires/{code}/template.pdf`), même famille de pattern que les images du formulaire — pas de flag séparé à synchroniser avec la réalité du disque.
+- Un seul fichier par formulaire, nom fixe (`template.pdf`, pas de suffixe/timestamp) : un nouveau dépôt écrase l'unique fichier existant, ce qui élimine par construction tout risque de fichier orphelin après remplacement ou suppression du formulaire.
+- Stocké à la racine de `uploads/formulaires/{code}/` (pas dans `images/`) pour que `rename_form_dir()`/`copy_form_dir()`/`delete_form_dir()` et `form_backup()` le prennent en charge sans aucune modification (ils opèrent déjà sur les fichiers de premier niveau du répertoire).
+- PDF optionnel même si `allow_upload_response = 1` : simple présence/absence de fichier, aucun message d'erreur ni blocage si absent.
+- Comme les images, jamais touché par `form_import_zip()`/`form_restore()`/`replace_all_from_dir()` (qui ne remplacent que `page*.html`/`style.css`/`meta.json`) : géré exclusivement par son propre endpoint d'upload/suppression admin.
+- Sauvegarde/restauration globale (`admin.php::backup_media()`/`restore_media_from_backup()`) : aucune modification nécessaire, tout `uploads/` est déjà tar'é/restauré tel quel.
+
+#### Étape 1 — Stockage et métadonnées ✅
+
+- [x] `Forms_file_storage` : ajouter `write_pdf_template($code, $content)`, `pdf_template_path($code)`, `read_pdf_template($code)`, `has_pdf_template($code)`, `delete_pdf_template($code)` — calqués sur `write_image()`/`image_path()`/`read_image()`/`delete_image()`.
+- [x] `forms_admin::_sync_meta_file()` : ajouter `'pdf_template' => $this->forms_file_storage->has_pdf_template($form['code'])` dans le tableau `$meta`.
+- [x] Vérifié (test, aucun nouveau code nécessaire) que `rename_form_dir()`/`copy_form_dir()`/`delete_form_dir()` déplacent/copient/suppriment bien `template.pdf` sans aucune modification, conformément au design (`form_backup()` non re-testé ici, déjà couvert par construction — même mécanisme `zip -r .` que pour les images).
+- [x] Test PHPUnit `FormsFileStorageTest` étendu (10 tests ajoutés, 44 au total) : écriture/lecture/suppression/écrasement (pas d'accumulation) du template PDF, absence par défaut, présence après `copy_form_dir()` (source et copie), présence après `rename_form_dir()`, présence maintenue après `delete_form_dir()` d'un autre formulaire.
+- [x] **Validation** : suite complète (`./run-all-tests.sh`) verte — 1930 tests, 0 échec, mêmes 63 skips pré-existants.
+
+#### Étape 2 — Interface admin (dépôt, remplacement, suppression) ✅
+
+- [x] `forms_admin::pdf_template_upload($form_id)` : `$_FILES` brut (pas la lib CI upload, même pattern que `image_upload()`), vérification de taille (10 Mo, alignée sur la limite déjà en place pour le fichier de réponse scannée) et de type (`mime_content_type()` + signature `%PDF-`, cohérent avec le reste du contrôleur qui utilise déjà `mime_content_type()` ailleurs plutôt que `finfo`), écrase l'éventuel fichier existant via `write_pdf_template()`, resynchronise `meta.json`.
+- [x] `forms_admin::pdf_template_delete($form_id)` : même garde d'autorisation (`load_form_or_redirect()`) que `image_delete()`, supprime le fichier et resynchronise `meta.json`.
+- [x] `bs_form.php` : nouvelle carte "Formulaire vierge (PDF)" (calquée sur la carte "Images") — si un PDF est présent : lien de téléchargement, bouton "Supprimer" (confirmation) ; sinon formulaire de dépôt seul.
+- [x] Traductions fr/en/nl ajoutées avec le code (10 clés : titre/aide de la carte, boutons envoi/téléchargement/suppression, confirmation, messages succès/erreur).
+- [x] Test PHPUnit `FormsPdfTemplateTest` (mysql, même harnais HTTP que `FormsUploadSubmitTest`/`FormsAdminSubmissionRotateTest`, 6 tests, 26 assertions) : dépôt valide (fichier + `meta.json` à jour), remplacement (ancien contenu remplacé, un seul `.pdf` sur disque — pas d'accumulation), type refusé (aucun fichier écrit), requête non authentifiée (redirection login, aucune écriture), suppression (fichier et `meta.json` mis à jour), suppression sans fichier existant (no-op, pas d'erreur).
+- [x] **Validation** : suite complète (`./run-all-tests.sh`) verte — 1936 tests, 0 échec, mêmes 63 skips pré-existants. Vérification fonctionnelle réelle sur gvv.net (Chromium indisponible dans cet environnement — parcours HTTP équivalent via `curl` avec session admin, formulaire de test temporaire supprimé après vérification) : carte visible sur la fiche d'édition, dépôt d'un PDF → fichier écrit + `meta.json.pdf_template=true` + lien de téléchargement affiché (route publique pas encore implémentée à ce stade, 404 attendu — voir étape 3), suppression → fichier disparu + `meta.json.pdf_template=false`.
+
+#### Étape 3 — Téléchargement public ✅
+
+- [x] `forms_public::pdf_template($code)` : même principe que `image()` (vérification de confinement par `realpath()` sur `form_dir($code)`, `Content-Type: application/pdf`, `show_404()` si absent).
+- [x] `bs_show.php` : lien "Télécharger le formulaire vierge (PDF)" en haut de la page 1 (bloc titre/description), visible si `allow_upload_response` est vrai et qu'un PDF est présent ; libellé volontairement distinct du bouton existant "Télécharger un formulaire prérempli" (qui ouvre la modale d'envoi du scan, pas un téléchargement).
+- [x] `forms_public::index()` : passe `has_pdf_template` à la vue (`Forms_file_storage::has_pdf_template()`).
+- [x] Test PHPUnit `FormsPublicPdfTemplateTest` (mysql, HTTP réel, 7 tests, 9 assertions) : téléchargement d'un template existant (Content-Type, contenu), 404 si absent, 404 sur un code de formulaire inconnu, 404 sur une tentative de path traversal, lien présent/absent selon présence du PDF, lien absent quand `allow_upload_response=0` même si un PDF existe.
+- [x] **Validation** : suite complète (`./run-all-tests.sh`) verte — 1943 tests, 0 échec, mêmes 63 skips pré-existants. Parcours fonctionnel réel sur gvv.net (Chromium indisponible, `curl` utilisé à la place, cf. Lots 11-13) : page publique d'un formulaire de test → lien visible avec le bon libellé → téléchargement renvoie `Content-Type: application/pdf` et le bon contenu → 404 sur code inconnu et sur tentative de path traversal. Formulaire de test et fichiers supprimés après vérification.
+
+#### Étape 4 — Traductions ✅
+
+- [x] Clés fr/en/nl ajoutées au fil des étapes 2 et 3 (11 clés) : `forms_title_pdf_template`, `forms_help_pdf_template`, `forms_button_upload_pdf_template`, `forms_button_download_pdf_template`, `forms_confirm_delete_pdf_template`, `forms_success_pdf_template_uploaded`, `forms_success_pdf_template_deleted`, `forms_error_pdf_template_missing`, `forms_error_pdf_template_too_large`, `forms_error_pdf_template_invalid`, `forms_button_download_blank_pdf`.
+- [x] **Validation** : vérification de complétude — chaque clé référencée dans le code (`forms_admin.php`, `forms_public.php`, `bs_form.php`, `bs_show.php`) présente exactement une fois dans les trois fichiers `application/language/{french,english,dutch}/forms_lang.php` (aucune clé manquante, aucun doublon) ; `php -l` propre sur les trois fichiers.
+
+#### Étape 5 — Documentation et validation finale ✅
+
+- [x] `doc/users/fr/13_formulaires.md` : nouvelle section « Associer un formulaire vierge téléchargeable » (dépôt/remplacement/suppression admin, condition d'apparition du lien public, portée du cycle de vie), à la suite de la section « Accepter une réponse déposée par scan ou photo », avec renvois vers `13_formulaires_creation.md` (« Ajouter une image », « Modifier le contenu d'un formulaire existant »).
+- [x] **Validation non-régression** : suite PHPUnit complète verte (1943 tests, 0 échec, mêmes 63 skips pré-existants). Vérifié en conditions réelles sur gvv.net avec un formulaire de test temporaire (supprimé après vérification) : `form_backup()` inclut `template.pdf` dans le ZIP exporté sans aucune modification de code ; `duplicate()` copie le PDF à l'identique (contenu vérifié octet pour octet) vers le formulaire dupliqué ; `update()` avec changement de `code` déplace le PDF avec le reste du répertoire (`rename_form_dir()`) ; `delete()` supprime le répertoire et le PDF pour l'original comme pour la copie, aucun fichier orphelin.
+
+**Lot 16 terminé.**
+
+**Ajustement UX post-livraison** (24 août 2026) : la carte "Formulaire vierge (PDF)" a été déplacée juste sous la case "Autoriser la soumission par téléchargement (scan)" dans `bs_form.php`, avec visibilité conditionnée à l'état de la case (affichée si cochée, masquée sinon — état initial calculé côté serveur, bascule en direct via un petit script au `change` de la case). Elle apparaissait auparavant dans une carte séparée après "Images", sans lien visuel avec la case dont elle dépend fonctionnellement — source de confusion signalée après livraison (carte présente mais son utilité pas évidente sans dérouler toute la page). Contrainte technique résolue au passage : les boutons/l'input fichier de la carte ne peuvent pas vivre dans un `<form>` imbriqué dans le formulaire principal (HTML invalide) ; ils utilisent l'attribut `form="..."` pour cibler deux `<form>` vides et invisibles déclarés juste après la fermeture du formulaire principal, qui portent seuls `action`/`method`/`enctype` — aucun changement côté contrôleur. Vérifié en conditions réelles sur gvv.net (formulaires de test temporaires, supprimés après vérification) : bascule d'affichage au clic sur la case, dépôt/suppression du PDF toujours fonctionnels, soumission du formulaire principal (titre, case à cocher, etc.) inchangée. Suite complète verte (1943 tests, 0 échec, mêmes 63 skips).
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -665,6 +718,12 @@ Objectif : permettre la soumission d'un formulaire avec des pièces obligatoires
 
 Lots inclus : 15.
 
+### Phase 13 — Modèle PDF vierge téléchargeable
+
+Objectif : permettre à l'admin d'associer un PDF vierge téléchargeable à un formulaire où la soumission par téléchargement est activée. Dépend du socle (phase 1) et de la soumission par téléchargement (phase 1, Lot 9). Indépendant de toutes les autres phases.
+
+Lots inclus : 16.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -684,7 +743,8 @@ Lots inclus : 15.
 15. Lot 13 (modification en place d'une réponse) — dépend du socle (Lot 1) et des fichiers (Lot 2), indépendant des lots 3, 4, 7, 9, 10, 11, 12
 16. Lot 14 (lien de modification public à usage unique) — dépend du socle (Lot 1), des fichiers (Lot 2) et de Lot 13
 17. Lot 15 (complétude des pièces obligatoires) — dépend uniquement du socle (Lot 1)
-18. Lot 8 (documentation et validation)
+18. Lot 16 (modèle PDF vierge téléchargeable) — dépend de Lot 9 (`allow_upload_response`), indépendant des autres lots
+19. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -696,6 +756,7 @@ Lots inclus : 15.
 - Un PDF imprimable est générable depuis une réponse.
 - Une réponse est archivable dans `archived_documents` pour un pilote.
 - Sur un formulaire où l'option est activée, un utilisateur peut télécharger un scan/photo du formulaire imprimé à la place du remplissage en ligne ; l'admin la retrouve dans la liste des réponses avec miniature, rotation et suppression fonctionnelles.
+- Sur un formulaire où cette option est activée, un PDF vierge peut être associé par l'admin (dépôt, remplacement, suppression) et est proposé au téléchargement dès la page 1 de la page publique s'il est présent ; aucun fichier orphelin ne subsiste après remplacement ou suppression du formulaire.
 
 ### Catégorie 2 (contextuel GVV)
 - Pré-remplissage mécanisme A (`data-gvv-source`) opérationnel et sécurisé.

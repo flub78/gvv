@@ -13,6 +13,7 @@ Pour **rédiger le contenu HTML/CSS d'un formulaire** ou **l'intégrer aux donn�
   - [Consulter les réponses reçues](#consulter-les-réponses-reçues)
   - [Corriger une réponse déjà soumise](#corriger-une-réponse-déjà-soumise)
   - [Accepter une réponse déposée par scan ou photo](#accepter-une-réponse-déposée-par-scan-ou-photo)
+  - [Associer un formulaire vierge téléchargeable](#associer-un-formulaire-vierge-téléchargeable)
   - [Pour aller plus loin](#pour-aller-plus-loin)
 
 ---
@@ -83,6 +84,19 @@ Pour les documents à imprimer, signer à la main puis renumériser (attestation
 ![Case à cocher "Autoriser la soumission par téléchargement"](../screenshots/formulaires/admin_upload_checkbox.png)
 ![Modale de téléchargement d'un formulaire prérempli](../screenshots/formulaires/form_upload_modal.png)
 ![Réponse par téléchargement dans la liste admin — miniature et rotation](../screenshots/formulaires/submissions_upload_thumbnail.png)
+
+---
+
+## Associer un formulaire vierge téléchargeable
+
+Pour un formulaire où le dépôt par scan est activé (section précédente), un PDF vierge — le document à imprimer avant de le remplir à la main — peut être proposé au téléchargement sur la page publique.
+
+1. Sur la fiche d'édition du formulaire, carte **"Formulaire vierge (PDF)"** : déposer le fichier PDF (10 Mo maximum). Un nouveau dépôt **remplace** simplement le précédent — il n'y a pas d'historique de versions à gérer.
+2. Le lien de téléchargement (**"Télécharger le formulaire vierge (PDF)"**) apparaît automatiquement en haut de la page publique dès qu'un PDF est déposé — à condition que **"Autoriser la soumission par téléchargement (scan)"** soit cochée. Il n'y a rien d'autre à activer.
+3. Le PDF reste facultatif : un formulaire avec le dépôt par scan activé mais sans PDF déposé fonctionne normalement, simplement sans ce lien.
+4. Le bouton **"Supprimer"** de la carte retire le PDF (et le lien public disparaît) sans affecter le reste du formulaire.
+
+Ce PDF suit le formulaire lors d'un renommage, d'une duplication, d'une suppression ou d'une sauvegarde (export ZIP) — comme les images du formulaire (voir [Ajouter une image](13_formulaires_creation.md#ajouter-une-image)), il ne fait en revanche pas partie du contenu remplacé par un dépôt d'archive (voir [Modifier le contenu d'un formulaire existant](13_formulaires_creation.md#modifier-le-contenu-dun-formulaire-existant)) : il se dépose et se supprime uniquement depuis cette carte.
 
 ---
 

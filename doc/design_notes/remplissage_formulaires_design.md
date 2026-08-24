@@ -1123,6 +1123,67 @@ Une exigence (champ isolé ou groupe) est satisfaite si au moins un des champs c
 - **Public** (formulaire de saisie et reprise via lien, section 20) : liste des pièces manquantes en bas du formulaire, toujours affichée (pas seulement en mode reprise). Un champ isolé manquant est cité par son libellé (`form_fields.label`) ; un groupe manquant est cité par l'ensemble des libellés de ses membres, avec la formulation "au moins un parmi : label A, label B...".
 - **Admin** (`bs_submissions.php`) : indicateur de complétude par ligne (nombre de pièces manquantes, ou équivalent visuel), calculé avec les mêmes règles.
 
+### 22. Modèle PDF vierge téléchargeable (EF18)
+
+#### Principe
+
+Complément à la soumission par téléchargement (section 15) : l'admin associe un PDF vierge (le formulaire imprimable) au formulaire, que l'utilisateur peut télécharger avant de le remplir à la main et de le renvoyer scanné (EF12). Un seul fichier par formulaire, pas de gestion de versions — un nouveau dépôt remplace simplement le précédent.
+
+#### Activation
+
+Pas de nouvelle colonne, pas de nouveau flag : la présence du lien de téléchargement sur la page publique dépend uniquement de deux conditions déjà représentées ailleurs — `forms.allow_upload_response` (EF12) et la présence effective du fichier sur disque. Le PDF reste facultatif même quand la soumission par téléchargement est activée : aucun message d'erreur, le lien est simplement absent tant qu'aucun fichier n'a été déposé.
+
+#### Stockage — extension de `Forms_file_storage`
+
+Le fichier suit exactement le même régime que les images d'un formulaire (voir [Design stockage fichier](formulaires_sync_fichiers_design.md)), avec un nom fixe plutôt qu'une liste :
+
+```
+uploads/formulaires/{code}/template.pdf
+```
+
+Stocké à la racine du répertoire du formulaire (pas dans `images/`) : `rename_form_dir()`, `copy_form_dir()` et `delete_form_dir()` de `Forms_file_storage` itèrent déjà les fichiers de premier niveau du répertoire sans distinction de type — un renommage de code, une duplication ou une suppression de formulaire déplace/copie/supprime `template.pdf` sans aucune modification de ces méthodes. Même raisonnement pour `form_backup()`, qui zippe déjà l'intégralité du répertoire : le PDF est inclus dans l'export d'un formulaire sans changement de code.
+
+Un nom de fichier fixe (`template.pdf`, pas de suffixe/timestamp) élimine par construction le risque de fichier orphelin évoqué dans le PRD (EF18 #4) : `write_pdf_template()` écrase l'unique fichier possible, il n'y a jamais qu'un ancien et un nouveau, jamais d'historique à purger.
+
+Nouvelles méthodes sur `Forms_file_storage`, calquées sur `write_image()`/`image_path()`/`read_image()`/`delete_image()` :
+
+- `write_pdf_template($code, $content)`
+- `pdf_template_path($code)`
+- `read_pdf_template($code)`
+- `has_pdf_template($code)`
+- `delete_pdf_template($code)`
+
+#### Import/export par formulaire — hors du remplacement de contenu par archive
+
+Comme les images (voir « Ressources locales et partagées »), le PDF vierge n'est **jamais** touché par `form_import_zip()`/`form_restore()`/`Forms_file_storage::replace_all_from_dir()` : ces méthodes ne remplacent que `page*.html`/`style.css`/`meta.json`. Il se gère exclusivement par son propre endpoint d'upload/suppression admin, indépendant du dépôt d'archive de contenu — même séparation que pour les images.
+
+`form_backup()` l'inclut malgré tout dans l'archive téléchargeable (elle zippe tout le répertoire), pour que l'export d'un formulaire reste un instantané complet et fidèle — cohérent avec l'inclusion déjà en place des images.
+
+#### `meta.json`
+
+Ajout d'un indicateur booléen, cohérent avec `allow_upload_response` déjà présent (voir [Métadonnées du formulaire](formulaires_sync_fichiers_design.md)) :
+
+```json
+{
+  "allow_upload_response": true,
+  "pdf_template": true
+}
+```
+
+#### Admin
+
+Nouvelle carte "Formulaire vierge (PDF)" sur `bs_form.php`, calquée sur la carte "Images" (section 1) mais à fichier unique : nom du fichier actuel + lien de téléchargement + bouton "Supprimer" si un PDF est présent, sinon formulaire de dépôt seul. Contrôleur `forms_admin::pdf_template_upload($form_id)`/`pdf_template_delete($form_id)`, même pattern que `image_upload()`/`image_delete()` (`$_FILES` brut, pas la lib d'upload CI) : vérification de type (`application/pdf`, via `finfo` + signature `%PDF-`) et de taille (limite à trancher, proposition 10 Mo — alignée sur la limite déjà en place pour le fichier de réponse scannée, EF12).
+
+#### Page publique
+
+Lien "Télécharger le formulaire vierge (PDF)" affiché en haut de la page 1 (avant les champs), visible dès que `allow_upload_response` est vrai et qu'un PDF est présent — emplacement choisi pour être visible avant même que l'utilisateur commence à remplir en ligne, puisque l'usage réel est d'imprimer le PDF puis de le remplir à la main avant de le renvoyer scanné. Libellé délibérément distinct du bouton existant "Télécharger un formulaire prérempli" (qui ouvre en réalité la modale d'*envoi* du scan rempli, EF12) pour ne pas laisser croire qu'il s'agit de la même action.
+
+Nouvelle route `forms_public::pdf_template($code)`, sur le même principe que `image()`/`shared_image()` : vérification de confinement par `realpath()`, `Content-Type: application/pdf`, pas d'exécution possible (le répertoire reste protégé par le `.htaccess Require all denied` déjà en place).
+
+#### Sécurité
+
+Mêmes garanties que pour les images : le fichier n'est jamais servi de façon statique, toujours via la route applicative avec vérification de confinement ; le nom de fichier sur disque (`template.pdf`) ne dérive jamais d'une entrée utilisateur.
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**

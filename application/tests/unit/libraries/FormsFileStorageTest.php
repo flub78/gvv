@@ -212,6 +212,50 @@ class FormsFileStorageTest extends TestCase
     }
 
     // -------------------------------------------------------------------
+    // pdf template (Lot 16 / EF18)
+    // -------------------------------------------------------------------
+
+    public function testHasPdfTemplateFalseWhenAbsent()
+    {
+        $this->assertFalse($this->storage->has_pdf_template('mon-form'));
+        $this->assertNull($this->storage->read_pdf_template('mon-form'));
+    }
+
+    public function testWritePdfTemplateThenReadRoundTrips()
+    {
+        $this->storage->write_pdf_template('mon-form', '%PDF-1.4 fake content');
+
+        $this->assertTrue($this->storage->has_pdf_template('mon-form'));
+        $this->assertSame('%PDF-1.4 fake content', $this->storage->read_pdf_template('mon-form'));
+    }
+
+    public function testWritePdfTemplateOverwritesPreviousFileRatherThanAccumulating()
+    {
+        $this->storage->write_pdf_template('mon-form', 'ancien contenu');
+        $this->storage->write_pdf_template('mon-form', 'nouveau contenu');
+
+        $this->assertSame('nouveau contenu', $this->storage->read_pdf_template('mon-form'));
+        // Single fixed filename: nothing else on disk to leave behind.
+        $this->assertCount(1, glob($this->storage->form_dir('mon-form') . '/*.pdf'));
+    }
+
+    public function testDeletePdfTemplateRemovesFile()
+    {
+        $this->storage->write_pdf_template('mon-form', 'contenu');
+        $this->storage->delete_pdf_template('mon-form');
+
+        $this->assertFalse($this->storage->has_pdf_template('mon-form'));
+        $this->assertNull($this->storage->read_pdf_template('mon-form'));
+    }
+
+    public function testDeletePdfTemplateIsNoOpWhenAbsent()
+    {
+        // Must not throw/warn.
+        $this->storage->delete_pdf_template('inexistant');
+        $this->assertFalse($this->storage->has_pdf_template('inexistant'));
+    }
+
+    // -------------------------------------------------------------------
     // rename_form_dir()
     // -------------------------------------------------------------------
 
@@ -219,12 +263,16 @@ class FormsFileStorageTest extends TestCase
     {
         $this->storage->write_page('ancien-code', 1, '<p>x</p>');
         $this->storage->write_image('ancien-code', 'logo.png', 'X');
+        $this->storage->write_pdf_template('ancien-code', 'PDF');
 
         $this->storage->rename_form_dir('ancien-code', 'nouveau-code');
 
         $this->assertFalse(is_dir($this->storage->form_dir('ancien-code')));
         $this->assertSame('<p>x</p>', $this->storage->read_page('nouveau-code', 1));
         $this->assertSame(array('logo.png'), $this->storage->list_images('nouveau-code'));
+        // rename_form_dir() moves the whole directory: the PDF template
+        // follows without any dedicated code (Lot 16 design decision).
+        $this->assertSame('PDF', $this->storage->read_pdf_template('nouveau-code'));
     }
 
     public function testRenameFormDirIsNoOpWhenSourceMissing()
@@ -255,14 +303,19 @@ class FormsFileStorageTest extends TestCase
         $this->storage->write_page('original', 1, '<p>contenu</p>');
         $this->storage->write_css('original', 'body { color: blue; }');
         $this->storage->write_image('original', 'logo.png', 'X');
+        $this->storage->write_pdf_template('original', 'PDF');
 
         $this->storage->copy_form_dir('original', 'copie');
 
         $this->assertSame('<p>contenu</p>', $this->storage->read_page('copie', 1));
         $this->assertSame('body { color: blue; }', $this->storage->read_css('copie'));
         $this->assertSame(array('logo.png'), $this->storage->list_images('copie'));
+        // copy_form_dir() copies every top-level file: the PDF template
+        // follows without any dedicated code (Lot 16 design decision).
+        $this->assertSame('PDF', $this->storage->read_pdf_template('copie'));
         // Source untouched.
         $this->assertSame('<p>contenu</p>', $this->storage->read_page('original', 1));
+        $this->assertSame('PDF', $this->storage->read_pdf_template('original'));
     }
 
     public function testCopyFormDirIsNoOpWhenSourceMissing()
@@ -282,6 +335,7 @@ class FormsFileStorageTest extends TestCase
         $this->storage->write_page('a-supprimer', 1, '<p>x</p>');
         $this->storage->write_css('a-supprimer', 'body{}');
         $this->storage->write_image('a-supprimer', 'logo.png', 'X');
+        $this->storage->write_pdf_template('a-supprimer', 'PDF');
 
         $this->storage->delete_form_dir('a-supprimer');
 

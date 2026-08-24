@@ -32,6 +32,9 @@ class Forms_admin extends MY_Controller {
     private $image_allowed_mimes = array('image/png', 'image/jpeg', 'image/gif', 'image/webp');
     private $image_max_bytes = 2097152; // 2 Mo
 
+    /** Blank PDF template (Lot 16 / EF18) — same size ceiling as the scanned-response upload (EF12). */
+    private $pdf_template_max_bytes = 10485760; // 10 Mo
+
     public function __construct() {
         parent::__construct();
 
@@ -115,6 +118,7 @@ class Forms_admin extends MY_Controller {
 
     public function create() {
         $section_id = (int) $this->session->userdata('section');
+        $section_name = $section_id > 0 ? $this->sections_model->image($section_id) : '';
         $data = array(
             'controller' => $this->controller,
             'form_mode'  => 'create',
@@ -133,6 +137,7 @@ class Forms_admin extends MY_Controller {
                 'club'        => ($section_id > 0) ? $section_id : '',
             ),
             'section_id' => $section_id,
+            'section_name' => $section_name,
             'section_selector' => $this->sections_model->section_selector_with_null(),
             'handler_classes' => $this->_available_handler_classes(),
             'error'      => '',
@@ -155,6 +160,7 @@ class Forms_admin extends MY_Controller {
         $this->session->set_userdata('nav_from_label', $row['title']);
 
         $section_id = (int) $this->session->userdata('section');
+        $section_name = $section_id > 0 ? $this->sections_model->image($section_id) : '';
         $row['club'] = ($row['club'] !== null) ? (int) $row['club'] : '';
 
         $data = array(
@@ -164,11 +170,13 @@ class Forms_admin extends MY_Controller {
             'submit_label'     => 'Enregistrer',
             'form'             => $row,
             'section_id'       => $section_id,
+            'section_name'     => $section_name,
             'section_selector' => $this->sections_model->section_selector_with_null(),
             'handler_classes'  => $this->_available_handler_classes(),
             'is_workflow_form' => in_array($row['public_slug'], $this->workflow_form_slugs, true),
             'is_currently_published' => $row['status'] === 'published',
             'images'           => $this->forms_file_storage->list_images($row['code']),
+            'has_pdf_template' => $this->forms_file_storage->has_pdf_template($row['code']),
             'error'            => '',
         );
 
@@ -234,6 +242,7 @@ class Forms_admin extends MY_Controller {
 
     public function store() {
         $section_id = (int) $this->session->userdata('section');
+        $section_name = $section_id > 0 ? $this->sections_model->image($section_id) : '';
 
         $this->form_validation->set_rules('code', 'Code', 'required|max_length[50]|alpha_dash');
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
@@ -247,6 +256,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'section_name' => $section_name,
                 'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'error'      => validation_errors(),
@@ -278,6 +288,7 @@ class Forms_admin extends MY_Controller {
                 'controller' => $this->controller,
                 'form'       => $this->input->post(),
                 'section_id' => $section_id,
+                'section_name' => $section_name,
                 'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'error'      => 'Impossible de creer le formulaire.',
@@ -303,6 +314,7 @@ class Forms_admin extends MY_Controller {
         }
 
         $section_id = (int) $this->session->userdata('section');
+        $section_name = $section_id > 0 ? $this->sections_model->image($section_id) : '';
 
         $this->form_validation->set_rules('code', 'Code', 'required|max_length[50]|alpha_dash');
         $this->form_validation->set_rules('title', 'Titre', 'required|max_length[255]');
@@ -322,6 +334,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'       => $form,
                 'section_id' => $section_id,
+                'section_name' => $section_name,
                 'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
@@ -348,6 +361,7 @@ class Forms_admin extends MY_Controller {
                 'submit_label' => 'Enregistrer',
                 'form'         => $form,
                 'section_id'   => $section_id,
+                'section_name' => $section_name,
                 'section_selector' => $this->sections_model->section_selector_with_null(),
                 'handler_classes' => $this->_available_handler_classes(),
                 'is_workflow_form' => in_array($current['public_slug'], $this->workflow_form_slugs, true),
@@ -2096,6 +2110,7 @@ class Forms_admin extends MY_Controller {
             'css_scope'             => (string) $form['css_scope'],
             'required_params'       => (string) $form['required_params'],
             'allow_upload_response' => !empty($form['allow_upload_response']),
+            'pdf_template'          => $this->forms_file_storage->has_pdf_template($form['code']),
             'handler_class'         => !empty($form['handler_class']) ? (string) $form['handler_class'] : null,
             'target_url'            => !empty($form['target_url']) ? (string) $form['target_url'] : null,
             'target_label'          => !empty($form['target_label']) ? (string) $form['target_label'] : null,
@@ -2308,6 +2323,69 @@ class Forms_admin extends MY_Controller {
 
         $this->forms_file_storage->delete_image($form['code'], $filename);
         $this->session->set_flashdata('forms_success', 'Image supprimée.');
+        redirect('forms_admin/edit/' . (int) $form['id']);
+    }
+
+    /**
+     * Blank PDF template (Lot 16 / EF18) — a single fixed file per form,
+     * stored at the root of the form's directory (Forms_file_storage::
+     * write_pdf_template()). A new upload simply overwrites the previous
+     * one, so there is never an orphaned file to clean up.
+     */
+    public function pdf_template_upload($form_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        if (empty($_FILES['pdf_template']['tmp_name']) || (int) $_FILES['pdf_template']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_error_pdf_template_missing'));
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        if ((int) $_FILES['pdf_template']['size'] > $this->pdf_template_max_bytes) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_error_pdf_template_too_large'));
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $tmp_name = $_FILES['pdf_template']['tmp_name'];
+        $mime     = @mime_content_type($tmp_name);
+        $header   = @file_get_contents($tmp_name, false, null, 0, 5);
+        if ($mime !== 'application/pdf' || $header !== '%PDF-') {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_error_pdf_template_invalid'));
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $this->forms_file_storage->write_pdf_template($form['code'], file_get_contents($tmp_name));
+        $this->_sync_meta_file((int) $form['id']);
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_success_pdf_template_uploaded'));
+        redirect('forms_admin/edit/' . (int) $form['id']);
+    }
+
+    public function pdf_template_delete($form_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/edit/' . (int) $form['id']);
+            return;
+        }
+
+        $this->forms_file_storage->delete_pdf_template($form['code']);
+        $this->_sync_meta_file((int) $form['id']);
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_success_pdf_template_deleted'));
         redirect('forms_admin/edit/' . (int) $form['id']);
     }
 
