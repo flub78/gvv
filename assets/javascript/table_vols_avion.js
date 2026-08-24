@@ -31,7 +31,7 @@ $(document).ready(function () {
         "bStateSave": true,
         "bInfo": true,
         "bJQueryUI": true,
-        "bAutoWidth": true,
+        "bAutoWidth": false,
         "sPaginationType": "full_numbers",
         "aoColumns": [
             { "bSortable": false },       // change (action column, rendered before data fields)
@@ -65,7 +65,7 @@ $(document).ready(function () {
         "bInfo": true,
         "bJQueryUI": true,
         "bStateSave": true,
-        "bAutoWidth": true,
+        "bAutoWidth": false,
         "sPaginationType": "full_numbers",
         "aoColumns": [
             { "sType": "date-uk", "asSorting": ["desc", "asc"] },      // date

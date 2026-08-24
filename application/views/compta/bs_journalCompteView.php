@@ -493,43 +493,10 @@ echo '</div>';
                 [10, 25, 50, 100, 500, 1000, "Tous les"]
             ],
             "fnDrawCallback": function() {
-                // Aligne la largeur du conteneur de contenu (#body : filtre, accordéons) sur la
-                // largeur réelle du tableau, pour qu'ils s'étirent jusqu'au bord au lieu de
-                // rester étroits pendant que seul le tableau déborde.
-                // Volontairement PAS appliqué au <body> HTML : le menu (bouton Quitter,
-                // sélecteur de section) doit rester à la largeur de l'écran pour ne pas exiger
-                // de scroll horizontal pour y accéder sur mobile.
-                var pageWidth = $(this).outerWidth() + 'px';
-                $('#body').css('min-width', pageWidth);
-
-                // La bannière (titre du club, purement décorative, sans contrôle cliquable)
-                // peut s'étirer directement — contrairement au menu, pas besoin de calque de
-                // secours pour garder un bouton accessible.
-                $('header.container-fluid').css('min-width', pageWidth);
-
-                // Purement visuel : prolonge le fond du menu sur toute la largeur du contenu,
-                // pour éviter un décrochement de couleur quand on scrolle vers la droite. Le
-                // menu lui-même (et ses boutons) reste à la largeur de l'écran ; seul ce calque
-                // décoratif, placé derrière, s'étire.
-                var $nav = $('nav.navbar').first();
-                if ($nav.length) {
-                    var $backdrop = $nav.children('.nav-width-backdrop');
-                    if ($backdrop.length === 0) {
-                        $backdrop = $('<div class="nav-width-backdrop"></div>').prependTo($nav);
-                        $backdrop.css({
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            height: '100%',
-                            zIndex: -1,
-                            pointerEvents: 'none'
-                        });
-                    }
-                    $backdrop.css({
-                        minWidth: pageWidth,
-                        backgroundColor: $nav.css('background-color')
-                    });
-                }
+                // Cf. assets/javascript/gvv_wide_table_layout.js : aligne #body/bannière/menu
+                // sur la largeur réelle du tableau, qu'il soit plus étroit ou plus large que
+                // l'écran.
+                gvvSyncWideTableLayout(this);
 
                 var oSettings = this.fnSettings();
                 var searchTerm = oSettings.oPreviousSearch.sSearch;

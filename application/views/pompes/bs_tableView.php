@@ -95,7 +95,9 @@ $this->load->view('bs_menu');
         . '</a>'
         . '</div>';
 
+    echo '<div class="table-responsive">';
     echo $this->gvvmetadata->table("vue_pompes", $attrs, "");
+    echo '</div>';
 
     echo '</div>';
 

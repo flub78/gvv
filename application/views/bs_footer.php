@@ -94,7 +94,7 @@ $('.datatable').dataTable({
             "bInfo": true,
             "bJQueryUI": true,
             "bRetrieve": false,
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "sPaginationType": "full_numbers",
             "search": {
                 "caseInsensitive": true
@@ -133,7 +133,7 @@ $('.datatable').dataTable({
             "bInfo": true,
             "bJQueryUI": true,
             "bRetrieve": false,
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "search": {
                 "caseInsensitive": true
             },
@@ -152,7 +152,7 @@ $('.datatable').dataTable({
             "bInfo": true,
             "bJQueryUI": true,
             "bRetrieve": false,
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "sPaginationType": "full_numbers",
             "search": {
                 "caseInsensitive": true
@@ -168,8 +168,9 @@ $('.datatable').dataTable({
             "bStateSave": false,
             "bSort": false,
             "bInfo": false,
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "bJQueryUI": false,
+            "fnDrawCallback": function() { gvvSyncWideTableLayout(this); }
         });
 
         $('.searchable_nosort_datatable').dataTable({
@@ -179,7 +180,7 @@ $('.datatable').dataTable({
             "bStateSave": true,  // Sauvegarde l'état (pagination, recherche) dans localStorage
             "bSort": false,
             "bInfo": true,
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "bJQueryUI": true,
             "ordering": false,
             "sPaginationType": "full_numbers",
@@ -205,7 +206,7 @@ $('.datatable').dataTable({
             "bStateSave": true,  // Sauvegarde l'état (recherche) dans localStorage
             "bSort": false,
             "bInfo": false,      // Pas d'info "Affichage de 1 à 100 sur 200"
-            "bAutoWidth": true,
+            "bAutoWidth": false,
             "bJQueryUI": true,
             "ordering": false,
             "search": {

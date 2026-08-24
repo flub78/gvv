@@ -34,7 +34,7 @@ $(document).ready(function () {
         "bSort": true,
         "bInfo": true,
         "bJQueryUI": true,
-        "bAutoWidth": true,
+        "bAutoWidth": false,
         "sPaginationType": "full_numbers",
         // "sDom": 'lfptip',
         "aoColumns": [
@@ -71,7 +71,7 @@ $(document).ready(function () {
         "bSort": true,
         "bInfo": true,
         "bJQueryUI": true,
-        "bAutoWidth": true,
+        "bAutoWidth": false,
         "sPaginationType": "full_numbers",
         "aoColumns": [
             { "asSorting": ["desc"] },      // date 
@@ -91,7 +91,8 @@ $(document).ready(function () {
             { "bSortable": false },       // Prv
             { "bSortable": false } //,       // cat
         ],
-        "oLanguage": olanguage
+        "oLanguage": olanguage,
+        "fnDrawCallback": function() { gvvSyncWideTableLayout(this); }
     });
 
 });

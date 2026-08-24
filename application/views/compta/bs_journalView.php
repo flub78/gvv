@@ -197,9 +197,10 @@ $this->lang->load('compta');
                 "bJQueryUI": true,
                 "bSort": true,
                 "bInfo": true,
-                "bAutoWidth": true,
+                "bAutoWidth": false,
                 "sPaginationType": "full_numbers",
-                "oLanguage": olanguage
+                "oLanguage": olanguage,
+                "fnDrawCallback": function() { gvvSyncWideTableLayout(this); }
             });
 
             $('.datatable_mini_serverside').dataTable({
@@ -212,7 +213,7 @@ $this->lang->load('compta');
                 "bJQueryUI": true,
                 "bSort": true,
                 "bInfo": true,
-                "bAutoWidth": true,
+                "bAutoWidth": false,
                 "sPaginationType": "full_numbers",
                 "oLanguage": olanguage,
 
@@ -222,7 +223,8 @@ $this->lang->load('compta');
                     [10, 25, 50, 100, 500, 1000, "Tous les"]
                 ],
 
-                "aoColumnDefs": <?= json_encode($column_defs) ?>
+                "aoColumnDefs": <?= json_encode($column_defs) ?>,
+                "fnDrawCallback": function() { gvvSyncWideTableLayout(this); }
             });
 
         });

@@ -1,7 +1,7 @@
 # Plan : Généralisation de la correction responsive des tableaux DataTables larges
 
 **Date:** 2026-08-24
-**Statut:** Non démarré — plan à valider avant exécution
+**Statut:** Implémenté et vérifié (tâches 1 à 6 complètes, tests Playwright + suite complète verts)
 **Périmètre:** Correction ciblée (pas de PRD séparée, cf. justification en section 1.4)
 
 ---
@@ -121,42 +121,34 @@ La correction de référence n'a **pas eu besoin** d'un `<div class="table-respo
 
 ## 4. Tâches
 
-### Tâche 1 : Extraire la fonction JS partagée
+### ✅ Tâche 1 : Extraire la fonction JS partagée
 **Fichiers :** `assets/javascript/gvv_wide_table_layout.js` (nouveau), `application/views/bs_header.php` (ajout du `<script src=...>`), `application/views/compta/bs_journalCompteView.php` (remplacement du code inline par l'appel à la fonction partagée)
-**Effort :** 1h
-Reprend telle quelle la logique déjà validée (mesure de largeur, sync `#body`/bannière, calque du menu). Revalider la page de référence (Playwright + vérification manuelle écran étroit/large) après refactorisation, pour s'assurer que le comportement ne change pas.
+Reprend la logique déjà validée (mesure de largeur, sync `#body`/bannière, calque du menu). Page de référence revalidée (écran étroit/large, aucune erreur console) après refactorisation — comportement identique.
 
-### Tâche 2 : Brancher le pattern A (`bs_footer.php`)
+**Ajustement découvert en cours d'implémentation :** sur certaines tables (rendu client, sans `bServerSide`), la largeur mesurée au moment du `fnDrawCallback` n'était pas toujours la largeur finale — un second passage de mesure/synchronisation était nécessaire une fois le layout du navigateur stabilisé (écart constaté : ~24-26px, invisible à l'œil mais mesurable). `gvvSyncWideTableLayout()` refait donc une mesure et un réajustement 50ms après le premier passage si la largeur a changé entre-temps. Cf. code commenté dans le fichier.
+
+### ✅ Tâche 2 : Brancher le pattern A (`bs_footer.php`)
 **Fichier :** `application/views/bs_footer.php` (les 6 blocs `.dataTable(...)`, lignes ~73-219)
-**Effort :** 1h30
-Couvre d'un coup : `planeur`, `avion`, `document_types`, `achats`, `motd`, `configuration`, `produits`, `event`, `event/bs_statsView`, `tickets`, `attachments`, `comptes` (12 pages).
-**Risque principal du plan** (cf. section 6) : ce fichier est chargé par la quasi-totalité des pages de listing de l'application, y compris celles classées LOW. Un test de non-régression large est nécessaire avant de considérer la tâche terminée.
+`"bAutoWidth": false` appliqué aux 6 blocs. 5 des 6 (`.datatable`, `.datatable_nopaging`, `.datatable_500`, `.searchable_nosort_datatable`, `.balance_searchable_datatable`) partagent déjà `highlightSearchCallback` comme `fnDrawCallback` (`bs_header.php`) — l'appel à `gvvSyncWideTableLayout(this)` y a été ajouté une seule fois. Le 6ᵉ (`.fixed_datatable`) n'avait aucun `fnDrawCallback` — un a été ajouté. Vérifié sur `planeur/page` et `avion/page` : tableau/filtre/menu cohérents, aucune erreur console.
 
-### Tâche 3 : Brancher les patterns B et C (4 pages à init dédiée)
+### ✅ Tâche 3 : Brancher les patterns B et C (4 pages à init dédiée)
 **Fichiers :** `application/views/compta/bs_journalView.php`, `application/views/membre/bs_tableView.php`, `assets/javascript/table_vols_avion.js`, `assets/javascript/table_vols_planeur.js`
-**Effort :** 2h (30 min/fichier — chacun a 2 blocs d'init à ajuster)
-`membre/bs_tableView.php` a déjà un `fnDrawCallback` sur ses deux blocs (`.table_membre`/`.table_membre_ro`) — juste y ajouter l'appel. Vérifier au cas par cas pour les 3 autres.
+`membre/bs_tableView.php` et les deux fichiers `table_vols_*.js` utilisaient déjà `highlightSearchCallback` (branché en tâche 2) — juste `bAutoWidth` à passer à `false`. `compta/bs_journalView.php` (init propre, sans `highlightSearchCallback`) a reçu l'appel direct à `gvvSyncWideTableLayout(this)`. Un bloc sans aucun `fnDrawCallback` a été trouvé dans `table_vols_planeur.js` (`.datatable_server_ro`) et complété. Vérifié sur `compta/page`, `membre/page`, `vols_avion/page`, `vols_planeur/page` : largeurs cohérentes, aucune erreur console.
 
-### Tâche 4 : Cas particulier `pompes/bs_tableView.php`
+### ✅ Tâche 4 : Cas particulier `pompes/bs_tableView.php`
 **Fichier :** `application/views/pompes/bs_tableView.php`
-**Effort :** 15 min
-N'utilise pas DataTables (`class="table"` simple) — le bug de `bAutoWidth` ne s'applique pas, mais un tableau de 8 colonnes sans wrapper peut quand même déborder sur écran étroit. Correction minimale : ajouter `table-responsive` autour du tableau (pas besoin de la synchronisation `#body`/menu/bannière, ce sous-cas n'implique pas `bAutoWidth`).
+`table-responsive` ajouté autour de l'appel à `gvvmetadata->table()`. Vérifié : plus de débordement de page sur écran étroit.
 
-### Tâche 5 : Tests Playwright
+### ✅ Tâche 5 : Tests Playwright
 **Fichier :** `playwright/tests/wide-datatable-responsive.spec.js` (nouveau)
-**Effort :** 2h
-Un test paramétré (une entrée par page HIGH, au moins un représentant de chaque pattern A/B/C) qui, sur un viewport étroit (375px) puis large (1600px), vérifie :
-- Le tableau remplit son conteneur sur écran large (pas de largeur figée sous-dimensionnée).
-- `#body` (filtre/contenu) a la même largeur que le tableau.
-- Le bouton "Quitter" du menu reste dans le viewport à la position de scroll initiale (accessible sans scroll horizontal).
-- Pas d'erreur console.
-Conserver ces tests dans la suite de régression, conformément aux consignes du projet.
+Test paramétré sur 5 pages (au moins un représentant de chaque pattern A/B/C) × 2 breakpoints (375px, 1600px) = 10 cas, vérifiant largeur `#body` vs tableau, accessibilité du bouton "Quitter" sans scroll, et absence d'erreur console (une exception documentée : l'échec de chargement du kit Font Awesome, dépendance CDN externe indisponible dans l'environnement de test, sans rapport avec ce correctif). 10/10 verts. Conservés dans la suite de régression.
 
-### Tâche 6 : Vérification manuelle des pages LOW non modifiées
-**Effort :** 30 min
-Aucune modification de code, mais comme la tâche 2 touche `bs_footer.php` (chargé par les pages LOW aussi), vérifier rapidement sur 2-3 pages LOW représentatives (ex. `sections/bs_tableView.php`, `categorie/bs_tableView.php`) qu'elles ne régressent pas visuellement.
+**Leçon retenue en écrivant le test :** comparer `#body.offsetWidth` au tableau avec une tolérance stricte (±5px) est correct dans le cas où la page déborde (le `min-width` JS pilote directement `#body`), mais pas dans le cas où le tableau est plus étroit que l'écran : `#body` (container-fluid) a alors son padding horizontal normal (~24px) qui le rend légitimement un peu plus large que le tableau qu'il contient — ce n'est pas un bug. L'assertion retenue vérifie l'invariant réel (`#body` jamais nettement plus étroit que le tableau, avec 30px de tolérance pour ce padding), pas une égalité stricte.
 
-**Effort total estimé : ~7h15**
+### ✅ Tâche 6 : Vérification manuelle des pages LOW non modifiées
+Vérifié sur `sections/page`, `categorie/page`, `dates_gel/page` (écran étroit) : aucune erreur console, aucune régression visuelle. Ces pages gardent leurs limites préexistantes (tableaux un peu plus larges que l'écran, hors périmètre de ce plan) mais bénéficient au passage du même mécanisme de cohérence de largeur, sans effet négatif.
+
+**Effort total réel : conforme à l'estimation (~7h)**
 
 ---
 

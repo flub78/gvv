@@ -228,7 +228,7 @@ if ($this->session->flashdata('error')) {
                     }
                 ],
                 "bInfo": true,
-                "bAutoWidth": true,
+                "bAutoWidth": false,
                 "sPaginationType": "full_numbers",
                 "oLanguage": olanguage,
                 "fnDrawCallback": function() {
@@ -278,7 +278,7 @@ if ($this->session->flashdata('error')) {
                     }
                 ],
                 "bInfo": true,
-                "bAutoWidth": true,
+                "bAutoWidth": false,
                 "sPaginationType": "full_numbers",
                 "oLanguage": olanguage,
                 "fnDrawCallback": function() {

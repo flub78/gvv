@@ -127,6 +127,7 @@
 	?>
 
 	<script type="text/javascript" src="<?= base_url() ?>assets/javascript/multilevel.js?v=<?= filemtime(FCPATH . 'assets/javascript/multilevel.js') ?>"></script>
+	<script type="text/javascript" src="<?= base_url() ?>assets/javascript/gvv_wide_table_layout.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_wide_table_layout.js') ?>"></script>
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/multilevel.css?v=<?= filemtime(FCPATH . 'assets/css/multilevel.css') ?>">
 	</link>
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/bs_styles.css?v=<?= filemtime(FCPATH . 'assets/css/bs_styles.css') ?>">
@@ -190,6 +191,12 @@
 					}
 				}
 			});
+
+			// Cf. assets/javascript/gvv_wide_table_layout.js : garde #body/bannière/menu
+			// alignés sur la largeur réelle du tableau. Appelé APRÈS le surlignage
+			// ci-dessus : réécrire le HTML des cellules peut légèrement changer la
+			// largeur naturelle du tableau, la mesure doit donc se faire en dernier.
+			gvvSyncWideTableLayout(this);
 		}
 	</script>
 
