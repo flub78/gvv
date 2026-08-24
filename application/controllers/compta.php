@@ -1883,10 +1883,15 @@ class Compta extends Gvv_Controller {
         if (!$per_page)
             $per_page = $this->session->userdata('per_page');
 
-        // Determine which section to use for queries FIRST
+        // Determine which section to use for queries FIRST.
+        // Authorization and section-scoped queries must be based on the account's own
+        // section, not the session's current section (same rule as journal_compte(),
+        // and as datatable_journal_compte() which always uses $data['club']).
         $query_section_id = null;
         if ($section && isset($section['id'])) {
             $query_section_id = $section['id'];
+        } else if (isset($account_data['club'])) {
+            $query_section_id = (int) $account_data['club'];
         } else if ($this->sections_model->section()) {
             $query_section_id = $this->sections_model->section_id();
         }
@@ -2186,8 +2191,12 @@ class Compta extends Gvv_Controller {
             }
 
             // Check permissions for actions.
-            // Use account section as reference, not the current session section.
-            $section = $this->gvv_model->section();
+            // Resolve the same section context the view used to render the header
+            // (explicit $section_id from the page's own AJAX URL when given, session
+            // section otherwise), so the "Actions" column presence here matches what
+            // the header/aoColumns declared — otherwise DataTables errors on missing
+            // row data ("Requested unknown parameter '11'...").
+            $section = $section_id ? $this->sections_model->get_by_id('id', $section_id) : $this->gvv_model->section();
             $journal_section_id = isset($data['club']) ? (int) $data['club'] : NULL;
             $has_modification_rights = $this->has_modification_rights($journal_section_id);
 
