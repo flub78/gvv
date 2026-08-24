@@ -1,0 +1,11 @@
+parameters:
+    level: 1
+    paths:
+        - application/libraries
+        - application/helpers
+    excludePaths:
+        - application/third_party/*
+        - system/*
+    bootstrapFiles:
+        - application/tests/minimal_bootstrap.php
+    checkDynamicProperties: false
