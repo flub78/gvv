@@ -287,6 +287,7 @@ class GVVMetadata extends Metadata {
                 $this->field['machinesa']['macconstruc']['Name'] = 'Constructeur';
                 $this->field['machinesa']['macmodele']['Name'] = 'Modèle';
                 $this->field['machinesa']['macimmat']['Name'] = 'Immat';
+                $this->field['machinesa']['numero_identification']['Name'] = "N° d'identification";
                 $this->field['machinesa']['macnbhdv']['Name'] = 'Pré-heures';
                 $this->field['machinesa']['macplaces']['Name'] = 'Places';
                 $this->field['machinesa']['macrem']['Name'] = 'Remorqueur';

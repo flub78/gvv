@@ -391,6 +391,8 @@ $this->load->view('bs_banner');
                                 <td>
                                     <?php if ($cat === 'Non catégorisé'): ?>
                                         <em class="text-muted"><?= $cat ?></em>
+                                    <?php elseif ($cat === $this->lang->line('formation_rapports_categorie_dc_sans_seance')): ?>
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i><?= htmlspecialchars($cat) ?></span>
                                     <?php else: ?>
                                         <span class="badge bg-info"><?= htmlspecialchars($cat) ?></span>
                                     <?php endif; ?>
@@ -430,6 +432,9 @@ $this->load->view('bs_banner');
                 $total_seances = $inst['nb_seances_libres'];
                 foreach ($inst['formations'] as $form) {
                     $total_seances += $form['nb_seances'];
+                }
+                foreach (($inst['vols_dc_sans_seance'] ?? array()) as $dc) {
+                    $total_seances += $dc['nb_vols'];
                 }
                 ?>
                 <div class="accordion-item">
@@ -472,6 +477,14 @@ $this->load->view('bs_banner');
                                                 <td class="text-center"><strong><?= $inst['nb_seances_libres'] ?></strong></td>
                                             </tr>
                                         <?php endif; ?>
+                                        <?php foreach (($inst['vols_dc_sans_seance'] ?? array()) as $dc): ?>
+                                            <tr class="table-warning">
+                                                <td><span class="badge bg-warning text-dark"><?= $this->lang->line("formation_seance_type_dc_sans_seance") ?></span></td>
+                                                <td><?= htmlspecialchars(trim(($dc['pilote_prenom'] ?? '') . ' ' . ($dc['pilote_nom'] ?? ''))) ?></td>
+                                                <td><em class="text-muted">-</em></td>
+                                                <td class="text-center"><strong><?= $dc['nb_vols'] ?></strong></td>
+                                            </tr>
+                                        <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -481,6 +494,105 @@ $this->load->view('bs_banner');
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+
+    <!-- ============================================ -->
+    <!-- SECTION: HEURES D'INSTRUCTION (VOLS DC)      -->
+    <!-- ============================================ -->
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="mt-4 mb-3">
+                <i class="fas fa-user-tie" aria-hidden="true"></i>
+                <?= $this->lang->line("formation_rapports_dc_par_instructeur") ?>
+            </h4>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <?php if (empty($stats_dc_instructeur)): ?>
+                        <p class="text-muted mb-0"><?= $this->lang->line("formation_rapports_aucune") ?></p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><?= $this->lang->line("formation_seance_instructeur") ?></th>
+                                        <th class="text-center"><?= $this->lang->line("formation_rapports_dc_nb_vols") ?></th>
+                                        <th class="text-center"><?= $this->lang->line("formation_rapports_dc_heures") ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $total_vols = 0; $total_heures = 0; ?>
+                                    <?php foreach ($stats_dc_instructeur as $s): ?>
+                                        <?php $total_vols += (int) $s['nb_vols']; $total_heures += (float) $s['heures']; ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars(trim(($s['instructeur_prenom'] ?? '') . ' ' . ($s['instructeur_nom'] ?? ''))) ?: '<em class="text-muted">-</em>' ?></td>
+                                            <td class="text-center"><?= $s['nb_vols'] ?></td>
+                                            <td class="text-center"><?= centieme_to_hhmm($s['heures']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th><?= $this->lang->line("gvv_str_total") ?></th>
+                                        <th class="text-center"><?= $total_vols ?></th>
+                                        <th class="text-center"><?= centieme_to_hhmm($total_heures) ?></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h4 class="mt-4 mb-3">
+                <i class="fas fa-plane" aria-hidden="true"></i>
+                <?= $this->lang->line("formation_rapports_dc_par_machine") ?>
+            </h4>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <?php if (empty($stats_dc_machine)): ?>
+                        <p class="text-muted mb-0"><?= $this->lang->line("formation_rapports_aucune") ?></p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><?= $this->lang->line("formation_seance_machine") ?></th>
+                                        <th class="text-center"><?= $this->lang->line("formation_rapports_dc_nb_vols") ?></th>
+                                        <th class="text-center"><?= $this->lang->line("formation_rapports_dc_heures") ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $total_vols = 0; $total_heures = 0; ?>
+                                    <?php foreach ($stats_dc_machine as $s): ?>
+                                        <?php $total_vols += (int) $s['nb_vols']; $total_heures += (float) $s['heures']; ?>
+                                        <tr>
+                                            <td>
+                                                <?= htmlspecialchars($s['machine_id']) ?>
+                                                <?php if (!empty($s['macmodele'])): ?>
+                                                    <span class="text-muted">(<?= htmlspecialchars($s['macmodele']) ?>)</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center"><?= $s['nb_vols'] ?></td>
+                                            <td class="text-center"><?= centieme_to_hhmm($s['heures']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th><?= $this->lang->line("gvv_str_total") ?></th>
+                                        <th class="text-center"><?= $total_vols ?></th>
+                                        <th class="text-center"><?= centieme_to_hhmm($total_heures) ?></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 

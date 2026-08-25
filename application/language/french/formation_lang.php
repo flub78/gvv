@@ -279,6 +279,12 @@ $lang['formation_rapports_aucune'] = 'Aucune';
 $lang['formation_rapports_date_cloture'] = 'Date de clôture';
 $lang['formation_rapports_motif'] = 'Motif';
 $lang['formation_rapports_date_suspension'] = 'Date de suspension';
+$lang['formation_rapports_categorie_dc_sans_seance'] = 'Vols DC sans séance déclarée';
+$lang['formation_seance_type_dc_sans_seance'] = 'Vol DC (sans séance)';
+$lang['formation_rapports_dc_par_instructeur'] = 'Heures d\'instruction (vols DC) par instructeur';
+$lang['formation_rapports_dc_par_machine'] = 'Heures d\'instruction (vols DC) par machine';
+$lang['formation_rapports_dc_nb_vols'] = 'Nb vols';
+$lang['formation_rapports_dc_heures'] = 'Heures';
 
 // Form elements
 $lang['formation_form_required'] = 'Champs obligatoires';

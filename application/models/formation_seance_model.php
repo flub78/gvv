@@ -332,8 +332,11 @@ class Formation_seance_model extends Common_Model {
             $this->db->where("s.id IN (SELECT seance_id FROM formation_seances_participants WHERE pilote_id = '$escaped')", NULL, FALSE);
         }
         if (!empty($filters['section_id'])) {
+            // La section d'une séance se détermine par la section de sa machine.
+            // Sans machine renseignée, impossible de l'attribuer à une section
+            // précise : elle n'apparaît que dans la vue "Toutes".
             $sid = (int)$filters['section_id'];
-            $this->db->where("(s.machine_id IS NULL OR mp.club = $sid OR ma.club = $sid)", NULL, FALSE);
+            $this->db->where("(mp.club = $sid OR ma.club = $sid)", NULL, FALSE);
         }
 
         $this->db->order_by('s.date_seance', 'desc')
@@ -404,8 +407,16 @@ class Formation_seance_model extends Common_Model {
             ->join('formation_programmes p', 's.programme_id = p.id', 'left')
             ->join('formation_inscriptions fi', 's.inscription_id = fi.id', 'left')
             ->join('membres m', 'fi.pilote_id = m.mlogin', 'left')
-            ->where('YEAR(s.date_seance)', $year)
-            ->group_by('s.instructeur_id, s.inscription_id, s.programme_id')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
+            ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->where('YEAR(s.date_seance)', $year);
+        if ($this->section) {
+            // La section d'une séance se détermine par la section de sa machine.
+            // Sans machine renseignée, impossible de l'attribuer à une section
+            // précise : elle n'apparaît que dans la vue "Toutes".
+            $this->db->where("(ma.club = " . (int) $this->section_id . " OR mp.club = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->group_by('s.instructeur_id, s.inscription_id, s.programme_id')
             ->order_by('inst.mnom', 'asc')
             ->order_by('inst.mprenom', 'asc');
 
@@ -440,6 +451,98 @@ class Formation_seance_model extends Common_Model {
         }
 
         return array_values($instructeurs);
+    }
+
+    /**
+     * Vols DC (volsa) sans séance de formation déclarée pour le même jour,
+     * pilote et instructeur (rapprochement heuristique : il n'existe pas de
+     * clé technique reliant un vol de volsa à une formation_seances).
+     *
+     * @param int $year Année
+     * @return array Vols DC groupés par instructeur puis par pilote
+     *               [instructeur_id, instructeur_nom, instructeur_prenom,
+     *                pilote_id, pilote_nom, pilote_prenom, nb_vols, heures]
+     */
+    public function get_vols_dc_sans_seance($year) {
+        $club_filter = $this->section ? ('AND v.club = ' . (int) $this->section_id . ' ') : '';
+        $sql = "
+            SELECT v.vainst AS instructeur_id,
+                   inst.mnom AS instructeur_nom, inst.mprenom AS instructeur_prenom,
+                   v.vapilid AS pilote_id,
+                   pil.mnom AS pilote_nom, pil.mprenom AS pilote_prenom,
+                   COUNT(*) AS nb_vols,
+                   ROUND(SUM(v.vaduree * 60)) / 60 AS heures
+            FROM volsa v
+            LEFT JOIN membres inst ON v.vainst = inst.mlogin
+            LEFT JOIN membres pil ON v.vapilid = pil.mlogin
+            WHERE v.vadc = 1
+              AND YEAR(v.vadate) = ?
+              $club_filter
+              AND NOT EXISTS (
+                  SELECT 1 FROM formation_seances s
+                  WHERE s.date_seance = v.vadate
+                    AND s.instructeur_id = v.vainst
+                    AND s.pilote_id = v.vapilid
+              )
+            GROUP BY v.vainst, inst.mnom, inst.mprenom, v.vapilid, pil.mnom, pil.mprenom
+            ORDER BY inst.mnom ASC, inst.mprenom ASC, pil.mnom ASC, pil.mprenom ASC
+        ";
+        $rows = $this->db->query($sql, array($year))->result_array();
+        gvv_debug("sql: get_vols_dc_sans_seance: " . $this->db->last_query());
+        return $rows;
+    }
+
+    /**
+     * Heures et vols d'instruction (volsa, vadc = 1) groupés par instructeur,
+     * toutes séances confondues (déclarées ou non).
+     *
+     * @param int $year Année
+     * @return array [instructeur_id, instructeur_nom, instructeur_prenom, nb_vols, heures]
+     */
+    public function get_stats_dc_par_instructeur($year) {
+        $this->db->select(
+            "v.vainst as instructeur_id, inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom,
+             COUNT(*) as nb_vols, ROUND(SUM(v.vaduree * 60)) / 60 as heures", FALSE)
+            ->from('volsa v')
+            ->join('membres inst', 'v.vainst = inst.mlogin', 'left')
+            ->where('v.vadc', 1)
+            ->where('YEAR(v.vadate)', $year);
+        if ($this->section) {
+            $this->db->where('v.club', $this->section_id);
+        }
+        $this->db->group_by('v.vainst, inst.mnom, inst.mprenom')
+            ->order_by('inst.mnom', 'asc')
+            ->order_by('inst.mprenom', 'asc');
+
+        $rows = $this->db->get()->result_array();
+        gvv_debug("sql: get_stats_dc_par_instructeur: " . $this->db->last_query());
+        return $rows;
+    }
+
+    /**
+     * Heures et vols d'instruction (volsa, vadc = 1) groupés par machine,
+     * toutes séances confondues (déclarées ou non).
+     *
+     * @param int $year Année
+     * @return array [machine_id, macconstruc, macmodele, nb_vols, heures]
+     */
+    public function get_stats_dc_par_machine($year) {
+        $this->db->select(
+            "v.vamacid as machine_id, mac.macconstruc, mac.macmodele,
+             COUNT(*) as nb_vols, ROUND(SUM(v.vaduree * 60)) / 60 as heures", FALSE)
+            ->from('volsa v')
+            ->join('machinesa mac', 'v.vamacid = mac.macimmat', 'left')
+            ->where('v.vadc', 1)
+            ->where('YEAR(v.vadate)', $year);
+        if ($this->section) {
+            $this->db->where('v.club', $this->section_id);
+        }
+        $this->db->group_by('v.vamacid, mac.macconstruc, mac.macmodele')
+            ->order_by('v.vamacid', 'asc');
+
+        $rows = $this->db->get()->result_array();
+        gvv_debug("sql: get_stats_dc_par_machine: " . $this->db->last_query());
+        return $rows;
     }
 
     /**
@@ -511,11 +614,19 @@ class Formation_seance_model extends Common_Model {
      */
     public function count_by_categorie($year) {
         // Fetch all sessions with categories for the year
-        $this->db->select('categorie_seance')
-            ->from($this->table)
-            ->where('YEAR(date_seance)', $year)
-            ->where('categorie_seance IS NOT NULL')
-            ->where('categorie_seance !=', '');
+        $this->db->select('s.categorie_seance', FALSE)
+            ->from($this->table . ' s')
+            ->join('machinesa ma', 's.machine_id = ma.macimmat', 'left')
+            ->join('machinesp mp', 's.machine_id = mp.mpimmat', 'left')
+            ->where('YEAR(s.date_seance)', $year)
+            ->where('s.categorie_seance IS NOT NULL')
+            ->where('s.categorie_seance !=', '');
+        if ($this->section) {
+            // La section d'une séance se détermine par la section de sa machine.
+            // Sans machine renseignée, impossible de l'attribuer à une section
+            // précise : elle n'apparaît que dans la vue "Toutes".
+            $this->db->where("(ma.club = " . (int) $this->section_id . " OR mp.club = " . (int) $this->section_id . ")", null, false);
+        }
 
         $result = $this->db->get()->result_array();
         gvv_debug("sql: " . $this->db->last_query());

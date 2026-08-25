@@ -66,9 +66,11 @@
             <?php
             $pilot_login_v      = isset($pilot_login)      ? (string) $pilot_login      : '';
             $instructor_login_v = isset($instructor_login) ? (string) $instructor_login : '';
+            $machine_immat_v    = isset($machine_immat)    ? (string) $machine_immat    : '';
             $gvv_qs = '';
             if ($pilot_login_v      !== '') $gvv_qs .= '&pilot_login='      . rawurlencode($pilot_login_v);
             if ($instructor_login_v !== '') $gvv_qs .= '&instructor_login=' . rawurlencode($instructor_login_v);
+            if ($machine_immat_v    !== '') $gvv_qs .= '&machine_immat='    . rawurlencode($machine_immat_v);
             ?>
             <form method="post" enctype="multipart/form-data"
                   action="<?= site_url('forms/submit/' . rawurlencode($form['public_slug'])) ?>">
@@ -78,6 +80,9 @@
                 <?php endif; ?>
                 <?php if ($instructor_login_v !== ''): ?>
                 <input type="hidden" name="gvv_instructor_login" value="<?= html_escape($instructor_login_v) ?>">
+                <?php endif; ?>
+                <?php if ($machine_immat_v    !== ''): ?>
+                <input type="hidden" name="gvv_machine_immat"    value="<?= html_escape($machine_immat_v) ?>">
                 <?php endif; ?>
 
                 <?php if ($raw_html !== ''): ?>

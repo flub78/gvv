@@ -52,10 +52,20 @@ $current_horametre_mode = isset($horametre_mode) ? $horametre_mode : (isset($hor
 if ($current_horametre_mode === NULL || $current_horametre_mode === '') {
     $current_horametre_mode = 0;
 }
+
+// Immat + numéro d'identification côte à côte (form() du metadata affiche un champ par ligne)
+echo '<table>';
+echo '<tr>';
+echo '<td align="right">' . $this->gvvmetadata->field_long_name('machinesa', 'macimmat') . '</td>';
+echo '<td>' . $this->gvvmetadata->input_field('machinesa', 'macimmat', $macimmat) . ' ' . form_error('macimmat') . '</td>';
+echo '<td align="right">' . $this->gvvmetadata->field_long_name('machinesa', 'numero_identification') . '</td>';
+echo '<td>' . $this->gvvmetadata->input_field('machinesa', 'numero_identification', isset($numero_identification) ? $numero_identification : null) . ' ' . form_error('numero_identification') . '</td>';
+echo '</tr>';
+echo '</table>';
+
 echo ($this->gvvmetadata->form('machinesa', array(
     'macconstruc' => $macconstruc,
     'macmodele' => $macmodele,
-    'macimmat' => $macimmat,
     'macnbhdv' => $macnbhdv,
     'macplaces' => $macplaces,
     'macrem' => $macrem,

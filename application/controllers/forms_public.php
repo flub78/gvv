@@ -130,6 +130,7 @@ class Forms_public extends CI_Controller {
 
         $session_key_pilot        = 'forms_gvv_pilot_'      . md5($slug);
         $session_key_instructor   = 'forms_gvv_instructor_'  . md5($slug);
+        $session_key_machine      = 'forms_gvv_machine_'     . md5($slug);
         $session_key_b_prefill    = 'forms_b_prefill_'       . md5($slug);
         $session_key_b_lock       = 'forms_b_lock_'           . md5($slug);
         $session_key_subject_type = 'forms_subject_type_'     . md5($slug);
@@ -137,14 +138,17 @@ class Forms_public extends CI_Controller {
         $session_key_link_token   = 'forms_link_token_'       . md5($slug);
         $session_key_subform_tokens = 'forms_subform_tokens_' . md5($slug);
 
-        // Mechanism A — pilot/instructor login
+        // Mechanism A — pilot/instructor login, machine registration
         $get_pilot      = trim((string) $this->input->get('pilot_login'));
         $get_instructor = trim((string) $this->input->get('instructor_login'));
+        $get_machine    = trim((string) $this->input->get('machine_immat'));
         if ($get_pilot      !== '') $this->session->set_userdata($session_key_pilot, $get_pilot);
         if ($get_instructor !== '') $this->session->set_userdata($session_key_instructor, $get_instructor);
+        if ($get_machine    !== '') $this->session->set_userdata($session_key_machine, $get_machine);
 
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
+        $machine_immat     = $this->session->userdata($session_key_machine)    ?: '';
 
         // Generic subject reference (subject_type / subject_id) — same pattern as pilot/instructor login.
         $get_subject_type = trim((string) $this->input->get('subject_type'));
@@ -160,7 +164,7 @@ class Forms_public extends CI_Controller {
 
         // Mechanism B — arbitrary field values from URL query string
         // Reserved names that are never injected as field values.
-        $b_reserved = array('page', 'token', 'subject_type', 'subject_id', 'link_token', 'lock', 'pilot_login', 'instructor_login');
+        $b_reserved = array('page', 'token', 'subject_type', 'subject_id', 'link_token', 'lock', 'pilot_login', 'instructor_login', 'machine_immat');
         $all_get    = $this->input->get();
         if (is_array($all_get)) {
             $new_prefill = array();
@@ -191,12 +195,12 @@ class Forms_public extends CI_Controller {
         if (!empty($current_page['content_html'])) {
             $raw = html_entity_decode((string) $current_page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             // GVV-sourced signature prefill; flash data (validation error) takes priority.
-            $gvv_sig_prefill = $this->_collect_gvv_sig_prefill($raw, $pilot_login, $instructor_login, $club_id);
+            $gvv_sig_prefill = $this->_collect_gvv_sig_prefill($raw, $pilot_login, $instructor_login, $machine_immat, $club_id);
             $merged_sig = array_merge($gvv_sig_prefill, $sig_canvas_data);
             $injected = $this->forms_renderer->inject_signature_widgets($raw, $has_signature_widget, $merged_sig);
             list($injected, $subform_tokens) = $this->_apply_subform_widgets($injected, $slug, $subform_tokens, $has_subform_widget);
             $injected = $this->forms_renderer->inject_validation_script($injected);
-            list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $club_id);
+            list($injected, ) = $this->_apply_gvv_prefill($injected, $pilot_login, $instructor_login, $machine_immat, $club_id);
             if (!empty($b_prefill)) {
                 $injected = $this->forms_renderer->inject_prefill_by_name($injected, $b_prefill, $b_lock);
             }
@@ -222,6 +226,7 @@ class Forms_public extends CI_Controller {
             'has_signature_widget'   => $has_signature_widget,
             'pilot_login'            => $pilot_login,
             'instructor_login'       => $instructor_login,
+            'machine_immat'          => $machine_immat,
             'has_pdf_template'       => $this->forms_file_storage->has_pdf_template($form['code']),
         );
 
@@ -317,8 +322,10 @@ class Forms_public extends CI_Controller {
         // Apply server-side lock: override submitted values for GVV-prefilled locked fields.
         $session_key_pilot      = 'forms_gvv_pilot_'      . md5($slug);
         $session_key_instructor = 'forms_gvv_instructor_'  . md5($slug);
+        $session_key_machine    = 'forms_gvv_machine_'     . md5($slug);
         $pilot_login      = $this->session->userdata($session_key_pilot)      ?: '';
         $instructor_login = $this->session->userdata($session_key_instructor) ?: '';
+        $machine_immat     = $this->session->userdata($session_key_machine)    ?: '';
 
         // Generic subject reference (subject_type / subject_id), set in index() from the URL.
         $subject_type = $this->session->userdata('forms_subject_type_' . md5($slug)) ?: null;
@@ -327,6 +334,7 @@ class Forms_public extends CI_Controller {
         // Fallback: read from hidden POST inputs (set by bs_show.php) and refresh session.
         $post_pilot      = trim((string) $this->input->post('gvv_pilot_login'));
         $post_instructor = trim((string) $this->input->post('gvv_instructor_login'));
+        $post_machine    = trim((string) $this->input->post('gvv_machine_immat'));
         if ($pilot_login === '' && $post_pilot !== '') {
             $pilot_login = $post_pilot;
             $this->session->set_userdata($session_key_pilot, $pilot_login);
@@ -335,14 +343,19 @@ class Forms_public extends CI_Controller {
             $instructor_login = $post_instructor;
             $this->session->set_userdata($session_key_instructor, $instructor_login);
         }
+        if ($machine_immat === '' && $post_machine !== '') {
+            $machine_immat = $post_machine;
+            $this->session->set_userdata($session_key_machine, $machine_immat);
+        }
 
         $gvv_params = '';
         if ($pilot_login      !== '') $gvv_params .= '&pilot_login='      . rawurlencode($pilot_login);
         if ($instructor_login !== '') $gvv_params .= '&instructor_login=' . rawurlencode($instructor_login);
+        if ($machine_immat    !== '') $gvv_params .= '&machine_immat='    . rawurlencode($machine_immat);
 
         $club_id = isset($form['club']) && $form['club'] !== null ? (int) $form['club'] : null;
         $raw_page_html = html_entity_decode((string) $page['content_html'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $locked_config = $this->_collect_locked_gvv_fields($raw_page_html, $pilot_login, $instructor_login, $club_id);
+        $locked_config = $this->_collect_locked_gvv_fields($raw_page_html, $pilot_login, $instructor_login, $machine_immat, $club_id);
         if (!empty($locked_config)) {
             foreach ($fields as $field) {
                 $fname = (string) $field['name'];
@@ -1018,7 +1031,7 @@ class Forms_public extends CI_Controller {
      * Handles config.*, club.*, date.*, member.*, instructor.*, member.event.*, instructor.event.*
      * Returns [modified_html, locked_fields_map].
      */
-    private function _apply_gvv_prefill($html, $pilot_login, $instructor_login, $club_id) {
+    private function _apply_gvv_prefill($html, $pilot_login, $instructor_login, $machine_immat, $club_id) {
         if (strpos($html, 'data-gvv-source') === false) {
             return array($html, array());
         }
@@ -1028,14 +1041,14 @@ class Forms_public extends CI_Controller {
 
         $result = preg_replace_callback(
             '/<input(\s[^>]*)>/is',
-            function ($m) use ($pilot_login, $instructor_login, $club_id, &$locked_fields) {
+            function ($m) use ($pilot_login, $instructor_login, $machine_immat, $club_id, &$locked_fields) {
                 $attrs = $m[1];
                 if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) {
                     return $m[0];
                 }
                 $source = $src[1];
 
-                $value = $this->_resolve_gvv_source($source, $pilot_login, $instructor_login, $club_id);
+                $value = $this->_resolve_gvv_source($source, $pilot_login, $instructor_login, $machine_immat, $club_id);
                 if ($value === null) {
                     return $m[0];
                 }
@@ -1069,7 +1082,7 @@ class Forms_public extends CI_Controller {
     /**
      * Collect locked GVV fields for server-side enforcement on submit.
      */
-    private function _collect_locked_gvv_fields($html, $pilot_login, $instructor_login, $club_id) {
+    private function _collect_locked_gvv_fields($html, $pilot_login, $instructor_login, $machine_immat, $club_id) {
         $locked = array();
         if (strpos($html, 'data-gvv-source') === false || strpos($html, 'data-gvv-lock') === false) {
             return $locked;
@@ -1083,7 +1096,7 @@ class Forms_public extends CI_Controller {
             if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) continue;
             if (!preg_match('/\bname=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
 
-            $value = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $club_id);
+            $value = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $machine_immat, $club_id);
             if ($value !== null) {
                 $locked[$nm[1]] = (string) $value;
             }
@@ -1099,7 +1112,7 @@ class Forms_public extends CI_Controller {
      * elements in raw page HTML, resolves the source to a file path, reads the file
      * from disk, and returns array(field_name => base64_string).
      */
-    private function _collect_gvv_sig_prefill($raw_html, $pilot_login, $instructor_login, $club_id) {
+    private function _collect_gvv_sig_prefill($raw_html, $pilot_login, $instructor_login, $machine_immat, $club_id) {
         $sig_prefill = array();
         if (strpos($raw_html, 'data-gvv-source') === false) {
             return $sig_prefill;
@@ -1112,7 +1125,7 @@ class Forms_public extends CI_Controller {
             if (!preg_match('/\bdata-gvv-source=["\']([^"\']+)["\']/', $attrs, $src)) continue;
             if (!preg_match('/\bdata-gvv-name=["\']([^"\']+)["\']/', $attrs, $nm)) continue;
 
-            $path = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $club_id);
+            $path = $this->_resolve_gvv_source($src[1], $pilot_login, $instructor_login, $machine_immat, $club_id);
             if ($path === null || $path === '') continue;
 
             $abs_path = FCPATH . ltrim((string) $path, '/');
@@ -1233,7 +1246,7 @@ class Forms_public extends CI_Controller {
     /**
      * Dispatch a data-gvv-source string to the correct resolver.
      */
-    private function _resolve_gvv_source($source, $pilot_login, $instructor_login, $club_id) {
+    private function _resolve_gvv_source($source, $pilot_login, $instructor_login, $machine_immat, $club_id) {
         $parts = explode('.', $source, 4);
         $ns = isset($parts[0]) ? $parts[0] : '';
 
@@ -1268,8 +1281,32 @@ class Forms_public extends CI_Controller {
                     return $this->_resolve_event_source(isset($parts[2]) ? $parts[2] : '', isset($parts[3]) ? $parts[3] : '', $instructor_login);
                 }
                 return $this->_resolve_member_source(isset($parts[1]) ? $parts[1] : '', $instructor_login);
+
+            case 'machine':
+                if (empty($machine_immat)) return null;
+                return $this->_resolve_machine_source(isset($parts[1]) ? $parts[1] : '', $machine_immat);
         }
 
+        return null;
+    }
+
+    private function _resolve_machine_source($field, $macimmat) {
+        if (empty($macimmat)) return null;
+
+        static $cache = array();
+        if (!isset($cache[$macimmat])) {
+            $row = $this->db->select('numero_identification')
+                ->from('machinesa')
+                ->where('macimmat', $macimmat)
+                ->get()->row_array();
+            $cache[$macimmat] = $row ?: false;
+        }
+        $m = $cache[$macimmat];
+        if (!$m) return null;
+
+        switch ($field) {
+            case 'numero_identification': return $m['numero_identification'];
+        }
         return null;
     }
 

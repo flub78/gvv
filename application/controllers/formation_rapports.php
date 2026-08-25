@@ -39,6 +39,7 @@ class Formation_rapports extends MY_Controller
         $this->load->model('formation_evaluation_model');
         $this->load->model('membres_model');
         $this->load->library('formation_progression');
+        $this->load->helper('validation');
         $this->lang->load('formation');
         $this->lang->load('gvv');
 
@@ -93,7 +94,8 @@ class Formation_rapports extends MY_Controller
 
         // Séances de ré-entrainement de l'année
         $seances_libres = $this->formation_seance_model->select_page(
-            array('type' => 'libre', 'year' => $year), 1000, 0
+            array('type' => 'libre', 'year' => $year, 'section_id' => $this->formation_seance_model->section_id()),
+            1000, 0
         );
 
         // Statistiques par instructeur
@@ -101,6 +103,48 @@ class Formation_rapports extends MY_Controller
 
         // Statistiques par catégorie de séance
         $stats_par_categorie = $this->formation_seance_model->count_by_categorie($year);
+
+        // Vols DC (volsa) sans séance de formation déclarée : un vol DC = une
+        // séance ; ceux qui ne correspondent à aucune formation_seances
+        // (même jour, pilote, instructeur) sont comptabilisés à part.
+        $vols_dc_sans_seance = $this->formation_seance_model->get_vols_dc_sans_seance($year);
+
+        $nb_dc_sans_seance = 0;
+        foreach ($vols_dc_sans_seance as $row) {
+            $nb_dc_sans_seance += (int) $row['nb_vols'];
+        }
+        if ($nb_dc_sans_seance > 0) {
+            $stats_par_categorie[$this->lang->line('formation_rapports_categorie_dc_sans_seance')] = $nb_dc_sans_seance;
+            arsort($stats_par_categorie);
+        }
+
+        // Intégration des vols DC sans séance dans les stats par instructeur
+        $instructeurs_by_id = array();
+        foreach ($instructeurs as $inst) {
+            $instructeurs_by_id[$inst['id']] = $inst;
+        }
+        foreach ($vols_dc_sans_seance as $row) {
+            $iid = $row['instructeur_id'];
+            if (!isset($instructeurs_by_id[$iid])) {
+                $instructeurs_by_id[$iid] = array(
+                    'id' => $iid,
+                    'nom' => $row['instructeur_nom'],
+                    'prenom' => $row['instructeur_prenom'],
+                    'formations' => array(),
+                    'nb_seances_libres' => 0,
+                    'vols_dc_sans_seance' => array()
+                );
+            }
+            if (!isset($instructeurs_by_id[$iid]['vols_dc_sans_seance'])) {
+                $instructeurs_by_id[$iid]['vols_dc_sans_seance'] = array();
+            }
+            $instructeurs_by_id[$iid]['vols_dc_sans_seance'][] = $row;
+        }
+        $instructeurs = array_values($instructeurs_by_id);
+
+        // Heures et vols d'instruction (volsa, DC coché), toutes séances confondues
+        $stats_dc_instructeur = $this->formation_seance_model->get_stats_dc_par_instructeur($year);
+        $stats_dc_machine = $this->formation_seance_model->get_stats_dc_par_machine($year);
 
         $data = array(
             'title' => $this->lang->line('formation_rapports_title'),
@@ -111,6 +155,8 @@ class Formation_rapports extends MY_Controller
             'seances_libres' => $seances_libres,
             'instructeurs' => $instructeurs,
             'stats_par_categorie' => $stats_par_categorie,
+            'stats_dc_instructeur' => $stats_dc_instructeur,
+            'stats_dc_machine' => $stats_dc_machine,
             'formation_progression' => $this->formation_progression
         );
 

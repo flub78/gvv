@@ -239,7 +239,7 @@ class Archived_documents extends Gvv_Controller {
         ) + $type_selector;
         $this->data['section_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->sections_model->section_selector_with_null();
         $this->data['pilot_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->membres_model->selector_with_null(array('actif' => 1));
-        $this->data['machine_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->_get_machine_selector();
+        $this->data['machine_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->_get_machine_selector($filters['section_id'] ?: null);
         $this->data['scope_selector'] = array('' => $this->lang->line('archived_documents_filter_all')) + $this->document_types_model->scope_selector();
 
         $this->data['controller'] = $this->controller;

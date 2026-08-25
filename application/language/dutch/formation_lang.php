@@ -144,6 +144,12 @@ $lang['formation_rapports_aucune'] = 'Geen';
 $lang['formation_rapports_date_cloture'] = 'Sluitingsdatum';
 $lang['formation_rapports_motif'] = 'Reden';
 $lang['formation_rapports_date_suspension'] = 'Opschortingsdatum';
+$lang['formation_rapports_categorie_dc_sans_seance'] = 'DC-vluchten zonder geregistreerde sessie';
+$lang['formation_seance_type_dc_sans_seance'] = 'DC-vlucht (zonder sessie)';
+$lang['formation_rapports_dc_par_instructeur'] = 'Instructie-uren (DC-vluchten) per instructeur';
+$lang['formation_rapports_dc_par_machine'] = 'Instructie-uren (DC-vluchten) per vliegtuig';
+$lang['formation_rapports_dc_nb_vols'] = 'Vluchten';
+$lang['formation_rapports_dc_heures'] = 'Uren';
 
 // Sessies
 $lang['formation_seances_create'] = 'Nieuwe Sessie';

@@ -144,6 +144,12 @@ $lang['formation_rapports_aucune'] = 'None';
 $lang['formation_rapports_date_cloture'] = 'Closing date';
 $lang['formation_rapports_motif'] = 'Reason';
 $lang['formation_rapports_date_suspension'] = 'Suspension date';
+$lang['formation_rapports_categorie_dc_sans_seance'] = 'Dual-control flights without declared session';
+$lang['formation_seance_type_dc_sans_seance'] = 'Dual-control flight (no session)';
+$lang['formation_rapports_dc_par_instructeur'] = 'Instruction hours (dual-control flights) by instructor';
+$lang['formation_rapports_dc_par_machine'] = 'Instruction hours (dual-control flights) by aircraft';
+$lang['formation_rapports_dc_nb_vols'] = 'Flights';
+$lang['formation_rapports_dc_heures'] = 'Hours';
 
 // Sessions
 $lang['formation_seances_create'] = 'New Session';

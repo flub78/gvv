@@ -489,6 +489,13 @@ class Formation_inscription_model extends Common_Model {
             'en_cours' => array()
         );
 
+        // Check if section exists BEFORE starting query construction
+        $section_filter_needed = false;
+        if ($this->section_id !== null && $this->section_id !== '') {
+            $query = $this->db->where('id', $this->section_id)->get('sections');
+            $section_filter_needed = ($query->num_rows() > 0);
+        }
+
         $select = 'i.*, p.code as programme_code, p.titre as programme_titre,
             m.mnom as pilote_nom, m.mprenom as pilote_prenom,
             inst.mnom as instructeur_nom, inst.mprenom as instructeur_prenom';
@@ -500,8 +507,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('i.statut', 'cloturee')
-            ->where('YEAR(i.date_cloture)', $year)
-            ->order_by('i.date_cloture', 'desc');
+            ->where('YEAR(i.date_cloture)', $year);
+        if ($section_filter_needed) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->order_by('i.date_cloture', 'desc');
         $query = $this->db->get();
         $result['cloturees'] = $query ? $query->result_array() : array();
 
@@ -512,8 +522,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('i.statut', 'abandonnee')
-            ->where('YEAR(i.date_cloture)', $year)
-            ->order_by('i.date_cloture', 'desc');
+            ->where('YEAR(i.date_cloture)', $year);
+        if ($section_filter_needed) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->order_by('i.date_cloture', 'desc');
         $query = $this->db->get();
         $result['abandonnees'] = $query ? $query->result_array() : array();
 
@@ -524,8 +537,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('i.statut', 'suspendue')
-            ->where('YEAR(i.date_suspension)', $year)
-            ->order_by('i.date_suspension', 'desc');
+            ->where('YEAR(i.date_suspension)', $year);
+        if ($section_filter_needed) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->order_by('i.date_suspension', 'desc');
         $query = $this->db->get();
         $result['suspendues'] = $query ? $query->result_array() : array();
 
@@ -535,8 +551,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('formation_programmes p', 'i.programme_id = p.id', 'left')
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
-            ->where('YEAR(i.date_ouverture)', $year)
-            ->order_by('i.date_ouverture', 'desc');
+            ->where('YEAR(i.date_ouverture)', $year);
+        if ($section_filter_needed) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->order_by('i.date_ouverture', 'desc');
         $query = $this->db->get();
         $result['ouvertes'] = $query ? $query->result_array() : array();
 
@@ -547,8 +566,11 @@ class Formation_inscription_model extends Common_Model {
             ->join('membres m', 'i.pilote_id = m.mlogin', 'left')
             ->join('membres inst', 'i.instructeur_referent_id = inst.mlogin', 'left')
             ->where('i.statut', 'ouverte')
-            ->where('YEAR(i.date_ouverture) <=', $year)
-            ->order_by('i.date_ouverture', 'desc');
+            ->where('YEAR(i.date_ouverture) <=', $year);
+        if ($section_filter_needed) {
+            $this->db->where("(p.section_id IS NULL OR p.section_id = " . (int) $this->section_id . ")", null, false);
+        }
+        $this->db->order_by('i.date_ouverture', 'desc');
         $query = $this->db->get();
         $result['en_cours'] = $query ? $query->result_array() : array();
 
