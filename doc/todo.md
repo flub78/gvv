@@ -4,6 +4,8 @@
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
+* [] Vérifier les problèmes de page qui s'affichent mal sur smartphone.
+
 ## Reste à faire
 
 * [] Mettre en place un mécanisme d'export des sauvegardes automatiques vers une autre machine.
@@ -41,7 +43,6 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
   * [] Gestion des types d'alerte
   * [] Gestion des types de maintenance.
   
-
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Informer le trésorier des renouvellement de cotisation par email

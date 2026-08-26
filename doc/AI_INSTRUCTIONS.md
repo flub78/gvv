@@ -47,7 +47,7 @@ GVV uses feature branches and pull requests reviewed on GitHub via the `gh` CLI,
 - **`/pr-review <PR number>`** — reviews a PR's diff with the same criteria as `/code-review`, and posts a single synthesis comment on GitHub grouping every occurrence of a repeated problem into one remark instead of repeating it per location
 - **`/merge-pr <PR number>`** — checks CI status and mergeability, performs a simple merge (no squash, no rebase) after explicit user confirmation, then deletes the branch
 
-**When to propose this workflow**: propose `/branch` and `/create-pr` when a change generates a database migration, or touches more than 10 files. This is always a proposal, never automatic — never create a branch or a PR without the user explicitly agreeing, consistent with the Code Change Approval Policy above.
+**When to propose this workflow**: propose `/branch` and `/create-pr` when a change generates a database migration, or touches more than 5 files. This is always a proposal, never automatic — never create a branch or a PR without the user explicitly agreeing, consistent with the Code Change Approval Policy above.
 
 **Visible actions**: pushing, opening a PR, posting a `/pr-review` comment, and merging via `/merge-pr` are all visible on the shared GitHub repo — always confirm with the user before `/merge-pr` executes the merge.
 
