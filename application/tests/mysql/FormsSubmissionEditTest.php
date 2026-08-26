@@ -330,4 +330,76 @@ class FormsSubmissionEditTest extends TestCase
         $this->assertNotEmpty($new_sig, 'La nouvelle signature doit être enregistrée.');
         $this->assertFileExists(FCPATH . ltrim((string) $new_sig['storage_path'], '/'));
     }
+
+    /**
+     * Regression test: on a multi-page form, a value changed on a non-last page must be
+     * persisted right away when the user clicks "Page suivante" — it used to be silently
+     * lost, because that link was a plain GET navigation and submission_edit_submit() only
+     * ever saved the fields of whichever page was actually posted (i.e. only the last page,
+     * the only one with a real submit button). See attestation_de_test_au_sol / classe_ulm.
+     */
+    public function testNextPageNavigationPersistsCurrentPageValuesImmediately()
+    {
+        $now = date('Y-m-d H:i:s');
+        $this->db->insert('form_pages', array(
+            'form_id'      => $this->form_id,
+            'page_number'  => 2,
+            'title'        => 'Page 2 (annexe, sans champ)',
+            'content_html' => '<p>Annexe informative, aucun champ.</p>',
+        ));
+
+        $cookie = $this->login_as_admin();
+
+        // Step 1: submit page 1 via "Page suivante" (nav_action=next).
+        $result = $this->http_post_multipart(
+            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+            array(
+                'page_number'        => '1',
+                'nav_action'         => 'next',
+                'nom'                => 'Nom modifié page 1',
+                'signature_test'     => '',
+                'signature_test_type' => 'canvas',
+            ),
+            array(),
+            $cookie
+        );
+
+        $location = $this->location_header($result['headers']);
+        $this->assertNotNull($location);
+        $this->assertStringContainsString(
+            'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id,
+            $location,
+            'Cliquer "Page suivante" doit rester dans l\'édition (page 2), pas sortir vers la vue de la réponse.'
+        );
+        $this->assertStringContainsString('page=2', $location);
+
+        // The value must already be in the DB — not deferred to a final save on the last page.
+        $value = $this->db->where('submission_id', $this->submission_id)->where('field_name', 'nom')
+            ->get('form_submission_values')->row_array();
+        $this->assertSame(
+            'Nom modifié page 1',
+            $value['value_text'],
+            'La valeur de la page 1 doit être persistée dès le clic sur "Page suivante", avant tout enregistrement final.'
+        );
+
+        // Step 2: reach the last page (no fields) and click "Enregistrer les modifications".
+        $result2 = $this->http_post_multipart(
+            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+            array(
+                'page_number' => '2',
+                'nav_action'  => 'save',
+            ),
+            array(),
+            $cookie
+        );
+
+        $location2 = $this->location_header($result2['headers']);
+        $this->assertNotNull($location2);
+        $this->assertStringContainsString('forms_admin/submission/' . $this->form_id . '/' . $this->submission_id, $location2);
+
+        // The page-1 value survives the final save of the (field-less) last page.
+        $value_after = $this->db->where('submission_id', $this->submission_id)->where('field_name', 'nom')
+            ->get('form_submission_values')->row_array();
+        $this->assertSame('Nom modifié page 1', $value_after['value_text']);
+    }
 }

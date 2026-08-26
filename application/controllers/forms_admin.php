@@ -1645,8 +1645,21 @@ class Forms_admin extends MY_Controller {
             $page_number = 1;
         }
 
+        // Which button was clicked: 'prev'/'next' just persist this page's values and
+        // move to another page of the same already-saved submission (mirrors
+        // Forms_public::submit()'s nav_action, but each page is written to the DB
+        // immediately here rather than accumulated in session — the submission already
+        // exists, there is nothing to finalize). Missing/unknown value (e.g. a
+        // single-page form's lone submit button) behaves like today: go back to the
+        // submission view.
+        $nav_action = trim((string) $this->input->post('nav_action'));
+        if (!in_array($nav_action, array('prev', 'next'), true)) {
+            $nav_action = 'save';
+        }
+
         $pages = $this->form_pages_model->get_form_pages((int) $form['id']);
         $pages = $this->_overlay_pages_from_file($form['code'], $pages);
+        $page_count = count($pages);
         $page = $this->_find_page_by_number($pages, $page_number);
         if (!$page) {
             show_error('Page de formulaire introuvable.', 404);
@@ -1771,6 +1784,12 @@ class Forms_admin extends MY_Controller {
             if (isset($existing_by_name[$field_name])) {
                 $this->form_submissions_model->delete_submission_file((int) $existing_by_name[$field_name]['id']);
             }
+        }
+
+        if ($nav_action === 'prev' || $nav_action === 'next') {
+            $target = $nav_action === 'prev' ? max(1, $page_number - 1) : min($page_count, $page_number + 1);
+            redirect('forms_admin/submission_edit/' . (int) $form['id'] . '/' . (int) $submission['id'] . '?page=' . $target);
+            return;
         }
 
         $this->session->set_flashdata('forms_success', 'Réponse #' . (int) $submission['id'] . ' modifiée.');
