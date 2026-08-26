@@ -235,7 +235,7 @@ Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..
 | 1 | Dessin canvas | Faible — `signature_pad.umd.min.js` déjà présent |
 | 2 | Upload image | Faible — pipeline file existant |
 | 3 | Saisie clavier (fonte Caveat) | Faible — canvas natif + Google Fonts CDN |
-| 4 | Pré-remplissage profil GVV | Moyenne — nouveau champ `membres.signature_path` |
+| 4 | Pré-remplissage profil GVV | Moyenne — colonne `membres.signature_path` déjà créée et déjà lue par `forms_public` ; reste l'écran d'alimentation et la garde d'authentification (voir sous-lot ci-dessous) |
 | 5 | Signature PGP | Élevée — hors V1 |
 
 - [x] Ajouter le type `signature` dans `form_fields_model::$allowed_field_types`.
@@ -253,6 +253,18 @@ Syntaxe : `<div data-gvv-type="signature" data-gvv-name="..." data-gvv-param="..
 - [x] Ajouter les sources `member.signature` et `instructor.signature` (depuis `membres.signature_path`) à la taxonomie `form_prefill_service`.
 - [x] Ajouter la source `instructor.event.{type_key}.signature` (depuis `events.signature_path`) à la taxonomie — prérequis : migration Lot 5-ter.
 - [x] Pré-remplissage widget : afficher l'image depuis `membres.signature_path` ou `events.signature_path` selon la source déclarée ; remplaçable si `data-gvv-lock="false"` (`_collect_gvv_sig_prefill` + merge avec flashdata).
+
+#### Sous-lot — Signature de référence instructeur (alimentation + garde)
+
+Périmètre restreint à l'instructeur qui pré-remplit sa propre signature sur les attestations/fiches de test qu'il génère lui-même. Ne couvre ni `member.signature`, ni une éventuelle seconde signature (élève, représentant légal), laissée à la charge de l'instructeur sur chaque formulaire. Voir [Design signatures](../design_notes/remplissage_formulaires_design.md#9-signatures) et PRD EF6-bis (points 10-11). Pas de nouvelle migration : `membres.signature_path` (migration 121) et les colonnes d'audit `updated_by`/`updated_at` (migration 093) existent déjà.
+
+- [x] Ajouter les métadonnées `membres.signature_path` dans `Gvvmetadata.php` (même pattern que `membres.photo`, `Subtype = 'upload_image'`).
+- [x] Écran self-service « Ma signature » dans le profil de l'instructeur : réutilise `Forms_renderer::render_signature_widget()`/`make_signature_file()`/`upload_submitted_files()`, écrit dans son propre `signature_path` via `membres_model` (au lieu de `form_submission_files`). Route `membre/ma_signature`, gardée par `user_has_role('instructeur')`, entrée de menu dans `bs_menu.php`.
+- [x] Import admin : même widget exposé depuis la fiche membre d'un instructeur, gardé par `user_has_role('club-admin')` (même pattern que les actions sensibles de `membre.php`) ; écrit via le même point d'entrée `membres_model` que le self-service. Route `membre/signature/$mlogin`, bouton ajouté dans `bs_formView.php`.
+- [x] Garde d'authentification dans `forms_public.php::_resolve_gvv_source()` (case `instructor`) : ne résoudre `instructor.signature` que si `dx_auth->get_username() === instructor_login` ; sinon retourner `null` (widget vierge, saisie manuelle). `member.signature` inchangé. Test PHPUnit `application/tests/mysql/FormsInstructorSignaturePrefillGuardTest.php` (3 tests : personne connecté, un autre utilisateur connecté, l'instructeur connecté lui-même) — suite `Forms` complète rejouée sans régression (62/62).
+- [x] Fichiers de langue FR/EN/NL pour l'écran self-service et le bloc admin.
+- [ ] Tests PHPUnit pour `membre::ma_signature()`/`membre::signature($mlogin)` (mise à jour de `signature_path`, refus d'accès pour un non-instructeur/non-admin) : vérifié manuellement via HTTP (curl) sur gvv.net, non automatisé — les fichiers créés par ces routes appartiennent à `www-data` (serveur web réel), que l'utilisateur `frederic` exécutant phpunit ne peut pas supprimer en tearDown (pas de `sudo` sans mot de passe), contrairement au test du garde ci-dessus où le fixture est créé/supprimé directement par le test. À revoir si une solution de nettoyage est trouvée (ex. exécuter phpunit en `www-data`, ou endpoint de test dédié).
+- [ ] Test Playwright : un instructeur définit sa signature, génère une attestation pour lui-même → signature pré-remplie ; un autre instructeur/membre ouvrant le même lien ne voit pas la signature pré-remplie. Playwright indisponible dans cet environnement (Chromium non installé, nécessite `sudo`) — smoke-testé manuellement via curl à la place (voir conversation).
 
 ### Lot 6 — Intégration workflow GVV (handlers post-soumission)
 
@@ -763,6 +775,7 @@ Lots inclus : 16.
 - Pré-remplissage mécanisme B (paramètres URL directs + `lock[]`) opérationnel.
 - Un champ signature peut être soumis en mode canvas ou upload image.
 - La signature d'un profil GVV peut pré-remplir le widget.
+- Un instructeur peut définir sa propre signature de référence (self-service) ; un club-admin peut l'importer pour son compte. Cette signature ne pré-remplit une attestation/fiche de test que lorsque l'instructeur connecté est celui désigné dans le formulaire.
 
 ### Catégorie 3 (intégré workflow)
 - `subject_type`/`subject_id` opérationnel sur `form_submissions` : détection « réponse existante » et bascule à la suppression fonctionnelles sans dépendre d'`archived_documents`.

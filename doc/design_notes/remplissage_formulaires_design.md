@@ -380,6 +380,7 @@ Pour les types `multiple=1` (ex. `visite_medicale`, `controle_competence`), le s
 - **Validation du paramètre** : le login fourni en URL doit exister et appartenir à la section active.
 - **Lock côté serveur** : pour `data-gvv-lock="true"`, GVV ignore la valeur soumise et réinjecte la valeur résolue — le verrou HTML seul ne suffit pas.
 - **Pas d'accès direct à la base** : le service passe exclusivement par la liste blanche.
+- **Portée `instructor.signature`** : cette source n'est résolue que si l'utilisateur authentifié (`dx_auth->get_username()`) correspond à `instructor_login` — sinon elle retourne `null` (widget vierge, saisie manuelle). Le use-case visé est l'instructeur qui génère lui-même une attestation ou une fiche de test ; dans tous les autres cas (personne connecté, ou connecté sous une autre identité), aucune signature n'est pré-remplie. Restriction propre à `instructor.signature` — `member.signature` n'est pas concerné (hors périmètre de cette évolution).
 
 ### 8. Table events — évolutions requises
 
@@ -478,6 +479,17 @@ instructor.signature → membres.signature_path   param: instructor_login
 
 Si une signature GVV est disponible, elle est affichée directement dans le widget. Si `data-gvv-lock="false"`, l'utilisateur peut la remplacer.
 
+#### Alimentation de membres.signature_path (signature de référence instructeur)
+
+Ce use-case est restreint à la signature de référence d'un **instructeur**, utilisée pour pré-remplir les attestations et fiches de test qu'il génère lui-même (cf. règle de portée dans « Règles de sécurité » ci-dessus). Il ne couvre pas la gestion d'une éventuelle seconde signature (élève, représentant légal), laissée à la charge de l'instructeur sur chaque formulaire.
+
+Deux voies d'écriture dans `signature_path`, toutes deux via `membres_model` — donc tracées par les colonnes d'audit déjà présentes sur `membres` (`updated_by`/`updated_at`, migration 093) :
+
+1. **Self-service** : page « Ma signature » dans le profil de l'instructeur, réutilisant le widget composite (dessiner/importer/taper). Il ne modifie que son propre `signature_path`.
+2. **Import admin** : même widget exposé depuis la fiche membre d'un instructeur, réservé au rôle `club-admin` (`user_has_role('club-admin')`, même garde que les actions sensibles de `membre.php`) — permet à un administrateur du club d'associer une signature (par ex. un scan de signature papier) pour le compte d'un instructeur.
+
+Dans les deux cas, le fichier remplace le précédent au même chemin (même pattern que `membres.photo`) — pas de table d'historique des versions.
+
 #### Priorité de mise en œuvre
 
 | Priorité | Fonctionnalité | Complexité | Prérequis |
@@ -485,7 +497,7 @@ Si une signature GVV est disponible, elle est affichée directement dans le widg
 | 1 | Dessin canvas | Faible | `signature_pad.umd.min.js` déjà présent |
 | 2 | Upload image | Faible | Pipeline file existant |
 | 3 | Saisie clavier (fonte Caveat) | Faible | Google Fonts CDN, canvas natif |
-| 4 | Pré-remplissage profil GVV | Moyenne | Nouveau champ `membres.signature_path` |
+| 4 | Pré-remplissage profil GVV | Moyenne | Colonne `membres.signature_path` déjà créée (migration 121) et déjà lue par `forms_public`. Restent à livrer : écran d'alimentation self-service + import admin, et garde d'authentification sur `instructor.signature` |
 | 5 | Signature PGP | Élevée | OpenPGP.js + clé membre + vérif serveur — hors V1 |
 
 ### 13. Intégration workflow GVV — référence générique au sujet et handler post-soumission

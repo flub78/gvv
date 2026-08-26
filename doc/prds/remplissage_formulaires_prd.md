@@ -295,6 +295,8 @@ Page : Générer une attestation de formation
 7. La visualisation d'une signature soumise dans l'interface admin est graphique : l'image est affichée en ligne dans le détail de la soumission.
 8. Le champ signature peut être pré-rempli depuis `membres.signature_path` (voir EF6, sources `member.signature` / `instructor.signature`).
 9. Si la signature est pré-remplie depuis GVV, elle est affichée en lecture seule et l'utilisateur ne peut pas la remplacer.
+10. La colonne `membres.signature_path` est alimentée par un écran self-service (« Ma signature ») accessible à tout instructeur depuis son propre profil, ainsi que par un import équivalent réalisé par un admin-club (rôle `club-admin`) depuis la fiche membre de l'instructeur.
+11. Le pré-remplissage `instructor.signature` n'est appliqué que lorsque l'utilisateur authentifié est l'instructeur désigné par `instructor_login` (use-case : un instructeur qui génère une attestation ou une fiche de test pour ses propres élèves). Dans tous les autres cas, le champ reste vierge et doit être rempli manuellement. Cette restriction ne s'applique pas à `member.signature` (hors périmètre de cette évolution).
 
 Voir : [Design signatures](../design_notes/remplissage_formulaires_design.md#6-signatures)
 

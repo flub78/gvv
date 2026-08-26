@@ -417,6 +417,101 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Signature de référence de l'instructeur connecté (self-service).
+     * Sert à pré-remplir les attestations/fiches de test qu'il génère
+     * lui-même (voir forms_public.php::_resolve_gvv_source, case 'instructor').
+     */
+    function ma_signature() {
+        if (!$this->user_has_role('instructeur')) {
+            $this->_deny_access();
+            return;
+        }
+        $this->_signature_form($this->dx_auth->get_username(), false);
+    }
+
+    /**
+     * Import de la signature d'un instructeur par un admin-club, depuis sa fiche membre.
+     */
+    function signature($mlogin) {
+        if (!$this->user_has_role('club-admin')) {
+            $this->_deny_access();
+            return;
+        }
+        $this->_signature_form($mlogin, true);
+    }
+
+    /**
+     * Affiche et traite le formulaire de signature, partagé entre le self-service
+     * instructeur (ma_signature) et l'import admin (signature/$mlogin).
+     */
+    private function _signature_form($mlogin, $is_admin) {
+        $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
+        if (!$membre) {
+            show_404();
+            return;
+        }
+
+        $upload_dir = 'uploads/signatures/membres';
+        $this->load->library('forms_renderer');
+        $message = '';
+
+        if ($this->input->post('gvv_signature_submit')) {
+            $sig_type = $this->input->post('signature_type');
+            if (!in_array($sig_type, array('canvas', 'text', 'file'), true)) {
+                $sig_type = 'canvas';
+            }
+
+            $new_file = null;
+            if ($sig_type === 'file') {
+                $result = $this->forms_renderer->upload_submitted_files(array('signature' => 'signature_file'), $upload_dir);
+                if (!empty($result['errors'])) {
+                    $message = '<div class="alert alert-danger">' . implode('<br>', $result['errors']) . '</div>';
+                } elseif (!empty($result['files'])) {
+                    $new_file = $result['files'][0];
+                } else {
+                    $message = '<div class="alert alert-warning">' . $this->lang->line('gvv_no_file_selected') . '</div>';
+                }
+            } else {
+                $base64 = trim((string) $this->input->post('signature'));
+                if ($base64 === '') {
+                    $message = '<div class="alert alert-warning">' . $this->lang->line('gvv_no_file_selected') . '</div>';
+                } else {
+                    $new_file = $this->forms_renderer->make_signature_file($base64, $upload_dir, $mlogin);
+                }
+            }
+
+            if ($new_file) {
+                if (!empty($membre['signature_path'])) {
+                    $old_path = FCPATH . $membre['signature_path'];
+                    if (file_exists($old_path)) {
+                        unlink($old_path);
+                    }
+                }
+                $this->gvv_model->update('mlogin', array('signature_path' => $new_file['storage_path']), $mlogin);
+                $this->session->set_flashdata('message', '<div class="alert alert-success">' . $this->lang->line('membre_signature_updated') . '</div>');
+                redirect($is_admin ? "membre/signature/$mlogin" : "membre/ma_signature");
+                return;
+            } elseif ($message === '') {
+                $message = '<div class="alert alert-danger">' . $this->lang->line('membre_signature_upload_error') . '</div>';
+            }
+
+            // Re-charger la fiche pour refléter un éventuel état inchangé
+            $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
+        }
+
+        $this->data['mlogin']       = $mlogin;
+        $this->data['membre']       = $membre;
+        $this->data['is_admin']     = $is_admin;
+        $this->data['message']      = $message !== '' ? $message : $this->session->flashdata('message');
+        $this->data['existing_url'] = !empty($membre['signature_path']) ? base_url($membre['signature_path']) : '';
+        $this->data['signature_widget_html'] = $this->forms_renderer->render_signature_widget(
+            'signature', '', false, '', $this->data['existing_url']
+        );
+
+        load_last_view('membre/bs_signatureView', $this->data);
+    }
+
+    /**
      * Liste toutes les autorisations du membre connecté, par section
      *
      * Accessible uniquement aux utilisateurs du nouveau système d'autorisations.

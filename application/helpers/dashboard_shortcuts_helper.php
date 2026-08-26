@@ -63,3 +63,46 @@ if (!function_exists('render_dashboard_shortcut_cards')) {
         unset($shortcuts_by_section[$key]);
     }
 }
+
+/**
+ * An absolute URL entered for a shortcut is only portable across
+ * installations (e.g. a database copied from production to a local test
+ * environment) if it is stored as a relative CI URI segment — see
+ * render_dashboard_shortcut_card() above, which passes anything not
+ * starting with http(s):// through site_url(). Called from
+ * Shortcuts_admin when a shortcut is stored: an absolute URL pointing at
+ * this installation's own domain (host of $app_base_url, defaulting to
+ * the 'base_url' config item) is stripped down to its relative path; an
+ * absolute URL on any other domain is genuinely external and left as-is.
+ */
+if (!function_exists('normalize_dashboard_shortcut_url')) {
+    function normalize_dashboard_shortcut_url($url, $app_base_url = null) {
+        $url = trim((string) $url);
+        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+            return $url;
+        }
+
+        if ($app_base_url === null) {
+            $CI = &get_instance();
+            $app_base_url = $CI->config->item('base_url');
+        }
+
+        $target_host = parse_url($url, PHP_URL_HOST);
+        $app_host    = parse_url((string) $app_base_url, PHP_URL_HOST);
+
+        if (!$target_host || !$app_host || strcasecmp($target_host, $app_host) !== 0) {
+            return $url;
+        }
+
+        $parts    = parse_url($url);
+        $relative = isset($parts['path']) ? ltrim($parts['path'], '/') : '';
+        if (isset($parts['query'])) {
+            $relative .= '?' . $parts['query'];
+        }
+        if (isset($parts['fragment'])) {
+            $relative .= '#' . $parts['fragment'];
+        }
+
+        return $relative;
+    }
+}

@@ -85,6 +85,17 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 </div>
             </div>
         </div>
+
+        <?php if ($action != CREATION && has_role('club-admin')): ?>
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <h6 class="card-title mb-3"><i class="fas fa-signature"></i> <?= $this->lang->line('membre_signature_title') ?></h6>
+                <a href="<?= controller_url('membre') ?>/signature/<?= $mlogin ?>" class="btn btn-outline-secondary btn-sm w-100">
+                    <?= $this->lang->line('membre_signature_submit') ?>
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Personal Information Form (Right Column) -->

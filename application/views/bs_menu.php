@@ -26,6 +26,7 @@
 $this->lang->load('gvv');
 $this->lang->load('welcome');
 $this->lang->load('admin');
+$this->lang->load('membre');
 $this->lang->load('attachments');
 $this->lang->load('sections');
 $this->lang->load('archived_documents');
@@ -285,6 +286,9 @@ if ($CI->dx_auth->is_logged_in()) {
             <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("cartes_membre/carte") ?>"><i class="fas fa-id-card text-success"></i> <?= translation("gvv_cartes_membre_carte_title") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("membre/edit") ?>"><i class="fas fa-user-edit text-primary"></i> <?= translation("gvv_menu_membres_fiches") ?></a></li>
+            <?php if (has_role('instructeur')) : ?>
+              <li><a class="dropdown-item" href="<?= controller_url("membre/ma_signature") ?>"><i class="fas fa-signature text-primary"></i> <?= translation("membre_signature_title") ?></a></li>
+            <?php endif; ?>
             <li><a class="dropdown-item" href="<?= controller_url("auth/change_password") ?>"><i class="fas fa-key text-warning"></i> <?= translation("gvv_menu_membres_password") ?></a></li>
             <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
             <?php if ($this->config->item('gestion_documentaire')) : ?>

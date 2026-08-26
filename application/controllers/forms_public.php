@@ -1280,7 +1280,14 @@ class Forms_public extends CI_Controller {
                 if (isset($parts[1]) && $parts[1] === 'event') {
                     return $this->_resolve_event_source(isset($parts[2]) ? $parts[2] : '', isset($parts[3]) ? $parts[3] : '', $instructor_login);
                 }
-                return $this->_resolve_member_source(isset($parts[1]) ? $parts[1] : '', $instructor_login);
+                $instructor_field = isset($parts[1]) ? $parts[1] : '';
+                // La signature de référence n'est pré-remplie que lorsque l'instructeur
+                // connecté est celui désigné par instructor_login (self-service uniquement) —
+                // voir doc/design_notes/remplissage_formulaires_design.md#9-signatures.
+                if ($instructor_field === 'signature' && $this->dx_auth->get_username() !== $instructor_login) {
+                    return null;
+                }
+                return $this->_resolve_member_source($instructor_field, $instructor_login);
 
             case 'machine':
                 if (empty($machine_immat)) return null;

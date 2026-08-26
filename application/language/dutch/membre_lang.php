@@ -185,3 +185,11 @@ $lang['membre_subscription_information'] = array(
 	array('title' => 'Autorisation parentale', 'text' => $section_2),
 	array('title' => '', 'text' => $section_3),
 );
+
+// Referentiehandtekening instructeur (self-service + admin-import)
+$lang['membre_signature_title'] = 'Mijn handtekening';
+$lang['membre_signature_title_admin'] = 'Handtekening van';
+$lang['membre_signature_help'] = 'Deze handtekening vult automatisch de opleidingsattesten en testformulieren in die u voor uw eigen leerlingen genereert. Ze wordt nooit gebruikt als iemand anders dan u het document genereert.';
+$lang['membre_signature_submit'] = 'Handtekening opslaan';
+$lang['membre_signature_upload_error'] = 'Kan de handtekening niet opslaan. Probeer het opnieuw.';
+$lang['membre_signature_updated'] = 'Handtekening bijgewerkt.';

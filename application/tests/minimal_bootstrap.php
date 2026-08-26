@@ -50,6 +50,7 @@ require_once APPPATH . 'helpers/email_helper.php';
 require_once APPPATH . 'helpers/database_helper.php';
 require_once APPPATH . 'helpers/wsse_helper.php';
 require_once APPPATH . 'helpers/authorization_helper.php';
+require_once APPPATH . 'helpers/dashboard_shortcuts_helper.php';
 require_once BASEPATH . 'helpers/url_helper.php';
 
 // Load library files for testing

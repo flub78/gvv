@@ -23,6 +23,7 @@ class Shortcuts_admin extends MY_Controller {
 
         $this->load->model('dashboard_shortcuts_model');
         $this->load->model('sections_model');
+        $this->load->helper('dashboard_shortcuts');
         $this->lang->load('shortcuts');
         $this->lang->load('gvv');
 
@@ -168,7 +169,7 @@ class Shortcuts_admin extends MY_Controller {
             'title'           => $this->input->post('title'),
             'description_key' => $this->input->post('description_key'),
             'description'     => $this->input->post('description'),
-            'url'             => $this->input->post('url'),
+            'url'             => normalize_dashboard_shortcut_url($this->input->post('url')),
             'icon'            => $this->input->post('icon'),
             'color'           => $this->input->post('color'),
             'role_required'   => $this->input->post('role_required'),

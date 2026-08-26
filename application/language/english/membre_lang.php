@@ -183,3 +183,11 @@ $lang['membre_subscription_information'] = array(
 	array('title' => 'Parent authorization', 'text' => $section_2),
 	array('title' => '', 'text' => $section_3),
 );
+
+// Instructor reference signature (self-service + admin import)
+$lang['membre_signature_title'] = 'My signature';
+$lang['membre_signature_title_admin'] = 'Signature of';
+$lang['membre_signature_help'] = "This signature automatically pre-fills training certificates and test sheets you generate for your own students. It is never used when someone other than you generates the document.";
+$lang['membre_signature_submit'] = 'Save signature';
+$lang['membre_signature_upload_error'] = 'Could not save the signature. Please try again.';
+$lang['membre_signature_updated'] = 'Signature updated.';
