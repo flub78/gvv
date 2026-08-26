@@ -452,20 +452,7 @@ class Formation_rapports extends MY_Controller
         $html .= '<hr>';
 
         // Par instructeur
-        $html .= '<div style="page-break-inside:avoid;">';
-        $html .= '<h2>' . $this->lang->line('formation_rapports_annuel_par_instructeur') . '</h2>';
-        $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
-        $html .= '<tr style="background-color:#eee;">'
-            . '<th>' . $this->lang->line('formation_inscription_instructeur') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_vol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_vol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_eleves_vol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_sol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_sol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_eleves_sol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_nb_seances') . '</th>'
-            . '</tr>';
-
+        $rows = array();
         $tot_sv = $tot_hv = $tot_ev = $tot_ss = $tot_hs = $tot_es = $tot_t = 0;
         foreach ($stats_instructeurs as $s) {
             $total   = $s['nb_seances_vol'] + $s['nb_seances_sol'];
@@ -477,42 +464,45 @@ class Formation_rapports extends MY_Controller
             $tot_es += $s['nb_eleves_sol'];
             $tot_t  += $total;
 
-            $html .= '<tr>'
-                . '<td>' . htmlspecialchars(trim($s['prenom'] . ' ' . $s['nom'])) . '</td>'
-                . '<td align="center">' . ($s['nb_seances_vol'] ?: '-') . '</td>'
-                . '<td align="center">' . ($s['heures_vol'] > 0 ? number_format($s['heures_vol'], 1, ',', '') . ' h' : '-') . '</td>'
-                . '<td align="center">' . ($s['nb_eleves_vol'] ?: '-') . '</td>'
-                . '<td align="center">' . ($s['nb_seances_sol'] ?: '-') . '</td>'
-                . '<td align="center">' . ($s['heures_sol'] > 0 ? number_format($s['heures_sol'], 1, ',', '') . ' h' : '-') . '</td>'
-                . '<td align="center">' . ($s['nb_eleves_sol'] ?: '-') . '</td>'
-                . '<td align="center"><b>' . $total . '</b></td>'
-                . '</tr>';
+            $rows[] = array(
+                htmlspecialchars(trim($s['prenom'] . ' ' . $s['nom'])),
+                $s['nb_seances_vol'] ?: '-',
+                $s['heures_vol'] > 0 ? number_format($s['heures_vol'], 1, ',', '') . ' h' : '-',
+                $s['nb_eleves_vol'] ?: '-',
+                $s['nb_seances_sol'] ?: '-',
+                $s['heures_sol'] > 0 ? number_format($s['heures_sol'], 1, ',', '') . ' h' : '-',
+                $s['nb_eleves_sol'] ?: '-',
+                '<b>' . $total . '</b>',
+            );
         }
-        $html .= '<tr style="background-color:#eee;">'
-            . '<th>' . $this->lang->line('gvv_total') . '</th>'
-            . '<th>' . $tot_sv . '</th>'
-            . '<th>' . number_format($tot_hv, 1, ',', '') . ' h</th>'
-            . '<th>' . $tot_ev . '</th>'
-            . '<th>' . $tot_ss . '</th>'
-            . '<th>' . number_format($tot_hs, 1, ',', '') . ' h</th>'
-            . '<th>' . $tot_es . '</th>'
-            . '<th>' . $tot_t . '</th>'
-            . '</tr>';
-        $html .= '</table>';
-        $html .= '</div>';
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_annuel_par_instructeur'),
+            array(
+                $this->lang->line('formation_inscription_instructeur'),
+                $this->lang->line('formation_rapports_annuel_nb_seances_vol'),
+                $this->lang->line('formation_rapports_annuel_heures_vol'),
+                $this->lang->line('formation_rapports_annuel_nb_eleves_vol'),
+                $this->lang->line('formation_rapports_annuel_nb_seances_sol'),
+                $this->lang->line('formation_rapports_annuel_heures_sol'),
+                $this->lang->line('formation_rapports_annuel_nb_eleves_sol'),
+                $this->lang->line('formation_rapports_nb_seances'),
+            ),
+            $rows,
+            array(
+                $this->lang->line('gvv_total'),
+                $tot_sv,
+                number_format($tot_hv, 1, ',', '') . ' h',
+                $tot_ev,
+                $tot_ss,
+                number_format($tot_hs, 1, ',', '') . ' h',
+                $tot_es,
+                $tot_t,
+            ),
+            array('left', 'center', 'center', 'center', 'center', 'center', 'center', 'center')
+        );
 
         // Par programme
-        $html .= '<div style="page-break-inside:avoid;">';
-        $html .= '<h2>' . $this->lang->line('formation_rapports_annuel_par_programme') . '</h2>';
-        $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
-        $html .= '<tr style="background-color:#eee;">'
-            . '<th>' . $this->lang->line('formation_seance_programme') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_vol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_vol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_sol') . '</th>'
-            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_sol') . '</th>'
-            . '</tr>';
-
+        $rows = array();
         $tot_p_sv = $tot_p_hv = $tot_p_ss = $tot_p_hs = 0;
         foreach ($stats_programmes as $p) {
             $tot_p_sv += $p['nb_seances_vol'];
@@ -520,23 +510,33 @@ class Formation_rapports extends MY_Controller
             $tot_p_ss += $p['nb_seances_sol'];
             $tot_p_hs += $p['heures_sol'];
 
-            $html .= '<tr>'
-                . '<td>' . htmlspecialchars($p['programme_titre']) . '</td>'
-                . '<td align="center">' . ($p['nb_seances_vol'] ?: '-') . '</td>'
-                . '<td align="center">' . ($p['heures_vol'] > 0 ? number_format($p['heures_vol'], 1, ',', '') . ' h' : '-') . '</td>'
-                . '<td align="center">' . ($p['nb_seances_sol'] ?: '-') . '</td>'
-                . '<td align="center">' . ($p['heures_sol'] > 0 ? number_format($p['heures_sol'], 1, ',', '') . ' h' : '-') . '</td>'
-                . '</tr>';
+            $rows[] = array(
+                htmlspecialchars($p['programme_titre']),
+                $p['nb_seances_vol'] ?: '-',
+                $p['heures_vol'] > 0 ? number_format($p['heures_vol'], 1, ',', '') . ' h' : '-',
+                $p['nb_seances_sol'] ?: '-',
+                $p['heures_sol'] > 0 ? number_format($p['heures_sol'], 1, ',', '') . ' h' : '-',
+            );
         }
-        $html .= '<tr style="background-color:#eee;">'
-            . '<th>' . $this->lang->line('gvv_total') . '</th>'
-            . '<th>' . $tot_p_sv . '</th>'
-            . '<th>' . number_format($tot_p_hv, 1, ',', '') . ' h</th>'
-            . '<th>' . $tot_p_ss . '</th>'
-            . '<th>' . number_format($tot_p_hs, 1, ',', '') . ' h</th>'
-            . '</tr>';
-        $html .= '</table>';
-        $html .= '</div>';
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_annuel_par_programme'),
+            array(
+                $this->lang->line('formation_seance_programme'),
+                $this->lang->line('formation_rapports_annuel_nb_seances_vol'),
+                $this->lang->line('formation_rapports_annuel_heures_vol'),
+                $this->lang->line('formation_rapports_annuel_nb_seances_sol'),
+                $this->lang->line('formation_rapports_annuel_heures_sol'),
+            ),
+            $rows,
+            array(
+                $this->lang->line('gvv_total'),
+                $tot_p_sv,
+                number_format($tot_p_hv, 1, ',', '') . ' h',
+                $tot_p_ss,
+                number_format($tot_p_hs, 1, ',', '') . ' h',
+            ),
+            array('left', 'center', 'center', 'center', 'center')
+        );
 
         $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
         $pdf->SetCreator($nom_club);
@@ -560,14 +560,16 @@ class Formation_rapports extends MY_Controller
 
     /**
      * Génère le HTML d'un tableau de section pour export_annuel_pdf()
-     * (cellules déjà formatées/échappées par l'appelant).
+     * (cellules déjà formatées/échappées par l'appelant, sauf $headers).
      *
-     * @param string $title   Titre de section (avec effectif entre parenthèses)
-     * @param array  $headers En-têtes de colonnes
-     * @param array  $rows    Lignes, chacune un tableau de cellules HTML
+     * @param string     $title   Titre de section (avec effectif entre parenthèses)
+     * @param array      $headers En-têtes de colonnes
+     * @param array      $rows    Lignes, chacune un tableau de cellules HTML
+     * @param array|null $totals  Ligne de totaux optionnelle (mêmes colonnes que $headers)
+     * @param array|null $aligns  Alignement optionnel par colonne ('left'/'center'/'right')
      * @return string
      */
-    private function _pdf_section_table($title, array $headers, array $rows)
+    private function _pdf_section_table($title, array $headers, array $rows, array $totals = null, array $aligns = null)
     {
         // page-break-inside:avoid pousse tout le bloc (titre + tableau) sur la
         // page suivante s'il ne tient pas dans l'espace restant, pour ne
@@ -583,14 +585,21 @@ class Formation_rapports extends MY_Controller
 
         $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
         $html .= '<tr style="background-color:#eee;">';
-        foreach ($headers as $h) {
-            $html .= '<th>' . htmlspecialchars($h) . '</th>';
+        foreach ($headers as $i => $h) {
+            $html .= '<th' . (isset($aligns[$i]) ? ' align="' . $aligns[$i] . '"' : '') . '>' . htmlspecialchars($h) . '</th>';
         }
         $html .= '</tr>';
         foreach ($rows as $row) {
             $html .= '<tr>';
-            foreach ($row as $cell) {
-                $html .= '<td>' . $cell . '</td>';
+            foreach ($row as $i => $cell) {
+                $html .= '<td' . (isset($aligns[$i]) ? ' align="' . $aligns[$i] . '"' : '') . '>' . $cell . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        if ($totals !== null) {
+            $html .= '<tr style="background-color:#eee;">';
+            foreach ($totals as $i => $cell) {
+                $html .= '<th' . (isset($aligns[$i]) ? ' align="' . $aligns[$i] . '"' : '') . '>' . $cell . '</th>';
             }
             $html .= '</tr>';
         }
