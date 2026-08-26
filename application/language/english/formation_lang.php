@@ -252,7 +252,7 @@ $lang['formation_seance_nature_toutes']               = 'All';
 $lang['formation_seance_nb_participants']             = 'Participants';
 
 // Annual consolidated reports (Phase 3)
-$lang['formation_rapports_annuel_title']           = 'Annual Consolidated Report';
+$lang['formation_rapports_annuel_title']           = 'Annual Consolidated Training Report';
 $lang['formation_rapports_annuel_par_instructeur'] = 'By instructor';
 $lang['formation_rapports_annuel_par_programme']   = 'By programme';
 $lang['formation_rapports_annuel_nb_seances_vol']  = 'Flight sessions';

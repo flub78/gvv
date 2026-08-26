@@ -376,7 +376,7 @@ $lang['formation_seance_nature_toutes']               = 'Toutes';
 $lang['formation_seance_nb_participants']             = 'Participants';
 
 // Rapports annuels consolidés (Phase 3)
-$lang['formation_rapports_annuel_title']           = 'Rapport annuel consolidé';
+$lang['formation_rapports_annuel_title']           = 'Rapport de formation annuel consolidé';
 $lang['formation_rapports_annuel_par_instructeur'] = 'Par instructeur';
 $lang['formation_rapports_annuel_par_programme']   = 'Par programme';
 $lang['formation_rapports_annuel_nb_seances_vol']  = 'Séances vol';

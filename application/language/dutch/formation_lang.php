@@ -252,7 +252,7 @@ $lang['formation_seance_nature_toutes']               = 'Alle';
 $lang['formation_seance_nb_participants']             = 'Deelnemers';
 
 // Jaarlijkse geconsolideerde rapporten (Fase 3)
-$lang['formation_rapports_annuel_title']           = 'Jaarlijks geconsolideerd rapport';
+$lang['formation_rapports_annuel_title']           = 'Jaarlijks geconsolideerd opleidingsrapport';
 $lang['formation_rapports_annuel_par_instructeur'] = 'Per instructeur';
 $lang['formation_rapports_annuel_par_programme']   = 'Per programma';
 $lang['formation_rapports_annuel_nb_seances_vol']  = 'Vluchtsessies';
