@@ -1,3 +1,4 @@
+*.deb
 .svn/*
 application/logs/*
 application/cache/*

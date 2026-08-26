@@ -245,6 +245,10 @@ $lang['forms_required_none']          = 'Formulaire public (sans pré-remplissag
 $lang['forms_required_pilot']         = 'Sélection d\'un membre (candidat/pilote)';
 $lang['forms_required_instructor']    = 'Sélection d\'un instructeur';
 $lang['forms_required_both']          = 'Sélection membre + instructeur';
+$lang['forms_required_machine']       = 'Sélection d\'une machine';
+$lang['forms_required_pilot_machine'] = 'Sélection membre + machine';
+$lang['forms_required_instructor_machine'] = 'Sélection instructeur + machine';
+$lang['forms_required_all']           = 'Sélection membre + instructeur + machine';
 
 /* handler_class */
 $lang['forms_label_handler_class']    = 'Traitement après soumission';
@@ -256,11 +260,13 @@ $lang['forms_button_generate']          = 'Générer';
 $lang['forms_generate_title']           = 'Générer un formulaire pré-rempli';
 $lang['forms_generate_pilot']           = 'Candidat / Pilote';
 $lang['forms_generate_instructor']      = 'Instructeur';
+$lang['forms_generate_machine']         = 'Machine';
 $lang['forms_generate_button']          = 'Remplir le formulaire';
 $lang['forms_generate_select_placeholder'] = '— Sélectionner —';
 $lang['forms_generate_error_not_found'] = 'Formulaire introuvable ou non publié.';
 $lang['forms_generate_error_pilot']     = 'Veuillez sélectionner un candidat.';
 $lang['forms_generate_error_instructor']= 'Veuillez sélectionner un instructeur.';
+$lang['forms_generate_error_machine']   = 'Veuillez sélectionner une machine.';
 
 /* export vers formulaire de creation GVV (Lot 12) */
 $lang['forms_label_target_url']   = 'Formulaire de création cible (export)';

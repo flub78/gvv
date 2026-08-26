@@ -246,6 +246,10 @@ $lang['forms_required_none']          = 'Openbaar formulier (geen GVV-voorvullin
 $lang['forms_required_pilot']         = 'Ledselectie (kandidaat/piloot)';
 $lang['forms_required_instructor']    = 'Instructeurselectie';
 $lang['forms_required_both']          = 'Lid + instructeurselectie';
+$lang['forms_required_machine']       = 'Machineselectie';
+$lang['forms_required_pilot_machine'] = 'Lid + machineselectie';
+$lang['forms_required_instructor_machine'] = 'Instructeur + machineselectie';
+$lang['forms_required_all']           = 'Lid + instructeur + machineselectie';
 
 /* handler_class */
 $lang['forms_label_handler_class']    = 'Actie na indiening';
@@ -257,11 +261,13 @@ $lang['forms_button_generate']          = 'Genereren';
 $lang['forms_generate_title']           = 'Voorgevuld formulier genereren';
 $lang['forms_generate_pilot']           = 'Kandidaat / Piloot';
 $lang['forms_generate_instructor']      = 'Instructeur';
+$lang['forms_generate_machine']         = 'Machine';
 $lang['forms_generate_button']          = 'Formulier invullen';
 $lang['forms_generate_select_placeholder'] = '— Selecteer —';
 $lang['forms_generate_error_not_found'] = 'Formulier niet gevonden of niet gepubliceerd.';
 $lang['forms_generate_error_pilot']     = 'Selecteer een kandidaat.';
 $lang['forms_generate_error_instructor']= 'Selecteer een instructeur.';
+$lang['forms_generate_error_machine']   = 'Selecteer een machine.';
 
 /* export naar een GVV-aanmaakformulier (Lot 12) */
 $lang['forms_label_target_url']   = 'Doel-aanmaakformulier (export)';

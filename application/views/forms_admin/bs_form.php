@@ -70,10 +70,14 @@
                     <?php
                     $rp_current = isset($form['required_params']) ? $form['required_params'] : 'none';
                     $rp_options = array(
-                        'none'             => $this->lang->line('forms_required_none'),
-                        'pilot'            => $this->lang->line('forms_required_pilot'),
-                        'instructor'       => $this->lang->line('forms_required_instructor'),
-                        'pilot+instructor' => $this->lang->line('forms_required_both'),
+                        'none'                     => $this->lang->line('forms_required_none'),
+                        'pilot'                    => $this->lang->line('forms_required_pilot'),
+                        'instructor'               => $this->lang->line('forms_required_instructor'),
+                        'machine'                  => $this->lang->line('forms_required_machine'),
+                        'pilot+instructor'         => $this->lang->line('forms_required_both'),
+                        'pilot+machine'            => $this->lang->line('forms_required_pilot_machine'),
+                        'instructor+machine'       => $this->lang->line('forms_required_instructor_machine'),
+                        'pilot+instructor+machine' => $this->lang->line('forms_required_all'),
                     );
                     ?>
                     <select class="form-select" id="required_params" name="required_params" style="max-width:320px;">

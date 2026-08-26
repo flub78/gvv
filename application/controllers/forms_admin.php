@@ -2880,6 +2880,7 @@ class Forms_admin extends MY_Controller {
         $section_id = (int) $this->session->userdata('section');
         $pilot_selector      = $this->membres_model->get_selector($section_id);
         $instructor_selector = $this->membres_model->inst_selector($section_id);
+        $machine_selector    = $this->_get_machine_selector($section_id);
 
         $data = array(
             'controller'          => $this->controller,
@@ -2887,6 +2888,7 @@ class Forms_admin extends MY_Controller {
             'required_params'     => $required_params,
             'pilot_selector'      => $pilot_selector,
             'instructor_selector' => $instructor_selector,
+            'machine_selector'    => $machine_selector,
             'error'               => $this->session->flashdata('forms_generate_error') ?: '',
         );
 
@@ -2904,13 +2906,17 @@ class Forms_admin extends MY_Controller {
         $required_params  = isset($form['required_params']) ? $form['required_params'] : 'none';
         $pilot_login      = trim((string) $this->input->post('pilot_login'));
         $instructor_login = trim((string) $this->input->post('instructor_login'));
+        $machine_immat    = trim((string) $this->input->post('machine_immat'));
 
         $errors = array();
-        if (in_array($required_params, array('pilot', 'pilot+instructor'), true) && $pilot_login === '') {
+        if (forms_requires_pilot($required_params) && $pilot_login === '') {
             $errors[] = $this->lang->line('forms_generate_error_pilot');
         }
-        if (in_array($required_params, array('instructor', 'pilot+instructor'), true) && $instructor_login === '') {
+        if (forms_requires_instructor($required_params) && $instructor_login === '') {
             $errors[] = $this->lang->line('forms_generate_error_instructor');
+        }
+        if (forms_requires_machine($required_params) && $machine_immat === '') {
+            $errors[] = $this->lang->line('forms_generate_error_machine');
         }
 
         if (!empty($errors)) {
@@ -2922,6 +2928,7 @@ class Forms_admin extends MY_Controller {
         $params = array();
         if ($pilot_login !== '')      $params[] = 'pilot_login='      . rawurlencode($pilot_login);
         if ($instructor_login !== '') $params[] = 'instructor_login=' . rawurlencode($instructor_login);
+        if ($machine_immat !== '')    $params[] = 'machine_immat='    . rawurlencode($machine_immat);
 
         $url = site_url('forms/' . rawurlencode($slug));
         if (!empty($params)) {
@@ -2929,6 +2936,26 @@ class Forms_admin extends MY_Controller {
         }
 
         redirect($url);
+    }
+
+    /**
+     * Sélecteur immat -> "modèle - immat" pour les machines à numéro
+     * d'identification (machinesa, cf. migration 173) : c'est la seule table
+     * que _resolve_machine_source() de forms_public sait résoudre à ce jour.
+     */
+    private function _get_machine_selector($section_id = null) {
+        $this->db->select('macimmat as immat, macmodele as modele')->from('machinesa')->where('actif', 1);
+        if ($section_id) {
+            $this->db->where('club', $section_id);
+        }
+        $planes = $this->db->get()->result_array();
+        usort($planes, function($a, $b) { return strcmp($a['modele'], $b['modele']); });
+
+        $selector = array();
+        foreach ($planes as $row) {
+            $selector[$row['immat']] = $row['modele'] . ' - ' . $row['immat'];
+        }
+        return $selector;
     }
 
     private function _unzip_to_tmpdir($uploaded_tmp_path) {

@@ -57,6 +57,9 @@ class Oneshot extends CI_Controller {
         echo "<li><a href='" . base_url() . "index.php/oneshot/comptes_manquants'>comptes_manquants</a> - Pilotes avec compte 411 section 1/2/3 mais sans compte section 4</li>";
         echo "<li><a href='" . base_url() . "index.php/oneshot/creer_comptes_section4'>creer_comptes_section4</a> - Créer les comptes 411 manquants en section 4</li>";
         echo "<li><a href='" . base_url() . "index.php/oneshot/regulariser_initialisations_2024'>regulariser_initialisations_2024</a> - Régulariser les écritures d'initialisation 2024 (ULM/Avion/CG)</li>";
+        echo "<li><a href='" . base_url() . "index.php/oneshot/signature_instructeur_wiring'>signature_instructeur_wiring</a> - Reconnecter les widgets signature instructeur sur instructor.signature (formulaires pilot+instructor)</li>";
+        echo "<li><a href='" . base_url() . "index.php/oneshot/machine_numero_identification_wiring'>machine_numero_identification_wiring</a> - Câbler le champ « Numéro d'identification de l'ULM » sur machine.numero_identification</li>";
+        echo "<li><a href='" . base_url() . "index.php/oneshot/forms_required_params_add_machine'>forms_required_params_add_machine</a> - Ajouter la machine au required_params des 2 formulaires ULM (nécessite migration 174)</li>";
         echo "</ul>";
 
         echo "<hr>";
@@ -81,6 +84,331 @@ class Oneshot extends CI_Controller {
             $this->executer_regularisation_initialisations_2024();
         } else {
             $this->previsualiser_regularisation_initialisations_2024();
+        }
+
+        echo "<hr>";
+        echo "<p><a href='" . base_url() . "index.php/oneshot'>Retour à la liste des opérations</a></p>";
+        echo "<p><a href='" . base_url() . "'>Retour à l'accueil</a></p>";
+    }
+
+    /**
+     * Liste des formulaires publics "pilot+instructor" dont le widget de
+     * signature instructeur pointe vers instructor.event.<qualif>.signature
+     * (colonne events.signature_path, jamais renseignée par aucun écran) au
+     * lieu de instructor.signature (membres.signature_path, alimentée par
+     * membre::ma_signature() / membre::signature($mlogin)).
+     *
+     * Chaque page existe à la fois dans form_pages.content_html (BDD) et,
+     * pour la plupart, dans un fichier uploads/formulaires/<code>/pageNN.html
+     * qui prime sur la BDD (Forms_file_storage::read_page()) — les deux
+     * doivent donc être corrigés pour que le changement soit visible.
+     */
+    private function get_signature_instructeur_targets() {
+        return array(
+            array(
+                'code' => 'attestation_de_test_au_sol', 'page_number' => 1,
+                'old' => 'data-gvv-source="instructor.event.fi_ulm.signature"',
+                'new' => 'data-gvv-source="instructor.signature"',
+            ),
+            array(
+                'code' => 'attestation_de_test_en_vol', 'page_number' => 1,
+                'old' => 'data-gvv-source="instructor.event.fi_ulm.signature"',
+                'new' => 'data-gvv-source="instructor.signature"',
+            ),
+            array(
+                'code' => 'declaration_debut_formation_ulm', 'page_number' => 1,
+                'old' => 'data-gvv-source="instructor.event.fi_ulm.signature"',
+                'new' => 'data-gvv-source="instructor.signature"',
+            ),
+            array(
+                'code' => 'test_en_vol_spl', 'page_number' => 7,
+                'old' => 'data-gvv-source="instructor.event.fe_spl.signature"',
+                'new' => 'data-gvv-source="instructor.signature"',
+            ),
+            array(
+                'code' => 'attestation_provisoire_spl', 'page_number' => 1,
+                'old' => 'data-gvv-source="instructor.event.spl.signature"',
+                'new' => 'data-gvv-source="instructor.signature"',
+            ),
+            array(
+                // Ce widget n'a jamais eu de data-gvv-source du tout.
+                'code' => 'attestation_de_formation_ulm', 'page_number' => 1,
+                'old' => '<div data-gvv-type="signature" data-gvv-name="signature_instructeur">',
+                'new' => '<div data-gvv-type="signature" data-gvv-name="signature_instructeur" data-gvv-required="true" data-gvv-source="instructor.signature" data-gvv-lock="false">',
+            ),
+        );
+    }
+
+    /**
+     * URL: /oneshot/signature_instructeur_wiring
+     *
+     * Reconnecte le widget "signature instructeur" des formulaires publics
+     * ayant instructor en required_params sur instructor.signature, à la
+     * fois dans le fichier uploads/formulaires/ et dans form_pages.content_html.
+     * Idempotent : rejouable sans effet si déjà appliqué.
+     */
+    public function signature_instructeur_wiring() {
+        echo "<h1>Reconnexion des signatures instructeur (instructor.signature)</h1>";
+        echo "<p>Utilisateur connecté: " . htmlspecialchars($this->dx_auth->get_username()) . "</p>";
+        echo "<hr>";
+
+        $this->load->library('forms_file_storage');
+
+        $mode_exec = $this->input->post('executer') === 'oui';
+        $targets = $this->get_signature_instructeur_targets();
+
+        echo "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;'>";
+        echo "<thead><tr style='background:#f0f0f0;'><th>Formulaire</th><th>Page</th><th>Fichier disque</th><th>Base de données (form_pages)</th></tr></thead><tbody>";
+
+        $reste_a_faire = 0;
+
+        foreach ($targets as $t) {
+            $form = $this->db->select('id')->from('forms')->where('code', $t['code'])->get()->row_array();
+            $form_id = $form ? (int) $form['id'] : null;
+
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($t['code']) . "</td>";
+            echo "<td>" . (int) $t['page_number'] . "</td>";
+
+            $statut_fichier = $this->appliquer_correction_fichier($t, $mode_exec);
+            echo "<td style='color:" . $statut_fichier['color'] . ";'>" . htmlspecialchars($statut_fichier['message']) . "</td>";
+            if ($statut_fichier['reste_a_faire']) { $reste_a_faire++; }
+
+            $statut_db = $this->appliquer_correction_db($t, $form_id, $mode_exec);
+            echo "<td style='color:" . $statut_db['color'] . ";'>" . htmlspecialchars($statut_db['message']) . "</td>";
+            if ($statut_db['reste_a_faire']) { $reste_a_faire++; }
+
+            echo "</tr>";
+        }
+
+        echo "</tbody></table>";
+        echo "<hr>";
+
+        if ($mode_exec) {
+            echo "<p><strong>Exécution terminée.</strong></p>";
+            if ($reste_a_faire > 0) {
+                echo "<p style='color:red;'>" . $reste_a_faire . " ligne(s) n'ont pas pu être corrigées automatiquement (motif introuvable dans le contenu actuel) - à vérifier manuellement.</p>";
+            }
+        } else {
+            echo "<form method='post' action='" . base_url() . "index.php/oneshot/signature_instructeur_wiring'>";
+            echo "<p style='font-weight:bold;color:red;'>Ceci va modifier les fichiers uploads/formulaires/ et la table form_pages pour les lignes marquées « à corriger ». Confirmer ?</p>";
+            echo "<button type='submit' name='executer' value='oui' style='background:#28a745;color:#fff;padding:8px 14px;border:none;cursor:pointer;'>OUI - Exécuter</button>";
+            echo "</form>";
+        }
+
+        echo "<hr>";
+        echo "<p><a href='" . base_url() . "index.php/oneshot'>Retour à la liste des opérations</a></p>";
+        echo "<p><a href='" . base_url() . "'>Retour à l'accueil</a></p>";
+    }
+
+    /**
+     * Corrige (ou prévisualise la correction de) la copie sur disque d'une page.
+     */
+    private function appliquer_correction_fichier($t, $mode_exec) {
+        $content = $this->forms_file_storage->read_page($t['code'], $t['page_number']);
+
+        if ($content === null) {
+            return array('message' => 'fichier absent (formulaire piloté par la BDD)', 'color' => '#666', 'reste_a_faire' => false);
+        }
+        if (strpos($content, $t['new']) !== false && strpos($content, $t['old']) === false) {
+            return array('message' => 'déjà à jour', 'color' => 'green', 'reste_a_faire' => false);
+        }
+        if (strpos($content, $t['old']) === false) {
+            return array('message' => 'motif introuvable - à vérifier manuellement', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        if (!$mode_exec) {
+            return array('message' => 'à corriger', 'color' => '#b8860b', 'reste_a_faire' => false);
+        }
+
+        $new_content = str_replace($t['old'], $t['new'], $content, $count);
+        if ($count !== 1) {
+            gvv_error("Oneshot signature_instructeur_wiring: fichier " . $t['code'] . " page " . $t['page_number'] . " - occurrences inattendues (" . $count . ")");
+            return array('message' => 'occurrences inattendues (' . $count . ') - non modifié', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        $this->forms_file_storage->write_page($t['code'], $t['page_number'], $new_content);
+        gvv_info("Oneshot signature_instructeur_wiring: fichier " . $t['code'] . " page " . $t['page_number'] . " corrigé");
+        return array('message' => 'corrigé', 'color' => 'green', 'reste_a_faire' => false);
+    }
+
+    /**
+     * Corrige (ou prévisualise la correction de) form_pages.content_html en BDD.
+     */
+    private function appliquer_correction_db($t, $form_id, $mode_exec) {
+        if (!$form_id) {
+            return array('message' => 'formulaire introuvable en BDD', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        $page = $this->db->select('id, content_html')->from('form_pages')
+            ->where('form_id', $form_id)->where('page_number', $t['page_number'])
+            ->get()->row_array();
+        if (!$page) {
+            return array('message' => 'page introuvable en BDD', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        $content = $page['content_html'];
+        if (strpos($content, $t['new']) !== false && strpos($content, $t['old']) === false) {
+            return array('message' => 'déjà à jour', 'color' => 'green', 'reste_a_faire' => false);
+        }
+        if (strpos($content, $t['old']) === false) {
+            return array('message' => 'motif introuvable - à vérifier manuellement', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        if (!$mode_exec) {
+            return array('message' => 'à corriger', 'color' => '#b8860b', 'reste_a_faire' => false);
+        }
+
+        $new_content = str_replace($t['old'], $t['new'], $content, $count);
+        if ($count !== 1) {
+            gvv_error("Oneshot signature_instructeur_wiring: BDD " . $t['code'] . " page " . $t['page_number'] . " - occurrences inattendues (" . $count . ")");
+            return array('message' => 'occurrences inattendues (' . $count . ') - non modifié', 'color' => 'red', 'reste_a_faire' => true);
+        }
+
+        $this->db->where('id', $page['id'])->update('form_pages', array('content_html' => $new_content));
+        gvv_info("Oneshot signature_instructeur_wiring: BDD " . $t['code'] . " page " . $t['page_number'] . " corrigé");
+        return array('message' => 'corrigé', 'color' => 'green', 'reste_a_faire' => false);
+    }
+
+    /**
+     * Formulaires ULM ayant un champ "Numéro d'identification de l'ULM" jamais
+     * câblé sur machine.numero_identification (machinesa.numero_identification,
+     * migration 173) : le champ ne se pré-remplit donc jamais.
+     */
+    private function get_machine_numero_identification_targets() {
+        return array(
+            array(
+                'code' => 'attestation_de_test_au_sol', 'page_number' => 1,
+                'old' => '<input type="text" id="immat_ulm" name="immat_ulm">',
+                'new' => "<input type=\"text\" id=\"immat_ulm\" name=\"immat_ulm\"\n             data-gvv-source=\"machine.numero_identification\" data-gvv-lock=\"false\">",
+            ),
+            array(
+                'code' => 'attestation_de_test_en_vol', 'page_number' => 1,
+                'old' => '<input type="text" id="immat_ulm" name="immat_ulm">',
+                'new' => "<input type=\"text\" id=\"immat_ulm\" name=\"immat_ulm\"\n             data-gvv-source=\"machine.numero_identification\" data-gvv-lock=\"false\">",
+            ),
+        );
+    }
+
+    /**
+     * URL: /oneshot/machine_numero_identification_wiring
+     *
+     * Idempotent, même mécanique que signature_instructeur_wiring (fichier +
+     * form_pages.content_html).
+     */
+    public function machine_numero_identification_wiring() {
+        echo "<h1>Câblage du champ Numéro d'identification ULM (machine.numero_identification)</h1>";
+        echo "<p>Utilisateur connecté: " . htmlspecialchars($this->dx_auth->get_username()) . "</p>";
+        echo "<hr>";
+
+        $this->load->library('forms_file_storage');
+
+        $mode_exec = $this->input->post('executer') === 'oui';
+        $targets = $this->get_machine_numero_identification_targets();
+
+        echo "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;'>";
+        echo "<thead><tr style='background:#f0f0f0;'><th>Formulaire</th><th>Page</th><th>Fichier disque</th><th>Base de données (form_pages)</th></tr></thead><tbody>";
+
+        $reste_a_faire = 0;
+
+        foreach ($targets as $t) {
+            $form = $this->db->select('id')->from('forms')->where('code', $t['code'])->get()->row_array();
+            $form_id = $form ? (int) $form['id'] : null;
+
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($t['code']) . "</td>";
+            echo "<td>" . (int) $t['page_number'] . "</td>";
+
+            $statut_fichier = $this->appliquer_correction_fichier($t, $mode_exec);
+            echo "<td style='color:" . $statut_fichier['color'] . ";'>" . htmlspecialchars($statut_fichier['message']) . "</td>";
+            if ($statut_fichier['reste_a_faire']) { $reste_a_faire++; }
+
+            $statut_db = $this->appliquer_correction_db($t, $form_id, $mode_exec);
+            echo "<td style='color:" . $statut_db['color'] . ";'>" . htmlspecialchars($statut_db['message']) . "</td>";
+            if ($statut_db['reste_a_faire']) { $reste_a_faire++; }
+
+            echo "</tr>";
+        }
+
+        echo "</tbody></table>";
+        echo "<hr>";
+
+        if ($mode_exec) {
+            echo "<p><strong>Exécution terminée.</strong></p>";
+            if ($reste_a_faire > 0) {
+                echo "<p style='color:red;'>" . $reste_a_faire . " ligne(s) n'ont pas pu être corrigées automatiquement (motif introuvable dans le contenu actuel) - à vérifier manuellement.</p>";
+            }
+        } else {
+            echo "<form method='post' action='" . base_url() . "index.php/oneshot/machine_numero_identification_wiring'>";
+            echo "<p style='font-weight:bold;color:red;'>Ceci va modifier les fichiers uploads/formulaires/ et la table form_pages pour les lignes marquées « à corriger ». Confirmer ?</p>";
+            echo "<button type='submit' name='executer' value='oui' style='background:#28a745;color:#fff;padding:8px 14px;border:none;cursor:pointer;'>OUI - Exécuter</button>";
+            echo "</form>";
+        }
+
+        echo "<hr>";
+        echo "<p><a href='" . base_url() . "index.php/oneshot'>Retour à la liste des opérations</a></p>";
+        echo "<p><a href='" . base_url() . "'>Retour à l'accueil</a></p>";
+    }
+
+    /**
+     * URL: /oneshot/forms_required_params_add_machine
+     *
+     * Complète le champ « Numéro d'identification ULM » câblé par
+     * machine_numero_identification_wiring() : sans required_params incluant
+     * machine, l'écran forms_admin::generate n'affiche pas de sélecteur
+     * machine et machine_immat n'est jamais transmis à l'URL publique.
+     * Idempotent : passe pilot+instructor -> pilot+instructor+machine pour
+     * les 2 formulaires ULM concernés, sans effet si déjà fait.
+     */
+    public function forms_required_params_add_machine() {
+        echo "<h1>Ajout de la machine au contexte GVV (required_params)</h1>";
+        echo "<p>Utilisateur connecté: " . htmlspecialchars($this->dx_auth->get_username()) . "</p>";
+        echo "<hr>";
+
+        $mode_exec = $this->input->post('executer') === 'oui';
+        $codes = array('attestation_de_test_au_sol', 'attestation_de_test_en_vol');
+        $from = 'pilot+instructor';
+        $to   = 'pilot+instructor+machine';
+
+        echo "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;'>";
+        echo "<thead><tr style='background:#f0f0f0;'><th>Formulaire</th><th>required_params</th></tr></thead><tbody>";
+
+        foreach ($codes as $code) {
+            $form = $this->db->select('id, required_params')->from('forms')->where('code', $code)->get()->row_array();
+            echo "<tr><td>" . htmlspecialchars($code) . "</td>";
+
+            if (!$form) {
+                echo "<td style='color:red;'>formulaire introuvable</td></tr>";
+                continue;
+            }
+            if ($form['required_params'] === $to) {
+                echo "<td style='color:green;'>déjà à jour (" . htmlspecialchars($to) . ")</td></tr>";
+                continue;
+            }
+            if ($form['required_params'] !== $from) {
+                echo "<td style='color:red;'>valeur inattendue (" . htmlspecialchars($form['required_params']) . ") - à vérifier manuellement</td></tr>";
+                continue;
+            }
+            if (!$mode_exec) {
+                echo "<td style='color:#b8860b;'>à corriger (" . htmlspecialchars($from) . " -&gt; " . htmlspecialchars($to) . ")</td></tr>";
+                continue;
+            }
+
+            $this->db->where('id', $form['id'])->update('forms', array('required_params' => $to));
+            gvv_info("Oneshot forms_required_params_add_machine: $code -> $to");
+            echo "<td style='color:green;'>corrigé</td></tr>";
+        }
+
+        echo "</tbody></table>";
+        echo "<hr>";
+
+        if ($mode_exec) {
+            echo "<p><strong>Exécution terminée.</strong></p>";
+        } else {
+            echo "<form method='post' action='" . base_url() . "index.php/oneshot/forms_required_params_add_machine'>";
+            echo "<p style='font-weight:bold;color:red;'>Confirmer la mise à jour de required_params ?</p>";
+            echo "<button type='submit' name='executer' value='oui' style='background:#28a745;color:#fff;padding:8px 14px;border:none;cursor:pointer;'>OUI - Exécuter</button>";
+            echo "</form>";
         }
 
         echo "<hr>";

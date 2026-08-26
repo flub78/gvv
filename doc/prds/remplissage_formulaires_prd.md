@@ -260,7 +260,7 @@ Voir : [Design pré-remplissage](../design_notes/remplissage_formulaires_design.
 Les formulaires qui exploitent des données GVV (données membre, données instructeur, événements/qualifications) sont toujours générés dans un contexte GVV authentifié. Ils ne s'ouvrent pas via un lien public brut.
 
 1. Chaque formulaire GVV-contextuel dispose d'une **page de génération** accessible depuis l'interface admin GVV.
-2. Cette page présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire : sélecteur de membre (`pilot_login`) et/ou sélecteur d'instructeur (`instructor_login`).
+2. Cette page présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire : sélecteur de membre (`pilot_login`), d'instructeur (`instructor_login`) et/ou de machine (`machine_immat`), selon toute combinaison des trois.
 3. Un bouton de confirmation construit l'URL pré-remplie et ouvre le formulaire avec tous les champs GVV résolus côté serveur.
 4. Exemple pour une attestation de formation :
 
@@ -275,6 +275,7 @@ Page : Générer une attestation de formation
 
 5. Le formulaire s'ouvre avec tous les champs issus de `membres` et de `events` déjà pré-remplis et verrouillés.
 6. La page de génération est accessible depuis la liste des formulaires admin ou depuis une fiche de formation existante.
+7. Un formulaire peut aussi dépendre d'une machine (ex. numéro d'identification ULM, source `machine.numero_identification` → `machinesa.numero_identification`) : la page de génération présente alors un sélecteur de machine, et son absence de sélection bloque la génération au même titre qu'un membre ou un instructeur manquant.
 
 ### EF6-quater : Gestion des types d'événements et données events
 

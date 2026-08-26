@@ -167,7 +167,7 @@ Les formulaires qui exploitent des données GVV (table `membres`, table `events`
 #### Principe
 
 La page de génération est une page admin GVV (contrôleur `forms_admin`, méthode `generate`) qui :
-1. Présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire (`pilot_login`, `instructor_login`, ou les deux).
+1. Présente les sélecteurs nécessaires selon les paramètres attendus par le formulaire (`pilot_login`, `instructor_login`, `machine_immat`, ou une combinaison).
 2. À la validation, construit l'URL pré-remplie et redirige vers le formulaire public avec les paramètres encodés.
 
 #### Exemple — Attestation de formation
@@ -192,13 +192,14 @@ Le formulaire s'ouvre avec tous les champs GVV pré-remplis et verrouillés.
 
 #### Configuration des paramètres requis
 
-Chaque formulaire déclare dans ses métadonnées (`forms.required_params`) les paramètres GVV nécessaires :
+Chaque formulaire déclare dans ses métadonnées (`forms.required_params`, ENUM) les paramètres GVV nécessaires. Un formulaire peut dépendre d'un pilote, d'un instructeur et/ou d'une machine, d'où les 8 combinaisons (produit cartésien des 3 dimensions) :
 - `none` : formulaire public autonome, pas de page de génération.
 - `pilot` : sélecteur membre requis → paramètre `pilot_login`.
 - `instructor` : sélecteur instructeur requis → paramètre `instructor_login`.
-- `pilot+instructor` : les deux sélecteurs requis.
+- `machine` : sélecteur machine requis → paramètre `machine_immat` (liste des `machinesa`, seule table que `machine.*` sait résoudre à ce jour).
+- `pilot+instructor`, `pilot+machine`, `instructor+machine`, `pilot+instructor+machine` : combinaisons des sélecteurs ci-dessus.
 
-La page de génération s'adapte automatiquement selon cette configuration.
+La page de génération s'adapte automatiquement selon cette configuration (helpers `forms_requires_pilot()`/`forms_requires_instructor()`/`forms_requires_machine()`, `application/helpers/forms_params_helper.php`, pour éviter de dupliquer la liste des combinaisons dans le contrôleur et les vues).
 
 ### 7. Pré-remplissage GVV — deux mécanismes
 
@@ -347,6 +348,9 @@ instructor.event.{type_key}.numero    → events.ecomment    (plus récent)
 instructor.event.{type_key}.expiry    → events.date_expiration
 instructor.event.{type_key}.date      → events.edate
 instructor.event.{type_key}.signature → events.signature_path
+
+── Table machinesa ────────────────────────────────────────────────────────
+machine.numero_identification → machinesa.numero_identification  param: machine_immat
 
 ── Utilisateur de session ────────────────────────────────────────────────
 user.*                     → membre de la session courante (sans param)

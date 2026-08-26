@@ -12,7 +12,7 @@
         $public_slug = trim((string) ($form['public_slug'] ?? ''));
         $can_fill_form = ($public_slug !== '');
         $required_params = (string) ($form['required_params'] ?? 'none');
-        $requires_generate = in_array($required_params, array('pilot', 'instructor', 'pilot+instructor'), true);
+        $requires_generate = $required_params !== 'none';
         $fill_label = $requires_generate ? $this->lang->line('forms_button_generate') : $this->lang->line('forms_generate_button');
         $fill_url = $requires_generate
             ? site_url('forms_admin/generate/' . rawurlencode($public_slug))

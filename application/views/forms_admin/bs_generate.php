@@ -13,7 +13,7 @@
         <div class="card-body">
             <form method="post" action="<?= site_url('forms_admin/generate_submit/' . rawurlencode($form['public_slug'])) ?>">
 
-                <?php if (in_array($required_params, array('instructor', 'pilot+instructor'))): ?>
+                <?php if (forms_requires_instructor($required_params)): ?>
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="instructor_login">
                         <?= $this->lang->line('forms_generate_instructor') ?> <span class="text-danger">*</span>
@@ -31,7 +31,7 @@
                 </div>
                 <?php endif; ?>
 
-                <?php if (in_array($required_params, array('pilot', 'pilot+instructor'))): ?>
+                <?php if (forms_requires_pilot($required_params)): ?>
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="pilot_login">
                         <?= $this->lang->line('forms_generate_pilot') ?> <span class="text-danger">*</span>
@@ -44,6 +44,24 @@
                     echo '<select class="form-select big_select" id="pilot_login" name="pilot_login" style="max-width:380px;">';
                     echo '<option value="">' . $this->lang->line('forms_generate_select_placeholder') . '</option>';
                     echo $pilot_opts;
+                    echo '</select>';
+                    ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if (forms_requires_machine($required_params)): ?>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="machine_immat">
+                        <?= $this->lang->line('forms_generate_machine') ?> <span class="text-danger">*</span>
+                    </label>
+                    <?php
+                    $machine_opts = '';
+                    foreach ($machine_selector as $immat => $label) {
+                        $machine_opts .= '<option value="' . html_escape($immat) . '">' . html_escape($label) . '</option>';
+                    }
+                    echo '<select class="form-select big_select" id="machine_immat" name="machine_immat" style="max-width:380px;">';
+                    echo '<option value="">' . $this->lang->line('forms_generate_select_placeholder') . '</option>';
+                    echo $machine_opts;
                     echo '</select>';
                     ?>
                 </div>
