@@ -194,9 +194,12 @@ class Acceptance_items_model extends Common_Model {
             : (($mandatory_level === 'mandatory_soft') ? 'important' : 'info');
 
         $url = site_url('acceptance/read/' . $item_id);
+        $content = !empty($item['description'])
+            ? sprintf($this->lang->line('acceptance_motd_content_with_description'), $item['title'], $item['description'], $url)
+            : sprintf($this->lang->line('acceptance_motd_content'), $item['title'], $url);
         $base = array(
             'title' => sprintf($this->lang->line('acceptance_motd_title'), $item['title']),
-            'content' => sprintf($this->lang->line('acceptance_motd_content'), $item['title'], $url),
+            'content' => $content,
             'level' => $level,
             // Dismissible mirrors Lot 3d.3: an optional item can be hidden
             // freely, a mandatory one (soft or hard) cannot be hidden until

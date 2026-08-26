@@ -5,6 +5,7 @@
 
 // Field labels
 $lang['acceptance_title'] = 'Title';
+$lang['acceptance_description'] = 'Description';
 $lang['acceptance_category'] = 'Category';
 $lang['acceptance_target_type'] = 'Target type';
 $lang['acceptance_version_date'] = 'Version date';
@@ -177,6 +178,7 @@ $lang['acceptance_back_to_list'] = 'Back to list';
 $lang['acceptance_formula_member'] = 'I, the undersigned %s, member of the club identified by the system, acknowledge having read and accept %s on %s.';
 $lang['acceptance_motd_title'] = 'To accept: %s';
 $lang['acceptance_motd_content'] = 'A validation is required: **%s**. [Read and accept](%s)';
+$lang['acceptance_motd_content_with_description'] = 'A validation is required: **%s**. %s [Read and accept](%s)';
 $lang['acceptance_my_documents_title'] = 'My documents to accept';
 $lang['acceptance_my_documents_card_desc'] = 'Documents to review';
 $lang['acceptance_my_documents_empty'] = 'You have no document to accept.';

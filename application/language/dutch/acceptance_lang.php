@@ -5,6 +5,7 @@
 
 // Field labels
 $lang['acceptance_title'] = 'Titel';
+$lang['acceptance_description'] = 'Beschrijving';
 $lang['acceptance_category'] = 'Categorie';
 $lang['acceptance_target_type'] = 'Doeltype';
 $lang['acceptance_version_date'] = 'Versiedatum';
@@ -177,6 +178,7 @@ $lang['acceptance_back_to_list'] = 'Terug naar lijst';
 $lang['acceptance_formula_member'] = 'Ik, ondergetekende %s, lid van de club geïdentificeerd door het systeem, erken kennis te hebben genomen van en accepteer %s op %s.';
 $lang['acceptance_motd_title'] = 'Te accepteren: %s';
 $lang['acceptance_motd_content'] = 'Een validatie is vereist: **%s**. [Lezen en accepteren](%s)';
+$lang['acceptance_motd_content_with_description'] = 'Een validatie is vereist: **%s**. %s [Lezen en accepteren](%s)';
 $lang['acceptance_my_documents_title'] = 'Mijn te accepteren documenten';
 $lang['acceptance_my_documents_card_desc'] = 'Te controleren documenten';
 $lang['acceptance_my_documents_empty'] = 'U heeft geen document te accepteren.';

@@ -49,6 +49,16 @@ $archived_document = isset($archived_document) ? $archived_document : null;
             </div>
         </div>
 
+        <!-- Description -->
+        <div class="mb-3 row">
+            <label for="description" class="col-sm-2 col-form-label">
+                <?= $this->lang->line('acceptance_description') ?>
+            </label>
+            <div class="col-sm-10">
+                <?= form_textarea('description', set_value('description', isset($description) ? $description : ''), 'class="form-control" id="description" rows="3"') ?>
+            </div>
+        </div>
+
         <!-- Category -->
         <div class="mb-3 row">
             <label for="category" class="col-sm-2 col-form-label">

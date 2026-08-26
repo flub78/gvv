@@ -30,6 +30,7 @@ $this->lang->load('acceptance');
             <thead>
                 <tr>
                     <th><?= $this->lang->line('acceptance_item') ?></th>
+                    <th><?= $this->lang->line('acceptance_description') ?></th>
                     <th><?= $this->lang->line('acceptance_status') ?></th>
                     <th>Actions</th>
                 </tr>
@@ -38,6 +39,7 @@ $this->lang->load('acceptance');
                 <?php foreach ($items as $item): ?>
                     <tr>
                         <td><?= htmlspecialchars($item['title']) ?></td>
+                        <td><?= nl2br(htmlspecialchars($item['description'] ?? '')) ?></td>
                         <td>
                             <?php if ($item['status'] === 'accepted'): ?>
                                 <span class="badge bg-success"><?= sprintf($this->lang->line('acceptance_status_accepted_on'), date('d/m/Y', strtotime($item['acted_at']))) ?></span>

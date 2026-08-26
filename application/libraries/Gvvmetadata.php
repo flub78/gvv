@@ -1099,6 +1099,8 @@ class GVVMetadata extends Metadata {
                 $this->field['acceptance_items']['id']['Type'] = 'int';
                 $this->field['acceptance_items']['id']['Subtype'] = 'key';
                 $this->field['acceptance_items']['title']['Name'] = $CI->lang->line('acceptance_title');
+                $this->field['acceptance_items']['description']['Name'] = $CI->lang->line('acceptance_description');
+                $this->field['acceptance_items']['description']['Subtype'] = 'textarea';
                 $this->field['acceptance_items']['category']['Name'] = $CI->lang->line('acceptance_category');
                 $this->field['acceptance_items']['category']['Subtype'] = 'enumerate';
                 $this->field['acceptance_items']['category']['Enumerate'] = array(
@@ -1150,6 +1152,8 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_acceptance_items']['id']['Type'] = 'int';
                 $this->field['vue_acceptance_items']['id']['Subtype'] = 'key';
                 $this->field['vue_acceptance_items']['title']['Name'] = $CI->lang->line('acceptance_title');
+                $this->field['vue_acceptance_items']['description']['Name'] = $CI->lang->line('acceptance_description');
+                $this->field['vue_acceptance_items']['description']['Subtype'] = 'textarea';
                 $this->field['vue_acceptance_items']['category']['Name'] = $CI->lang->line('acceptance_category');
                 $this->field['vue_acceptance_items']['target_type']['Name'] = $CI->lang->line('acceptance_target_type');
                 $this->field['vue_acceptance_items']['mandatory_level']['Name'] = $CI->lang->line('acceptance_mandatory');

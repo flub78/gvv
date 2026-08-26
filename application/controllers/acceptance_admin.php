@@ -336,6 +336,7 @@ class Acceptance_admin extends Gvv_Controller {
         // Build item data
         $item_data = array(
             'title' => $title,
+            'description' => trim($this->input->post('description')) ?: null,
             'category' => $category,
             'archived_document_id' => $archived_document_id ?: null,
             'target_type' => $this->input->post('target_type') ?: 'internal',
