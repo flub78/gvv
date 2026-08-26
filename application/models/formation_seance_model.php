@@ -784,12 +784,13 @@ class Formation_seance_model extends Common_Model {
      * @return array
      */
     public function get_stats_annuels_par_instructeur($year) {
-        // Séances VOL
+        // Séances VOL déclarées : nombre et élèves. Les heures de vol sont
+        // calculées depuis volsa (voir get_stats_dc_par_instructeur ci-dessous),
+        // pas depuis la durée déclarée de la séance.
         $sql_vol = "
             SELECT s.instructeur_id,
                    inst.mnom AS instructeur_nom, inst.mprenom AS instructeur_prenom,
                    COUNT(*) AS nb_seances_vol,
-                   ROUND(SUM(COALESCE(TIME_TO_SEC(s.duree), 0)) / 3600, 2) AS heures_vol,
                    COUNT(DISTINCT s.pilote_id) AS nb_eleves_vol
             FROM {$this->table} s
             LEFT JOIN membres inst ON s.instructeur_id = inst.mlogin
@@ -818,6 +819,22 @@ class Formation_seance_model extends Common_Model {
         $rows_vol = $this->db->query($sql_vol, array((int)$year))->result_array();
         $rows_sol = $this->db->query($sql_sol, array((int)$year))->result_array();
 
+        // Heures et vols d'instruction (volsa, vadc = 1), toutes séances
+        // confondues (déclarées ou non) : c'est la source des heures de vol.
+        $rows_dc = $this->get_stats_dc_par_instructeur($year);
+
+        // Vols DC sans séance déclarée : un vol DC = une séance, donc ils
+        // s'ajoutent au nombre de séances de vol déclarées.
+        $rows_dc_sans_seance = $this->get_vols_dc_sans_seance($year);
+        $nb_orphelines = array();
+        foreach ($rows_dc_sans_seance as $r) {
+            $iid = $r['instructeur_id'];
+            if (!isset($nb_orphelines[$iid])) {
+                $nb_orphelines[$iid] = 0;
+            }
+            $nb_orphelines[$iid] += (int) $r['nb_vols'];
+        }
+
         $stats = array();
 
         foreach ($rows_vol as $r) {
@@ -826,7 +843,6 @@ class Formation_seance_model extends Common_Model {
                 $stats[$id] = $this->_make_instructor_stats($id, $r['instructeur_nom'], $r['instructeur_prenom']);
             }
             $stats[$id]['nb_seances_vol'] = (int)$r['nb_seances_vol'];
-            $stats[$id]['heures_vol']     = (float)$r['heures_vol'];
             $stats[$id]['nb_eleves_vol']  = (int)$r['nb_eleves_vol'];
         }
 
@@ -838,6 +854,23 @@ class Formation_seance_model extends Common_Model {
             $stats[$id]['nb_seances_sol'] = (int)$r['nb_seances_sol'];
             $stats[$id]['heures_sol']     = (float)$r['heures_sol'];
             $stats[$id]['nb_eleves_sol']  = (int)$r['nb_eleves_sol'];
+        }
+
+        foreach ($rows_dc as $r) {
+            $id = $r['instructeur_id'];
+            if (!isset($stats[$id])) {
+                $stats[$id] = $this->_make_instructor_stats($id, $r['instructeur_nom'], $r['instructeur_prenom']);
+            }
+            $stats[$id]['heures_vol'] = (float) $r['heures'];
+        }
+
+        foreach ($nb_orphelines as $id => $nb) {
+            if (!isset($stats[$id])) {
+                // Cas théorique : un vol DC sans séance déclarée existe
+                // forcément aussi dans $rows_dc, qui a déjà créé l'entrée.
+                $stats[$id] = $this->_make_instructor_stats($id, '', '');
+            }
+            $stats[$id]['nb_seances_vol'] += $nb;
         }
 
         // Sort by instructor name

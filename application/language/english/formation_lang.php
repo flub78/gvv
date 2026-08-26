@@ -122,6 +122,7 @@ $lang['formation_evaluation_commentaire'] = 'Comment';
 
 // Reports
 $lang['formation_rapports_title'] = 'Training reports';
+$lang['formation_rapports_section_active'] = 'Section';
 $lang['formation_rapports_cloturees_succes'] = 'Successfully completed trainings';
 $lang['formation_rapports_abandonnees'] = 'Abandoned trainings';
 $lang['formation_rapports_suspendues'] = 'Suspended trainings';
@@ -251,7 +252,7 @@ $lang['formation_seance_nature_toutes']               = 'All';
 $lang['formation_seance_nb_participants']             = 'Participants';
 
 // Annual consolidated reports (Phase 3)
-$lang['formation_rapports_annuel_title']           = 'Annual Consolidated Report';
+$lang['formation_rapports_annuel_title']           = 'Annual Consolidated Training Report';
 $lang['formation_rapports_annuel_par_instructeur'] = 'By instructor';
 $lang['formation_rapports_annuel_par_programme']   = 'By programme';
 $lang['formation_rapports_annuel_nb_seances_vol']  = 'Flight sessions';
@@ -262,6 +263,8 @@ $lang['formation_rapports_annuel_nb_eleves_vol']   = 'Flight students';
 $lang['formation_rapports_annuel_nb_eleves_sol']   = 'Ground students';
 $lang['formation_rapports_annuel_total']           = 'Total';
 $lang['formation_rapports_annuel_export_csv']      = 'Export CSV';
+$lang['formation_rapports_annuel_export_pdf']      = 'Export PDF';
+$lang['formation_rapports_annuel_genere_le']       = 'Generated on';
 $lang['formation_rapports_annuel_aucun']           = 'No data for this year.';
 
 // Compliance report
