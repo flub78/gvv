@@ -21,6 +21,8 @@
  * @package controllers
  */
 
+include_once(APPPATH . '/third_party/tcpdf/tcpdf.php');
+
 class Formation_rapports extends MY_Controller
 {
     protected $controller = 'formation_rapports';
@@ -42,6 +44,7 @@ class Formation_rapports extends MY_Controller
         $this->load->helper('validation');
         $this->lang->load('formation');
         $this->lang->load('gvv');
+        $this->lang->load('sections');
 
         // Bouton retour → tableau de bord Formation
         $this->lang->load('tableaux_de_bord');
@@ -49,6 +52,18 @@ class Formation_rapports extends MY_Controller
             'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/formation',
             'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_training'),
         ]);
+    }
+
+    /**
+     * Libellé de la section actuellement active (sélecteur du menu), ou
+     * "Toutes" si aucune section spécifique n'est sélectionnée.
+     *
+     * @return string
+     */
+    private function _section_active_label()
+    {
+        $section = $this->formation_seance_model->section();
+        return $section ? $section['nom'] : $this->lang->line('all_sections');
     }
 
     /**
@@ -157,7 +172,8 @@ class Formation_rapports extends MY_Controller
             'stats_par_categorie' => $stats_par_categorie,
             'stats_dc_instructeur' => $stats_dc_instructeur,
             'stats_dc_machine' => $stats_dc_machine,
-            'formation_progression' => $this->formation_progression
+            'formation_progression' => $this->formation_progression,
+            'section_active_label' => $this->_section_active_label(),
         );
 
         $this->load->view('formation_rapports/index', $data);
@@ -197,12 +213,13 @@ class Formation_rapports extends MY_Controller
         $stats_programmes   = $this->formation_seance_model->get_stats_annuels_par_programme($year);
 
         $data = array(
-            'title'              => $this->lang->line('formation_rapports_annuel_title'),
-            'controller'         => $this->controller,
-            'year'               => $year,
-            'year_selector'      => $year_selector,
-            'stats_instructeurs' => $stats_instructeurs,
-            'stats_programmes'   => $stats_programmes,
+            'title'                => $this->lang->line('formation_rapports_annuel_title'),
+            'controller'           => $this->controller,
+            'year'                 => $year,
+            'year_selector'        => $year_selector,
+            'stats_instructeurs'   => $stats_instructeurs,
+            'stats_programmes'     => $stats_programmes,
+            'section_active_label' => $this->_section_active_label(),
         );
 
         $this->load->view('formation_rapports/annuel', $data);
@@ -283,6 +300,304 @@ class Formation_rapports extends MY_Controller
         }
 
         csv_file($title, $rows);
+    }
+
+    /**
+     * Export PDF du rapport annuel consolidé (par instructeur et par programme).
+     *
+     * @param int $year
+     */
+    public function export_annuel_pdf($year = null)
+    {
+        if (empty($year)) {
+            $year = $this->session->userdata('year') ?: date('Y');
+        }
+        $year = (int) $year;
+
+        $stats_instructeurs = $this->formation_seance_model->get_stats_annuels_par_instructeur($year);
+        $stats_programmes   = $this->formation_seance_model->get_stats_annuels_par_programme($year);
+
+        // Listes de formations (mêmes données/colonnes que formation_rapports/index)
+        $formations = $this->formation_inscription_model->get_by_year($year);
+        $date_limite = $year . '-12-31';
+        foreach ($formations['en_cours'] as &$inscription) {
+            $inscription['progression'] = $this->formation_progression->calculer_pourcentage_a_date(
+                $inscription['id'], $date_limite
+            );
+        }
+        unset($inscription);
+
+        $nom_club = $this->config->item('nom_club');
+        $title    = $this->lang->line('formation_rapports_annuel_title') . ' ' . $year;
+
+        $html = '<p style="text-align:right;color:#555;font-size:9pt;">' . htmlspecialchars($nom_club) . '</p>';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        $html .= '<p style="font-size:9pt;color:#777;">'
+            . $this->lang->line('formation_rapports_annuel_genere_le') . ' ' . date('d/m/Y H:i')
+            . ' — ' . $this->lang->line('formation_rapports_section_active') . ' : '
+            . htmlspecialchars($this->_section_active_label())
+            . '</p>';
+        $html .= '<hr>';
+
+        // Clôturées avec succès
+        $rows = array();
+        foreach ($formations['cloturees'] as $f) {
+            $rows[] = array(
+                htmlspecialchars(trim(($f['pilote_prenom'] ?? '') . ' ' . ($f['pilote_nom'] ?? ''))),
+                htmlspecialchars($f['programme_titre'] ?? ''),
+                htmlspecialchars(trim(($f['instructeur_prenom'] ?? '') . ' ' . ($f['instructeur_nom'] ?? ''))),
+                !empty($f['date_cloture']) ? date('d/m/Y', strtotime($f['date_cloture'])) : '-',
+            );
+        }
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_cloturees_succes') . ' (' . count($formations['cloturees']) . ')',
+            array(
+                $this->lang->line('formation_inscription_pilote'),
+                $this->lang->line('formation_inscription_programme'),
+                $this->lang->line('formation_inscription_instructeur'),
+                $this->lang->line('formation_rapports_date_cloture'),
+            ),
+            $rows
+        );
+
+        // Abandonnées
+        $rows = array();
+        foreach ($formations['abandonnees'] as $f) {
+            $rows[] = array(
+                htmlspecialchars(trim(($f['pilote_prenom'] ?? '') . ' ' . ($f['pilote_nom'] ?? ''))),
+                htmlspecialchars($f['programme_titre'] ?? ''),
+                !empty($f['date_cloture']) ? date('d/m/Y', strtotime($f['date_cloture'])) : '-',
+                htmlspecialchars($f['motif_cloture'] ?? ''),
+            );
+        }
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_abandonnees') . ' (' . count($formations['abandonnees']) . ')',
+            array(
+                $this->lang->line('formation_inscription_pilote'),
+                $this->lang->line('formation_inscription_programme'),
+                $this->lang->line('formation_rapports_date_cloture'),
+                $this->lang->line('formation_rapports_motif'),
+            ),
+            $rows
+        );
+
+        // Suspendues
+        $rows = array();
+        foreach ($formations['suspendues'] as $f) {
+            $rows[] = array(
+                htmlspecialchars(trim(($f['pilote_prenom'] ?? '') . ' ' . ($f['pilote_nom'] ?? ''))),
+                htmlspecialchars($f['programme_titre'] ?? ''),
+                !empty($f['date_suspension']) ? date('d/m/Y', strtotime($f['date_suspension'])) : '-',
+                htmlspecialchars($f['motif_suspension'] ?? ''),
+            );
+        }
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_suspendues') . ' (' . count($formations['suspendues']) . ')',
+            array(
+                $this->lang->line('formation_inscription_pilote'),
+                $this->lang->line('formation_inscription_programme'),
+                $this->lang->line('formation_rapports_date_suspension'),
+                $this->lang->line('formation_rapports_motif'),
+            ),
+            $rows
+        );
+
+        // Ouvertes dans l'année
+        $rows = array();
+        foreach ($formations['ouvertes'] as $f) {
+            $rows[] = array(
+                htmlspecialchars(trim(($f['pilote_prenom'] ?? '') . ' ' . ($f['pilote_nom'] ?? ''))),
+                htmlspecialchars($f['programme_titre'] ?? ''),
+                htmlspecialchars(trim(($f['instructeur_prenom'] ?? '') . ' ' . ($f['instructeur_nom'] ?? ''))),
+                !empty($f['date_ouverture']) ? date('d/m/Y', strtotime($f['date_ouverture'])) : '-',
+                htmlspecialchars($this->lang->line('formation_inscription_statut_' . $f['statut'])),
+            );
+        }
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_ouvertes') . ' (' . count($formations['ouvertes']) . ')',
+            array(
+                $this->lang->line('formation_inscription_pilote'),
+                $this->lang->line('formation_inscription_programme'),
+                $this->lang->line('formation_inscription_instructeur'),
+                $this->lang->line('formation_inscription_date_ouverture'),
+                $this->lang->line('formation_inscription_statut'),
+            ),
+            $rows
+        );
+
+        // En cours (avec progression)
+        $rows = array();
+        foreach ($formations['en_cours'] as $f) {
+            $pct = isset($f['progression']) ? $f['progression']['pourcentage'] : 0;
+            $rows[] = array(
+                htmlspecialchars(trim(($f['pilote_prenom'] ?? '') . ' ' . ($f['pilote_nom'] ?? ''))),
+                htmlspecialchars($f['programme_titre'] ?? ''),
+                htmlspecialchars(trim(($f['instructeur_prenom'] ?? '') . ' ' . ($f['instructeur_nom'] ?? ''))),
+                !empty($f['date_ouverture']) ? date('d/m/Y', strtotime($f['date_ouverture'])) : '-',
+                $pct . ' %',
+            );
+        }
+        $html .= $this->_pdf_section_table(
+            $this->lang->line('formation_rapports_en_cours') . ' (' . count($formations['en_cours']) . ')',
+            array(
+                $this->lang->line('formation_inscription_pilote'),
+                $this->lang->line('formation_inscription_programme'),
+                $this->lang->line('formation_inscription_instructeur'),
+                $this->lang->line('formation_inscription_date_ouverture'),
+                $this->lang->line('formation_rapports_progression'),
+            ),
+            $rows
+        );
+
+        $html .= '<hr>';
+
+        // Par instructeur
+        $html .= '<div style="page-break-inside:avoid;">';
+        $html .= '<h2>' . $this->lang->line('formation_rapports_annuel_par_instructeur') . '</h2>';
+        $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
+        $html .= '<tr style="background-color:#eee;">'
+            . '<th>' . $this->lang->line('formation_inscription_instructeur') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_vol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_vol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_eleves_vol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_sol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_sol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_eleves_sol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_nb_seances') . '</th>'
+            . '</tr>';
+
+        $tot_sv = $tot_hv = $tot_ev = $tot_ss = $tot_hs = $tot_es = $tot_t = 0;
+        foreach ($stats_instructeurs as $s) {
+            $total   = $s['nb_seances_vol'] + $s['nb_seances_sol'];
+            $tot_sv += $s['nb_seances_vol'];
+            $tot_hv += $s['heures_vol'];
+            $tot_ev += $s['nb_eleves_vol'];
+            $tot_ss += $s['nb_seances_sol'];
+            $tot_hs += $s['heures_sol'];
+            $tot_es += $s['nb_eleves_sol'];
+            $tot_t  += $total;
+
+            $html .= '<tr>'
+                . '<td>' . htmlspecialchars(trim($s['prenom'] . ' ' . $s['nom'])) . '</td>'
+                . '<td align="center">' . ($s['nb_seances_vol'] ?: '-') . '</td>'
+                . '<td align="center">' . ($s['heures_vol'] > 0 ? number_format($s['heures_vol'], 1, ',', '') . ' h' : '-') . '</td>'
+                . '<td align="center">' . ($s['nb_eleves_vol'] ?: '-') . '</td>'
+                . '<td align="center">' . ($s['nb_seances_sol'] ?: '-') . '</td>'
+                . '<td align="center">' . ($s['heures_sol'] > 0 ? number_format($s['heures_sol'], 1, ',', '') . ' h' : '-') . '</td>'
+                . '<td align="center">' . ($s['nb_eleves_sol'] ?: '-') . '</td>'
+                . '<td align="center"><b>' . $total . '</b></td>'
+                . '</tr>';
+        }
+        $html .= '<tr style="background-color:#eee;">'
+            . '<th>' . $this->lang->line('gvv_total') . '</th>'
+            . '<th>' . $tot_sv . '</th>'
+            . '<th>' . number_format($tot_hv, 1, ',', '') . ' h</th>'
+            . '<th>' . $tot_ev . '</th>'
+            . '<th>' . $tot_ss . '</th>'
+            . '<th>' . number_format($tot_hs, 1, ',', '') . ' h</th>'
+            . '<th>' . $tot_es . '</th>'
+            . '<th>' . $tot_t . '</th>'
+            . '</tr>';
+        $html .= '</table>';
+        $html .= '</div>';
+
+        // Par programme
+        $html .= '<div style="page-break-inside:avoid;">';
+        $html .= '<h2>' . $this->lang->line('formation_rapports_annuel_par_programme') . '</h2>';
+        $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
+        $html .= '<tr style="background-color:#eee;">'
+            . '<th>' . $this->lang->line('formation_seance_programme') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_vol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_vol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_nb_seances_sol') . '</th>'
+            . '<th>' . $this->lang->line('formation_rapports_annuel_heures_sol') . '</th>'
+            . '</tr>';
+
+        $tot_p_sv = $tot_p_hv = $tot_p_ss = $tot_p_hs = 0;
+        foreach ($stats_programmes as $p) {
+            $tot_p_sv += $p['nb_seances_vol'];
+            $tot_p_hv += $p['heures_vol'];
+            $tot_p_ss += $p['nb_seances_sol'];
+            $tot_p_hs += $p['heures_sol'];
+
+            $html .= '<tr>'
+                . '<td>' . htmlspecialchars($p['programme_titre']) . '</td>'
+                . '<td align="center">' . ($p['nb_seances_vol'] ?: '-') . '</td>'
+                . '<td align="center">' . ($p['heures_vol'] > 0 ? number_format($p['heures_vol'], 1, ',', '') . ' h' : '-') . '</td>'
+                . '<td align="center">' . ($p['nb_seances_sol'] ?: '-') . '</td>'
+                . '<td align="center">' . ($p['heures_sol'] > 0 ? number_format($p['heures_sol'], 1, ',', '') . ' h' : '-') . '</td>'
+                . '</tr>';
+        }
+        $html .= '<tr style="background-color:#eee;">'
+            . '<th>' . $this->lang->line('gvv_total') . '</th>'
+            . '<th>' . $tot_p_sv . '</th>'
+            . '<th>' . number_format($tot_p_hv, 1, ',', '') . ' h</th>'
+            . '<th>' . $tot_p_ss . '</th>'
+            . '<th>' . number_format($tot_p_hs, 1, ',', '') . ' h</th>'
+            . '</tr>';
+        $html .= '</table>';
+        $html .= '</div>';
+
+        $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator($nom_club);
+        $pdf->SetAuthor($nom_club);
+        $pdf->SetTitle($title);
+        $pdf->SetSubject($this->lang->line('formation_rapports_annuel_title'));
+
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        $filename = 'rapport_annuel_formation_' . $year . '.pdf';
+        $pdf->Output($filename, 'I');
+        exit;
+    }
+
+    /**
+     * Génère le HTML d'un tableau de section pour export_annuel_pdf()
+     * (cellules déjà formatées/échappées par l'appelant).
+     *
+     * @param string $title   Titre de section (avec effectif entre parenthèses)
+     * @param array  $headers En-têtes de colonnes
+     * @param array  $rows    Lignes, chacune un tableau de cellules HTML
+     * @return string
+     */
+    private function _pdf_section_table($title, array $headers, array $rows)
+    {
+        // page-break-inside:avoid pousse tout le bloc (titre + tableau) sur la
+        // page suivante s'il ne tient pas dans l'espace restant, pour ne
+        // jamais laisser le titre seul en bas de page.
+        $html = '<div style="page-break-inside:avoid;">';
+        $html .= '<h2>' . htmlspecialchars($title) . '</h2>';
+
+        if (empty($rows)) {
+            $html .= '<p style="font-size:8pt;color:#777;">' . $this->lang->line('formation_rapports_aucune') . '</p>';
+            $html .= '</div>';
+            return $html;
+        }
+
+        $html .= '<table border="1" cellpadding="3" cellspacing="0" style="width:100%;font-size:8pt;">';
+        $html .= '<tr style="background-color:#eee;">';
+        foreach ($headers as $h) {
+            $html .= '<th>' . htmlspecialchars($h) . '</th>';
+        }
+        $html .= '</tr>';
+        foreach ($rows as $row) {
+            $html .= '<tr>';
+            foreach ($row as $cell) {
+                $html .= '<td>' . $cell . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+        $html .= '</div>';
+
+        return $html;
     }
 
     /**

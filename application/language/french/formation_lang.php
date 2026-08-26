@@ -256,6 +256,7 @@ $lang['formation_progression_historique'] = 'Historique';
 
 // Rapports
 $lang['formation_rapports_title'] = 'Rapports de formation';
+$lang['formation_rapports_section_active'] = 'Section';
 $lang['formation_rapports_cloturees_succes'] = 'Formations clôturées avec succès';
 $lang['formation_rapports_abandonnees'] = 'Formations abandonnées';
 $lang['formation_rapports_suspendues'] = 'Formations suspendues';
@@ -375,7 +376,7 @@ $lang['formation_seance_nature_toutes']               = 'Toutes';
 $lang['formation_seance_nb_participants']             = 'Participants';
 
 // Rapports annuels consolidés (Phase 3)
-$lang['formation_rapports_annuel_title']           = 'Rapport annuel consolidé';
+$lang['formation_rapports_annuel_title']           = 'Rapport de formation annuel consolidé';
 $lang['formation_rapports_annuel_par_instructeur'] = 'Par instructeur';
 $lang['formation_rapports_annuel_par_programme']   = 'Par programme';
 $lang['formation_rapports_annuel_nb_seances_vol']  = 'Séances vol';
@@ -386,6 +387,8 @@ $lang['formation_rapports_annuel_nb_eleves_vol']   = 'Élèves vol';
 $lang['formation_rapports_annuel_nb_eleves_sol']   = 'Élèves sol';
 $lang['formation_rapports_annuel_total']           = 'Total';
 $lang['formation_rapports_annuel_export_csv']      = 'Exporter CSV';
+$lang['formation_rapports_annuel_export_pdf']      = 'Exporter PDF';
+$lang['formation_rapports_annuel_genere_le']       = 'Généré le';
 $lang['formation_rapports_annuel_aucun']           = 'Aucune donnée pour cette année.';
 
 // Rapport de conformité

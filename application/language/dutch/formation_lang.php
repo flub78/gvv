@@ -122,6 +122,7 @@ $lang['formation_evaluation_commentaire'] = 'Opmerking';
 
 // Rapporten
 $lang['formation_rapports_title'] = 'Opleidingsrapporten';
+$lang['formation_rapports_section_active'] = 'Sectie';
 $lang['formation_rapports_cloturees_succes'] = 'Succesvol afgeronde opleidingen';
 $lang['formation_rapports_abandonnees'] = 'Afgebroken opleidingen';
 $lang['formation_rapports_suspendues'] = 'Opgeschorte opleidingen';
@@ -262,6 +263,8 @@ $lang['formation_rapports_annuel_nb_eleves_vol']   = 'Vluchtstudenten';
 $lang['formation_rapports_annuel_nb_eleves_sol']   = 'Grondstudenten';
 $lang['formation_rapports_annuel_total']           = 'Totaal';
 $lang['formation_rapports_annuel_export_csv']      = 'CSV exporteren';
+$lang['formation_rapports_annuel_export_pdf']      = 'PDF exporteren';
+$lang['formation_rapports_annuel_genere_le']       = 'Gegenereerd op';
 $lang['formation_rapports_annuel_aucun']           = 'Geen gegevens voor dit jaar.';
 
 // Conformiteitsrapport

@@ -15,6 +15,10 @@ $this->load->view('bs_banner');
         <h3>
             <i class="fas fa-chart-line" aria-hidden="true"></i>
             <?= $this->lang->line('formation_rapports_annuel_title') ?>
+            <span class="badge bg-secondary align-middle" style="font-size: 0.5em;">
+                <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <?= $this->lang->line("formation_rapports_section_active") ?> : <?= htmlspecialchars($section_active_label) ?>
+            </span>
         </h3>
         <div class="d-flex align-items-center gap-3">
             <?= year_selector('formation_rapports/new_year_annuel', $year, $year_selector) ?>
@@ -22,6 +26,11 @@ $this->load->view('bs_banner');
                class="btn btn-outline-success btn-sm">
                 <i class="fas fa-file-csv" aria-hidden="true"></i>
                 <?= $this->lang->line('formation_rapports_annuel_export_csv') ?>
+            </a>
+            <a href="<?= controller_url($controller) ?>/export_annuel_pdf/<?= $year ?>"
+               class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                <?= $this->lang->line('formation_rapports_annuel_export_pdf') ?>
             </a>
             <a href="<?= controller_url($controller) ?>" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i>

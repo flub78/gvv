@@ -24,6 +24,10 @@ $this->load->view('bs_banner');
         <h3>
             <i class="fas fa-chart-bar" aria-hidden="true"></i>
             <?= $this->lang->line("formation_rapports_title") ?>
+            <span class="badge bg-secondary align-middle" style="font-size: 0.5em;">
+                <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <?= $this->lang->line("formation_rapports_section_active") ?> : <?= htmlspecialchars($section_active_label) ?>
+            </span>
         </h3>
         <div class="d-flex align-items-center gap-3">
             <?= year_selector('formation_rapports', $year, $year_selector) ?>
