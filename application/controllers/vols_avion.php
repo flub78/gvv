@@ -847,7 +847,7 @@ class Vols_avion extends Gvv_Controller {
         $this->data['planchiste'] = $this->user_has_role('planchiste');
         $year = $this->session->userdata('year');
         $date25 = date_m25ans($year);
-        $selection = "YEAR(vadate) = \"$year\"";
+        $selection = "YEAR(vadate) > 0 ";
 
         $this->data['machine_selector'] = '';
         $pilote_selector = $this->membres_model->section_pilots(0, false);
@@ -930,6 +930,11 @@ class Vols_avion extends Gvv_Controller {
                 } else {
                     $selection .= "vadate = \"" . date_ht2db($filter_date) . "\" ";
                 }
+            } else {
+                if ($selection != '')
+                    $selection .= " and ";
+                $date_deb = $year . "-01-01";
+                $selection .= "vadate >= \"" . $date_deb . "\" ";
             }
 
             if ($date_end) {
@@ -937,10 +942,17 @@ class Vols_avion extends Gvv_Controller {
                     $selection .= " and ";
                 $this->data['date_end'] = $date_end;
                 $selection .= "vadate <= \"" . date_ht2db($date_end) . "\" ";
+            } else {
+                $date_fin = $year . "-12-31";
+                if ($selection != '')
+                    $selection .= " and ";
+                $selection .= "vadate <= \"" . $date_fin . "\" ";
             }
 
             if ($selection == "")
                 $selection = array();
+        } else {
+            $selection = "YEAR(vadate) = \"$year\"";
         }
 
         // calcul des consommations

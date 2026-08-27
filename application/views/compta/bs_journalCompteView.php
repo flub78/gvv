@@ -104,7 +104,7 @@ if ($section) {
                     </div>
 
                     <div class="d-md-flex flex-row">
-                        <?= filter_buttons() ?>
+                        <?= filter_buttons(true) ?>
                     </div>
 
                 </form>

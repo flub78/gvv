@@ -10,7 +10,7 @@
 
 * [] Mettre en place un mécanisme d'export des sauvegardes automatiques vers une autre machine.
 
-* [] Corriger les rapports de formation.
+* [x] Corriger les rapports de formation.
 
 * [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
   

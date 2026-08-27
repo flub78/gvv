@@ -782,7 +782,12 @@ if (! function_exists('validation_button')) {
 }
 
 if (! function_exists('filter_buttons')) {
-    function filter_buttons() {
+    /**
+     * @param $with_all_dates ajoute un bouton "Toutes les dates" qui force
+     *        filter_date/date_end à une plage couvrant tout l'historique,
+     *        pour les pages qui filtrent par plage de dates (vols, comptes).
+     */
+    function filter_buttons($with_all_dates = false) {
         $CI = &get_instance();
 
         $filter_active = $CI->session->userdata('filter_active');
@@ -792,15 +797,24 @@ if (! function_exists('filter_buttons')) {
 
         $lab1 = $CI->lang->line("gvv_str_select");
         $lab2 = $CI->lang->line("gvv_str_display");
+        $lab3 = $CI->lang->line("gvv_str_all_dates");
+        $all_dates_button = '';
+        if ($with_all_dates) {
+            $all_dates_button = '<button type="submit" name="button" value="' . $lab1 . '" class="btn btn-outline-secondary rounded ms-2" '
+                . 'onclick="this.form.filter_date.value=\'01/01/2000\'; this.form.date_end.value=\'31/12/2099\';">'
+                . $lab3 . '</button>';
+        }
         if ($filter_active) {
             $res .= '<div class="d-flex align-items-center">';
             $res .= '<input type="submit" name="button" value="' . $lab1 . '" class="btn btn-warning rounded me-2" />';
             $res .= '<input type="submit" name="button"  value="' . $lab2 . '" class="btn btn-secondary rounded" />';
+            $res .= $all_dates_button;
             $res .= '<p class="mb-0 ms-3 border border-success border-3 rounded p-1">Filtre actif</p>';
             $res .= '</div>';
         } else {
             $res .= '<input type="submit" name="button"  value="' . $lab1 . '" class="btn btn-secondary rounded me-2" />';
             $res .= '<input type="submit" name="button"  value="' . $lab2 . '" class="btn btn-secondary rounded" />';
+            $res .= $all_dates_button;
         }
         return $res;
     }

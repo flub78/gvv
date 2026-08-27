@@ -369,6 +369,7 @@ $lang['gvv_str_filter'] = "Filtre";
 $lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères de sélection";
 $lang['gvv_str_select'] = "Filtrer";
 $lang['gvv_str_display'] = "Ne pas filtrer";
+$lang['gvv_str_all_dates'] = "Toutes les dates";
 
 $lang['gvv_owner_type'] = array(
     0 => 'Club',

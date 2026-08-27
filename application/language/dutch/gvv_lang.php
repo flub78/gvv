@@ -302,6 +302,7 @@ $lang['gvv_str_filter'] = "Filter";
 $lang['gvv_str_filter_tooltip'] = "Klik om cirteria te verbergen/tonen";
 $lang['gvv_str_select'] = "Selecteer";
 $lang['gvv_str_display'] = "Weergave";
+$lang['gvv_str_all_dates'] = "Alle datums";
 $lang['gvv_succesful_creation'] = "Aangemaakt";
 
 

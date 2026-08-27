@@ -118,7 +118,7 @@ $categories = array_merge(array('-1' => $this->lang->line("gvv_toutes")), $this-
                         </div>
 
                         <div class="d-md-flex flex-row">
-                            <?= filter_buttons() ?>
+                            <?= filter_buttons(true) ?>
                         </div>
 
                     </form>
