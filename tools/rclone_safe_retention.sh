@@ -20,4 +20,3 @@ else
     echo "$(date '+%F %T') - ALERTE : purge ANNULEE sur $REMOTE_DIR - aucune sauvegarde de moins de 3 jours trouvée (dernière sauvegarde locale en échec ?)" >> "$LOG"
 fi
 EOF
-chmod +x /home/aeroclub/gvv/backups/rclone_safe_retention.sh
