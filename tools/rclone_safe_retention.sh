@@ -1,4 +1,3 @@
-cat > /home/aeroclub/gvv/backups/rclone_safe_retention.sh << 'EOF'
 #!/bin/bash
 # Supprime les sauvegardes distantes de plus de 3 jours, UNIQUEMENT s'il
 # existe déjà au moins une sauvegarde plus récente que 3 jours dans ce
