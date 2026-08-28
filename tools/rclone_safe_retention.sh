@@ -19,4 +19,3 @@ if [ "$RECENT_COUNT" -ge 1 ]; then
 else
     echo "$(date '+%F %T') - ALERTE : purge ANNULEE sur $REMOTE_DIR - aucune sauvegarde de moins de 3 jours trouvée (dernière sauvegarde locale en échec ?)" >> "$LOG"
 fi
-EOF
