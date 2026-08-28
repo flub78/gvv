@@ -1,0 +1,36 @@
+@startuml sauvegarde_hors_site_flow
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+
+actor "Cron\n(quotidien)" as Cron
+participant "Envoi hors-site\n(entrée(s) cron + rclone)" as Script
+database "backups (local)" as Local
+participant "rclone" as Rclone
+participant "Google Drive\ndu club" as Drive
+participant "Supervision externe\n(optionnel)" as Smtp
+actor "Club\n(email)" as Club
+database "logfile.txt\n(local)" as Log
+
+Cron -> Script : déclenche l'exécution
+Script -> Local : repère la dernière sauvegarde DB (*.zip)\net la dernière sauvegarde média (*.tar.gz)
+Script -> Rclone : copy sauvegarde DB
+Rclone -> Drive : upload
+Rclone --> Script : code retour
+
+Script -> Rclone : copy sauvegarde média
+Rclone -> Drive : upload
+Rclone --> Script : code retour
+
+Script -> Rclone : delete (fichiers > 3 jours)
+Rclone -> Drive : purge rétention
+
+alt optionnel : supervision externe activée (Apps Script ou Healthchecks.io)
+    Smtp -> Smtp : détecte l'absence d'envoi récent
+    Smtp -> Club : email d'alerte
+else supervision non activée / succès
+    note right of Script : pas d'alerte automatique ;\nvérification manuelle possible sur le Drive
+end
+
+Script -> Log : trace le résultat (succès/échec, partagé\navec autobackup.py / autobackup_media.py)
+
+@enduml

@@ -165,6 +165,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Bulletins de service constructeur
 - Synthèse de navigabilité en lecture seule pour tout pilote
 
+#### [17. Sauvegarde Hors-Site des Backups](17_sauvegarde_hors_site.md)
+**Envoi automatique des sauvegardes vers Google Drive (Administrateur Système)**
+- Installation et configuration de rclone vers Google Drive
+- Test du transfert et mise en place des envois hebdomadaires (cron)
+- Politique de rétention automatique côté stockage distant
+- Monitoring et alertes en cas d'échec (optionnel : Healthchecks.io, Google Apps Script)
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -207,7 +214,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
 9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
 10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
-11. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+11. **[☁️ Sauvegarde hors-site](17_sauvegarde_hors_site.md)** - Envoi automatique des backups vers Google Drive
+12. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

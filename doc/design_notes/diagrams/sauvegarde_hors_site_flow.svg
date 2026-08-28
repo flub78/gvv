@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="237px" preserveAspectRatio="none" style="width:338px;height:237px;background:#000000;" version="1.1" viewBox="0 0 338 237" width="338px" zoomAndPan="magnify"><defs/><g><rect fill="#021B22" height="1" style="stroke: #021B22; stroke-width: 1.0;" width="1" x="0" y="0"/><rect fill="#33FF02" height="24.0679" style="stroke: #33FF02; stroke-width: 1.0;" width="332" x="5" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="330" x="6" y="20">[From sauvegarde_hors_site_flow.puml (line 9) ]</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="0" x="9" y="43.0679"/><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="261" x="5" y="62.1358">@startuml sauvegarde_hors_site_flow</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="287" x="5" y="81.2038">skinparam sequenceMessageAlign center</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="223" x="5" y="100.2717">skinparam maxMessageSize 160</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="0" x="9" y="119.3396"/><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="269" x="5" y="138.4075">actor "Cron\n(hebdomadaire)" as Cron</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="311" x="5" y="157.4754">participant "Script offsite\n(tools/)" as Script</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="261" x="5" y="176.5433">database "backups/\n(local)" as Local</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="206" x="5" y="195.6113">participant "rclone" as Rclone</text><text fill="#33FF02" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="270" x="5" y="214.6792">cloud "Google Drive\ndu club" as Drive</text><text fill="#FF0000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="93" x="9" y="233.7471">Syntax Error?</text><!--MD5=[02815acab51b6b8b2e2b4c790f1879ea]
+@startuml sauvegarde_hors_site_flow
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 160
+
+actor "Cron\n(hebdomadaire)" as Cron
+participant "Script offsite\n(tools/)" as Script
+database "backups/\n(local)" as Local
+participant "rclone" as Rclone
+cloud "Google Drive\ndu club" as Drive
+participant "Relais SMTP" as Smtp
+actor "Club\n(email)" as Club
+database "logfile.txt\n(local)" as Log
+
+Cron -> Script : déclenche l'exécution
+Script -> Local : repère la dernière sauvegarde DB (*.zip)\net la dernière sauvegarde média (*.tar.gz)
+Script -> Rclone : copy sauvegarde DB
+Rclone -> Drive : upload
+Rclone - -> Script : code retour
+
+Script -> Rclone : copy sauvegarde média
+Rclone -> Drive : upload
+Rclone - -> Script : code retour
+
+Script -> Rclone : delete (fichiers > 2 mois)
+Rclone -> Drive : purge rétention
+
+alt échec DB et/ou média
+    Script -> Smtp : envoi alerte (détail du type en échec)
+    Smtp -> Club : email d'échec
+else succès complet
+    note right of Script : aucune notification envoyée
+end
+
+Script -> Log : trace le résultat (succès/échec, partagé\navec autobackup.py / autobackup_media.py)
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 11:22:07 CET 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.11+10-1-24.04.2-Ubuntu
+Operating System: Linux
+Default Encoding: UTF-8
+Language: fr
+Country: FR
+--></g></svg>

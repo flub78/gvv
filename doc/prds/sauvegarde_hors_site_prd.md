@@ -6,6 +6,8 @@ Suite à un incident où le serveur d'exploitation a failli être perdu, il est 
 
 Ce document définit les exigences produit pour l'ajout d'un envoi périodique de ces sauvegardes vers un espace de stockage distant (Google Drive du club), avec une politique de rétention automatique côté stockage distant, et une alerte destinée au club en cas d'échec de cet envoi — afin qu'une panne du mécanisme hors-site ne passe pas inaperçue comme cela semble avoir été le cas pour le cron de sauvegarde locale avant la présente investigation.
 
+Ce PRD pourra donner lieu à une implémentation, ou à un guide de mise en place s'il s'avère que la fonctionnalité peut être mise en place avec des outils externe.
+
 ## 2. Objectifs
 
 * Garantir qu'une copie récente de la base de données et des médias existe en dehors du serveur d'exploitation.
@@ -17,10 +19,10 @@ Ce document définit les exigences produit pour l'ajout d'un envoi périodique d
 
 ### 3.1 Inclus
 
-* Envoi périodique (hebdomadaire) des sauvegardes locales existantes vers le Google Drive du club.
+* Envoi périodique (quotidien) des sauvegardes locales existantes vers le Google Drive du club.
 * Envoi de la sauvegarde de la base de données ET de la sauvegarde des médias (les deux types existants).
 * Le mécanisme d'envoi hors-site réutilise les sauvegardes locales déjà produites par les mécanismes existants ; il ne régénère pas de nouvelle sauvegarde.
-* Suppression automatique, côté stockage distant, des sauvegardes de plus de deux mois.
+* Suppression automatique, côté stockage distant, des sauvegardes de plus de trois jours.
 * Notification email au club en cas d'échec de l'envoi hors-site.
 * Outil utilisé : rclone.
 
@@ -42,8 +44,8 @@ Ce document définit les exigences produit pour l'ajout d'un envoi périodique d
 
 | En tant que... | Je veux... | Afin de... |
 | :--- | :--- | :--- |
-| Administrateur système | qu'une copie des sauvegardes soit envoyée automatiquement hors du serveur chaque semaine | pouvoir restaurer les données même en cas de perte totale du serveur |
-| Administrateur système | que les sauvegardes distantes de plus de deux mois soient supprimées automatiquement | ne pas avoir à gérer manuellement l'espace de stockage distant |
+| Administrateur système | qu'une copie des sauvegardes soit envoyée automatiquement hors du serveur chaque jour | pouvoir restaurer les données même en cas de perte totale du serveur |
+| Administrateur système | que les sauvegardes distantes de plus de trois jours soient supprimées automatiquement | ne pas avoir à gérer manuellement l'espace de stockage distant |
 | Administrateur système / club | être averti par email si l'envoi hors-site échoue | pouvoir intervenir avant qu'une absence de sauvegarde distante ne devienne critique |
 
 ## 6. Exigences Fonctionnelles
@@ -52,13 +54,13 @@ Ce document définit les exigences produit pour l'ajout d'un envoi périodique d
 
 * EF-001 : Le système doit envoyer une copie de la dernière sauvegarde locale de la base de données vers le Google Drive du club.
 * EF-002 : Le système doit envoyer une copie de la dernière sauvegarde locale des médias vers le Google Drive du club.
-* EF-003 : L'envoi hors-site doit être déclenché automatiquement selon une fréquence hebdomadaire.
+* EF-003 : L'envoi hors-site doit être déclenché automatiquement selon une fréquence quotidienne.
 * EF-004 : L'envoi hors-site ne doit pas déclencher la génération d'une nouvelle sauvegarde locale ; il s'appuie sur les sauvegardes déjà produites par les mécanismes existants.
 * EF-005 : L'outil utilisé pour l'envoi vers Google Drive est rclone.
 
 ### 6.2 Rétention
 
-* EF-006 : Les sauvegardes présentes sur le Google Drive du club et âgées de plus de deux mois doivent être supprimées automatiquement.
+* EF-006 : Les sauvegardes présentes sur le Google Drive du club et âgées de plus de trois jours doivent être supprimées automatiquement.
 * EF-007 : La politique de rétention s'applique indépendamment aux sauvegardes de base de données et aux sauvegardes de médias.
 
 ### 6.3 Alerte en cas d'échec
@@ -79,13 +81,13 @@ Ce document définit les exigences produit pour l'ajout d'un envoi périodique d
 * CL-002 : L'envoi de la sauvegarde de base de données réussit mais celui des médias échoue (ou inversement).
 * CL-003 : Le quota de stockage distant disponible est insuffisant pour accueillir la nouvelle sauvegarde.
 * CL-004 : L'accès au Google Drive du club devient invalide (droits révoqués, authentification expirée).
-* CL-005 : Deux exécutions hebdomadaires successives échouent toutes les deux.
+* CL-005 : Deux exécutions quotidiennes successives échouent toutes les deux.
 
 ## 9. Critères d'Acceptation
 
-* CA-001 : Chaque semaine, une copie de la dernière sauvegarde locale de la base de données est présente sur le Google Drive du club.
-* CA-002 : Chaque semaine, une copie de la dernière sauvegarde locale des médias est présente sur le Google Drive du club.
-* CA-003 : Les sauvegardes présentes sur le Google Drive du club depuis plus de deux mois sont supprimées automatiquement.
+* CA-001 : Chaque jour, une copie de la dernière sauvegarde locale de la base de données est présente sur le Google Drive du club.
+* CA-002 : Chaque jour, une copie de la dernière sauvegarde locale des médias est présente sur le Google Drive du club.
+* CA-003 : Les sauvegardes présentes sur le Google Drive du club depuis plus de trois jours sont supprimées automatiquement.
 * CA-004 : En cas d'échec de l'envoi hors-site, une notification email est reçue par le club, indiquant le ou les types de sauvegarde concernés.
 * CA-005 : Aucune notification n'est envoyée lorsque l'envoi hors-site se déroule normalement.
 * CA-006 : Aucun identifiant d'accès au Google Drive n'est présent dans le dépôt de code source.
@@ -96,6 +98,7 @@ Ce document définit les exigences produit pour l'ajout d'un envoi périodique d
 
 ## 11. Questions Ouvertes
 
-* QO-001 : Quelle adresse ou liste de diffusion du club doit recevoir l'alerte d'échec ?
-* QO-002 : Un compte Google Drive dédié doit-il être créé pour cet usage, ou le compte Google existant du club (`gvv.abbeville@gmail.com`, utilisé par l'intégration calendrier) est-il réutilisé ?
-* QO-003 : Le quota de stockage du compte Google Drive cible est-il suffisant à moyen terme pour la rétention de deux mois définie (base de données + médias, plusieurs clubs) ?
+* QO-001 : Quelle adresse ou liste de diffusion du club doit recevoir l'alerte d'échec ? Réponse, il faut pouvoir définir une liste d'adresse email qui recevront les alertes.
+* QO-002 : Un compte Google Drive dédié doit-il être créé pour cet usage, ou le compte Google existant du club (`gvv.abbeville@gmail.com`, utilisé par l'intégration calendrier) est-il réutilisé ? on va utileser info@planeur-abbeville.fr qui identifie un compte Google.
+* 
+* QO-003 : Le quota de stockage du compte Google Drive cible est-il suffisant à moyen terme pour la rétention de trois jours définie (base de données + médias, plusieurs clubs) ? Ca suffira très largement : avec une rétention aussi courte, seules quelques sauvegardes quotidiennes sont conservées simultanément.
