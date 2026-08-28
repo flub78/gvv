@@ -17,8 +17,9 @@ Cette séparation découle directement du PRD (ENF-001, et l'exclusion explicite
 | Composant | Rôle | Nouveau ? |
 | :--- | :--- | :--- |
 | `tools/autobackup.py`, `tools/autobackup_media.py` | Produisent les sauvegardes locales (déjà existant, hors périmètre de ce PRD) | Non |
-| **Envoi hors-site** | Repère la dernière sauvegarde locale de chaque type et invoque `rclone` pour l'upload et pour la purge de rétention distante | Oui (cœur du besoin) |
-| **rclone** | Client CLI qui gère l'upload vers Google Drive et la suppression des fichiers distants trop anciens (`--min-age`) ; sa configuration (jeton OAuth du compte `info@planeur-abbeville.fr`) est stockée chiffrée sur le serveur, hors du dépôt (ENF-002) | Outil externe existant |
+| **Envoi hors-site** | Repère la dernière sauvegarde locale de chaque type et invoque `rclone` pour l'upload, puis lance la purge de rétention distante via le garde-fou ci-dessous | Oui (cœur du besoin) |
+| **rclone** | Client CLI qui gère l'upload vers Google Drive et la suppression des fichiers distants trop anciens (`--min-age`) ; sa configuration (client OAuth **dédié au club** — cf. §4 — et jeton du compte `info@planeur-abbeville.fr`) est stockée sur le serveur, hors du dépôt (ENF-002) | Outil externe existant |
+| `tools/rclone_safe_retention.sh` | Encapsule la purge `rclone delete --min-age` d'un garde-fou : n'efface les fichiers distants anciens que s'il subsiste déjà une sauvegarde distante de moins de trois jours, sinon annule la purge et journalise une alerte. Aucun secret ni chemin en dur (tout en paramètre) | Oui |
 | **Alerte en cas d'échec** *(optionnel, voir §5)* | Signale qu'un envoi quotidien n'a pas eu lieu | Oui, mais report possible à un outil de supervision externe |
 | `backups/logfile.txt` | Journal partagé, déjà utilisé par les deux scripts existants ; l'envoi hors-site peut y ajouter ses propres lignes selon la même convention | Existant, réutilisé |
 
@@ -29,13 +30,17 @@ Cette séparation découle directement du PRD (ENF-001, et l'exclusion explicite
 Points à noter :
 
 * L'upload ne régénère jamais de sauvegarde (EF-004) : le script se contente de désigner le fichier le plus récent de chaque type dans `backups/`.
-* La rétention distante (EF-006/EF-007, 3 jours) est gérée par une commande `rclone delete` filtrée par âge, indépendamment pour les deux types de sauvegarde — pas de logique de rétention à réécrire, `rclone` la fournit nativement.
+* La rétention distante (EF-006/EF-007, 3 jours) s'appuie sur `rclone delete --min-age`, appliqué indépendamment aux deux types de sauvegarde, mais **encapsulé** dans `tools/rclone_safe_retention.sh`. Une purge aveugle par âge est dangereuse : si les sauvegardes locales cessent d'être produites, l'upload re-copie sans erreur un fichier inchangé pendant que la purge continue de tourner et finit par effacer la dernière copie distante valide. Le garde-fou vérifie qu'une sauvegarde distante récente subsiste avant de purger — seule logique à maintenir, une dizaine de lignes shell.
 * L'échec d'un seul des deux envois (CL-002) doit être détecté indépendamment de l'autre, pour que l'alerte identifie précisément le type concerné (EF-009) — *si l'alerte est mise en place, voir §5*.
 * Aucune notification n'est envoyée en cas de succès complet (EF-010) — le seul signal de bonne santé est l'absence d'email, complété par la trace dans `logfile.txt` et par la présence des fichiers sur le Google Drive pour qui veut vérifier activement.
 
 ## 4. Sécurité des identifiants
 
-`rclone config` stocke le jeton OAuth du compte Google Drive dans un fichier de configuration propre à `rclone` (hors du dépôt Git, sur le serveur uniquement), ce qui couvre nativement ENF-002/CA-006. La liste des adresses email d'alerte (QO-001) suit le même principe : un fichier de configuration local au serveur, non versionné — pas besoin de passer par la table `email_lists` de GVV, ce qui préserverait le découplage vis-à-vis de la base de données applicative.
+`rclone config` stocke le jeton OAuth du compte Google Drive dans un fichier de configuration propre à `rclone` (hors du dépôt Git, sur le serveur uniquement), ce qui couvre nativement ENF-002/CA-006. Ce fichier est propre au compte système qui exécute le cron (pas `root`, sauf crontab de `root`).
+
+Google ayant annoncé (préavis de 90 jours, courant 2026) la facturation des appels API passant par le client OAuth partagé par défaut de `rclone`, la configuration utilise un **client OAuth propre au club**, créé dans Google Cloud Console sur le compte cible avec le seul scope `drive.file`. Cela n'introduit pas de secret sensible supplémentaire : le `client_secret` d'une application OAuth « installée » n'est pas un secret fort (il est volontairement visible dans de nombreux projets open source), il est simplement gardé hors du dépôt par principe.
+
+La liste des adresses email d'alerte (QO-001) suit le même principe que la config `rclone` : un fichier de configuration local au serveur, non versionné — pas besoin de passer par la table `email_lists` de GVV, ce qui préserverait le découplage vis-à-vis de la base de données applicative.
 
 ## 5. Alerte en cas d'échec : étape optionnelle
 
@@ -60,10 +65,13 @@ Appliqué ici : deux jobs de supervision distincts (un pour la sauvegarde base d
 ### Ce qui est déjà couvert nativement par `rclone` seul
 
 * L'upload vers Google Drive (`rclone copy`).
-* La suppression des fichiers distants de plus de trois jours (`rclone delete --min-age`).
-* L'authentification OAuth et son stockage sécurisé (`rclone config`).
+* L'authentification OAuth et son stockage sécurisé (`rclone config`), avec un client OAuth propre au club (§4).
 
-Pour ces trois points, un simple appel `rclone` en ligne de commande suffit : aucune ligne de code à écrire ni à maintenir dans le dépôt GVV. C'est cohérent avec le périmètre du PRD, qui nomme `rclone` comme l'outil imposé plutôt que de demander une intégration API Google sur mesure.
+Pour ces points, un simple appel `rclone` en ligne de commande suffit : aucune ligne de code à écrire ni à maintenir dans le dépôt GVV. C'est cohérent avec le périmètre du PRD, qui nomme `rclone` comme l'outil imposé plutôt que de demander une intégration API Google sur mesure.
+
+### Ce qui demande un mince script d'exploitation
+
+* La rétention distante par âge (`rclone delete --min-age`) ne peut **pas** être laissée en cron brut (§3) : elle est encapsulée dans `tools/rclone_safe_retention.sh`, un script d'exploitation d'une dizaine de lignes, au même niveau que `tools/autobackup.py` et sans lien avec l'application GVV. C'est la seule logique à maintenir dans le dépôt.
 
 ### Désigner le dernier fichier local
 
@@ -75,15 +83,15 @@ Avec l'étape reclassée optionnelle (§5), les deux pistes externes identifiée
 
 ### Conclusion
 
-En retirant l'obligation d'une alerte sur mesure, le mécanisme hors-site ne nécessite plus aucun développement applicatif GVV, et peut se réduire à des entrées cron appelant directement `rclone` (upload + rétention), éventuellement complétées d'un simple `curl` vers un service de supervision externe. Il n'y a pas de script versionné indispensable dans `tools/`.
+En retirant l'obligation d'une alerte sur mesure, le mécanisme hors-site ne nécessite **aucun développement applicatif GVV** (contrôleur, vue, modèle, migration). Il se réduit à des entrées cron appelant directement `rclone` pour l'upload, plus un unique script d'exploitation `tools/rclone_safe_retention.sh` pour sécuriser la rétention (§3) — au même niveau que `autobackup.py`, sans lien avec l'application. La supervision reste optionnelle, éventuellement un simple `curl` vers un service externe.
 
 **Recommandation** :
 
-1. Première mise en place : deux ou trois entrées crontab appelant `rclone copy`/`rclone delete` directement, sans alerte — couvre l'objectif principal (copie hors-site + rétention) avec un risque d'implémentation quasi nul.
+1. Première mise en place : entrées crontab appelant `rclone copy` pour l'upload et `tools/rclone_safe_retention.sh` pour la rétention, sans alerte — couvre l'objectif principal (copie hors-site + rétention sûre) avec un risque d'implémentation quasi nul.
 2. Si la supervision est souhaitée par la suite : ajouter un ping vers un service de type Healthchecks.io (ou, plus intégré à l'écosystème déjà en place, un Google Apps Script côté compte `info@planeur-abbeville.fr`) — dans les deux cas, un ajout de configuration externe, pas un développement dans le dépôt GVV.
 3. Un script `tools/offsite_backup.py`, au même niveau que les scripts existants, ne se justifierait que si une logique plus élaborée devenait nécessaire (ex. alerte composée avec plus de détail que ce que permet une supervision générique) — à réévaluer seulement si ce besoin apparaît concrètement.
 
-Cette conclusion diffère de la version précédente de ce document, qui recommandait un petit script d'orchestration : elle reposait sur l'hypothèse que l'alerte était une exigence ferme (EF-008/009/010 du PRD). Avec l'alerte reclassée optionnelle, l'essentiel du besoin est couvert par de la pure configuration d'outils existants.
+Cette conclusion diffère d'une version antérieure de ce document, qui recommandait un script d'orchestration pour porter la logique d'alerte (EF-008/009/010 alors supposés fermes). L'alerte est désormais optionnelle et déléguée à un outil externe ; le seul script conservé, `tools/rclone_safe_retention.sh`, ne fait pas d'orchestration mais protège la rétention d'un effacement accidentel — un besoin de sûreté identifié lors du déroulé réel de la procédure en production.
 
 ## 7. Points restant à trancher
 

@@ -21,8 +21,8 @@ Script -> Rclone : copy sauvegarde média
 Rclone -> Drive : upload
 Rclone --> Script : code retour
 
-Script -> Rclone : delete (fichiers > 3 jours)
-Rclone -> Drive : purge rétention
+Script -> Rclone : rclone_safe_retention.sh\n(purge fichiers > 3 jours,\nsi une copie distante < 3 j subsiste)
+Rclone -> Drive : purge rétention (ou annulation + alerte au log)
 
 alt optionnel : supervision externe activée (Apps Script ou Healthchecks.io)
     Smtp -> Smtp : détecte l'absence d'envoi récent

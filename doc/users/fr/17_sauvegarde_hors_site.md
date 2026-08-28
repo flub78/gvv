@@ -47,13 +47,36 @@ rclone v1.6x.x
 Documentation officielle de référence pour cette étape :
 
 * [Configuration rclone pour Google Drive](https://rclone.org/drive/)
-* [Créer son propre client ID Google](https://rclone.org/drive/#making-your-own-client-id) — recommandé pour éviter les limitations de débit du client partagé rclone (voir `client_id` / `client_secret` dans le tableau ci-dessous)
+* [Créer son propre client ID Google](https://rclone.org/drive/#making-your-own-client-id)
 
 > **À lancer sous le compte qui exécutera les tâches cron** (§2) — celui qui fait déjà tourner `tools/autobackup.py` et possède les fichiers de `backups/`, **pas `root`**. Depuis `root` : `sudo -u <compte> -i rclone config`.
 >
 > `rclone config` peut être relancé sans risque après une interruption ou une erreur : si le remote n'a pas été confirmé (`Keep this "gdrive" remote? y`), rien n'a été enregistré ; s'il a été enregistré incomplet, supprimez-le (`d) Delete remote`) puis recréez-le. Si seule l'autorisation Google a échoué : `rclone config reconnect gdrive:`.
 
-Lancez l'assistant interactif :
+#### Préalable — créer un client OAuth Google dédié
+
+Ne laissez **pas** `client_id` / `client_secret` vides lors de `rclone config`. Google a annoncé qu'il commencerait à facturer les appels API passant par le client OAuth partagé par défaut de rclone (Google Drive et Google Photos), « plus tard en 2026, avec un préavis de 90 jours » ([annonce officielle sur le forum rclone](https://forum.rclone.org/t/google-drive-and-google-photos-users-action-required/54005)). Créez donc votre propre client OAuth dès la mise en place initiale.
+
+Procédure (testée sur `console.cloud.google.com` en août 2026), **depuis un poste avec navigateur, pas depuis le serveur** :
+
+1. Connectez-vous sur [console.cloud.google.com](https://console.cloud.google.com) avec le compte Google cible (`info@planeur-abbeville.fr`).
+   Google Cloud Console exige la validation en deux étapes (MFA) sur le compte depuis mai 2025. Activez-la au préalable si ce n'est pas déjà fait (**Sécurité et connexion > Validation en deux étapes**) et conservez des **codes de secours** — c'est un compte partagé du club.
+2. Créez un **nouveau projet** dédié (ex. « GVV remote backups »), sans organisation.
+3. **API et services > Bibliothèque** > rechercher « Google Drive API » > **Activer**.
+4. **Google Auth Platform** (anciennement « Écran de consentement OAuth ») **> Présentation > Premiers pas**. Renseignez :
+   - Nom de l'application : ex. `rclone`
+   - Adresse d'assistance utilisateur : celle du club
+   - Étape **Cible** : **Externe** (sauf si le compte est un Google Workspace payant avec un accès « Interne » pertinent)
+   - Étape **Coordonnées** : une adresse e-mail de contact technique (peut être personnelle, sert uniquement aux notifications Google sur ce projet ; pas besoin d'une adresse Gmail)
+   - **Créer**
+5. **Accès aux données > Ajouter ou supprimer des niveaux d'accès** > chercher `drive` > cocher précisément `https://www.googleapis.com/auth/drive.file` (**pas** `drive` complet) > **Update** > **Save**.
+6. **Audience > Utilisateurs tests > Add users** > ajouter l'adresse du compte Google cible. Nécessaire car l'application reste en mode « Test » avec audience Externe (jusqu'à 100 utilisateurs test, sans validation Google requise).
+7. **Clients > Créer un client** > Type d'application : **Application de bureau** (Desktop app) > Nom : `rclone` > **Créer**.
+8. Cliquez sur le client créé pour récupérer le **client ID** et le **client secret** ; vous les saisirez dans `rclone config` ci-dessous.
+
+> **Sécurité** : ce `client_secret` n'est pas plus sensible que celui de n'importe quelle application OAuth « installée » standard (ce type d'identifiant est volontairement visible dans de nombreux projets open source). Par précaution générale, évitez néanmoins de le committer dans le dépôt Git.
+
+#### Lancer l'assistant interactif
 
 ```bash
 rclone config
@@ -66,9 +89,9 @@ Répondez aux questions dans l'ordre suivant :
 | `n) New remote` | `n` | Créer un nouveau remote |
 | `name>` | `gdrive` | Nom court, réutilisé dans toutes les commandes suivantes (`gdrive:...`) |
 | `Storage>` | `drive` (ou le numéro correspondant dans la liste) | Sélectionne le backend Google Drive |
-| `client_id>` | *(laisser vide)* | Utilise le client partagé rclone par défaut |
-| `client_secret>` | *(laisser vide)* | Idem |
-| `scope>` | `2` (`drive.file`) | **Recommandé pour la sécurité** : rclone n'aura accès qu'aux fichiers qu'il crée lui-même, pas à l'ensemble du Drive du compte. Le choix `1` (`drive`, accès complet) fonctionne aussi mais est plus large que nécessaire |
+| `client_id>` | *client ID créé au préalable* | Ne pas laisser vide (voir « Préalable » ci-dessus) |
+| `client_secret>` | *client secret créé au préalable* | Idem |
+| `scope>` | option **`drive.file`** | Choisissez l'option correspondant au libellé `drive.file` dans la liste affichée par **votre** version de rclone — vérifiez le libellé, pas le numéro : l'ordre a changé entre versions (sur rclone v1.6x d'août 2026 : `1) drive`, `2) drive.readonly`, `3) drive.file`, `4) drive.appfolder`, `5) drive.metadata.readonly`). Ce scope limite l'accès de rclone aux seuls fichiers qu'il crée lui-même, pas à l'ensemble du Drive |
 | `root_folder_id>` | *(laisser vide)* | Pas de restriction de dossier racine |
 | `service_account_file>` | *(laisser vide)* | Authentification interactive, pas de compte de service |
 | `Edit advanced config?` | `n` | Les réglages par défaut conviennent |
@@ -106,6 +129,8 @@ gdrive:
 rclone lsd gdrive:
 ```
 Liste les dossiers déjà présents à la racine du Drive cible (peut être vide sur un compte neuf).
+
+> **Note (scope `drive.file`)** : sur un Drive déjà utilisé, cette commande retourne une **liste vide** — ce n'est pas une erreur. Avec le scope `drive.file`, rclone ne voit que les fichiers et dossiers qu'il a lui-même créés ; les fichiers préexistants restent invisibles. Un dossier créé ensuite par un `rclone copy` (voir §1.5) apparaîtra bien, lui.
 
 ```bash
 rclone about gdrive:
@@ -175,21 +200,24 @@ LATEST_MEDIA=$(ls -t /home/frederic/git/gvv/backups/media_backup_*.tar.gz 2>/dev
 /usr/bin/rclone copy "$LATEST_MEDIA" gdrive:GVV_backups/media/
 ```
 
-### 2.4 Commande de rétention distante (suppression après trois jours)
+### 2.4 Rétention distante (suppression après trois jours)
+
+**Ne lancez pas `rclone --min-age 3d delete` directement en cron.** Si `tools/autobackup.py` / `tools/autobackup_media.py` échouent plusieurs jours de suite (aucune nouvelle sauvegarde locale), l'envoi du §2.3 re-sélectionne silencieusement l'ancien fichier, `rclone copy` le considère identique et ne fait rien (sans erreur), pendant que la suppression `--min-age 3d` continue de tourner aveuglément : au bout de trois jours, elle efface la **dernière copie distante valide**, sans qu'aucune erreur n'apparaisse dans les logs.
+
+Le script versionné `tools/rclone_safe_retention.sh` (déjà présent dans le dépôt, au même titre que `autobackup.py`) évite ce piège : il ne purge que s'il reste déjà au moins un fichier distant de moins de trois jours dans le dossier concerné ; sinon il annule la purge et journalise une alerte.
 
 ```bash
-rclone --dry-run --min-age 3d delete gdrive:GVV_backups/database/
-rclone --dry-run --min-age 3d delete gdrive:GVV_backups/media/
+tools/rclone_safe_retention.sh <remote:chemin/> <fichier_log>
 ```
 
-Le `--dry-run` liste les fichiers qui **seraient** supprimés sans rien effacer réellement — vérifiez que la liste correspond à vos attentes avant de retirer cette option :
+Le script ne contient **aucun secret ni chemin en dur** (tout est passé en paramètre), il bénéficie donc à tous les déploiements GVV suivant ce guide. Testez-le manuellement avant la mise en cron :
 
 ```bash
-rclone --min-age 3d delete gdrive:GVV_backups/database/
-rclone --min-age 3d delete gdrive:GVV_backups/media/
+/home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt
+tail -2 /home/frederic/git/gvv/backups/logfile.txt
 ```
 
-> **⚠️ Fenêtre de rétention courte** : avec un envoi quotidien et une rétention de trois jours, seules 3 à 4 sauvegardes distantes coexistent à tout moment. Si un problème (corruption de données, suppression accidentelle) n'est détecté qu'après ce délai, il n'y a plus de copie distante saine disponible. Testez toujours `--min-age` avec `--dry-run` avant de l'exécuter réellement, et gardez à l'esprit que `M` (majuscule) signifie *mois* et `m` (minuscule) *minutes* dans les autres durées rclone — une confusion de casse peut vider le dossier distant en une seule exécution.
+> **⚠️ Fenêtre de rétention courte** : avec un envoi quotidien et une rétention de trois jours, seules 3 à 4 sauvegardes distantes coexistent à tout moment. Si un problème (corruption de données, suppression accidentelle) n'est détecté qu'après ce délai, il n'y a plus de copie distante saine disponible. Gardez aussi à l'esprit que dans les durées rclone `M` (majuscule) signifie *mois* et `m` (minuscule) *minutes* — une confusion de casse peut vider le dossier distant en une seule exécution.
 
 ### 2.5 Entrées crontab complètes
 
@@ -206,9 +234,9 @@ Ajoutez (exemple : tous les jours à 3h du matin, après les sauvegardes locales
 # Sauvegarde hors-site quotidienne (médias)
 5 3 * * * LATEST=$(ls -t /home/frederic/git/gvv/backups/media_backup_*.tar.gz 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/media/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1
 
-# Rétention distante (suppression > 3 jours), après les deux envois
-15 3 * * * /usr/bin/rclone --min-age 3d delete gdrive:GVV_backups/database/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1
-16 3 * * * /usr/bin/rclone --min-age 3d delete gdrive:GVV_backups/media/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1
+# Rétention distante (suppression > 3 jours, avec garde-fou), après les deux envois
+15 3 * * * /home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt
+16 3 * * * /home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/media/ /home/frederic/git/gvv/backups/logfile.txt
 ```
 
 Adaptez `/home/frederic/git/gvv/` au chemin réel d'installation sur votre serveur.
@@ -216,7 +244,7 @@ Adaptez `/home/frederic/git/gvv/` au chemin réel d'installation sur votre serve
 **Vérifier que les entrées sont bien enregistrées :**
 
 ```bash
-crontab -l | grep rclone
+crontab -l | grep -E 'rclone|GVV_backups'
 ```
 
 **Tester manuellement une des lignes** (copiez-collez la partie après l'heure) :
@@ -344,6 +372,8 @@ function checkAllBackups() {
 | Aucun fichier n'apparaît sur le Drive après l'exécution cron | La variable `$LATEST` est vide (aucune sauvegarde locale ne correspond au motif) | Vérifier que `tools/autobackup.py`/`tools/autobackup_media.py` tournent bien et que le motif de nom de fichier (§2.3) correspond aux fichiers réellement présents dans `backups/` |
 | Le check Healthchecks.io reste « Late »/« Down » alors que le cron semble tourner | Le `curl` de ping échoue silencieusement (pas de sortie internet, coupe-feu) | Tester `curl -v https://hc-ping.com/<uuid>` manuellement depuis le serveur |
 | L'email d'alerte Apps Script n'arrive jamais | Le déclencheur temporel n'est pas actif, ou le script n'a pas été autorisé | Vérifier l'onglet **Déclencheurs** et les **Exécutions** dans script.google.com |
+| Le dossier distant `GVV_backups/database/` ou `media/` est vide sans raison apparente | La rétention à 3 jours a supprimé la dernière sauvegarde car aucune nouvelle sauvegarde locale n'a été produite depuis plus de 3 jours (échec silencieux de `autobackup.py`/`autobackup_media.py`) | Vérifier `gvv-backup.log` / `gvv-media-backup.log`. Si le script `rclone_safe_retention.sh` du §2.4 est utilisé, ce cas est normalement évité — vérifier qu'il est bien en place dans la crontab |
+| `rclone lsd gdrive:` renvoie une liste vide alors que le Drive contient des fichiers | Comportement normal du scope `drive.file` (voir §1.4) | Aucune action requise, ce n'est pas un dysfonctionnement |
 
 ---
 
@@ -354,5 +384,7 @@ function checkAllBackups() {
 * `doc/features/Backup.md` — sauvegardes locales existantes (`tools/autobackup.py`, `tools/autobackup_media.py`)
 * [Documentation officielle rclone](https://rclone.org/docs/)
 * [Documentation rclone pour Google Drive](https://rclone.org/drive/)
+* [Créer son propre client ID Google (rclone)](https://rclone.org/drive/#making-your-own-client-id)
+* [Google Drive and Google Photos users – ACTION REQUIRED (forum rclone)](https://forum.rclone.org/t/google-drive-and-google-photos-users-action-required/54005) — facturation à venir du client OAuth partagé par défaut
 * [Documentation Healthchecks.io](https://healthchecks.io/docs/)
 * [Documentation Google Apps Script — Déclencheurs](https://developers.google.com/apps-script/guides/triggers)
