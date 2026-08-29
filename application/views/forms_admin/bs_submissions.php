@@ -6,6 +6,8 @@
     <?php
         $form = isset($form) ? $form : array('id' => 0, 'title' => '', 'code' => '');
         $submissions = isset($submissions) ? $submissions : array();
+        $identifier_fields = isset($identifier_fields) ? $identifier_fields : array();
+        $identifier_values = isset($identifier_values) ? $identifier_values : array();
         $upload_files = isset($upload_files) ? $upload_files : array();
         $export_urls = isset($export_urls) ? $export_urls : array();
         $target_label = trim((string) ($form['target_label'] ?? ''));
@@ -52,7 +54,9 @@
                     <thead>
                         <tr>
                             <th><?= $this->lang->line('forms_label_id') ?></th>
-                            <th><?= $this->lang->line('forms_label_identifier') ?></th>
+                            <?php foreach ($identifier_fields as $id_field): ?>
+                                <th><?= html_escape($id_field['label']) ?></th>
+                            <?php endforeach; ?>
                             <th><?= $this->lang->line('forms_label_submitted_by') ?></th>
                             <th><?= $this->lang->line('forms_label_date') ?></th>
                             <th class="text-end"><?= $this->lang->line('forms_label_actions') ?></th>
@@ -61,21 +65,37 @@
                     <tbody>
                         <?php if (!empty($submissions)): ?>
                             <?php foreach ($submissions as $submission): ?>
+                                <?php
+                                    $sid = (int) $submission['id'];
+                                    $ident = trim((string) ($submission['response_identifier'] ?? ''));
+                                    $is_upload_row = ($submission['submission_method'] ?? 'online') === 'upload';
+                                    $is_unattached_subform = !empty($submission['link_token'])
+                                        && empty($submission['subject_type']);
+                                ?>
                                 <tr>
-                                    <td><?= (int) $submission['id'] ?></td>
                                     <td>
-                                        <?php $ident = trim((string) ($submission['response_identifier'] ?? '')); ?>
-                                        <?= $ident !== '' ? html_escape($ident) : '<span class="text-muted">—</span>' ?>
-                                        <?php
-                                            $is_unattached_subform = !empty($submission['link_token'])
-                                                && empty($submission['subject_type']);
-                                        ?>
+                                        <?= $sid ?>
                                         <?php if ($is_unattached_subform): ?>
                                             <span class="badge bg-warning text-dark ms-1" title="<?= $this->lang->line('forms_help_badge_subform_unattached') ?>">
                                                 <?= $this->lang->line('forms_badge_subform_unattached') ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
+                                    <?php foreach ($identifier_fields as $col_idx => $id_field): ?>
+                                        <td>
+                                            <?php
+                                                $cell = isset($identifier_values[$sid][$id_field['name']])
+                                                    ? trim((string) $identifier_values[$sid][$id_field['name']])
+                                                    : '';
+                                                // Upload responses carry no field values: surface the
+                                                // upload comment in the first identifier column.
+                                                if ($cell === '' && $col_idx === 0 && $is_upload_row) {
+                                                    $cell = trim((string) ($submission['upload_comment'] ?? ''));
+                                                }
+                                            ?>
+                                            <?= $cell !== '' ? html_escape($cell) : '<span class="text-muted">—</span>' ?>
+                                        </td>
+                                    <?php endforeach; ?>
                                     <td>
                                         <?php
                                             $name = trim((string) $submission['submitter_name']);

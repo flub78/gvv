@@ -617,13 +617,19 @@ class Forms_admin extends MY_Controller {
 
         $fields = $this->_parse_form_fields($form);
         $identifier_names = array();
+        $identifier_fields = array();
         foreach ($fields as $f) {
             if (!empty($f['is_identifier'])) {
                 $identifier_names[] = $f['name'];
+                $identifier_fields[] = array(
+                    'name'  => $f['name'],
+                    'label' => ($f['label'] !== '' ? $f['label'] : $f['name']),
+                );
             }
         }
 
         $submissions = $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0, $identifier_names);
+        $identifier_values = $this->form_submissions_model->get_identifier_values((int) $form['id'], $identifier_names);
 
         $upload_submission_ids = array();
         foreach ($submissions as $submission) {
@@ -648,13 +654,15 @@ class Forms_admin extends MY_Controller {
         }
 
         $data = array(
-            'controller'    => $this->controller,
-            'form'          => $form,
-            'submissions'   => $submissions,
-            'upload_files'  => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
-            'export_urls'   => $export_urls,
-            'success'       => $this->session->flashdata('forms_success') ?: '',
-            'error'         => $this->session->flashdata('forms_error') ?: '',
+            'controller'        => $this->controller,
+            'form'              => $form,
+            'submissions'       => $submissions,
+            'identifier_fields' => $identifier_fields,
+            'identifier_values' => $identifier_values,
+            'upload_files'      => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
+            'export_urls'       => $export_urls,
+            'success'           => $this->session->flashdata('forms_success') ?: '',
+            'error'             => $this->session->flashdata('forms_error') ?: '',
         );
 
         $this->render_view('forms_admin/bs_submissions', $data);
@@ -2899,8 +2907,19 @@ class Forms_admin extends MY_Controller {
         $this->load->model('membres_model');
 
         $section_id = (int) $this->session->userdata('section');
-        $pilot_selector      = $this->membres_model->get_selector($section_id);
-        $instructor_selector = $this->membres_model->inst_selector($section_id);
+        if ($section_id > 0) {
+            $pilot_selector      = $this->membres_model->get_selector($section_id);
+            $instructor_selector = $this->membres_model->inst_selector($section_id);
+        } else {
+            // Aucune section active ("Toutes") : proposer les membres et les
+            // instructeurs de toutes les sections, afin de générer une même
+            // attestation (ex. formation) pour des membres de sections
+            // différentes. get_selector(0)/inst_selector(0) retomberaient
+            // sinon sur la section active — inexistante — et ne renverraient
+            // rien.
+            $pilot_selector      = $this->membres_model->get_selector_all();
+            $instructor_selector = $this->membres_model->inst_selector_all();
+        }
         $machine_selector    = $this->_get_machine_selector($section_id);
 
         $data = array(

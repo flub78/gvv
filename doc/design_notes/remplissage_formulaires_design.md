@@ -250,6 +250,18 @@ Le formulaire HTML ne porte aucun attribut `data-gvv-source` pour les champs pr�
 | `data-gvv-source` | Source de la donnée GVV | voir taxonomie ci-dessous |
 | `data-gvv-param` | Paramètre URL qui identifie l'entité | `pilot_login`, `instructor_login` |
 | `data-gvv-lock` | Verrouillage côté serveur | `true` / `false` (défaut : `false`) |
+| `data-gvv-label` | Libellé explicite du champ (en-tête de colonne dans la liste des réponses, libellés admin) | texte libre |
+
+#### Résolution du libellé d'un champ (`Forms_field_parser`)
+
+Le libellé d'un champ est résolu dans cet ordre, le premier non vide gagne :
+1. attribut `data-gvv-label` sur le champ ;
+2. `<label for="{id}">` correspondant à l'`id` du champ ;
+3. `<label>` (sans `for`) qui englobe le champ ;
+4. `<label>` (sans `for`) frère précédent immédiat du champ ;
+5. repli : l'attribut `name` du champ.
+
+Un élément autre que `<label>` (`<span>`, `<td>`…) n'est jamais utilisé comme source de libellé : un champ dont l'en-tête doit être maîtrisé alors qu'aucun `<label>` ne lui est rattaché porte `data-gvv-label`. L'astérisque « requis » et les espaces multiples sont normalisés.
 
 #### Syntaxe des sources — principe de distinction des tables
 
@@ -794,7 +806,7 @@ COALESCE(
 ) AS response_identifier
 ```
 
-Le commentaire saisi dans la modale de téléchargement sert donc directement de colonne "Identification" dans la liste des réponses.
+`response_identifier` reste utilisé pour le libellé de la modale de suppression et la vue détail d'une réponse. La **liste** des réponses (`forms_admin/submissions`), elle, n'affiche plus une colonne "Identification" fusionnée : elle rend **une colonne par champ marqué `data-gvv-identifier`**, chacune intitulée avec le libellé résolu du champ (voir « Résolution du libellé d'un champ »), dans l'ordre d'apparition dans le formulaire (`form_submissions_model::get_identifier_values()` fournit la valeur de chaque champ par soumission). Un formulaire sans aucun champ identifiant n'a donc aucune colonne de ce type. Pour une réponse de type `upload` (sans `form_submission_values`), le commentaire de téléchargement est affiché dans la première de ces colonnes.
 
 #### Stockage fichier
 

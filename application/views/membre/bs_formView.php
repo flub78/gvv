@@ -90,8 +90,14 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
         <div class="card mt-3">
             <div class="card-body text-center">
                 <h6 class="card-title mb-3"><i class="fas fa-signature"></i> <?= $this->lang->line('membre_signature_title') ?></h6>
+                <?php $has_signature = !empty($signature_path); ?>
+                <?php if ($has_signature): ?>
+                    <p class="mb-2"><span class="badge bg-success"><i class="fas fa-check"></i> <?= $this->lang->line('membre_signature_present') ?></span></p>
+                <?php else: ?>
+                    <p class="mb-2 text-muted small"><?= $this->lang->line('membre_signature_absent') ?></p>
+                <?php endif; ?>
                 <a href="<?= controller_url('membre') ?>/signature/<?= $mlogin ?>" class="btn btn-outline-secondary btn-sm w-100">
-                    <?= $this->lang->line('membre_signature_submit') ?>
+                    <?= $has_signature ? $this->lang->line('membre_signature_replace') : $this->lang->line('membre_signature_submit') ?>
                 </a>
             </div>
         </div>

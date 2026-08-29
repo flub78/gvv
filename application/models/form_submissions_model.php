@@ -210,6 +210,36 @@ class Form_submissions_model extends CI_Model {
     }
 
     /**
+     * Values of the given fields for every submission of a form, as
+     * [submission_id => [field_name => value_text]]. Used by the submissions
+     * list to render one column per identifier field (fields flagged
+     * data-gvv-identifier — resolved by the caller via Forms_field_parser).
+     *
+     * @param int $form_id
+     * @param array $field_names field names to fetch (empty => empty result)
+     * @return array
+     */
+    public function get_identifier_values($form_id, array $field_names) {
+        if (empty($field_names)) {
+            return array();
+        }
+
+        $rows = $this->db
+            ->select('sv.submission_id, sv.field_name, sv.value_text')
+            ->from($this->values_table . ' sv')
+            ->join($this->table . ' s', 's.id = sv.submission_id')
+            ->where('s.form_id', (int) $form_id)
+            ->where_in('sv.field_name', $field_names)
+            ->get()->result_array();
+
+        $out = array();
+        foreach ($rows as $row) {
+            $out[(int) $row['submission_id']][$row['field_name']] = $row['value_text'];
+        }
+        return $out;
+    }
+
+    /**
      * Raw values for a submission, keyed by field_name (no label/type — the
      * model has no access to file-based form content to resolve those; the
      * caller enriches by matching field_name against Forms_field_parser output).

@@ -133,6 +133,56 @@ class FormsFieldParserTest extends TestCase
         $this->assertSame(0, $fields[0]['is_identifier']);
     }
 
+    public function testDataGvvLabelWinsOverLabelForAndName()
+    {
+        $html = '<label for="c">Ignoré</label>'
+              . '<input type="text" id="c" name="candidat_nom" data-gvv-label="Nom et prénom">';
+
+        $fields = $this->parser->parse_fields($html);
+
+        $this->assertSame('Nom et prénom', $fields[0]['label']);
+    }
+
+    public function testWrappingLabelWithoutForIsUsed()
+    {
+        $html = '<div class="field-row"><label>Nom et prénom<input type="text" name="candidat_nom"></label></div>';
+
+        $fields = $this->parser->parse_fields($html);
+
+        $this->assertSame('Nom et prénom', $fields[0]['label']);
+    }
+
+    public function testPrecedingSiblingLabelWithoutForIsUsed()
+    {
+        $html = '<div class="field"><label>Prénom <span class="text-danger">*</span></label>'
+              . '<input type="text" name="prenom" required data-gvv-identifier="true"></div>';
+
+        $fields = $this->parser->parse_fields($html);
+
+        $this->assertSame('Prénom', $fields[0]['label']);
+    }
+
+    public function testPrecedingSiblingSpanIsNotUsedAsLabel()
+    {
+        $html = '<div class="field-line"><span class="fl-label">Nom :</span>'
+              . '<input type="text" id="nom" name="nom" data-gvv-identifier="true"></div>';
+
+        $fields = $this->parser->parse_fields($html);
+
+        // A <span> is never a label source — falls back to the field name.
+        $this->assertSame('nom', $fields[0]['label']);
+    }
+
+    public function testLabelForWinsOverPrecedingSiblingLabelWithoutFor()
+    {
+        $html = '<div><label>Mauvais</label><input type="text" id="x" name="x"></div>'
+              . '<label for="x">Bon libellé</label>';
+
+        $fields = $this->parser->parse_fields($html);
+
+        $this->assertSame('Bon libellé', $fields[0]['label']);
+    }
+
     public function testEmptyHtmlReturnsEmptyArray()
     {
         $this->assertSame(array(), $this->parser->parse_fields(''));

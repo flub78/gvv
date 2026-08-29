@@ -40,7 +40,7 @@ class Forms_field_parser {
         foreach ($xpath->query('//label[@for]') as $label_node) {
             $for = trim($label_node->getAttribute('for'));
             if ($for !== '') {
-                $label_map[$for] = trim(preg_replace('/\s*\*\s*/', '', $label_node->textContent));
+                $label_map[$for] = $this->_clean_label($label_node->textContent);
             }
         }
 
@@ -74,11 +74,7 @@ class Forms_field_parser {
                 $field_type = isset($type_map[$raw_type]) ? $type_map[$raw_type] : 'text';
             }
 
-            $id    = trim($node->getAttribute('id'));
-            $label = ($id !== '' && isset($label_map[$id])) ? $label_map[$id] : '';
-            if ($label === '') {
-                $label = $name;
-            }
+            $label = $this->_resolve_label($node, $xpath, $label_map, $name);
 
             $options = array();
             if ($tag === 'select') {
@@ -109,7 +105,8 @@ class Forms_field_parser {
             }
             $seen[$name] = true;
 
-            $label = trim($node->textContent);
+            $explicit_label = trim($node->getAttribute('data-gvv-label'));
+            $label = $explicit_label !== '' ? $this->_clean_label($explicit_label) : trim($node->textContent);
             if ($label === '') {
                 $label = $name;
             }
@@ -132,7 +129,8 @@ class Forms_field_parser {
             }
             $seen[$name] = true;
 
-            $label = trim($node->textContent);
+            $explicit_label = trim($node->getAttribute('data-gvv-label'));
+            $label = $explicit_label !== '' ? $this->_clean_label($explicit_label) : trim($node->textContent);
             if ($label === '') {
                 $label = $name;
             }
@@ -145,6 +143,52 @@ class Forms_field_parser {
         }
 
         return $fields;
+    }
+
+    /**
+     * Resolve a field's display label, in priority order:
+     *   (a) explicit  data-gvv-label="..."  attribute on the field
+     *   (b) <label for="{id}">  matching the field's id  (historical behaviour)
+     *   (c) a <label> without @for that wraps the field
+     *   (d) a <label> without @for that is the field's immediately preceding sibling
+     *   (e) fallback: the field's name attribute
+     *
+     * Non-<label> elements (span, td, ...) are never used as a label source —
+     * a form that needs a specific header for such a field must carry
+     * data-gvv-label. See doc/design_notes/remplissage_formulaires_design.md.
+     */
+    private function _resolve_label(DOMElement $node, DOMXPath $xpath, array $label_map, $name) {
+        $explicit = trim($node->getAttribute('data-gvv-label'));
+        if ($explicit !== '') {
+            return $this->_clean_label($explicit);
+        }
+
+        $id = trim($node->getAttribute('id'));
+        if ($id !== '' && isset($label_map[$id]) && $label_map[$id] !== '') {
+            return $label_map[$id];
+        }
+
+        $ancestor = $xpath->query('ancestor::label[not(@for)][1]', $node);
+        if ($ancestor->length && trim($ancestor->item(0)->textContent) !== '') {
+            return $this->_clean_label($ancestor->item(0)->textContent);
+        }
+
+        $prev_sibling = $xpath->query('preceding-sibling::*[1][self::label][not(@for)]', $node);
+        if ($prev_sibling->length && trim($prev_sibling->item(0)->textContent) !== '') {
+            return $this->_clean_label($prev_sibling->item(0)->textContent);
+        }
+
+        return $name;
+    }
+
+    /**
+     * Normalise a raw label string: collapse whitespace and drop the lone
+     * "required" asterisk (which is usually a separate <span> inside the label).
+     */
+    private function _clean_label($text) {
+        $text = preg_replace('/\s*\*\s*/', ' ', (string) $text);
+        $text = preg_replace('/\s+/', ' ', $text);
+        return trim($text);
     }
 
     private function _descriptor($name, $label, $field_type, $is_required, $sort_order, array $options, DOMElement $node, $gvv_role) {

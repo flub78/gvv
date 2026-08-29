@@ -854,6 +854,54 @@ class Membres_model extends Common_Model {
     }
 
     /**
+     * Sélecteur des membres pilotes de *toutes* les sections (compte 411 actif
+     * dans au moins une section). Pendant "toutes sections" de get_selector(),
+     * qui lui est limité à une section précise.
+     *
+     * Utilisé par la page de génération de formulaires quand aucune section
+     * n'est active ("Toutes") : on doit pouvoir viser un membre quelle que
+     * soit sa section (ex. même attestation de formation pour des membres de
+     * sections différentes).
+     *
+     * @param bool $only_actif true = uniquement les membres actifs (rôle
+     *                          'user' non révoqué dans au moins une section)
+     * @return array Sélecteur [mlogin => image], toujours initialisé avec ['' => '']
+     */
+    public function get_selector_all($only_actif = true) {
+        $this->db->distinct();
+        $this->db->select('membres.mlogin');
+        $this->db->from('membres');
+        $this->db->join('comptes', 'comptes.pilote = membres.mlogin', 'inner');
+        $this->db->where('comptes.codec', '411');
+        $this->db->where('comptes.actif', 1);
+        $this->db->where('comptes.masked', 0);
+
+        if ($only_actif) {
+            $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');
+            $this->db->join('user_roles_per_section urps_actif', 'urps_actif.user_id = u_actif.id', 'inner');
+            $this->db->join('types_roles tr_actif', 'tr_actif.id = urps_actif.types_roles_id', 'inner');
+            $this->db->where('tr_actif.nom', 'user');
+            $this->db->where('urps_actif.revoked_at IS NULL');
+            // Pas de filtre de section : actif dans au moins une section
+        }
+
+        $this->db->order_by('membres.mnom', 'ASC');
+        $this->db->order_by('membres.mprenom', 'ASC');
+
+        $query = $this->db->get();
+
+        $selector = array('' => '');
+        if ($query && $query->num_rows() > 0) {
+            foreach ($query->result_array() as $row) {
+                $mlogin = $row['mlogin'];
+                $selector[$mlogin] = $this->image($mlogin);
+            }
+        }
+
+        return $selector;
+    }
+
+    /**
      * Selector for the rename-user admin feature.
      * Returns all users from the `users` table regardless of section,
      * with name from the membres table when available.

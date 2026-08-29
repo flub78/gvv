@@ -494,18 +494,22 @@ Exemples HTML par type :
 
 ### Attributs data-gvv complémentaires
 
-Deux attributs optionnels complètent le comportement d'un champ, sans équivalent visuel dans le rendu :
+Ces attributs optionnels complètent le comportement d'un champ, sans équivalent visuel dans le rendu :
 
 | Attribut | Effet |
 |---|---|
-| `data-gvv-identifier="true"` | La valeur de ce champ est concaténée avec celles des autres champs identifiants pour former l'identifiant affiché dans la [liste des réponses](13_formulaires.md#consulter-les-réponses-reçues) |
+| `data-gvv-identifier="true"` | Ce champ devient une **colonne** de la [liste des réponses](13_formulaires.md#consulter-les-réponses-reçues) (une colonne par champ identifiant, intitulée avec le libellé du champ). Un formulaire sans champ identifiant n'a pas de colonne de ce type. |
+| `data-gvv-label="Texte"` | Force le libellé du champ (en-tête de la colonne ci-dessus). À utiliser quand le champ n'a pas de `<label for="…">` propre, ou pour un en-tête différent du libellé affiché. |
 | `data-gvv-validation="regle1\|regle2"` | Règles de validation serveur supplémentaires, en plus du type. Reconnues : `max_length[n]`, `min_length[n]`, `valid_email`, `numeric` |
 
 ```html
 <input type="text" name="numero_licence"
        data-gvv-identifier="true"
+       data-gvv-label="N° de licence"
        data-gvv-validation="max_length[10]|numeric">
 ```
+
+Sans `data-gvv-label`, le libellé de la colonne est repris (dans l'ordre) du `<label for>` du champ, d'un `<label>` englobant ou précédant immédiatement le champ, sinon du nom technique du champ (`numero_licence`).
 
 ### Rôles de champs GVV
 

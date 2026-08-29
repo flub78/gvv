@@ -245,6 +245,10 @@
 * [x] Type de vol solo supervisé.
 
 * [x] Approbation de documents
+  
+* [x] Mettre en place un mécanisme d'export des sauvegardes automatiques vers une autre machine.
+
+* [x] Corriger les rapports de formation.
 
 
 

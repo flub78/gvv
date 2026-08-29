@@ -177,6 +177,27 @@ Au rendu serveur (`Forms_renderer`), ce nœud est repéré par ses attributs `da
 3. **Édition directe du fichier** reste possible et immédiatement effective (le fichier est la source de vérité) pour un admin ayant accès au serveur — sans passer par une archive, ex. corriger une coquille avec un éditeur de texte sur le serveur.
 4. Le rendu public (`forms_public`) et l'admin (`forms_admin` : liste des pages, champs détectés, réponses, export PDF/ZIP, prévisualisation CSS) lisent tous deux le fichier en priorité (repli sur la base seulement si le fichier est absent), afin qu'une édition directe du fichier soit immédiatement visible partout — pas seulement côté public. Chaque contrôleur applique ce principe via ses propres méthodes d'overlay (`_overlay_pages_from_file()` / `_overlay_css_from_file()`), une par contrôleur ; la base reste un mirroir best-effort qui peut rester en retard sans que ça affecte le comportement observable.
 
+### Déploiement dev → production (`bin/forms-push.sh`)
+
+Formulaires mis au point sur le poste de développement, puis poussés vers un
+serveur de production via `rsync`/SSH (le poste a un accès SSH au serveur) :
+
+1. `bin/forms-push.sh [--dry-run] [--sync] <code> [<code>…]` :
+   - valide le HTML localement (parser GVV), archive la version distante
+     (`~/gvv-form-backups/<code>_<horodatage>.tgz`), puis `rsync` du répertoire
+     `uploads/formulaires/<code>/` (`.htaccess` exclu — la prod garde le sien) ;
+   - `--delete` strictement borné à ce répertoire ; `<code>` refusé s'il n'est
+     pas `[A-Za-z0-9_-]+` ; refuse un formulaire absent de la prod sauf
+     `--allow-new` (ne crée jamais la ligne `forms` : slug/statut/section sont
+     des décisions propres à l'installation).
+2. **Couverture sans étape base** : contenu des pages, `style.css`, images,
+   `template.pdf` — effectif au rendu suivant grâce à l'overlay fichier→base de
+   `forms_public`. C'est le cas courant.
+3. **Nécessite une resynchronisation base** (`--sync`, contrôleur CLI
+   `forms_cli`, cf. « Ce que ça ne fait pas ») : ajout/suppression/titre de
+   page, ou toute métadonnée de la table `forms` (`meta.json`) — sinon la prod
+   sert une liste de pages ou des métadonnées périmées.
+
 ### Migration des formulaires existants
 
 1. Pour chaque formulaire dont le contenu est encore uniquement en base (`content_html`/`global_css` non vides, fichier absent), écrire le fichier correspondant dans `uploads/formulaires/{code}/`.
@@ -190,6 +211,8 @@ Au rendu serveur (`Forms_renderer`), ce nœud est repéré par ses attributs `da
 - Pas de synchronisation bidirectionnelle fichier ↔ base : le fichier est la seule source de vérité du contenu, la base ne le duplique plus.
 - Pas de rendu public directement depuis un serveur de fichiers statique (Apache/Nginx) : le rendu passe toujours par `forms_public`/`Forms_renderer` pour l'injection des widgets dynamiques ; seule la copie locale utilisée pour l'édition/prévisualisation s'ouvre en `file://`.
 - Pas de versioning intégré à GVV des fichiers (Git peut jouer ce rôle si les fichiers sont aussi conservés hors serveur de production).
+- `bin/forms-push.sh` ne synchronise pas la base de la production (liste des pages, métadonnées `forms`) : c'est le rôle d'un contrôleur CLI `forms_cli sync <code>` (garde `is_cli()`, refactorisation du corps commun de `form_restore()`/`form_import_zip()` — `update_form()` depuis `meta.json` + `_sync_pages_from_files()`, sans `$_FILES` ni session, `updated_by = 'forms_cli'`, échec sur `code` inconnu). À livrer quand un déploiement devra propager un changement structurel ; `forms-push.sh --sync` l'appelle déjà.
+- `bin/forms-push.sh` ne pousse pas `.commun/` (ressources partagées) : un changement partagé se déploie séparément et délibérément (il impacte tous les formulaires de l'installation).
 
 ## Sécurité
 
