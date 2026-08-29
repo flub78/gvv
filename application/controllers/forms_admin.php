@@ -1214,8 +1214,10 @@ class Forms_admin extends MY_Controller {
             if (isset($sig_files[$name]) && !empty($sig_files[$name]['storage_path'])) {
                 $abs_path = FCPATH . ltrim((string) $sig_files[$name]['storage_path'], '/');
                 if (file_exists($abs_path) && is_readable($abs_path)) {
+                    $sig_info = @getimagesize($abs_path);
+                    $sig_mime = ($sig_info && !empty($sig_info['mime'])) ? $sig_info['mime'] : 'image/png';
                     $img = $dom->createElement('img');
-                    $img->setAttribute('src', 'data:image/png;base64,' . base64_encode(file_get_contents($abs_path)));
+                    $img->setAttribute('src', 'data:' . $sig_mime . ';base64,' . base64_encode(file_get_contents($abs_path)));
                     $img->setAttribute('style', 'max-width:100%; max-height:80px; border:1px solid #dee2e6; display:block;');
                     $div->parentNode->replaceChild($img, $div);
                 } else {

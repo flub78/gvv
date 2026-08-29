@@ -1110,7 +1110,11 @@ class Forms_public extends CI_Controller {
      *
      * Finds <div data-gvv-type="signature" data-gvv-name="..." data-gvv-source="...">
      * elements in raw page HTML, resolves the source to a file path, reads the file
-     * from disk, and returns array(field_name => base64_string).
+     * from disk, and returns array(field_name => "data:<mime>;base64,<...>").
+     *
+     * The stored reference signature may be a PNG (drawn/typed) or a JPEG/GIF/WebP
+     * (uploaded image), so the real MIME type is detected here and carried in the
+     * data URI — the signature widget must not assume image/png.
      */
     private function _collect_gvv_sig_prefill($raw_html, $pilot_login, $instructor_login, $machine_immat, $club_id) {
         $sig_prefill = array();
@@ -1134,7 +1138,9 @@ class Forms_public extends CI_Controller {
             $data = @file_get_contents($abs_path);
             if ($data === false || $data === '') continue;
 
-            $sig_prefill[$nm[1]] = base64_encode($data);
+            $info = @getimagesize($abs_path);
+            $mime = ($info && !empty($info['mime'])) ? $info['mime'] : 'image/png';
+            $sig_prefill[$nm[1]] = 'data:' . $mime . ';base64,' . base64_encode($data);
         }
 
         return $sig_prefill;

@@ -155,4 +155,40 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
         $result = $this->http_get($this->form_url(), $cookie);
         $this->assertStringContainsString('data-sig-prefill="1"', $result['body']);
     }
+
+    /**
+     * A reference signature stored as a JPEG (uploaded image, not a drawn PNG) must
+     * be pre-filled with its real MIME type carried in data-sig-prefill-mime — the
+     * widget JS builds the data URI from that attribute instead of assuming PNG.
+     * Regression: JPEG signatures rendered blank because the pipeline hard-coded
+     * "data:image/png;base64,".
+     */
+    public function testJpegReferenceSignatureCarriesItsRealMimeType()
+    {
+        if (!function_exists('imagejpeg')) {
+            $this->markTestSkipped('GD extension with JPEG support is required.');
+        }
+
+        $jpeg_relpath = 'uploads/tests/sig_guard_' . uniqid() . '.jpg';
+        $jpeg_abs     = FCPATH . $jpeg_relpath;
+        $im = imagecreatetruecolor(60, 20);
+        imagefill($im, 0, 0, imagecolorallocate($im, 255, 255, 255));
+        imagejpeg($im, $jpeg_abs);
+        imagedestroy($im);
+        $this->db->where('mlogin', $this->instructor_login)->update('membres', array('signature_path' => $jpeg_relpath));
+
+        try {
+            $cookie = $this->login_as($this->instructor_login);
+            $this->assertNotNull($cookie, 'Login as the instructor should succeed and return a session cookie.');
+
+            $result = $this->http_get($this->form_url(), $cookie);
+            $this->assertStringContainsString('data-sig-prefill="1"', $result['body']);
+            $this->assertStringContainsString('data-sig-prefill-mime="image/jpeg"', $result['body']);
+        } finally {
+            $this->db->where('mlogin', $this->instructor_login)->update('membres', array('signature_path' => $this->signature_relpath));
+            if (file_exists($jpeg_abs)) {
+                unlink($jpeg_abs);
+            }
+        }
+    }
 }

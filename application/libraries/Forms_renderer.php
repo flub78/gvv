@@ -754,7 +754,21 @@ class Forms_renderer {
         // Hidden inputs
         $prefill_attrs = '';
         if ($prefill_base64 !== '') {
-            $prefill_attrs = ' value="' . htmlspecialchars($prefill_base64, ENT_QUOTES, 'UTF-8') . '" data-sig-prefill="1"';
+            // The prefill may arrive as a bare base64 payload (re-display after a
+            // validation error — always PNG) or as a full "data:<mime>;base64,<...>"
+            // URI (GVV reference signature, which can be JPEG/GIF/WebP). Keep the bare
+            // payload in value and carry the MIME in a separate attribute so the hidden
+            // field never holds a "data:...;base64," string (CI2 global XSS filtering
+            // strips that pattern on submit).
+            $sig_mime    = 'image/png';
+            $sig_payload = $prefill_base64;
+            if (preg_match('#^data:([^;]+);base64,(.*)$#s', $prefill_base64, $mm)) {
+                $sig_mime    = $mm[1];
+                $sig_payload = $mm[2];
+            }
+            $prefill_attrs = ' value="' . htmlspecialchars($sig_payload, ENT_QUOTES, 'UTF-8') . '"'
+                           . ' data-sig-prefill="1"'
+                           . ' data-sig-prefill-mime="' . htmlspecialchars($sig_mime, ENT_QUOTES, 'UTF-8') . '"';
         }
         $html .= '  <input type="hidden" name="' . $fn . '" class="gvv-sig-value"' . $prefill_attrs . '>' . "\n";
         $html .= '  <input type="hidden" name="' . $fn . '_type" class="gvv-sig-type-hidden" value="canvas">' . "\n";
@@ -1391,21 +1405,28 @@ VALJS;
             pad = new SignaturePad(drawCanvas, { backgroundColor: 'rgb(255,255,255)' });
         }
 
-        // --- Restore prefill (signature kept after a validation failure) ---
+        // --- Restore prefill (GVV reference signature, or signature kept after a
+        //     validation failure). The payload may be PNG or an uploaded JPEG/GIF/WebP,
+        //     so the MIME comes from data-sig-prefill-mime (default image/png). ---
         if (valueInput && valueInput.getAttribute('data-sig-prefill') === '1' && valueInput.value) {
-            var prefillB64 = valueInput.value;
+            var prefillMime = valueInput.getAttribute('data-sig-prefill-mime') || 'image/png';
+            var prefillUrl  = 'data:' + prefillMime + ';base64,' + valueInput.value;
+            var drawPrefillOnCanvas = function () {
+                if (!drawCanvas) return;
+                var img = new Image();
+                img.onload = function () {
+                    drawCanvas.getContext('2d').drawImage(img, 0, 0, drawCanvas.offsetWidth, drawCanvas.offsetHeight);
+                };
+                img.src = prefillUrl;
+            };
             if (pad) {
-                // Use SignaturePad v4 API so internal state matches the canvas
-                pad.fromDataURL('data:image/png;base64,' + prefillB64);
-            } else if (drawCanvas) {
-                requestAnimationFrame(function () {
-                    var img = new Image();
-                    img.onload = function () {
-                        var ctx = drawCanvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, drawCanvas.offsetWidth, drawCanvas.offsetHeight);
-                    };
-                    img.src = 'data:image/png;base64,' + prefillB64;
+                // Use SignaturePad v4 API so internal state matches the canvas;
+                // fall back to a raw canvas draw if the image fails to decode.
+                pad.fromDataURL(prefillUrl).catch(function () {
+                    requestAnimationFrame(drawPrefillOnCanvas);
                 });
+            } else if (drawCanvas) {
+                requestAnimationFrame(drawPrefillOnCanvas);
             }
         }
 
