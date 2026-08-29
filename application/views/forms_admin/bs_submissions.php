@@ -20,6 +20,9 @@
             ? site_url('forms_admin/generate/' . rawurlencode($public_slug))
             : site_url('forms/' . rawurlencode($public_slug));
         $allow_upload_response = !empty($form['allow_upload_response']);
+        $date_from = isset($date_from) ? (string) $date_from : '';
+        $date_to   = isset($date_to)   ? (string) $date_to   : '';
+        $has_date_filter = ($date_from !== '' || $date_to !== '');
     ?>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -46,6 +49,34 @@
     <?php if (!empty($error)): ?>
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
+
+    <form method="get" action="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>" class="mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label for="date_from" class="form-label mb-1"><?= $this->lang->line('forms_filter_date_from') ?></label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="<?= html_escape($date_from) ?>">
+            </div>
+            <div class="col-auto">
+                <label for="date_to" class="form-label mb-1"><?= $this->lang->line('forms_filter_date_to') ?></label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="<?= html_escape($date_to) ?>">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> <?= $this->lang->line('forms_button_filter') ?>
+                </button>
+            </div>
+            <?php if ($has_date_filter): ?>
+                <div class="col-auto">
+                    <a class="btn btn-outline-secondary" href="<?= site_url('forms_admin/submissions/' . (int) $form['id']) ?>">
+                        <?= $this->lang->line('forms_button_reset') ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php if ($has_date_filter): ?>
+            <div class="form-text mt-1"><?= sprintf($this->lang->line('forms_filter_active_note'), count($submissions)) ?></div>
+        <?php endif; ?>
+    </form>
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -160,6 +191,20 @@
             </div>
         </div>
     </div>
+
+    <?php
+        $export_qs = http_build_query(array_filter(array(
+            'date_from' => $date_from,
+            'date_to'   => $date_to,
+        )));
+        $export_suffix = ($export_qs !== '') ? '?' . $export_qs : '';
+    ?>
+    <?php if (!empty($submissions)): ?>
+        <?= button_bar4(array(
+            array('label' => 'Excel', 'url' => site_url('forms_admin/submissions_csv/' . (int) $form['id']) . $export_suffix),
+            array('label' => 'Pdf',   'url' => site_url('forms_admin/submissions_pdf/' . (int) $form['id']) . $export_suffix),
+        )) ?>
+    <?php endif; ?>
 </div>
 
 <?php if ($allow_upload_response && $public_slug !== ''): ?>

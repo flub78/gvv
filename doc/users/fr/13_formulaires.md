@@ -51,10 +51,12 @@ Ce pré-remplissage suppose que les champs de la page ont été annotés à la r
 Les réponse sont consultables depuis la liste des réponses. 
 
 1. **Formulaires → [nom du formulaire] → Réponses**.
-2. La liste indique, pour chaque soumission, l'**Identification** (champs marqués comme identifiants, ou le commentaire pour un dépôt scanné) et **Soumis par** (nom/email captés, ou "Anonyme").
-3. **"Ouvrir"** affiche le détail : toutes les valeurs saisies, et un aperçu intégré des fichiers/signatures joints (image affichée directement, PDF dans un cadre de prévisualisation) ; "Aperçu" et "Télécharger" restent disponibles.
-4. **"PDF"** ouvre une version imprimable de la réponse.
-5. **"Supprimer"** retire définitivement la réponse, ses valeurs et ses fichiers — il n'y a pas d'expiration automatique, la rétention est illimitée tant qu'une réponse n'est pas supprimée manuellement.
+2. La liste affiche **une colonne par champ marqué comme identifiant** (`data-gvv-identifier`), intitulée avec le libellé du champ, plus **Soumis par** (nom/email captés, ou "Anonyme"). Un formulaire sans champ identifiant n'a pas de colonne de ce type ; pour un dépôt scanné sans valeurs, le commentaire de dépôt apparaît dans la première colonne identifiant.
+3. **Filtre par période** : les champs **Du** / **Au** en haut de la liste restreignent l'affichage aux réponses soumises dans l'intervalle (bornes incluses). **Réinitialiser** enlève le filtre. La liste est limitée aux 200 réponses les plus récentes de l'intervalle.
+4. **"Ouvrir"** affiche le détail : toutes les valeurs saisies, et un aperçu intégré des fichiers/signatures joints (image affichée directement, PDF dans un cadre de prévisualisation) ; "Aperçu" et "Télécharger" restent disponibles.
+5. **"PDF"** ouvre une version imprimable de la réponse.
+6. **"Supprimer"** retire définitivement la réponse, ses valeurs et ses fichiers — il n'y a pas d'expiration automatique, la rétention est illimitée tant qu'une réponse n'est pas supprimée manuellement.
+7. **Exports** : les boutons **Excel** (CSV) et **Pdf** en bas de la liste exportent les réponses avec les mêmes colonnes que l'écran (identifiants, soumis par, date). L'export **reprend le filtre de période** actif et n'est pas limité aux 200 lignes.
 
 Les fichiers joints ne sont jamais accessibles par une URL prévisible côté public : seul un administrateur authentifié ayant accès à la section peut les consulter, et le navigateur n'est pas autorisé à les mettre en cache.
 

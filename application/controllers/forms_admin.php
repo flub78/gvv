@@ -77,7 +77,7 @@ class Forms_admin extends MY_Controller {
      */
     private function _can_access_workflow_form() {
         $method = $this->router->fetch_method();
-        if (!in_array($method, array('submission_pdf', 'submissions'), true)) {
+        if (!in_array($method, array('submission_pdf', 'submissions', 'submissions_csv', 'submissions_pdf'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
@@ -616,19 +616,16 @@ class Forms_admin extends MY_Controller {
         ]);
 
         $fields = $this->_parse_form_fields($form);
-        $identifier_names = array();
-        $identifier_fields = array();
-        foreach ($fields as $f) {
-            if (!empty($f['is_identifier'])) {
-                $identifier_names[] = $f['name'];
-                $identifier_fields[] = array(
-                    'name'  => $f['name'],
-                    'label' => ($f['label'] !== '' ? $f['label'] : $f['name']),
-                );
-            }
-        }
+        list($identifier_names, $identifier_fields) = $this->_identifier_fields($fields);
 
-        $submissions = $this->form_submissions_model->get_form_submissions((int) $form['id'], 200, 0, $identifier_names);
+        // Filtre par période de soumission (submitted_at). Dates au format
+        // Y-m-d ; une valeur mal formée est ignorée silencieusement.
+        $date_from = $this->_valid_date_or_null($this->input->get('date_from'));
+        $date_to   = $this->_valid_date_or_null($this->input->get('date_to'));
+
+        $submissions = $this->form_submissions_model->get_form_submissions(
+            (int) $form['id'], 200, 0, $identifier_names, $date_from, $date_to
+        );
         $identifier_values = $this->form_submissions_model->get_identifier_values((int) $form['id'], $identifier_names);
 
         $upload_submission_ids = array();
@@ -661,11 +658,152 @@ class Forms_admin extends MY_Controller {
             'identifier_values' => $identifier_values,
             'upload_files'      => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
             'export_urls'       => $export_urls,
+            'date_from'         => $date_from ?: '',
+            'date_to'           => $date_to ?: '',
             'success'           => $this->session->flashdata('forms_success') ?: '',
             'error'             => $this->session->flashdata('forms_error') ?: '',
         );
 
         $this->render_view('forms_admin/bs_submissions', $data);
+    }
+
+    /**
+     * Returns $value if it is a well-formed Y-m-d date, null otherwise.
+     */
+    private function _valid_date_or_null($value) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        $d = DateTime::createFromFormat('Y-m-d', $value);
+        return ($d && $d->format('Y-m-d') === $value) ? $value : null;
+    }
+
+    /**
+     * From a parsed field list, the data-gvv-identifier fields in document
+     * order: [ [names...], [ {name,label}... ] ]. label falls back to name.
+     */
+    private function _identifier_fields(array $fields) {
+        $names = array();
+        $cols  = array();
+        foreach ($fields as $f) {
+            if (!empty($f['is_identifier'])) {
+                $names[] = $f['name'];
+                $cols[]  = array('name' => $f['name'], 'label' => ($f['label'] !== '' ? $f['label'] : $f['name']));
+            }
+        }
+        return array($names, $cols);
+    }
+
+    /**
+     * Tabular view of a form's submissions for CSV/PDF export: header row
+     * first, then one row per submission, honouring the same date filter
+     * (date_from / date_to in GET) and the same columns as the on-screen
+     * list — ID, one column per identifier field, "Soumis par", date.
+     * No 200-row cap here (export is meant to be complete).
+     */
+    private function _submissions_export_table($form) {
+        list($identifier_names, $identifier_fields) = $this->_identifier_fields($this->_parse_form_fields($form));
+
+        $date_from = $this->_valid_date_or_null($this->input->get('date_from'));
+        $date_to   = $this->_valid_date_or_null($this->input->get('date_to'));
+
+        $submissions = $this->form_submissions_model->get_form_submissions(
+            (int) $form['id'], 0, 0, $identifier_names, $date_from, $date_to
+        );
+        $identifier_values = $this->form_submissions_model->get_identifier_values((int) $form['id'], $identifier_names);
+
+        $header = array($this->lang->line('forms_label_id'));
+        foreach ($identifier_fields as $col) {
+            $header[] = $col['label'];
+        }
+        $header[] = $this->lang->line('forms_label_submitted_by');
+        $header[] = $this->lang->line('forms_label_date');
+
+        $table = array($header);
+        foreach ($submissions as $s) {
+            $sid       = (int) $s['id'];
+            $is_upload = (($s['submission_method'] ?? 'online') === 'upload');
+            $row       = array($sid);
+
+            $first = true;
+            foreach ($identifier_fields as $col) {
+                $val = isset($identifier_values[$sid][$col['name']])
+                    ? trim((string) $identifier_values[$sid][$col['name']]) : '';
+                if ($val === '' && $first && $is_upload) {
+                    $val = trim((string) ($s['upload_comment'] ?? ''));
+                }
+                $row[] = $val;
+                $first = false;
+            }
+
+            $name  = trim((string) $s['submitter_name']);
+            $email = trim((string) $s['submitter_email']);
+            if ($name !== '' && $email !== '') {
+                $row[] = $name . ' <' . $email . '>';
+            } elseif ($name !== '' || $email !== '') {
+                $row[] = ($name !== '') ? $name : $email;
+            } else {
+                $row[] = $this->lang->line('forms_label_anonymous');
+            }
+
+            $row[] = (string) $s['submitted_at'];
+            $table[] = $row;
+        }
+
+        return $table;
+    }
+
+    /**
+     * CSV export of the submissions list (current date filter applied).
+     */
+    public function submissions_csv($form_id = 0) {
+        $form = $this->load_form_or_redirect($this->_resolve_form_stub($form_id));
+        if (!$form) {
+            return;
+        }
+        $this->load->helper('csv');
+        csv_file(
+            $this->lang->line('forms_title_submissions') . ' - ' . $form['code'],
+            $this->_submissions_export_table($form)
+        );
+    }
+
+    /**
+     * PDF export of the submissions list (current date filter applied).
+     * A3 landscape + DejaVu 6pt, same layout family as event::pdf().
+     */
+    public function submissions_pdf($form_id = 0) {
+        $form = $this->load_form_or_redirect($this->_resolve_form_stub($form_id));
+        if (!$form) {
+            return;
+        }
+        $this->load->helper('csv');
+        $this->load->library('Pdf');
+
+        $table = $this->_submissions_export_table($form);
+        $title = $this->lang->line('forms_title_submissions') . ' - ' . $form['title'];
+
+        $pdf = new Pdf('L', 'mm', 'A3');
+        $pdf->AddPage('L');
+        $pdf->title($title, 1);
+
+        $ncols   = count($table[0]);
+        $n_ident = max(1, $ncols - 3); // hors ID, "Soumis par", date
+        $ident_w = max(22, (int) (300 / $n_ident));
+        $w = array(); $align = array();
+        for ($i = 0; $i < $ncols; $i++) {
+            if ($i === 0) {                     // ID
+                $w[] = 14; $align[] = 'R';
+            } elseif ($i >= $ncols - 2) {       // "Soumis par", date
+                $w[] = 44; $align[] = 'L';
+            } else {                            // colonnes identifiantes
+                $w[] = $ident_w; $align[] = 'L';
+            }
+        }
+
+        $pdf->table($w, 8, $align, $table);
+        $pdf->Output('I', pdf_filename($title));
     }
 
     public function submission($form_id = 0, $submission_id = 0) {

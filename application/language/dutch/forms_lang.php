@@ -149,6 +149,13 @@ $lang['forms_empty_section']              = 'Geen formulieren voor de actieve se
 $lang['forms_empty_no_pages']             = 'Geen pagina\'s voor dit formulier.';
 $lang['forms_empty_no_fields']            = 'Geen velden gedefinieerd voor deze pagina.';
 $lang['forms_empty_no_submissions']       = 'Geen reacties opgeslagen.';
+
+// Filter voor reactielijst
+$lang['forms_filter_date_from']           = 'Vanaf';
+$lang['forms_filter_date_to']             = 'Tot';
+$lang['forms_button_filter']              = 'Filteren';
+$lang['forms_button_reset']               = 'Wissen';
+$lang['forms_filter_active_note']         = '%d reactie(s) in de geselecteerde periode.';
 $lang['forms_empty_no_values']            = 'Geen waarden.';
 $lang['forms_empty_no_files']             = 'Geen bestanden voor deze inzending.';
 

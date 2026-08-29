@@ -149,6 +149,13 @@ $lang['forms_empty_section']              = 'No forms for the active section (an
 $lang['forms_empty_no_pages']             = 'No pages for this form.';
 $lang['forms_empty_no_fields']            = 'No fields defined for this page.';
 $lang['forms_empty_no_submissions']       = 'No responses recorded.';
+
+// Submissions list filter
+$lang['forms_filter_date_from']           = 'From';
+$lang['forms_filter_date_to']             = 'To';
+$lang['forms_button_filter']              = 'Filter';
+$lang['forms_button_reset']               = 'Reset';
+$lang['forms_filter_active_note']         = '%d response(s) in the selected period.';
 $lang['forms_empty_no_values']            = 'No values.';
 $lang['forms_empty_no_files']             = 'No files for this submission.';
 

@@ -148,6 +148,13 @@ $lang['forms_empty_section']              = 'Aucun formulaire pour la section ac
 $lang['forms_empty_no_pages']             = 'Aucune page pour ce formulaire.';
 $lang['forms_empty_no_fields']            = 'Aucun champ défini pour cette page.';
 $lang['forms_empty_no_submissions']       = 'Aucune réponse enregistrée.';
+
+// Filtre de la liste des réponses
+$lang['forms_filter_date_from']           = 'Du';
+$lang['forms_filter_date_to']             = 'Au';
+$lang['forms_button_filter']              = 'Filtrer';
+$lang['forms_button_reset']               = 'Réinitialiser';
+$lang['forms_filter_active_note']         = '%d réponse(s) sur la période sélectionnée.';
 $lang['forms_empty_no_values']            = 'Aucune valeur.';
 $lang['forms_empty_no_files']             = 'Aucun fichier pour cette soumission.';
 

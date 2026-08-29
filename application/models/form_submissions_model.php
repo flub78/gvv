@@ -180,8 +180,26 @@ class Form_submissions_model extends CI_Model {
      * @param array $identifier_field_names field names flagged data-gvv-identifier
      *   in the form's HTML (parsed on demand by the caller via Forms_field_parser —
      *   the model has no access to file-based form content).
+     * @param int $limit maximum rows, or 0 for no limit (full export)
+     * @param string|null $date_from inclusive lower bound on submitted_at (Y-m-d)
+     * @param string|null $date_to   inclusive upper bound on submitted_at (Y-m-d)
      */
-    public function get_form_submissions($form_id, $limit = 100, $offset = 0, array $identifier_field_names = array()) {
+    public function get_form_submissions($form_id, $limit = 100, $offset = 0, array $identifier_field_names = array(), $date_from = null, $date_to = null) {
+        $where        = 's.form_id = ?';
+        $where_params = array((int) $form_id);
+
+        if (!empty($date_from)) {
+            $where .= ' AND s.submitted_at >= ?';
+            $where_params[] = $date_from . ' 00:00:00';
+        }
+        if (!empty($date_to)) {
+            $where .= ' AND s.submitted_at <= ?';
+            $where_params[] = $date_to . ' 23:59:59';
+        }
+
+        $limit_sql    = ((int) $limit > 0) ? ' LIMIT ? OFFSET ?' : '';
+        $limit_params = ((int) $limit > 0) ? array((int) $limit, (int) $offset) : array();
+
         if (!empty($identifier_field_names)) {
             $placeholders = implode(',', array_fill(0, count($identifier_field_names), '?'));
             $sql = "SELECT s.*,
@@ -194,17 +212,15 @@ class Form_submissions_model extends CI_Model {
                         s.upload_comment
                       ) AS response_identifier
                     FROM {$this->table} s
-                    WHERE s.form_id = ?
-                    ORDER BY s.submitted_at DESC
-                    LIMIT ? OFFSET ?";
-            $params = array_merge($identifier_field_names, array((int) $form_id, (int) $limit, (int) $offset));
+                    WHERE $where
+                    ORDER BY s.submitted_at DESC" . $limit_sql;
+            $params = array_merge($identifier_field_names, $where_params, $limit_params);
         } else {
             $sql = "SELECT s.*, s.upload_comment AS response_identifier
                     FROM {$this->table} s
-                    WHERE s.form_id = ?
-                    ORDER BY s.submitted_at DESC
-                    LIMIT ? OFFSET ?";
-            $params = array((int) $form_id, (int) $limit, (int) $offset);
+                    WHERE $where
+                    ORDER BY s.submitted_at DESC" . $limit_sql;
+            $params = array_merge($where_params, $limit_params);
         }
         return $this->db->query($sql, $params)->result_array();
     }
