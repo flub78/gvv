@@ -1,0 +1,16 @@
+# Bloque l'accès web direct aux sauvegardes de la base (.zip, .sql, .sql.gz,
+# .tar.gz...) et aux journaux de sauvegarde.
+#
+# Ce répertoire est alimenté par admin::backup()/backup2()/backup_media() et
+# sert de bibliothèque de sauvegardes pour admin::restore(). Les fichiers y
+# restent de façon persistante.
+#
+# ATTENTION : sur un déploiement nginx en frontal, ce fichier est ignoré.
+# Appliquer en plus la règle nginx (voir doc/security/exposition_directe_uploads.md).
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

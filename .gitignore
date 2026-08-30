@@ -53,3 +53,16 @@ assets/images/vd_carousel/*
 !assets/images/vd_carousel/README.md
 
 tmp/*
+
+# Sécurité : versionner les .htaccess de protection de uploads/ et backups/
+# (voir doc/security/exposition_directe_uploads.md)
+!uploads/.htaccess
+!uploads/documents/
+uploads/documents/*
+!uploads/documents/.htaccess
+!uploads/restore/
+uploads/restore/*
+!uploads/restore/.htaccess
+!backups/
+backups/*
+!backups/.htaccess
