@@ -678,7 +678,9 @@ class Vols_avion extends Gvv_Controller {
         }
 
         $avion = $this->avions_model->get_by_id('macimmat', $vamacid);
-        if (!$avion || !isset($avion['autonomie_en_heures']) || $avion['autonomie_en_heures'] === null || $avion['autonomie_en_heures'] === '') {
+        if (!$avion || !isset($avion['autonomie_en_heures']) || $avion['autonomie_en_heures'] === null || $avion['autonomie_en_heures'] === ''
+                || floatval($avion['autonomie_en_heures']) <= 0) {
+            // Autonomie non renseignée (ou valeur 0 invalide, hors plage 1.0-8.0) : pas de limite.
             return true;
         }
 

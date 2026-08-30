@@ -713,9 +713,17 @@ class Forms_admin extends MY_Controller {
         );
         $identifier_values = $this->form_submissions_model->get_identifier_values((int) $form['id'], $identifier_names);
 
+        // Upload forms with no data-gvv-identifier field keep a single fallback
+        // column for the upload comment (mirrors the on-screen list).
+        $upload_fallback_col = empty($identifier_fields) && !empty($form['allow_upload_response']);
+
         $header = array($this->lang->line('forms_label_id'));
-        foreach ($identifier_fields as $col) {
-            $header[] = $col['label'];
+        if (!empty($identifier_fields)) {
+            foreach ($identifier_fields as $col) {
+                $header[] = $col['label'];
+            }
+        } elseif ($upload_fallback_col) {
+            $header[] = $this->lang->line('forms_label_identifier');
         }
         $header[] = $this->lang->line('forms_label_submitted_by');
         $header[] = $this->lang->line('forms_label_date');
@@ -726,15 +734,19 @@ class Forms_admin extends MY_Controller {
             $is_upload = (($s['submission_method'] ?? 'online') === 'upload');
             $row       = array($sid);
 
-            $first = true;
-            foreach ($identifier_fields as $col) {
-                $val = isset($identifier_values[$sid][$col['name']])
-                    ? trim((string) $identifier_values[$sid][$col['name']]) : '';
-                if ($val === '' && $first && $is_upload) {
-                    $val = trim((string) ($s['upload_comment'] ?? ''));
+            if (!empty($identifier_fields)) {
+                $first = true;
+                foreach ($identifier_fields as $col) {
+                    $val = isset($identifier_values[$sid][$col['name']])
+                        ? trim((string) $identifier_values[$sid][$col['name']]) : '';
+                    if ($val === '' && $first && $is_upload) {
+                        $val = trim((string) ($s['upload_comment'] ?? ''));
+                    }
+                    $row[] = $val;
+                    $first = false;
                 }
-                $row[] = $val;
-                $first = false;
+            } elseif ($upload_fallback_col) {
+                $row[] = trim((string) ($s['response_identifier'] ?? ''));
             }
 
             $name  = trim((string) $s['submitter_name']);

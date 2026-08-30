@@ -85,9 +85,15 @@
                     <thead>
                         <tr>
                             <th><?= $this->lang->line('forms_label_id') ?></th>
-                            <?php foreach ($identifier_fields as $id_field): ?>
-                                <th><?= html_escape($id_field['label']) ?></th>
-                            <?php endforeach; ?>
+                            <?php if (!empty($identifier_fields)): ?>
+                                <?php foreach ($identifier_fields as $id_field): ?>
+                                    <th><?= html_escape($id_field['label']) ?></th>
+                                <?php endforeach; ?>
+                            <?php elseif ($allow_upload_response): ?>
+                                <?php // Upload forms have no field values: keep one column for the
+                                      // upload comment, the only identifier a scanned response carries. ?>
+                                <th><?= $this->lang->line('forms_label_identifier') ?></th>
+                            <?php endif; ?>
                             <th><?= $this->lang->line('forms_label_submitted_by') ?></th>
                             <th><?= $this->lang->line('forms_label_date') ?></th>
                             <th class="text-end"><?= $this->lang->line('forms_label_actions') ?></th>
@@ -112,21 +118,29 @@
                                             </span>
                                         <?php endif; ?>
                                     </td>
-                                    <?php foreach ($identifier_fields as $col_idx => $id_field): ?>
+                                    <?php if (!empty($identifier_fields)): ?>
+                                        <?php foreach ($identifier_fields as $col_idx => $id_field): ?>
+                                            <td>
+                                                <?php
+                                                    $cell = isset($identifier_values[$sid][$id_field['name']])
+                                                        ? trim((string) $identifier_values[$sid][$id_field['name']])
+                                                        : '';
+                                                    // Upload responses carry no field values: surface the
+                                                    // upload comment in the first identifier column.
+                                                    if ($cell === '' && $col_idx === 0 && $is_upload_row) {
+                                                        $cell = trim((string) ($submission['upload_comment'] ?? ''));
+                                                    }
+                                                ?>
+                                                <?= $cell !== '' ? html_escape($cell) : '<span class="text-muted">—</span>' ?>
+                                            </td>
+                                        <?php endforeach; ?>
+                                    <?php elseif ($allow_upload_response): ?>
                                         <td>
-                                            <?php
-                                                $cell = isset($identifier_values[$sid][$id_field['name']])
-                                                    ? trim((string) $identifier_values[$sid][$id_field['name']])
-                                                    : '';
-                                                // Upload responses carry no field values: surface the
-                                                // upload comment in the first identifier column.
-                                                if ($cell === '' && $col_idx === 0 && $is_upload_row) {
-                                                    $cell = trim((string) ($submission['upload_comment'] ?? ''));
-                                                }
-                                            ?>
-                                            <?= $cell !== '' ? html_escape($cell) : '<span class="text-muted">—</span>' ?>
+                                            <?php // No data-gvv-identifier field: fall back to response_identifier
+                                                  // (= upload comment for upload responses, blank otherwise). ?>
+                                            <?= $ident !== '' ? html_escape($ident) : '<span class="text-muted">—</span>' ?>
                                         </td>
-                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                     <td>
                                         <?php
                                             $name = trim((string) $submission['submitter_name']);
