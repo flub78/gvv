@@ -19,6 +19,12 @@ class VolsDecouverteLooksModelMySqlTest extends TestCase
     /** @var array Ids créés par les tests, nettoyés dans tearDown() */
     private $createdLookIds = array();
 
+    /** @var int[] Ids des looks préexistants marqués is_default, à restaurer */
+    private $preexistingDefaultIds = array();
+
+    /** @var int|null Association section 1 → look préexistante, à restaurer */
+    private $preexistingSection1LookId = null;
+
     protected function setUp(): void
     {
         $this->CI = &get_instance();
@@ -27,6 +33,20 @@ class VolsDecouverteLooksModelMySqlTest extends TestCase
         $this->CI->load->model('vols_decouverte_look_sections_model');
         $this->looks = $this->CI->vols_decouverte_looks_model;
         $this->look_sections = $this->CI->vols_decouverte_look_sections_model;
+
+        // Ces tests supposent un environnement « vierge » (aucun look is_default,
+        // aucune association pour la section 1). On mémorise l'état réel, on le
+        // neutralise le temps du test, et tearDown() le restaure à l'identique
+        // — les looks préexistants (ex. le look par défaut d'un club) ne sont
+        // jamais supprimés ni modifiés durablement.
+        foreach ($this->CI->db->query("SELECT id FROM vols_decouverte_looks WHERE is_default = 1")->result_array() as $r) {
+            $this->preexistingDefaultIds[] = (int) $r['id'];
+        }
+        $existing = $this->CI->db->query("SELECT look_id FROM vols_decouverte_look_sections WHERE section_id = 1")->row_array();
+        $this->preexistingSection1LookId = $existing ? (int) $existing['look_id'] : null;
+
+        $this->CI->db->query("UPDATE vols_decouverte_looks SET is_default = 0 WHERE is_default = 1");
+        $this->CI->db->query("DELETE FROM vols_decouverte_look_sections WHERE section_id = 1");
     }
 
     protected function tearDown(): void
@@ -36,6 +56,19 @@ class VolsDecouverteLooksModelMySqlTest extends TestCase
             $this->CI->db->delete('vols_decouverte_looks', array('id' => $id));
         }
         $this->createdLookIds = array();
+
+        // Restauration de l'état préexistant.
+        foreach ($this->preexistingDefaultIds as $id) {
+            $this->CI->db->query("UPDATE vols_decouverte_looks SET is_default = 1 WHERE id = ?", array($id));
+        }
+        if ($this->preexistingSection1LookId !== null) {
+            $this->CI->db->query(
+                "INSERT INTO vols_decouverte_look_sections (section_id, look_id) VALUES (1, ?)",
+                array($this->preexistingSection1LookId)
+            );
+        }
+        $this->preexistingDefaultIds = array();
+        $this->preexistingSection1LookId = null;
     }
 
     private function sampleLayout()

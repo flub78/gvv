@@ -9,6 +9,12 @@ use PHPUnit\Framework\TestCase;
  * - 153: table vols_decouverte_look_sections
  * - 154: column vols_decouverte.pdf_path
  *
+ * Règle de la suite : un test qui touche la base réelle doit la restaurer
+ * exactement dans l'état où il l'a trouvée. Le test de réversibilité
+ * (`testMigrations_DownRemovesTablesAndColumn`) fait un DROP TABLE : il
+ * sauvegarde donc puis restaure les looks, associations et valeurs
+ * `pdf_path` préexistants.
+ *
  * @see application/migrations/152_create_vols_decouverte_looks_table.php
  * @see application/migrations/153_create_vols_decouverte_look_sections_table.php
  * @see application/migrations/154_add_pdf_path_to_vols_decouverte.php
@@ -59,6 +65,24 @@ class VolsDecouverteLooksMigrationTest extends TestCase
         return new $class();
     }
 
+    /** Réinsère à l'identique (ids et timestamps compris) des lignes sauvegardées. */
+    private function restoreRows($table, array $rows)
+    {
+        if (empty($rows)) {
+            return;
+        }
+        $max_id = 0;
+        foreach ($rows as $row) {
+            $this->db->insert($table, $row);
+            if (isset($row['id']) && (int) $row['id'] > $max_id) {
+                $max_id = (int) $row['id'];
+            }
+        }
+        if ($max_id > 0) {
+            $this->db->query("ALTER TABLE `$table` AUTO_INCREMENT = " . ($max_id + 1));
+        }
+    }
+
     public function testMigration152_CreatesLooksTableWithExpectedColumns()
     {
         $this->assertTrue($this->tableExists('vols_decouverte_looks'));
@@ -84,29 +108,42 @@ class VolsDecouverteLooksMigrationTest extends TestCase
 
     public function testMigration153_SectionIdIsUnique()
     {
-        $section_id = 1;
+        // Une section sans association existante, pour ne pas modifier de données en place.
+        $free = $this->db->query(
+            "SELECT s.id FROM sections s
+             LEFT JOIN vols_decouverte_look_sections vls ON vls.section_id = s.id
+             WHERE vls.id IS NULL ORDER BY s.id LIMIT 1"
+        )->row_array();
+        if (empty($free)) {
+            $this->markTestSkipped('Aucune section libre : impossible de tester la contrainte UNIQUE sans toucher aux données existantes.');
+            return;
+        }
+        $section_id = (int) $free['id'];
+
         $look_id = $this->db->query(
             "INSERT INTO vols_decouverte_looks (nom, layout_json) VALUES ('Test unicité', '{}')"
         ) ? $this->db->insert_id() : null;
         $this->assertNotEmpty($look_id);
 
-        $this->db->query(
-            "INSERT INTO vols_decouverte_look_sections (section_id, look_id) VALUES ($section_id, $look_id)"
-        );
-
-        $rejected = false;
         try {
-            $duplicate_ok = $this->db->query(
+            $this->db->query(
                 "INSERT INTO vols_decouverte_look_sections (section_id, look_id) VALUES ($section_id, $look_id)"
             );
-            $rejected = ($duplicate_ok === false);
-        } catch (\Throwable $e) {
-            $rejected = true;
-        }
-        $this->assertTrue($rejected, 'A second association for the same section_id must be rejected (UNIQUE constraint)');
 
-        $this->db->query("DELETE FROM vols_decouverte_look_sections WHERE section_id = $section_id");
-        $this->db->query("DELETE FROM vols_decouverte_looks WHERE id = $look_id");
+            $rejected = false;
+            try {
+                $duplicate_ok = $this->db->query(
+                    "INSERT INTO vols_decouverte_look_sections (section_id, look_id) VALUES ($section_id, $look_id)"
+                );
+                $rejected = ($duplicate_ok === false);
+            } catch (\Throwable $e) {
+                $rejected = true;
+            }
+            $this->assertTrue($rejected, 'A second association for the same section_id must be rejected (UNIQUE constraint)');
+        } finally {
+            $this->db->query("DELETE FROM vols_decouverte_look_sections WHERE section_id = $section_id AND look_id = $look_id");
+            $this->db->query("DELETE FROM vols_decouverte_looks WHERE id = $look_id");
+        }
     }
 
     public function testMigration154_AddsPdfPathColumnNullableOnVolsDecouverte()
@@ -133,6 +170,14 @@ class VolsDecouverteLooksMigrationTest extends TestCase
         $migration153 = $this->loadMigration('153_create_vols_decouverte_look_sections_table.php', 'Migration_Create_vols_decouverte_look_sections_table');
         $migration152 = $this->loadMigration('152_create_vols_decouverte_looks_table.php', 'Migration_Create_vols_decouverte_looks_table');
 
+        // Ce test DROP puis recrée les tables : sauvegarde de tout ce qui existe
+        // pour le restaurer à l'identique ensuite.
+        $looks_backup          = $this->db->query("SELECT * FROM vols_decouverte_looks")->result_array();
+        $look_sections_backup  = $this->db->query("SELECT * FROM vols_decouverte_look_sections")->result_array();
+        $pdf_paths_backup      = $this->db->query(
+            "SELECT id, pdf_path, updated_at FROM vols_decouverte WHERE pdf_path IS NOT NULL"
+        )->result_array();
+
         try {
             // FK from 153 to 152 requires dropping 153 before 152.
             $migration154->down();
@@ -147,6 +192,16 @@ class VolsDecouverteLooksMigrationTest extends TestCase
             $migration152->up();
             $migration153->up();
             $migration154->up();
+
+            // Restauration des données préexistantes (looks d'abord : FK depuis look_sections).
+            $this->restoreRows('vols_decouverte_looks', $looks_backup);
+            $this->restoreRows('vols_decouverte_look_sections', $look_sections_backup);
+            foreach ($pdf_paths_backup as $row) {
+                $this->db->query(
+                    "UPDATE vols_decouverte SET pdf_path = ?, updated_at = ? WHERE id = ?",
+                    array($row['pdf_path'], $row['updated_at'], $row['id'])
+                );
+            }
         }
     }
 }

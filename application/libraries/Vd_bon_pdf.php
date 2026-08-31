@@ -65,6 +65,8 @@ class Vd_bon_pdf extends TCPDF {
                 return $data['beneficiaire_email'] ?? '';
             case 'type_vol':
                 return $data['type_vol'] ?? '';
+            case 'titre_vol':
+                return $data['titre_vol'] ?? '';
             default:
                 return $data[$id] ?? '';
         }

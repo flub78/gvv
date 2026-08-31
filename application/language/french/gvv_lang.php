@@ -831,6 +831,7 @@ $lang['gvv_vd_looks_field_beneficiaire']   = 'Bénéficiaire';
 $lang['gvv_vd_looks_field_occasion']       = 'Occasion';
 $lang['gvv_vd_looks_field_de_la_part']     = 'Donateur';
 $lang['gvv_vd_looks_field_type_vol']       = 'Type de vol';
+$lang['gvv_vd_looks_field_titre_vol']      = 'Titre du vol (section)';
 $lang['gvv_vd_looks_field_beneficiaire_email'] = 'Email bénéficiaire';
 $lang['gvv_vd_looks_sections_title']       = 'Association section → look';
 $lang['gvv_vd_looks_sections_section']     = 'Section';

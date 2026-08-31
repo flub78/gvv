@@ -6,12 +6,12 @@
 
 * [] Vérifier les problèmes de page qui s'affichent mal sur smartphone.
 
+* [] identifier s'il y a des tests qui créent des fichiers sans les nettoyer. 
+
 ## Reste à faire
 
 * [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
   
-* [x] Page archived_documents/view/154 est-il possible de modifier le lien pour afficher les documents archivés d'un autre pilote? Faire une étude globale sur les vulnérabilités.
-
 * [] Ajout de vrais export excel en sus des csv.
 
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.

@@ -16,6 +16,7 @@ $var_field_labels = array(
     'occasion'      => $this->lang->line('gvv_vd_looks_field_occasion'),
     'de_la_part'    => $this->lang->line('gvv_vd_looks_field_de_la_part'),
     'type_vol'      => $this->lang->line('gvv_vd_looks_field_type_vol'),
+    'titre_vol'     => $this->lang->line('gvv_vd_looks_field_titre_vol'),
     'beneficiaire_email' => $this->lang->line('gvv_vd_looks_field_beneficiaire_email'),
 );
 

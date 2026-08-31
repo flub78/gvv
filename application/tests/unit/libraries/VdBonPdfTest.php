@@ -86,6 +86,7 @@ class VdBonPdfTest extends TestCase
             array('id' => 'de_la_part', 'enabled' => true, 'x' => 5, 'y' => 35, 'font' => 'helvetica', 'bold' => false, 'size' => 10, 'color' => array(0, 0, 0), 'align' => 'L', 'width' => 120),
             array('id' => 'date_validite', 'enabled' => true, 'x' => 5, 'y' => 45, 'font' => 'helvetica', 'bold' => false, 'size' => 10, 'color' => array(0, 0, 0), 'align' => 'L', 'width' => 120),
             array('id' => 'type_vol', 'enabled' => true, 'x' => 5, 'y' => 60, 'font' => 'helvetica', 'bold' => true, 'size' => 14, 'color' => array(0, 0, 0), 'align' => 'C', 'width' => 190),
+            array('id' => 'titre_vol', 'enabled' => true, 'x' => 5, 'y' => 50, 'font' => 'helvetica', 'bold' => true, 'size' => 20, 'color' => array(0, 0, 0), 'align' => 'C', 'width' => 190),
             // Champ désactivé : ne doit pas empêcher le rendu des autres.
             array('id' => 'inconnu', 'enabled' => false, 'x' => 5, 'y' => 70, 'font' => 'helvetica', 'bold' => false, 'size' => 10, 'color' => array(0, 0, 0), 'align' => 'L', 'width' => 120),
         );
@@ -96,7 +97,8 @@ class VdBonPdfTest extends TestCase
             'occasion' => 'Anniversaire',
             'de_la_part' => 'La famille',
             'date_validite' => '31/12/2026',
-            'type_vol' => 'Un vol en planeur',
+            'type_vol' => 'Vol de découverte en planeur',
+            'titre_vol' => 'Un vol en planeur',
         );
 
         $pdf = new Vd_bon_pdf();

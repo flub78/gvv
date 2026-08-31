@@ -222,6 +222,15 @@ class Vols_decouverte extends Gvv_Controller {
 
         $obfuscated_id = transformInteger($id);
 
+        // Titre du vol : même résolution que generate_pdf() (« Un vol en <section> »)
+        $this->load->model('sections_model');
+        $section = $this->sections_model->get_by_id('id', $vd['club']);
+        $section_label = isset($section['nom']) ? trim((string) $section['nom']) : '';
+        if ($section_label !== '' && !preg_match('/^[A-Z0-9]+$/', $section_label)) {
+            $section_label = strtolower($section_label);
+        }
+        $titre_vol = $section_label !== '' ? 'Un vol en ' . $section_label : 'Un vol de découverte';
+
         $data = array(
             'numero'             => $id,
             'date_vente'         => date_db2ht($vd['date_vente']),
@@ -231,6 +240,7 @@ class Vols_decouverte extends Gvv_Controller {
             'de_la_part'         => $vd['de_la_part'],
             'beneficiaire_email' => $vd['beneficiaire_email'],
             'type_vol'           => $type_vol,
+            'titre_vol'          => $titre_vol,
             'qr_url'             => site_url('vols_decouverte/action/' . $obfuscated_id),
         );
 

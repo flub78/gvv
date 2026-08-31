@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const mysql = require('mysql2/promise');
 
 /**
  * Smoke tests — Configuration des bons de vol de découverte (Lot 3)
@@ -12,6 +13,13 @@ const path = require('path');
  * - Association d'un look à une section
  * - Refus d'accès pour un utilisateur sans droit d'administration vd
  *
+ * Règle de la suite : ces tests créent des looks et modifient les
+ * associations section → look ; ils ne doivent supprimer que ce qu'ils ont
+ * créé et restaurer la table d'association à l'identique (les looks
+ * préexistants — p. ex. le look par défaut d'un club — ne sont jamais
+ * touchés). Le bloc « accès admin » est donc `serial` : un seul worker,
+ * un seul couple beforeAll/afterAll.
+ *
  * @see doc/plans/configuration_bons_vols_decouverte_plan.md
  */
 
@@ -20,6 +28,14 @@ const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const MEMBER_USER = { username: 'testuser', password: 'password' };
 // Small fixture (well under upload_max_filesize) — Bon-Bapteme.png is too large for the test php.ini limit.
 const FOND_FIXTURE = path.resolve(__dirname, '../../assets/images/gvv_icon_64.png');
+const DB_CONFIG = { host: 'localhost', user: 'gvv_user', password: 'lfoyfgbj', database: 'gvv2' };
+
+async function query(sql, params) {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const [rows] = await connection.execute(sql, params);
+    await connection.end();
+    return rows;
+}
 
 async function login(page, user) {
     await page.goto(LOGIN_URL);
@@ -31,11 +47,53 @@ async function login(page, user) {
     await page.waitForLoadState('networkidle');
 }
 
-test.describe('Configuration des bons de vol de découverte — accès admin', () => {
+test.describe.serial('Configuration des bons de vol de découverte — accès admin', () => {
+
+    /** @type {number[]} looks créés par ces tests, à supprimer en fin de suite */
+    const createdLookIds = [];
+    /** @type {Array<{section_id:number, look_id:number}>} état initial de la table d'association */
+    let lookSectionsSnapshot = [];
+
+    test.beforeAll(async () => {
+        lookSectionsSnapshot = await query('SELECT section_id, look_id FROM vols_decouverte_look_sections');
+    });
+
+    test.afterAll(async () => {
+        // Retire les associations vers les looks créés, puis les looks eux-mêmes.
+        for (const id of createdLookIds) {
+            await query('DELETE FROM vols_decouverte_look_sections WHERE look_id = ?', [id]);
+            await query('DELETE FROM vols_decouverte_looks WHERE id = ?', [id]);
+        }
+        createdLookIds.length = 0;
+
+        // Restaure la table d'association exactement dans son état initial.
+        await query('DELETE FROM vols_decouverte_look_sections');
+        for (const row of lookSectionsSnapshot) {
+            await query(
+                'INSERT INTO vols_decouverte_look_sections (section_id, look_id) VALUES (?, ?)',
+                [row.section_id, row.look_id]
+            );
+        }
+    });
 
     test.beforeEach(async ({ page }) => {
         await login(page, ADMIN_USER);
     });
+
+    /** Crée un look via l'UI et mémorise son id pour le nettoyage final. */
+    async function createLook(page, name) {
+        await page.goto('/index.php/vols_decouverte_looks');
+        await page.waitForLoadState('networkidle');
+        await page.fill('input[name="nom"]', name);
+        await page.click('button:has-text("Créer")');
+        await page.waitForLoadState('networkidle');
+        const match = page.url().match(/vols_decouverte_looks\/edit\/(\d+)/);
+        if (match) {
+            createdLookIds.push(Number(match[1]));
+            return Number(match[1]);
+        }
+        return null;
+    }
 
     test('should access the looks list page', async ({ page }) => {
         await page.goto('/index.php/vols_decouverte_looks');
@@ -48,14 +106,10 @@ test.describe('Configuration des bons de vol de découverte — accès admin', (
     });
 
     test('should create a new look and open its editor', async ({ page }) => {
-        await page.goto('/index.php/vols_decouverte_looks');
-        await page.waitForLoadState('networkidle');
-
         const lookName = 'Look Playwright ' + Date.now();
-        await page.fill('input[name="nom"]', lookName);
-        await page.click('button:has-text("Créer")');
-        await page.waitForLoadState('networkidle');
+        const id = await createLook(page, lookName);
 
+        expect(id).toBeTruthy();
         expect(page.url()).toContain('vols_decouverte_looks/edit/');
         const bodyText = await page.locator('body').textContent();
         expect(bodyText).not.toContain('PHP Error was encountered');
@@ -63,13 +117,7 @@ test.describe('Configuration des bons de vol de découverte — accès admin', (
     });
 
     test('should upload a recto background image', async ({ page }) => {
-        await page.goto('/index.php/vols_decouverte_looks');
-        await page.waitForLoadState('networkidle');
-
-        const lookName = 'Look Fond ' + Date.now();
-        await page.fill('input[name="nom"]', lookName);
-        await page.click('button:has-text("Créer")');
-        await page.waitForLoadState('networkidle');
+        await createLook(page, 'Look Fond ' + Date.now());
 
         await page.setInputFiles('input[name="fond_recto"]', FOND_FIXTURE);
         await page.click('form[action*="upload_fond"] button[type="submit"]');
@@ -81,13 +129,7 @@ test.describe('Configuration des bons de vol de découverte — accès admin', (
     });
 
     test('should move a field and save the layout', async ({ page }) => {
-        await page.goto('/index.php/vols_decouverte_looks');
-        await page.waitForLoadState('networkidle');
-
-        const lookName = 'Look Layout ' + Date.now();
-        await page.fill('input[name="nom"]', lookName);
-        await page.click('button:has-text("Créer")');
-        await page.waitForLoadState('networkidle');
+        await createLook(page, 'Look Layout ' + Date.now());
 
         // The default layout only carries variable fields on the verso (recto only has the QR code).
         await page.click('#verso-tab');
@@ -105,13 +147,7 @@ test.describe('Configuration des bons de vol de découverte — accès admin', (
     });
 
     test('should export and re-import the layout with an identical result', async ({ page }) => {
-        await page.goto('/index.php/vols_decouverte_looks');
-        await page.waitForLoadState('networkidle');
-
-        const lookName = 'Look Export ' + Date.now();
-        await page.fill('input[name="nom"]', lookName);
-        await page.click('button:has-text("Créer")');
-        await page.waitForLoadState('networkidle');
+        await createLook(page, 'Look Export ' + Date.now());
 
         const [download] = await Promise.all([
             page.waitForEvent('download'),
@@ -131,13 +167,8 @@ test.describe('Configuration des bons de vol de découverte — accès admin', (
     });
 
     test('should associate a look to a section', async ({ page }) => {
-        await page.goto('/index.php/vols_decouverte_looks');
-        await page.waitForLoadState('networkidle');
-
         const lookName = 'Look Section ' + Date.now();
-        await page.fill('input[name="nom"]', lookName);
-        await page.click('button:has-text("Créer")');
-        await page.waitForLoadState('networkidle');
+        await createLook(page, lookName);
 
         await page.goto('/index.php/vols_decouverte_looks/sections');
         await page.waitForLoadState('networkidle');

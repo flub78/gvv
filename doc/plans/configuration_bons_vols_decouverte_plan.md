@@ -54,6 +54,7 @@ pdf_path   varchar(255) NULL   -- chemin du PDF stocké, régénéré à la cré
 | `occasion` | `occasion` |
 | `de_la_part` | `de_la_part` |
 | `type_vol` | Description produit/tarif résolue comme dans `generate_pdf()` actuel |
+| `titre_vol` | Titre « Un vol en &lt;section&gt; » dérivé du nom de la section, comme dans `generate_pdf()` actuel |
 
 Champs fixes (statiques) : texte libre, nom du club/section, contacts — un champ par contact avec libellé + valeur, saisis librement dans le look (pas de liste fixe avion/planeur/ULM en dur).
 

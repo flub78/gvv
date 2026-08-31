@@ -820,6 +820,7 @@ $lang['gvv_vd_looks_field_beneficiaire']   = 'Begunstigde';
 $lang['gvv_vd_looks_field_occasion']       = 'Gelegenheid';
 $lang['gvv_vd_looks_field_de_la_part']     = 'Schenker';
 $lang['gvv_vd_looks_field_type_vol']       = 'Type vlucht';
+$lang['gvv_vd_looks_field_titre_vol']      = 'Vluchttitel (afdeling)';
 $lang['gvv_vd_looks_field_beneficiaire_email'] = 'E-mail begunstigde';
 $lang['gvv_vd_looks_sections_title']       = 'Koppeling sectie → look';
 $lang['gvv_vd_looks_sections_section']     = 'Sectie';

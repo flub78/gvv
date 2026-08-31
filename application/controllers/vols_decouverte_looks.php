@@ -170,6 +170,7 @@ class Vols_decouverte_looks extends MY_Controller {
             'de_la_part'         => 'Marie Dupont',
             'beneficiaire_email' => 'jean.dupont@example.com',
             'type_vol'           => 'Vol de découverte (exemple)',
+            'titre_vol'          => 'Un vol en planeur',
             'qr_url'             => site_url('vols_decouverte_looks/test_pdf/' . $id),
         );
 

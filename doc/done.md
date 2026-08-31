@@ -250,6 +250,8 @@
 
 * [x] Corriger les rapports de formation.
 
+* [x] Page archived_documents/view/154 est-il possible de modifier le lien pour afficher les documents archivés d'un autre pilote? Faire une étude globale sur les vulnérabilités.
+
 
 
 
