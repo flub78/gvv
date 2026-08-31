@@ -90,6 +90,30 @@ form:not(.forms-public-root *) textarea {
     box-sizing: border-box;
 }
 
+/* Formulaires génériques GVV : Gvvmetadata::form() rend un <table> brut avec des
+   <input size="N"> (N = taille de la colonne SQL) et des Select2 en largeur fixe.
+   Sur mobile la table ne se comprime pas et déborde à droite de l'écran.
+   On contraint la table et les champs à la largeur du viewport. */
+@media only screen and (max-width: 576px) {
+
+	form:not(.forms-public-root *) table {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	form:not(.forms-public-root *) table td:first-child {
+		width: 40%;
+		overflow-wrap: break-word;
+	}
+
+	form:not(.forms-public-root *) input:not([type="checkbox"]):not([type="radio"]),
+	form:not(.forms-public-root *) select,
+	form:not(.forms-public-root *) textarea,
+	form:not(.forms-public-root *) .select2-container {
+		max-width: 100%;
+	}
+}
+
 /* Override Bootstrap's default red/pink color for code tags */
 code {
     color: #212529; /* Bootstrap's default body text color */
