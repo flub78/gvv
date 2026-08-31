@@ -8,9 +8,13 @@
 
 * [] identifier s'il y a des tests qui créent des fichiers sans les nettoyer. 
 
+* [] déplacer les répertoire de travail ailleurs que dans l'arborescence servie par apache.
+
 ## Reste à faire
 
-* [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.   
+* [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
+
+quasi valider, il faudra remplacer l'ancien mécanisme par le nouveau.
   
 * [] Ajout de vrais export excel en sus des csv.
 
@@ -19,6 +23,8 @@
 * [~] Support de la gestion de la maintenance,  
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
+
+  A tester en fonction du guide dans doc/users/fr/16_maintenance_aeronefs.md
 
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
     

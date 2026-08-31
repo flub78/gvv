@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 
@@ -29,6 +30,7 @@ const MEMBER_USER = { username: 'testuser', password: 'password' };
 // Small fixture (well under upload_max_filesize) — Bon-Bapteme.png is too large for the test php.ini limit.
 const FOND_FIXTURE = path.resolve(__dirname, '../../assets/images/gvv_icon_64.png');
 const DB_CONFIG = { host: 'localhost', user: 'gvv_user', password: 'lfoyfgbj', database: 'gvv2' };
+const FOND_DIR = path.resolve(__dirname, '../../uploads/configuration/vd');
 
 async function query(sql, params) {
     const connection = await mysql.createConnection(DB_CONFIG);
@@ -59,10 +61,20 @@ test.describe.serial('Configuration des bons de vol de découverte — accès ad
     });
 
     test.afterAll(async () => {
-        // Retire les associations vers les looks créés, puis les looks eux-mêmes.
+        // Retire les associations vers les looks créés, puis les looks eux-mêmes,
+        // et les fichiers de fond éventuellement uploadés pour ces looks.
         for (const id of createdLookIds) {
             await query('DELETE FROM vols_decouverte_look_sections WHERE look_id = ?', [id]);
             await query('DELETE FROM vols_decouverte_looks WHERE id = ?', [id]);
+            try {
+                for (const f of fs.readdirSync(FOND_DIR)) {
+                    if (f.startsWith('look_' + id + '_')) {
+                        fs.unlinkSync(path.join(FOND_DIR, f));
+                    }
+                }
+            } catch (e) {
+                console.warn('[cleanup] fond files for look ' + id + ': ' + e.message);
+            }
         }
         createdLookIds.length = 0;
 
