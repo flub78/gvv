@@ -816,7 +816,7 @@ class Membre extends Gvv_Controller {
                         unlink($old_photo_path_legacy);
                     }
                 }
-                $this->gvv_model->update(array('mlogin' => $mlogin), array('photo' => $storage_file));
+                $this->gvv_model->update('mlogin', array('photo' => $storage_file), $mlogin);
                 redirect("membre/edit/$mlogin");
                 return;
             } else {

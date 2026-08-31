@@ -16,6 +16,8 @@ class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
     protected $test_user_id;
     protected $test_procedures = array();
     protected $uploads_dir;
+    /** @var bool TRUE when setUp had to create uploads/procedures/ itself */
+    protected $created_uploads_dir = false;
 
     protected function setUp(): void
     {
@@ -32,6 +34,7 @@ class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
         $this->uploads_dir = FCPATH . 'uploads/procedures/';
         if (!is_dir($this->uploads_dir)) {
             mkdir($this->uploads_dir, 0755, true);
+            $this->created_uploads_dir = true;
         }
 
         // Get a test section ID from the database
@@ -59,6 +62,12 @@ class ProceduresIntegrationTest extends PHPUnit\Framework\TestCase
             if (is_dir($proc_dir)) {
                 $this->deleteDirectoryRecursive($proc_dir);
             }
+        }
+
+        // Drop uploads/procedures/ only if this test created it (leave a
+        // pre-existing directory alone); @rmdir is a no-op if it is not empty.
+        if ($this->created_uploads_dir) {
+            @rmdir($this->uploads_dir);
         }
 
         // Rollback database transaction

@@ -252,6 +252,7 @@
 
 * [x] Page archived_documents/view/154 est-il possible de modifier le lien pour afficher les documents archivés d'un autre pilote? Faire une étude globale sur les vulnérabilités.
 
+* [x] Vérifier les problèmes de page qui s'affichent mal sur smartphone.
 
 
 

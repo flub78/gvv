@@ -4,8 +4,6 @@
 
 * [] les big_select pour les gros select (800 comptes) ne fonctionnent pas
 
-* [] Vérifier les problèmes de page qui s'affichent mal sur smartphone.
-
 * [] identifier s'il y a des tests qui créent des fichiers sans les nettoyer. 
 
 * [] déplacer les répertoire de travail ailleurs que dans l'arborescence servie par apache.

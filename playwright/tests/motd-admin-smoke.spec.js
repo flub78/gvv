@@ -164,40 +164,60 @@ test.describe('MOTD Admin Smoke Tests', () => {
     const mediaId = parseInt(uploadBody.url.match(/media\/(\d+)/)[1], 10);
 
     const conn = await mysql.createConnection(DB_CONFIG);
-    const [[media]] = await conn.query('SELECT filename FROM motd_media WHERE id = ?', [mediaId]);
-    const filePath = path.join(__dirname, '..', '..', 'uploads', 'motd', media.filename);
-    expect(fs.existsSync(filePath)).toBe(true);
+    let messageId = null;
 
-    // Create the message referencing the uploaded image in its content, so
-    // the real post_create() -> link_uploaded_media() flow links it (not a
-    // direct SQL shortcut).
-    await page.goto(CREATE_URL);
-    await page.waitForLoadState('networkidle');
-    const title = 'Playwright delete-cascade ' + Date.now();
-    await page.fill('input[name="title"]', title);
-    await page.fill('textarea[name="content"]', `![img](${uploadBody.url})`);
-    await page.fill('input[name="start_date"]', '01/01/2026');
-    await page.fill('input[name="end_date"]', '31/12/2026');
-    await page.click('#validate');
-    await page.waitForLoadState('networkidle');
+    try {
+      const [[media]] = await conn.query('SELECT filename FROM motd_media WHERE id = ?', [mediaId]);
+      const filePath = path.join(__dirname, '..', '..', 'uploads', 'motd', media.filename);
+      expect(fs.existsSync(filePath)).toBe(true);
 
-    const [[linkedMedia]] = await conn.query('SELECT message_id FROM motd_media WHERE id = ?', [mediaId]);
-    expect(linkedMedia.message_id).not.toBeNull();
+      // Create the message referencing the uploaded image in its content, so
+      // the real post_create() -> link_uploaded_media() flow links it (not a
+      // direct SQL shortcut).
+      await page.goto(CREATE_URL);
+      await page.waitForLoadState('networkidle');
+      const title = 'Playwright delete-cascade ' + Date.now();
+      await page.fill('input[name="title"]', title);
+      await page.fill('textarea[name="content"]', `![img](${uploadBody.url})`);
+      await page.fill('input[name="start_date"]', '01/01/2026');
+      await page.fill('input[name="end_date"]', '31/12/2026');
+      await page.click('#validate');
+      await page.waitForLoadState('networkidle');
 
-    await page.goto(LIST_URL);
-    await page.waitForLoadState('networkidle');
-    const row = page.locator('tr', { hasText: title });
-    page.once('dialog', dialog => dialog.accept());
-    await row.locator('a[href*="/motd/delete/"]').click();
-    await page.waitForLoadState('networkidle');
+      const [[linkedMedia]] = await conn.query('SELECT message_id FROM motd_media WHERE id = ?', [mediaId]);
+      expect(linkedMedia.message_id).not.toBeNull();
+      messageId = linkedMedia.message_id;
 
-    expect(fs.existsSync(filePath)).toBe(false);
+      await page.goto(LIST_URL);
+      await page.waitForLoadState('networkidle');
+      const row = page.locator('tr', { hasText: title });
+      page.once('dialog', dialog => dialog.accept());
+      await row.locator('a[href*="/motd/delete/"]').click();
+      await page.waitForLoadState('networkidle');
 
-    const [mediaRows] = await conn.query('SELECT * FROM motd_media WHERE id = ?', [mediaId]);
-    expect(mediaRows.length).toBe(0);
+      expect(fs.existsSync(filePath)).toBe(false);
 
-    await conn.end();
-    console.log('Message deletion removed its linked image file from disk');
+      const [mediaRows] = await conn.query('SELECT * FROM motd_media WHERE id = ?', [mediaId]);
+      expect(mediaRows.length).toBe(0);
+      messageId = null; // deleted through the UI, nothing left to clean up
+
+      console.log('Message deletion removed its linked image file from disk');
+    } finally {
+      // Safety net: if an assertion above failed, the message/media/file may
+      // still be around — remove them so the shared DB and uploads/motd/ are
+      // left exactly as they were found.
+      const [leftover] = await conn.query('SELECT filename FROM motd_media WHERE id = ?', [mediaId]);
+      if (leftover.length > 0) {
+        const strayPath = path.join(__dirname, '..', '..', 'uploads', 'motd', leftover[0].filename);
+        try { if (fs.existsSync(strayPath)) fs.unlinkSync(strayPath); } catch (e) { /* www-data-owned: ignore */ }
+        await conn.query('DELETE FROM motd_media WHERE id = ?', [mediaId]);
+      }
+      if (messageId) {
+        await conn.query('DELETE FROM motd_media WHERE message_id = ?', [messageId]);
+        await conn.query('DELETE FROM motd_messages WHERE id = ?', [messageId]);
+      }
+      await conn.end();
+    }
   });
 
   test('non-admin cannot POST to motd formValidation endpoint', async ({ page }) => {

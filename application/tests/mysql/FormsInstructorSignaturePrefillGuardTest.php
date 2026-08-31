@@ -80,6 +80,10 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
             unlink($abs_path);
         }
 
+        // Remove the uploads/tests/ scratch directory created in setUp — @rmdir
+        // is a no-op if another file is still in it, so this never destroys data.
+        @rmdir(FCPATH . 'uploads/tests');
+
         $this->db->where('mlogin', $this->instructor_login)->update('membres', array('signature_path' => $this->previous_signature_path));
     }
 

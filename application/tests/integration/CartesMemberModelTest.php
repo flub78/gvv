@@ -24,6 +24,9 @@ class CartesMemberModelTest extends TestCase
     /** @var Cartes_membre_model */
     private $model;
 
+    /** @var string[] configuration keys created by a test, cleaned in tearDown */
+    private $created_config_keys = [];
+
     public function setUp(): void
     {
         $this->CI =& get_instance();
@@ -33,6 +36,25 @@ class CartesMemberModelTest extends TestCase
         if (!$this->CI->db->conn_id) {
             $this->markTestSkipped('Database connection not available');
         }
+
+        $this->created_config_keys = [];
+    }
+
+    public function tearDown(): void
+    {
+        // Remove every configuration row a test created (and any file it points
+        // to), even when the test failed before reaching its own cleanup.
+        foreach ($this->created_config_keys as $cle) {
+            $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
+            if ($row && !empty($row['valeur'])) {
+                $path = FCPATH . $row['valeur'];
+                if (file_exists($path)) {
+                    @unlink($path);
+                }
+            }
+            $this->CI->db->where('cle', $cle)->delete('configuration');
+        }
+        $this->created_config_keys = [];
     }
 
     // ------------------------------------------------------------------
@@ -158,12 +180,13 @@ class CartesMemberModelTest extends TestCase
         $year = 9999;
         $face = 'recto';
         $fake_path = 'uploads/configuration/carte_recto_9999.jpg';
+        $cle = 'carte_recto_9999';
+        $this->created_config_keys[] = $cle;
 
         // Set a test value
         $this->model->save_fond_path($year, $face, $fake_path);
 
         // Verify it is stored (get_fond_path checks file_exists, so result may be null)
-        $cle = 'carte_recto_9999';
         $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
         $this->assertNotEmpty($row, 'Configuration key should have been saved');
         $this->assertEquals($fake_path, $row['valeur']);
@@ -172,9 +195,6 @@ class CartesMemberModelTest extends TestCase
         $this->model->save_fond_path($year, $face, $fake_path);
         $count = $this->CI->db->where('cle', $cle)->count_all_results('configuration');
         $this->assertEquals(1, $count, 'save_fond_path should upsert, not insert duplicates');
-
-        // Cleanup
-        $this->CI->db->where('cle', $cle)->delete('configuration');
     }
 
     // ------------------------------------------------------------------
@@ -221,6 +241,7 @@ class CartesMemberModelTest extends TestCase
     public function testSaveLayoutAndGetLayoutRoundTrip()
     {
         $year = 8888;
+        $this->created_config_keys[] = 'carte_layout_' . $year;
         $layout = array(
             'version' => 1,
             'recto' => array(
@@ -253,39 +274,19 @@ class CartesMemberModelTest extends TestCase
         $this->assertCount(1, $loaded['recto']['static_fields']);
         $this->assertEquals('Test Club', $loaded['recto']['static_fields'][0]['text']);
         $this->assertTrue($loaded['recto']['photo']['enabled']);
-
-        // Cleanup
-        $cle = 'carte_layout_' . $year;
-        $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
-        if ($row && !empty($row['valeur'])) {
-            $path = FCPATH . $row['valeur'];
-            if (file_exists($path)) {
-                unlink($path);
-            }
-        }
-        $this->CI->db->where('cle', $cle)->delete('configuration');
     }
 
     public function testSaveLayoutUpserts()
     {
         $year   = 7777;
+        $cle    = 'carte_layout_' . $year;
+        $this->created_config_keys[] = $cle;
         $layout = $this->model->get_layout(1899); // use default as fixture
 
         $this->model->save_layout($year, $layout);
         $this->model->save_layout($year, $layout); // second call must not duplicate
 
-        $cle   = 'carte_layout_' . $year;
         $count = $this->CI->db->where('cle', $cle)->count_all_results('configuration');
         $this->assertEquals(1, $count, 'save_layout should upsert, not insert duplicates');
-
-        // Cleanup
-        $row = $this->CI->db->select('valeur')->from('configuration')->where('cle', $cle)->get()->row_array();
-        if ($row && !empty($row['valeur'])) {
-            $path = FCPATH . $row['valeur'];
-            if (file_exists($path)) {
-                unlink($path);
-            }
-        }
-        $this->CI->db->where('cle', $cle)->delete('configuration');
     }
 }

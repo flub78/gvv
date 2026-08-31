@@ -5,9 +5,16 @@
  *
  * Tests:
  * - Verify no upload field on membre/create page
- * - Upload an image to member profile (membre/edit/asterix)
- * - Delete uploaded image
- * - Verify file counts in uploads directory
+ * - Upload a photo to a dedicated test member and delete it again
+ * - Verify the upload interface is available on a member edit page
+ *
+ * IMPORTANT — database / filesystem state:
+ *   These tests operate exclusively on the Gaulois test member "asterix"
+ *   (created by bin/create_test_users.sh). They never touch a real club
+ *   member and never delete a photo they did not upload themselves. The
+ *   member-photo test uploads a fixture image, checks it, then removes it,
+ *   restoring the exact initial state (asterix has no photo) — including on
+ *   failure, via the finally block.
  *
  * Usage:
  *   npx playwright test tests/migrated/upload.spec.js
@@ -21,6 +28,14 @@ const fs = require('fs');
 // Test configuration
 const TEST_USER = 'testadmin';
 const TEST_PASSWORD = 'password';
+
+// Dedicated test member — a Gaulois fixture user, never a real club member.
+const TEST_MEMBER = 'asterix';
+const MEMBER_EDIT_PATH = `membre/edit/${TEST_MEMBER}`;
+
+// Member photos are stored here by membre.php (uploads/photos/, not uploads/).
+// __dirname is playwright/tests/migrated → three levels up is the repo root.
+const PHOTOS_DIR = path.resolve(__dirname, '../../../uploads/photos');
 
 // Path to test image (try legacy fixture first, then stable repo assets)
 function resolveTestImagePath() {
@@ -41,28 +56,80 @@ function resolveTestImagePath() {
 }
 
 /**
- * Helper function to count files in uploads directory
- * @returns {number} Number of files in uploads directory
+ * Count image files currently stored in uploads/photos/.
+ * @returns {number} file count, or -1 if the directory is unreadable
  */
-function countUploadedFiles() {
-  const uploadDir = '/home/frederic/git/gvv/uploads/';
-
-  if (!fs.existsSync(uploadDir)) {
-    return -1;
+function countPhotoFiles() {
+  if (!fs.existsSync(PHOTOS_DIR)) {
+    return 0;
   }
 
   try {
-    const files = fs.readdirSync(uploadDir);
-    // Filter out directories and hidden files
-    const fileCount = files.filter(f => {
-      const fullPath = path.join(uploadDir, f);
+    return fs.readdirSync(PHOTOS_DIR).filter(f => {
+      const fullPath = path.join(PHOTOS_DIR, f);
       return fs.statSync(fullPath).isFile() && !f.startsWith('.');
     }).length;
-    return fileCount;
   } catch (error) {
-    console.log(`⚠️  Error reading upload directory: ${error.message}`);
+    console.log(`⚠️  Error reading photos directory: ${error.message}`);
     return -1;
   }
+}
+
+/**
+ * List the stored photo files that belong to the test member.
+ * membre.php names them "<random>_<mlogin>.png".
+ * @returns {string[]} file names (not full paths)
+ */
+function listTestMemberPhotoFiles() {
+  if (!fs.existsSync(PHOTOS_DIR)) {
+    return [];
+  }
+  try {
+    return fs.readdirSync(PHOTOS_DIR).filter(f => f.endsWith(`_${TEST_MEMBER}.png`));
+  } catch (error) {
+    console.log(`⚠️  Error reading photos directory: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Remove any test-member photo file that appeared since `before` was captured.
+ * The web server (www-data) writes the file but the test runner owns the
+ * directory, so it can still unlink it. Never touches other members' files.
+ */
+function removeStrayTestMemberPhotos(before) {
+  const beforeSet = new Set(before);
+  for (const f of listTestMemberPhotoFiles()) {
+    if (!beforeSet.has(f)) {
+      try {
+        fs.unlinkSync(path.join(PHOTOS_DIR, f));
+        console.log(`Cleanup: removed stray photo file ${f}`);
+      } catch (error) {
+        console.log(`⚠️  Could not remove ${f}: ${error.message}`);
+      }
+    }
+  }
+}
+
+/**
+ * Navigate to the test member's edit page and confirm it is usable.
+ * Returns true if the page exposes the photo upload field.
+ */
+async function openMemberEditPage(loginPage, page) {
+  await loginPage.goto(MEMBER_EDIT_PATH);
+  await page.waitForLoadState('domcontentloaded');
+
+  const hasFileInput = await page
+    .locator('input[type="file"][name="userfile"]')
+    .count() > 0;
+
+  return hasFileInput;
+}
+
+/** Delete the test member's photo through the real controller endpoint. */
+async function deleteMemberPhoto(loginPage, page) {
+  await loginPage.goto(`membre/delete_photo/${TEST_MEMBER}`);
+  await page.waitForLoadState('domcontentloaded');
 }
 
 test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
@@ -96,222 +163,116 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
     await loginPage.logout();
   });
 
-  test('should upload and delete member photo', async ({ page }) => {
+  test('should upload and delete the test member photo', async ({ page }) => {
     const loginPage = new LoginPage(page);
-
     const testImagePath = resolveTestImagePath();
-
-    // Verify test image exists
-    if (!fs.existsSync(testImagePath)) {
-      throw new Error(`Test image not found: ${testImagePath}`);
-    }
     console.log(`Using test image: ${testImagePath}`);
 
-    // Login
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
     console.log('✓ Logged in');
 
-    // Count initial files
-    const initialCount = countUploadedFiles();
-    if (initialCount >= 0) {
-      console.log(`Initial upload count: ${initialCount}`);
+    // The test member must exist and expose the upload field.
+    const usable = await openMemberEditPage(loginPage, page);
+    if (!usable) {
+      test.skip(true, `Test member "${TEST_MEMBER}" is missing or has no photo upload field ` +
+        `(run bin/create_test_users.sh)`);
+      return;
+    }
+    console.log(`✓ Edit page for "${TEST_MEMBER}" loaded`);
+
+    // Reset any leftover photo from a previous interrupted run. This only ever
+    // touches the "asterix" fixture user, never real data.
+    const hadStalePhoto = await page.locator('#delete_photo').count() > 0;
+    if (hadStalePhoto) {
+      console.log('⚠️  Stale photo found on test member, removing it before the test');
+      await deleteMemberPhoto(loginPage, page);
+      await openMemberEditPage(loginPage, page);
     }
 
-    // First, find an existing member from the membre/page list
-    await loginPage.goto('membre/page');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+    // Baseline: the exact set of the test member's photo files, and the total
+    // file count. Everything the test adds must be gone by the end.
+    const baselinePhotoFiles = listTestMemberPhotoFiles();
+    const baselineCount = countPhotoFiles();
+    console.log(`Baseline uploads/photos/ file count: ${baselineCount}`);
+    expect(await page.locator('#delete_photo').count()).toBe(0);
 
-    // Find the first edit link in the members table
-    const editLink = page.locator('a[href*="membre/edit/"]').first();
-    const editUrl = await editLink.getAttribute('href');
-
-    if (!editUrl) {
-      throw new Error('No member edit links found');
-    }
-
-    console.log(`Found member edit URL: ${editUrl}`);
-
-    // Navigate to the member edit page
-    await page.goto(editUrl);
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-
-    // Verify we're on a member edit page (page should have userfile input)
-    const hasFileInput = await page.locator('input[type="file"][name="userfile"]').count() > 0;
-    if (!hasFileInput) {
-      throw new Error('Not on a member edit page - no file upload field found');
-    }
-
-    console.log('✓ Member edit page loaded');
-
-    // Check if there is already a photo
-    const existingPhoto = await page.locator('#photo').isVisible({ timeout: 2000 }).catch(() => false);
-    const hasDeleteButton = await page.locator('#delete_photo').isVisible({ timeout: 2000 }).catch(() => false);
-
-    let countAfterDelete = initialCount;
-
-    if (existingPhoto && hasDeleteButton) {
-      console.log('⚠️  Existing photo found, deleting it first');
-
-      // Scroll to delete button and click it
-      await page.locator('#delete_photo').scrollIntoViewIfNeeded();
-      await page.locator('#delete_photo').click();
-      await page.waitForTimeout(1000);
-
-      // Verify photo was deleted
-      const photoGone = !(await page.locator('#photo').isVisible({ timeout: 1000 }).catch(() => false));
-      const deleteButtonGone = !(await page.locator('#delete_photo').isVisible({ timeout: 1000 }).catch(() => false));
-
-      expect(photoGone).toBeTruthy();
-      expect(deleteButtonGone).toBeTruthy();
-      console.log('✓ Existing photo deleted');
-
-      // Count files after deletion
-      if (initialCount >= 0) {
-        countAfterDelete = countUploadedFiles();
-        console.log(`Count after deleting existing photo: ${countAfterDelete}`);
-        expect(countAfterDelete).toBe(initialCount - 1);
-      }
-    } else {
-      console.log('✓ No existing photo (delete button not present)');
-      countAfterDelete = initialCount;
-    }
-
-    // ===== UPLOAD IMAGE =====
-    console.log('\n--- Uploading Image ---');
-
-    // Find and fill the file input
-    const fileInput = page.locator('input[type="file"][name="userfile"]');
-    await fileInput.setInputFiles(testImagePath);
-    console.log('✓ Image file attached');
-
-    // Wait a moment for the interface to update after file selection
-    await page.waitForTimeout(1000);
-    await loginPage.screenshot('after_file_selection');
-
-    // Try to find and click upload button - it might appear after file selection
-    const uploadButton = page.locator('#button_photo, button:has-text("Upload"), button:has-text("Télécharger")');
-
-    // Check if button exists and is visible
-    const buttonCount = await uploadButton.count();
-    console.log(`Found ${buttonCount} upload button(s)`);
-
-    if (buttonCount > 0) {
-      // Scroll to button
-      await uploadButton.first().scrollIntoViewIfNeeded();
+    try {
+      // ===== UPLOAD =====
+      await page.locator('input[type="file"][name="userfile"]').first().setInputFiles(testImagePath);
       await page.waitForTimeout(500);
-      await loginPage.screenshot('before_photo_upload');
+      await loginPage.screenshot('member_photo_after_file_selection');
 
-      // Click the upload button
-      await uploadButton.first().click();
-      console.log('✓ Clicked upload button');
+      await page.locator('#validate').click();
+      await page.waitForLoadState('domcontentloaded');
 
-      // Wait for upload to complete
-      await page.waitForTimeout(2000);
-      await loginPage.screenshot('after_photo_upload');
-    } else {
-      console.log('⚠️  Upload button not found - photo may auto-upload on file selection');
-      await page.waitForTimeout(2000);
-    }
+      // The upload is performed by the PHP process (www-data). If uploads/photos/
+      // is not writable by the web server, CodeIgniter reports it here — treat
+      // that as an environment problem, not a test failure.
+      const uploadError = await page.evaluate(() => {
+        const el = document.querySelector('.text-danger, .alert-danger');
+        return el ? el.innerText.trim() : '';
+      });
+      if (uploadError) {
+        test.skip(true, `Photo upload rejected server-side: "${uploadError}". ` +
+          `Check that uploads/photos/ is writable by the web server.`);
+        return;
+      }
 
-    // Verify upload succeeded or note if it didn't
-    const photoVisible = await page.locator('#photo').isVisible({ timeout: 5000 }).catch(() => false);
-    const deleteButtonVisible = await page.locator('#delete_photo').isVisible({ timeout: 5000 }).catch(() => false);
+      // Reload the edit page to confirm the photo is now attached to the member
+      // (file written AND membre.photo updated → the delete button appears).
+      await openMemberEditPage(loginPage, page);
+      await expect(page.locator('#delete_photo')).toHaveCount(1);
+      console.log('✓ Photo uploaded and linked to the member');
 
-    if (photoVisible && deleteButtonVisible) {
-      console.log('✓ Photo uploaded successfully');
-    } else {
-      console.log('⚠️  Photo upload may not have completed (button not found or auto-upload not working)');
-      console.log(`   Photo visible: ${photoVisible}, Delete button visible: ${deleteButtonVisible}`);
-      // This is acceptable for this test - the Dusk test relied on specific test data
-      // and installation that may not be present in the current environment
-      await loginPage.logout();
-      return; // Exit test early since upload didn't work
-    }
+      const afterUpload = countPhotoFiles();
+      console.log(`uploads/photos/ file count after upload: ${afterUpload}`);
+      expect(afterUpload).toBe(baselineCount + 1);
 
-    // Verify file count increased
-    if (initialCount >= 0) {
-      const countAfterUpload = countUploadedFiles();
-      console.log(`Count after upload: ${countAfterUpload}`);
-      expect(countAfterUpload).toBe(countAfterDelete + 1);
-    }
-
-    // ===== DELETE UPLOADED IMAGE =====
-    console.log('\n--- Deleting Uploaded Image ---');
-
-    // If there was no pre-existing photo, delete the one we just uploaded
-    if (!existingPhoto) {
+      // ===== DELETE =====
       await page.locator('#delete_photo').click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
-      // Verify deletion
-      const photoDeleted = !(await page.locator('#photo').isVisible({ timeout: 1000 }).catch(() => false));
-      const deleteButtonDeleted = !(await page.locator('#delete_photo').isVisible({ timeout: 1000 }).catch(() => false));
-
-      expect(photoDeleted).toBeTruthy();
-      expect(deleteButtonDeleted).toBeTruthy();
+      await openMemberEditPage(loginPage, page);
+      expect(await page.locator('#delete_photo').count()).toBe(0);
       console.log('✓ Uploaded photo deleted');
 
-      // Verify file count returned to initial
-      if (initialCount >= 0) {
-        const finalCount = countUploadedFiles();
-        console.log(`Final count: ${finalCount}`);
-        expect(finalCount).toBe(initialCount);
-      }
-    } else {
-      console.log('⚠️  Pre-existing photo was present, keeping the uploaded photo');
+      const finalCount = countPhotoFiles();
+      console.log(`Final uploads/photos/ file count: ${finalCount}`);
+      expect(finalCount).toBe(baselineCount);
+    } finally {
+      // Safety net — restore the exact initial state whatever happened above:
+      //   1. drop any photo link on the test member (idempotent),
+      //   2. delete any stray photo file the upload left behind.
+      await deleteMemberPhoto(loginPage, page).catch(err =>
+        console.log(`⚠️  delete_photo cleanup failed: ${err.message}`));
+      removeStrayTestMemberPhotos(baselinePhotoFiles);
     }
 
     await loginPage.logout();
     console.log('\n✓ Test completed successfully');
   });
 
-  test('should verify upload directory is writable', async ({ page }) => {
+  test('should verify the upload interface is available on a member edit page', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD);
 
-    // Find an existing member
-    await loginPage.goto('membre/page');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-
-    const editLink = page.locator('a[href*="membre/edit/"]').first();
-    const editUrl = await editLink.getAttribute('href');
-
-    if (editUrl) {
-      // Navigate to the member edit page
-      await page.goto(editUrl);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(500);
-
-      // Verify upload elements exist
-      const hasFileInput = await page.locator('input[type="file"][name="userfile"]').isVisible({ timeout: 2000 }).catch(() => false);
-      const hasUploadButton = await page.locator('#button_photo').isVisible({ timeout: 2000 }).catch(() => false);
-
-      if (hasFileInput && hasUploadButton) {
-        console.log('✓ Upload interface is available');
-      } else {
-        console.log('⚠️  Upload interface may not be fully visible');
-      }
-    } else {
-      console.log('⚠️  No members found to test upload interface');
+    const usable = await openMemberEditPage(loginPage, page);
+    if (!usable) {
+      test.skip(true, `Test member "${TEST_MEMBER}" is missing (run bin/create_test_users.sh)`);
+      return;
     }
 
-    // Check if upload directory exists and is accessible
-    const uploadDir = '/home/frederic/git/gvv/uploads/';
-    const dirExists = fs.existsSync(uploadDir);
+    // The metadata-driven upload widget must be present on the edit form.
+    const hasFileInput = await page.locator('input[type="file"][name="userfile"]').count() > 0;
+    expect(hasFileInput).toBeTruthy();
+    console.log('✓ Upload interface is available on the member edit page');
 
-    if (dirExists) {
-      console.log(`✓ Upload directory exists: ${uploadDir}`);
-      const count = countUploadedFiles();
-      console.log(`  Current file count: ${count}`);
-    } else {
-      console.log(`⚠️  Upload directory not found: ${uploadDir}`);
-    }
+    // The photos storage directory must exist and be readable.
+    expect(fs.existsSync(PHOTOS_DIR)).toBeTruthy();
+    console.log(`✓ Photos directory exists: ${PHOTOS_DIR} (${countPhotoFiles()} file(s))`);
 
     await loginPage.logout();
   });
