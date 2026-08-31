@@ -427,10 +427,18 @@ class AuthorizationIntegrationTest extends TestCase
 
         $this->assertGreaterThan($before_count, $after_count, 'Audit log should record role grant');
 
-        // Get latest audit entry
-        $latest = $this->model->get_audit_log(array(), 1, 0);
+        // Get the latest audit entry for our freshly-created test user. Filtering
+        // by target_user_id isolates the assertion from any concurrent audit
+        // activity on the shared database (e.g. access_denied rows written by
+        // another session between the grant above and this query).
+        $latest = $this->model->get_audit_log(
+            array('action_type' => 'grant_role', 'target_user_id' => $this->test_user_id),
+            1,
+            0
+        );
         $this->assertCount(1, $latest);
         $this->assertEquals('grant_role', $latest[0]['action_type']);
+        $this->assertEquals($this->test_user_id, $latest[0]['target_user_id']);
     }
 
     /**

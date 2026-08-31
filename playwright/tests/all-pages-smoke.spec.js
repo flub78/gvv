@@ -49,7 +49,8 @@ const LoginPage = require('./helpers/LoginPage');
  *   deprecations inline that production mode silently swallows. These are
  *   NOT failures yet (first pass — establishing a baseline), so this mode
  *   does not fail the test; it collects every page's findings into
- *   doc/testing/pages_smoke_dev_errors.md for manual triage.
+ *   build/playwright-captures/pages_smoke_dev_errors.md (gitignored) for
+ *   manual triage.
  *
  * Usage:
  *   npx playwright test all-pages-smoke.spec.js
@@ -59,7 +60,9 @@ const LoginPage = require('./helpers/LoginPage');
 const MODE = process.env.GVV_PAGE_SCAN_MODE === 'development' ? 'development' : 'production';
 
 const CONTROLLERS_DIR = path.join(__dirname, '../../application/controllers');
-const REPORT_PATH = path.join(__dirname, '../../doc/testing/pages_smoke_dev_errors.md');
+// Written only in development mode. Kept under build/ (gitignored) so a test
+// run never dirties a version-controlled file.
+const REPORT_PATH = path.join(__dirname, '../../build/playwright-captures/pages_smoke_dev_errors.md');
 
 // Markers that indicate a genuine failure — checked in both modes. Deliberately
 // does NOT include CI's "An Error Was Encountered" / "A Database Error Occurred"

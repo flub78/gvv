@@ -9,7 +9,12 @@ use PHPUnit\Framework\TestCase;
 class MyHtmlHelperIntegrationTest extends TestCase {
     private $CI;
 
+    /** @var string[] temp files created by a test, removed in tearDown */
+    private $temp_files = [];
+
     public function setUp(): void {
+        $this->temp_files = [];
+
         // Get CodeIgniter instance
         $this->CI = &get_instance();
 
@@ -45,6 +50,26 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         if (!function_exists('p')) {
             $this->markTestSkipped('MY_html_helper not loaded properly');
         }
+    }
+
+    public function tearDown(): void {
+        foreach ($this->temp_files as $f) {
+            if (is_file($f)) {
+                @unlink($f);
+            }
+        }
+        $this->temp_files = [];
+    }
+
+    /**
+     * Create a uniquely-named temp file with the given extension and content,
+     * tracked for automatic removal in tearDown (even if the test fails).
+     */
+    private function makeTempFile(string $ext, string $content): string {
+        $path = sys_get_temp_dir() . '/gvv_myhtml_' . uniqid('', true) . '.' . $ext;
+        file_put_contents($path, $content);
+        $this->temp_files[] = $path;
+        return $path;
     }
 
     // ========== Tests for p() function ==========
@@ -452,17 +477,13 @@ class MyHtmlHelperIntegrationTest extends TestCase {
      */
     public function testAttachmentReturnsLink() {
         // Create a temporary test file
-        $testFile = '/tmp/test_file.txt';
-        file_put_contents($testFile, 'test');
+        $testFile = $this->makeTempFile('txt', 'test');
 
         $result = attachment(1, $testFile, 'http://example.com/file.txt');
 
         $this->assertStringContainsString('<a href="http://example.com/file.txt"', $result);
         $this->assertStringContainsString('target="_blank"', $result);
         $this->assertStringContainsString('fa-file-alt', $result); // Text file icon
-
-        // Cleanup
-        unlink($testFile);
     }
 
     /**
@@ -470,15 +491,12 @@ class MyHtmlHelperIntegrationTest extends TestCase {
      */
     public function testAttachmentPdf() {
         // Create a minimal PDF file
-        $testFile = '/tmp/test.pdf';
-        file_put_contents($testFile, '%PDF-1.4');
+        $testFile = $this->makeTempFile('pdf', '%PDF-1.4');
 
         $result = attachment(1, $testFile, 'http://example.com/test.pdf');
 
         $this->assertStringContainsString('fa-file-pdf', $result);
         $this->assertStringContainsString('text-danger', $result);
-
-        unlink($testFile);
     }
 
     /**
@@ -486,16 +504,13 @@ class MyHtmlHelperIntegrationTest extends TestCase {
      * Note: mime_content_type() may return text/plain for simple CSV
      */
     public function testAttachmentCsv() {
-        $testFile = '/tmp/test.csv';
-        file_put_contents($testFile, 'col1,col2\nval1,val2');
+        $testFile = $this->makeTempFile('csv', 'col1,col2\nval1,val2');
 
         $result = attachment(1, $testFile, 'http://example.com/test.csv');
 
         // Should have a link and icon (mime detection may vary)
         $this->assertStringContainsString('<a href="http://example.com/test.csv"', $result);
         $this->assertStringContainsString('fa-file', $result); // Some icon
-
-        unlink($testFile);
     }
 
     /**
@@ -503,8 +518,7 @@ class MyHtmlHelperIntegrationTest extends TestCase {
      * Tests that the function processes files and generates appropriate HTML
      */
     public function testAttachmentProcessesFiles() {
-        $testFile = '/tmp/test.xlsx';
-        file_put_contents($testFile, 'test content');
+        $testFile = $this->makeTempFile('xlsx', 'test content');
 
         $result = attachment(1, $testFile, 'http://example.com/test.xlsx');
 
@@ -512,8 +526,6 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         $this->assertStringContainsString('<a href="http://example.com/test.xlsx"', $result);
         $this->assertStringContainsString('target="_blank"', $result);
         $this->assertStringContainsString('fa-file', $result);
-
-        unlink($testFile);
     }
 
     /**
@@ -524,16 +536,13 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         $extensions = ['docx', 'pptx', 'md'];
 
         foreach ($extensions as $ext) {
-            $testFile = "/tmp/test.$ext";
-            file_put_contents($testFile, 'content');
+            $testFile = $this->makeTempFile($ext, 'content');
 
             $result = attachment(1, $testFile, "http://example.com/test.$ext");
 
             // All should produce valid HTML with link
             $this->assertStringContainsString('<a href=', $result);
             $this->assertStringContainsString('target="_blank"', $result);
-
-            unlink($testFile);
         }
     }
 
@@ -542,8 +551,7 @@ class MyHtmlHelperIntegrationTest extends TestCase {
      * AVIF detection is special - uses extension check (line 616)
      */
     public function testAttachmentAvif() {
-        $testFile = '/tmp/test.avif';
-        file_put_contents($testFile, 'test');
+        $testFile = $this->makeTempFile('avif', 'test');
 
         $result = attachment(1, $testFile, 'http://example.com/test.avif');
 
@@ -551,16 +559,13 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         // Should trigger image thumbnail logic
         $this->assertStringContainsString('<img', $result);
         $this->assertStringContainsString('http://example.com/test.avif', $result);
-
-        unlink($testFile);
     }
 
     /**
      * Test attachment() returns valid HTML structure
      */
     public function testAttachmentValidHtmlStructure() {
-        $testFile = '/tmp/test.xyz';
-        file_put_contents($testFile, 'content');
+        $testFile = $this->makeTempFile('xyz', 'content');
 
         $result = attachment(1, $testFile, 'http://example.com/test.xyz');
 
@@ -568,8 +573,6 @@ class MyHtmlHelperIntegrationTest extends TestCase {
         $this->assertStringStartsWith('<a href=', $result);
         $this->assertStringEndsWith('</a>', $result);
         $this->assertStringContainsString('target="_blank"', $result);
-
-        unlink($testFile);
     }
 
     // ========== Tests for curPageURL() function ==========

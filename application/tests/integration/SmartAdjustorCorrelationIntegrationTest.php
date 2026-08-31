@@ -68,6 +68,22 @@ class SmartAdjustorCorrelationIntegrationTest extends TestCase
         }
     }
 
+    /**
+     * The correlation dump under build/results/ is a run-time diagnostic only —
+     * every real assertion lives in the tests themselves. Purge it so the suite
+     * leaves the filesystem exactly as it found it.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        $outputPath = realpath(APPPATH . '..') . DIRECTORY_SEPARATOR . 'build'
+            . DIRECTORY_SEPARATOR . 'results' . DIRECTORY_SEPARATOR . 'Correlatiion_test_result.txt';
+        if (is_file($outputPath)) {
+            @unlink($outputPath);
+        }
+        @rmdir(dirname($outputPath)); // no-op unless build/results/ is now empty
+        self::$fileInitialized = false;
+    }
+
     private function write(string $text): void
     {
         file_put_contents($this->outputPath, $text, FILE_APPEND);

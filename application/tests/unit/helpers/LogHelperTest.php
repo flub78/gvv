@@ -142,48 +142,57 @@ class LogHelperTest extends TestCase
     }
 
     /**
-     * Test occurences function with a temp log file
+     * Test occurences() against the real current log file.
+     *
+     * occurences() has no injectable path, so it can only be exercised on the
+     * live log file. To stay safe on a shared server, the test only *appends* a
+     * uniquely-tagged block, counts its own markers, then rewrites the file with
+     * exactly that block stripped from the current content — so any lines the
+     * web server logs during the test are preserved, never truncated.
      */
     public function testOccurences()
     {
-        // Create a temporary log file in the expected location
-        $logDir = getcwd() . '/../application/logs';
-        $logFile = current_logfile();
-
-        // Skip test if we can't write to log directory
-        if (!is_writable($logDir)) {
-            $this->markTestSkipped('Log directory is not writable');
-            return;
-        }
-
-        // Backup existing log file if it exists
-        $backup = null;
-        if (file_exists($logFile)) {
-            $backup = file_get_contents($logFile);
-        }
+        // occurences() -> current_logfile() builds its path from getcwd(); run
+        // the whole test with cwd = APPPATH so it resolves to application/logs/,
+        // matching how the app runs. Restored in the finally.
+        $originalCwd = getcwd();
+        chdir(APPPATH);
 
         try {
-            // Write test content
-            $testContent = "Test line 1\nTest line 2\nTest pattern\nTest pattern\nTest line 3\n";
-            file_put_contents($logFile, $testContent);
+            $logFile = current_logfile();
+            $logDir  = dirname($logFile);
 
-            // Test occurences
-            $count = occurences('Test pattern');
-            $this->assertEquals(2, $count);
-
-            $count = occurences('Test line');
-            $this->assertEquals(3, $count);
-
-            $count = occurences('NonExistent');
-            $this->assertEquals(0, $count);
-
-        } finally {
-            // Restore original log file
-            if ($backup !== null) {
-                file_put_contents($logFile, $backup);
-            } elseif (file_exists($logFile)) {
-                unlink($logFile);
+            if (!is_dir($logDir) || !is_writable($logDir)) {
+                $this->markTestSkipped('Log directory is not writable');
+                return;
             }
+            if (file_exists($logFile) && !is_writable($logFile)) {
+                $this->markTestSkipped('Current log file is not writable by the test runner');
+                return;
+            }
+
+            $preExisted = file_exists($logFile);
+            $marker = 'GVV_LOGTEST_' . uniqid();
+            $block  = "\n{$marker} pattern\n{$marker} pattern\n{$marker} line\n{$marker} line\n{$marker} line\n";
+
+            file_put_contents($logFile, $block, FILE_APPEND | LOCK_EX);
+
+            try {
+                $this->assertEquals(2, occurences("{$marker} pattern"));
+                $this->assertEquals(3, occurences("{$marker} line"));
+                $this->assertEquals(0, occurences("{$marker} absent"));
+            } finally {
+                // Re-read (captures concurrent writes) and remove only our block.
+                $content = file_exists($logFile) ? file_get_contents($logFile) : '';
+                $content = str_replace($block, '', $content);
+                if ($content === '' && !$preExisted) {
+                    @unlink($logFile);
+                } else {
+                    file_put_contents($logFile, $content, LOCK_EX);
+                }
+            }
+        } finally {
+            chdir($originalCwd);
         }
     }
 
