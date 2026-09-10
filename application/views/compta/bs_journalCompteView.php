@@ -156,11 +156,11 @@ if ($section) {
     <?php if ($compte != '') : ?>
         <div class="accordion-item">
             <h3 class="accordion-header" id="panel-compte">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="false" aria-controls="panelsStayOpen-collapseThree">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="true" aria-controls="panelsStayOpen-collapseThree">
                     <?= $this->lang->line("gvv_compta_fieldset_compte") . nbs() . $nom ?>
                 </button>
             </h3>
-            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse" aria-labelledby="panel-compte">
+            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse show" aria-labelledby="panel-compte">
                 <div class="accordion-body">
                     <?php
                     if ($solde_avant < 0) {
