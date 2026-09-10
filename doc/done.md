@@ -254,5 +254,8 @@
 
 * [x] Vérifier les problèmes de page qui s'affichent mal sur smartphone.
 
+* [x] identifier s'il y a des tests qui créent des fichiers sans les nettoyer. 
+  
+* [x] Permettre les réservations sur plusieurs jours.
 
 
