@@ -27,6 +27,7 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 
 $this->lang->load('vols_planeur');
+$this->lang->load('terrains');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -207,11 +208,17 @@ $percent_selector = array('0' => 0, '50' => 50, '100' => 100);
     <!-- Lieux et distance -->
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_volsp_field_vplieudeco") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsp", 'vplieudeco', $vplieudeco) ?>
+        <span class="d-inline-flex align-items-start gap-1">
+            <?= $this->gvvmetadata->input_field("volsp", 'vplieudeco', $vplieudeco) ?>
+            <button type="button" class="btn btn-outline-primary js-add-terrain" data-target="vplieudeco" title="<?= $this->lang->line('gvv_terrains_ajax_add_title') ?>">+</button>
+        </span>
     </div>
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_volsp_field_vplieuatt") . ": " ?>
-        <?= $this->gvvmetadata->input_field("volsp", 'vplieuatt', $vplieuatt) ?>
+        <span class="d-inline-flex align-items-start gap-1">
+            <?= $this->gvvmetadata->input_field("volsp", 'vplieuatt', $vplieuatt) ?>
+            <button type="button" class="btn btn-outline-primary js-add-terrain" data-target="vplieuatt" title="<?= $this->lang->line('gvv_terrains_ajax_add_title') ?>">+</button>
+        </span>
     </div>
     <div class="me-3 mb-2">
         <?= $this->lang->line("gvv_volsp_field_vpnbkm") . ": " ?>
@@ -274,5 +281,8 @@ $list = array(
 echo ul($list);
 
 echo '</div>';
+
+// Fenêtre modale de création rapide d'un aérodrome (hors du <form> de saisie)
+$this->load->view('terrains/bs_ajax_modal', array('terrain_modal_selects' => array('vplieudeco', 'vplieuatt')));
 ?>
 <script type="text/javascript" src="<?php echo js_url('form_vols_planeur'); ?>"></script>

@@ -26,6 +26,7 @@ $this->load->view('bs_header');
 $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('vols_avion');
+$this->lang->load('terrains');
 
 echo '<div id="body" class="body container-fluid">';
 
@@ -170,12 +171,18 @@ if (isset($kid) && isset($$kid)) {
 
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "valieudeco") ?></div>
-        <div><?= $this->gvvmetadata->input_field("volsa", "valieudeco", $valieudeco) ?></div>
+        <div class="d-flex align-items-start gap-1">
+            <?= $this->gvvmetadata->input_field("volsa", "valieudeco", $valieudeco) ?>
+            <button type="button" class="btn btn-outline-primary js-add-terrain" data-target="valieudeco" title="<?= $this->lang->line('gvv_terrains_ajax_add_title') ?>">+</button>
+        </div>
     </div>
 
     <div class="d-flex flex-column mb-2">
         <div class="small mb-1"><?= $this->gvvmetadata->field_long_name("volsa", "valieuatt") ?></div>
-        <div><?= $this->gvvmetadata->input_field("volsa", "valieuatt", $valieuatt) ?></div>
+        <div class="d-flex align-items-start gap-1">
+            <?= $this->gvvmetadata->input_field("volsa", "valieuatt", $valieuatt) ?>
+            <button type="button" class="btn btn-outline-primary js-add-terrain" data-target="valieuatt" title="<?= $this->lang->line('gvv_terrains_ajax_add_title') ?>">+</button>
+        </div>
     </div>
 
     <div class="d-flex flex-column mb-2">
@@ -242,6 +249,10 @@ echo form_close();
 echo br();
 echo $this->lang->line("gvv_vols_avion_tip_billing");
 echo '</div>';
+
+// Fenêtre modale de création rapide d'un aérodrome (hors du <form> de saisie)
+$terrain_modal_selects = array('valieudeco', 'valieuatt');
+$this->load->view('terrains/bs_ajax_modal', array('terrain_modal_selects' => $terrain_modal_selects));
 ?>
 <style>
 /* Normalise la hauteur de tous les champs non-Bootstrap de ce formulaire */
