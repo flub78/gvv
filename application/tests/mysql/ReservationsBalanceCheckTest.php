@@ -8,7 +8,9 @@ require_once(__DIR__ . '/../integration/TransactionalTestCase.php');
  * Covers the logic introduced in reservations.php for auto_planchiste and
  * propriétaire users:
  *  - Cotisation check  : pilot must have a licences row (type=0) for the year
- *  - Balance check     : pilot balance must cover (existing + new) hours × rate
+ *  - Balance check     : pilot balance must cover the required credit per
+ *                        reservation = 2/3 of the reserved time, capped at
+ *                        2 flight hours per reserved day (multi-day bookings)
  *  - Owner rate        : if machinesa.proprio = pilot, maprixproprio is used
  *  - Double-command    : maprixdc is added for the new reservation if instructor set
  *  - Exemptions        : club-admin and instructeur bypass all checks
@@ -183,6 +185,50 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
     }
 
     // ------------------------------------------------------------------ //
+    //  Helper: create a multi-day future reservation for the pilot
+    //  $start_expr / $end_expr are strtotime() expressions
+    // ------------------------------------------------------------------ //
+    private function _create_multiday_reservation($start_expr, $end_expr, $pilot = null)
+    {
+        $pilot = $pilot ?: $this->pilot;
+        $this->CI->db->insert('reservations', [
+            'aircraft_id'          => $this->aircraft_id,
+            'pilot_member_id'      => $pilot,
+            'instructor_member_id' => null,
+            'start_datetime'       => date('Y-m-d H:i:s', strtotime($start_expr)),
+            'end_datetime'         => date('Y-m-d H:i:s', strtotime($end_expr)),
+            'status'               => 'reservation',
+            'section_id'           => $this->section_id,
+            'created_by'           => 'test',
+        ]);
+        return $this->CI->db->insert_id();
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Helper: calendar days a reservation spans (mirrors controller)
+    // ------------------------------------------------------------------ //
+    private function _reserved_day_count($start_datetime, $end_datetime)
+    {
+        $start = new DateTime(substr($start_datetime, 0, 10));
+        $end   = new DateTime(substr($end_datetime, 0, 10));
+        if ($end > $start && substr($end_datetime, 11) === '00:00:00') {
+            $end->modify('-1 day');
+        }
+        $days = (int) $start->diff($end)->days + 1;
+        return $days < 1 ? 1 : $days;
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Helper: required credit (in hours) for one reservation
+    //  = 2/3 of reserved time, capped at 2 h per reserved day
+    // ------------------------------------------------------------------ //
+    private function _reservation_required_hours($start_datetime, $end_datetime, $reserved_hours)
+    {
+        $cap = $this->_reserved_day_count($start_datetime, $end_datetime) * 2.0;
+        return min($reserved_hours * 2.0 / 3.0, $cap);
+    }
+
+    // ------------------------------------------------------------------ //
     //  Helper: add a cotisation (licences row type=0) for the pilot
     // ------------------------------------------------------------------ //
     private function _add_cotisation($year = null)
@@ -198,10 +244,26 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
     }
 
     // ------------------------------------------------------------------ //
-    //  Helper: replicate _check_pilot_balance() query logic
+    //  Helper: same-day reservation of $new_hours, 10:00 → 10:00+N, in +7 days
     // ------------------------------------------------------------------ //
     private function _check_balance($new_hours, $with_instructor = false)
     {
+        $start = date('Y-m-d H:i:s', strtotime('+7 days 10:00:00'));
+        $end   = date('Y-m-d H:i:s', strtotime('+7 days ' . (10 + $new_hours) . ':00:00'));
+        return $this->_check_balance_span($start, $end, $with_instructor);
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Helper: replicate _check_pilot_balance() query logic for an arbitrary
+    //  reservation span. $exclude_id mirrors the controller's exclusion of the
+    //  reservation being modified (update path).
+    // ------------------------------------------------------------------ //
+    private function _check_balance_span($start_datetime, $end_datetime, $with_instructor = false, $exclude_id = null)
+    {
+        $dt_s = new DateTime($start_datetime);
+        $dt_e = new DateTime($end_datetime);
+        $new_hours = ($dt_e->getTimestamp() - $dt_s->getTimestamp()) / 3600.0;
+
         // 1. Aircraft info
         $aircraft = $this->CI->db->get_where('machinesa', ['macimmat' => $this->aircraft_id])->row_array();
         $is_owner = !empty($aircraft['proprio']) && $aircraft['proprio'] === $this->pilot;
@@ -227,12 +289,15 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
 
         // 3. Existing future reservations — all aircraft (matching controller logic)
         $now = date('Y-m-d H:i:s');
-        $existing = $this->CI->db
+        $this->CI->db
             ->select('aircraft_id, start_datetime, end_datetime')->from('reservations')
             ->where('pilot_member_id', $this->pilot)
             ->where('start_datetime >', $now)
-            ->where('status', 'reservation')
-            ->get()->result_array();
+            ->where('status', 'reservation');
+        if ($exclude_id !== null) {
+            $this->CI->db->where('id !=', $exclude_id);
+        }
+        $existing = $this->CI->db->get()->result_array();
 
         $existing_cost = 0.0;
         $rate_cache = [];
@@ -259,11 +324,17 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
             if ($rate_cache[$res_id] > 0.0) {
                 $s = new DateTime($r['start_datetime']);
                 $e = new DateTime($r['end_datetime']);
-                $existing_cost += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0 * $rate_cache[$res_id];
+                $r_hours = ($e->getTimestamp() - $s->getTimestamp()) / 3600.0;
+                $existing_cost += $this->_reservation_required_hours(
+                    $r['start_datetime'], $r['end_datetime'], $r_hours
+                ) * $rate_cache[$res_id];
             }
         }
 
-        $total_cost = $existing_cost + $new_hours * $hourly_rate;
+        // Required credit (hours) for the new/modified reservation:
+        // 2/3 of the reserved time, capped at 2 h per reserved day.
+        $new_required_hours = $this->_reservation_required_hours($start_datetime, $end_datetime, $new_hours);
+        $total_cost = $existing_cost + $new_required_hours * $hourly_rate;
 
         // 4. DC cost
         if ($with_instructor) {
@@ -275,7 +346,7 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
                 ->where('produits.club', $this->section_id)
                 ->order_by('tarifs.date', 'desc')->limit(1)->get()->row_array();
             $dc_rate = $dc_tarif ? (float)$dc_tarif['prix'] : 0.0;
-            $total_cost += $new_hours * $dc_rate;
+            $total_cost += $new_required_hours * $dc_rate;
         }
 
         // 5. Balance — look up compte directly, matching the controller fix
@@ -291,7 +362,8 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         }
         $balance = (float)$this->CI->ecritures_model->solde_compte($compte['id']);
 
-        $required = $total_cost * 2.0 / 3.0;
+        // $total_cost is already the required credit (capped per reserved day).
+        $required = $total_cost;
         return $balance >= $required
             ? ['ok' => true]
             : ['ok' => false, 'balance' => $balance, 'cost' => $required];
@@ -393,8 +465,117 @@ class ReservationsBalanceCheckTest extends TransactionalTestCase
         $this->_credit_account(60.00);
         $this->_create_future_reservation(10.0, $this->other_pilot); // Another pilot's reservation
 
-        $result = $this->_check_balance(1.0); // 1h × 50€ = 50€, balance = 60€
+        $result = $this->_check_balance(1.0); // required = 2/3 × 1h × 50€ = 33.33€, balance = 60€
         $this->assertTrue($result['ok'], "Other pilot's reservations must not count against this pilot");
+    }
+
+    // ================================================================== //
+    //  Tests: Multi-day reservations — 2 flight hours guaranteed per day
+    //  (cap on the 2/3-of-reserved-time rule so a 3-day booking needs 6 h
+    //   of credit, not ~48 h)
+    // ================================================================== //
+
+    // A 3-day booking: morning of day 1 (08:00) → evening of day 3 (20:00).
+    // rate 50€/h → required credit = 3 days × 2 h × 50€ = 300€ (i.e. 6 flight hours).
+    private function _multiday_span()
+    {
+        return [
+            date('Y-m-d H:i:s', strtotime('+7 days 08:00:00')),
+            date('Y-m-d H:i:s', strtotime('+9 days 20:00:00')),
+        ];
+    }
+
+    public function testThreeDayReservationAllowedWithMoreThanSixHoursCredit()
+    {
+        [$start, $end] = $this->_multiday_span();
+        $this->_credit_account(350.00); // > 6 flight hours (300€)
+        $result = $this->_check_balance_span($start, $end);
+        $this->assertTrue($result['ok'], 'Pilot with more than 6 h of credit can book 3 full days');
+    }
+
+    public function testThreeDayReservationAllowedAtExactlySixHoursCredit()
+    {
+        [$start, $end] = $this->_multiday_span();
+        $this->_credit_account(300.00); // exactly 6 flight hours
+        $result = $this->_check_balance_span($start, $end);
+        $this->assertTrue($result['ok'], 'Exactly 6 h of credit is sufficient for a 3-day booking (>=)');
+    }
+
+    public function testThreeDayReservationBlockedBelowSixHoursCredit()
+    {
+        [$start, $end] = $this->_multiday_span();
+        $this->_credit_account(250.00); // < 6 flight hours
+        $result = $this->_check_balance_span($start, $end);
+        $this->assertFalse($result['ok'], 'Below 6 h of credit the 3-day booking is refused');
+        $this->assertEqualsWithDelta(300.00, $result['cost'], 0.01, 'Required = 3 days × 2 h × 50€');
+        $this->assertEquals(250.00, $result['balance'], 'Balance in error must match account balance');
+    }
+
+    // ================================================================== //
+    //  Tests: the check also runs on reservation MODIFICATION (update path)
+    //  The controller passes $exclude_reservation_id so the reservation being
+    //  modified is not counted twice.
+    // ================================================================== //
+
+    public function testModificationAllowedWhenCreditCoversNewSpan()
+    {
+        // Existing 3-day reservation, then modified (same 3-day span).
+        $this->_credit_account(350.00);
+        $id = $this->_create_multiday_reservation('+7 days 08:00:00', '+9 days 20:00:00');
+
+        $new_start = date('Y-m-d H:i:s', strtotime('+7 days 08:00:00'));
+        $new_end   = date('Y-m-d H:i:s', strtotime('+9 days 20:00:00'));
+        $result = $this->_check_balance_span($new_start, $new_end, false, $id);
+        $this->assertTrue($result['ok'], 'Modification re-checked against the new span, excluding the reservation itself');
+    }
+
+    public function testModificationBlockedWhenExtendedBeyondCredit()
+    {
+        // Existing 2-day reservation (needs 200€), pilot has 250€ (ok for 2 days).
+        // Extending it to 3 days needs 300€ → refused.
+        $this->_credit_account(250.00);
+        $id = $this->_create_multiday_reservation('+7 days 08:00:00', '+8 days 20:00:00');
+
+        $new_start = date('Y-m-d H:i:s', strtotime('+7 days 08:00:00'));
+        $new_end   = date('Y-m-d H:i:s', strtotime('+9 days 20:00:00')); // now 3 days
+        $result = $this->_check_balance_span($new_start, $new_end, false, $id);
+        $this->assertFalse($result['ok'], 'Extending a reservation beyond the available credit is refused on update');
+        $this->assertEqualsWithDelta(300.00, $result['cost'], 0.01, 'Required = 3 days × 2 h × 50€');
+    }
+
+    public function testControllerRunsBalanceCheckOnBothCreateAndUpdate()
+    {
+        $src = file_get_contents(APPPATH . 'controllers/reservations.php');
+        // Update path passes the reservation id to exclude it from the sum.
+        $this->assertRegExp(
+            '/_check_pilot_balance\([^;]*\$exclude_id/s',
+            $src,
+            'update_reservation must call _check_pilot_balance with an exclude id'
+        );
+        $this->assertStringContainsString(
+            '$exclude_id = $is_create ? null : $reservation_id;',
+            $src,
+            'Balance check must run on both create and update'
+        );
+    }
+
+    public function testReservedDayCountSpansThreeCalendarDays()
+    {
+        $this->assertEquals(
+            3,
+            $this->_reserved_day_count('2026-06-01 08:00:00', '2026-06-03 20:00:00'),
+            'Morning of day 1 to evening of day 3 spans 3 days'
+        );
+        $this->assertEquals(
+            1,
+            $this->_reserved_day_count('2026-06-01 08:00:00', '2026-06-01 12:00:00'),
+            'A same-day reservation spans 1 day'
+        );
+        $this->assertEquals(
+            1,
+            $this->_reserved_day_count('2026-06-01 08:00:00', '2026-06-02 00:00:00'),
+            'A reservation ending exactly at midnight does not consume the next day'
+        );
     }
 
     // ================================================================== //

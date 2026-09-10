@@ -11,8 +11,10 @@
  *      deux réservations courtes sur deux appareils différents passaient chacune
  *      le check individuellement alors que leur coût cumulé dépasse le solde.
  *
- * Règle de blocage : le solde doit couvrir au moins 2/3 du coût total cumulé.
- * Avec un solde de 76,60 €, le seuil de blocage est atteint au-delà de 114,90 €.
+ * Règle de blocage : le solde doit couvrir, par réservation, 2/3 du temps
+ * réservé, plafonné à 2 h de vol par jour réservé (assouplissement multi-jours).
+ * Sur une réservation d'une seule journée de moins de 3 h, le plafond ne
+ * s'applique pas et la règle reste « 2/3 du coût ».
  *
  * Usage :
  *   cd playwright && npx playwright test tests/reservations-balance-block.spec.js --reporter=line
@@ -31,8 +33,9 @@ const PILOT = 'assurancetourix';   // solde 76,60 €, auto_planchiste section 2
 
 const AIRCRAFT_A = 'F-JTVA';  // heure_nynja 108€/h
 const AIRCRAFT_B = 'F-JHRV';  // heure_ctl  126€/h
-// Scénario 1 : 1h15m A = 135€ → 135×2/3 = 90€ > 76,60€ → refusé
-// Scénario 2 : 0.5h A = 54€, 0.5h B = 63€, total = 117€ → 117×2/3 = 78€ > 76,60€ → refusé
+// Scénario 1 : 1h15m A → 2/3 × 1,25h × 108€ = 90€ > 76,60€ → refusé
+// Scénario 2 : 0,5h A (2/3 × 0,5h × 108€ = 36€, accepté) puis
+//              0,5h B (2/3 × 0,5h × 126€ = 42€) → cumul 78€ > 76,60€ → refusé
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

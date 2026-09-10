@@ -973,9 +973,39 @@ class Reservations extends MY_Controller {
     }
 
     /**
-     * Check whether a pilot has enough balance to cover the cost of:
-     *   - existing future reservations on the given aircraft
-     *   - the new reservation being created
+     * Number of calendar days a reservation spans, e.g. a booking from the
+     * morning of day 1 to the evening of day 3 spans 3 days. A reservation
+     * ending exactly at midnight does not consume that final day.
+     */
+    private function _reserved_day_count($start_datetime, $end_datetime) {
+        $start = new DateTime(substr($start_datetime, 0, 10));
+        $end   = new DateTime(substr($end_datetime, 0, 10));
+        if ($end > $start && substr($end_datetime, 11) === '00:00:00') {
+            $end->modify('-1 day');
+        }
+        $days = (int) $start->diff($end)->days + 1;
+        return $days < 1 ? 1 : $days;
+    }
+
+    /**
+     * Credit (in flight hours) a pilot must have to secure one reservation.
+     *
+     * The requirement is 2/3 of the reserved time, but capped at 2 guaranteed
+     * flight hours per reserved day. Without the cap, booking an aircraft for a
+     * full day would require ~16 h of credit; the cap keeps multi-day bookings
+     * affordable (a 3-day booking needs 6 h of credit, not ~48 h).
+     */
+    private function _reservation_required_hours($start_datetime, $end_datetime, $reserved_hours) {
+        $cap = $this->_reserved_day_count($start_datetime, $end_datetime) * 2.0;
+        return min($reserved_hours * 2.0 / 3.0, $cap);
+    }
+
+    /**
+     * Check whether a pilot has enough balance to cover the required credit for:
+     *   - existing future reservations (across all aircraft)
+     *   - the new reservation being created or modified
+     * The required credit per reservation is 2/3 of the reserved time, capped at
+     * 2 flight hours per reserved day (see _reservation_required_hours()).
      * If the pilot is the aircraft's owner (proprio), uses maprixproprio rate.
      * Returns array('ok' => bool, 'balance' => float, 'cost' => float).
      * Returns ok=true when no relevant pricing data is available (fail-open).
@@ -1034,7 +1064,8 @@ class Reservations extends MY_Controller {
         }
         $existing = $this->db->get()->result_array();
 
-        // Sum costs per aircraft (each has its own tarif)
+        // Sum the required credit per aircraft (each has its own tarif).
+        // Per reservation: 2/3 of the reserved time, capped at 2 h per reserved day.
         $existing_cost = 0.0;
         $rate_cache = array(); // aircraft_id => hourly_rate
         foreach ($existing as $res) {
@@ -1055,16 +1086,22 @@ class Reservations extends MY_Controller {
             if ($res_rate > 0.0) {
                 $s = new DateTime($res['start_datetime']);
                 $e = new DateTime($res['end_datetime']);
-                $existing_cost += ($e->getTimestamp() - $s->getTimestamp()) / 3600.0 * $res_rate;
+                $res_hours = ($e->getTimestamp() - $s->getTimestamp()) / 3600.0;
+                $existing_cost += $this->_reservation_required_hours(
+                    $res['start_datetime'], $res['end_datetime'], $res_hours
+                ) * $res_rate;
             }
         }
 
-        $total_cost = $existing_cost + $new_hours * $hourly_rate;
+        // Required credit for the new/modified reservation: 2/3 of the reserved
+        // time, capped at 2 flight hours per reserved day.
+        $new_required_hours = $this->_reservation_required_hours($start_datetime, $end_datetime, $new_hours);
+        $total_cost = $existing_cost + $new_required_hours * $hourly_rate;
 
         // Add double-command surcharge for this reservation if instructor present
         if (!empty($instructor_member_id)) {
             $dc_rate = $this->_get_tarif_price($aircraft['maprixdc'], $date);
-            $total_cost += $new_hours * $dc_rate;
+            $total_cost += $new_required_hours * $dc_rate;
         }
 
         // Find the pilot's 411 account in the aircraft's section
@@ -1085,8 +1122,9 @@ class Reservations extends MY_Controller {
         $this->load->model('ecritures_model');
         $balance = (float) $this->ecritures_model->solde_compte($compte['id']);
 
-        // Only 2/3 of the estimated cost is required to make a reservation.
-        $required = $total_cost * 2.0 / 3.0;
+        // $total_cost is already the required credit (2/3 of reserved time,
+        // capped at 2 h per reserved day, summed over existing + new).
+        $required = $total_cost;
 
         if ($balance >= $required) {
             return array('ok' => true);
