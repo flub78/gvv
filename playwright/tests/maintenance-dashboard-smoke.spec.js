@@ -1,5 +1,9 @@
 /**
- * Smoke test for the Maintenance module — Dashboard dedie (Phase 5, Etape 5.7)
+ * Smoke test for the Maintenance module — dashboard a plat (Phase 5, Etape 5.7,
+ * aplati sur le tableau de bord principal apres suppression du dashboard
+ * intermediaire "maintenance_dashboard" : les 7 cartes du module pointent
+ * desormais directement vers leur controleur, sur le meme modele que la
+ * section Formation)
  *
  * Prerequisites:
  *   - obelix user exists with mecano role in section Planeur (id=1)
@@ -28,36 +32,20 @@ async function switchToPlaneurSection(page) {
     });
 }
 
-test.describe('Maintenance - Dashboard dedie (mecano)', () => {
+test.describe('Maintenance - Section a plat du tableau de bord principal (mecano)', () => {
 
-    test('mecano sees the maintenance section on the main dashboard with active cards linking to the dedicated dashboard', async ({ page }) => {
+    test('mecano sees all 7 maintenance cards directly on the main dashboard, each linking to its own controller', async ({ page }) => {
         await login(page, MECANO_USER);
         await switchToPlaneurSection(page);
 
         await page.goto('/index.php/welcome/section/maintenance');
         await page.waitForLoadState('networkidle');
 
-        // Les 2 cartes existantes ne sont plus "bientot disponible"
+        // Plus aucune carte "Bientot disponible" dans cette section
         await expect(page.locator('body')).not.toContainText('Bientôt disponible');
-        const progCard = page.locator('.sub-card', { hasText: "Programmes d'entretien" });
-        await expect(progCard.locator('a, button')).toHaveText(/Gérer/);
-        const opsCard = page.locator('.sub-card', { hasText: 'Opérations de maintenance' });
-        await expect(opsCard.locator('a, button')).toHaveText(/Gérer/);
+        // Plus de dashboard intermediaire : aucune carte ne pointe vers maintenance_dashboard
+        await expect(page.locator('.sub-card a[href*="maintenance_dashboard"]')).toHaveCount(0);
 
-        // Les deux pointent vers le dashboard maintenance dedie
-        await progCard.locator('a').click();
-        await page.waitForLoadState('networkidle');
-        await expect(page.url()).toContain('/maintenance_dashboard');
-
-        // Le dashboard dedie affiche toutes les cartes du module
-        await expect(page.locator('body')).toContainText('Équipements');
-        await expect(page.locator('body')).toContainText("Programmes d'entretien");
-        await expect(page.locator('body')).toContainText("Dossiers d'entretien");
-        await expect(page.locator('body')).toContainText('Opérations de maintenance');
-        await expect(page.locator('body')).toContainText('Bulletins de service');
-        await expect(page.locator('body')).toContainText('Synthèse navigabilité');
-
-        // Chaque carte mene bien au bon controleur
         const links = {
             'Équipements': 'maintenance_equipements',
             "Programmes d'entretien": 'maintenance_programmes',
@@ -65,17 +53,45 @@ test.describe('Maintenance - Dashboard dedie (mecano)', () => {
             'Opérations de maintenance': 'maintenance_operations',
             'Bulletins de service': 'maintenance_bulletins',
             'Synthèse navigabilité': 'maintenance_synthese',
+            'Tableau des potentiels': 'maintenance_synthese',
         };
         for (const [label, expectedController] of Object.entries(links)) {
-            const href = await page.locator('.sub-card', { hasText: label }).locator('a').getAttribute('href');
+            const card = page.locator('.sub-card', { hasText: label });
+            await expect(card).toBeVisible();
+            const href = await card.locator('a').getAttribute('href');
             expect(href).toContain(expectedController);
         }
     });
 
-    test('non-mecano user is denied access to the dedicated dashboard', async ({ page }) => {
+    test('clicking a maintenance card lands directly on the target screen, and the back link returns to the main dashboard', async ({ page }) => {
+        await login(page, MECANO_USER);
+        await switchToPlaneurSection(page);
+
+        await page.goto('/index.php/welcome/section/maintenance');
+        await page.waitForLoadState('networkidle');
+
+        await page.locator('.sub-card', { hasText: 'Équipements' }).locator('a').click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.url()).toContain('/maintenance_equipements');
+        await expect(page.url()).not.toContain('/maintenance_dashboard');
+
+        const backLink = page.locator('#navBackLink');
+        await expect(backLink).toBeVisible();
+        await expect(backLink).toContainText('Maintenance et suivi de navigabilité');
+        await backLink.click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.url()).toContain('/welcome/section/maintenance');
+    });
+
+    test('non-mecano user is denied access to write screens but keeps access to the read-only synthese', async ({ page }) => {
         await login(page, { username: 'asterix', password: 'password' });
-        await page.goto('/index.php/maintenance_dashboard');
+
+        await page.goto('/index.php/maintenance_equipements');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).toContainText(/r.serv.|interdit|403/i);
+
+        await page.goto('/index.php/maintenance_synthese');
+        await page.waitForLoadState('networkidle');
+        await expect(page.locator('body')).not.toContainText(/403/i);
     });
 });

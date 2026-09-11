@@ -52,8 +52,8 @@ test.describe('Maintenance - Parcours mecano de bout en bout', () => {
         await login(page, MECANO_USER);
         await switchToPlaneurSection(page);
 
-        // Dashboard maintenance accessible
-        await page.goto('/index.php/maintenance_dashboard');
+        // Section Maintenance du tableau de bord principal accessible
+        await page.goto('/index.php/welcome/section/maintenance');
         await page.waitForLoadState('networkidle');
         await expect(page.locator('body')).not.toContainText(/403|interdit/i);
 

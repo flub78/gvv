@@ -207,6 +207,5 @@ $lang['maintenance_etat_echeance_proche'] = 'Due soon';
 $lang['maintenance_etat_depasse'] = 'Overdue';
 
 // Maintenance dashboard
-$lang['maintenance_dashboard_title'] = 'Maintenance';
 $lang['maintenance_operations_title'] = 'Maintenance operations';
 $lang['maintenance_operations_aucune'] = 'No operation recorded.';

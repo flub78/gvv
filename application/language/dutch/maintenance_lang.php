@@ -207,6 +207,5 @@ $lang['maintenance_etat_echeance_proche'] = 'Binnenkort vervallen';
 $lang['maintenance_etat_depasse'] = 'Vervallen';
 
 // Onderhoudsdashboard
-$lang['maintenance_dashboard_title'] = 'Onderhoud';
 $lang['maintenance_operations_title'] = 'Onderhoudsoperaties';
 $lang['maintenance_operations_aucune'] = 'Geen operatie geregistreerd.';

@@ -36,6 +36,7 @@ class Maintenance_operations extends MY_Controller {
         $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
+        $this->lang->load('tableaux_de_bord');
 
         if (!$this->dx_auth->is_logged_in()) {
             redirect('auth/login');
@@ -49,7 +50,8 @@ class Maintenance_operations extends MY_Controller {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
-        $this->lang->load('tableaux_de_bord');
+        // Bouton retour vers la section Maintenance du tableau de bord principal
+        // (memorise via nav_from_url/label, meme convention que les controleurs Formation)
         $this->load->vars([
             'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/maintenance',
             'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_maintenance'),

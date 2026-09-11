@@ -207,6 +207,5 @@ $lang['maintenance_etat_echeance_proche'] = 'Échéance proche';
 $lang['maintenance_etat_depasse'] = 'Dépassé';
 
 // Dashboard maintenance
-$lang['maintenance_dashboard_title'] = 'Maintenance';
 $lang['maintenance_operations_title'] = 'Opérations de maintenance';
 $lang['maintenance_operations_aucune'] = 'Aucune opération enregistrée.';

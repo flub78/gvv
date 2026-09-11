@@ -30,7 +30,6 @@ class Maintenance_synthese extends MY_Controller {
         $this->load->model('maintenance_equipement_model');
         $this->load->model('maintenance_dossier_model');
         $this->load->model('maintenance_operation_model');
-        $this->load->model('sections_model');
         $this->load->library('Maintenance_potentiel');
         $this->load->library('Maintenance_access');
         $this->lang->load('maintenance');
@@ -48,6 +47,9 @@ class Maintenance_synthese extends MY_Controller {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
+        // Bouton retour vers la section Maintenance du tableau de bord principal
+        // (memorise via nav_from_url/label, meme convention que les controleurs Formation)
+        // tableaux_de_bord reste charge : tableau.php l'utilise (db_card_maintenance_prog).
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
             'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/maintenance',
@@ -56,23 +58,21 @@ class Maintenance_synthese extends MY_Controller {
     }
 
     /**
-     * Vue flotte : pire etat par aeronef, filtrable par section (PRD EF7.3)
-     * @param int|string $section_id
+     * Vue flotte : pire etat par aeronef, filtree sur la section active
+     * (selecteur de section habituel du menu, pas de filtre local -- PRD EF7.3)
      */
-    public function index($section_id = '') {
-        $aeronefs = $this->maintenance_equipement_model->get_aeronefs_by_section($section_id);
+    public function index() {
+        $aeronefs = $this->maintenance_equipement_model->get_aeronefs_by_section($this->session->userdata('section'));
         foreach ($aeronefs as &$aeronef) {
             $aeronef['etat'] = $this->maintenance_potentiel->etat_pire_cas($aeronef['macimmat']);
         }
         unset($aeronef);
 
         $data = array(
-            'controller'       => 'maintenance_synthese',
-            'aeronefs'         => $aeronefs,
-            'section_id'       => $section_id,
-            'section_selector' => $this->sections_model->section_selector_with_null(),
-            'etat_badges'      => self::ETAT_BADGES,
-            'etat_labels'      => $this->etat_labels(),
+            'controller'  => 'maintenance_synthese',
+            'aeronefs'    => $aeronefs,
+            'etat_badges' => self::ETAT_BADGES,
+            'etat_labels' => $this->etat_labels(),
         );
 
         $this->load->view('maintenance_synthese/index', $data);
@@ -89,9 +89,9 @@ class Maintenance_synthese extends MY_Controller {
      * colonne simplement en creant un programme et en ouvrant un dossier
      * par aeronef concerne.
      *
-     * @param int|string $section_id
      */
-    public function tableau($section_id = '') {
+    public function tableau() {
+        $section_id = $this->session->userdata('section');
         $aeronefs = $this->maintenance_equipement_model->get_aeronefs_by_section($section_id);
         $dossiers = $this->maintenance_dossier_model->get_ouverts_aeronefs($section_id);
 
@@ -117,13 +117,11 @@ class Maintenance_synthese extends MY_Controller {
         unset($aeronef);
 
         $data = array(
-            'controller'       => 'maintenance_synthese',
-            'aeronefs'         => $aeronefs,
-            'programmes'       => $programmes,
-            'section_id'       => $section_id,
-            'section_selector' => $this->sections_model->section_selector_with_null(),
-            'etat_badges'      => self::ETAT_BADGES,
-            'etat_labels'      => $this->etat_labels(),
+            'controller'  => 'maintenance_synthese',
+            'aeronefs'    => $aeronefs,
+            'programmes'  => $programmes,
+            'etat_badges' => self::ETAT_BADGES,
+            'etat_labels' => $this->etat_labels(),
         );
 
         $this->load->view('maintenance_synthese/tableau', $data);

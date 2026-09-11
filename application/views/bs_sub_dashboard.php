@@ -919,42 +919,70 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
 
     <?php elseif ($dashboard_section === 'maintenance'): ?>
     <!-- ================================================================
-         Section Maintenance
+         Section Maintenance et suivi de navigabilité
+         (a plat, aucun dashboard intermediaire - cf. formation)
          ================================================================ -->
     <div class="row g-2">
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-cogs text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_equipements') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('maintenance_equipements') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-clipboard-list text-primary"></i>
                 <div class="card-title"><?= $this->lang->line('db_card_maintenance_prog') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
-                <a href="<?= controller_url('maintenance_dashboard') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                <a href="<?= controller_url('maintenance_programmes') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
-                <i class="fas fa-tools text-primary"></i>
+                <i class="fas fa-folder-open text-success"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_dossiers') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('maintenance_dossiers') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-tools text-warning"></i>
                 <div class="card-title"><?= $this->lang->line('db_card_maintenance_ops') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
-                <a href="<?= controller_url('maintenance_dashboard') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+                <a href="<?= controller_url('maintenance_operations') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center" style="opacity: 0.5;">
-                <i class="fas fa-shield-alt text-secondary"></i>
-                <div class="card-title text-muted"><?= $this->lang->line('db_card_airworthiness') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
-                <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+            <div class="sub-card text-center">
+                <i class="fas fa-bell text-danger"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_bulletins') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('maintenance_bulletins') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center" style="opacity: 0.5;">
-                <i class="fas fa-warehouse text-secondary"></i>
-                <div class="card-title text-muted"><?= $this->lang->line('db_card_fleet_mgmt') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_coming_soon') ?></div>
-                <button class="btn btn-secondary btn-sm" disabled><?= $this->lang->line('db_btn_bientot') ?></button>
+            <div class="sub-card text-center">
+                <i class="fas fa-shield-alt text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_synthese') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_synthesis') ?></div>
+                <a href="<?= controller_url('maintenance_synthese') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-table text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_maintenance_tableau') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_synthesis') ?></div>
+                <a href="<?= controller_url('maintenance_synthese') ?>/tableau" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
     </div>

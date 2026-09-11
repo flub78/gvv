@@ -21,28 +21,6 @@ $this->load->view('bs_banner');
         </a>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label for="section_select" class="form-label"><?= $this->lang->line('maintenance_programme_section') ?></label>
-                    <?= form_dropdown('section_select', $section_selector, $section_id, 'class="form-select" id="section_select"') ?>
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-primary" id="btn-filtrer-section">
-                        <i class="fas fa-filter" aria-hidden="true"></i> <?= $this->lang->line('maintenance_synthese_filtrer') ?>
-                    </button>
-                </div>
-            </form>
-            <script>
-                document.getElementById('btn-filtrer-section').addEventListener('click', function () {
-                    var section = document.getElementById('section_select').value;
-                    window.location.href = '<?= controller_url($controller) ?>/tableau/' + encodeURIComponent(section);
-                });
-            </script>
-        </div>
-    </div>
-
     <?php if (empty($programmes)): ?>
         <div class="alert alert-info">
             <i class="fas fa-info-circle" aria-hidden="true"></i>

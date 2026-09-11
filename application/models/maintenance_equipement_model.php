@@ -76,15 +76,29 @@ class Maintenance_equipement_model extends Common_Model {
      * joined in for display.
      *
      * @param bool $actif_only If true (default), only return active equipments
+     * @param int|null|string $section_id Section active (selecteur du menu),
+     *        null/vide/"Toutes" = pas de filtre
      * @return array List of equipments (fields + aeronef_modele)
      */
-    public function get_all($actif_only = true) {
+    public function get_all($actif_only = true, $section_id = null) {
+        // "Toutes" (selecteur de section du menu) vaut 0 en session, qui ne
+        // correspond a aucune section reelle -- verifier l'existence plutot
+        // que la simple presence, comme les autres modeles du module.
+        $section_exists = false;
+        if ($section_id !== null && $section_id !== '') {
+            $query = $this->db->where('id', $section_id)->get('sections');
+            $section_exists = $query->num_rows() > 0;
+        }
+
         $this->db->select('e.*, m.macmodele as aeronef_modele')
             ->from($this->table . ' e')
             ->join('machinesa m', 'e.aeronef_id = m.macimmat', 'left');
 
         if ($actif_only) {
             $this->db->where('e.actif', 1);
+        }
+        if ($section_exists) {
+            $this->db->where('m.club', (int) $section_id);
         }
 
         $this->db->order_by('m.macmodele', 'asc')->order_by('e.nom', 'asc');
@@ -102,12 +116,21 @@ class Maintenance_equipement_model extends Common_Model {
      * @return array List of aircraft (macimmat, macmodele, club)
      */
     public function get_aeronefs_by_section($section_id = null) {
+        // "Toutes" (selecteur de section du menu) vaut 0 en session, qui ne
+        // correspond a aucune section reelle -- verifier l'existence plutot
+        // que la simple presence, comme les autres modeles du module.
+        $section_exists = false;
+        if ($section_id !== null && $section_id !== '') {
+            $query = $this->db->where('id', $section_id)->get('sections');
+            $section_exists = $query->num_rows() > 0;
+        }
+
         $this->db->select('macimmat, macmodele, club')
             ->from('machinesa')
             ->where('actif', 1);
 
-        if ($section_id !== null && $section_id !== '') {
-            $this->db->where('club', $section_id);
+        if ($section_exists) {
+            $this->db->where('club', (int) $section_id);
         }
 
         $this->db->order_by('macmodele', 'asc');
@@ -118,16 +141,27 @@ class Maintenance_equipement_model extends Common_Model {
     }
 
     /**
-     * Get a dropdown selector of all active aircraft, for the "target
-     * aircraft" field of the create/transfer forms.
+     * Get a dropdown selector of active aircraft, for the "target aircraft"
+     * field of the create/transfer forms, or (with $section_id) to browse
+     * data scoped to the active section (selecteur de section du menu).
      *
+     * @param int|null|string $section_id Section active, null/vide/"Toutes" = pas de filtre
      * @return array [macimmat => "macmodele - macimmat"]
      */
-    public function get_aeronef_selector() {
+    public function get_aeronef_selector($section_id = null) {
+        $section_exists = false;
+        if ($section_id !== null && $section_id !== '') {
+            $query = $this->db->where('id', $section_id)->get('sections');
+            $section_exists = $query->num_rows() > 0;
+        }
+
         $this->db->select('macimmat, macmodele')
             ->from('machinesa')
-            ->where('actif', 1)
-            ->order_by('macmodele', 'asc');
+            ->where('actif', 1);
+        if ($section_exists) {
+            $this->db->where('club', (int) $section_id);
+        }
+        $this->db->order_by('macmodele', 'asc');
 
         $results = $this->db->get()->result_array();
         gvv_debug("sql: " . $this->db->last_query());

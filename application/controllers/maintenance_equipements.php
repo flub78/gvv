@@ -27,6 +27,7 @@ class Maintenance_equipements extends MY_Controller {
         $this->load->library('form_validation');
         $this->lang->load('maintenance');
         $this->lang->load('gvv');
+        $this->lang->load('tableaux_de_bord');
 
         if (!$this->dx_auth->is_logged_in()) {
             redirect('auth/login');
@@ -36,8 +37,8 @@ class Maintenance_equipements extends MY_Controller {
             show_error($this->lang->line('maintenance_acces_refuse'), 403);
         }
 
-        // Bouton retour vers le tableau de bord Maintenance
-        $this->lang->load('tableaux_de_bord');
+        // Bouton retour vers la section Maintenance du tableau de bord principal
+        // (memorise via nav_from_url/label, meme convention que les controleurs Formation)
         $this->load->vars([
             'nav_back_url'   => $this->session->userdata('nav_from_url')   ?: 'welcome/section/maintenance',
             'nav_back_label' => $this->session->userdata('nav_from_label') ?: $this->lang->line('db_section_maintenance'),
@@ -45,10 +46,11 @@ class Maintenance_equipements extends MY_Controller {
     }
 
     /**
-     * Liste de tous les equipements (actifs et inactifs), aeronef affiche en clair
+     * Liste des equipements (actifs et inactifs) de la section active,
+     * aeronef affiche en clair
      */
     public function index() {
-        $equipements = $this->maintenance_equipement_model->get_all(false);
+        $equipements = $this->maintenance_equipement_model->get_all(false, $this->session->userdata('section'));
 
         $data = array(
             'controller'   => 'maintenance_equipements',

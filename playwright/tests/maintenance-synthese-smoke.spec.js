@@ -76,8 +76,8 @@ test.describe('Maintenance - Synthese navigabilite (mecano)', () => {
         await page.waitForLoadState('networkidle');
         await expect(page.url()).toContain('/maintenance_synthese/tableau/1');
 
-        // Accessible depuis le dashboard maintenance
-        await page.goto('/index.php/maintenance_dashboard');
+        // Accessible depuis la section Maintenance du tableau de bord principal
+        await page.goto('/index.php/welcome/section/maintenance');
         await page.waitForLoadState('networkidle');
         const potentielsCard = page.locator('.sub-card', { hasText: 'potentiels' });
         await expect(potentielsCard).toBeVisible();
