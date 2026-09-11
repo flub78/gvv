@@ -62,7 +62,7 @@ class Avions_model extends Common_Model {
      */
     public function select_page($nb = 1000, $debut = 0, $selection = array()) {
 
-        $columns = 'macmodele, macimmat, macconstruc, macplaces, macrem, maprive, actif, fabrication, club, sections.nom as section_name';
+        $columns = 'macmodele, macimmat, numero_identification, macconstruc, macplaces, macrem, maprive, actif, fabrication, club, sections.nom as section_name';
 
         $this->db
             ->select($columns)

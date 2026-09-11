@@ -103,6 +103,7 @@ $attrs = array(
 		'macmodele',
 		'macconstruc',
 		'macimmat',
+		'numero_identification',
 		'section_name',
 		'macplaces',
 		'macrem',
