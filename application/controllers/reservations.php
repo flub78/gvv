@@ -777,7 +777,8 @@ class Reservations extends MY_Controller {
                     throw new Exception('Failed to create reservation');
                 }
 
-                gvv_info("Reservation: User " . $username . " created reservation ID " . $new_id . " for " . $start_datetime);
+                $created_state = $this->_format_reservation_state($this->reservations_model->get_reservation($new_id));
+                gvv_info("Reservation: User " . $username . " created reservation ID " . $new_id . " | " . $created_state);
 
                 try {
                     $this->load->library('Reservation_reminder');
@@ -794,6 +795,9 @@ class Reservations extends MY_Controller {
 
             } else {
                 // UPDATE existing reservation
+                // Capture state before modification for logging
+                $before_state = $this->_format_reservation_state($this->reservations_model->get_reservation($reservation_id));
+
                 $update_data = array(
                     'start_datetime' => $start_datetime,
                     'end_datetime' => $end_datetime,
@@ -817,7 +821,9 @@ class Reservations extends MY_Controller {
                     // If exists but no rows affected, data might be unchanged (not an error)
                 }
 
-                gvv_info("Reservation: User " . $username . " updated reservation ID " . $reservation_id . " for " . $start_datetime);
+                $after_state = $this->_format_reservation_state($this->reservations_model->get_reservation($reservation_id));
+                gvv_info("Reservation: User " . $username . " updated reservation ID " . $reservation_id .
+                    " | BEFORE: " . $before_state . " | AFTER: " . $after_state);
 
                 try {
                     $this->load->library('Reservation_reminder');
@@ -885,8 +891,8 @@ class Reservations extends MY_Controller {
             }
 
             // Fetch reservation data before deletion for logging
-            $del_res_data = $this->db->get_where('reservations', array('id' => $reservation_id))->row_array();
-            $del_start = !empty($del_res_data['start_datetime']) ? $del_res_data['start_datetime'] : 'unknown';
+            $del_res_data = $this->reservations_model->get_reservation($reservation_id);
+            $del_state = $this->_format_reservation_state($del_res_data);
 
             // Fire cancel event BEFORE deletion (library needs the row to exist)
             try {
@@ -900,7 +906,7 @@ class Reservations extends MY_Controller {
             $success = $this->reservations_model->delete_reservation($reservation_id);
 
             if ($success) {
-                gvv_info("Reservation: User " . $del_username . " deleted reservation ID " . $reservation_id . " for " . $del_start);
+                gvv_info("Reservation: User " . $del_username . " deleted reservation ID " . $reservation_id . " | " . $del_state);
                 echo json_encode(array('success' => true));
             } else {
                 throw new Exception('Failed to delete reservation');
@@ -909,6 +915,37 @@ class Reservations extends MY_Controller {
             gvv_error("Error in delete: " . $e->getMessage());
             echo json_encode(array('success' => false, 'error' => $e->getMessage()));
         }
+    }
+
+    /**
+     * Build a readable one-line summary of a reservation's state for logging,
+     * from the array returned by reservations_model->get_reservation().
+     */
+    private function _format_reservation_state($data) {
+        if (empty($data)) {
+            return 'unknown';
+        }
+
+        $aircraft = !empty($data['aircraft_id']) ? $data['aircraft_id'] : 'none';
+        if (!empty($data['aircraft_model'])) {
+            $aircraft .= ' (' . $data['aircraft_model'] . ')';
+        }
+
+        $pilot = 'none';
+        if (!empty($data['pilot_member_id'])) {
+            $pilot = trim($data['pilot_prenom'] . ' ' . $data['pilot_nom']) . ' (' . $data['pilot_member_id'] . ')';
+        }
+
+        $instructor = 'none';
+        if (!empty($data['instructor_member_id'])) {
+            $instructor = trim($data['instructor_prenom'] . ' ' . $data['instructor_nom']) . ' (' . $data['instructor_member_id'] . ')';
+        }
+
+        return 'aircraft=' . $aircraft .
+            ', start=' . (!empty($data['start_datetime']) ? $data['start_datetime'] : 'unknown') .
+            ', end=' . (!empty($data['end_datetime']) ? $data['end_datetime'] : 'unknown') .
+            ', pilot=' . $pilot .
+            ', instructor=' . $instructor;
     }
 
     /**
