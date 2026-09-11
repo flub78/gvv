@@ -163,8 +163,9 @@
                                         ?>
                                         <?php if ($is_upload && $upload_file): ?>
                                             <?php $preview_url = site_url('forms_admin/submission_file/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $upload_file['id']) . '?inline=1'; ?>
+                                            <?php $thumb_url = site_url('forms_admin/submission_file_thumbnail/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/' . (int) $upload_file['id']); ?>
                                             <span class="d-inline-block align-middle me-1" title="<?= html_escape((string) $upload_file['original_name']) ?>">
-                                                <?= attachment((int) $upload_file['id'], './' . $upload_file['storage_path'], $preview_url) ?>
+                                                <?= attachment((int) $upload_file['id'], './' . $upload_file['storage_path'], $preview_url, $thumb_url) ?>
                                             </span>
                                             <a class="btn btn-sm btn-outline-secondary me-1"
                                                href="<?= site_url('forms_admin/submission_rotate/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/ccw') ?>"

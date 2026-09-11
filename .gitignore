@@ -63,6 +63,9 @@ uploads/documents/*
 !uploads/restore/
 uploads/restore/*
 !uploads/restore/.htaccess
+!uploads/reponses/
+uploads/reponses/*
+!uploads/reponses/.htaccess
 !backups/
 backups/*
 !backups/.htaccess

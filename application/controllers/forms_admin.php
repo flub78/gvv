@@ -2085,6 +2085,56 @@ class Forms_admin extends MY_Controller {
     }
 
     /**
+     * Serve the small PDF thumbnail image for a submission's uploaded file.
+     * Direct web access to uploads/reponses is blocked (see its .htaccess),
+     * so this action is the only way for <img> tags to reach the thumbnail file.
+     */
+    public function submission_file_thumbnail($form_id = 0, $submission_id = 0, $file_id = 0) {
+        $form = $this->load_form_or_redirect($form_id);
+        if (!$form) {
+            return;
+        }
+
+        $submission = $this->form_submissions_model->get_by_id((int) $submission_id);
+        if (!$submission || (int) $submission['form_id'] !== (int) $form['id']) {
+            $this->session->set_flashdata('forms_error', 'Soumission introuvable pour ce formulaire.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $file = $this->form_submissions_model->get_submission_file_by_id((int) $file_id);
+        if (!$file || (int) $file['submission_id'] !== (int) $submission['id']) {
+            $this->session->set_flashdata('forms_error', 'Fichier introuvable pour cette soumission.');
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $relative_path = ltrim((string) $file['storage_path'], '/');
+        $full_path = FCPATH . $relative_path;
+        $uploads_root = realpath(FCPATH . 'uploads');
+        $resolved = realpath($full_path);
+
+        if ($resolved === false || $uploads_root === false || strpos($resolved, $uploads_root) !== 0 || !is_file($resolved)) {
+            show_404();
+            return;
+        }
+
+        $this->load->library('pdf_thumbnail');
+        $thumb_path = $this->pdf_thumbnail->get_thumbnail_path($resolved);
+
+        if (!file_exists($thumb_path)) {
+            show_404();
+            return;
+        }
+
+        header('Content-Type: image/jpeg');
+        header('Content-Length: ' . filesize($thumb_path));
+        header('Cache-Control: private, max-age=86400');
+        readfile($thumb_path);
+        exit;
+    }
+
+    /**
      * Read-only list of a page's fields, parsed on demand from its HTML content
      * (uploads/formulaires/) — form_fields no longer exists (migration 166),
      * so there is no separate structured field editor: fields are edited by

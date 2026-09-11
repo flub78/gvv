@@ -607,7 +607,7 @@ if (! function_exists('attachment')) {
 
      * @SuppressWarnings("PMD.ShortVariable")
      */
-    function attachment($id, $filename, $url = "") {
+    function attachment($id, $filename, $url = "", $thumb_url = null) {
         if (!$filename) return "";
 
         // Les chemins en base commencent par './' (relatif à la racine du projet).
@@ -632,13 +632,14 @@ if (! function_exists('attachment')) {
         } elseif ($ext === 'pdf') {
             $thumb_path = get_pdf_thumbnail_path($abs);
             if ($thumb_path && file_exists($thumb_path)) {
-                // Derive URL from the relative $filename (always starts with ./) to avoid
-                // absolute path issues with ltrim
-                $thumb_rel = dirname($filename) . '/thumb_' . pathinfo($filename, PATHINFO_FILENAME) . '.jpg';
-                $thumb_url = rtrim(base_url(), '/') . '/' . ltrim($thumb_rel, './');
+                // Direct web access to uploads/documents and uploads/reponses is
+                // blocked (see their .htaccess), so the thumbnail must be served
+                // through a controller action, not a direct file URL. Callers whose
+                // $id is not an archived_documents id must pass their own $thumb_url.
                 $thumb_mtime = @filemtime($thumb_path);
-                $thumb_url .= $thumb_mtime ? '?t=' . $thumb_mtime : '';
-                $inner_html = '<img class="doc-thumbnail" src="' . $thumb_url . '" title="' . htmlspecialchars($filename) . '"/>';
+                $resolved_thumb_url = $thumb_url !== null ? $thumb_url : site_url('archived_documents/thumbnail/' . $id);
+                $resolved_thumb_url .= $thumb_mtime ? '?t=' . $thumb_mtime : '';
+                $inner_html = '<img class="doc-thumbnail" src="' . $resolved_thumb_url . '" title="' . htmlspecialchars($filename) . '"/>';
             } else {
                 $unique_id = 'pdf-thumb-' . md5($filename);
                 $inner_html = '<span id="' . $unique_id . '" class="pdf-needs-thumbnail" data-pdf-path="' . htmlspecialchars($filename) . '">';

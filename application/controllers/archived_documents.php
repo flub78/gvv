@@ -1133,6 +1133,65 @@ class Archived_documents extends Gvv_Controller {
     }
 
     /**
+     * Serve the small PDF thumbnail image inline.
+     * Direct web access to uploads/documents is blocked (see uploads/documents/.htaccess),
+     * so this action is the only way for <img> tags to reach the thumbnail file.
+     */
+    function thumbnail($id) {
+        $doc = $this->gvv_model->get_by_id('id', $id);
+
+        if (!$doc) {
+            show_404();
+            return;
+        }
+
+        // Security check (same rules as preview()/download())
+        $dtype = !empty($doc['document_type_id'])
+            ? $this->document_types_model->get_by_id('id', $doc['document_type_id'])
+            : null;
+        $scope = !empty($dtype['scope']) ? $dtype['scope'] : 'pilot';
+        if ($scope === 'pilot') {
+            $is_briefing_passager = !empty($dtype['code']) && $dtype['code'] === 'briefing_passager';
+            $is_gestion_vd = has_role('gestion_vd') || has_role('pilote_vd');
+            if (!$this->_is_admin()
+                && $doc['pilot_login'] !== $this->dx_auth->get_username()
+                && !($is_gestion_vd && $is_briefing_passager)) {
+                show_404();
+                return;
+            }
+        }
+
+        $is_private = !empty($dtype['is_private']);
+        if (!$this->_can_access_private_file($is_private, $doc['pilot_login'])) {
+            show_404();
+            return;
+        }
+
+        if (empty($doc['file_path']) || !file_exists($doc['file_path'])) {
+            show_404();
+            return;
+        }
+
+        $abs = (strpos($doc['file_path'], './') === 0)
+            ? FCPATH . substr($doc['file_path'], 2)
+            : $doc['file_path'];
+
+        $this->load->library('pdf_thumbnail');
+        $thumb_path = $this->pdf_thumbnail->get_thumbnail_path($abs);
+
+        if (!file_exists($thumb_path)) {
+            show_404();
+            return;
+        }
+
+        header('Content-Type: image/jpeg');
+        header('Content-Length: ' . filesize($thumb_path));
+        header('Cache-Control: private, max-age=86400');
+        readfile($thumb_path);
+        exit;
+    }
+
+    /**
      * Detect a browser-friendly MIME type for inline previews.
      * Some stored documents have a generic MIME type which makes browsers
      * propose a download instead of rendering the PDF in a new tab.

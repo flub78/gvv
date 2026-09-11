@@ -208,17 +208,23 @@ section 6.2 reste à appliquer côté serveur).
 
 ---
 
-## 7. Régression connue après correctif
+## 7. Régression connue après correctif — **corrigée**
 
 Les listes de la gestion documentaire (`archived_documents/my_documents`,
-`archived_documents/page`) affichent les **vignettes** via des balises `<img>` pointant
+`archived_documents/page`) affichaient les **vignettes** via des balises `<img>` pointant
 directement sur le fichier (`uploads/documents/.../thumb_*.jpg`). Après blocage, ces
-vignettes ne s'affichent plus (icône d'image cassée).
+vignettes ne s'affichaient plus (icône d'image cassée).
 
-- Les boutons **Télécharger** et **Prévisualiser** continuent de fonctionner (ils passent
-  par PHP).
-- Correctif propre à prévoir côté code : servir les vignettes et aperçus images via une
-  action de contrôleur soumise aux mêmes contrôles d'accès, au lieu d'URL directes.
+Corrigé (2026-09-11) : les vignettes sont désormais servies via une action de contrôleur
+soumise aux mêmes contrôles d'accès que `preview()`/`download()`, au lieu d'une URL directe :
+
+- `archived_documents::thumbnail($id)` pour la gestion documentaire (et
+  `briefing_passager`, qui partage la même table).
+- `forms_admin::submission_file_thumbnail($form_id, $submission_id, $file_id)` pour les
+  fichiers joints aux soumissions de formulaire (`uploads/reponses/`).
+
+Les boutons **Télécharger** et **Prévisualiser** continuent de fonctionner (ils passaient
+déjà par PHP).
 
 ---
 
@@ -226,8 +232,11 @@ vignettes ne s'affichent plus (icône d'image cassée).
 
 - **Autres sous-répertoires de `uploads/`** susceptibles de contenir des données
   personnelles selon les fonctionnalités activées : `email_lists/`, `forms_submissions/`,
-  `reponses/`, `configuration/`. À protéger de la même manière après vérification qu'ils
-  ne servent pas de contenu public.
+  `configuration/`. À protéger de la même manière après vérification qu'ils ne servent pas
+  de contenu public.
+  - `reponses/` (fichiers joints aux soumissions de formulaire) est protégé depuis
+    2026-09-11 (`uploads/reponses/.htaccess`, accès via `forms_admin::submission_file()` /
+    `submission_file_thumbnail()`).
 - **Principe cible** : rien sous `uploads/` ne devrait être accessible par URL directe,
   hormis une liste explicite d'actifs réellement publics. À terme, faire transiter tous
   les téléchargements par l'application.
@@ -275,5 +284,7 @@ navigateur.
 - [ ] Vérification : accès direct à un fichier (document **et** sauvegarde) → `403` ; `preview()` via PHP → OK
 - [ ] `.htaccess` de protection versionnés dans le dépôt (+ règles `.gitignore`)
 - [ ] Journaux d'accès examinés ; décision de notification CNIL prise si nécessaire
-- [ ] Suivi : vignettes servies via contrôleur ; `html|htm` retiré de `allowed_types` ; `backups/` hors racine web (config)
-- [ ] Autres sous-répertoires `uploads/` sensibles passés en revue
+- [x] Suivi : vignettes servies via contrôleur (`archived_documents`, `forms_admin`)
+- [ ] Suivi : `html|htm` retiré de `allowed_types` ; `backups/` hors racine web (config)
+- [x] `uploads/reponses/` protégé (2026-09-11)
+- [ ] Autres sous-répertoires `uploads/` sensibles passés en revue (`email_lists/`, `forms_submissions/`, `configuration/`)
