@@ -30,8 +30,7 @@ class Dbchecks_model extends Common_Model {
             $elt = [
                 'id' => $id,
                 'description' => $row->desc,
-                'nom' => $row->nom,
-                'num_cheque' => $row->num_cheque
+                'nom' => $row->nom
             ];
             $comptes[$id] = $elt;
         }

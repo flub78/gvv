@@ -243,7 +243,7 @@ class Gvv_Controller extends MY_Controller {
         // export d'une réponse de formulaire vers un formulaire de création GVV) :
         // ne surcharge que les colonnes déjà connues de la table, jamais de
         // nouvelle clé — un create() appelé sans paramètre reste inchangé.
-        foreach ($this->input->get() as $key => $value) {
+        foreach ((array) $this->input->get() as $key => $value) {
             if (array_key_exists($key, $this->data) && !is_array($value)) {
                 $this->data[$key] = $value;
             }

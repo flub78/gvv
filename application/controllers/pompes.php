@@ -148,6 +148,8 @@ class Pompes extends Gvv_Controller {
 
         $idpomp = substr(current_url(), -1);
 
+        $pu_selector = array();
+
         if ($idpomp == 0) {
             $prodexte = 'Essence Extérieurs';
             $product_info = $this->tarifs_model->get_tarif($prodexte, $today);

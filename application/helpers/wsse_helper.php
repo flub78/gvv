@@ -33,7 +33,7 @@ if (!function_exists('wsse_header_short')) {
      * @return string
      */
     function wsse_header_short($username, $password) {
-        $nonce = hash_hmac('sha1', uniqid(null, true), uniqid(), false);
+        $nonce = hash_hmac('sha1', uniqid('', true), uniqid(), false);
         $created = new DateTime('now', new DateTimezone('UTC'));
         $created = $created->format(DateTime::ISO8601);
         $digest = sha1($nonce . $created . $password, true);
