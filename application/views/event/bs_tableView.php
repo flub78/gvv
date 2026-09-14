@@ -36,17 +36,17 @@ echo '<div id="body" class="body container-fluid">';
 echo heading("gvv_events_title_list", 3);
 
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
-$table = array();
-$row = 0;
-$table[$row][] = $this->lang->line("gvv_events_field_emlogin") . " ";
+echo '<div class="form-group row mb-3">';
+echo '<label class="col-sm-3 col-form-label">' . $this->lang->line("gvv_events_field_emlogin") . '</label>';
+echo '<div class="col-sm-9">';
 if (isset($selector_disabled) && $selector_disabled) {
     $member_name = $this->membres_model->image($mlogin);
-    $table[$row][] = '<span class="form-control-plaintext fw-bold">' . htmlspecialchars($member_name) . '</span>';
+    echo '<span class="form-control-plaintext fw-bold">' . htmlspecialchars($member_name) . '</span>';
 } else {
-    $table[$row][] = dropdown_field('mlogin', $mlogin, $pilotes_selector, "id='selector' onchange=new_selection('page');");
+    echo dropdown_field('mlogin', $mlogin, $pilotes_selector, "id='selector' onchange=new_selection('page');");
 }
-display_form_table($table);
-echo br();
+echo '</div>';
+echo '</div>';
 
 $attrs = array(
 	'controller' => $controller,

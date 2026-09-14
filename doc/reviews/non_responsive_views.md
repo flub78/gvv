@@ -5,21 +5,23 @@ Cette analyse identifie les formulaires et vues utilisant des tableaux HTML (`<t
 
 **Mise à jour 2026-07-30** : revue vérifiée par rapport à l'état actuel du code. Le périmètre réel de la dette technique est plus restreint que l'estimation initiale (2025-09-21) : plusieurs fichiers cités ont depuis été convertis ou renommés. Voir section "Historique" en bas de document.
 
+**Mise à jour 2026-09-14** : Phase 1 réalisée — les 7 vues listées ci-dessous ont été migrées vers un layout Bootstrap (`form-group row` / `col-*`), y compris les tables de mise en page annexes trouvées dans les mêmes vues (wrapper `<table>` autour du bouton dans `backend/bs_formView.php` et `bs_configView.php`). `display_form_table()` n'a plus aucun appelant dans les vues ; le helper et son usage dans `MetaData.php::form_generator()` (Phase 3/4) restent en place, non demandés dans cette passe. `bs_welcome_message.php` s'est révélée être une vue orpheline : aucun contrôleur ni route ne la charge (confirmé par recherche dans tout le code et historique git) — supprimée plutôt que migrée.
+
 ## Constat actuel
 
-### 1. `display_form_table()` — helper déprécié toujours utilisé
+### 1. `display_form_table()` — helper déprécié, ~~toujours utilisé~~ **migré (2026-09-14)**
 - **Fichier**: `application/helpers/form_elements_helper.php:138`
-- **Statut**: marqué `@deprecated` mais toujours actif
+- **Statut**: marqué `@deprecated`, plus aucun appelant dans les vues
 - **Problème**: génère un `<table>` pour organiser les paires label/champ d'un formulaire
-- **Utilisé dans 7 vues**:
+- **Migrées (6 vues)**:
   - `application/views/bs_calendar.php`
   - `application/views/bs_configView.php`
-  - `application/views/bs_welcome_message.php`
   - `application/views/backend/bs_formView.php`
   - `application/views/event/bs_tableView.php`
   - `application/views/plan_comptable/bs_formView.php`
   - `application/views/pompes/bs_formView.php`
-- **Recommandation**: migrer ces 7 vues vers un layout Bootstrap (`form-group row` / `col-*`), puis supprimer le helper.
+- **Supprimée (1 vue orpheline)**: `application/views/bs_welcome_message.php` — aucun contrôleur ni route ne la chargeait, plutôt que de migrer du code mort.
+- **Reste à faire**: adapter `MetaData.php::form_generator()` (Phase 3) puis supprimer le helper (Phase 4).
 
 ### 2. `validation_button()` — tableau pour la ligne de boutons
 - **Fichier**: `application/helpers/form_elements_helper.php` (~ligne 712)
