@@ -23,11 +23,11 @@ Cette analyse identifie les formulaires et vues utilisant des tableaux HTML (`<t
 - **Supprimée (1 vue orpheline)**: `application/views/bs_welcome_message.php` — aucun contrôleur ni route ne la chargeait, plutôt que de migrer du code mort.
 - **Reste à faire**: adapter `MetaData.php::form_generator()` (Phase 3) puis supprimer le helper (Phase 4).
 
-### 2. `validation_button()` — tableau pour la ligne de boutons
+### 2. `validation_button()` — tableau pour la ligne de boutons — **migré (2026-09-14)**
 - **Fichier**: `application/helpers/form_elements_helper.php` (~ligne 712)
-- **Problème**: enveloppe les boutons de soumission (`Créer` / `Créer et continuer` / `Valider`) dans un `<table><tr><td>`
+- **Problème**: ~~enveloppe~~ enveloppait les boutons de soumission (`Créer` / `Créer et continuer` / `Valider`) dans un `<table><tr><td>`
 - **Impact**: large (32 vues `bs_formView.php` à travers l'application) mais mineur — ne concerne que la ligne de boutons, pas la structure du formulaire
-- **Recommandation**: remplacer par un conteneur flex (`d-flex gap-2`), priorité basse.
+- **Fait**: remplacé par un conteneur flex (`d-flex gap-2`) directement dans le helper — un seul changement centralisé profite aux 32 vues appelantes, aucune n'a eu besoin d'être touchée individuellement.
 
 ### 3. `MetaData.php::form_generator()` — générateur de scaffolding
 - **Fichier**: `application/libraries/MetaData.php` (~ligne 2210)

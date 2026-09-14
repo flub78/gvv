@@ -719,7 +719,7 @@ if (! function_exists('validation_button')) {
         $res = "";
         if ($action != VISUALISATION) {
             if ($action == CREATION) {
-                $res .= "<table><tr><td>\n";
+                $res .= '<div class="d-flex gap-2">' . "\n";
                 $res .= form_input(array(
                     'type' => 'submit',
                     'name' => 'button',
@@ -729,7 +729,6 @@ if (! function_exists('validation_button')) {
                 ));
 
                 if ($with_continue) {
-                    $res .= "</td><td>";
                     $res .= form_input(array(
                         'type' => 'submit',
                         'name' => 'button',
@@ -741,14 +740,13 @@ if (! function_exists('validation_button')) {
 
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
-                 * $res .= "</td><td>";
                  * $res .= form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Abandonner'));
                  */
-                $res .= "</td></tr></table>\n";
+                $res .= "</div>\n";
             } else {
                 $txt = $CI->lang->line("gvv_button_confirm");
                 $attrs = "onclick=\"return confirm('$txt')\" ";
-                $res .= "<table><tr><td>\n";
+                $res .= '<div class="d-flex gap-2">' . "\n";
                 $res .= form_input(array(
                     'type' => 'submit',
                     'name' => 'button',
@@ -758,7 +756,6 @@ if (! function_exists('validation_button')) {
                 ));
 
                 if ($with_delete) {
-                    $res .= "</td><td>";
                     $res .= form_input(array(
                         'type' => 'submit',
                         'name' => 'button',
@@ -770,11 +767,9 @@ if (! function_exists('validation_button')) {
                 }
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
-                 * $res .= "</td><td>";
                  * $res .= form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Abandonner'));
                  */
-                $res .= "</td><td>";
-                $res .= "</td></tr></table>\n";
+                $res .= "</div>\n";
             }
         }
         return $res;
