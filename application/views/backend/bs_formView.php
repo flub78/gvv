@@ -53,36 +53,24 @@ if (isset($kid) && isset($$kid)) {
     echo form_hidden('original_' . $kid, $$kid);
 }
 
-$table = array();
-$row = 0;
-$table[$row][] = $this->lang->line("gvv_backend_field_nom") . ": ";
-$table[$row][] = input_field('username', $username, array('type'  => 'text', 'size' => '25'));
-
-$row++;
-$table[$row][] =  $this->lang->line("gvv_backend_field_password") . ": ";
-$table[$row][] = form_password('password', $password, "'type'='text', 'size'='34'");
-
-$row++;
-$table[$row][] =  $this->lang->line("gvv_backend_field_passconf") . ": ";
-$table[$row][] = form_password('passconf', $passconf, "'type'='text', 'size'='34'");
-
-$row++;
-$table[$row][] =  $this->lang->line("gvv_backend_field_email") . ": ";
-$table[$row][] = input_field('email', $email, array('type'  => 'text', 'size' => '100'));
-
-$row++;
-$table[$row][] =  $this->lang->line("gvv_backend_field_role") . ": ";
-$table[$row][] = dropdown_field('role_id', $role_id, $role_selector, "");
-
-display_form_table($table);
+$backend_fields = array(
+	array($this->lang->line("gvv_backend_field_nom"), input_field('username', $username, array('type'  => 'text', 'size' => '25'))),
+	array($this->lang->line("gvv_backend_field_password"), form_password('password', $password, "'type'='text', 'size'='34'")),
+	array($this->lang->line("gvv_backend_field_passconf"), form_password('passconf', $passconf, "'type'='text', 'size'='34'")),
+	array($this->lang->line("gvv_backend_field_email"), input_field('email', $email, array('type'  => 'text', 'size' => '100'))),
+	array($this->lang->line("gvv_backend_field_role"), dropdown_field('role_id', $role_id, $role_selector, "")),
+);
+foreach ($backend_fields as $field) {
+	echo '<div class="form-group row mb-3">';
+	echo '<label class="col-sm-3 col-form-label">' . $field[0] . ': </label>';
+	echo '<div class="col-sm-9">' . $field[1] . '</div>';
+	echo '</div>';
+}
 
 // Le boutton de validation
-echo "<table><tr><td>\n";
 if ($action != VISUALISATION) {
 	echo validation_button($action);
 }
 echo form_close();
-echo "</td><td>";
-echo "</td></tr></table>\n";
 
 echo '</div>';

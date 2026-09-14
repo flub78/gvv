@@ -62,45 +62,22 @@ if (isset($kid) && isset($$kid)) {
 }
 
 $tabs = nbs(3);
-$table = array();
-$row = 0;
-$table [$row][] = $this->gvvmetadata->field_long_name("pompes", "pdatemvt") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'pdatemvt', $pdatemvt);
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_name("pompes", "ppilid") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'ppilid', $ppilid);
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_name("pompes", "pmacid") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'pmacid', $pmacid);
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_name("pompes", "ptype") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'ptype', $ptype);
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_name("pompes", "ppu") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'ppu', $ppu) . $tabs . "(Euros/Litre)";
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_long_name("pompes", "pqte") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'pqte', $pqte) . $tabs . "(en Litres)";
-
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_name("pompes", "pprix") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'pprix', $pprix) . $tabs . "(euros)";
-
-$row++;
-$table [$row][] = $this->gvvmetadata->field_long_name("pompes", "pdesc") . ":"; 
-$table [$row][] = $this->gvvmetadata->input_field("pompes", 'pdesc', $pdesc);
-
-display_form_table($table);
-
-
-
-
+$pompes_fields = array(
+    array($this->gvvmetadata->field_long_name("pompes", "pdatemvt"), $this->gvvmetadata->input_field("pompes", 'pdatemvt', $pdatemvt)),
+    array($this->gvvmetadata->field_name("pompes", "ppilid"), $this->gvvmetadata->input_field("pompes", 'ppilid', $ppilid)),
+    array($this->gvvmetadata->field_name("pompes", "pmacid"), $this->gvvmetadata->input_field("pompes", 'pmacid', $pmacid)),
+    array($this->gvvmetadata->field_name("pompes", "ptype"), $this->gvvmetadata->input_field("pompes", 'ptype', $ptype)),
+    array($this->gvvmetadata->field_name("pompes", "ppu"), $this->gvvmetadata->input_field("pompes", 'ppu', $ppu) . $tabs . "(Euros/Litre)"),
+    array($this->gvvmetadata->field_long_name("pompes", "pqte"), $this->gvvmetadata->input_field("pompes", 'pqte', $pqte) . $tabs . "(en Litres)"),
+    array($this->gvvmetadata->field_name("pompes", "pprix"), $this->gvvmetadata->input_field("pompes", 'pprix', $pprix) . $tabs . "(euros)"),
+    array($this->gvvmetadata->field_long_name("pompes", "pdesc"), $this->gvvmetadata->input_field("pompes", 'pdesc', $pdesc)),
+);
+foreach ($pompes_fields as $field) {
+    echo '<div class="form-group row mb-3">';
+    echo '<label class="col-sm-3 col-form-label">' . $field[0] . ':</label>';
+    echo '<div class="col-sm-9">' . $field[1] . '</div>';
+    echo '</div>';
+}
 
 
 

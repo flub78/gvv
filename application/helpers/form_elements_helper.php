@@ -135,36 +135,6 @@ if (! function_exists('enumerate_radio_fields')) {
     }
 }
 
-if (! function_exists('display_form_table')) {
-    /**
-     *
-     * Affiche les champs d'un formulaire dans un tableau
-     *
-     * @param unknown_type $table
-     * @deprecated
-     *
-     */
-    function display_form_table($table) {
-        echo "<table>\n";
-        foreach ($table as $row) {
-            echo "\t<tr>\n";
-            $first_cell = TRUE;
-            foreach ($row as $cell) {
-                if ($first_cell) {
-                    echo "\t\t<td align=\"right\">\n";
-                    $first_cell = FALSE;
-                } else {
-                    echo "\t\t<td align=\"left\">\n";
-                }
-                echo $cell;
-                echo "\t\t</td>\n";
-            }
-            echo "\t</tr>\n";
-        }
-        echo "</table>\n";
-    }
-}
-
 if (! function_exists('account_header')) {
     /**
      * Return the header line of an account into an array
@@ -719,7 +689,7 @@ if (! function_exists('validation_button')) {
         $res = "";
         if ($action != VISUALISATION) {
             if ($action == CREATION) {
-                $res .= "<table><tr><td>\n";
+                $res .= '<div class="d-flex gap-2">' . "\n";
                 $res .= form_input(array(
                     'type' => 'submit',
                     'name' => 'button',
@@ -729,7 +699,6 @@ if (! function_exists('validation_button')) {
                 ));
 
                 if ($with_continue) {
-                    $res .= "</td><td>";
                     $res .= form_input(array(
                         'type' => 'submit',
                         'name' => 'button',
@@ -741,14 +710,13 @@ if (! function_exists('validation_button')) {
 
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
-                 * $res .= "</td><td>";
                  * $res .= form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Abandonner'));
                  */
-                $res .= "</td></tr></table>\n";
+                $res .= "</div>\n";
             } else {
                 $txt = $CI->lang->line("gvv_button_confirm");
                 $attrs = "onclick=\"return confirm('$txt')\" ";
-                $res .= "<table><tr><td>\n";
+                $res .= '<div class="d-flex gap-2">' . "\n";
                 $res .= form_input(array(
                     'type' => 'submit',
                     'name' => 'button',
@@ -758,7 +726,6 @@ if (! function_exists('validation_button')) {
                 ));
 
                 if ($with_delete) {
-                    $res .= "</td><td>";
                     $res .= form_input(array(
                         'type' => 'submit',
                         'name' => 'button',
@@ -770,11 +737,9 @@ if (! function_exists('validation_button')) {
                 }
                 /*
                  * Abandon n'est pas vraiment utile pour une application WEB
-                 * $res .= "</td><td>";
                  * $res .= form_input(array('type' => 'submit', 'name' => 'button', 'value' => 'Abandonner'));
                  */
-                $res .= "</td><td>";
-                $res .= "</td></tr></table>\n";
+                $res .= "</div>\n";
             }
         }
         return $res;

@@ -409,54 +409,6 @@ class FormElementsHelperTest extends TestCase
     }
 
     /**
-     * Test display_form_table() function
-     */
-    public function testDisplayFormTableFunction()
-    {
-        if (function_exists('display_form_table')) {
-            $table = array(
-                array('Name:', 'John Doe'),
-                array('Email:', 'john@example.com'),
-                array('Phone:', '123-456-7890')
-            );
-
-            ob_start();
-            display_form_table($table);
-            $output = ob_get_clean();
-
-            $this->assertIsString($output, "display_form_table should produce string output");
-            $this->assertStringContainsString('<table>', $output, "Should contain table tag");
-            $this->assertStringContainsString('</table>', $output, "Should contain closing table tag");
-            $this->assertStringContainsString('<tr>', $output, "Should contain table rows");
-            $this->assertStringContainsString('<td', $output, "Should contain table cells");
-            $this->assertStringContainsString('Name:', $output, "Should contain table content");
-            $this->assertStringContainsString('John Doe', $output, "Should contain table content");
-        } else {
-            $this->markTestSkipped('display_form_table function not available');
-        }
-    }
-
-    /**
-     * Test display_form_table() with empty table
-     */
-    public function testDisplayFormTableEmpty()
-    {
-        if (function_exists('display_form_table')) {
-            $table = array();
-
-            ob_start();
-            display_form_table($table);
-            $output = ob_get_clean();
-
-            $this->assertIsString($output, "display_form_table should produce string output");
-            $this->assertStringContainsString('<table>', $output, "Should contain table tag even when empty");
-            $this->assertStringContainsString('</table>', $output, "Should contain closing table tag");
-        } else {
-            $this->markTestSkipped('display_form_table function not available');
-        }
-    }
-
-    /**
      * Test input_field() with various attributes
      */
     public function testInputFieldWithAttributes()

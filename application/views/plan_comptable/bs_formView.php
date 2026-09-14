@@ -53,25 +53,28 @@ if (isset($kid) && isset($$kid)) {
 // On affiche tous les champs dans un tableau. C'est plus simple de remplir d'abord le tableau
 // et de l'afficher ensuite, surtout pour modifier l'affichage
 
-$table = array();
-$row = 0;
-$table[$row][] = $this->lang->line("codec") . ": ";
+echo '<div class="form-group row mb-3">';
+echo '<label class="col-sm-3 col-form-label">' . $this->lang->line("codec") . '</label>';
+echo '<div class="col-sm-9">';
 if ($action == CREATION) {
-	$table[$row][] = input_field('pcode', $pcode, array('type'  => 'text', 'size' => '10'));
+	echo input_field('pcode', $pcode, array('type'  => 'text', 'size' => '10'));
 } else {
-	$table[$row][] = dropdown_field(
+	echo dropdown_field(
 		'pcode',
 		$pcode,
 		$code_selector,
 		"id='selector' onchange='mlogin_changed();'"
 	);
 }
+echo '</div>';
+echo '</div>';
 
-$row++;
-$table[$row][] = $this->lang->line("codec_desc") . ": ";
-$table[$row][] = input_field('pdesc', $pdesc, array('type'  => 'text', 'size' => '50'));
-
-display_form_table($table);
+echo '<div class="form-group row mb-3">';
+echo '<label class="col-sm-3 col-form-label">' . $this->lang->line("codec_desc") . '</label>';
+echo '<div class="col-sm-9">';
+echo input_field('pdesc', $pdesc, array('type'  => 'text', 'size' => '50'));
+echo '</div>';
+echo '</div>';
 
 echo validation_button($action);
 echo form_close();

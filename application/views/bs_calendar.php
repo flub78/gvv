@@ -85,8 +85,9 @@ $this->lang->load('presences');
 		// 	$pilot = form_hidden('mlogin', $this->dx_auth->get_username());
 		// }
 
-		$table = array(
-			array('<span class="ui-helper-hidden-accessible"><input type="text"/></span>', ''),
+		echo '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
+
+		$calendar_fields = array(
 			array(
 				label('welcome_date', array('for' => 'date_ajout')),
 				input(array(
@@ -118,8 +119,12 @@ $this->lang->load('presences');
 				))
 			)
 		);
-
-		display_form_table($table);
+		foreach ($calendar_fields as $field) {
+			echo '<div class="form-group row mb-3">';
+			echo '<label class="col-sm-3 col-form-label">' . $field[0] . '</label>';
+			echo '<div class="col-sm-9">' . $field[1] . '</div>';
+			echo '</div>';
+		}
 
 		echo form_close();
 		e_div_close();
