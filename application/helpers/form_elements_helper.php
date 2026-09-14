@@ -135,36 +135,6 @@ if (! function_exists('enumerate_radio_fields')) {
     }
 }
 
-if (! function_exists('display_form_table')) {
-    /**
-     *
-     * Affiche les champs d'un formulaire dans un tableau
-     *
-     * @param unknown_type $table
-     * @deprecated
-     *
-     */
-    function display_form_table($table) {
-        echo "<table>\n";
-        foreach ($table as $row) {
-            echo "\t<tr>\n";
-            $first_cell = TRUE;
-            foreach ($row as $cell) {
-                if ($first_cell) {
-                    echo "\t\t<td align=\"right\">\n";
-                    $first_cell = FALSE;
-                } else {
-                    echo "\t\t<td align=\"left\">\n";
-                }
-                echo $cell;
-                echo "\t\t</td>\n";
-            }
-            echo "\t</tr>\n";
-        }
-        echo "</table>\n";
-    }
-}
-
 if (! function_exists('account_header')) {
     /**
      * Return the header line of an account into an array

@@ -2221,15 +2221,13 @@ abstract class Metadata {
      */
     function form_generator($table, $fields = array()) {
         $res = "\n";
-        $res .= '$table = array();' . "\n";
-        $res .= '$row = 0;' . "\n";
         foreach ($fields as $field => $init) {
-            $res .= '$table [$row][] = $this->gvvmetadata->field_long_name("' . $table . '", "' . $field . '") . ":";' . "\n";
-            $res .= '$table [$row][] = $this->gvvmetadata->input_field("' . $table . '", "' . $field . '", $' . $field . ');' . "\n";
-            $res .= '$row++;' . "\n";
+            $res .= 'echo \'<div class="form-group row mb-3">\';' . "\n";
+            $res .= 'echo \'<label class="col-sm-3 col-form-label">\' . $this->gvvmetadata->field_long_name("' . $table . '", "' . $field . '") . \':</label>\';' . "\n";
+            $res .= 'echo \'<div class="col-sm-9">\' . $this->gvvmetadata->input_field("' . $table . '", "' . $field . '", $' . $field . ') . \'</div>\';' . "\n";
+            $res .= 'echo \'</div>\';' . "\n";
             $res .= '' . "\n";
         }
-        $res .= 'display_form_table($table);' . "\n";
         gvv_debug("Form: " . $res);
         return $res;
     }
