@@ -28,5 +28,29 @@
 		margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
 }
 
-}	
+}
 /* ============ small devices .end// ============ */
+
+/* ============ menu sur deux colonnes (écrans larges) ============ */
+@media (min-width: 768px) {
+
+	.dropdown-menu.dropdown-menu-2col.show{
+		display: flex;
+		flex-wrap: wrap;
+		width: 36rem;
+		max-width: 92vw;
+	}
+	.dropdown-menu-2col .dropdown-item{
+		white-space: normal;
+	}
+	.dropdown-menu-2col > li{
+		flex: 0 0 50%;
+		max-width: 50%;
+	}
+	.dropdown-menu-2col > li.dropdown-menu-2col-full{
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+}
+/* ============ menu sur deux colonnes .end// ============ */

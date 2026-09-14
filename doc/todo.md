@@ -10,8 +10,6 @@
   
 * [] Ajout de vrais export excel en sus des csv.
 
-* [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
-
 * [~] Support de la gestion de la maintenance,  
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
@@ -19,8 +17,6 @@
   A tester en fonction du guide dans doc/users/fr/16_maintenance_aeronefs.md
 
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
-    
-* [] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
    
 * [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
@@ -37,6 +33,8 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
   * [] Gestion des types d'alerte
   * [] Gestion des types de maintenance.
   
+* [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
+  
 * [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Informer le trésorier des renouvellement de cotisation par email
@@ -47,19 +45,11 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
 
 ## Dette technique
 
-* [] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
-
 * [] IA revues de code et refactoring
 
 * [] Définir une charte graphique et l'appliquer partout
   * [] Unifier le style des filtres
   * [] Unifier les erreurs de validation
-
-* [] Supprimer les warnings en mode développement
-    passer en mode development, essayer toutes les vues, vérifier les erreurs php à l'écran
-    corriger les erreurs.
-
-* [] Verifier qu'il n'y a plus d'erreurs dans les logs pendant les tests phpunit et playwright.
 
 ## Idées et suggestions
 

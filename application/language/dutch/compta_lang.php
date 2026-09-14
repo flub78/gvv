@@ -22,6 +22,19 @@ $lang['gvv_compta_title_mise_disposition_emprunt'] = "Terbeschikkingstelling len
 $lang['gvv_compta_title_amortissement'] = "Afschrijvingsboeking";
 $lang['gvv_compta_title_encaissement_section'] = "Inning voor een sectie";
 $lang['gvv_compta_title_reversement_section'] = "Sectie omkering";
+$lang['gvv_compta_title_repartition_helloasso'] = "HelloAsso verdeling naar een lid";
+$lang['gvv_compta_title_transfert_membre'] = "Overschrijving tussen ledenrekeningen";
+$lang['gvv_compta_title_remb_recette_vol'] = "Terugbetaling vluchtinkomsten aan een lid";
+$lang['gvv_compta_title_remb_charges_membre'] = "Terugbetaling van kosten door een lid";
+
+// Pagina "Andere boekingen" (menu Boekingen)
+$lang['gvv_ecritures_autres_title'] = "Andere boekingen";
+$lang['gvv_ecritures_autres_desc'] = "Geleide boekingen voor zeldzame verrichtingen, niet gedekt door het menu Boekingen.";
+$lang['gvv_menu_entries_autres'] = "Andere boekingen";
+$lang['gvv_compta_desc_repartition_helloasso'] = "Een HelloAsso-betaling verdelen naar de rekening van een lid";
+$lang['gvv_compta_desc_transfert_membre'] = "Een saldo overboeken van de ene ledenrekening naar de andere";
+$lang['gvv_compta_desc_remb_recette_vol'] = "Een vluchtfacturatie annuleren of gedeeltelijk terugbetalen";
+$lang['gvv_compta_desc_remb_charges_membre'] = "Een lid betaalt een door de club voorgeschoten uitgave terug";
 $lang['gvv_compta_title_saisie_cotisation'] = "Contributie Registratie";
 $lang['gvv_comptes_title_journal'] = "Uitgebreid journaal boekingen";
 $lang['gvv_comptes_title_error'] = "Fout";

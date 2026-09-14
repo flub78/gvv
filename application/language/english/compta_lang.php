@@ -22,6 +22,19 @@ $lang['gvv_compta_title_mise_disposition_emprunt'] = "Loan disbursement";
 $lang['gvv_compta_title_amortissement'] = "Depreciation entry";
 $lang['gvv_compta_title_encaissement_section'] = "Collection for a section";
 $lang['gvv_compta_title_reversement_section'] = "Section reversal";
+$lang['gvv_compta_title_repartition_helloasso'] = "HelloAsso distribution to a member";
+$lang['gvv_compta_title_transfert_membre'] = "Transfer between member accounts";
+$lang['gvv_compta_title_remb_recette_vol'] = "Refund of flight income to a member";
+$lang['gvv_compta_title_remb_charges_membre'] = "Reimbursement of expenses by a member";
+
+// "Other entries" page (Entries menu)
+$lang['gvv_ecritures_autres_title'] = "Other entries";
+$lang['gvv_ecritures_autres_desc'] = "Guided entries for rare operations, not covered by the Entries menu.";
+$lang['gvv_menu_entries_autres'] = "Other entries";
+$lang['gvv_compta_desc_repartition_helloasso'] = "Distribute a HelloAsso payment to a member's account";
+$lang['gvv_compta_desc_transfert_membre'] = "Transfer a balance from one member account to another";
+$lang['gvv_compta_desc_remb_recette_vol'] = "Cancel or partially refund a flight billing";
+$lang['gvv_compta_desc_remb_charges_membre'] = "A member reimburses an expense advanced by the club";
 $lang['gvv_compta_title_saisie_cotisation'] = "Membership Fee Entry";
 $lang['gvv_comptes_title_journal'] = "Extensive booking journal";
 $lang['gvv_comptes_title_error'] = "Error";

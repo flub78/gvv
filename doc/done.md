@@ -260,4 +260,13 @@
 
 * [x] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
 
+* [x] Utiliser les flexbox plutôt que les tableaux. [Vues non responsives](./reviews/non_responsive_views.md)
 
+* [x] Verifier qu'il n'y a plus d'erreurs dans les logs pendant les tests phpunit et playwright.
+
+* [x] Supprimer les warnings en mode développement
+    passer en mode development, essayer toutes les vues, vérifier les erreurs php à l'écran
+    corriger les erreurs.
+
+* [x] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
+* 

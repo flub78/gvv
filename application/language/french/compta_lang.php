@@ -22,6 +22,19 @@ $lang['gvv_compta_title_mise_disposition_emprunt'] = "Mise a disposition d'empru
 $lang['gvv_compta_title_amortissement'] = "Dotation aux amortissements";
 $lang['gvv_compta_title_encaissement_section'] = "Encaissement pour une section";
 $lang['gvv_compta_title_reversement_section'] = "Reversement section";
+$lang['gvv_compta_title_repartition_helloasso'] = "Répartition HelloAsso vers un membre";
+$lang['gvv_compta_title_transfert_membre'] = "Virement entre comptes membres";
+$lang['gvv_compta_title_remb_recette_vol'] = "Remboursement d'une recette de vol à un membre";
+$lang['gvv_compta_title_remb_charges_membre'] = "Remboursement de charges par un membre";
+
+// Page "Autres écritures" (menu Ecritures)
+$lang['gvv_ecritures_autres_title'] = "Autres écritures";
+$lang['gvv_ecritures_autres_desc'] = "Écritures guidées pour les opérations rares, non couvertes par le menu Ecritures.";
+$lang['gvv_menu_entries_autres'] = "Autres écritures";
+$lang['gvv_compta_desc_repartition_helloasso'] = "Répartir un encaissement HelloAsso vers le compte d'un membre";
+$lang['gvv_compta_desc_transfert_membre'] = "Transférer un solde d'un compte membre vers un autre";
+$lang['gvv_compta_desc_remb_recette_vol'] = "Annuler ou rembourser partiellement une facturation de vol";
+$lang['gvv_compta_desc_remb_charges_membre'] = "Un membre rembourse une dépense avancée par le club";
 $lang['gvv_compta_title_saisie_cotisation'] = "Enregistrement Cotisation";
 $lang['gvv_comptes_title_journal'] = "Grand journal";
 $lang['gvv_comptes_title_error'] = "Erreur";

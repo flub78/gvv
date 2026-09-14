@@ -413,50 +413,72 @@ if ($CI->dx_auth->is_logged_in()) {
         <?php if (has_role('tresorier') && ($section || ($total_real_sections < 2))) : ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><?= translation("gvv_menu_entries") ?></a>
-            <ul class="dropdown-menu">
+            <?php
+              // Les libellés du menu Ecritures embarquent parfois un détail de comptes
+              // entre parenthèses (ex: "Dépenses (6xx - 5xx)"). Sur écran large (menu sur
+              // 2 colonnes), on l'affiche en info-bulle pour garder l'entrée sur une ligne.
+              // Sur smartphone (pas de survol, menu sur 1 colonne, place disponible), on
+              // le réaffiche en clair, en petit texte discret.
+              $entry_label = function ($text) {
+                  if (preg_match('/^(.*?)\s*\(([^()]+)\)\s*$/u', $text, $m)) {
+                      $label = htmlspecialchars($m[1], ENT_QUOTES, 'UTF-8');
+                      $code = htmlspecialchars($m[2], ENT_QUOTES, 'UTF-8');
+                      return '<span class="menu-tooltip" data-bs-placement="top" title="' . $code . '">' . $label . '</span>'
+                          . '<small class="text-muted d-md-none ms-1">(' . $code . ')</small>';
+                  }
+                  return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+              };
+            ?>
+            <ul class="dropdown-menu dropdown-menu-2col">
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/recettes") ?>"><i class="fas fa-arrow-circle-down text-success"></i> <?= translation("gvv_menu_entries_income") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/reglement_pilote") ?>"><i class="fas fa-hand-holding-usd text-success"></i> <?= translation("gvv_menu_entries_pilot_payment") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><i class="fas fa-file-invoice text-info"></i> <?= translation("gvv_menu_entries_pilot_billing") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/saisie_cotisation") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_membership_fee") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><i class="fas fa-receipt text-success"></i> <?= translation("gvv_menu_entries_supplier_credit") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/paiement_generique") ?>"><i class="fas fa-credit-card text-primary"></i> <?= translation("gvv_paiement_generique_menu") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/recettes") ?>"><i class="fas fa-arrow-circle-down text-success"></i> <?= $entry_label(translation("gvv_menu_entries_income")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/reglement_pilote") ?>"><i class="fas fa-hand-holding-usd text-success"></i> <?= $entry_label(translation("gvv_menu_entries_pilot_payment")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/factu_pilote") ?>"><i class="fas fa-file-invoice text-info"></i> <?= $entry_label(translation("gvv_menu_entries_pilot_billing")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/saisie_cotisation") ?>"><i class="fas fa-coins text-warning"></i> <?= $entry_label(translation("gvv_menu_entries_membership_fee")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/avoir_fournisseur") ?>"><i class="fas fa-receipt text-success"></i> <?= $entry_label(translation("gvv_menu_entries_supplier_credit")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("paiements_en_ligne/paiement_generique") ?>"><i class="fas fa-credit-card text-primary"></i> <?= $entry_label(translation("gvv_paiement_generique_menu")) ?></a></li>
 
-              <li>
+              <li class="dropdown-menu-2col-full">
                 <hr class="dropdown-divider">
               </li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/depenses") ?>"><i class="fas fa-arrow-circle-up text-danger"></i> <?= translation("gvv_menu_entries_expense") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/credit_pilote") ?>"><i class="fas fa-money-check-alt text-danger"></i> <?= translation("gvv_menu_entries_expense_paid") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/debit_pilote") ?>"><i class="fas fa-undo-alt text-warning"></i> <?= translation("gvv_menu_entries_pilot_refund") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/utilisation_avoir_fournisseur") ?>"><i class="fas fa-credit-card text-primary"></i> <?= translation("gvv_menu_entries_pay_with_supplier_credit") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/depenses") ?>"><i class="fas fa-arrow-circle-up text-danger"></i> <?= $entry_label(translation("gvv_menu_entries_expense")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/credit_pilote") ?>"><i class="fas fa-money-check-alt text-danger"></i> <?= $entry_label(translation("gvv_menu_entries_expense_paid")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/debit_pilote") ?>"><i class="fas fa-undo-alt text-warning"></i> <?= $entry_label(translation("gvv_menu_entries_pilot_refund")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/utilisation_avoir_fournisseur") ?>"><i class="fas fa-credit-card text-primary"></i> <?= $entry_label(translation("gvv_menu_entries_pay_with_supplier_credit")) ?></a></li>
 
-              <li>
+              <li class="dropdown-menu-2col-full">
                 <hr class="dropdown-divider">
               </li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/virement") ?>"><i class="fas fa-exchange-alt text-info"></i> <?= translation("gvv_menu_entries_wire_transfer") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/virement") ?>"><i class="fas fa-exchange-alt text-info"></i> <?= $entry_label(translation("gvv_menu_entries_wire_transfer")) ?></a></li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/depot_especes") ?>"><i class="fas fa-piggy-bank text-success"></i> <?= translation("gvv_menu_entries_wire_deposit") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/depot_especes") ?>"><i class="fas fa-piggy-bank text-success"></i> <?= $entry_label(translation("gvv_menu_entries_wire_deposit")) ?></a></li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/retrait_liquide") ?>"><i class="fas fa-money-bill-alt text-danger"></i> <?= translation("gvv_menu_entries_wire_withdrawal") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/retrait_liquide") ?>"><i class="fas fa-money-bill-alt text-danger"></i> <?= $entry_label(translation("gvv_menu_entries_wire_withdrawal")) ?></a></li>
 
-              <li>
+              <li class="dropdown-menu-2col-full">
                 <hr class="dropdown-divider">
               </li>
 
-              <li><a class="dropdown-item" href="<?= controller_url("compta/remb_capital") ?>"><i class="fas fa-coins text-warning"></i> <?= translation("gvv_menu_entries_wire_remb_capital") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/mise_a_disposition_emprunt") ?>"><i class="fas fa-university text-success"></i> <?= translation("gvv_menu_entries_wire_loan_disbursement") ?></a></li>
-              <li><a class="dropdown-item" href="<?= controller_url("compta/amortissement") ?>"><i class="fas fa-tools text-secondary"></i> <?= translation("gvv_menu_entries_depreciation") ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/remb_capital") ?>"><i class="fas fa-coins text-warning"></i> <?= $entry_label(translation("gvv_menu_entries_wire_remb_capital")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/mise_a_disposition_emprunt") ?>"><i class="fas fa-university text-success"></i> <?= $entry_label(translation("gvv_menu_entries_wire_loan_disbursement")) ?></a></li>
+              <li><a class="dropdown-item" href="<?= controller_url("compta/amortissement") ?>"><i class="fas fa-tools text-secondary"></i> <?= $entry_label(translation("gvv_menu_entries_depreciation")) ?></a></li>
 
               <?php if ($total_real_sections > 1) : ?>
-                <li>
+                <li class="dropdown-menu-2col-full">
                   <hr class="dropdown-divider">
                 </li>
 
-                <li><a class="dropdown-item" href="<?= controller_url("compta/encaissement_pour_une_section") ?>"><i class="fas fa-building text-info"></i> <?= translation("gvv_menu_entries_section_collection") ?></a></li>
-                <li><a class="dropdown-item" href="<?= controller_url("compta/reversement_section") ?>"><i class="fas fa-exchange-alt text-secondary"></i> <?= translation("gvv_menu_entries_section_reversal") ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("compta/encaissement_pour_une_section") ?>"><i class="fas fa-building text-info"></i> <?= $entry_label(translation("gvv_menu_entries_section_collection")) ?></a></li>
+                <li><a class="dropdown-item" href="<?= controller_url("compta/reversement_section") ?>"><i class="fas fa-exchange-alt text-secondary"></i> <?= $entry_label(translation("gvv_menu_entries_section_reversal")) ?></a></li>
               <?php endif; ?>
+
+              <li class="dropdown-menu-2col-full">
+                <hr class="dropdown-divider">
+              </li>
+
+              <li><a class="dropdown-item" href="<?= controller_url("ecritures") ?>"><i class="fas fa-ellipsis-h text-secondary"></i> <?= $entry_label(translation("gvv_menu_entries_autres")) ?></a></li>
             </ul>
           </li>
         <?php endif; ?>
@@ -559,6 +581,9 @@ if ($CI->dx_auth->is_logged_in()) {
               select.value = '<?= $this->session->userdata('section') ?>';
               document.getElementById('section-selector-warning').style.display = 'block';
             }
+            document.querySelectorAll('.menu-tooltip').forEach(function (el) {
+              bootstrap.Tooltip.getOrCreateInstance(el, { trigger: 'hover focus' });
+            });
           </script>
 
           <a class="btn btn-outline-light btn-sm ms-2" href="<?= controller_url("auth/logout") ?>">

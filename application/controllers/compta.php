@@ -1069,6 +1069,46 @@ class Compta extends Gvv_Controller {
     }
 
     /**
+     * Répartition d'un encaissement HelloAsso vers le compte d'un membre.
+     * Suite logique de encaissement_pour_une_section() (512 -> 467) : une fois
+     * l'encaissement posé sur le compte de passage HelloAsso, cette écriture
+     * le répartit vers le compte pilote concerné.
+     */
+    function repartition_helloasso() {
+        $this->ecriture("gvv_compta_title_repartition_helloasso",
+        ["codec" => "467", "nom" => "HelloAsso"],
+        ["codec" => "411"]);
+    }
+
+    /**
+     * Virement entre deux comptes membres (changement de compte, transfert familial...)
+     */
+    function transfert_membre() {
+        $this->ecriture("gvv_compta_title_transfert_membre",
+        ["codec" => "411"],
+        ["codec" => "411"]);
+    }
+
+    /**
+     * Remboursement à un membre d'une recette de vol (annulation, remboursement partiel)
+     */
+    function remb_recette_vol() {
+        $this->ecriture("gvv_compta_title_remb_recette_vol", [
+            "codec >=" => "7",
+            'codec <' => "8"
+        ], ["codec" => "411"]);
+    }
+
+    /**
+     * Remboursement par un membre d'une charge (achat) avancée par le club
+     */
+    function remb_charges_membre() {
+        $this->ecriture("gvv_compta_title_remb_charges_membre",
+        ["codec" => "411"],
+        ["codec" => "606"]);
+    }
+
+    /**
      * Saisie simplifiée de cotisation
      * Permet d'enregistrer le paiement d'une cotisation et de générer automatiquement
      * les écritures comptables associées en une seule opération
