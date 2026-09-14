@@ -40,11 +40,12 @@ test.describe('Maintenance - Synthese navigabilite (mecano)', () => {
         const rows = page.locator('table tbody tr');
         await expect(rows.first()).toBeVisible();
 
-        // Filtrage par section (Planeur = 1)
-        await page.selectOption('#section_select', '1');
-        await page.click('#btn-filtrer-section');
-        await page.waitForLoadState('networkidle');
-        await expect(page.url()).toContain('/maintenance_synthese/index/1');
+        // Le filtrage se fait via le selecteur de section global du menu (deja
+        // positionne sur Planeur par switchToPlaneurSection ci-dessus), pas par un
+        // filtre local sur cette page (PRD EF7.3) : on verifie que seuls les
+        // aeronefs de la section active sont listes (F-JHRV appartient a une
+        // autre section).
+        await expect(page.locator('table tbody')).not.toContainText('F-JHRV');
 
         // Detail d'un aeronef
         const firstAeronefLink = page.locator('table tbody tr td a').first();
@@ -70,11 +71,12 @@ test.describe('Maintenance - Synthese navigabilite (mecano)', () => {
         await expect(page.locator('h3')).toContainText('potentiels');
         await expect(page.locator('table thead th').first()).toContainText('Aéronef');
 
-        // Filtrage par section (Planeur = 1)
-        await page.selectOption('#section_select', '1');
-        await page.click('#btn-filtrer-section');
-        await page.waitForLoadState('networkidle');
-        await expect(page.url()).toContain('/maintenance_synthese/tableau/1');
+        // Le filtrage se fait via le selecteur de section global du menu (deja
+        // positionne sur Planeur par switchToPlaneurSection ci-dessus), pas par un
+        // filtre local sur cette page (PRD EF7.3) : on verifie que seuls les
+        // aeronefs de la section active sont listes (F-JHRV appartient a une
+        // autre section).
+        await expect(page.locator('table tbody')).not.toContainText('F-JHRV');
 
         // Accessible depuis la section Maintenance du tableau de bord principal
         await page.goto('/index.php/welcome/section/maintenance');

@@ -39,6 +39,7 @@ $lang['maintenance_equipement_transferred'] = 'Equipment %s transferred to aircr
 $lang['maintenance_transfert_info'] = 'You are about to transfer equipment %s, currently attached to aircraft %s, to another aircraft. Its history (dossiers, operations) will be preserved.';
 $lang['maintenance_transfert_nouvel_aeronef'] = 'New aircraft';
 $lang['maintenance_transfert_confirmation'] = 'I confirm the transfer of this equipment to the selected aircraft.';
+$lang['maintenance_transfert_aucun_aeronef'] = 'No other active aircraft in your active section to transfer this equipment to.';
 
 // Programs - List
 $lang['maintenance_programmes_title'] = 'Maintenance programs';

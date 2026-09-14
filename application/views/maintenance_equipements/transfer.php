@@ -29,6 +29,23 @@ $form_url = controller_url($controller) . '/transfer_store/' . $equipement['id']
         </div>
     <?php endif; ?>
 
+    <?php
+    // $aeronef_selector contient toujours l'option vide ('') en premiere entree
+    // (voir Maintenance_equipement_model::get_aeronef_selector) : au moins une
+    // vraie option d'aeronef doit s'y ajouter pour qu'un transfert soit possible.
+    $has_target = count($aeronef_selector) > 1;
+    ?>
+
+    <?php if (!$has_target): ?>
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            <?= $this->lang->line('maintenance_transfert_aucun_aeronef') ?>
+        </div>
+        <a href="<?= controller_url($controller) ?>" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> <?= $this->lang->line('maintenance_btn_retour') ?>
+        </a>
+    <?php else: ?>
+
     <div class="alert alert-info">
         <i class="fas fa-info-circle" aria-hidden="true"></i>
         <?= sprintf(
@@ -72,6 +89,8 @@ $form_url = controller_url($controller) . '/transfer_store/' . $equipement['id']
         </button>
     </div>
     <?= form_close() ?>
+
+    <?php endif; ?>
 
 </div>
 <?php $this->load->view('bs_footer'); ?>

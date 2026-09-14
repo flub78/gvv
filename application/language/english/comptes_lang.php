@@ -33,6 +33,15 @@ $lang['gvv_vue_comptes_short_field_solde_credit'] = "Credit balance";
 $lang['gvv_vue_comptes_short_field_nom'] = "Account";
 $lang['gvv_vue_comptes_short_field_section_name'] = "Section";
 
+$lang['gvv_vue_comptes_field_id'] = "Account";
+$lang['gvv_vue_comptes_field_codec'] = "Code";
+$lang['gvv_vue_comptes_field_nom'] = "Account name";
+$lang['gvv_vue_comptes_field_section_name'] = "Section";
+$lang['gvv_vue_comptes_field_solde_debit'] = "Debit balance";
+$lang['gvv_vue_comptes_field_solde_credit'] = "Credit balance";
+
+$lang['comptes_label_comptes'] = "Accounts";
+
 $lang['comptes_filter_active_select'] = array(0 => 'All', 1 => 'Debit', 2 => 'Not nuls', 3 => 'Credit', 4 => 'Zero balance');
 
 $lang['comptes_label_totals'] = "Totals";

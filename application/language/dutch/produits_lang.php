@@ -16,6 +16,12 @@ $lang['gvv_produits_field_type_ticket'] = "Type te krediteren ticket";
 $lang['gvv_produits_field_public'] = "Openbaar";
 $lang['gvv_produits_field_is_cotisation'] = "Lidgeld product";
 $lang['gvv_produits_field_nb_personnes_max'] = "Max passagiers";
+$lang['gvv_produits_field_id'] = "ID";
+$lang['gvv_produits_field_club'] = "Sectie";
+$lang['gvv_produits_field_created_at'] = "Aanmaakdatum";
+$lang['gvv_produits_field_updated_at'] = "Wijzigingsdatum";
+$lang['gvv_produits_field_created_by'] = "Aangemaakt door";
+$lang['gvv_produits_field_updated_by'] = "Gewijzigd door";
 
 $lang['gvv_vue_produits_short_field_reference'] = "Referentie";
 $lang['gvv_vue_produits_short_field_description'] = "Omschrijving";

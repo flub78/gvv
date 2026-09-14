@@ -70,22 +70,34 @@ test.describe('Maintenance - Equipements (mecano)', () => {
         await page.waitForLoadState('networkidle');
         await expect(page.locator('h3')).toContainText('Transf');
 
-        const targetOptions = await page.locator('#nouvel_aeronef_id option').all();
-        let targetValue = null;
-        for (const opt of targetOptions) {
-            const v = await opt.getAttribute('value');
-            if (v && v !== firstAeronefValue) {
-                targetValue = v;
-                break;
+        // Le selecteur ne propose que les aeronefs actifs de la section active,
+        // hors aeronef d'origine (cf doc/bugs/tests_errors_2026-09-14_plan.md) :
+        // selon le nombre d'aeronefs actifs dans la section de test, une cible
+        // peut ou non etre disponible. Dans les deux cas le resultat doit etre
+        // explicite pour l'utilisateur (jamais un echec silencieux).
+        const hasTarget = await page.locator('#nouvel_aeronef_id').count() > 0;
+        if (hasTarget) {
+            const targetOptions = await page.locator('#nouvel_aeronef_id option').all();
+            let targetValue = null;
+            for (const opt of targetOptions) {
+                const v = await opt.getAttribute('value');
+                if (v) {
+                    targetValue = v;
+                    break;
+                }
             }
+            expect(targetValue).not.toBeNull();
+            await page.selectOption('#nouvel_aeronef_id', targetValue);
+            await page.check('#confirmation');
+            await page.click('button[type="submit"]');
+            await page.waitForLoadState('networkidle');
+            await expect(page.locator('.alert-success')).toBeVisible();
+            await expect(page.locator('body')).toContainText(targetValue);
+        } else {
+            await expect(page.locator('.alert-warning')).toBeVisible();
+            await page.goto('/index.php/maintenance_equipements');
+            await page.waitForLoadState('networkidle');
         }
-        expect(targetValue).not.toBeNull();
-        await page.selectOption('#nouvel_aeronef_id', targetValue);
-        await page.check('#confirmation');
-        await page.click('button[type="submit"]');
-        await page.waitForLoadState('networkidle');
-        await expect(page.locator('.alert-success')).toBeVisible();
-        await expect(page.locator('body')).toContainText(targetValue);
 
         // Desactivation
         const rowAfterTransfer = page.locator('tr', { hasText: nom });

@@ -16,6 +16,12 @@ $lang['gvv_produits_field_type_ticket'] = "Type de ticket à créditer";
 $lang['gvv_produits_field_public'] = "Public";
 $lang['gvv_produits_field_is_cotisation'] = "Produit de cotisation";
 $lang['gvv_produits_field_nb_personnes_max'] = "Nb max passagers";
+$lang['gvv_produits_field_id'] = "ID";
+$lang['gvv_produits_field_club'] = "Section";
+$lang['gvv_produits_field_created_at'] = "Date de création";
+$lang['gvv_produits_field_updated_at'] = "Date de modification";
+$lang['gvv_produits_field_created_by'] = "Créé par";
+$lang['gvv_produits_field_updated_by'] = "Modifié par";
 
 $lang['gvv_vue_produits_short_field_reference'] = "Référence";
 $lang['gvv_vue_produits_short_field_description'] = "Description";

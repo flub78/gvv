@@ -105,6 +105,7 @@ $lang['gvv_button_create_and_continue'] = "Bewaar en ga verder";
 $lang['gvv_button_update'] = "Bijwerken";
 $lang['gvv_button_validate'] = "Bewaar";
 $lang['gvv_button_save'] = "Opslaan";
+$lang['gvv_button_edit'] = "Wijzigen";
 $lang['gvv_button_delete'] = "Verwijder";
 $lang['gvv_button_cancel'] = "Annuleer";
 $lang['gvv_button_clone'] = "Kopieer";
@@ -303,6 +304,7 @@ $lang['gvv_str_filter_tooltip'] = "Klik om cirteria te verbergen/tonen";
 $lang['gvv_str_select'] = "Selecteer";
 $lang['gvv_str_display'] = "Weergave";
 $lang['gvv_str_all_dates'] = "Alle datums";
+$lang['gvv_str_actions'] = "Acties";
 $lang['gvv_succesful_creation'] = "Aangemaakt";
 
 
@@ -413,6 +415,7 @@ $lang['gvv_menu_vols_decouverte_select'] = "Ontdekkingsvlucht";
 $lang['gvv_menu_liste_des_bons'] = "Voucherlijst";
 $lang['gvv_menu_vendre_un_bon'] = "Voucher verkopen";
 $lang['gvv_menu_public_page'] = "Publieke pagina";
+$lang['AEROWEB'] = "Aeroweb";
 $lang['gvv_configuration_title_list'] = "Configuratieparameters";
 $lang['gvv_menu_admin'] = "Beheer";
 $lang['gvv_menu_admin_club'] = "Club beheer";

@@ -57,6 +57,7 @@ class TestUsersCoherenceTest extends TestCase
                 [self::PLANEUR_SECTION,  self::ROLE_MECANO],
                 [self::ULM_SECTION,      self::ROLE_USER],
                 [self::ULM_SECTION,      self::ROLE_AUTO_PLANCHISTE],
+                [self::ULM_SECTION,      self::ROLE_MECANO],
                 [self::GENERAL_SECTION,  self::ROLE_USER],
             ],
             'abraracourcix' => [

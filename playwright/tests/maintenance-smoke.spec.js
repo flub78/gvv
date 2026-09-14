@@ -19,7 +19,12 @@
  * Phase 6) -- non dupliquee ici.
  *
  * Prerequisites (bin/create_test_users.sh) :
- *   - obelix : role mecano, section Planeur (id=1)
+ *   - obelix : role mecano, sections Planeur (id=1) et ULM (id=2)
+ *
+ * Le parcours utilise la section ULM (plusieurs aeronefs actifs dans les
+ * fixtures de test) plutot que Planeur (un seul aeronef actif) afin de
+ * disposer d'un veritable second aeronef pour l'etape de transfert — voir
+ * doc/bugs/tests_errors_2026-09-14_plan.md.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -28,7 +33,7 @@ const fs = require('fs');
 
 const LOGIN_URL = '/index.php/auth/login';
 const MECANO_USER = { username: 'obelix', password: 'password' };
-const PLANEUR_SECTION = '1';
+const ULM_SECTION = '2';
 const FIXTURE_MD = path.join(__dirname, '..', '..', 'doc', 'test-data', 'maintenance_visite_100h.md');
 
 async function login(page, user) {
@@ -40,9 +45,9 @@ async function login(page, user) {
     await page.waitForLoadState('networkidle');
 }
 
-async function switchToPlaneurSection(page) {
+async function switchToUlmSection(page) {
     await page.request.post('/index.php/user_roles_per_section/set_section', {
-        form: { section: PLANEUR_SECTION, current_url: '/index.php/welcome' }
+        form: { section: ULM_SECTION, current_url: '/index.php/welcome' }
     });
 }
 
@@ -50,7 +55,7 @@ test.describe('Maintenance - Parcours mecano de bout en bout', () => {
 
     test('equipement -> dossier -> operation directe (potentiel visible) -> operation compte rendu (document consultable) -> transfert (historique preserve)', async ({ page }) => {
         await login(page, MECANO_USER);
-        await switchToPlaneurSection(page);
+        await switchToUlmSection(page);
 
         // Section Maintenance du tableau de bord principal accessible
         await page.goto('/index.php/welcome/section/maintenance');

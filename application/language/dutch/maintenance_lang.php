@@ -39,6 +39,7 @@ $lang['maintenance_equipement_transferred'] = 'Uitrusting %s overgedragen naar l
 $lang['maintenance_transfert_info'] = 'U staat op het punt uitrusting %s, momenteel gekoppeld aan luchtvaartuig %s, over te dragen naar een ander luchtvaartuig. De geschiedenis (dossiers, operaties) blijft bewaard.';
 $lang['maintenance_transfert_nouvel_aeronef'] = 'Nieuw luchtvaartuig';
 $lang['maintenance_transfert_confirmation'] = 'Ik bevestig de overdracht van deze uitrusting naar het geselecteerde luchtvaartuig.';
+$lang['maintenance_transfert_aucun_aeronef'] = 'Geen ander actief luchtvaartuig in uw actieve sectie om deze uitrusting naar over te dragen.';
 
 // Programma's - Lijst
 $lang['maintenance_programmes_title'] = 'Onderhoudsprogramma\'s';

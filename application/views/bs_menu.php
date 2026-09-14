@@ -36,6 +36,7 @@ $this->lang->load('briefing_passager');
 $this->lang->load('paiements_en_ligne');
 $this->lang->load('email_lists');
 $this->lang->load('motd');
+$this->lang->load('compta');
 
 $CI = &get_instance();
 $CI->config->load('program');

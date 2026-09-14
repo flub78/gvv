@@ -36,6 +36,7 @@ class Produits extends Gvv_Controller {
         $this->require_roles(['user']);
 
         $this->lang->load('produits');
+        $this->lang->load('tarifs');
         $this->load->model('comptes_model');
         $this->load->model('types_ticket_model');
     }
