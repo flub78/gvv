@@ -26,6 +26,7 @@ $this->load->view('bs_banner');
 $this->lang->load('welcome');
 $this->lang->load('tableaux_de_bord');
 $this->lang->load('shortcuts');
+$this->lang->load('compta');
 
 $show_planeurs  = empty($section) || !empty($section['gestion_planeurs']);
 $show_avions    = empty($section) || !empty($section['gestion_avions']);
@@ -786,6 +787,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= $this->lang->line('db_card_section_transfer') ?></div>
                 <div class="card-text text-muted">(467 - 512)</div>
                 <a href="<?= controller_url('compta/reversement_section') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_saisir') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-ellipsis-h text-secondary"></i>
+                <div class="card-title"><?= $this->lang->line('gvv_menu_entries_autres') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('gvv_ecritures_autres_desc') ?></div>
+                <a href="<?= controller_url('ecritures') ?>" class="btn btn-secondary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
 
