@@ -39,6 +39,7 @@ $lang['maintenance_equipement_transferred'] = 'Équipement %s transféré vers l
 $lang['maintenance_transfert_info'] = 'Vous êtes sur le point de transférer l\'équipement %s, actuellement rattaché à l\'aéronef %s, vers un autre aéronef. Son historique (dossiers, opérations) sera conservé.';
 $lang['maintenance_transfert_nouvel_aeronef'] = 'Nouvel aéronef';
 $lang['maintenance_transfert_confirmation'] = 'Je confirme le transfert de cet équipement vers l\'aéronef sélectionné.';
+$lang['maintenance_transfert_aucun_aeronef'] = 'Aucun autre aéronef actif dans votre section active vers lequel transférer cet équipement.';
 
 // Programmes - Liste
 $lang['maintenance_programmes_title'] = 'Programmes d\'entretien';

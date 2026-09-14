@@ -146,9 +146,12 @@ class Maintenance_equipement_model extends Common_Model {
      * data scoped to the active section (selecteur de section du menu).
      *
      * @param int|null|string $section_id Section active, null/vide/"Toutes" = pas de filtre
+     * @param string|null $exclude_aeronef_id Aeronef a exclure (ex. aeronef actuel
+     *        de l'equipement dans le formulaire de transfert, pour ne pas proposer
+     *        de "transferer" vers l'aeronef d'origine)
      * @return array [macimmat => "macmodele - macimmat"]
      */
-    public function get_aeronef_selector($section_id = null) {
+    public function get_aeronef_selector($section_id = null, $exclude_aeronef_id = null) {
         $section_exists = false;
         if ($section_id !== null && $section_id !== '') {
             $query = $this->db->where('id', $section_id)->get('sections');
@@ -160,6 +163,9 @@ class Maintenance_equipement_model extends Common_Model {
             ->where('actif', 1);
         if ($section_exists) {
             $this->db->where('club', (int) $section_id);
+        }
+        if (!empty($exclude_aeronef_id)) {
+            $this->db->where('macimmat !=', $exclude_aeronef_id);
         }
         $this->db->order_by('macmodele', 'asc');
 

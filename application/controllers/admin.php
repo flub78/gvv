@@ -2708,7 +2708,7 @@ SQL;
                 'is_admin' => 0,
                 'section_roles' => array(
                     $planeur_section => array('planchiste', 'mecano'),
-                    $ulm_section => array('auto_planchiste'),
+                    $ulm_section => array('auto_planchiste', 'mecano'),
                 )
             ),
             array(

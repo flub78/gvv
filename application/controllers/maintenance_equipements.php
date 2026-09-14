@@ -72,7 +72,7 @@ class Maintenance_equipements extends MY_Controller {
                 'aeronef_id'  => '',
                 'description' => '',
             ),
-            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section')),
             'error'            => '',
         );
 
@@ -92,7 +92,7 @@ class Maintenance_equipements extends MY_Controller {
                 'controller'       => 'maintenance_equipements',
                 'action'           => 'create',
                 'equipement'       => $this->input->post(),
-                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section')),
                 'error'            => validation_errors(),
             );
             $this->load->view('maintenance_equipements/form', $data);
@@ -129,7 +129,7 @@ class Maintenance_equipements extends MY_Controller {
             'controller'       => 'maintenance_equipements',
             'action'           => 'edit',
             'equipement'       => $equipement,
-            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section')),
             'error'            => '',
         );
 
@@ -158,7 +158,7 @@ class Maintenance_equipements extends MY_Controller {
                 'controller'       => 'maintenance_equipements',
                 'action'           => 'edit',
                 'equipement'       => array_merge($equipement, $this->input->post()),
-                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section')),
                 'error'            => validation_errors(),
             );
             $this->load->view('maintenance_equipements/form', $data);
@@ -222,7 +222,7 @@ class Maintenance_equipements extends MY_Controller {
         $data = array(
             'controller'       => 'maintenance_equipements',
             'equipement'       => $equipement,
-            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+            'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section'), $equipement['aeronef_id']),
             'error'            => '',
         );
 
@@ -250,7 +250,7 @@ class Maintenance_equipements extends MY_Controller {
             $data = array(
                 'controller'       => 'maintenance_equipements',
                 'equipement'       => $equipement,
-                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector(),
+                'aeronef_selector' => $this->maintenance_equipement_model->get_aeronef_selector($this->session->userdata('section'), $equipement['aeronef_id']),
                 'error'            => validation_errors(),
             );
             $this->load->view('maintenance_equipements/transfer', $data);

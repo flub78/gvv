@@ -34,6 +34,15 @@ $lang['gvv_vue_comptes_short_field_solde_credit'] = "Solde créditeur";
 $lang['gvv_vue_comptes_short_field_nom'] = "Compte";
 $lang['gvv_vue_comptes_short_field_section_name'] = "Section";
 
+$lang['gvv_vue_comptes_field_id'] = "Compte";
+$lang['gvv_vue_comptes_field_codec'] = "Code";
+$lang['gvv_vue_comptes_field_nom'] = "Nom du compte";
+$lang['gvv_vue_comptes_field_section_name'] = "Section";
+$lang['gvv_vue_comptes_field_solde_debit'] = "Solde débiteur";
+$lang['gvv_vue_comptes_field_solde_credit'] = "Solde créditeur";
+
+$lang['comptes_label_comptes'] = "Comptes";
+
 $lang['comptes_filter_active_select'] = array(0 => 'Tous', 1 => 'Débiteurs', 2 => 'Non nuls', 3 => 'Créditeurs', 4 => 'Solde à zéro');
 
 $lang['comptes_label_totals'] = "Totaux";

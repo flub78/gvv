@@ -16,6 +16,12 @@ $lang['gvv_produits_field_type_ticket'] = "Type of tickets to credit";
 $lang['gvv_produits_field_public'] = "Public";
 $lang['gvv_produits_field_is_cotisation'] = "Membership fee product";
 $lang['gvv_produits_field_nb_personnes_max'] = "Max passengers";
+$lang['gvv_produits_field_id'] = "ID";
+$lang['gvv_produits_field_club'] = "Section";
+$lang['gvv_produits_field_created_at'] = "Creation date";
+$lang['gvv_produits_field_updated_at'] = "Last modified";
+$lang['gvv_produits_field_created_by'] = "Created by";
+$lang['gvv_produits_field_updated_by'] = "Modified by";
 
 $lang['gvv_vue_produits_short_field_reference'] = "Reference";
 $lang['gvv_vue_produits_short_field_description'] = "Description";

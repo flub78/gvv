@@ -310,12 +310,16 @@ declare -a CA_SECTIONS=()
 create_gaulois_user "asterix" "Asterix" "Le Gaulois" "asterix@gmail.com" "12 rue de Babaorum" 0 0
 
 # --- Obelix ---
-# Sections: Planeur, ULM, Général — roles: planchiste + mecano (Planeur), auto_planchiste (ULM), user (Général)
+# Sections: Planeur, ULM, Général — roles: planchiste + mecano (Planeur), auto_planchiste + mecano (ULM), user (Général)
 # Note: BIT_REMORQUEUR is set in mniveaux but does not add a types_role (no Avion section)
+# mecano is also granted on ULM (which has several active aircraft) so the
+# Maintenance module's e2e smoke test (playwright/tests/maintenance-smoke.spec.js)
+# has a real second aircraft available to exercise the equipment transfer feature —
+# Planeur alone only has one active aircraft in the test fixtures.
 declare -a USER_SECTIONS=($PLANEUR_SECTION $ULM_SECTION $GENERAL_SECTION)
 declare -A SECTION_ROLES_MAP=(
     ["section_${PLANEUR_SECTION}"]="$TR_PLANCHISTE $TR_MECANO"
-    ["section_${ULM_SECTION}"]="$TR_AUTO_PLANCHISTE"
+    ["section_${ULM_SECTION}"]="$TR_AUTO_PLANCHISTE $TR_MECANO"
 )
 declare -a CA_SECTIONS=()
 create_gaulois_user "obelix" "Obelix" "Le Gaulois" "obelix@gmail.com" "27 rue du Menhir" $BIT_REMORQUEUR 0
@@ -419,7 +423,7 @@ echo "  - testtresorier  (role: tresorier)"
 echo ""
 echo "Gaulois users (new authorization system):"
 echo "  - asterix          (sections: planeur, general)"
-echo "  - obelix           (planeur: planchiste + mecano, ULM: auto_planchiste, general: user)"
+echo "  - obelix           (planeur: planchiste + mecano, ULM: auto_planchiste + mecano, general: user)"
 echo "  - abraracourcix    (planeur, avion, ULM, general + CA + instructeur)"
 echo "  - goudurix         (avion: auto_planchiste + tresorier, general: user)"
 echo "  - panoramix        (admin - club-admin in all sections)"

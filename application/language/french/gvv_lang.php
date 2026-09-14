@@ -13,6 +13,7 @@ $lang['gvv_menu_vols_decouverte_select'] = "Rechercher un bon";
 $lang['gvv_menu_liste_des_bons'] = "Liste des bons";
 $lang['gvv_menu_vendre_un_bon'] = "Vendre un bon";
 $lang['gvv_menu_public_page'] = "Page publique";
+$lang['AEROWEB'] = "Aeroweb";
 
 $lang['gvv_configuration_title_list'] = "Paramètres de configuration";
 
@@ -130,6 +131,7 @@ $lang['gvv_button_create_and_continue'] = "Créer et faire une autre saisie";
 $lang['gvv_button_update'] = "Changer";
 $lang['gvv_button_validate'] = "Valider";
 $lang['gvv_button_save'] = "Enregistrer";
+$lang['gvv_button_edit'] = "Modifier";
 $lang['gvv_button_delete'] = "Supprimer";
 $lang['gvv_button_cancel'] = "Annuler";
 $lang['gvv_button_clone'] = "Cloner";
@@ -370,6 +372,7 @@ $lang['gvv_str_filter_tooltip'] = "Cliquez pour afficher/masquer les critères d
 $lang['gvv_str_select'] = "Filtrer";
 $lang['gvv_str_display'] = "Ne pas filtrer";
 $lang['gvv_str_all_dates'] = "Toutes les dates";
+$lang['gvv_str_actions'] = "Actions";
 
 $lang['gvv_owner_type'] = array(
     0 => 'Club',
