@@ -258,4 +258,6 @@
   
 * [x] Permettre les réservations sur plusieurs jours.
 
+* [x] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
+
 

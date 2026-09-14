@@ -89,6 +89,11 @@ class Vols_decouverte_looks extends MY_Controller {
             return;
         }
 
+        $this->load->vars([
+            'nav_back_url'   => 'vols_decouverte_looks',
+            'nav_back_label' => $this->lang->line('gvv_vd_looks_back_to_list'),
+        ]);
+
         $data = array(
             'controller' => $this->controller,
             'look'       => $look,

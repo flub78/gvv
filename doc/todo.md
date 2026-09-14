@@ -7,10 +7,6 @@
 * [] déplacer les répertoire de travail ailleurs que dans l'arborescence servie par apache.
 
 ## Reste à faire
-
-* [~] Configuration des vols de découverte comme les cartes de membres. Éditeur de bon de vol de découverte, avec des champs configurables, et génération d'un pdf à partir d'un template. Support des vols de découverte pour tous les clubs.
-
-quasi validé, il faudra remplacer l'ancien mécanisme par le nouveau.
   
 * [] Ajout de vrais export excel en sus des csv.
 
