@@ -966,10 +966,22 @@ $lang['gvv_rename_error_invalid_data'] = "Données invalides.";
 $lang['gvv_rename_error_access']       = "Accès réservé aux utilisateurs développeurs.";
 $lang['gvv_rename_error_invalid_step'] = "Étape invalide.";
 $lang['gvv_rename_success_message']    = "Renommage réussi : %d enregistrements mis à jour.";
+$lang['gvv_rename_confirm_message']    = 'Êtes-vous ABSOLUMENT certain de vouloir renommer cet utilisateur ?\n\nAncien identifiant : {old}\nNouvel identifiant : {new}\n\nCette action est IRRÉVERSIBLE.';
 
 $lang['not_available_for_this_section'] = "Cette fonctionnalité n'est pas disponible pour cette section.";
 
 $lang['gvv_error_not_authorized'] = "Vous n'êtes pas autorisé à accéder à cette ressource.";
 $lang['gvv_error_not_found']      = "La ressource demandée est introuvable.";
+
+# Confirmations diverses (homogénéisation des dialogues confirm())
+$lang['gvv_checks_confirm_delete_orphan_rapprochements'] = "Êtes-vous sûr de vouloir supprimer ces rapprochements orphelins ?";
+$lang['authorization_confirm_delete_old_logs']      = "Supprimer les logs de plus de 30 jours ?";
+$lang['authorization_confirm_complete_migration']   = "Confirmer la migration comme terminée pour";
+$lang['gvv_compta_rotate_cw_confirm']               = "Rotation horaire ?";
+$lang['gvv_compta_rotate_ccw_confirm']              = "Rotation anti-horaire ?";
+$lang['gvv_compta_delete_justificatif_confirm']     = "Êtes-vous sûr de vouloir supprimer ce justificatif ?";
+$lang['gvv_compta_delete_ecriture_confirm']         = "Êtes-vous sûr de vouloir supprimer cette écriture ?";
+$lang['gvv_login_as_confirm']                       = "Se connecter en tant que";
+$lang['gvv_cartes_membre_reset_layout_confirm']     = "Réinitialiser la mise en page au défaut ?";
 
 $lang['gvv_menu_carnets_route']   = "Carnets de route";

@@ -93,3 +93,6 @@ $lang['admin_connected_just_now']          = "Zojuist";
 $lang['admin_connected_minutes_ago']       = "%d min geleden";
 $lang['gvv_back']                          = "Terug";
 
+$lang['admin_confirm_anonymize']           = "Deze actie zal alle persoonlijke gegevens anonimiseren. Doorgaan?";
+$lang['admin_confirm_backup']              = "Een automatische back-up starten op de server?";
+

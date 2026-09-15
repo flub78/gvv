@@ -479,7 +479,7 @@ function initializeFormAttachmentHandlers(ecritureId) {
 
     // Delete button click
     $(document).off('click', '#attachmentsFormSection .delete-attachment-btn').on('click', '#attachmentsFormSection .delete-attachment-btn', function() {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce justificatif ?')) {
+        if (!confirm('<?= addslashes($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>')) {
             return;
         }
 

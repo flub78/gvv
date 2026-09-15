@@ -955,6 +955,7 @@ $lang['gvv_rename_error_invalid_data'] = "Ongeldige gegevens.";
 $lang['gvv_rename_error_access']       = "Toegang beperkt tot ontwikkelingsgebruikers.";
 $lang['gvv_rename_error_invalid_step'] = "Ongeldige stap.";
 $lang['gvv_rename_success_message']    = "Hernoemen geslaagd: %d records bijgewerkt.";
+$lang['gvv_rename_confirm_message']    = 'Weet u ABSOLUUT zeker dat u deze gebruiker wilt hernoemen?\n\nOude login: {old}\nNieuwe login: {new}\n\nDeze actie is ONOMKEERBAAR.';
 
 $lang['not_available_for_this_section'] = "Deze functie is niet beschikbaar voor deze sectie.";
 
@@ -962,3 +963,14 @@ $lang['gvv_error_not_authorized'] = "U bent niet bevoegd om toegang te krijgen t
 $lang['gvv_error_not_found']      = "De gevraagde resource is niet gevonden.";
 
 $lang['gvv_menu_carnets_route']   = "Vluchtenlogboeken";
+
+# Diverse bevestigingen (homogenisering confirm() dialogen)
+$lang['gvv_checks_confirm_delete_orphan_rapprochements'] = "Weet u zeker dat u deze weesafstemmingen wilt verwijderen?";
+$lang['authorization_confirm_delete_old_logs']      = "Logs ouder dan 30 dagen verwijderen?";
+$lang['authorization_confirm_complete_migration']   = "Bevestig migratie als voltooid voor";
+$lang['gvv_compta_rotate_cw_confirm']               = "Rechtsom draaien?";
+$lang['gvv_compta_rotate_ccw_confirm']              = "Linksom draaien?";
+$lang['gvv_compta_delete_justificatif_confirm']     = "Weet u zeker dat u dit bewijsstuk wilt verwijderen?";
+$lang['gvv_compta_delete_ecriture_confirm']         = "Weet u zeker dat u deze boeking wilt verwijderen?";
+$lang['gvv_login_as_confirm']                       = "Inloggen als";
+$lang['gvv_cartes_membre_reset_layout_confirm']     = "De lay-out terugzetten naar standaard?";

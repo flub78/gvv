@@ -191,7 +191,7 @@ $this->lang->load('admin');
                         <div class="card-title">Anonymiser données</div>
                         <div class="card-text text-muted">Toutes les données</div>
                         <a href="<?= controller_url('admin/anonymize_all_data') ?>" class="btn btn-warning btn-sm"
-                           onclick="return confirm('Cette action va anonymiser toutes les données personnelles. Continuer ?');">Exécuter</a>
+                           onclick="return confirm('<?= addslashes($this->lang->line('admin_confirm_anonymize')) ?>');">Exécuter</a>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-3 col-xl-2">

@@ -69,7 +69,7 @@ if (empty($associations)) {
         'name' => 'button',
         'value' => "Supprimer la sélection",
         'class' => 'btn btn-danger mb-4',
-        'onclick' => "return confirm('Êtes-vous sûr de vouloir supprimer ces rapprochements orphelins ?');"
+        'onclick' => "return confirm('" . addslashes($this->lang->line('gvv_checks_confirm_delete_orphan_rapprochements')) . "');"
     ));
     echo form_close('</div>');
 }

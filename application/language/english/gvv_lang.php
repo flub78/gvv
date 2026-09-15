@@ -955,6 +955,7 @@ $lang['gvv_rename_error_invalid_data'] = "Invalid data.";
 $lang['gvv_rename_error_access']       = "Access restricted to development users.";
 $lang['gvv_rename_error_invalid_step'] = "Invalid step.";
 $lang['gvv_rename_success_message']    = "Rename successful: %d records updated.";
+$lang['gvv_rename_confirm_message']    = 'Are you ABSOLUTELY certain you want to rename this user?\n\nOld login: {old}\nNew login: {new}\n\nThis action is IRREVERSIBLE.';
 
 $lang['not_available_for_this_section'] = "This feature is not available for this section.";
 
@@ -962,3 +963,14 @@ $lang['gvv_error_not_authorized'] = "You are not authorized to access this resou
 $lang['gvv_error_not_found']      = "The requested resource was not found.";
 
 $lang['gvv_menu_carnets_route']   = "Flight logs";
+
+# Miscellaneous confirmations (confirm() dialog homogenization)
+$lang['gvv_checks_confirm_delete_orphan_rapprochements'] = "Are you sure you want to delete these orphan reconciliations?";
+$lang['authorization_confirm_delete_old_logs']      = "Delete logs older than 30 days?";
+$lang['authorization_confirm_complete_migration']   = "Confirm migration as completed for";
+$lang['gvv_compta_rotate_cw_confirm']               = "Rotate clockwise?";
+$lang['gvv_compta_rotate_ccw_confirm']              = "Rotate counter-clockwise?";
+$lang['gvv_compta_delete_justificatif_confirm']     = "Are you sure you want to delete this receipt?";
+$lang['gvv_compta_delete_ecriture_confirm']         = "Are you sure you want to delete this entry?";
+$lang['gvv_login_as_confirm']                       = "Log in as";
+$lang['gvv_cartes_membre_reset_layout_confirm']     = "Reset the layout to default?";

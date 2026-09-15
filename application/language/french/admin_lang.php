@@ -93,3 +93,6 @@ $lang['admin_connected_just_now']          = "À l'instant";
 $lang['admin_connected_minutes_ago']       = "il y a %d min";
 $lang['gvv_back']                          = "Retour";
 
+$lang['admin_confirm_anonymize']           = "Cette action va anonymiser toutes les données personnelles. Continuer ?";
+$lang['admin_confirm_backup']              = "Lancer une sauvegarde automatique sur le serveur ?";
+

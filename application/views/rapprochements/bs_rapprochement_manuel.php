@@ -159,6 +159,7 @@ echo '</div>';
     window.APP_BASE_URL = '<?php echo base_url(); ?>';
     window.STRING_RELEVE = '<?php echo $string_releve; ?>';
     window.OPERATION_AMOUNT = <?php echo $amount ?? 0; ?>;
+    window.CONFIRM_DELETE_RAPPROCHEMENT_ECRITURE = '<?php echo addslashes($this->lang->line('rapprochements_confirm_delete_ecriture')); ?>';
 </script>
 <script src="<?php echo base_url('assets/javascript/selectall.js'); ?>"></script>
 <script src="<?php echo base_url('assets/javascript/rapprochement_manuel.js'); ?>"></script>

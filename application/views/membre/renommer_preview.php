@@ -241,7 +241,14 @@ $sample_records = $preview['sample_records'];
                 <input type="hidden" name="step" value="execute">
                 <input type="hidden" name="old_mlogin" value="<?= htmlspecialchars($old_mlogin) ?>">
                 <input type="hidden" name="new_mlogin" value="<?= htmlspecialchars($new_mlogin) ?>">
-                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('Êtes-vous ABSOLUMENT certain de vouloir renommer cet utilisateur ?\n\nAncien identifiant : <?= htmlspecialchars($old_mlogin) ?>\nNouvel identifiant : <?= htmlspecialchars($new_mlogin) ?>\n\nCette action est IRRÉVERSIBLE.');">
+                <?php
+                $rename_confirm_msg = str_replace(
+                    array('{old}', '{new}'),
+                    array(addslashes($old_mlogin), addslashes($new_mlogin)),
+                    $this->lang->line('gvv_rename_confirm_message')
+                );
+                ?>
+                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('<?= htmlspecialchars($rename_confirm_msg, ENT_QUOTES) ?>');">
                     <i class="fas fa-check-circle"></i>
                     Confirmer le renommage
                 </button>
