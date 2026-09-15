@@ -371,11 +371,6 @@ if ($codec == 411 && $navigation_allowed && $section) {
                     <?= form_hidden('action', $action) ?>
                     <?= form_hidden('pilote', $pilote) ?>
 
-                    <?php if ($this->session->flashdata('popup')) {
-                        echo p('<div class="error">' . $this->session->flashdata('popup') . '</div>');
-                    }
-                    ?>
-
                     <div class="d-flex flex-wrap align-items-end gap-3">
                         <div class="form-group">
                             <label for="date"><?= $this->lang->line("gvv_compta_purchase_headers")[0] ?></label>

@@ -38,7 +38,7 @@ $attrs = array(
     'actions' => array('edit', 'delete', 'clone_elt', 'csv', 'pdf', 'execute'),
     'fields' => array('nom', 'titre'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable table"
+    'class' => "datatable table table-striped"
 );
 
 // Create button above the table

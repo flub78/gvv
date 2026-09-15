@@ -74,7 +74,7 @@ $this->load->view('bs_banner');
                         </td>
                         <td class="text-end text-nowrap">
                             <a href="<?= controller_url($controller) ?>/edit/<?= $equipement['id'] ?>"
-                               class="btn btn-sm btn-outline-primary" title="<?= $this->lang->line('maintenance_equipements_edit') ?>">
+                               class="btn btn-sm btn-primary" title="<?= $this->lang->line('maintenance_equipements_edit') ?>">
                                 <i class="fas fa-edit" aria-hidden="true"></i>
                             </a>
                             <a href="<?= controller_url($controller) ?>/transfer/<?= $equipement['id'] ?>"

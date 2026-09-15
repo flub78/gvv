@@ -62,11 +62,11 @@ echo licence_selector($controller, $type);
 <!-- Filtres -->
 <div class="row mb-3 mt-3">
     <div class="col-md-12">
-        <div class="accordion" id="filtersAccordion">
+        <div class="accordion accordion-flush" id="filtersAccordion">
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingFilters">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="true" aria-controls="collapseFilters">
-                        Filtres
+                        <?= $this->lang->line("gvv_str_filter") ?>
                     </button>
                 </h2>
                 <div id="collapseFilters" class="accordion-collapse collapse show" aria-labelledby="headingFilters" data-bs-parent="#filtersAccordion">

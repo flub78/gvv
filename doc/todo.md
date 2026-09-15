@@ -46,10 +46,7 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
 ## Dette technique
 
 * [] IA revues de code et refactoring
-
-* [] Définir une charte graphique et l'appliquer partout
-  * [] Unifier le style des filtres
-  * [] Unifier les erreurs de validation
+* [] Unifier le style des filtres
 
 ## Idées et suggestions
 

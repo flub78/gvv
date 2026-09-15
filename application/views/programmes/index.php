@@ -87,13 +87,13 @@ $this->lang->load('formation');
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="<?= controller_url($controller) ?>/view/<?= $programme['id'] ?>"
-                                       class="btn btn-primary"
+                                       class="btn btn-secondary"
                                        title="<?= $this->lang->line("formation_programmes_view") ?>">
                                         <i class="fas fa-eye text-white" aria-hidden="true"></i>
                                     </a>
                                     <?php if ($can_manage): ?>
                                     <a href="<?= controller_url($controller) ?>/edit/<?= $programme['id'] ?>"
-                                       class="btn btn-secondary"
+                                       class="btn btn-primary"
                                        title="<?= $this->lang->line("formation_programmes_edit") ?>">
                                         <i class="fas fa-edit text-white" aria-hidden="true"></i>
                                     </a>

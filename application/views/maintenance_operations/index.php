@@ -50,8 +50,8 @@ $this->load->view('bs_banner');
                         <td><?= htmlspecialchars($operation['programme_code']) ?> - <?= htmlspecialchars($operation['programme_titre']) ?></td>
                         <td><?= htmlspecialchars($operation['mecano_prenom'] . ' ' . $operation['mecano_nom']) ?></td>
                         <td class="text-end">
-                            <a href="<?= controller_url($controller) ?>/edit/<?= $operation['id'] ?>" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-edit" aria-hidden="true"></i> <?= $this->lang->line('maintenance_equipements_edit') ?>
+                            <a href="<?= controller_url($controller) ?>/edit/<?= $operation['id'] ?>" class="btn btn-sm btn-primary" title="<?= $this->lang->line('maintenance_equipements_edit') ?>">
+                                <i class="fas fa-edit" aria-hidden="true"></i>
                             </a>
                         </td>
                     </tr>

@@ -86,12 +86,12 @@ $this->lang->load('email_lists');
                                         title="<?= $this->lang->line("email_lists_send_email") ?>">
                                         <i class="fas fa-envelope text-white" aria-hidden="true"></i>
                                     </a>
-                                    <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>" class="btn btn-primary"
+                                    <a href="<?= controller_url($controller) ?>/view/<?= $list['id'] ?>" class="btn btn-secondary"
                                         title="<?= $this->lang->line("email_lists_view") ?>">
                                         <i class="fas fa-eye text-white" aria-hidden="true"></i>
                                     </a>
                                     <a href="<?= controller_url($controller) ?>/edit/<?= $list['id'] ?>"
-                                        class="btn btn-secondary" title="<?= $this->lang->line("email_lists_edit") ?>">
+                                        class="btn btn-primary" title="<?= $this->lang->line("email_lists_edit") ?>">
                                         <i class="fas fa-edit text-white" aria-hidden="true"></i>
                                     </a>
 
