@@ -184,7 +184,7 @@ pagination (lignes 505-536), mais **aucune vue échantillonnée ne l'utilise**
 | 1 (rapide, sécurité) | Ajouter confirmation manquante sur suppression photo membre et sur `formation_autorisations_solo` | 2 fichiers | ✅ Fait (2026-09-15) |
 | 2 (rapide, visuel) | Aligner `compta/bs_journalCompteView.php` (suppression du bloc erreur redondant avec `checkalert()`), `reports.php` (`table-striped`), `licences/bs_TablePerYear.php` (titre de filtre traduit + `accordion-flush`) sur le style dominant | 3 fichiers | ✅ Fait (2026-09-15) |
 | 3 (moyen) | Uniformiser boutons d'action de `formation_autorisations_solo`, `email_lists`, `programmes`, `maintenance_equipements`, `maintenance_operations` sur le style A | 5 fichiers | ✅ Fait (2026-09-15) |
-| 4 (moyen) | Remplacer les `confirm()` codés en dur par le helper centralisé traduit | ~46 fichiers, mécanique | À faire |
+| 4 (moyen) | Remplacer les `confirm()` codés en dur par des clés de langue FR/EN/NL dédiées (texte préservé, pas de généricisation) | 30 fichiers (18 vues, 2 JS, 12 fichiers de langue), branche `fix/homogeneisation-confirm-dialogs` | ✅ Fait (2026-09-15) |
 | 5 (structurel, à valider séparément) | Centraliser le rendu des messages flash (`render_flash()`), activer `table-hover`/`table-responsive` par défaut dans `MetaData.php`, faire servir le bouton de création natif | Touche `MetaData.php` + tous les appelants | À faire |
 | 6 (gros chantier, à décider) | Étendre le style de filtre moderne (carte + GET) au-delà de `formation_seances*` | ~15 vues, changement de paradigme (session → GET) | À faire |
 
