@@ -951,6 +951,9 @@ class Email_lists_model extends CI_Model
             }
         }
 
+        // 7. Sort alphabetically
+        sort($email_strings, SORT_STRING | SORT_FLAG_CASE);
+
         return $email_strings;
     }
 
@@ -1128,6 +1131,13 @@ class Email_lists_model extends CI_Model
 
             $emails_with_metadata[] = $item;
         }
+
+        // 7. Sort alphabetically by name (when known), falling back to email address
+        usort($emails_with_metadata, function ($a, $b) {
+            $key_a = !empty($a['name']) ? $a['name'] : $a['email'];
+            $key_b = !empty($b['name']) ? $b['name'] : $b['email'];
+            return strcasecmp($key_a, $key_b);
+        });
 
         return $emails_with_metadata;
     }

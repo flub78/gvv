@@ -91,6 +91,21 @@ class EmailListsResolutionTest extends TestCase
     }
 
     /**
+     * Helper method to add external emails with names to a list
+     * $entries is an array of ['email' => ..., 'name' => ...]
+     */
+    protected function addExternalEmailsWithNames($list_id, $entries)
+    {
+        foreach ($entries as $entry) {
+            $this->db->insert('email_list_external', [
+                'email_list_id' => $list_id,
+                'external_email' => $entry['email'],
+                'external_name' => $entry['name']
+            ]);
+        }
+    }
+
+    /**
      * Test textual_list() with 1 sublist
      */
     public function testTextualList_WithOneSublist_ReturnsAllEmails()
@@ -287,5 +302,77 @@ class EmailListsResolutionTest extends TestCase
         $this->assertContains('overlap@example.com', $emails);
         $this->assertContains('unique1@example.com', $emails);
         $this->assertContains('unique2@example.com', $emails);
+    }
+
+    /**
+     * Test textual_list() returns emails sorted alphabetically (case-insensitive)
+     */
+    public function testTextualList_ReturnsEmailsSortedAlphabetically()
+    {
+        $list_id = $this->createTestList('TEST_RESOLUTION_SORT_TEXTUAL');
+        $this->addExternalEmails($list_id, [
+            'zebra@example.com',
+            'Alice@example.com',
+            'monkey@example.com',
+            'bravo@example.com',
+        ]);
+
+        $emails = $this->model->textual_list($list_id);
+
+        $this->assertEquals(
+            ['Alice@example.com', 'bravo@example.com', 'monkey@example.com', 'zebra@example.com'],
+            $emails,
+            'Emails should be sorted alphabetically case-insensitively'
+        );
+    }
+
+    /**
+     * Test detailed_list() returns emails sorted alphabetically (case-insensitive)
+     */
+    public function testDetailedList_ReturnsEmailsSortedAlphabetically()
+    {
+        $list_id = $this->createTestList('TEST_RESOLUTION_SORT_DETAILED');
+        $this->addExternalEmails($list_id, [
+            'zebra@example.com',
+            'Alice@example.com',
+            'monkey@example.com',
+            'bravo@example.com',
+        ]);
+
+        $emails = $this->model->detailed_list($list_id);
+        $ordered = array_column($emails, 'email');
+
+        // detailed_list() normalizes emails to lowercase
+        $this->assertEquals(
+            ['alice@example.com', 'bravo@example.com', 'monkey@example.com', 'zebra@example.com'],
+            $ordered,
+            'Emails should be sorted alphabetically case-insensitively'
+        );
+    }
+
+    /**
+     * Test detailed_list() sorts by name when known, falling back to email
+     * when no name is available (single unified sort key)
+     */
+    public function testDetailedList_SortsByNameWhenAvailable_FallsBackToEmail()
+    {
+        $list_id = $this->createTestList('TEST_RESOLUTION_SORT_BY_NAME');
+        $this->addExternalEmailsWithNames($list_id, [
+            ['email' => 'yankee@example.com', 'name' => 'Charlie'],
+            ['email' => 'alpha@example.com', 'name' => ''],
+            ['email' => 'bravo@example.com', 'name' => 'Bob'],
+            ['email' => 'delta@example.com', 'name' => ''],
+        ]);
+
+        $emails = $this->model->detailed_list($list_id);
+        $ordered = array_column($emails, 'email');
+
+        // Sort key per entry: name if known, else email
+        // -> 'alpha@example.com', 'Bob', 'Charlie', 'delta@example.com'
+        $this->assertEquals(
+            ['alpha@example.com', 'bravo@example.com', 'yankee@example.com', 'delta@example.com'],
+            $ordered,
+            'Named entries should sort by name; unnamed entries should sort by email, in a single interleaved order'
+        );
     }
 }

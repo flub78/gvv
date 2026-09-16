@@ -902,6 +902,13 @@ class Email_lists extends Gvv_Controller
                 $emails_with_metadata[] = $item;
             }
 
+            // Sort alphabetically by name (when known), falling back to email address
+            usort($emails_with_metadata, function ($a, $b) {
+                $key_a = !empty($a['name']) ? $a['name'] : $a['email'];
+                $key_b = !empty($b['name']) ? $b['name'] : $b['email'];
+                return strcasecmp($key_a, $key_b);
+            });
+
             // Return JSON response
             $this->output
                 ->set_content_type('application/json')
