@@ -552,29 +552,10 @@ abstract class Metadata {
             $res .= "<th $align>N°</th>";
         }
 
-        // Optional global Create button (Bootstrap) in header when provided
-        $header_create_html = '';
-        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
-            $create_url = $attrs['create']['url'];
-            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
-            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
-            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
-                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
-                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
-                                . '</a>';
-        }
-
         // Actions title
-        $action_cnt = count($actions);
         foreach ($actions as $action) {
-            $action_cnt--;
-            $name = '';
-            if ($action_cnt == 0) {
-                // Put Create button in the last actions header cell if available
-                $name = $header_create_html;
-            }
             if ($mode == "rw")
-                $res .= "<th class=\"ui-state-default\" >$name</th>";
+                $res .= "<th class=\"ui-state-default\" ></th>";
         }
 
         // column title
@@ -796,28 +777,10 @@ abstract class Metadata {
         $res .= "\t<thead>";
         $res .= "<tr>";
 
-        // Optional global Create button (Bootstrap) in header when provided
-        $header_create_html = '';
-        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
-            $create_url = $attrs['create']['url'];
-            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
-            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
-            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
-                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
-                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
-                                . '</a>';
-        }
-
         // Actions title
-        $action_cnt = count($actions);
         foreach ($actions as $action) {
-            $action_cnt--;
-            $name = '';
-            if ($action_cnt == 0) {
-                $name = $header_create_html;
-            }
             if ($mode == "rw")
-                $res .= "<th>$name</th>";
+                $res .= "<th></th>";
         }
 
         // column title
