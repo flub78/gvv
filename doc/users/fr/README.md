@@ -172,6 +172,12 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Politique de rétention automatique côté stockage distant
 - Monitoring et alertes en cas d'échec (optionnel : Healthchecks.io, Google Apps Script)
 
+#### [18. Listes de Diffusion Email](18_listes_diffusion.md)
+**Constituer et exporter des listes d'adresses email réutilisables**
+- Critères par rôle/section, sélection manuelle, import de fichiers, sous-listes
+- Informations conservées à l'import (nom, téléphone...) et tri alphabétique des adresses
+- Export (mailto, presse-papier, TXT/Markdown, découpage en lots)
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -215,7 +221,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
 10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
 11. **[☁️ Sauvegarde hors-site](17_sauvegarde_hors_site.md)** - Envoi automatique des backups vers Google Drive
-12. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+12. **[📧 Listes de diffusion](18_listes_diffusion.md)** - Constituer et exporter des listes d'adresses email
+13. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

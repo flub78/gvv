@@ -25,9 +25,12 @@ test.describe('Email Lists Workflow v1.4', () => {
         }
     });
 
-    test.afterEach(async ({ request }) => {
+    test.afterEach(async ({ page }) => {
         for (const id of createdListIds) {
-            await request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+            // Use page.request (shares the authenticated session's cookies)
+            // rather than the bare `request` fixture, which is unauthenticated
+            // and would silently no-op the delete.
+            await page.request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
         }
         createdListIds = [];
     });

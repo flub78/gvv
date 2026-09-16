@@ -315,6 +315,64 @@ class EmailHelperTest extends TestCase
         $this->assertCount(0, parse_text_emails(''));
     }
 
+    public function testParseTextEmails_KeepsNameAfterBareEmail()
+    {
+        $content = "Jean Dupont jean@example.com";
+
+        $result = parse_text_emails($content);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('jean@example.com', $result[0]['email']);
+        $this->assertEquals('Jean Dupont', $result[0]['name']);
+        $this->assertTrue($result[0]['valid']);
+    }
+
+    public function testParseTextEmails_KeepsPhoneNumberAfterEmail()
+    {
+        $content = "jean@example.com 06 12 34 56 78";
+
+        $result = parse_text_emails($content);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('jean@example.com', $result[0]['email']);
+        $this->assertEquals('06 12 34 56 78', $result[0]['name']);
+    }
+
+    public function testParseTextEmails_SharesLeftoverNameAcrossMultipleEmails()
+    {
+        $content = "jean@exemple.fr, paul@exemple.fr Jean et Paul Dupont";
+
+        $result = parse_text_emails($content);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals('jean@exemple.fr', $result[0]['email']);
+        $this->assertEquals('Jean et Paul Dupont', $result[0]['name']);
+        $this->assertEquals('paul@exemple.fr', $result[1]['email']);
+        $this->assertEquals('Jean et Paul Dupont', $result[1]['name']);
+    }
+
+    public function testParseTextEmails_BareEmailWithoutExtraText_HasEmptyName()
+    {
+        $content = "test1@example.com, test2@example.com";
+
+        $result = parse_text_emails($content);
+
+        $this->assertCount(2, $result);
+        $this->assertEquals('', $result[0]['name']);
+        $this->assertEquals('', $result[1]['name']);
+    }
+
+    public function testParseTextEmails_BracketFormat_StillUsesNameBeforeBrackets()
+    {
+        $content = "Jean Dupont <jean@example.com>";
+
+        $result = parse_text_emails($content);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('jean@example.com', $result[0]['email']);
+        $this->assertEquals('Jean Dupont', $result[0]['name']);
+    }
+
     // ========================================================================
     // CSV Email Parsing Tests
     // ========================================================================
@@ -385,6 +443,33 @@ class EmailHelperTest extends TestCase
     public function testParseCsvEmails_EmptyContent_ReturnsEmpty()
     {
         $this->assertCount(0, parse_csv_emails('', array()));
+    }
+
+    public function testParseCsvEmails_ScanAllColumns_KeepsExtraColumnsAsDisplayName()
+    {
+        // email_col = -1 (scan all columns), as used by parse_email_string()
+        // for auto-detected imports. Extra columns (name, phone...) beyond
+        // the traditional firstname/lastname pair must be preserved.
+        $content = "John,Doe,john@example.com,0612345678";
+        $config = array('email_col' => -1, 'has_header' => false, 'delimiter' => ',');
+
+        $result = parse_csv_emails($content, $config);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('john@example.com', $result[0]['email']);
+        $this->assertEquals('John Doe 0612345678', $result[0]['display_name']);
+    }
+
+    public function testParseCsvEmails_ScanAllColumns_EmailInFirstColumn_KeepsOtherColumns()
+    {
+        $content = "john@example.com,John Doe,0612345678";
+        $config = array('email_col' => -1, 'has_header' => false, 'delimiter' => ',');
+
+        $result = parse_csv_emails($content, $config);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals('john@example.com', $result[0]['email']);
+        $this->assertEquals('John Doe 0612345678', $result[0]['display_name']);
     }
 
     // ========================================================================

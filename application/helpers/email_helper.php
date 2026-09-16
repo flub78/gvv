@@ -351,33 +351,53 @@ if (!function_exists('parse_text_emails')) {
                 continue;
             }
 
-            // Check if line contains multiple emails separated by comma or semicolon
-            // But NOT if it's in "Name <email>" format
-            $emails_in_line = array($line);
-            if (!preg_match('/^[^<>]+<[^>]+>$/', $line)) {
-                // Split by comma or semicolon if not in Name<email> format
-                if (strpos($line, ',') !== false) {
-                    $emails_in_line = explode(',', $line);
-                } elseif (strpos($line, ';') !== false) {
-                    $emails_in_line = explode(';', $line);
-                }
+            // Handle "Name <email@example.com>" format (single email per line)
+            if (preg_match('/^(.+?)\s*<(.+?)>$/', $line, $matches)) {
+                $name = trim($matches[1]);
+                $email = trim($matches[2]);
+                $valid = validate_email($email);
+
+                $result[] = array(
+                    'email' => $email,
+                    'name' => $name,
+                    'normalized' => normalize_email($email),
+                    'valid' => $valid,
+                    'error' => $valid ? '' : 'Invalid email format: "' . $line . '"',
+                    'line' => $line_number + 1
+                );
+                continue;
             }
 
+            // Extract every email address found on the line
+            preg_match_all('/([^\s@,;]+@[^\s@,;]+\.[^\s@,;]+)/', $line, $matches);
+            $emails_in_line = $matches[1];
+
+            if (empty($emails_in_line)) {
+                // No recognizable email on the line - report it as invalid,
+                // same as before (e.g. malformed address alone on a line)
+                $valid = validate_email($line);
+                $result[] = array(
+                    'email' => $line,
+                    'name' => '',
+                    'normalized' => normalize_email($line),
+                    'valid' => $valid,
+                    'error' => $valid ? '' : 'Invalid email format: "' . $line . '"',
+                    'line' => $line_number + 1
+                );
+                continue;
+            }
+
+            // Whatever remains on the line once every email is stripped out
+            // is kept as informal info (name, phone number, etc.), shared by
+            // all emails found on that line.
+            $name = $line;
+            foreach ($emails_in_line as $email) {
+                $name = str_replace($email, '', $name);
+            }
+            $name = trim(preg_replace('/\s+/', ' ', preg_replace('/[,;]+/', ' ', $name)));
+
             foreach ($emails_in_line as $email_part) {
-                $email_part = trim($email_part);
-                if (empty($email_part)) {
-                    continue;
-                }
-
-                $name = '';
-                $email = $email_part;
-
-                // Handle "Name <email@example.com>" format
-                if (preg_match('/^(.+?)\s*<(.+?)>$/', $email_part, $matches)) {
-                    $name = trim($matches[1]);
-                    $email = trim($matches[2]);
-                }
-
+                $email = trim($email_part);
                 $valid = validate_email($email);
 
                 $result[] = array(
@@ -473,21 +493,24 @@ if (!function_exists('parse_csv_emails')) {
 
                     // Check if this cell contains a valid email
                     if (validate_email($cell)) {
-                        // Try to get name from adjacent columns if available
-                        $name = '';
-                        $firstname = '';
-                        $display_name = '';
-
-                        // Try to use firstname (col 0) and name (col 1) if available
-                        if ($col_index > 1) {
-                            if (isset($row[0])) {
-                                $firstname = trim($row[0]);
+                        // Keep every other non-empty cell on the row as informal
+                        // info (name, phone number, or anything else the file
+                        // carries), regardless of which column the email is in.
+                        $other_cells = array();
+                        foreach ($row as $other_index => $other_cell) {
+                            if ($other_index === $col_index) {
+                                continue;
                             }
-                            if (isset($row[1])) {
-                                $name = trim($row[1]);
+                            $other_cell = trim($other_cell);
+                            if ($other_cell !== '') {
+                                $other_cells[] = $other_cell;
                             }
-                            $display_name = trim($firstname . ' ' . $name);
                         }
+                        $display_name = trim(implode(' ', $other_cells));
+
+                        // Best-effort firstname/name for callers relying on them
+                        $firstname = (isset($row[0]) && trim($row[0]) !== $cell) ? trim($row[0]) : '';
+                        $name = (isset($row[1]) && trim($row[1]) !== $cell) ? trim($row[1]) : '';
 
                         $result[] = array(
                             'email' => $cell,

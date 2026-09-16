@@ -713,10 +713,13 @@ class Email_lists_model extends CI_Model
 
             // Create directory if it doesn't exist
             if (!is_dir($upload_path)) {
-                if (!mkdir($upload_path, 0755, TRUE)) {
+                if (!mkdir($upload_path, 0775, TRUE)) {
                     $result['errors'][] = 'Failed to create upload directory';
                     return $result;
                 }
+                // mkdir()'s mode is masked by the process umask, so force it
+                // explicitly to keep the directory group-writable (www-data)
+                chmod($upload_path, 0775);
             }
 
             // Ensure target file doesn't already exist

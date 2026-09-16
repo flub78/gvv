@@ -30,7 +30,7 @@ Chaque message peut porter un niveau qui détermine sa couleur et sa priorité d
 
 Un message peut être adressé à :
 - **Tous les utilisateurs** du club
-- Une **liste de diffusion** existante
+- Une **liste de diffusion** existante (voir [18. Listes de Diffusion Email](18_listes_diffusion.md) pour les créer et les gérer)
 - Un **utilisateur unique**
 
 ### 1.3 Actions du pilote
