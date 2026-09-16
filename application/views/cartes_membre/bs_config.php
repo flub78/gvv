@@ -83,7 +83,7 @@ $align_options = array('L' => 'Gauche', 'C' => 'Centre', 'R' => 'Droite');
                 <i class="fas fa-upload"></i> <?= $this->lang->line('gvv_cartes_membre_layout_import') ?>
             </button>
             <form method="post" action="<?= controller_url('cartes_membre/layout_reset') ?>" class="d-inline"
-                  onsubmit="return confirm('Réinitialiser la mise en page au défaut ?')">
+                  onsubmit="return confirm('<?= addslashes($this->lang->line('gvv_cartes_membre_reset_layout_confirm')) ?>')">
                 <?= form_hidden($this->security->get_csrf_token_name(), $this->security->get_csrf_hash()) ?>
                 <input type="hidden" name="year" value="<?= $year ?>">
                 <button type="submit" class="btn btn-outline-danger btn-sm">

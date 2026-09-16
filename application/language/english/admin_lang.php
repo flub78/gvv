@@ -92,3 +92,6 @@ $lang['admin_connected_col_browser']       = "Browser";
 $lang['admin_connected_just_now']          = "Just now";
 $lang['admin_connected_minutes_ago']       = "%d min ago";
 $lang['gvv_back']                          = "Back";
+
+$lang['admin_confirm_anonymize']           = "This action will anonymize all personal data. Continue?";
+$lang['admin_confirm_backup']              = "Start an automatic backup on the server?";

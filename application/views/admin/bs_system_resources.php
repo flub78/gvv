@@ -375,7 +375,7 @@ function sysres_bar_class($pct) {
                             <div class="ms-auto">
                                 <form method="post" action="<?= controller_url('admin/backup_server') ?>" style="display:inline;">
                                     <button type="submit" class="btn btn-primary btn-sm"
-                                            onclick="return confirm('Lancer une sauvegarde automatique sur le serveur ?');">
+                                            onclick="return confirm('<?= addslashes($this->lang->line('admin_confirm_backup')) ?>');">
                                         <i class="fas fa-save"></i> Sauvegarder maintenant
                                     </button>
                                 </form>
@@ -391,7 +391,7 @@ function sysres_bar_class($pct) {
                             <div class="ms-auto">
                                 <form method="post" action="<?= controller_url('admin/backup_server') ?>" style="display:inline;">
                                     <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Lancer une sauvegarde automatique sur le serveur ?');">
+                                            onclick="return confirm('<?= addslashes($this->lang->line('admin_confirm_backup')) ?>');">
                                         <i class="fas fa-save"></i> Sauvegarder maintenant
                                     </button>
                                 </form>

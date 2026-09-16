@@ -258,7 +258,7 @@
         <button class="btn btn-success" onclick="alert('Export CSV non implémenté')">
             <i class="bi bi-download"></i> Exporter CSV
         </button>
-        <button class="btn btn-danger" onclick="if(confirm('Supprimer les logs de plus de 30 jours?')) alert('Purge non implémentée')">
+        <button class="btn btn-danger" onclick="if(confirm('<?= addslashes($this->lang->line('authorization_confirm_delete_old_logs')) ?>')) alert('Purge non implémentée')">
             <i class="bi bi-trash"></i> Purger anciens logs
         </button>
     </div>

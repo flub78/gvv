@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const ecritureId = badge.getAttribute('data-ecriture-id');
             if (!ecritureId) return;
 
-            if (!confirm("Êtes-vous sûr de vouloir supprimer le rapprochement de l\'écriture " + ecritureId + ' ?')) {
+            if (!confirm(window.CONFIRM_DELETE_RAPPROCHEMENT_ECRITURE + ' ' + ecritureId + ' ?')) {
                 return;
             }
 

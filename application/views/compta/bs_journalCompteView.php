@@ -582,7 +582,7 @@ echo '</div>';
                             // Enable delete button
                             $deleteBtn.removeClass('disabled').removeAttr('disabled tabindex aria-disabled').attr('title', 'Supprimer')
                                 .on('click', function() {
-                                    return confirm('Êtes-vous sûr de vouloir supprimer cette écriture ?');
+                                    return confirm('<?= addslashes($this->lang->line('gvv_compta_delete_ecriture_confirm')) ?>');
                                 });
                         }
                     } else {

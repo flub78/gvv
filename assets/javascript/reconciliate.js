@@ -116,7 +116,7 @@ function initReconciliation() {
             const ecritureId = badge.getAttribute('data-ecriture-id');
 
             // Demander confirmation
-            if (!confirm('Êtes-vous sûr de vouloir supprimer le rapprochement de l\'écriture ' + ecritureId + ' ?')) {
+            if (!confirm(window.CONFIRM_DELETE_RAPPROCHEMENT_ECRITURE + ' ' + ecritureId + ' ?')) {
                 return;
             }
 
@@ -205,7 +205,7 @@ function initReconciliation() {
             const line = button.getAttribute('data-line');
 
             // Demander confirmation
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce rapprochement ?')) {
+            if (!confirm(window.CONFIRM_DELETE_RAPPROCHEMENT_ITEM)) {
                 return;
             }
 

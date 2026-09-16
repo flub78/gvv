@@ -105,13 +105,13 @@ $this->load->view('bs_banner');
                             <a href="<?= controller_url($controller) ?>/deactivate/<?= $type['id'] ?>"
                                class="btn btn-sm btn-outline-warning"
                                title="<?= $this->lang->line('formation_types_seances_deactivate') ?>"
-                               onclick="return confirm('Désactiver ce type de séance ?')">
+                               onclick="return confirm('<?= addslashes($this->lang->line('formation_type_seance_deactivate_confirm')) ?>')">
                                 <i class="fas fa-ban" aria-hidden="true"></i>
                             </a>
                             <?php endif; ?>
                             <a href="<?= controller_url($controller) ?>/delete/<?= $type['id'] ?>"
                                class="btn btn-sm btn-outline-danger" title="<?= $this->lang->line('formation_types_seances_delete') ?>"
-                               onclick="return confirm('Supprimer ce type de séance ? Cette action est irréversible.')">
+                               onclick="return confirm('<?= addslashes($this->lang->line('formation_type_seance_delete_confirm')) ?>')">
                                 <i class="fas fa-trash" aria-hidden="true"></i>
                             </a>
                         </td>

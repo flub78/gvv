@@ -85,9 +85,11 @@ function initializeAttachmentHandlers() {
         var $btn = $(this);
         var direction = $btn.data('direction');
         var attachmentId = $btn.data('id');
-        var label = direction === 'cw' ? 'Rotation horaire' : 'Rotation anti-horaire';
+        var label = direction === 'cw'
+            ? '<?= addslashes($this->lang->line('gvv_compta_rotate_cw_confirm')) ?>'
+            : '<?= addslashes($this->lang->line('gvv_compta_rotate_ccw_confirm')) ?>';
 
-        if (!confirm(label + ' ?')) return;
+        if (!confirm(label)) return;
 
         $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
@@ -190,7 +192,7 @@ function initializeAttachmentHandlers() {
 
 // Delete button click
 $(document).on('click', '.delete-attachment-btn', function() {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce justificatif ?')) {
+    if (!confirm('<?= addslashes($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>')) {
         return;
     }
 

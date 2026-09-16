@@ -187,6 +187,10 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
 }
 </style>
 
+<script>
+    window.CONFIRM_DELETE_RAPPROCHEMENT_ECRITURE = '<?= addslashes($this->lang->line('rapprochements_confirm_delete_ecriture')); ?>';
+    window.CONFIRM_DELETE_RAPPROCHEMENT_ITEM = '<?= addslashes($this->lang->line('rapprochements_confirm_delete_item')); ?>';
+</script>
 <script src="<?= base_url('assets/javascript/selectall.js'); ?>"></script>
 <script src="<?= base_url('assets/javascript/reconciliate.js'); ?>"></script>
 <script src="<?= base_url('assets/javascript/bank_search.js'); ?>"></script>

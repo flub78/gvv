@@ -22,7 +22,7 @@ $this->load->view('bs_banner');
             </a>
             <a href="<?= controller_url($controller) ?>/delete/<?= $seance['id'] ?>"
                class="btn btn-danger me-2"
-               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')">
+               onclick="return confirm('<?= addslashes($this->lang->line('formation_seance_delete_confirm')) ?>')">
                 <i class="fas fa-trash" aria-hidden="true"></i> Supprimer cette séance
             </a>
             <a href="<?= controller_url($controller) ?>" class="btn btn-outline-secondary">
