@@ -43,12 +43,7 @@ $this->lang->load('gvv');
         </div>
     </div>
 
-    <?php if ($this->session->flashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i> <?= $this->session->flashdata('error') ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+    <?= render_flash($this->session) ?>
 
     <div class="card">
         <div class="card-body">

@@ -29,14 +29,7 @@ $this->lang->load('comptes');
 
 echo '<div id="body" class="body container-fluid">';
 
-// Show success message (e.g. after clôture)
-if ($this->session->flashdata('success')) {
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
-    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
-    echo nl2br(htmlspecialchars($this->session->flashdata('success')));
-    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-    echo '</div>';
-}
+echo render_flash($this->session);
 
 $title = $this->lang->line('gvv_comptes_title_bilan');
 if ($section) {

@@ -41,13 +41,7 @@ $statut_labels = array(
         </div>
     </div>
 
-    <?php if ($this->session->flashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle" aria-hidden="true"></i>
-            <?= htmlspecialchars($this->session->flashdata('success')) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+    <?= render_flash($this->session) ?>
 
     <div class="card">
         <div class="card-body p-0">

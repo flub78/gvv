@@ -10,19 +10,7 @@
         </div>
     </div>
 
-    <?php if ($this->session->flashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show">
-        <i class="fas fa-exclamation-triangle"></i> <?= $this->session->flashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
-
-    <?php if ($this->session->flashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle"></i> <?= $this->session->flashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php endif; ?>
+    <?= render_flash($this->session) ?>
 
     <div class="card border-warning">
         <div class="card-header bg-warning text-dark">

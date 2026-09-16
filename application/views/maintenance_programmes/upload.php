@@ -23,12 +23,7 @@ $has_document = !empty($programme['document_id']);
         </a>
     </div>
 
-    <?php if ($this->session->flashdata('error')): ?>
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-            <?= nl2br(htmlspecialchars($this->session->flashdata('error'))) ?>
-        </div>
-    <?php endif; ?>
+    <?= render_flash($this->session) ?>
 
     <div class="alert alert-info">
         <i class="fas fa-info-circle" aria-hidden="true"></i>

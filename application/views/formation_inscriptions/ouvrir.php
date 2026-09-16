@@ -53,12 +53,7 @@ $this->lang->load('gvv');
         echo '</div>';
     }
     
-    if ($this->session->flashdata('error')) {
-        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-        echo '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' . $this->session->flashdata('error');
-        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-        echo '</div>';
-    }
+    echo render_flash($this->session);
     ?>
 
     <?= form_open(controller_url($controller) . '/store', array('id' => 'inscription-form', 'class' => 'needs-validation', 'novalidate' => '')) ?>
