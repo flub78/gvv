@@ -23,12 +23,7 @@ $form_url = controller_url($controller) . '/upload/' . $machine_immat;
         </a>
     </div>
 
-    <?php if ($this->session->flashdata('error')): ?>
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-            <?= htmlspecialchars($this->session->flashdata('error')) ?>
-        </div>
-    <?php endif; ?>
+    <?= render_flash($this->session) ?>
 
     <?= form_open_multipart($form_url, array('class' => 'card')) ?>
     <div class="card-body">

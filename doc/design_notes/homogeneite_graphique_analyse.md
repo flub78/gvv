@@ -185,7 +185,9 @@ pagination (lignes 505-536), mais **aucune vue échantillonnée ne l'utilise**
 | 2 (rapide, visuel) | Aligner `compta/bs_journalCompteView.php` (suppression du bloc erreur redondant avec `checkalert()`), `reports.php` (`table-striped`), `licences/bs_TablePerYear.php` (titre de filtre traduit + `accordion-flush`) sur le style dominant | 3 fichiers | ✅ Fait (2026-09-15) |
 | 3 (moyen) | Uniformiser boutons d'action de `formation_autorisations_solo`, `email_lists`, `programmes`, `maintenance_equipements`, `maintenance_operations` sur le style A | 5 fichiers | ✅ Fait (2026-09-15) |
 | 4 (moyen) | Remplacer les `confirm()` codés en dur par des clés de langue FR/EN/NL dédiées (texte préservé, pas de généricisation) | 30 fichiers (18 vues, 2 JS, 12 fichiers de langue), branche `fix/homogeneisation-confirm-dialogs` | ✅ Fait (2026-09-15) |
-| 5 (structurel, à valider séparément) | Centraliser le rendu des messages flash (`render_flash()`), activer `table-hover`/`table-responsive` par défaut dans `MetaData.php`, faire servir le bouton de création natif | Touche `MetaData.php` + tous les appelants | À faire |
+| 5A (structurel) | Centraliser le rendu des messages flash success/error (`render_flash()` dans `form_elements_helper.php`) | 46 vues + helper, branche `refactoring/render-flash-helper` | ✅ Fait (2026-09-16) |
+| 5B (structurel, à valider séparément) | Activer `table-hover`/`table-responsive` par défaut dans `MetaData.php::table()` | Touche `MetaData.php` + ~34-36 vues appelantes (effet automatique) — risque d'interaction avec DataTables à tester | À faire |
+| 5C (structurel, à valider séparément) | Faire servir le bouton de création natif (`$attrs['create']`) au lieu de le laisser mort | `MetaData.php` + ~34 vues à modifier — déplace le bouton de création (aujourd'hui au-dessus du tableau) dans l'en-tête du tableau, à revalider comme choix UX avant implémentation | À faire |
 | 6 (gros chantier, à décider) | Étendre le style de filtre moderne (carte + GET) au-delà de `formation_seances*` | ~15 vues, changement de paradigme (session → GET) | À faire |
 
 Aucune modification de code n'a été effectuée — ce document est l'analyse et

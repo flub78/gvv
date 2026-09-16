@@ -34,13 +34,7 @@ if (isset($message)) {
 	echo p($message) . br();
 }
 
-$error = $this->session->flashdata('error');
-if (!empty($error)) {
-	echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
-		. htmlspecialchars($error)
-		. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-		. '</div>';
-}
+echo render_flash($this->session);
 
 echo checkalert($this->session, isset($popup) ? $popup : "");
 

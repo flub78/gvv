@@ -13,9 +13,7 @@
 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<?php if ($this->session->flashdata('success')): ?>
-<div class="alert alert-success"><?= htmlspecialchars($this->session->flashdata('success')) ?></div>
-<?php endif; ?>
+<?= render_flash($this->session) ?>
 
 <h3><?= $this->lang->line('gvv_cotisation_form_title') ?> <span class="badge bg-primary"><?= $annee_courante ?></span></h3>
 <p class="text-muted"><?= $this->lang->line('gvv_cotisation_form_intro') ?></p>

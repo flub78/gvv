@@ -43,14 +43,7 @@ $this->lang->load('email_lists');
     </div>
 
 <?php
-// Show success message
-if ($this->session->flashdata('success')) {
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
-    echo '<strong><i class="bi bi-check-circle"></i></strong> ';
-    echo nl2br(htmlspecialchars($this->session->flashdata('success')));
-    echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-    echo '</div>';
-}
+echo render_flash($this->session);
 ?>
 
     <!-- List information -->

@@ -24,14 +24,7 @@ $this->lang->load('email_lists');
         echo '</div>';
     }
 
-    // Show error message
-    if ($this->session->flashdata('error')) {
-        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-        echo '<strong><i class="bi bi-exclamation-triangle-fill"></i></strong> ';
-        echo nl2br(htmlspecialchars($this->session->flashdata('error')));
-        echo '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-        echo '</div>';
-    }
+    echo render_flash($this->session);
     ?>
 
     <div class="card">

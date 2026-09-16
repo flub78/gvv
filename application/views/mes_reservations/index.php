@@ -8,19 +8,7 @@ $confirm_msg = addslashes($this->lang->line('mes_reservations_confirm_delete'));
 ?>
 <div class="container-fluid py-3">
 
-  <?php if ($msg = $this->session->flashdata('success')): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-      <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?>
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($msg = $this->session->flashdata('error')): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?>
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  <?php endif; ?>
+  <?= render_flash($this->session) ?>
 
   <!-- =====================================================================
        LISTE DES RÉSERVATIONS

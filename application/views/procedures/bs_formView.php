@@ -37,12 +37,7 @@ $form_action = $is_edit ? 'procedures/modifier' : 'procedures/ajout';
         <?php endif; ?>
 
         <!-- Messages flash -->
-        <?php if ($this->session->flashdata('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= $this->session->flashdata('error') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
+        <?= render_flash($this->session) ?>
 
         <?php if ($this->session->flashdata('warning')): ?>
             <div class="alert alert-warning alert-dismissible fade show" role="alert">

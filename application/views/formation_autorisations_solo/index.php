@@ -44,19 +44,7 @@ $this->lang->load('gvv');
     </div>
 
     <?php
-    // Display flash messages
-    if ($this->session->flashdata('success')) {
-        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">';
-        echo '<i class="fas fa-check-circle" aria-hidden="true"></i> ' . $this->session->flashdata('success');
-        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-        echo '</div>';
-    }
-    if ($this->session->flashdata('error')) {
-        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
-        echo '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' . $this->session->flashdata('error');
-        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
-        echo '</div>';
-    }
+    echo render_flash($this->session);
     ?>
 
     <!-- Filters -->

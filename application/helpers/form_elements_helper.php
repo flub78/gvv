@@ -856,6 +856,36 @@ if (! function_exists('checkalert')) {
     }
 }
 
+if (! function_exists('render_flash')) {
+    /**
+     * Affiche les messages flash success/error sous forme d'alertes
+     * Bootstrap dismissibles (style homogène de l'application)
+     */
+    function render_flash($session) {
+        $res = '';
+
+        $success = $session->flashdata('success');
+        if ($success) {
+            $res .= '<div class="alert alert-success alert-dismissible fade show" role="alert">';
+            $res .= '<strong><i class="bi bi-check-circle"></i></strong> ';
+            $res .= nl2br(htmlspecialchars($success));
+            $res .= '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            $res .= '</div>';
+        }
+
+        $error = $session->flashdata('error');
+        if ($error) {
+            $res .= '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+            $res .= '<strong><i class="bi bi-exclamation-triangle-fill"></i></strong> ';
+            $res .= nl2br(htmlspecialchars($error));
+            $res .= '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            $res .= '</div>';
+        }
+
+        return $res;
+    }
+}
+
 if (! function_exists('add_first_row')) {
     /**
      * Ajoute une ligne initiale à un tableau de tableau

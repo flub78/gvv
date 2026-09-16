@@ -32,12 +32,7 @@ $this->load->view('bs_banner');
     </div>
 
     <?php
-    if ($this->session->flashdata('success')) {
-        echo '<div class="alert alert-success alert-dismissible fade show">'
-           . '<i class="fas fa-check-circle" aria-hidden="true"></i> '
-           . $this->session->flashdata('success')
-           . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
-    }
+    echo render_flash($this->session);
     ?>
 
     <div class="row">

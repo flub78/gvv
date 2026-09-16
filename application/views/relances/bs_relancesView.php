@@ -20,16 +20,8 @@ $this->lang->load('relances');
 <div id="body" class="body container-fluid">
   <h2><?= $this->lang->line('relances_title') ?></h2>
 
-  <?php
-  $CI = &get_instance();
-  $flash_error   = $CI->session->flashdata('error');
-  $flash_success = $CI->session->flashdata('success');
-  if ($flash_error):
-  ?>
-  <div class="alert alert-danger"><?= htmlspecialchars($flash_error) ?></div>
-  <?php endif; if ($flash_success): ?>
-  <div class="alert alert-success"><?= htmlspecialchars($flash_success) ?></div>
-  <?php endif; ?>
+  <?php $CI = &get_instance(); ?>
+  <?= render_flash($CI->session) ?>
 
   <!-- Formulaire seuils -->
   <form method="post" action="<?= controller_url('relances/update_seuils') ?>" class="row g-2 align-items-end mb-3" id="form-seuils">
