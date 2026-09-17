@@ -18,8 +18,6 @@
 
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
    
-* [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
-
 * [] Unifier la configuration globale de l'application avec des onglets ou des pages, un peu comme la procédure d'installation.
 Suivant les cas, la procédure éditera des fichiers de configuration ou des enregistrements dans la base de données. 
   * [] Gestion des emails (smtp, etc)

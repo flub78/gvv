@@ -269,4 +269,8 @@
     corriger les erreurs.
 
 * [x] Vérifier qu'il existe une écriture guidée pour tous les types d'écriture déjà passé dans GVV.
-* 
+
+* [x] Définir une charte graphique et l'appliquer partout
+* [x] Unifier les erreurs de validation
+
+* [x] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.

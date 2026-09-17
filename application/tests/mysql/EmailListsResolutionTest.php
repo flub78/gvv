@@ -251,6 +251,38 @@ class EmailListsResolutionTest extends TestCase
     }
 
     /**
+     * Regression test: names from a sublist's external emails must be
+     * preserved when the sublist is resolved through the parent list
+     * (detailed_list() used to fall back to textual_list() for sublists,
+     * which strips names).
+     */
+    public function testDetailedList_WithSublists_PreservesNames()
+    {
+        // Create parent list
+        $parent_id = $this->createTestList('TEST_RESOLUTION_PARENT_NAMES');
+
+        // Create child list with a named external email
+        $child_id = $this->createTestList('TEST_RESOLUTION_CHILD_NAMES');
+        $this->addExternalEmailsWithNames($child_id, [
+            ['email' => 'named@example.com', 'name' => 'Jean Dupont']
+        ]);
+
+        // The name must appear when the child list is viewed directly
+        $child_emails = $this->model->detailed_list($child_id);
+        $this->assertCount(1, $child_emails);
+        $this->assertEquals('Jean Dupont', $child_emails[0]['name'], 'Name should be present on the child list');
+
+        // Add sublist relationship
+        $this->model->add_sublist($parent_id, $child_id);
+
+        // The name must still appear when resolved indirectly through the parent
+        $parent_emails = $this->model->detailed_list($parent_id);
+        $this->assertCount(1, $parent_emails);
+        $this->assertEquals('named@example.com', $parent_emails[0]['email']);
+        $this->assertEquals('Jean Dupont', $parent_emails[0]['name'], 'Name from sublist must not be lost when resolved via parent list');
+    }
+
+    /**
      * Test count_members() with sublists
      */
     public function testCountMembers_WithSublists_CountsCorrectly()
