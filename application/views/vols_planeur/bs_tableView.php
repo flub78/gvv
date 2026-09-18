@@ -367,7 +367,7 @@ if ($ajax) {
 echo p($this->lang->line("gvv_vols_planeur_tip_unit"));
 
 $bar = array(
-    array('label' => "Excel", 'url' => "$controller/csv/$year"),
+    array('label' => "CSV", 'url' => "$controller/csv/$year"),
     array('label' => "Pdf", 'url' => "$controller/pdf/$year"),
 );
 echo br() . button_bar4($bar);

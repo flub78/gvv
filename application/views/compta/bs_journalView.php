@@ -166,7 +166,7 @@ $this->lang->load('compta');
         echo $this->gvvmetadata->table("vue_journal", $attrs, "");
     }
 
-    echo button_bar2("$controller/export_journal", array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
+    echo button_bar2("$controller/export_journal", array('CSV' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 
     echo '</div>';
     $this->load->view('compta/bs_attachments_modal');

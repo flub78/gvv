@@ -69,7 +69,7 @@ if ($section) {
 	$table->display();
 
 	$bar = array(
-		array('label' => "Excel", 'url' => "comptes/export_resultat_avec_depreciation/csv", 'role' => 'ca'),
+		array('label' => "CSV", 'url' => "comptes/export_resultat_avec_depreciation/csv", 'role' => 'ca'),
 		array('label' => "Pdf",   'url' => "comptes/export_resultat_avec_depreciation/pdf", 'role' => 'ca'),
 	);
 	echo button_bar4($bar);

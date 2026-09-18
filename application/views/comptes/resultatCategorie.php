@@ -81,7 +81,7 @@ $table = new DataTable(array(
 
 $table->display();
 
-echo button_bar(array('Excel' => "$controller/csv_resultat_categories", 'Pdf' => "rapports/pdf_resultats_par_categories"));
+echo button_bar(array('CSV' => "$controller/csv_resultat_categories", 'Pdf' => "rapports/pdf_resultats_par_categories"));
 
 echo '</div>';
 ?>

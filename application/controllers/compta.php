@@ -1826,7 +1826,7 @@ class Compta extends Gvv_Controller {
     function export_journal() {
         if ($_POST['button'] == 'Pdf') {
             $mode = 'pdf';
-        } else if ($_POST['button'] == 'Excel') {
+        } else if ($_POST['button'] == 'CSV') {
             $mode = 'csv';
         } else if ($_POST['button'] == $this->lang->line("gvv_compta_button_freeze")) {
             $mode = 'gel';

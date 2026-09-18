@@ -51,7 +51,7 @@ if ($section) {
 	echo $this->gvvmetadata->table("vue_achats_per_year", $attrs, "");
 
 	$bar = array(
-		array('label' => "Excel", 'url' => "$controller/ventes_csv/$year", 'role' => 'ca'),
+		array('label' => "CSV", 'url' => "$controller/ventes_csv/$year", 'role' => 'ca'),
 		array('label' => "Pdf", 'url' => controller_url("rapports/ventes"), 'role' => 'ca'),
 	);
 	echo button_bar4($bar);

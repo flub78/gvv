@@ -173,7 +173,7 @@ $this->lang->load('comptes');
 		}
 	}
 	$bar = array(
-		array('label' => "Excel", 'url' => $csv_url, 'role' => 'ca'),
+		array('label' => "CSV", 'url' => $csv_url, 'role' => 'ca'),
 		array('label' => "Pdf", 'url' => $pdf_url, 'role' => 'ca'),
 	);
 	echo button_bar4($bar);

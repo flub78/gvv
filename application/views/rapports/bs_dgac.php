@@ -64,7 +64,7 @@ echo table_from_array ($machine_activity,
 
 /*
 $bar = array(
-	array('label' => "Excel", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
+	array('label' => "CSV", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => controller_url("rapports/ventes"), 'role' => 'ca'),
 	);
 echo button_bar4($bar);

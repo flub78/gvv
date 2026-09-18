@@ -72,7 +72,7 @@ if ($section) {
 	$table->display();
 
 	$bar = array(
-		array('label' => "Excel", 'url' => "comptes/export_resultat/csv", 'role' => 'ca'),
+		array('label' => "CSV", 'url' => "comptes/export_resultat/csv", 'role' => 'ca'),
 		array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
 	);
 	if (has_role('super-tresorier')) {

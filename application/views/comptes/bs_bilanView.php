@@ -253,7 +253,7 @@ if (isset($passif_detail_n) && isset($passif_detail_n1)) {
 }
 
 $bar = array(
-	array('label' => "Excel", 'url' =>"comptes/export_bilan/csv", 'role' => 'ca'),
+	array('label' => "CSV", 'url' =>"comptes/export_bilan/csv", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => "comptes/export_bilan/pdf", 'role' => 'ca'),
 );
 if (has_role('super-tresorier')) {

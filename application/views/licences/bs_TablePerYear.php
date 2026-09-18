@@ -250,7 +250,7 @@ echo '</div>';
                 </div>
 <?php
 $bar = array(
-    array('label' => "Excel", 'url' => "licences/per_year_detail_csv"),
+    array('label' => "CSV", 'url' => "licences/per_year_detail_csv"),
     array('label' => "Pdf",   'url' => "licences/per_year_detail_pdf"),
 );
 echo button_bar4($bar);

@@ -299,7 +299,7 @@ echo '<h4>Opérations' . $this->lang->line("gvv_rapprochements_title_operations"
         <?php
         // Export buttons for GVV ecritures
         $bar = array(
-            array('label' => "Excel", 'url' => "rapprochements/export_ecritures/csv", 'role' => 'ca'),
+            array('label' => "CSV", 'url' => "rapprochements/export_ecritures/csv", 'role' => 'ca'),
             array('label' => "Pdf", 'url' => "rapprochements/export_ecritures/pdf", 'role' => 'ca'),
         );
         echo button_bar4($bar);
