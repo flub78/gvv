@@ -34,7 +34,7 @@ Remplace le duo actuel CSV (mal étiqueté « Excel ») + PDF par un vrai export
 
 **Objectif** : la vraie raison d'être du chantier. Ces pages construisent aujourd'hui leur CSV/PDF à la main (ex. `comptes::bilan_csv()`, ~150 lignes de composition manuelle) — pas de passage par `csv_table()`/`pdf_table()`. L'export xlsx demande donc un code de mise en page dédié par rapport, réutilisant la librairie de la phase 0.
 
-Pages concernées, dans l'ordre : `comptes::bilan` puis `comptes::resultat` (valeur métier la plus haute — trésoriers/comptables), puis `resultat_avec_depreciation`, `resultat_par_sections` (+ détail), `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
+Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)** puis `comptes::resultat` (valeur métier la plus haute — trésoriers/comptables), puis `resultat_avec_depreciation`, `resultat_par_sections` (+ détail), `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
 
 Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 1. **Vraies valeurs numériques**, pas de texte formaté — un montant doit rester une cellule de type nombre pour permettre sommes/formules côté tableur, objectif même du chantier.
@@ -45,7 +45,13 @@ Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 
 Chaque rapport est une unité de livraison indépendante (pas de dépendance entre eux) — possibilité de livrer `bilan` seul dans une première PR, puis les suivants.
 
-**Test** : un test PHPUnit par rapport migré, vérifiant que le classeur produit est valide et que les cellules de montant sont numériques (pas de chaîne). Smoke Playwright sur `bilan` au minimum (téléchargement + content-type xlsx).
+**Test** : les contrôleurs GVV ne sont instanciés nulle part directement en PHPUnit dans ce projet (aucun précédent trouvé) — le format établi pour tester un export au niveau contrôleur est Playwright (cycle HTTP complet). Chaque rapport migré reçoit donc un spec Playwright dédié (bouton visible, fichier téléchargé valide, au moins une cellule numérique réelle dans le XML de la feuille), pas un test PHPUnit contrôleur. `xlsx_table()`/`array_field('xlsx')` eux-mêmes restent couverts par `XlsxTableExportTest.php` (phase 0).
+
+**Retour d'expérience `bilan`** :
+- Construction des lignes extraite dans une méthode privée partagée (`bilan_report_rows($year)`, `['bold' => bool, 'cells' => [...]]`) consommée à la fois par `bilan_csv()` (comportement vérifié **strictement identique** via diff octet-à-octet d'un export avant/après refactor — précaution nécessaire avant de toucher un export financier existant) et la nouvelle `bilan_xlsx()`. À reproduire pour les rapports suivants.
+- Le gras ne s'applique qu'aux libellés (colonne 1) des lignes de titre/section/total, jamais aux cellules numériques — SimpleXLSXGen ne type nativement que int/float/DateTime ; tout passage par le marquage `<b>` transforme la valeur en chaîne et lui fait perdre son type. Arbitrage à reproduire partout : le typage numérique prime sur la mise en forme.
+- La librairie auto-détecte aussi les dates au format `jj/mm/aaaa` dans les libellés et les type nativement (constaté sur les en-têtes "31/12/2026" du bilan, devenues de vraies dates Excel sans code dédié) — bonus, pas un effort supplémentaire.
+- **Piège découvert** : renommer un bouton `button_bar2()`/`button_bar()` (où le libellé affiché est aussi la valeur POST) sans grep le contrôleur pour un `$_POST['button'] == 'ancien_libellé'` casse silencieusement l'export ciblé. Après un renommage de ce type, greper aussi les tests Playwright pour le texte renommé — la phase 0 avait cassé 3 specs (`rapprochements-export`, `journal-compte-soldes-pagination`, `resultat_par_sections_detail_links`) non détectées avant de lancer la suite Playwright complète (seul PHPUnit + vérification manuelle au navigateur avaient été faits).
 
 ## Phase 2 — Rollout sur les listes simples déjà en CSV+PDF (19 pages)
 

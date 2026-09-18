@@ -1411,13 +1411,14 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Export du bilan en CSV
-     *
-     * @param
-     *            $comptes
+     * Construit les lignes du bilan (libellés + valeurs brutes typées),
+     * partagées par bilan_csv() et bilan_xlsx() pour éviter de dupliquer la
+     * construction du rapport. Chaque ligne est ['bold' => bool, 'cells' =>
+     * [...]] : les cellules numériques restent des int/float PHP (mises en
+     * forme par l'appelant selon le format cible — CSV/xlsx), les libellés,
+     * dates d'en-tête et cellules vides restent des chaînes.
      */
-    function bilan_csv() {
-        $year = $this->session->userdata('year');
+    private function bilan_report_rows($year) {
         $bilan = $this->gvv_model->select_all_for_bilan($year);
         $bilan_prec = $this->gvv_model->select_all_for_bilan($year - 1);
 
@@ -1426,13 +1427,12 @@ class Comptes extends Gvv_Controller {
         $passif_detail_n = $this->passif_detail_data($year, $bilan);
         $passif_detail_n1 = $this->passif_detail_data($year - 1, $bilan_prec);
 
-        $year_n = (int)$year;
+        $year_n = (int) $year;
         $year_n1 = $year_n - 1;
 
         $non_zero = function ($value) {
-            return abs((float)$value) >= 0.005;
+            return abs((float) $value) >= 0.005;
         };
-
         $show_line = function ($line_n, $line_n1) use ($non_zero) {
             return $non_zero($line_n['brut']) || $non_zero($line_n['amort']) || $non_zero($line_n['net']) || $non_zero($line_n1['net']);
         };
@@ -1476,127 +1476,191 @@ class Comptes extends Gvv_Controller {
         $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
-        $csv_data = array();
-        $csv_data[] = array($lbl_title_actif);
-        $csv_data[] = array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1");
-        $csv_data[] = array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net);
-        $csv_data[] = array($lbl_actif_immobilise, '', '', '', '');
+        $rows = array();
+        $rows[] = array('bold' => true, 'cells' => array($lbl_title_actif));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1"));
+        $rows[] = array('bold' => true, 'cells' => array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_actif_immobilise, '', '', '', ''));
 
         if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'cells' => array(
                 $lbl_immobilisations_corp,
-                euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'csv'),
-                euro($actif_detail_n1['immobilisations_corporelles']['net'], ',', 'csv')
-            );
+                $actif_detail_n['immobilisations_corporelles']['brut'],
+                $actif_detail_n['immobilisations_corporelles']['amort'],
+                $actif_detail_n['immobilisations_corporelles']['net'],
+                $actif_detail_n1['immobilisations_corporelles']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'cells' => array(
                 $lbl_immobilisations_financieres,
-                euro($actif_detail_n['immobilisations_financieres']['brut'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_financieres']['amort'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_financieres']['net'], ',', 'csv'),
-                euro($actif_detail_n1['immobilisations_financieres']['net'], ',', 'csv')
-            );
+                $actif_detail_n['immobilisations_financieres']['brut'],
+                $actif_detail_n['immobilisations_financieres']['amort'],
+                $actif_detail_n['immobilisations_financieres']['net'],
+                $actif_detail_n1['immobilisations_financieres']['net'],
+            ));
         }
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'cells' => array(
             $lbl_total_actif_immobilise,
-            euro($actif_detail_n['total_actif_immobilise']['brut'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_immobilise']['amort'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_immobilise']['net'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif_immobilise']['net'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif_immobilise']['brut'],
+            $actif_detail_n['total_actif_immobilise']['amort'],
+            $actif_detail_n['total_actif_immobilise']['net'],
+            $actif_detail_n1['total_actif_immobilise']['net'],
+        ));
 
-        $csv_data[] = array($lbl_actif_circulant, '', '', '', '');
+        $rows[] = array('bold' => true, 'cells' => array($lbl_actif_circulant, '', '', '', ''));
 
         if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'cells' => array(
                 $lbl_stocks,
-                euro($actif_detail_n['stocks']['brut'], ',', 'csv'),
+                $actif_detail_n['stocks']['brut'],
                 '',
-                euro($actif_detail_n['stocks']['net'], ',', 'csv'),
-                euro($actif_detail_n1['stocks']['net'], ',', 'csv')
-            );
+                $actif_detail_n['stocks']['net'],
+                $actif_detail_n1['stocks']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'cells' => array(
                 $lbl_creances_tiers,
-                euro($actif_detail_n['creances_tiers']['brut'], ',', 'csv'),
-                euro($actif_detail_n['creances_tiers']['amort'], ',', 'csv'),
-                euro($actif_detail_n['creances_tiers']['net'], ',', 'csv'),
-                euro($actif_detail_n1['creances_tiers']['net'], ',', 'csv')
-            );
+                $actif_detail_n['creances_tiers']['brut'],
+                $actif_detail_n['creances_tiers']['amort'],
+                $actif_detail_n['creances_tiers']['net'],
+                $actif_detail_n1['creances_tiers']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'cells' => array(
                 $lbl_disponibilites,
-                euro($actif_detail_n['disponibilites']['brut'], ',', 'csv'),
-                euro($actif_detail_n['disponibilites']['amort'], ',', 'csv'),
-                euro($actif_detail_n['disponibilites']['net'], ',', 'csv'),
-                euro($actif_detail_n1['disponibilites']['net'], ',', 'csv')
-            );
+                $actif_detail_n['disponibilites']['brut'],
+                $actif_detail_n['disponibilites']['amort'],
+                $actif_detail_n['disponibilites']['net'],
+                $actif_detail_n1['disponibilites']['net'],
+            ));
         }
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'cells' => array(
             $lbl_total_actif_circulant,
-            euro($actif_detail_n['total_actif_circulant']['brut'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_circulant']['amort'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_circulant']['net'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif_circulant']['net'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif_circulant']['brut'],
+            $actif_detail_n['total_actif_circulant']['amort'],
+            $actif_detail_n['total_actif_circulant']['net'],
+            $actif_detail_n1['total_actif_circulant']['net'],
+        ));
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'cells' => array(
             $lbl_total_actif,
             '',
             '',
-            euro($actif_detail_n['total_actif'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif'],
+            $actif_detail_n1['total_actif'],
+        ));
 
-        $csv_data[] = array();
-        $csv_data[] = array($lbl_title_passif);
-        $csv_data[] = array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1");
+        $rows[] = array('bold' => false, 'cells' => array());
+        $rows[] = array('bold' => true, 'cells' => array($lbl_title_passif));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1"));
 
-        // Fonds propres
-        $csv_data[] = array($lbl_section_fonds_propres, '', '', '', '');
-        $csv_data[] = array($lbl_fonds_propres_sans_droit_reprise, '', '', euro($passif_detail_n['fonds_propres_sans_droit_reprise'], ',', 'csv'), euro($passif_detail_n1['fonds_propres_sans_droit_reprise'], ',', 'csv'));
-        $csv_data[] = array($lbl_reserves, '', '', euro($passif_detail_n['reserves'], ',', 'csv'), euro($passif_detail_n1['reserves'], ',', 'csv'));
-        $csv_data[] = array($lbl_resultat, '', '', euro($passif_detail_n['resultat'], ',', 'csv'), euro($passif_detail_n1['resultat'], ',', 'csv'));
-        $csv_data[] = array($lbl_subventions_investissement, '', '', euro($passif_detail_n['subventions_investissement'], ',', 'csv'), euro($passif_detail_n1['subventions_investissement'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_fonds_reportes_dedies, '', '', euro($passif_detail_n['total_fonds_reportes_dedies'], ',', 'csv'), euro($passif_detail_n1['total_fonds_reportes_dedies'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_section_fonds_propres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_fonds_propres_sans_droit_reprise, '', '', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_reserves, '', '', $passif_detail_n['reserves'], $passif_detail_n1['reserves']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_resultat, '', '', $passif_detail_n['resultat'], $passif_detail_n1['resultat']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_subventions_investissement, '', '', $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_total_fonds_reportes_dedies, '', '', $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']));
 
-        // Provisions
-        $csv_data[] = array($lbl_provisions_risques, '', '', euro($passif_detail_n['provisions_risques'], ',', 'csv'), euro($passif_detail_n1['provisions_risques'], ',', 'csv'));
-        $csv_data[] = array($lbl_provisions_charges, '', '', euro($passif_detail_n['provisions_charges'], ',', 'csv'), euro($passif_detail_n1['provisions_charges'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_provisions, '', '', euro($passif_detail_n['total_provisions'], ',', 'csv'), euro($passif_detail_n1['total_provisions'], ',', 'csv'));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_provisions_risques, '', '', $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_provisions_charges, '', '', $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_total_provisions, '', '', $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']));
 
-        // Dettes
-        $csv_data[] = array($lbl_dettes, '', '', '', '');
-        $csv_data[] = array($lbl_section_dettes_financieres, '', '', '', '');
-        $csv_data[] = array($lbl_dettes_tiers, '', '', euro($passif_detail_n['avances_membres'], ',', 'csv'), euro($passif_detail_n1['avances_membres'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_financieres, '', '', euro($passif_detail_n['dettes_financieres'], ',', 'csv'), euro($passif_detail_n1['dettes_financieres'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_exploitation, '', '', '', '');
-        $csv_data[] = array($lbl_dettes_fournisseurs, '', '', euro($passif_detail_n['dettes_fournisseurs'], ',', 'csv'), euro($passif_detail_n1['dettes_fournisseurs'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_fiscales_sociales, '', '', euro($passif_detail_n['dettes_fiscales_sociales'], ',', 'csv'), euro($passif_detail_n1['dettes_fiscales_sociales'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_diverses, '', '', '', '');
-        $csv_data[] = array($lbl_autres_crediteurs, '', '', euro($passif_detail_n['autres_crediteurs'], ',', 'csv'), euro($passif_detail_n1['autres_crediteurs'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_dettes, '', '', euro($passif_detail_n['total_dettes'], ',', 'csv'), euro($passif_detail_n1['total_dettes'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes, '', '', '', ''));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_section_dettes_financieres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_tiers, '', '', $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_financieres, '', '', $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes_exploitation, '', '', '', ''));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_fournisseurs, '', '', $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs']));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_fiscales_sociales, '', '', $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales']));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes_diverses, '', '', '', ''));
+        $rows[] = array('bold' => false, 'cells' => array($lbl_autres_crediteurs, '', '', $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs']));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_total_dettes, '', '', $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']));
 
-        $csv_data[] = array($lbl_total_passif, '', '', euro($passif_detail_n['total_passif'], ',', 'csv'), euro($passif_detail_n1['total_passif'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'cells' => array($lbl_total_passif, '', '', $passif_detail_n['total_passif'], $passif_detail_n1['total_passif']));
 
+        return $rows;
+    }
+
+    /**
+     * Export du bilan en CSV
+     *
+     * @param
+     *            $comptes
+     */
+    function bilan_csv() {
         $year = $this->session->userdata('year');
-        $section = $this->gvv_model->section();
+        $rows = $this->bilan_report_rows($year);
 
+        $csv_data = array();
+        foreach ($rows as $row) {
+            $csv_row = array();
+            foreach ($row['cells'] as $cell) {
+                $csv_row[] = (is_int($cell) || is_float($cell)) ? euro($cell, ',', 'csv') : $cell;
+            }
+            $csv_data[] = $csv_row;
+        }
+
+        $section = $this->gvv_model->section();
         $title = $this->lang->line('gvv_comptes_title_bilan');
         if ($section) {
             $title .= " section " . $section['nom'];
         }
         csv_file($title . " $year", $csv_data);
+    }
+
+    /**
+     * Export du bilan en xlsx : mêmes lignes que bilan_csv(), valeurs
+     * monétaires laissées en float natif pour permettre le calcul côté
+     * tableur. Seuls les libellés des lignes de titre/section/total sont mis
+     * en gras — jamais les cellules numériques, pour ne pas leur faire
+     * perdre leur type (SimpleXLSXGen ne type que les valeurs int/float/
+     * DateTime natives ; tout ce qui passe par le marquage `<b>` devient une
+     * chaîne).
+     */
+    private function bilan_xlsx() {
+        $year = $this->session->userdata('year');
+        $rows = $this->bilan_report_rows($year);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $sheet_rows = array();
+        foreach ($rows as $row) {
+            $line = array();
+            foreach ($row['cells'] as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    $line[] = (float) $cell;
+                } elseif ($row['bold'] && is_string($cell) && $cell !== '') {
+                    $line[] = '<b>' . $cell . '</b>';
+                } else {
+                    $line[] = $cell;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $section = $this->gvv_model->section();
+        $title = $this->lang->line('gvv_comptes_title_bilan');
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " $year";
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
@@ -1699,6 +1763,8 @@ class Comptes extends Gvv_Controller {
     function export_bilan($mode = "csv") {
         if ($mode == "csv") {
             $this->bilan_csv();
+        } elseif ($mode == "xlsx") {
+            $this->bilan_xlsx();
         } else {
             $this->bilan_pdf();
         }
