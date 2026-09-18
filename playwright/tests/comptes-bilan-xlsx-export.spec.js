@@ -14,16 +14,8 @@
  */
 
 const { test, expect } = require('@playwright/test');
-const { execFileSync } = require('child_process');
 const LoginPage = require('./helpers/LoginPage');
-
-/**
- * Read one entry of a zip/xlsx file as text, via the system `unzip` binary
- * (avoids adding a new npm dependency just for this test).
- */
-function readZipEntry(zipPath, entryName) {
-  return execFileSync('unzip', ['-p', zipPath, entryName], { encoding: 'utf-8' });
-}
+const { readZipEntry } = require('./helpers/xlsxZip');
 
 const TEST_USER = {
   username: 'testadmin',

@@ -749,6 +749,8 @@ class Comptes extends Gvv_Controller {
     function export_resultat($mode = "csv") {
         if ($mode == "csv") {
             $this->csv_resultat();
+        } elseif ($mode == "xlsx") {
+            $this->resultat_xlsx();
         } else {
             $this->pdf_resultat();
         }
@@ -847,6 +849,66 @@ class Comptes extends Gvv_Controller {
         }
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export des résultats en xlsx. resultat_table() fait déjà tout le
+     * travail de mise en page (mêmes lignes que le CSV/PDF) ; ce sont les
+     * appels euro($montant, $sep, 'xlsx') à l'intérieur qui, via le mode
+     * xlsx ajouté à euro(), renvoient un float natif au lieu d'une chaîne
+     * formatée — aucune duplication de la logique de construction du
+     * tableau n'est nécessaire ici.
+     *
+     * Seules la ligne d'en-tête (codes/libellés/années) et les deux
+     * dernières lignes (totaux, bénéfice/perte) sont mises en gras — sur
+     * leur libellé uniquement, jamais sur une cellule numérique, pour ne pas
+     * lui faire perdre son type. Le PDF de ce rapport n'utilise pas de
+     * couleur de fond (contrairement au bilan) : rien à reprendre ici.
+     */
+    private function resultat_xlsx() {
+        $title = $this->lang->line("gvv_comptes_title_resultat");
+        $resultat = $this->ecritures_model->select_resultat();
+        $resultat_table = $this->ecritures_model->resultat_table($resultat, false, '', ',', 'xlsx');
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $sheet_rows = array();
+        $sheet_rows[] = array(
+            $this->lang->line("comptes_label_date"),
+            $resultat['balance_date'],
+            '', '', '', '', '', '', ''
+        );
+        $sheet_rows[] = array('', '', '', '', '', '', '', '', '');
+
+        $total_rows = count($resultat_table);
+        foreach ($resultat_table as $i => $row) {
+            $bold = ($i === 0) || ($i >= $total_rows - 2);
+            $line = array();
+            foreach ($row as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    $line[] = (float) $cell;
+                } elseif ($bold && is_string($cell) && $cell !== '') {
+                    $line[] = '<b>' . $cell . '</b>';
+                } else {
+                    $line[] = $cell;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**

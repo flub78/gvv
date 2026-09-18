@@ -73,6 +73,7 @@ if ($section) {
 
 	$bar = array(
 		array('label' => "CSV", 'url' => "comptes/export_resultat/csv", 'role' => 'ca'),
+		array('label' => "Xlsx", 'url' => "comptes/export_resultat/xlsx", 'role' => 'ca'),
 		array('label' => "Pdf", 'url' => "comptes/export_resultat/pdf", 'role' => 'ca'),
 	);
 	if (has_role('super-tresorier')) {
