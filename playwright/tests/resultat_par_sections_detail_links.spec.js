@@ -56,7 +56,7 @@
  * Test: Verify CSV and PDF export buttons
  * 
  * Navigates to the detail page and verifies that export buttons
- * for Excel and PDF formats are visible and accessible.
+ * for CSV and PDF formats are visible and accessible.
  * 
  * @test
  * @async
@@ -143,7 +143,7 @@ test.describe('Résultat par sections detail view', () => {
         await page.waitForLoadState('networkidle');
 
         // Check for export buttons
-        const excelButton = page.locator('a:has-text("Excel")');
+        const excelButton = page.locator('a:has-text("CSV")');
         const pdfButton = page.locator('a:has-text("Pdf")');
 
         await expect(excelButton).toBeVisible();

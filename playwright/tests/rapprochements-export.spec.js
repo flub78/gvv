@@ -2,7 +2,7 @@
  * Playwright test for Rapprochements Export Buttons
  *
  * Tests:
- * - Export buttons (Excel/PDF) are visible in the "Ecritures GVV" tab
+ * - Export buttons (CSV/PDF) are visible in the "Ecritures GVV" tab
  * - Buttons link to correct export URLs
  *
  * Usage:
@@ -41,12 +41,12 @@ test.describe('Rapprochements Export Buttons', () => {
     // Check if export buttons exist
     console.log('Checking for export buttons...');
 
-    // Check for Excel button
+    // Check for CSV button
     const excelButton = await page.locator('a[href*="export_ecritures/csv"]').first();
     await expect(excelButton).toBeVisible();
     const excelText = await excelButton.textContent();
-    console.log('Excel button text:', excelText.trim());
-    expect(excelText).toContain('Excel');
+    console.log('CSV button text:', excelText.trim());
+    expect(excelText).toContain('CSV');
 
     // Check for PDF button
     const pdfButton = await page.locator('a[href*="export_ecritures/pdf"]').first();
@@ -59,7 +59,7 @@ test.describe('Rapprochements Export Buttons', () => {
     const excelHref = await excelButton.getAttribute('href');
     const pdfHref = await pdfButton.getAttribute('href');
 
-    console.log('Excel button href:', excelHref);
+    console.log('CSV button href:', excelHref);
     console.log('PDF button href:', pdfHref);
 
     expect(excelHref).toContain('rapprochements/export_ecritures/csv');
@@ -70,7 +70,7 @@ test.describe('Rapprochements Export Buttons', () => {
     console.log('Screenshot saved');
   });
 
-  test('should verify Excel button is clickable', async ({ page }) => {
+  test('should verify CSV button is clickable', async ({ page }) => {
     // Login and upload bank statement
     const loginPage = new LoginPage(page);
     await loginPage.open();
@@ -83,12 +83,12 @@ test.describe('Rapprochements Export Buttons', () => {
     await rapprochementsPage.clickTab('gvv-tab');
     await page.waitForSelector('#gvv.show', { timeout: 5000 });
 
-    // Verify Excel button is clickable (we won't actually click it to avoid download)
+    // Verify CSV button is clickable (we won't actually click it to avoid download)
     const excelButton = await page.locator('a[href*="export_ecritures/csv"]').first();
     await expect(excelButton).toBeVisible();
     await expect(excelButton).toBeEnabled();
 
-    console.log('✓ Excel button is clickable');
+    console.log('✓ CSV button is clickable');
   });
 
   test('should verify PDF button is clickable', async ({ page }) => {

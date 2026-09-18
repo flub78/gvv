@@ -212,9 +212,8 @@ test.describe('Journal Compte - Soldes avec Pagination', () => {
         // Préparer l'écoute du téléchargement
         const downloadPromise = page.waitForEvent('download');
 
-        // Cliquer sur le bouton Excel (CSV export)
-        // The view uses "Excel" button for CSV export
-        await page.click('input[value="Excel"]');
+        // Cliquer sur le bouton CSV
+        await page.click('input[value="CSV"]');
         
         const download = await downloadPromise;
         
