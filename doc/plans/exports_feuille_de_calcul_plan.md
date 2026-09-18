@@ -34,7 +34,7 @@ Remplace le duo actuel CSV (mal étiqueté « Excel ») + PDF par un vrai export
 
 **Objectif** : la vraie raison d'être du chantier. Ces pages construisent aujourd'hui leur CSV/PDF à la main (ex. `comptes::bilan_csv()`, ~150 lignes de composition manuelle) — pas de passage par `csv_table()`/`pdf_table()`. L'export xlsx demande donc un code de mise en page dédié par rapport, réutilisant la librairie de la phase 0.
 
-Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, puis `resultat_avec_depreciation`, `resultat_par_sections` (+ détail), `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
+Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, puis `resultat_par_sections` (+ détail), `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
 
 Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 1. **Vraies valeurs numériques**, pas de texte formaté — un montant doit rester une cellule de type nombre pour permettre sommes/formules côté tableur, objectif même du chantier.
@@ -59,6 +59,10 @@ Chaque rapport est une unité de livraison indépendante (pas de dépendance ent
 - Plutôt que dupliquer `resultat_table()` ou y ajouter un branchement xlsx, **`euro()` lui-même** (`application/helpers/validation_helper.php`) a reçu un cinquième mode : `euro($montant, $sep, 'xlsx')` renvoie directement un float natif au lieu d'une chaîne formatée. Résultat : `resultat_xlsx()` appelle `resultat_table(..., 'xlsx')` sans **aucune** modification de `resultat_table()` — tout rapport qui formate déjà ses montants via `euro()` gagnera le support xlsx de la même façon, pour le prix d'un seul point de modification central. Candidats identifiés pour ce même levier : `resultat_avec_depreciation_table()`, et vraisemblablement `balance`/`journal`/`tresorerie` — à vérifier à chaque rapport plutôt qu'à supposer.
 - PDF de ce rapport (`pagesResultats()`) sans aucune couleur de fond (juste un en-tête en gras via le renderer de table générique `Pdf::table()`) — rien à reprendre côté couleurs ici ; seuls la ligne d'en-tête et les 2 dernières lignes (totaux, bénéfice/perte) sont mises en gras côté xlsx, sur le même principe libellé-seul que le bilan.
 - Vérifié : sortie CSV strictement identique avant/après (comparaison par `curl` + jar de cookies, le MCP Playwright ayant momentanément perdu sa connexion — fonctionne aussi bien pour ce genre de vérification, à garder en tête si l'outil navigateur est indisponible).
+
+**Retour d'expérience `resultat_avec_depreciation`** :
+- Même levier que `resultat` (mode `xlsx` de `euro()`, aucune modification de `resultat_avec_depreciation_table()`), mais la mise en gras ne peut pas se faire par position : ce rapport a deux blocs de totaux/bénéfice-perte ("avant" et "après" dépréciations) séparés par un nombre variable de lignes de comptes 68x/78x. Repérage par **contenu** à la place : liste des libellés connus (`comptes_label_total_charges_hd`, `comptes_label_resultat_avant_dep`, etc.) obtenue une fois via `lang->line()`, puis `array_intersect($row, $bold_labels)` par ligne. Généralisable à tout rapport dont les totaux ne sont pas à une position fixe.
+- `resultat_avec_depreciation_table()` retourne des lignes de données en **tableau creux** (clé PHP `6` absente, gardée `5`→séparateur puis `7..11`→colonnes produits) — un `foreach` classique les parcourt sans problème (11 valeurs quel que soit le jeu de clés), donc aucune précaution particulière à prendre au-delà de rester sur `foreach ($row as $cell)` plutôt que d'indexer par clé numérique attendue.
 
 ## Phase 2 — Rollout sur les listes simples déjà en CSV+PDF (19 pages)
 
