@@ -974,6 +974,92 @@ abstract class Metadata {
     }
 
     /**
+     * Export a table as a real spreadsheet (.xlsx), unlike csv_table() values
+     * are kept typed (numbers, dates) instead of formatted strings, so the
+     * operator can compute on them directly in the spreadsheet.
+     *
+     * @param string $table name
+     * @param $data the
+     *            table to display
+     * @param $attrs display
+     *            attributes
+     *            possible values:
+     *            - title
+     *            - fields
+     *            - filename
+     *            - numbered
+     */
+    function xlsx_table($table, $data, $attrs = array()) {
+        list($xlsx, $filename) = $this->xlsx_workbook($table, $data, $attrs);
+        $xlsx->downloadAs($filename);
+    }
+
+    /**
+     * Build the \Shuchkin\SimpleXLSXGen workbook for xlsx_table(), without
+     * sending it to the browser. Split out from xlsx_table() so it can be
+     * unit-tested (no headers sent) and reused by report-specific exports
+     * that need to add more sheets before downloading.
+     *
+     * @return array [SimpleXLSXGen $xlsx, string $filename]
+     */
+    function xlsx_workbook($table, $data, $attrs = array()) {
+        $numbered = (isset($attrs['numbered'])) ? $attrs['numbered'] : 0;
+        if (isset($attrs['fields'])) {
+            $fields = $attrs['fields'];
+        } else {
+            if (isset($this->db['default_fields'][$table])) {
+                $fields = $this->db['default_fields'][$table];
+            } else {
+                $fields = array_keys(($data[0]));
+            }
+        }
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $rows = array();
+
+        // Header row, bold
+        $header = array();
+        if ($numbered) {
+            $header[] = '<b>N°</b>';
+        }
+        foreach ($fields as $field) {
+            $header[] = '<b>' . $this->field_name($table, $field) . '</b>';
+        }
+        $rows[] = $header;
+
+        // Value rows
+        $cnt = 1;
+        foreach ($data as $row) {
+            $line = array();
+            if ($numbered) {
+                $line[] = $cnt++;
+            }
+            foreach ($fields as $field) {
+                $value = isset($row[$field]) ? $row[$field] : '';
+                $line[] = $this->array_field($table, $field, $value, $row, "xlsx");
+            }
+            $rows[] = $line;
+        }
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        if (isset($attrs['filename'])) {
+            $filename = $attrs['filename'];
+        } elseif (isset($attrs['title'])) {
+            $title = strtolower(str_replace([' ', '-', ',', '='], ['_', '', '', '_'], $attrs['title']));
+            $filename = "gvv_" . $title . ".xlsx";
+        } else {
+            $filename = "gvv_" . $table . "_$dt.xlsx";
+        }
+
+        $sheet_name = isset($attrs['title']) ? $attrs['title'] : $table;
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $sheet_name);
+        $xlsx->freezePanes($numbered ? 'B2' : 'A2');
+        return array($xlsx, $filename);
+    }
+
+    /**
      * Add the table in a pdf documment
      *
      * @param string $table name
@@ -1138,6 +1224,41 @@ abstract class Metadata {
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
         // gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
+
+        if ($mode == 'xlsx') {
+            // Unlike csv/pdf/html, keep values typed (not pre-formatted strings)
+            // so the operator can compute on them directly in the spreadsheet.
+            // Dates (DB format Y-m-d / Y-m-d H:i:s) and plain numbers are left
+            // as-is: the xlsx writer auto-detects and types them natively.
+            if ($value === '' || $value === null) {
+                return '';
+            }
+            if ($subtype == 'boolean' || $subtype == 'checkbox') {
+                return (int) $value;
+            }
+            if ($subtype == 'currency' || $type == 'decimal') {
+                return (float) $value;
+            }
+            if ($subtype == 'enumerate') {
+                if (isset($this->field[$table][$field]['Enumerate'])) {
+                    $values = $this->field[$table][$field]['Enumerate'];
+                    return (isset($values[$value])) ? $values[$value] : $value;
+                }
+                return $value;
+            }
+            if ($subtype == 'key') {
+                if (isset($this->field[$table][$field]['Image'])) {
+                    $image = $this->field[$table][$field]['Image'];
+                    return $row[$image];
+                }
+                return $value;
+            }
+            if ($subtype == 'image' || $subtype == 'upload_image' || $subtype == 'color') {
+                // Not representable as a spreadsheet cell value.
+                return '';
+            }
+            return $value;
+        }
 
         if ($subtype == 'boolean') {
             if ($mode == 'csv' || $mode == 'pdf')
