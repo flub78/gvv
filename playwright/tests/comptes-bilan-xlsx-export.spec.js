@@ -85,6 +85,18 @@ test.describe('Bilan xlsx export', () => {
     const stylesXml = readZipEntry(filePath, 'xl/styles.xml');
     expect(stylesXml).toContain('<b/>');
 
-    console.log('✓ Bilan xlsx export is a valid workbook with typed numeric amounts');
+    // Background colors reused from the PDF (pagesBilan() in Document.php):
+    // Bootstrap table-primary (CFE2FF) for column headers / grand totals,
+    // table-secondary (E2E3E5) for section headers / subtotals.
+    expect(stylesXml).toContain('CFE2FF');
+    expect(stylesXml).toContain('E2E3E5');
+
+    // A numeric amount cell must never carry a fill style (it would force
+    // the cell to become a text string and lose its numeric type) — check
+    // that at least one numeric cell has no style ("s=") attribute at all.
+    const unstyledNumericCellPattern = /<c r="[A-Z]\d+"><v>\d+(\.\d+)?<\/v><\/c>/;
+    expect(sheetXml).toMatch(unstyledNumericCellPattern);
+
+    console.log('✓ Bilan xlsx export is a valid workbook with typed numeric amounts and PDF-matching background colors');
   });
 });

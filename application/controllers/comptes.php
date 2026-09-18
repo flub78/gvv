@@ -1476,14 +1476,23 @@ class Comptes extends Gvv_Controller {
         $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
+        // Couleurs de fond reprises du PDF (pagesBilan() dans Document.php) :
+        // table-primary Bootstrap 5 pour les en-têtes de colonnes et les totaux
+        // généraux, table-secondary pour les sous-titres de section et les
+        // sous-totaux. 'fill' est ignoré par bilan_csv() et utilisé par
+        // bilan_xlsx() (uniquement sur les cellules texte : voir bilan_xlsx()
+        // pour pourquoi les cellules numériques ne sont jamais colorées).
+        $FILL_PRIMARY = 'primary';
+        $FILL_SECONDARY = 'secondary';
+
         $rows = array();
-        $rows[] = array('bold' => true, 'cells' => array($lbl_title_actif));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1"));
-        $rows[] = array('bold' => true, 'cells' => array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_actif_immobilise, '', '', '', ''));
+        $rows[] = array('bold' => true, 'fill' => null, 'cells' => array($lbl_title_actif));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1"));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_actif_immobilise, '', '', '', ''));
 
         if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
-            $rows[] = array('bold' => false, 'cells' => array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_immobilisations_corp,
                 $actif_detail_n['immobilisations_corporelles']['brut'],
                 $actif_detail_n['immobilisations_corporelles']['amort'],
@@ -1493,7 +1502,7 @@ class Comptes extends Gvv_Controller {
         }
 
         if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
-            $rows[] = array('bold' => false, 'cells' => array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_immobilisations_financieres,
                 $actif_detail_n['immobilisations_financieres']['brut'],
                 $actif_detail_n['immobilisations_financieres']['amort'],
@@ -1502,7 +1511,7 @@ class Comptes extends Gvv_Controller {
             ));
         }
 
-        $rows[] = array('bold' => true, 'cells' => array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array(
             $lbl_total_actif_immobilise,
             $actif_detail_n['total_actif_immobilise']['brut'],
             $actif_detail_n['total_actif_immobilise']['amort'],
@@ -1510,10 +1519,10 @@ class Comptes extends Gvv_Controller {
             $actif_detail_n1['total_actif_immobilise']['net'],
         ));
 
-        $rows[] = array('bold' => true, 'cells' => array($lbl_actif_circulant, '', '', '', ''));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_actif_circulant, '', '', '', ''));
 
         if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
-            $rows[] = array('bold' => false, 'cells' => array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_stocks,
                 $actif_detail_n['stocks']['brut'],
                 '',
@@ -1523,7 +1532,7 @@ class Comptes extends Gvv_Controller {
         }
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
-            $rows[] = array('bold' => false, 'cells' => array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_creances_tiers,
                 $actif_detail_n['creances_tiers']['brut'],
                 $actif_detail_n['creances_tiers']['amort'],
@@ -1533,7 +1542,7 @@ class Comptes extends Gvv_Controller {
         }
 
         if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
-            $rows[] = array('bold' => false, 'cells' => array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_disponibilites,
                 $actif_detail_n['disponibilites']['brut'],
                 $actif_detail_n['disponibilites']['amort'],
@@ -1542,7 +1551,7 @@ class Comptes extends Gvv_Controller {
             ));
         }
 
-        $rows[] = array('bold' => true, 'cells' => array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array(
             $lbl_total_actif_circulant,
             $actif_detail_n['total_actif_circulant']['brut'],
             $actif_detail_n['total_actif_circulant']['amort'],
@@ -1550,7 +1559,7 @@ class Comptes extends Gvv_Controller {
             $actif_detail_n1['total_actif_circulant']['net'],
         ));
 
-        $rows[] = array('bold' => true, 'cells' => array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array(
             $lbl_total_actif,
             '',
             '',
@@ -1558,33 +1567,33 @@ class Comptes extends Gvv_Controller {
             $actif_detail_n1['total_actif'],
         ));
 
-        $rows[] = array('bold' => false, 'cells' => array());
-        $rows[] = array('bold' => true, 'cells' => array($lbl_title_passif));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1"));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array());
+        $rows[] = array('bold' => true, 'fill' => null, 'cells' => array($lbl_title_passif));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1"));
 
-        $rows[] = array('bold' => true, 'cells' => array($lbl_section_fonds_propres, '', '', '', ''));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_fonds_propres_sans_droit_reprise, '', '', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_reserves, '', '', $passif_detail_n['reserves'], $passif_detail_n1['reserves']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_resultat, '', '', $passif_detail_n['resultat'], $passif_detail_n1['resultat']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_subventions_investissement, '', '', $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_total_fonds_reportes_dedies, '', '', $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_section_fonds_propres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_fonds_propres_sans_droit_reprise, '', '', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_reserves, '', '', $passif_detail_n['reserves'], $passif_detail_n1['reserves']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_resultat, '', '', $passif_detail_n['resultat'], $passif_detail_n1['resultat']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_subventions_investissement, '', '', $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_fonds_reportes_dedies, '', '', $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']));
 
-        $rows[] = array('bold' => false, 'cells' => array($lbl_provisions_risques, '', '', $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_provisions_charges, '', '', $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_total_provisions, '', '', $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_provisions_risques, '', '', $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_provisions_charges, '', '', $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_provisions, '', '', $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']));
 
-        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes, '', '', '', ''));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_section_dettes_financieres, '', '', '', ''));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_tiers, '', '', $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_financieres, '', '', $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes_exploitation, '', '', '', ''));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_fournisseurs, '', '', $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs']));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_dettes_fiscales_sociales, '', '', $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales']));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_dettes_diverses, '', '', '', ''));
-        $rows[] = array('bold' => false, 'cells' => array($lbl_autres_crediteurs, '', '', $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs']));
-        $rows[] = array('bold' => true, 'cells' => array($lbl_total_dettes, '', '', $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes, '', '', '', ''));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_section_dettes_financieres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_tiers, '', '', $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_financieres, '', '', $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes_exploitation, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_fournisseurs, '', '', $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_fiscales_sociales, '', '', $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes_diverses, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_autres_crediteurs, '', '', $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_dettes, '', '', $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']));
 
-        $rows[] = array('bold' => true, 'cells' => array($lbl_total_passif, '', '', $passif_detail_n['total_passif'], $passif_detail_n1['total_passif']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_total_passif, '', '', $passif_detail_n['total_passif'], $passif_detail_n1['total_passif']));
 
         return $rows;
     }
@@ -1619,11 +1628,16 @@ class Comptes extends Gvv_Controller {
     /**
      * Export du bilan en xlsx : mêmes lignes que bilan_csv(), valeurs
      * monétaires laissées en float natif pour permettre le calcul côté
-     * tableur. Seuls les libellés des lignes de titre/section/total sont mis
-     * en gras — jamais les cellules numériques, pour ne pas leur faire
-     * perdre leur type (SimpleXLSXGen ne type que les valeurs int/float/
-     * DateTime natives ; tout ce qui passe par le marquage `<b>` devient une
-     * chaîne).
+     * tableur. Les couleurs de fond reprennent celles du PDF (pagesBilan()
+     * dans Document.php : table-primary Bootstrap pour les en-têtes/totaux
+     * généraux, table-secondary pour les sous-titres/sous-totaux), mais
+     * uniquement sur les cellules texte (libellé, cellules vides) — jamais
+     * sur les cellules numériques, qui perdraient leur type si on les
+     * enveloppait dans un marquage `<style>`/`<b>` (SimpleXLSXGen ne type
+     * nativement que les valeurs int/float/DateTime ; tout ce qui passe par
+     * ce marquage devient une chaîne). Sur une ligne de total, seul le
+     * libellé (et les éventuelles cellules vides) porte donc la couleur, pas
+     * les montants.
      */
     private function bilan_xlsx() {
         $year = $this->session->userdata('year');
@@ -1631,17 +1645,32 @@ class Comptes extends Gvv_Controller {
 
         require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
 
+        $fill_colors = array('primary' => 'CFE2FF', 'secondary' => 'E2E3E5');
+
         $sheet_rows = array();
         foreach ($rows as $row) {
+            $bg = isset($fill_colors[$row['fill']]) ? $fill_colors[$row['fill']] : null;
             $line = array();
             foreach ($row['cells'] as $cell) {
                 if (is_int($cell) || is_float($cell)) {
+                    // Jamais de style sur une cellule numérique : elle doit
+                    // rester calculable côté tableur.
                     $line[] = (float) $cell;
-                } elseif ($row['bold'] && is_string($cell) && $cell !== '') {
-                    $line[] = '<b>' . $cell . '</b>';
-                } else {
-                    $line[] = $cell;
+                    continue;
                 }
+                $text = ($cell === '' && $bg !== null) ? ' ' : $cell; // cellule vide : espace pour pouvoir la colorer
+                if ($text === '' || (!$row['bold'] && $bg === null)) {
+                    $line[] = $text;
+                    continue;
+                }
+                $wrapped = $text;
+                if ($bg !== null) {
+                    $wrapped = '<style bgcolor="' . $bg . '">' . $wrapped . '</style>';
+                }
+                if ($row['bold']) {
+                    $wrapped = '<b>' . $wrapped . '</b>';
+                }
+                $line[] = $wrapped;
             }
             $sheet_rows[] = $line;
         }
