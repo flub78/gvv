@@ -759,6 +759,8 @@ class Comptes extends Gvv_Controller {
     function export_resultat_avec_depreciation($mode = "csv") {
         if ($mode == "csv") {
             $this->csv_resultat_avec_depreciation();
+        } elseif ($mode == "xlsx") {
+            $this->resultat_avec_depreciation_xlsx();
         } else {
             $this->pdf_resultat_avec_depreciation();
         }
@@ -802,6 +804,76 @@ class Comptes extends Gvv_Controller {
         }
 
         csv_file($title, $csv_data, true, false, $filename_title);
+    }
+
+    /**
+     * Export du résultat avec dépréciation en xlsx. Comme resultat_xlsx(),
+     * resultat_avec_depreciation_table() n'est pas modifiée : le mode xlsx
+     * ajouté à euro() suffit à rendre les montants natifs.
+     *
+     * Contrairement à resultat_table(), la structure ici comporte deux blocs
+     * de totaux (avant/après dépréciations) à des positions variables (le
+     * nombre de lignes de comptes entre eux dépend des données) : impossible
+     * de repérer les lignes à mettre en gras par position comme pour
+     * resultat_xlsx(). On les identifie donc par contenu, en comparant
+     * chaque ligne à la liste des libellés de titres/totaux connus.
+     */
+    private function resultat_avec_depreciation_xlsx() {
+        $title = $this->lang->line("gvv_comptes_title_resultat_avec_depreciation");
+        $section = $this->gvv_model->section();
+        $filename_title = "résultat_section";
+        if ($section) {
+            $filename_title .= "_" . $section['nom'];
+        }
+        $resultat = $this->ecritures_model->select_resultat_avec_depreciation();
+        $resultat_table = $this->ecritures_model->resultat_avec_depreciation_table($resultat, false, '', ',', 'xlsx');
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $bold_labels = array(
+            $this->lang->line('comptes_label_total_charges_hd'),
+            $this->lang->line('comptes_label_total_produits_hd'),
+            $this->lang->line('comptes_label_resultat_avant_dep'),
+            $this->lang->line('comptes_label_avant_dep_benefices'),
+            $this->lang->line('comptes_label_avant_dep_pertes'),
+            $this->lang->line('comptes_label_total_dep_charges'),
+            $this->lang->line('comptes_label_total_dep_produits'),
+            $this->lang->line('comptes_label_resultat_apres_dep'),
+            $this->lang->line('comptes_label_apres_dep_benefices'),
+            $this->lang->line('comptes_label_apres_dep_pertes'),
+        );
+
+        $sheet_rows = array();
+        $sheet_rows[] = array(
+            $this->lang->line("comptes_label_date"),
+            $resultat['balance_date'],
+            '', '', '', '', '', '', ''
+        );
+        $sheet_rows[] = array('', '', '', '', '', '', '', '', '');
+
+        foreach ($resultat_table as $i => $row) {
+            $bold = ($i === 0) || (count(array_intersect($row, $bold_labels)) > 0);
+            $line = array();
+            foreach ($row as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    $line[] = (float) $cell;
+                } elseif ($bold && is_string($cell) && $cell !== '') {
+                    $line[] = '<b>' . $cell . '</b>';
+                } else {
+                    $line[] = $cell;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $filename_title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
