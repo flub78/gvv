@@ -510,25 +510,26 @@ class Membres_model extends Common_Model {
      * 
      * @param int $section_id L'ID de la section (0 = section active)
      * @param bool $only_actif true pour ne retourner que les membres actifs, false pour tous
+     * @param bool $require_compte_411 true pour filtrer sur l'existence d'un compte 411, false pour tous les membres de la section
      * @return array Sélecteur avec les pilotes de la section au format [mlogin => image]
      */
-    public function section_pilots($section_id = 0, $only_actif = true, $only_compte_actif = true) {
+    public function section_pilots($section_id = 0, $only_actif = true, $require_compte_411 = true) {
         // Détermine la section à utiliser
         if ($section_id == 0) {
             $section_id = $this->section_id();
         }
 
-        // Sélectionne les membres qui ont un compte 411 dans la section
         $this->db->distinct();
         $this->db->select('membres.mlogin');
         $this->db->from('membres');
-        $this->db->join('comptes', 'comptes.pilote = membres.mlogin', 'inner');
-        $this->db->where('comptes.codec', '411');
-        $this->db->where('comptes.club', $section_id);
-        if ($only_compte_actif) {
+
+        if ($require_compte_411) {
+            $this->db->join('comptes', 'comptes.pilote = membres.mlogin', 'inner');
+            $this->db->where('comptes.codec', '411');
+            $this->db->where('comptes.club', $section_id);
             $this->db->where('comptes.actif', 1);
+            $this->db->where('comptes.masked', 0);
         }
-        $this->db->where('comptes.masked', 0);
 
         if ($only_actif) {
             $this->db->join('users u_actif', 'u_actif.username = membres.mlogin', 'inner');

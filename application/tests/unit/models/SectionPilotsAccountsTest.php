@@ -72,14 +72,14 @@ class SectionPilotsAccountsTest extends TestCase
     }
 
     /**
-     * Test que section_pilots n'applique pas comptes.actif quand only_compte_actif = false
+     * Test que section_pilots n'utilise pas le join comptes quand require_compte_411 = false
      */
-    public function test_section_pilots_ignores_compte_actif_when_only_compte_actif_false()
+    public function test_section_pilots_skips_compte_join_when_require_compte_411_false()
     {
         // Arrange
         $rows = [
-            ['mlogin' => 'pilot_active_compte'],
-            ['mlogin' => 'pilot_inactive_compte'],
+            ['mlogin' => 'pilot_sans_compte'],
+            ['mlogin' => 'pilot_avec_compte_masked'],
         ];
 
         $db = new FakeDb($rows);
@@ -88,29 +88,30 @@ class SectionPilotsAccountsTest extends TestCase
 
         $model = new TestableMembresModel($db, $sections, $membres);
 
-        // Act - Appeler section_pilots() avec only_compte_actif = false
+        // Act - Appeler section_pilots() avec require_compte_411 = false
         $result = $model->section_pilots(2, true, false);
 
-        // Assert - comptes.actif ne doit pas être dans les filtres
-        $compteActifFilter = array_filter($db->wheres, function($where) {
-            return isset($where[0]) && $where[0] === 'comptes.actif';
+        // Assert - aucun filtre sur comptes ne doit être présent
+        $compteFilters = array_filter($db->wheres, function($where) {
+            return isset($where[0]) && strpos($where[0], 'comptes.') === 0;
         });
-        $this->assertEmpty($compteActifFilter, 'Should not filter on comptes.actif when only_compte_actif=false');
+        $this->assertEmpty($compteFilters, 'Should not have any comptes filters when require_compte_411=false');
 
-        // Les autres filtres comptes doivent toujours être présents
-        $this->assertContains(['comptes.codec', '411'], $db->wheres, 'Should still filter on 411 accounts');
-        $this->assertContains(['comptes.club', 2], $db->wheres, 'Should still filter on section ID');
-        $this->assertContains(['comptes.masked', 0], $db->wheres, 'Should still exclude masked accounts');
+        // Aucun join sur comptes
+        $compteJoins = array_filter($db->joins, function($join) {
+            return $join[0] === 'comptes';
+        });
+        $this->assertEmpty($compteJoins, 'Should not join comptes when require_compte_411=false');
 
         // Les deux pilotes doivent être dans le résultat
-        $this->assertArrayHasKey('pilot_active_compte', $result);
-        $this->assertArrayHasKey('pilot_inactive_compte', $result);
+        $this->assertArrayHasKey('pilot_sans_compte', $result);
+        $this->assertArrayHasKey('pilot_avec_compte_masked', $result);
     }
 
     /**
-     * Test que section_pilots applique comptes.actif par défaut
+     * Test que section_pilots filtre sur le compte 411 par défaut
      */
-    public function test_section_pilots_filters_compte_actif_by_default()
+    public function test_section_pilots_filters_on_compte_411_by_default()
     {
         // Arrange
         $rows = [['mlogin' => 'pilot1']];
@@ -121,11 +122,13 @@ class SectionPilotsAccountsTest extends TestCase
 
         $model = new TestableMembresModel($db, $sections, $membres);
 
-        // Act - Appeler section_pilots() sans préciser only_compte_actif (défaut = true)
+        // Act - Appeler section_pilots() sans préciser require_compte_411 (défaut = true)
         $result = $model->section_pilots(2, true);
 
-        // Assert - comptes.actif doit être dans les filtres
+        // Assert - le join et les filtres comptes doivent être présents
+        $this->assertContains(['comptes.codec', '411'], $db->wheres, 'Should filter on 411 accounts by default');
         $this->assertContains(['comptes.actif', 1], $db->wheres, 'Should filter on comptes.actif by default');
+        $this->assertContains(['comptes.masked', 0], $db->wheres, 'Should filter on comptes.masked by default');
     }
 
     /**
