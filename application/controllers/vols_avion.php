@@ -151,7 +151,7 @@ class Vols_avion extends Gvv_Controller {
      */
     function form_static_element($action) {
         parent::form_static_element($action);
-        $pilote_selector = $this->membres_model->section_pilots(0, true);
+        $pilote_selector = $this->membres_model->section_pilots(0, true, false);
         $this->data['saisie_par'] = $this->dx_auth->get_username();
         $is_fresh_creation = ($action == CREATION && $this->input->post('vacdeb') === false);
         $this->data['is_new_vol'] = $is_fresh_creation;
@@ -852,7 +852,7 @@ class Vols_avion extends Gvv_Controller {
         $selection = "YEAR(vadate) > 0 ";
 
         $this->data['machine_selector'] = '';
-        $pilote_selector = $this->membres_model->section_pilots(0, false);
+        $pilote_selector = $this->membres_model->section_pilots(0, false, false);
         $this->data['pilote_selector'] = $pilote_selector;
 
         $machine_selector = $this->avions_model->selector_with_null();

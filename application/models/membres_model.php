@@ -512,20 +512,22 @@ class Membres_model extends Common_Model {
      * @param bool $only_actif true pour ne retourner que les membres actifs, false pour tous
      * @return array Sélecteur avec les pilotes de la section au format [mlogin => image]
      */
-    public function section_pilots($section_id = 0, $only_actif = true) {
+    public function section_pilots($section_id = 0, $only_actif = true, $only_compte_actif = true) {
         // Détermine la section à utiliser
         if ($section_id == 0) {
             $section_id = $this->section_id();
         }
 
-        // Sélectionne les membres qui ont un compte 411 actif dans la section
+        // Sélectionne les membres qui ont un compte 411 dans la section
         $this->db->distinct();
         $this->db->select('membres.mlogin');
         $this->db->from('membres');
         $this->db->join('comptes', 'comptes.pilote = membres.mlogin', 'inner');
         $this->db->where('comptes.codec', '411');
         $this->db->where('comptes.club', $section_id);
-        $this->db->where('comptes.actif', 1);
+        if ($only_compte_actif) {
+            $this->db->where('comptes.actif', 1);
+        }
         $this->db->where('comptes.masked', 0);
 
         if ($only_actif) {

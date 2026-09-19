@@ -72,6 +72,63 @@ class SectionPilotsAccountsTest extends TestCase
     }
 
     /**
+     * Test que section_pilots n'applique pas comptes.actif quand only_compte_actif = false
+     */
+    public function test_section_pilots_ignores_compte_actif_when_only_compte_actif_false()
+    {
+        // Arrange
+        $rows = [
+            ['mlogin' => 'pilot_active_compte'],
+            ['mlogin' => 'pilot_inactive_compte'],
+        ];
+
+        $db = new FakeDb($rows);
+        $sections = new StubSectionsModel(['id' => 2, 'nom' => 'Section 2']);
+        $membres = new StubMembresModelForTest();
+
+        $model = new TestableMembresModel($db, $sections, $membres);
+
+        // Act - Appeler section_pilots() avec only_compte_actif = false
+        $result = $model->section_pilots(2, true, false);
+
+        // Assert - comptes.actif ne doit pas être dans les filtres
+        $compteActifFilter = array_filter($db->wheres, function($where) {
+            return isset($where[0]) && $where[0] === 'comptes.actif';
+        });
+        $this->assertEmpty($compteActifFilter, 'Should not filter on comptes.actif when only_compte_actif=false');
+
+        // Les autres filtres comptes doivent toujours être présents
+        $this->assertContains(['comptes.codec', '411'], $db->wheres, 'Should still filter on 411 accounts');
+        $this->assertContains(['comptes.club', 2], $db->wheres, 'Should still filter on section ID');
+        $this->assertContains(['comptes.masked', 0], $db->wheres, 'Should still exclude masked accounts');
+
+        // Les deux pilotes doivent être dans le résultat
+        $this->assertArrayHasKey('pilot_active_compte', $result);
+        $this->assertArrayHasKey('pilot_inactive_compte', $result);
+    }
+
+    /**
+     * Test que section_pilots applique comptes.actif par défaut
+     */
+    public function test_section_pilots_filters_compte_actif_by_default()
+    {
+        // Arrange
+        $rows = [['mlogin' => 'pilot1']];
+
+        $db = new FakeDb($rows);
+        $sections = new StubSectionsModel(['id' => 2, 'nom' => 'Section 2']);
+        $membres = new StubMembresModelForTest();
+
+        $model = new TestableMembresModel($db, $sections, $membres);
+
+        // Act - Appeler section_pilots() sans préciser only_compte_actif (défaut = true)
+        $result = $model->section_pilots(2, true);
+
+        // Assert - comptes.actif doit être dans les filtres
+        $this->assertContains(['comptes.actif', 1], $db->wheres, 'Should filter on comptes.actif by default');
+    }
+
+    /**
      * Test de la méthode section_pilots sans filtre sur membres actifs
      */
     public function test_section_pilots_returns_all_members_when_only_actif_false()
