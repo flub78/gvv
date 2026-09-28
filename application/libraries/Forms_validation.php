@@ -116,7 +116,11 @@ class Forms_validation {
     }
 
     private function is_valid_email($value) {
-        return filter_var((string) $value, FILTER_VALIDATE_EMAIL) !== false;
+        $value = (string) $value;
+        if (preg_match('/<([^>]+)>/', $value, $matches)) {
+            $value = trim($matches[1]);
+        }
+        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     private function is_valid_number($value) {

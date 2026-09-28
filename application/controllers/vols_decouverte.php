@@ -55,6 +55,7 @@ class Vols_decouverte extends Gvv_Controller {
         parent::__construct();
 
         $this->load->helper('crypto');
+        $this->load->helper('email');
         $this->load->model('tarifs_model');
         $this->load->model('produits_model');
         $this->load->model('configuration_model');
@@ -398,7 +399,7 @@ class Vols_decouverte extends Gvv_Controller {
         $product_ref        = trim((string) $this->input->post('product'));
         $beneficiaire       = trim((string) $this->input->post('beneficiaire'));
         $de_la_part         = trim((string) $this->input->post('de_la_part'));
-        $beneficiaire_email = trim((string) $this->input->post('beneficiaire_email'));
+        $beneficiaire_email = extract_email(trim((string) $this->input->post('beneficiaire_email')));
 
         if (empty($product_ref)) {
             $this->_redirect_decouverte_create_with_error($this->lang->line('gvv_decouverte_error_product'), $form_input);
@@ -497,7 +498,7 @@ class Vols_decouverte extends Gvv_Controller {
             'product'            => trim((string) $this->input->post('product')),
             'beneficiaire'       => trim((string) $this->input->post('beneficiaire')),
             'de_la_part'         => trim((string) $this->input->post('de_la_part')),
-            'beneficiaire_email' => trim((string) $this->input->post('beneficiaire_email')),
+            'beneficiaire_email' => extract_email(trim((string) $this->input->post('beneficiaire_email'))),
             'occasion'           => trim((string) $this->input->post('occasion')),
             'urgence'            => trim((string) $this->input->post('urgence')),
             'date_vente'         => trim((string) $this->input->post('date_vente')),
@@ -1323,7 +1324,7 @@ EOD;
         }
 
         $section_id     = (int) $this->input->post('section_id');
-        $to             = trim((string) $this->input->post('to') ?: '');
+        $to             = extract_email(trim((string) $this->input->post('to') ?: ''));
         $custom_message = trim((string) $this->input->post('custom_message') ?: '');
         $return_url     = trim((string) $this->input->post('return_url') ?: '');
         $fallback_url   = site_url('vols_decouverte/public_vd' . ($section_id > 0 ? '?section=' . $section_id : ''));
@@ -1496,7 +1497,7 @@ EOD;
         $beneficiaire   = trim((string) $this->input->post('beneficiaire'));
         $de_la_part     = trim((string) $this->input->post('de_la_part'));
         $occasion       = trim((string) $this->input->post('occasion'));
-        $acheteur_email = trim((string) $this->input->post('acheteur_email'));
+        $acheteur_email = extract_email(trim((string) $this->input->post('acheteur_email')));
         $acheteur_tel   = trim((string) $this->input->post('acheteur_tel'));
         $urgence        = trim((string) $this->input->post('urgence'));
         $poids          = (int) $this->input->post('poids_passagers');

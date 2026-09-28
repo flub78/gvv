@@ -654,20 +654,27 @@ class Gvv_Controller extends MY_Controller {
             $table = $this->gvv_model->table();
             $fields_list = $this->gvvmetadata->fields_list($table);
             
-            // Pre-process decimal fields to clean currency formatting before validation
+            // Pre-process decimal and email fields before validation
             $this->load->helper('validation');
+            $this->load->helper('email');
             foreach ($fields_list as $field) {
-                $field_type = $this->gvvmetadata->field_type($table, $field);
+                $field_type    = $this->gvvmetadata->field_type($table, $field);
+                $field_subtype = $this->gvvmetadata->field_subtype($table, $field);
                 $value = $this->input->post($field);
 
                 if ($table === 'preparation_cards' && $field === 'html_fragment') {
                     $value = $this->raw_post_value($field);
                 }
-                
+
                 // Clean currency input for decimal fields before validation
                 if ($field_type == 'decimal' && $value !== '' && $value !== null) {
                     $cleaned_value = clean_currency_input($value);
-                    $_POST[$field] = $cleaned_value; // Update $_POST for validation
+                    $_POST[$field] = $cleaned_value;
+                    $this->data[$field] = $cleaned_value;
+                } elseif ($field_subtype == 'email' && $value !== '' && $value !== null) {
+                    // Strip "Name <email>" format: keep only the bare address
+                    $cleaned_value = extract_email($value);
+                    $_POST[$field] = $cleaned_value;
                     $this->data[$field] = $cleaned_value;
                 } else {
                     $this->data[$field] = $value;

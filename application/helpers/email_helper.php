@@ -36,9 +36,25 @@ if (!function_exists('validate_email')) {
 }
 
 /**
- * Normalize email address (lowercase + trim)
+ * Extract the bare email address from a "Name <email>" string or a plain address.
  *
- * @param string $email Email address to normalize
+ * @param string $input Raw input (e.g. "Louis ADAMS <louis.adams@orange.fr>" or "a@b.com")
+ * @return string Email address only, trimmed
+ */
+if (!function_exists('extract_email')) {
+    function extract_email($input) {
+        $input = trim($input);
+        if (preg_match('/<([^>]+)>/', $input, $matches)) {
+            return trim($matches[1]);
+        }
+        return $input;
+    }
+}
+
+/**
+ * Normalize email address: extract bare address, lowercase, trim.
+ *
+ * @param string $email Email address to normalize (accepts "Name <email>" format)
  * @return string Normalized email address
  */
 if (!function_exists('normalize_email')) {
@@ -46,7 +62,7 @@ if (!function_exists('normalize_email')) {
         if (empty($email)) {
             return '';
         }
-        return strtolower(trim($email));
+        return strtolower(extract_email($email));
     }
 }
 
