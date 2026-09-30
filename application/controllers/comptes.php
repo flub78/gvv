@@ -1135,18 +1135,27 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Export CSV de la balance hiérarchique
+     * Lignes de la balance hiérarchique, partagées par
+     * balance_hierarchical_csv() et balance_hierarchical_xlsx() : une ligne
+     * par compte général, suivie de ses comptes détaillés puis, s'il y en a
+     * plusieurs, d'une ligne de total.
+     *
+     * Chaque ligne porte les champs exportés (codec, nom, section_name,
+     * solde_debit, solde_credit) et un champ 'level' (general|detail|total)
+     * que chaque format met en forme à sa façon. Les codec/nom des comptes
+     * détaillés ne sont pas indentés ici : c'est au format de le faire.
      *
      * @param string $codec Code compte début
      * @param string $codec2 Code compte fin
+     * @return array ['title' => string, 'rows' => array]
      */
-    function balance_hierarchical_csv($codec = '', $codec2 = "") {
+    private function balance_hierarchical_rows($codec = '', $codec2 = "") {
         $filter_solde = $this->filter_solde();
         $filter_masked = $this->filter_masked();
-        
+
         $titre = $this->lang->line("gvv_comptes_title_hierarchical_balance");
         $selection = array();
-        
+
         if ($codec != '') {
             $selection = "codec = \"$codec\"";
             $titre .= ", " . $this->lang->line('comptes_label_class') . "=$codec";
@@ -1161,7 +1170,7 @@ class Comptes extends Gvv_Controller {
             $balance_date = date('d/m/Y');
         }
         $titre .= "=$balance_date";
-        
+
         $section = $this->gvv_model->section();
         if ($section) {
             $titre .= " section " . $section['nom'];
@@ -1182,6 +1191,7 @@ class Comptes extends Gvv_Controller {
         $merged_result = array();
         foreach ($result_general as $general_row) {
             $merged_result[] = array(
+                'level' => 'general',
                 'codec' => $general_row['codec'],
                 'nom' => $general_row['nom'],
                 'section_name' => '',
@@ -1197,8 +1207,9 @@ class Comptes extends Gvv_Controller {
 
                 foreach ($details_by_codec[$codec_key] as $detail_row) {
                     $merged_result[] = array(
-                        'codec' => '  ' . $detail_row['codec'],
-                        'nom' => '  ' . $detail_row['nom'],
+                        'level' => 'detail',
+                        'codec' => $detail_row['codec'],
+                        'nom' => $detail_row['nom'],
                         'section_name' => $detail_row['section_name'],
                         'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
                         'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : ''
@@ -1216,6 +1227,7 @@ class Comptes extends Gvv_Controller {
                 // Ajouter la ligne de total si plus d'un compte dans le groupe
                 if ($detail_count > 1) {
                     $merged_result[] = array(
+                        'level' => 'total',
                         'codec' => '',
                         'nom' => '',
                         'section_name' => 'Total',
@@ -1226,11 +1238,87 @@ class Comptes extends Gvv_Controller {
             }
         }
 
+        return array('title' => $titre, 'rows' => $merged_result);
+    }
+
+    /**
+     * Export CSV de la balance hiérarchique
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_csv($codec = '', $codec2 = "") {
+        $report = $this->balance_hierarchical_rows($codec, $codec2);
+
+        // Comptes détaillés indentés sous leur compte général
+        $rows = array();
+        foreach ($report['rows'] as $row) {
+            if ($row['level'] == 'detail') {
+                $row['codec'] = '  ' . $row['codec'];
+                $row['nom'] = '  ' . $row['nom'];
+            }
+            $rows[] = $row;
+        }
+
         $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
-        $this->gvvmetadata->csv_table("vue_comptes", $merged_result, array(
-            'title' => $titre,
+        $this->gvvmetadata->csv_table("vue_comptes", $rows, array(
+            'title' => $report['title'],
             'fields' => $fields
         ));
+    }
+
+    /**
+     * Export xlsx de la balance hiérarchique : mêmes lignes que le CSV,
+     * soldes en float natif. Pas d'indentation par espaces : la hiérarchie
+     * est rendue par le gras des comptes généraux et des lignes de total
+     * (libellés uniquement, jamais les montants, qui doivent rester typés),
+     * et l'en-tête reprend le gris du PDF (pdf_table_hierarchical_balance()).
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_xlsx($codec = '', $codec2 = "") {
+        $report = $this->balance_hierarchical_rows($codec, $codec2);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
+        $amount_fields = array('solde_debit', 'solde_credit');
+
+        $sheet_rows = array();
+        $sheet_rows[] = array('<b>' . $report['title'] . '</b>');
+        $sheet_rows[] = array('');
+        $header = array();
+        foreach ($fields as $field) {
+            $header[] = '<b><style bgcolor="DCDCDC">' . $this->gvvmetadata->field_name("vue_comptes", $field) . '</style></b>';
+        }
+        $sheet_rows[] = $header;
+
+        foreach ($report['rows'] as $row) {
+            $bold = ($row['level'] != 'detail');
+            $line = array();
+            foreach ($fields as $field) {
+                $value = $row[$field];
+                if (in_array($field, $amount_fields)) {
+                    $line[] = is_numeric($value) ? (float) $value : '';
+                } elseif ($bold && $value !== '' && $value !== null) {
+                    $line[] = '<b>' . $value . '</b>';
+                } else {
+                    $line[] = $value;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $this->lang->line("gvv_comptes_title_hierarchical_balance"));
+        $xlsx->setTitle($report['title']);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'", ',', '=', '/'], ['_', '', '', '_', '_'], $this->lang->line("gvv_comptes_title_hierarchical_balance"))) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**

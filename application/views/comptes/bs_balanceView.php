@@ -320,16 +320,20 @@ $this->lang->load('comptes');
 	<?php
 	$csv_url = "$controller/balance_hierarchical_csv";
 	$pdf_url = "$controller/balance_hierarchical_pdf";
+	$xlsx_url = "$controller/balance_hierarchical_xlsx";
 	if (!empty($codec)) {
 		$csv_url .= "/$codec";
 		$pdf_url .= "/$codec";
+		$xlsx_url .= "/$codec";
 		if (!empty($codec2)) {
 			$csv_url .= "/$codec2";
 			$pdf_url .= "/$codec2";
+			$xlsx_url .= "/$codec2";
 		}
 	}
 	$bar = array(
 		array('label' => "CSV", 'url' => $csv_url, 'role' => 'ca'),
+		array('label' => "Xlsx", 'url' => $xlsx_url, 'role' => 'ca'),
 		array('label' => "Pdf", 'url' => $pdf_url, 'role' => 'ca'),
 	);
 	echo button_bar4($bar);
