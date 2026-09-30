@@ -58,3 +58,75 @@ function gvvSyncWideTableLayout(tableEl) {
         }
     }, 50);
 }
+
+/**
+ * Conséquence de gvvSyncWideTableLayout() sur smartphone : la page étant plus
+ * large que l'écran, le navigateur mobile agrandit le "layout viewport" à la
+ * largeur du tableau. Les modales Bootstrap (position: fixed) s'affichent alors
+ * en haut à gauche de la page élargie, hors de la zone réellement visible
+ * (visualViewport) quand l'utilisateur a scrollé vers la colonne Actions :
+ * le bouton semble ne rien faire.
+ *
+ * On recale donc chaque modale (et son fond grisé) sur la zone visible à
+ * l'ouverture, uniquement quand celle-ci ne coïncide pas avec la fenêtre
+ * (page élargie ou zoomée) ; sur PC le comportement Bootstrap est inchangé.
+ */
+(function() {
+    var vv = window.visualViewport;
+    if (!vv) {
+        return;
+    }
+
+    function isShifted() {
+        return vv.offsetLeft > 0 || vv.offsetTop > 0
+            || vv.width < document.documentElement.clientWidth - 1;
+    }
+
+    function fitToVisualViewport(el) {
+        el.style.left = vv.offsetLeft + 'px';
+        el.style.top = vv.offsetTop + 'px';
+        el.style.width = vv.width + 'px';
+        el.style.height = vv.height + 'px';
+    }
+
+    function resetPosition(el) {
+        el.style.left = '';
+        el.style.top = '';
+        el.style.width = '';
+        el.style.height = '';
+    }
+
+    function fitModal(modal) {
+        if (isShifted()) {
+            fitToVisualViewport(modal);
+            modal.dataset.gvvFitted = '1';
+        }
+    }
+
+    document.addEventListener('show.bs.modal', function(e) {
+        fitModal(e.target);
+    });
+
+    document.addEventListener('shown.bs.modal', function(e) {
+        // Seconde passe : le visualViewport peut n'être mis à jour qu'après un
+        // défilement récent, donc après l'événement "show".
+        fitModal(e.target);
+        if (!e.target.dataset.gvvFitted) {
+            return;
+        }
+        // Bootstrap compense une "barre de défilement" égale à la partie de page
+        // hors écran (ex. 509px), ce qui réduirait la boîte de dialogue à 0px.
+        e.target.style.paddingRight = '0px';
+        var backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            fitToVisualViewport(backdrop);
+        }
+    });
+
+    document.addEventListener('hidden.bs.modal', function(e) {
+        if (e.target.dataset.gvvFitted) {
+            delete e.target.dataset.gvvFitted;
+            resetPosition(e.target);
+        }
+    });
+})();

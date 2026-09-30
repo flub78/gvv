@@ -13,7 +13,7 @@
  *   npx playwright test tests/archived-documents-smoke.spec.js --reporter=line
  */
 
-const { test, expect } = require('@playwright/test');
+const { test, expect, devices } = require('@playwright/test');
 const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 const LOGIN_URL = '/index.php/auth/login';
@@ -277,4 +277,50 @@ test.describe('Archived Documents Smoke Tests', () => {
     console.log('Document email sent successfully, flash message shown');
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// Mobile: modals must open inside the visible area of a page widened by
+// gvvSyncWideTableLayout() (regression: on Android the email modal opened
+// off-screen, at the top-left of the widened page).
+// ---------------------------------------------------------------------------
+test.describe('Archived Documents on smartphone', () => {
+  const { defaultBrowserType, ...pixel } = devices['Pixel 7'];
+  test.use(pixel);
+
+  test('email modal opens inside the visible viewport', async ({ page }) => {
+    await login(page, ADMIN_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    const emailButtons = page.locator('.doc-email-btn');
+    test.skip(await emailButtons.count() === 0, 'No document in the database');
+
+    // Scroll to the Actions column, as a user would, then tap the email icon
+    // (Playwright's tap() only scrolls the layout viewport, hence the JS click.)
+    const button = emailButtons.first();
+    await button.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'center' }));
+    await page.waitForTimeout(300);
+    await button.evaluate(el => el.click());
+    await expect(page.locator('#docEmailModal')).toBeVisible();
+    // Wait for the end of the opening animation ("shown.bs.modal")
+    await page.waitForFunction(() =>
+      document.querySelector('#docEmailModal .modal-dialog').getBoundingClientRect().width > 200);
+
+    const geom = await page.evaluate(() => {
+      const d = document.querySelector('#docEmailModal .modal-dialog').getBoundingClientRect();
+      const vv = window.visualViewport;
+      return { left: d.left, top: d.top, width: d.width,
+               vvLeft: vv.offsetLeft, vvTop: vv.offsetTop, vvWidth: vv.width };
+    });
+    expect(geom.width).toBeGreaterThan(200);
+    expect(geom.left).toBeGreaterThanOrEqual(geom.vvLeft);
+    expect(geom.left + geom.width).toBeLessThanOrEqual(geom.vvLeft + geom.vvWidth + 1);
+    expect(geom.top).toBeGreaterThanOrEqual(geom.vvTop);
+
+    await page.locator('#docEmailModal button[data-bs-dismiss="modal"]').first().evaluate(el => el.click());
+    await expect(page.locator('#docEmailModal')).toBeHidden();
+  });
 });
