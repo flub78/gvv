@@ -1,9 +1,9 @@
 # Implementation Plan: Exports feuille de calcul (xlsx)
 
 **Related design note:** `doc/design_notes/exports_feuille_de_calcul_design.md`
-**Status:** Phase 0 terminée — Phase 1 en cours, 5 rapports sur 8 (branche `feature/exports-xlsx-phase-0`)
+**Status:** Phase 0 terminée — Phase 1 en cours, 6 rapports sur 8 (branche `feature/exports-xlsx-phase-0`)
 **Created:** 2026-09-18
-**Last Updated:** 2026-09-30 (`balance` terminée)
+**Last Updated:** 2026-09-30 (`journal` + extrait de compte terminés)
 **Complexity:** Moyenne à élevée (dépend fortement de la phase)
 
 ---
@@ -34,7 +34,7 @@ Remplace le duo actuel CSV (mal étiqueté « Excel ») + PDF par un vrai export
 
 **Objectif** : la vraie raison d'être du chantier. Ces pages construisent aujourd'hui leur CSV/PDF à la main (ex. `comptes::bilan_csv()`, ~150 lignes de composition manuelle) — pas de passage par `csv_table()`/`pdf_table()`. L'export xlsx demande donc un code de mise en page dédié par rapport, réutilisant la librairie de la phase 0.
 
-Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, `resultat_par_sections` (+ détail) ✅ **terminé (2026-09-30)**, `balance` ✅ **terminée (2026-09-30)**, puis `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
+Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, `resultat_par_sections` (+ détail) ✅ **terminé (2026-09-30)**, `balance` ✅ **terminée (2026-09-30)**, `compta::journal` (+ journal par compte) ✅ **terminé (2026-09-30)**, puis `tresorerie`, `resultatCategorie`.
 
 Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 1. **Vraies valeurs numériques**, pas de texte formaté — un montant doit rester une cellule de type nombre pour permettre sommes/formules côté tableur, objectif même du chantier.
@@ -75,6 +75,12 @@ Chaque rapport est une unité de livraison indépendante (pas de dépendance ent
 - Même patron que `bilan` : construction des lignes extraite dans `balance_hierarchical_rows()`, avec un champ `level` (general|detail|total) ; l'indentation par espaces des comptes détaillés est propre au CSV, le xlsx rend la hiérarchie par le gras (comptes généraux, totaux) et reprend le gris d'en-tête du PDF.
 - `xlsx_workbook()` générique (phase 0) non utilisé : pas de mise en forme par ligne, et son nom de feuille dérivé du titre contiendrait ici la date (`/` interdit dans un nom de feuille Excel). Nom de feuille et de fichier fixes, le titre complet (classe, date, section) figure en ligne 1.
 - **Vérification CSV** : une comparaison octet à octet échoue même **sans** modification — l'ordre des comptes détaillés de même codec varie d'un appel à l'autre (tri SQL non total). Comparaison faite sur les lignes triées (identiques), sur la balance complète et sur une plage de classes. Défaut d'ordre existant, non corrigé.
+
+**Retour d'expérience `journal`** :
+- Deux exports distincts derrière des boutons `button_bar2()` (valeur POSTée = libellé, d'où la valeur `'Xlsx'` testée dans le contrôleur) :
+  - **Grand journal** (`export_journal()`) : liste simple, son CSV passe par le `csv()` générique → le xlsx réutilise tel quel `xlsx_table("vue_journal", ...)` de la phase 0 (mêmes colonnes, montants et dates typés par `array_field()`), sans code de mise en page.
+  - **Extrait de compte** (`export()`) : CSV composé à la main en chaîne (séparateurs irréguliers `; `/` ;`) → pas de méthode de lignes partagée, qui aurait imposé de reproduire ces irrégularités ; `extrait_compte_xlsx()` reconstruit les mêmes blocs (en-tête club/pilote ou compte, solde avant, écritures, solde final) depuis les données de `select_data()`, variante 411 (prix/quantité) comprise. Bloc d'en-tête figé au-dessus des écritures.
+- **Défaut CSV existant repéré, non corrigé** : le `csv()` générique n'encadre pas les descriptions multi-lignes (ex. motifs de virement « DATE: … / MOTIF: … ») — 1990 écritures mais 2115 lignes physiques dans le CSV du journal 2026, lignes coupées à l'import dans un tableur. Le xlsx n'est pas concerné.
 
 ## Phase 2 — Rollout sur les listes simples déjà en CSV+PDF (19 pages)
 
