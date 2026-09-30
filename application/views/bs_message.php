@@ -41,7 +41,7 @@ if (isset($table)) {
     echo br(2);
 
 	$bar = array(
-		array('label' => "Excel", 'url' =>"reports/export/csv/$request", 'role' => 'ca'),
+		array('label' => "CSV", 'url' =>"reports/export/csv/$request", 'role' => 'ca'),
 		array('label' => "Pdf", 'url' =>"reports/export/pdf/$request", 'role' => 'ca'),
 		);
 	echo button_bar4($bar);

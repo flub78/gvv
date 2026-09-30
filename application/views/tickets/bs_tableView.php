@@ -100,7 +100,8 @@ $this->lang->load('tickets');
     echo $this->gvvmetadata->table("vue_tickets", $attrs, "");
 
     $bar = array(
-        array('label' => "Excel", 'url' => "$controller/export/csv/$filter_pilote", 'role' => 'ca'),
+        array('label' => "CSV", 'url' => "$controller/export/csv/$filter_pilote", 'role' => 'ca'),
+        array('label' => "Xlsx", 'url' => "$controller/export/xlsx/$filter_pilote", 'role' => 'ca'),
         array('label' => "Pdf", 'url' => "$controller/export/pdf/$filter_pilote", 'role' => 'ca'),
     );
     echo button_bar4($bar);

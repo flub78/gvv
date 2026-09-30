@@ -749,6 +749,8 @@ class Comptes extends Gvv_Controller {
     function export_resultat($mode = "csv") {
         if ($mode == "csv") {
             $this->csv_resultat();
+        } elseif ($mode == "xlsx") {
+            $this->resultat_xlsx();
         } else {
             $this->pdf_resultat();
         }
@@ -757,6 +759,8 @@ class Comptes extends Gvv_Controller {
     function export_resultat_avec_depreciation($mode = "csv") {
         if ($mode == "csv") {
             $this->csv_resultat_avec_depreciation();
+        } elseif ($mode == "xlsx") {
+            $this->resultat_avec_depreciation_xlsx();
         } else {
             $this->pdf_resultat_avec_depreciation();
         }
@@ -800,6 +804,76 @@ class Comptes extends Gvv_Controller {
         }
 
         csv_file($title, $csv_data, true, false, $filename_title);
+    }
+
+    /**
+     * Export du résultat avec dépréciation en xlsx. Comme resultat_xlsx(),
+     * resultat_avec_depreciation_table() n'est pas modifiée : le mode xlsx
+     * ajouté à euro() suffit à rendre les montants natifs.
+     *
+     * Contrairement à resultat_table(), la structure ici comporte deux blocs
+     * de totaux (avant/après dépréciations) à des positions variables (le
+     * nombre de lignes de comptes entre eux dépend des données) : impossible
+     * de repérer les lignes à mettre en gras par position comme pour
+     * resultat_xlsx(). On les identifie donc par contenu, en comparant
+     * chaque ligne à la liste des libellés de titres/totaux connus.
+     */
+    private function resultat_avec_depreciation_xlsx() {
+        $title = $this->lang->line("gvv_comptes_title_resultat_avec_depreciation");
+        $section = $this->gvv_model->section();
+        $filename_title = "résultat_section";
+        if ($section) {
+            $filename_title .= "_" . $section['nom'];
+        }
+        $resultat = $this->ecritures_model->select_resultat_avec_depreciation();
+        $resultat_table = $this->ecritures_model->resultat_avec_depreciation_table($resultat, false, '', ',', 'xlsx');
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $bold_labels = array(
+            $this->lang->line('comptes_label_total_charges_hd'),
+            $this->lang->line('comptes_label_total_produits_hd'),
+            $this->lang->line('comptes_label_resultat_avant_dep'),
+            $this->lang->line('comptes_label_avant_dep_benefices'),
+            $this->lang->line('comptes_label_avant_dep_pertes'),
+            $this->lang->line('comptes_label_total_dep_charges'),
+            $this->lang->line('comptes_label_total_dep_produits'),
+            $this->lang->line('comptes_label_resultat_apres_dep'),
+            $this->lang->line('comptes_label_apres_dep_benefices'),
+            $this->lang->line('comptes_label_apres_dep_pertes'),
+        );
+
+        $sheet_rows = array();
+        $sheet_rows[] = array(
+            $this->lang->line("comptes_label_date"),
+            $resultat['balance_date'],
+            '', '', '', '', '', '', ''
+        );
+        $sheet_rows[] = array('', '', '', '', '', '', '', '', '');
+
+        foreach ($resultat_table as $i => $row) {
+            $bold = ($i === 0) || (count(array_intersect($row, $bold_labels)) > 0);
+            $line = array();
+            foreach ($row as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    $line[] = (float) $cell;
+                } elseif ($bold && is_string($cell) && $cell !== '') {
+                    $line[] = '<b>' . $cell . '</b>';
+                } else {
+                    $line[] = $cell;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $filename_title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
@@ -847,6 +921,66 @@ class Comptes extends Gvv_Controller {
         }
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export des résultats en xlsx. resultat_table() fait déjà tout le
+     * travail de mise en page (mêmes lignes que le CSV/PDF) ; ce sont les
+     * appels euro($montant, $sep, 'xlsx') à l'intérieur qui, via le mode
+     * xlsx ajouté à euro(), renvoient un float natif au lieu d'une chaîne
+     * formatée — aucune duplication de la logique de construction du
+     * tableau n'est nécessaire ici.
+     *
+     * Seules la ligne d'en-tête (codes/libellés/années) et les deux
+     * dernières lignes (totaux, bénéfice/perte) sont mises en gras — sur
+     * leur libellé uniquement, jamais sur une cellule numérique, pour ne pas
+     * lui faire perdre son type. Le PDF de ce rapport n'utilise pas de
+     * couleur de fond (contrairement au bilan) : rien à reprendre ici.
+     */
+    private function resultat_xlsx() {
+        $title = $this->lang->line("gvv_comptes_title_resultat");
+        $resultat = $this->ecritures_model->select_resultat();
+        $resultat_table = $this->ecritures_model->resultat_table($resultat, false, '', ',', 'xlsx');
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $sheet_rows = array();
+        $sheet_rows[] = array(
+            $this->lang->line("comptes_label_date"),
+            $resultat['balance_date'],
+            '', '', '', '', '', '', ''
+        );
+        $sheet_rows[] = array('', '', '', '', '', '', '', '', '');
+
+        $total_rows = count($resultat_table);
+        foreach ($resultat_table as $i => $row) {
+            $bold = ($i === 0) || ($i >= $total_rows - 2);
+            $line = array();
+            foreach ($row as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    $line[] = (float) $cell;
+                } elseif ($bold && is_string($cell) && $cell !== '') {
+                    $line[] = '<b>' . $cell . '</b>';
+                } else {
+                    $line[] = $cell;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $section = $this->gvv_model->section();
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
@@ -938,12 +1072,14 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Balance des comptes
+     * Données de la balance simple, partagées par balance_csv() et
+     * balance_xlsx()
      *
-     * @param
-     *            $comptes
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     * @return array [titre, lignes, champs]
      */
-    function balance_csv($codec = '', $codec2 = "") {
+    private function balance_export_data($codec = '', $codec2 = "") {
         $general = $this->session->userdata('general');
 
         // selection des codec
@@ -994,6 +1130,14 @@ class Comptes extends Gvv_Controller {
             );
         }
 
+        return array($titre, $result, $fields);
+    }
+
+    /**
+     * Export CSV de la balance simple (générale ou détaillée selon la session)
+     */
+    function balance_csv($codec = '', $codec2 = "") {
+        list($titre, $result, $fields) = $this->balance_export_data($codec, $codec2);
         $this->gvvmetadata->csv_table("vue_comptes", $result, array(
             'title' => $titre,
             'fields' => $fields
@@ -1001,18 +1145,39 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Export CSV de la balance hiérarchique
+     * Export xlsx de la balance simple : mêmes lignes que balance_csv(),
+     * soldes typés
+     */
+    function balance_xlsx($codec = '', $codec2 = "") {
+        list($titre, $result, $fields) = $this->balance_export_data($codec, $codec2);
+        $this->gvvmetadata->xlsx_table("vue_comptes", $result, array(
+            'title' => $titre,
+            'fields' => $fields
+        ));
+    }
+
+    /**
+     * Lignes de la balance hiérarchique, partagées par
+     * balance_hierarchical_csv() et balance_hierarchical_xlsx() : une ligne
+     * par compte général, suivie de ses comptes détaillés puis, s'il y en a
+     * plusieurs, d'une ligne de total.
+     *
+     * Chaque ligne porte les champs exportés (codec, nom, section_name,
+     * solde_debit, solde_credit) et un champ 'level' (general|detail|total)
+     * que chaque format met en forme à sa façon. Les codec/nom des comptes
+     * détaillés ne sont pas indentés ici : c'est au format de le faire.
      *
      * @param string $codec Code compte début
      * @param string $codec2 Code compte fin
+     * @return array ['title' => string, 'rows' => array]
      */
-    function balance_hierarchical_csv($codec = '', $codec2 = "") {
+    private function balance_hierarchical_rows($codec = '', $codec2 = "") {
         $filter_solde = $this->filter_solde();
         $filter_masked = $this->filter_masked();
-        
+
         $titre = $this->lang->line("gvv_comptes_title_hierarchical_balance");
         $selection = array();
-        
+
         if ($codec != '') {
             $selection = "codec = \"$codec\"";
             $titre .= ", " . $this->lang->line('comptes_label_class') . "=$codec";
@@ -1027,7 +1192,7 @@ class Comptes extends Gvv_Controller {
             $balance_date = date('d/m/Y');
         }
         $titre .= "=$balance_date";
-        
+
         $section = $this->gvv_model->section();
         if ($section) {
             $titre .= " section " . $section['nom'];
@@ -1048,6 +1213,7 @@ class Comptes extends Gvv_Controller {
         $merged_result = array();
         foreach ($result_general as $general_row) {
             $merged_result[] = array(
+                'level' => 'general',
                 'codec' => $general_row['codec'],
                 'nom' => $general_row['nom'],
                 'section_name' => '',
@@ -1063,8 +1229,9 @@ class Comptes extends Gvv_Controller {
 
                 foreach ($details_by_codec[$codec_key] as $detail_row) {
                     $merged_result[] = array(
-                        'codec' => '  ' . $detail_row['codec'],
-                        'nom' => '  ' . $detail_row['nom'],
+                        'level' => 'detail',
+                        'codec' => $detail_row['codec'],
+                        'nom' => $detail_row['nom'],
                         'section_name' => $detail_row['section_name'],
                         'solde_debit' => isset($detail_row['solde_debit']) ? $detail_row['solde_debit'] : '',
                         'solde_credit' => isset($detail_row['solde_credit']) ? $detail_row['solde_credit'] : ''
@@ -1082,6 +1249,7 @@ class Comptes extends Gvv_Controller {
                 // Ajouter la ligne de total si plus d'un compte dans le groupe
                 if ($detail_count > 1) {
                     $merged_result[] = array(
+                        'level' => 'total',
                         'codec' => '',
                         'nom' => '',
                         'section_name' => 'Total',
@@ -1092,11 +1260,87 @@ class Comptes extends Gvv_Controller {
             }
         }
 
+        return array('title' => $titre, 'rows' => $merged_result);
+    }
+
+    /**
+     * Export CSV de la balance hiérarchique
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_csv($codec = '', $codec2 = "") {
+        $report = $this->balance_hierarchical_rows($codec, $codec2);
+
+        // Comptes détaillés indentés sous leur compte général
+        $rows = array();
+        foreach ($report['rows'] as $row) {
+            if ($row['level'] == 'detail') {
+                $row['codec'] = '  ' . $row['codec'];
+                $row['nom'] = '  ' . $row['nom'];
+            }
+            $rows[] = $row;
+        }
+
         $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
-        $this->gvvmetadata->csv_table("vue_comptes", $merged_result, array(
-            'title' => $titre,
+        $this->gvvmetadata->csv_table("vue_comptes", $rows, array(
+            'title' => $report['title'],
             'fields' => $fields
         ));
+    }
+
+    /**
+     * Export xlsx de la balance hiérarchique : mêmes lignes que le CSV,
+     * soldes en float natif. Pas d'indentation par espaces : la hiérarchie
+     * est rendue par le gras des comptes généraux et des lignes de total
+     * (libellés uniquement, jamais les montants, qui doivent rester typés),
+     * et l'en-tête reprend le gris du PDF (pdf_table_hierarchical_balance()).
+     *
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     */
+    function balance_hierarchical_xlsx($codec = '', $codec2 = "") {
+        $report = $this->balance_hierarchical_rows($codec, $codec2);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $fields = array('codec', 'nom', 'section_name', 'solde_debit', 'solde_credit');
+        $amount_fields = array('solde_debit', 'solde_credit');
+
+        $sheet_rows = array();
+        $sheet_rows[] = array('<b>' . $report['title'] . '</b>');
+        $sheet_rows[] = array('');
+        $header = array();
+        foreach ($fields as $field) {
+            $header[] = '<b><style bgcolor="DCDCDC">' . $this->gvvmetadata->field_name("vue_comptes", $field) . '</style></b>';
+        }
+        $sheet_rows[] = $header;
+
+        foreach ($report['rows'] as $row) {
+            $bold = ($row['level'] != 'detail');
+            $line = array();
+            foreach ($fields as $field) {
+                $value = $row[$field];
+                if (in_array($field, $amount_fields)) {
+                    $line[] = is_numeric($value) ? (float) $value : '';
+                } elseif ($bold && $value !== '' && $value !== null) {
+                    $line[] = '<b>' . $value . '</b>';
+                } else {
+                    $line[] = $value;
+                }
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $this->lang->line("gvv_comptes_title_hierarchical_balance"));
+        $xlsx->setTitle($report['title']);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'", ',', '=', '/'], ['_', '', '', '_', '_'], $this->lang->line("gvv_comptes_title_hierarchical_balance"))) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
@@ -1411,13 +1655,14 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Export du bilan en CSV
-     *
-     * @param
-     *            $comptes
+     * Construit les lignes du bilan (libellés + valeurs brutes typées),
+     * partagées par bilan_csv() et bilan_xlsx() pour éviter de dupliquer la
+     * construction du rapport. Chaque ligne est ['bold' => bool, 'cells' =>
+     * [...]] : les cellules numériques restent des int/float PHP (mises en
+     * forme par l'appelant selon le format cible — CSV/xlsx), les libellés,
+     * dates d'en-tête et cellules vides restent des chaînes.
      */
-    function bilan_csv() {
-        $year = $this->session->userdata('year');
+    private function bilan_report_rows($year) {
         $bilan = $this->gvv_model->select_all_for_bilan($year);
         $bilan_prec = $this->gvv_model->select_all_for_bilan($year - 1);
 
@@ -1426,13 +1671,12 @@ class Comptes extends Gvv_Controller {
         $passif_detail_n = $this->passif_detail_data($year, $bilan);
         $passif_detail_n1 = $this->passif_detail_data($year - 1, $bilan_prec);
 
-        $year_n = (int)$year;
+        $year_n = (int) $year;
         $year_n1 = $year_n - 1;
 
         $non_zero = function ($value) {
-            return abs((float)$value) >= 0.005;
+            return abs((float) $value) >= 0.005;
         };
-
         $show_line = function ($line_n, $line_n1) use ($non_zero) {
             return $non_zero($line_n['brut']) || $non_zero($line_n['amort']) || $non_zero($line_n['net']) || $non_zero($line_n1['net']);
         };
@@ -1476,127 +1720,220 @@ class Comptes extends Gvv_Controller {
         $lbl_total_dettes = $this->lang->line('comptes_bilan_total_dettes');
         $lbl_total_passif = $this->lang->line('comptes_bilan_total_passif');
 
-        $csv_data = array();
-        $csv_data[] = array($lbl_title_actif);
-        $csv_data[] = array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1");
-        $csv_data[] = array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net);
-        $csv_data[] = array($lbl_actif_immobilise, '', '', '', '');
+        // Couleurs de fond reprises du PDF (pagesBilan() dans Document.php) :
+        // table-primary Bootstrap 5 pour les en-têtes de colonnes et les totaux
+        // généraux, table-secondary pour les sous-titres de section et les
+        // sous-totaux. 'fill' est ignoré par bilan_csv() et utilisé par
+        // bilan_xlsx() (uniquement sur les cellules texte : voir bilan_xlsx()
+        // pour pourquoi les cellules numériques ne sont jamais colorées).
+        $FILL_PRIMARY = 'primary';
+        $FILL_SECONDARY = 'secondary';
+
+        $rows = array();
+        $rows[] = array('bold' => true, 'fill' => null, 'cells' => array($lbl_title_actif));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_actif, "31/12/$year_n", '', '', "31/12/$year_n1"));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array('', $lbl_brut, $lbl_amort_depr, $lbl_net, $lbl_net));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_actif_immobilise, '', '', '', ''));
 
         if ($show_line($actif_detail_n['immobilisations_corporelles'], $actif_detail_n1['immobilisations_corporelles'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_immobilisations_corp,
-                euro($actif_detail_n['immobilisations_corporelles']['brut'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_corporelles']['amort'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_corporelles']['net'], ',', 'csv'),
-                euro($actif_detail_n1['immobilisations_corporelles']['net'], ',', 'csv')
-            );
+                $actif_detail_n['immobilisations_corporelles']['brut'],
+                $actif_detail_n['immobilisations_corporelles']['amort'],
+                $actif_detail_n['immobilisations_corporelles']['net'],
+                $actif_detail_n1['immobilisations_corporelles']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['immobilisations_financieres'], $actif_detail_n1['immobilisations_financieres'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_immobilisations_financieres,
-                euro($actif_detail_n['immobilisations_financieres']['brut'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_financieres']['amort'], ',', 'csv'),
-                euro($actif_detail_n['immobilisations_financieres']['net'], ',', 'csv'),
-                euro($actif_detail_n1['immobilisations_financieres']['net'], ',', 'csv')
-            );
+                $actif_detail_n['immobilisations_financieres']['brut'],
+                $actif_detail_n['immobilisations_financieres']['amort'],
+                $actif_detail_n['immobilisations_financieres']['net'],
+                $actif_detail_n1['immobilisations_financieres']['net'],
+            ));
         }
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array(
             $lbl_total_actif_immobilise,
-            euro($actif_detail_n['total_actif_immobilise']['brut'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_immobilise']['amort'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_immobilise']['net'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif_immobilise']['net'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif_immobilise']['brut'],
+            $actif_detail_n['total_actif_immobilise']['amort'],
+            $actif_detail_n['total_actif_immobilise']['net'],
+            $actif_detail_n1['total_actif_immobilise']['net'],
+        ));
 
-        $csv_data[] = array($lbl_actif_circulant, '', '', '', '');
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_actif_circulant, '', '', '', ''));
 
         if ($show_line($actif_detail_n['stocks'], $actif_detail_n1['stocks'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_stocks,
-                euro($actif_detail_n['stocks']['brut'], ',', 'csv'),
+                $actif_detail_n['stocks']['brut'],
                 '',
-                euro($actif_detail_n['stocks']['net'], ',', 'csv'),
-                euro($actif_detail_n1['stocks']['net'], ',', 'csv')
-            );
+                $actif_detail_n['stocks']['net'],
+                $actif_detail_n1['stocks']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['creances_tiers'], $actif_detail_n1['creances_tiers'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_creances_tiers,
-                euro($actif_detail_n['creances_tiers']['brut'], ',', 'csv'),
-                euro($actif_detail_n['creances_tiers']['amort'], ',', 'csv'),
-                euro($actif_detail_n['creances_tiers']['net'], ',', 'csv'),
-                euro($actif_detail_n1['creances_tiers']['net'], ',', 'csv')
-            );
+                $actif_detail_n['creances_tiers']['brut'],
+                $actif_detail_n['creances_tiers']['amort'],
+                $actif_detail_n['creances_tiers']['net'],
+                $actif_detail_n1['creances_tiers']['net'],
+            ));
         }
 
         if ($show_line($actif_detail_n['disponibilites'], $actif_detail_n1['disponibilites'])) {
-            $csv_data[] = array(
+            $rows[] = array('bold' => false, 'fill' => null, 'cells' => array(
                 $lbl_disponibilites,
-                euro($actif_detail_n['disponibilites']['brut'], ',', 'csv'),
-                euro($actif_detail_n['disponibilites']['amort'], ',', 'csv'),
-                euro($actif_detail_n['disponibilites']['net'], ',', 'csv'),
-                euro($actif_detail_n1['disponibilites']['net'], ',', 'csv')
-            );
+                $actif_detail_n['disponibilites']['brut'],
+                $actif_detail_n['disponibilites']['amort'],
+                $actif_detail_n['disponibilites']['net'],
+                $actif_detail_n1['disponibilites']['net'],
+            ));
         }
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array(
             $lbl_total_actif_circulant,
-            euro($actif_detail_n['total_actif_circulant']['brut'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_circulant']['amort'], ',', 'csv'),
-            euro($actif_detail_n['total_actif_circulant']['net'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif_circulant']['net'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif_circulant']['brut'],
+            $actif_detail_n['total_actif_circulant']['amort'],
+            $actif_detail_n['total_actif_circulant']['net'],
+            $actif_detail_n1['total_actif_circulant']['net'],
+        ));
 
-        $csv_data[] = array(
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array(
             $lbl_total_actif,
             '',
             '',
-            euro($actif_detail_n['total_actif'], ',', 'csv'),
-            euro($actif_detail_n1['total_actif'], ',', 'csv')
-        );
+            $actif_detail_n['total_actif'],
+            $actif_detail_n1['total_actif'],
+        ));
 
-        $csv_data[] = array();
-        $csv_data[] = array($lbl_title_passif);
-        $csv_data[] = array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1");
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array());
+        $rows[] = array('bold' => true, 'fill' => null, 'cells' => array($lbl_title_passif));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_passif, '', '', "31/12/$year_n", "31/12/$year_n1"));
 
-        // Fonds propres
-        $csv_data[] = array($lbl_section_fonds_propres, '', '', '', '');
-        $csv_data[] = array($lbl_fonds_propres_sans_droit_reprise, '', '', euro($passif_detail_n['fonds_propres_sans_droit_reprise'], ',', 'csv'), euro($passif_detail_n1['fonds_propres_sans_droit_reprise'], ',', 'csv'));
-        $csv_data[] = array($lbl_reserves, '', '', euro($passif_detail_n['reserves'], ',', 'csv'), euro($passif_detail_n1['reserves'], ',', 'csv'));
-        $csv_data[] = array($lbl_resultat, '', '', euro($passif_detail_n['resultat'], ',', 'csv'), euro($passif_detail_n1['resultat'], ',', 'csv'));
-        $csv_data[] = array($lbl_subventions_investissement, '', '', euro($passif_detail_n['subventions_investissement'], ',', 'csv'), euro($passif_detail_n1['subventions_investissement'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_fonds_reportes_dedies, '', '', euro($passif_detail_n['total_fonds_reportes_dedies'], ',', 'csv'), euro($passif_detail_n1['total_fonds_reportes_dedies'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_section_fonds_propres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_fonds_propres_sans_droit_reprise, '', '', $passif_detail_n['fonds_propres_sans_droit_reprise'], $passif_detail_n1['fonds_propres_sans_droit_reprise']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_reserves, '', '', $passif_detail_n['reserves'], $passif_detail_n1['reserves']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_resultat, '', '', $passif_detail_n['resultat'], $passif_detail_n1['resultat']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_subventions_investissement, '', '', $passif_detail_n['subventions_investissement'], $passif_detail_n1['subventions_investissement']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_fonds_reportes_dedies, '', '', $passif_detail_n['total_fonds_reportes_dedies'], $passif_detail_n1['total_fonds_reportes_dedies']));
 
-        // Provisions
-        $csv_data[] = array($lbl_provisions_risques, '', '', euro($passif_detail_n['provisions_risques'], ',', 'csv'), euro($passif_detail_n1['provisions_risques'], ',', 'csv'));
-        $csv_data[] = array($lbl_provisions_charges, '', '', euro($passif_detail_n['provisions_charges'], ',', 'csv'), euro($passif_detail_n1['provisions_charges'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_provisions, '', '', euro($passif_detail_n['total_provisions'], ',', 'csv'), euro($passif_detail_n1['total_provisions'], ',', 'csv'));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_provisions_risques, '', '', $passif_detail_n['provisions_risques'], $passif_detail_n1['provisions_risques']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_provisions_charges, '', '', $passif_detail_n['provisions_charges'], $passif_detail_n1['provisions_charges']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_provisions, '', '', $passif_detail_n['total_provisions'], $passif_detail_n1['total_provisions']));
 
-        // Dettes
-        $csv_data[] = array($lbl_dettes, '', '', '', '');
-        $csv_data[] = array($lbl_section_dettes_financieres, '', '', '', '');
-        $csv_data[] = array($lbl_dettes_tiers, '', '', euro($passif_detail_n['avances_membres'], ',', 'csv'), euro($passif_detail_n1['avances_membres'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_financieres, '', '', euro($passif_detail_n['dettes_financieres'], ',', 'csv'), euro($passif_detail_n1['dettes_financieres'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_exploitation, '', '', '', '');
-        $csv_data[] = array($lbl_dettes_fournisseurs, '', '', euro($passif_detail_n['dettes_fournisseurs'], ',', 'csv'), euro($passif_detail_n1['dettes_fournisseurs'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_fiscales_sociales, '', '', euro($passif_detail_n['dettes_fiscales_sociales'], ',', 'csv'), euro($passif_detail_n1['dettes_fiscales_sociales'], ',', 'csv'));
-        $csv_data[] = array($lbl_dettes_diverses, '', '', '', '');
-        $csv_data[] = array($lbl_autres_crediteurs, '', '', euro($passif_detail_n['autres_crediteurs'], ',', 'csv'), euro($passif_detail_n1['autres_crediteurs'], ',', 'csv'));
-        $csv_data[] = array($lbl_total_dettes, '', '', euro($passif_detail_n['total_dettes'], ',', 'csv'), euro($passif_detail_n1['total_dettes'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes, '', '', '', ''));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_section_dettes_financieres, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_tiers, '', '', $passif_detail_n['avances_membres'], $passif_detail_n1['avances_membres']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_financieres, '', '', $passif_detail_n['dettes_financieres'], $passif_detail_n1['dettes_financieres']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes_exploitation, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_fournisseurs, '', '', $passif_detail_n['dettes_fournisseurs'], $passif_detail_n1['dettes_fournisseurs']));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_dettes_fiscales_sociales, '', '', $passif_detail_n['dettes_fiscales_sociales'], $passif_detail_n1['dettes_fiscales_sociales']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_dettes_diverses, '', '', '', ''));
+        $rows[] = array('bold' => false, 'fill' => null, 'cells' => array($lbl_autres_crediteurs, '', '', $passif_detail_n['autres_crediteurs'], $passif_detail_n1['autres_crediteurs']));
+        $rows[] = array('bold' => true, 'fill' => $FILL_SECONDARY, 'cells' => array($lbl_total_dettes, '', '', $passif_detail_n['total_dettes'], $passif_detail_n1['total_dettes']));
 
-        $csv_data[] = array($lbl_total_passif, '', '', euro($passif_detail_n['total_passif'], ',', 'csv'), euro($passif_detail_n1['total_passif'], ',', 'csv'));
+        $rows[] = array('bold' => true, 'fill' => $FILL_PRIMARY, 'cells' => array($lbl_total_passif, '', '', $passif_detail_n['total_passif'], $passif_detail_n1['total_passif']));
 
+        return $rows;
+    }
+
+    /**
+     * Export du bilan en CSV
+     *
+     * @param
+     *            $comptes
+     */
+    function bilan_csv() {
         $year = $this->session->userdata('year');
-        $section = $this->gvv_model->section();
+        $rows = $this->bilan_report_rows($year);
 
+        $csv_data = array();
+        foreach ($rows as $row) {
+            $csv_row = array();
+            foreach ($row['cells'] as $cell) {
+                $csv_row[] = (is_int($cell) || is_float($cell)) ? euro($cell, ',', 'csv') : $cell;
+            }
+            $csv_data[] = $csv_row;
+        }
+
+        $section = $this->gvv_model->section();
         $title = $this->lang->line('gvv_comptes_title_bilan');
         if ($section) {
             $title .= " section " . $section['nom'];
         }
         csv_file($title . " $year", $csv_data);
+    }
+
+    /**
+     * Export du bilan en xlsx : mêmes lignes que bilan_csv(), valeurs
+     * monétaires laissées en float natif pour permettre le calcul côté
+     * tableur. Les couleurs de fond reprennent celles du PDF (pagesBilan()
+     * dans Document.php : table-primary Bootstrap pour les en-têtes/totaux
+     * généraux, table-secondary pour les sous-titres/sous-totaux), mais
+     * uniquement sur les cellules texte (libellé, cellules vides) — jamais
+     * sur les cellules numériques, qui perdraient leur type si on les
+     * enveloppait dans un marquage `<style>`/`<b>` (SimpleXLSXGen ne type
+     * nativement que les valeurs int/float/DateTime ; tout ce qui passe par
+     * ce marquage devient une chaîne). Sur une ligne de total, seul le
+     * libellé (et les éventuelles cellules vides) porte donc la couleur, pas
+     * les montants.
+     */
+    private function bilan_xlsx() {
+        $year = $this->session->userdata('year');
+        $rows = $this->bilan_report_rows($year);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $fill_colors = array('primary' => 'CFE2FF', 'secondary' => 'E2E3E5');
+
+        $sheet_rows = array();
+        foreach ($rows as $row) {
+            $bg = isset($fill_colors[$row['fill']]) ? $fill_colors[$row['fill']] : null;
+            $line = array();
+            foreach ($row['cells'] as $cell) {
+                if (is_int($cell) || is_float($cell)) {
+                    // Jamais de style sur une cellule numérique : elle doit
+                    // rester calculable côté tableur.
+                    $line[] = (float) $cell;
+                    continue;
+                }
+                $text = ($cell === '' && $bg !== null) ? ' ' : $cell; // cellule vide : espace pour pouvoir la colorer
+                if ($text === '' || (!$row['bold'] && $bg === null)) {
+                    $line[] = $text;
+                    continue;
+                }
+                $wrapped = $text;
+                if ($bg !== null) {
+                    $wrapped = '<style bgcolor="' . $bg . '">' . $wrapped . '</style>';
+                }
+                if ($row['bold']) {
+                    $wrapped = '<b>' . $wrapped . '</b>';
+                }
+                $line[] = $wrapped;
+            }
+            $sheet_rows[] = $line;
+        }
+
+        $section = $this->gvv_model->section();
+        $title = $this->lang->line('gvv_comptes_title_bilan');
+        if ($section) {
+            $title .= " section " . $section['nom'];
+        }
+        $title .= " $year";
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($sheet_rows, $title);
+        $xlsx->freezePanes('A4');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
@@ -1699,6 +2036,8 @@ class Comptes extends Gvv_Controller {
     function export_bilan($mode = "csv") {
         if ($mode == "csv") {
             $this->bilan_csv();
+        } elseif ($mode == "xlsx") {
+            $this->bilan_xlsx();
         } else {
             $this->bilan_pdf();
         }
@@ -2250,7 +2589,7 @@ class Comptes extends Gvv_Controller {
     /**
      * Affiche le résultat d'exploitation par sections pour deux années consécutives
      * 
-     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv', 'pdf' ou 'xlsx'
      */
     function resultat_par_sections($mode = 'html') {
         $this->data['controller'] = 'comptes';
@@ -2269,7 +2608,8 @@ class Comptes extends Gvv_Controller {
         // Récupération des données pour deux années
         $html = ($mode == "html");
         $use_full_names = true; // Utiliser les noms complets partout (HTML, PDF, CSV)
-        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names);
+        $number_format = ($mode == "xlsx") ? 'xlsx' : $html;
+        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names, $number_format);
 
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
@@ -2296,6 +2636,9 @@ class Comptes extends Gvv_Controller {
         } else if ($mode == "pdf") {
             $this->pdf_resultat_par_sections($this->data);
             return;
+        } else if ($mode == "xlsx") {
+            $this->xlsx_resultat_par_sections($this->data);
+            return;
         }
 
         $this->push_return_url("resultat_par_sections");
@@ -2307,7 +2650,7 @@ class Comptes extends Gvv_Controller {
      * Affiche le détail d'un codec par sections pour deux années consécutives
      *
      * @param string $codec Code comptable (ex: '606', '701')
-     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv', 'pdf' ou 'xlsx'
      */
     function resultat_par_sections_detail($codec = '', $mode = 'html') {
         if (empty($codec)) {
@@ -2349,11 +2692,11 @@ class Comptes extends Gvv_Controller {
         // Formatage selon le mode d'affichage
         // Colonnes: Code, Libellé, compte_id (caché), Section, Year N, Year N-1
         // Les colonnes numériques commencent à l'index 4
-        $html = ($mode == "html");
-        $detail = $this->gvv_model->format_numeric_columns($detail, 4, $html);
+        $number_format = ($mode == "xlsx") ? 'xlsx' : ($mode == "html");
+        $detail = $this->gvv_model->format_numeric_columns($detail, 4, $number_format);
 
-        // Pour CSV et PDF, supprimer la colonne compte_id (index 2) qui est cachée
-        if ($mode == "csv" || $mode == "pdf") {
+        // Pour CSV, PDF et xlsx, supprimer la colonne compte_id (index 2) qui est cachée
+        if ($mode == "csv" || $mode == "pdf" || $mode == "xlsx") {
             $detail_export = array();
             foreach ($detail as $row_idx => $row) {
                 $export_row = array();
@@ -2384,6 +2727,9 @@ class Comptes extends Gvv_Controller {
             return;
         } else if ($mode == "pdf") {
             $this->pdf_resultat_par_sections_detail($this->data);
+            return;
+        } else if ($mode == "xlsx") {
+            $this->xlsx_resultat_par_sections_detail($this->data);
             return;
         }
 
@@ -2503,7 +2849,12 @@ class Comptes extends Gvv_Controller {
             if (!empty($transformed['header_sections'])) {
                 $csv_data[] = $transformed['header_sections'];
                 $csv_data[] = $transformed['header_years'];
-                $csv_data = array_merge($csv_data, $transformed['rows']);
+                foreach ($transformed['rows'] as $row) {
+                    // Sans colonnes Code/Comptes dans l'en-tête, retirer aussi
+                    // la colonne Code (vide) des lignes pour garder les montants
+                    // alignés sous leur section, comme dans le PDF.
+                    $csv_data[] = $skip_label_cols ? array_slice($row, 1) : $row;
+                }
             }
         };
 
@@ -2517,6 +2868,104 @@ class Comptes extends Gvv_Controller {
         $add_section($this->lang->line("comptes_label_total"), $data['resultat'], true);
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export xlsx du résultat par sections : une feuille par tableau
+     * (charges, produits, total), chacune avec l'en-tête à deux lignes
+     * (sections / années) du CSV et du PDF, figé, les noms de sections
+     * fusionnés au-dessus de leurs colonnes d'années.
+     *
+     * Les montants arrivent déjà en float natif (mode 'xlsx' de
+     * format_numeric_columns()) ; comme pour les autres rapports, gras et
+     * couleur de fond (celle des en-têtes de section du PDF) ne sont posés
+     * que sur les cellules texte, jamais sur un montant.
+     *
+     * La colonne Code, vide dans le tableau des totaux, est retirée comme
+     * dans le PDF, pour que les montants restent alignés sous leur section.
+     *
+     * @param array $data Données à exporter
+     */
+    private function xlsx_resultat_par_sections($data) {
+        $title = $this->lang->line("gvv_comptes_title_resultat_par_sections");
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::create($title);
+
+        $add_sheet = function ($sheet_title, $section_data, $is_total) use ($xlsx, $title, $data) {
+            $transformed = $this->transform_to_two_line_header($section_data, $is_total);
+            $label_cols = $is_total ? 1 : 2;
+
+            $rows = array();
+            $rows[] = array('<b>' . $title . ' - ' . $sheet_title . '</b>');
+            $rows[] = array($this->lang->line("comptes_label_date"), $data['balance_date']);
+            $rows[] = array('');
+            $rows[] = $this->xlsx_header_cells($transformed['header_sections']);
+            $rows[] = $this->xlsx_header_cells($transformed['header_years']);
+
+            $nb_rows = count($transformed['rows']);
+            foreach ($transformed['rows'] as $i => $row) {
+                if ($is_total) {
+                    $row = array_slice($row, 1);
+                }
+                // Lignes de total : dernière ligne des charges/produits
+                // ("Total des ..."), toutes les lignes du tableau des totaux.
+                $bold = $is_total || ($i === $nb_rows - 1);
+                $line = array();
+                foreach ($row as $cell) {
+                    if (is_int($cell) || is_float($cell)) {
+                        $line[] = (float) $cell;
+                    } elseif ($bold && is_string($cell) && $cell !== '') {
+                        $line[] = '<b>' . $cell . '</b>';
+                    } else {
+                        $line[] = $cell;
+                    }
+                }
+                $rows[] = $line;
+            }
+
+            $xlsx->addSheet($rows, $sheet_title);
+
+            // Nom de section fusionné au-dessus de ses colonnes d'années (ligne 4)
+            $col = $label_cols;
+            foreach ($transformed['sections'] as $section) {
+                $span = count($section['years']);
+                if ($span > 1) {
+                    $xlsx->mergeCells(\Shuchkin\SimpleXLSXGen::coord2cell($col, 3) . ':'
+                        . \Shuchkin\SimpleXLSXGen::coord2cell($col + $span - 1, 3));
+                }
+                $col += $span;
+            }
+            $xlsx->freezePanes(\Shuchkin\SimpleXLSXGen::coord2cell($label_cols, 5));
+        };
+
+        $add_sheet($this->lang->line("comptes_label_charges"), $data['charges'], false);
+        $add_sheet($this->lang->line("comptes_label_produits"), $data['produits'], false);
+        $add_sheet($this->lang->line("comptes_label_total"), $data['resultat'], true);
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
+    }
+
+    /**
+     * Cellules d'en-tête xlsx : gras + couleur de fond des en-têtes de
+     * section du PDF (218, 227, 236). Les cellules vides reçoivent un espace
+     * pour pouvoir porter la couleur.
+     *
+     * @param array $cells Libellés de la ligne d'en-tête
+     * @return array
+     */
+    private function xlsx_header_cells($cells) {
+        $line = array();
+        foreach ($cells as $cell) {
+            $text = ($cell === '' || $cell === null) ? ' ' : $cell;
+            $line[] = '<b><style bgcolor="DAE3EC">' . $text . '</style></b>';
+        }
+        return $line;
     }
 
     /**
@@ -2732,6 +3181,48 @@ class Comptes extends Gvv_Controller {
         $csv_data = array_merge($csv_data, $data['detail']);
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export xlsx du détail d'un codec par sections : mêmes lignes que le
+     * CSV, montants en float natif (mode 'xlsx' de format_numeric_columns()),
+     * ligne d'en-tête figée.
+     *
+     * @param array $data Données à exporter
+     */
+    private function xlsx_resultat_par_sections_detail($data) {
+        $title = sprintf($this->lang->line("gvv_comptes_title_resultat_par_sections_detail"), $data['codec'] . ' - ' . $data['codec_nom']);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $section_label = $data['is_charge'] ? $this->lang->line("comptes_label_charges") : $this->lang->line("comptes_label_produits");
+
+        $rows = array();
+        $rows[] = array('<b>' . $title . '</b>');
+        $rows[] = array($this->lang->line("comptes_label_date"), $data['balance_date']);
+        $rows[] = array('');
+        $rows[] = array('<b>' . $section_label . ' - ' . $data['codec'] . ' ' . $data['codec_nom'] . '</b>');
+        foreach ($data['detail'] as $i => $row) {
+            if ($i === 0) {
+                $rows[] = $this->xlsx_header_cells($row);
+                continue;
+            }
+            $line = array();
+            foreach ($row as $cell) {
+                $line[] = (is_int($cell) || is_float($cell)) ? (float) $cell : $cell;
+            }
+            $rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $data['codec']);
+        $xlsx->setTitle($title);
+        $xlsx->freezePanes('A6');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**

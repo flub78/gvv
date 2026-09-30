@@ -1293,6 +1293,14 @@ EOD;
             ));
         }
 
+        if ($mode === 'xlsx') {
+            return $this->gvvmetadata->xlsx_table('vue_vols_decouverte', $rows, array(
+                'title'    => $title,
+                'fields'   => $fields,
+                'filename' => $base_filename . '.xlsx',
+            ));
+        }
+
         $this->load->library('Pdf');
         $pdf = new Pdf();
         $pdf->AddPage('L');

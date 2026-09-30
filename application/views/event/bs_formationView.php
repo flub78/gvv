@@ -69,7 +69,7 @@ $table = new DataTable(array(
 $table->display();
 
 $bar = array(
-	array('label' => "Excel", 'url' => "$controller/csv/$type"),
+	array('label' => "CSV", 'url' => "$controller/csv/$type"),
 	array('label' => "Pdf", 'url' => "$controller/pdf/$type"),
 );
 echo br() . button_bar4($bar);

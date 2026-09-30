@@ -219,6 +219,14 @@ class Plan_Comptable extends Gvv_Controller {
             return;
         }
 
+        if ($mode === 'xlsx') {
+            $this->gvvmetadata->xlsx_table('planc', $rows, array(
+                'title' => $title,
+                'fields' => array('pcode', 'pdesc')
+            ));
+            return;
+        }
+
         $this->load->library('Pdf');
         $pdf = new Pdf();
         $pdf->AddPage('P');

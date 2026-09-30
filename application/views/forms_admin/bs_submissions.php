@@ -216,7 +216,8 @@
     ?>
     <?php if (!empty($submissions)): ?>
         <?= button_bar4(array(
-            array('label' => 'Excel', 'url' => site_url('forms_admin/submissions_csv/' . (int) $form['id']) . $export_suffix),
+            array('label' => 'CSV', 'url' => site_url('forms_admin/submissions_csv/' . (int) $form['id']) . $export_suffix),
+            array('label' => 'Xlsx', 'url' => site_url('forms_admin/submissions_xlsx/' . (int) $form['id']) . $export_suffix),
             array('label' => 'Pdf',   'url' => site_url('forms_admin/submissions_pdf/' . (int) $form['id']) . $export_suffix),
         )) ?>
     <?php endif; ?>

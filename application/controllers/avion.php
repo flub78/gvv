@@ -206,6 +206,13 @@ class Avion extends Gvv_Controller {
             ));
         }
 
+        if ($mode === 'xlsx') {
+            return $this->gvvmetadata->xlsx_table('vue_avions', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
         $this->load->library('Pdf');
         $pdf = new Pdf();
         $pdf->AddPage('L');

@@ -283,10 +283,26 @@ if (! function_exists('euro')) {
      *            $montant
      * @param $separator decimal
      *            separator
-     *            @target html or csv or pdf
+     *            @target html or csv or pdf or xlsx
      * @return boolean
      */
     function euro($montant, $separator = ',', $target = 'html') {
+        // Normalize the input by converting any decimal separator to dot
+        $normalized_montant = str_replace(',', '.', $montant);
+        // Remove all spaces from the input
+        $normalized_montant = str_replace(' ', '', $normalized_montant);
+        // Convert to float using the normalized value
+        $float_value = floatval($normalized_montant);
+
+        if ($target === 'xlsx') {
+            // Real typed value (not a formatted string) so the operator can
+            // compute on it directly in the spreadsheet — the whole point of
+            // the xlsx export. Every report that already formats its amounts
+            // through euro() gains xlsx support for free by passing this
+            // target, without touching its own row-building code.
+            return $float_value;
+        }
+
         if ($target == 'html') {
             $thousand_sep = '&nbsp;';
             $symbol = '&nbsp;€';
@@ -297,12 +313,6 @@ if (! function_exists('euro')) {
             $thousand_sep = ' ';
             $symbol = '';
         }
-        // Normalize the input by converting any decimal separator to dot
-        $normalized_montant = str_replace(',', '.', $montant);
-        // Remove all spaces from the input
-        $normalized_montant = str_replace(' ', '', $normalized_montant);
-        // Convert to float using the normalized value
-        $float_value = floatval($normalized_montant);
 
         return number_format($float_value, 2, $separator, $thousand_sep) . $symbol;
     }

@@ -1826,8 +1826,10 @@ class Compta extends Gvv_Controller {
     function export_journal() {
         if ($_POST['button'] == 'Pdf') {
             $mode = 'pdf';
-        } else if ($_POST['button'] == 'Excel') {
+        } else if ($_POST['button'] == 'CSV') {
             $mode = 'csv';
+        } else if ($_POST['button'] == 'Xlsx') {
+            $mode = 'xlsx';
         } else if ($_POST['button'] == $this->lang->line("gvv_compta_button_freeze")) {
             $mode = 'gel';
         } else {
@@ -1846,6 +1848,10 @@ class Compta extends Gvv_Controller {
         $selection = $this->gvv_model->select_journal('');
         if ($mode == 'csv') {
             $this->gvvmetadata->csv("vue_journal", array('title' => $title));
+        } else if ($mode == 'xlsx') {
+            // Liste simple : mécanisme générique de la phase 0 (mêmes colonnes
+            // que le CSV, montants typés par array_field() en mode xlsx).
+            $this->gvvmetadata->xlsx_table("vue_journal", $selection, array('title' => $title));
         } else if ($mode == 'gel') {
             foreach ($selection as $row) {
                 if (!$row['gel']) {
@@ -2880,46 +2886,6 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Échappe un champ pour l'export CSV selon RFC 4180
-     * 
-     * Encadre le champ avec des guillemets doubles si nécessaire :
-     * - Si le champ contient un point-virgule (séparateur)
-     * - Si le champ contient un guillemet double
-     * - Si le champ contient un retour à la ligne
-     * 
-     * Les guillemets doubles dans le champ sont doublés selon la norme.
-     * 
-     * @param string $field Le champ à échapper
-     * @return string Le champ échappé
-     */
-    private function csv_escape($field) {
-        // Si le champ est null ou vide, retourner une chaîne vide
-        if ($field === null || $field === '') {
-            return '';
-        }
-        
-        // Convertir en chaîne si ce n'est pas déjà le cas
-        $field = (string)$field;
-        
-        // Si le champ contient un point-virgule, un guillemet double, ou un retour à la ligne
-        // il doit être encadré de guillemets doubles
-        if (strpos($field, ';') !== false || 
-            strpos($field, '"') !== false || 
-            strpos($field, "\n") !== false || 
-            strpos($field, "\r") !== false) {
-            
-            // Doubler les guillemets doubles existants (RFC 4180)
-            $field = str_replace('"', '""', $field);
-            
-            // Encadrer avec des guillemets doubles
-            return '"' . $field . '"';
-        }
-        
-        // Sinon, retourner le champ tel quel
-        return $field;
-    }
-
-    /**
      * Génère un extrait de compte sous Excel ou PDF
      *
      * @param unknown_type $compte
@@ -2981,6 +2947,11 @@ class Compta extends Gvv_Controller {
             $this->pop_return_url();
         }
 
+        if ($_POST['button'] == 'Xlsx') {
+            $this->extrait_compte_xlsx($compte, $section);
+            return;
+        }
+
         // Generation de l'extrait de compte en csv
         $nom_club = $this->config->item('nom_club');
         $tel_club = $this->config->item('tel_club');
@@ -3002,16 +2973,18 @@ class Compta extends Gvv_Controller {
             $cp = $this->data['pilote_info']['cp'];
             $ville = $this->data['pilote_info']['ville'];
 
-            $str .= "$nom_club;; " . $this->data['pilote_name'] . "\n";
+            // Valeurs saisies (adresse multi-lignes...) encadrées si besoin,
+            // espace de tête compris pour que le guillemet ouvre bien le champ
+            $str .= "$nom_club;;" . csv_escape_cell(' ' . $this->data['pilote_name']) . "\n";
             // Add section name to CSV export if available
             if ($section) {
-                $str .= $this->lang->line("gvv_compta_label_section") . ":; " . $section['nom'] . ";;\n";
+                $str .= $this->lang->line("gvv_compta_label_section") . ":;" . csv_escape_cell(' ' . $section['nom']) . ";;\n";
             }
-            $str .= "$adresse_club;; " . $this->data['pilote_info']['madresse'] . "\n";
-            $str .= "$cp_club; $ville_club; " . sprintf("%05d", $cp) . "; $ville\n";
-            $str .= "$tel_club; $email_club; " . $this->data['pilote_info']['memail'] . "\n";
+            $str .= "$adresse_club;;" . csv_escape_cell(' ' . $this->data['pilote_info']['madresse']) . "\n";
+            $str .= "$cp_club; $ville_club; " . sprintf("%05d", $cp) . ";" . csv_escape_cell(" $ville") . "\n";
+            $str .= "$tel_club; $email_club;" . csv_escape_cell(' ' . $this->data['pilote_info']['memail']) . "\n";
         } else {
-            $str .= $this->lang->line("gvv_compta_compte") . "; " . $this->data['nom'] . "; " . $this->data['desc'] . "\n";
+            $str .= $this->lang->line("gvv_compta_compte") . ";" . csv_escape_cell(' ' . $this->data['nom']) . ";" . csv_escape_cell(' ' . $this->data['desc']) . "\n";
         }
 
         $str .= $this->lang->line("gvv_compta_label_balance_before") . "; " . $this->data['date_deb'] . ";";
@@ -3052,24 +3025,23 @@ class Compta extends Gvv_Controller {
                 $nom_compte = $row['nom_compte1'];
             }
 
-            $str .= date_db2ht($row['date_op']) . "; ";
+            $cells = array(date_db2ht($row['date_op']));
             if ($this->data['codec'] != 411) {
-                $str .= $code . "; ";
-                $str .= $this->csv_escape($nom_compte) . "; ";
+                $cells[] = $code;
+                $cells[] = $nom_compte;
             }
-            // Encadrer les champs texte avec des guillemets doubles selon RFC 4180
-            // pour gérer correctement les point-virgules et autres caractères spéciaux
-            $str .= $this->csv_escape($row['description']) . "; ";
-            $str .= $this->csv_escape($row['num_cheque']) . "; ";
+            $cells[] = $row['description'];
+            $cells[] = $row['num_cheque'];
             if ($this->data['codec'] == 411) {
-                $str .= $prix . "; ";
-                $str .= $quantite . "; ";
+                $cells[] = $prix;
+                $cells[] = $quantite;
             }
-            $str .= $debit . "; ";
-            $str .= $credit . "; ";
-            $solde_formatted = isset($row['solde']) ? number_format($row['solde'], 2, ",", "") : '';
-            $str .= $solde_formatted . "; ";
-            $str .= "\n";
+            $cells[] = $debit;
+            $cells[] = $credit;
+            $cells[] = isset($row['solde']) ? number_format($row['solde'], 2, ",", "") : '';
+            // Encadrement RFC 4180 des champs texte (description multi-lignes,
+            // point-virgules...), espace de tête compris : cf. csv_spaced_line()
+            $str .= csv_spaced_line($cells);
         }
 
         // Solde
@@ -3107,6 +3079,106 @@ class Compta extends Gvv_Controller {
         // Load the download helper and send the file to your desktop
         $this->load->helper('download');
         force_download($filename, $str);
+    }
+
+    /**
+     * Extrait de compte en xlsx : mêmes blocs que le CSV d'export() (en-tête
+     * club/pilote ou compte, solde avant, écritures, solde final), à partir
+     * des mêmes données préparées par select_data(). Débit, crédit, solde,
+     * prix et quantité sont des nombres natifs ; seuls les libellés (en-tête
+     * de colonnes, soldes avant/final) sont en gras, jamais les montants.
+     *
+     * @param string $compte Identifiant du compte
+     * @param array|null $section Section de l'extrait (affichée si compte pilote)
+     */
+    private function extrait_compte_xlsx($compte, $section) {
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $is_411 = ($this->data['codec'] == 411);
+        $num = function ($value) {
+            return is_numeric($value) ? (float) $value : '';
+        };
+
+        $rows = array();
+        $rows[] = array('<b>' . $this->lang->line("gvv_compta_title_entries") . '</b>');
+
+        if ($this->data['filter_date'] != '') {
+            $rows[] = array($this->lang->line("gvv_compta_date"), $this->data['filter_date'],
+                $this->lang->line("gvv_compta_jusqua"), $this->data['filter_date']);
+        }
+
+        if (isset($this->data['pilote_name'])) {
+            $info = $this->data['pilote_info'];
+            $rows[] = array($this->config->item('nom_club'), '', $this->data['pilote_name']);
+            if ($section) {
+                $rows[] = array($this->lang->line("gvv_compta_label_section"), $section['nom']);
+            }
+            $rows[] = array($this->config->item('adresse_club'), '', $info['madresse']);
+            $rows[] = array($this->config->item('cp_club'), $this->config->item('ville_club'),
+                sprintf("%05d", $info['cp']), $info['ville']);
+            $rows[] = array($this->config->item('tel_club'), $this->config->item('email_club'), $info['memail']);
+        } else {
+            $rows[] = array($this->lang->line("gvv_compta_compte"), $this->data['nom'], $this->data['desc']);
+        }
+
+        $solde_avant = $this->data['solde_avant'];
+        $rows[] = array(
+            '<b>' . $this->lang->line("gvv_compta_label_balance_before") . '</b>',
+            $this->data['date_deb'],
+            $this->lang->line($solde_avant < 0 ? "gvv_compta_label_debitor" : "gvv_compta_label_creditor"),
+            (float) $solde_avant
+        );
+
+        $header = $this->lang->line($is_411 ? "gvv_compta_csv_header_411" : "gvv_compta_csv_header");
+        $header_row = array();
+        foreach ($header as $label) {
+            $header_row[] = '<b>' . $label . '</b>';
+        }
+        $rows[] = $header_row;
+        $header_line = count($rows); // ligne (1-based) de l'en-tête des colonnes
+
+        foreach ($this->data['select_result'] as $row) {
+            $is_debit = ($compte == $row['compte1']);
+            $line = array(date_db2ht($row['date_op']));
+            if (!$is_411) {
+                $line[] = $is_debit ? $row['code2'] : $row['code1'];
+                $line[] = $is_debit ? $row['nom_compte2'] : $row['nom_compte1'];
+            }
+            $line[] = $row['description'];
+            $line[] = $row['num_cheque'];
+            if ($is_411) {
+                $line[] = ($row['prix'] < 0) ? '' : $num($row['prix']);
+                $line[] = $num($row['quantite']);
+            }
+            $line[] = $is_debit ? (float) $row['montant'] : '';
+            $line[] = $is_debit ? '' : (float) $row['montant'];
+            $line[] = isset($row['solde']) ? $num($row['solde']) : '';
+            $rows[] = $line;
+        }
+
+        $solde = $this->data['solde_fin'];
+        $rows[] = array(
+            '<b>' . $this->lang->line("gvv_compta_label_balance_at") . '</b>',
+            $this->data['date_fin'],
+            $this->lang->line($solde < 0 ? "gvv_compta_label_debitor" : "gvv_compta_label_creditor"),
+            (float) $solde
+        );
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $this->lang->line("gvv_compta_title_entries"));
+        $xlsx->freezePanes('A' . ($header_line + 1));
+
+        // Même nom de fichier que le CSV, extension près
+        date_default_timezone_set('Europe/Paris');
+        $filename = "extrait_compte_" . $compte;
+        if (!empty($this->data['date_deb'])) {
+            $filename .= "_" . str_replace('/', '-', $this->data['date_deb']);
+        }
+        if (!empty($this->data['date_fin'])) {
+            $filename .= "_" . str_replace('/', '-', $this->data['date_fin']);
+        }
+        $filename .= "_" . date("Y-m-d") . ".xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**

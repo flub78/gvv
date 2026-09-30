@@ -114,7 +114,7 @@ echo br(2);
 
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/export_per/$year/month"
                 ),
                 array(
@@ -495,7 +495,7 @@ echo br(2);
 
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/export_per/$year/machine"
                 ),
                 array(

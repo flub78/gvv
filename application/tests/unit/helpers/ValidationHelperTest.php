@@ -128,6 +128,13 @@ class ValidationHelperTest extends TestCase
 
         // Test CSV target (no HTML entities, no symbol)
         $this->assertEquals("123,45", euro(123.45, ',', 'csv'));
+
+        // Test xlsx target: real typed float, not a formatted string, so the
+        // operator can compute on it directly in the spreadsheet.
+        $this->assertSame(123.45, euro(123.45, ',', 'xlsx'));
+        $this->assertIsFloat(euro(123.45, ',', 'xlsx'));
+        $this->assertSame(0.0, euro('', ',', 'xlsx'));
+        $this->assertSame(1234.56, euro("1 234,56", ',', 'xlsx'));
     }
     
     /**

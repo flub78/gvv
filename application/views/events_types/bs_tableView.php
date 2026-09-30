@@ -54,7 +54,7 @@ echo $this->eventstypesmetadata->table("vue_events_types", $attrs);
 
 /*
 $bar = array(
-	array('label' => "Excel", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
+	array('label' => "CSV", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => controller_url("rapports/ventes"), 'role' => 'ca'),
 	);
 echo button_bar4($bar);

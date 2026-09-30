@@ -87,7 +87,7 @@ echo br(2);
 	if (file_exists($filename)) echo img($filename);
 
 	$bar = array(
-		array('label' => "Excel", 'url' => "$controller/csv_month/$year"),
+		array('label' => "CSV", 'url' => "$controller/csv_month/$year"),
 		array('label' => "Pdf", 'url' => "$controller/pdf_month/$year"),
 	);
 	echo br() . button_bar4($bar);
@@ -121,7 +121,7 @@ echo br(2);
 	if (file_exists($filename)) echo img($filename);
 
 	$bar = array(
-		array('label' => "Excel", 'url' => "$controller/csv_machine/$year"),
+		array('label' => "CSV", 'url' => "$controller/csv_machine/$year"),
 		array('label' => "Pdf", 'url' => "$controller/pdf_machine/$year"),
 		array('label' => "Génération", 'url' => "$controller/statistic/true", "role" => 'ca'),
 	);

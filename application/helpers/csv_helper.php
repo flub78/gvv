@@ -36,6 +36,100 @@ if (!function_exists('pdf_filename')) {
     }
 }
 
+if (!function_exists('csv_escape_cell')) {
+
+    /**
+     * Encadre une valeur CSV selon la RFC 4180 si elle contient le séparateur
+     * (point-virgule), un guillemet ou un saut de ligne ; sinon la renvoie
+     * inchangée. Sans cela, une description multi-lignes coupe
+     * l'enregistrement en plusieurs lignes à l'import dans un tableur.
+     *
+     * Le guillemet n'ouvre un champ encadré que s'il en est le premier
+     * caractère : la valeur passée doit donc inclure un éventuel espace de
+     * tête (cf. csv_spaced_line()).
+     *
+     * @param mixed $cell Valeur déjà formatée
+     * @return string
+     */
+    function csv_escape_cell($cell) {
+        $cell = (string) $cell;
+        if (preg_match('/[;"\r\n]/', $cell)) {
+            return '"' . str_replace('"', '""', $cell) . '"';
+        }
+        return $cell;
+    }
+}
+
+if (!function_exists('csv_spaced_line')) {
+
+    /**
+     * Ligne CSV au format historique de GVV "a; b; c; " + saut de ligne.
+     * L'espace qui suit chaque séparateur fait partie de la valeur suivante :
+     * il est placé à l'intérieur des guillemets quand la valeur doit être
+     * encadrée. Les valeurs sans caractère spécial restent inchangées à
+     * l'octet près.
+     *
+     * @param array $cells Valeurs déjà formatées
+     * @return string
+     */
+    function csv_spaced_line($cells) {
+        $line = '';
+        $first = true;
+        foreach ($cells as $cell) {
+            $line .= csv_escape_cell(($first ? '' : ' ') . $cell) . ';';
+            $first = false;
+        }
+        return $line . " \n";
+    }
+}
+
+if (!function_exists('xlsx_file')) {
+
+    /**
+     * Pendant xlsx de csv_file() : envoie un classeur d'une feuille dont la
+     * première ligne est le titre, suivie des lignes de $data. Les montants
+     * doivent être passés en int/float PHP natifs (pas de chaîne formatée)
+     * pour rester des nombres dans le tableur.
+     *
+     * @param string $title Titre (première ligne, nom de feuille et de fichier)
+     * @param array $data Lignes (tableaux de valeurs)
+     * @param int|null $header_index Index dans $data de la ligne d'en-tête de
+     *                               colonnes : mise en gras et figée
+     * @param bool $download Envoie le fichier au navigateur si vrai
+     * @return \Shuchkin\SimpleXLSXGen
+     */
+    function xlsx_file($title, $data, $header_index = null, $download = true) {
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $rows = array(array('<b>' . $title . '</b>'));
+        foreach ($data as $i => $row) {
+            if ($i === $header_index) {
+                $bold = array();
+                foreach ($row as $cell) {
+                    $bold[] = ($cell === '' || $cell === null) ? '' : '<b>' . $cell . '</b>';
+                }
+                $row = $bold;
+            }
+            $rows[] = empty($row) ? array('') : array_values($row);
+        }
+
+        $sheet_name = str_replace(array('\\', '/', '?', '*', '[', ']', ':'), '-', $title);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $sheet_name);
+        if ($header_index !== null) {
+            // +1 pour la ligne de titre, +1 pour figer sous l'en-tête
+            $xlsx->freezePanes('A' . ($header_index + 3));
+        }
+
+        if ($download) {
+            date_default_timezone_set('Europe/Paris');
+            $filename = "gvv_" . $title . "_" . date("Y_m_d") . ".xlsx";
+            $filename = str_replace(array(' ', '/'), '_', strtolower($filename));
+            $xlsx->downloadAs($filename);
+        }
+        return $xlsx;
+    }
+}
+
 if (!function_exists('csv_file')) {
 
     /**
@@ -62,18 +156,18 @@ if (!function_exists('csv_file')) {
 
         $str = "\xEF\xBB\xBF";
         if ($title)
-            $str .= $title . ";\n";
+            $str .= csv_escape_cell($title) . ";\n";
         foreach ($data as $row) {
             if ($header) {        // affichage des noms des champs sur la première ligne
                 foreach ($row as $key => $cell) {
-                    $str .= $key . ";";
+                    $str .= csv_escape_cell($key) . ";";
                 }
                 $str .= "\n";
                 $header = False;
             }
             foreach ($row as $cell) {
                 $formatted_cell = is_numeric($cell) ? str_replace('.', ',', $cell) : $cell;
-                $str .= $formatted_cell . ";";
+                $str .= csv_escape_cell($formatted_cell) . ";";
             }
             $str .= "\n";
         }

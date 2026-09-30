@@ -136,6 +136,10 @@ class Tickets extends Gvv_Controller {
                     'mode' => "csv"
             );
             return $this->gvvmetadata->csv("vue_solde_tickets", $attrs);
+        } else if ('xlsx' == $mode) {
+            return $this->gvvmetadata->xlsx("vue_solde_tickets", array(
+                    'fields' => array ('pilote', 'nom', 'solde')
+            ));
         } else if ('pdf' == $mode) {
             $this->load->library('Pdf');
             $pdf = new Pdf();
@@ -325,7 +329,7 @@ class Tickets extends Gvv_Controller {
             $pilote = $this->dx_auth->get_username();
         }
         $this->select_page(0, $pilote, 10000);
-        if ('csv' == $mode) {
+        if ('csv' == $mode || 'xlsx' == $mode) {
             $attrs = array (
                     'fields' => array (
                             'date',
@@ -336,7 +340,11 @@ class Tickets extends Gvv_Controller {
                             'vol'
                     )
             );
-            $this->gvvmetadata->csv("vue_tickets", $attrs);
+            if ('xlsx' == $mode) {
+                $this->gvvmetadata->xlsx("vue_tickets", $attrs);
+            } else {
+                $this->gvvmetadata->csv("vue_tickets", $attrs);
+            }
         } else {
             $this->load->library('Pdf');
             $pdf = new Pdf();

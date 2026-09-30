@@ -150,7 +150,8 @@ echo render_flash($this->session);
     echo $this->gvvmetadata->table("membres", $attrs, "");
 
     $bar = array(
-        array('label' => "Excel", 'url' => "membre/export/csv", 'role' => 'ca'),
+        array('label' => "CSV", 'url' => "membre/export/csv", 'role' => 'ca'),
+        array('label' => "Xlsx", 'url' => "membre/export/xlsx", 'role' => 'ca'),
         array('label' => "Pdf", 'url' => "membre/export/pdf", 'role' => 'ca'),
     );
     echo button_bar4($bar);

@@ -409,9 +409,9 @@ if ($codec == 411 && $navigation_allowed && $section) {
 }
 
 if ($this->dx_auth->is_role('tresorier')) {
-    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
+    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('CSV' => "button", 'Xlsx' => "button", 'Pdf' => "button", $this->lang->line("gvv_compta_button_freeze") => 'button'));
 } else {
-    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('Excel' => "button", 'Pdf' => "button"));
+    echo button_bar2("$controller/export/$compte" . ($section ? "/$section[id]" : ''), array('CSV' => "button", 'Xlsx' => "button", 'Pdf' => "button"));
 }
 
 echo '</div>';

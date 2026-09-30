@@ -68,7 +68,7 @@ echo br(2);
 // -----------------------------------------------------------------------------------------
 
 $bar = array(
-    array('label' => "Excel", 'url' =>"$controller/csv/$year"),
+    array('label' => "CSV", 'url' =>"$controller/csv/$year"),
     array('label' => "Pdf", 'url' =>"$controller/pdf/$year"),
     );
 $bar = array();

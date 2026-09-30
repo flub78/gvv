@@ -709,6 +709,14 @@ class Vols_planeur extends Gvv_Controller {
         $this->gvvmetadata->csv("vue_vols_planeur");
     }
 
+    /**
+     * Export au format xlsx (mêmes colonnes que le CSV, valeurs typées)
+     */
+    function xlsx() {
+        $this->select_page(0, "", 100000);
+        $this->gvvmetadata->xlsx("vue_vols_planeur");
+    }
+
 		/**
      * Export au format CSV vers Gesasso
      */
