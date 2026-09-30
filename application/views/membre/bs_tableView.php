@@ -151,6 +151,7 @@ echo render_flash($this->session);
 
     $bar = array(
         array('label' => "CSV", 'url' => "membre/export/csv", 'role' => 'ca'),
+        array('label' => "Xlsx", 'url' => "membre/export/xlsx", 'role' => 'ca'),
         array('label' => "Pdf", 'url' => "membre/export/pdf", 'role' => 'ca'),
     );
     echo button_bar4($bar);

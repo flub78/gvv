@@ -1,9 +1,9 @@
 # Implementation Plan: Exports feuille de calcul (xlsx)
 
 **Related design note:** `doc/design_notes/exports_feuille_de_calcul_design.md`
-**Status:** Phase 0 terminée — Phase 1 en cours, 6 rapports sur 8 (branche `feature/exports-xlsx-phase-0`)
+**Status:** Phases 0, 1 et 2 terminées — phases 3 et 4 non démarrées (branche `feature/exports-xlsx-phase-0`)
 **Created:** 2026-09-18
-**Last Updated:** 2026-09-30 (`journal` + extrait de compte terminés)
+**Last Updated:** 2026-09-30 (phases 1 et 2 terminées)
 **Complexity:** Moyenne à élevée (dépend fortement de la phase)
 
 ---
@@ -30,11 +30,11 @@ Remplace le duo actuel CSV (mal étiqueté « Excel ») + PDF par un vrai export
 
 **Sortie de phase** : mécanisme générique + librairie prêts, réutilisables aussi bien par les rapports financiers (phase 1) que par les listes simples (phase 2). Suite complète `./run-all-tests.sh` verte (2021 tests, 0 échec) + vérification manuelle dans le navigateur sur `avion` (rendu du bouton renommé) et `compta/page` (export CSV du journal toujours fonctionnel après correction).
 
-## Phase 1 — Rapports financiers/comptables structurés (priorité maximale)
+## Phase 1 — Rapports financiers/comptables structurés (priorité maximale) ✅ Terminée (2026-09-30)
 
 **Objectif** : la vraie raison d'être du chantier. Ces pages construisent aujourd'hui leur CSV/PDF à la main (ex. `comptes::bilan_csv()`, ~150 lignes de composition manuelle) — pas de passage par `csv_table()`/`pdf_table()`. L'export xlsx demande donc un code de mise en page dédié par rapport, réutilisant la librairie de la phase 0.
 
-Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, `resultat_par_sections` (+ détail) ✅ **terminé (2026-09-30)**, `balance` ✅ **terminée (2026-09-30)**, `compta::journal` (+ journal par compte) ✅ **terminé (2026-09-30)**, puis `tresorerie`, `resultatCategorie`.
+Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, `resultat_par_sections` (+ détail) ✅ **terminé (2026-09-30)**, `balance` ✅ **terminée (2026-09-30)**, `compta::journal` (+ journal par compte) ✅ **terminé (2026-09-30)**. Sans objet : `tresorerie` (graphique sans export — boutons neutralisés dans la vue, méthodes `comptes/csv|pdf` inexistantes) et `resultatCategorie` (`@deprecated`, absente des menus, page en erreur car elle appelle un `button_bar()` inexistant).
 
 Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 1. **Vraies valeurs numériques**, pas de texte formaté — un montant doit rester une cellule de type nombre pour permettre sommes/formules côté tableur, objectif même du chantier.
@@ -83,27 +83,35 @@ Chaque rapport est une unité de livraison indépendante (pas de dépendance ent
 - **Défaut CSV existant corrigé, pour tous les CSV** : les valeurs étaient écrites brutes — les descriptions multi-lignes (ex. motifs de virement « DATE: … / MOTIF: … ») coupaient l'enregistrement (1990 écritures lues comme 2115 lignes dans le journal 2026). Règle unique dans `csv_helper.php` : `csv_escape_cell()` (encadrement RFC 4180 des valeurs contenant `;`, `"` ou un saut de ligne) et `csv_spaced_line()` (format historique « a; b; », l'espace suivant le séparateur placé **dans** les guillemets, sinon le guillemet n'ouvre pas le champ). Utilisée par `csv()`/`csv_table()` (MetaData), `csv_file()` (rapports financiers), `reports::gen_csv()` et l'extrait de compte (`compta::export()`, dont l'ancien `csv_escape()` encadrait après l'espace, donc sans effet). Valeurs sans caractère spécial identiques à l'octet près (vérifié sur journal, extraits, bilan, résultat par sections). `carnets_route` et `paiements_en_ligne` utilisaient déjà `fputcsv()`. Tests dans `CsvHelperTest.php`.
 - **Bug existant repéré, non corrigé** : tous les rapports de `reports` (requêtes SQL paramétrées) plantent (erreur 500) — `Database::sql()` appelle `$db->error()`, absente de CodeIgniter 2 (`application/libraries/Database.php:421`). Indépendant des exports ; `gen_csv()` n'a donc été vérifié que par les tests unitaires du helper.
 
-## Phase 2 — Rollout sur les listes simples déjà en CSV+PDF (19 pages)
+## Phase 2 — Rollout sur les listes simples ✅ Terminée (2026-09-30)
 
-**Objectif** : gain rapide à faible coût — pages qui utilisent déjà `csv_table()`/`pdf_table()` via leur méthode `export($mode)`, une fois la phase 0 posée.
+**Objectif** : ajouter le xlsx à toutes les listes dont l'export CSV fonctionne, en réutilisant le mécanisme générique de la phase 0.
 
-Pages concernées (section 1 de la note de design, sous-ensemble "Liste simple") : `associations_of`, `avion`, `comptes` (vue simple), `configuration`, `events_types`, `forms_admin/bs_submissions`, `membre` (liste + licences), `plan_comptable`, `planeur`, `sections`, `terrains`, `tickets`, `types_ticket`, `vols_avion`, `vols_decouverte`, `vols_planeur`, `carnets_route`, `relances`.
+Pages traitées (bouton « Xlsx » à côté du CSV, mêmes colonnes et mêmes filtres que le CSV) :
 
-Pour chacune :
-1. Ajouter la branche `elseif ($mode === 'xlsx')` dans la méthode `export()` du contrôleur.
-2. Ajouter l'entrée `'label' => "Xlsx"` dans le `button_bar4()` de la vue.
+| Mécanisme CSV existant | Pages | Pendant xlsx |
+|---|---|---|
+| `csv_table()` dans `export($mode)` | `avion`, `planeur`, `sections`, `plan_comptable`, `vols_decouverte`, `comptes` (balance simple, `balance_csv()`) | branche `xlsx` → `xlsx_table()` ; `comptes::balance_xlsx()` partage `balance_export_data()` avec le CSV |
+| `csv()` (table stockée par le modèle) | `membre` (liste), `tickets` (liste et soldes), `vols_planeur`, `vols_avion` | nouvelle `MetaData::xlsx()`, pendant de `csv()` ; méthodes `xlsx()` ajoutées aux contrôleurs de vols |
+| `csv_file()` (lignes composées dans le contrôleur) | `relances`, `licences` (détail par année), `forms_admin` (soumissions) | nouveau helper `xlsx_file()` (titre, en-tête en gras et figé) ; construction des lignes extraite pour être partagée, montants des relances en nombres natifs |
+| `fputcsv()` | `carnets_route` | lignes extraites dans `continuity_export_rows()`, partagées avec `xlsx()` |
 
-Mécanique et répétitive — candidate à un traitement par lot plutôt qu'à une revue ligne à ligne de chaque page.
+Points notables :
+- `xlsx_workbook()` remplace désormais dans le nom de feuille les caractères interdits par Excel (`\ / ? * [ ] :`, ex. une date dans le titre) — sinon le fichier est signalé corrompu — et le `/` dans le nom de fichier.
+- Droits : aucune nouvelle méthode n'a de règle d'accès propre ; vérifié pour `ca` et `tresorier` que chaque xlsx est accessible exactement quand le CSV correspondant l'est (y compris les refus). Pour les formulaires, `submissions_xlsx` est ajouté à la liste des méthodes ouvertes aux instructeurs/pilotes VD sur les formulaires de workflow, comme le CSV.
+- CSV des exports refactorés vérifiés identiques avant/après (relances, licences, carnets de route ; balance simple sur lignes triées, son ordre variant d'un appel à l'autre).
+- **Hors périmètre, constaté** : `membre/licences` (vue `membre/licences.php`) est en erreur 500 et n'est plus dans les menus (remplacée par `FFVV/licences`) — non modifiée.
 
-**Test** : étendre le test Playwright existant qui vérifie la présence des boutons d'export (`playwright/tests/rapprochements-export.spec.js` sert de modèle) à au moins une page de cette phase.
+**Test** : `playwright/tests/list-xlsx-exports.spec.js` (une vérification par page : bouton présent à côté du CSV, fichier xlsx valide, en-tête figé) ; `XlsxTableExportTest.php` couvre le nom de feuille et `xlsx_file()`.
 
-## Phase 3 — Corriger les exports incomplets/cassés (3 pages)
+## Phase 3 — Corriger les exports incomplets/cassés (8 pages)
 
 Faible volume, indépendant du reste, peut être fait à tout moment après la phase 0 :
 
 1. `paiements_en_ligne/bs_liste.php` : ajouter l'export PDF manquant. **Attention** : ce contrôleur est explicitement exempté de `gvvmetadata` (AI_INSTRUCTIONS.md) — ne pas y introduire `array_field`/`table()`, construire l'export directement.
 2. `formation_rapports/conformite.php` : ajouter l'export PDF manquant sur `export_conformite_csv`.
 3. `authorization/migration/comparison_log.php` (et `statistics.php`, tableau de bord associé) : le bouton "Exporter CSV" appelle `alert('non implémenté')` — soit l'implémenter, soit le retirer si l'export n'est pas jugé utile sur ces pages de migration/diagnostic. **Ce point est un bug indépendant du chantier xlsx** ; à traiter séparément ou à valider explicitement avec l'utilisateur avant d'y toucher dans ce lot.
+4. **Boutons CSV en 404** (constaté en phase 2) : `associations_of`, `configuration`, `terrains` pointent vers un `export/csv` que leur contrôleur n'implémente pas ; `events_types` et `types_ticket` vers un `ventes_csv` absent (copier-coller de `achats`). Aucun export réel, donc pas de xlsx ajouté : à implémenter (CSV + xlsx + PDF) ou à retirer selon l'utilité.
 
 ## Phase 4 — Autres rapports structurés non financiers
 

@@ -77,7 +77,7 @@ class Forms_admin extends MY_Controller {
      */
     private function _can_access_workflow_form() {
         $method = $this->router->fetch_method();
-        if (!in_array($method, array('submission_pdf', 'submissions', 'submissions_csv', 'submissions_pdf'), true)) {
+        if (!in_array($method, array('submission_pdf', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
@@ -778,6 +778,23 @@ class Forms_admin extends MY_Controller {
         csv_file(
             $this->lang->line('forms_title_submissions') . ' - ' . $form['code'],
             $this->_submissions_export_table($form)
+        );
+    }
+
+    /**
+     * xlsx export of the submissions list (current date filter applied),
+     * same table as submissions_csv().
+     */
+    public function submissions_xlsx($form_id = 0) {
+        $form = $this->load_form_or_redirect($this->_resolve_form_stub($form_id));
+        if (!$form) {
+            return;
+        }
+        $this->load->helper('csv');
+        xlsx_file(
+            $this->lang->line('forms_title_submissions') . ' - ' . $form['code'],
+            $this->_submissions_export_table($form),
+            0
         );
     }
 

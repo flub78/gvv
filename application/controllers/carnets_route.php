@@ -111,19 +111,13 @@ class Carnets_route extends MY_Controller {
      * Export CSV du contrôle de continuité.
      */
     public function csv() {
-        $macid      = $this->session->userdata('carnet_macid');
-        $date_debut = $this->session->userdata('carnet_date_debut') ?: date('Y') . '-01-01';
-        $date_fin   = $this->session->userdata('carnet_date_fin')   ?: date('Y-m-d');
-
-        if (empty($macid)) {
+        $export = $this->continuity_export_rows();
+        if ($export === null) {
             redirect($this->controller . '/page');
             return;
         }
 
-        $flights = $this->carnets_route_model->get_flights($macid, $date_debut, $date_fin);
-        $rows    = build_continuity_rows($flights);
-
-        $filename = 'carnet_route_' . $macid . '_' . $date_debut . '_' . $date_fin . '.csv';
+        $filename = $export['name'] . '.csv';
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -131,7 +125,48 @@ class Carnets_route extends MY_Controller {
         $out = fopen('php://output', 'w');
         fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
 
-        fputcsv($out, [
+        foreach ($export['rows'] as $row) {
+            fputcsv($out, $row, ';');
+        }
+
+        fclose($out);
+    }
+
+    /**
+     * Export xlsx du contrôle de continuité : mêmes lignes que le CSV.
+     */
+    public function xlsx() {
+        $export = $this->continuity_export_rows();
+        if ($export === null) {
+            redirect($this->controller . '/page');
+            return;
+        }
+
+        $this->load->helper('csv');
+        xlsx_file($export['name'], $export['rows'], 0);
+    }
+
+    /**
+     * Lignes de l'export du contrôle de continuité (en-tête puis un vol ou
+     * une anomalie par ligne) pour la machine et la période en session,
+     * partagées par csv() et xlsx().
+     *
+     * @return array|null ['name' => nom de base du fichier, 'rows' => lignes],
+     *                    null si aucune machine n'est sélectionnée
+     */
+    private function continuity_export_rows() {
+        $macid      = $this->session->userdata('carnet_macid');
+        $date_debut = $this->session->userdata('carnet_date_debut') ?: date('Y') . '-01-01';
+        $date_fin   = $this->session->userdata('carnet_date_fin')   ?: date('Y-m-d');
+
+        if (empty($macid)) {
+            return null;
+        }
+
+        $flights = $this->carnets_route_model->get_flights($macid, $date_debut, $date_fin);
+
+        $rows = array();
+        $rows[] = array(
             $this->lang->line('carnets_route_col_date'),
             $this->lang->line('carnets_route_col_pilote'),
             $this->lang->line('carnets_route_col_immat'),
@@ -141,13 +176,13 @@ class Carnets_route extends MY_Controller {
             $this->lang->line('carnets_route_col_depart'),
             $this->lang->line('carnets_route_col_arrivee'),
             $this->lang->line('carnets_route_col_obs'),
-        ], ';');
+        );
 
-        foreach ($rows as $row) {
+        foreach (build_continuity_rows($flights) as $row) {
             if ($row['type'] === 'flight') {
                 $f = $row['data'];
                 $mode = isset($f['horametre_mode']) ? (int)$f['horametre_mode'] : 0;
-                fputcsv($out, [
+                $rows[] = array(
                     date_db2ht($f['vadate']),
                     $f['pilote'],
                     $f['vamacid'],
@@ -157,17 +192,20 @@ class Carnets_route extends MY_Controller {
                     $f['valieudeco'],
                     $f['valieuatt'],
                     $f['vaobs'],
-                ], ';');
+                );
             } else {
                 $label = '[' . strtoupper($this->lang->line('carnets_route_' . $row['type'])) . ']';
                 if ($row['duration'] > 0) {
                     $label .= ' ' . $row['duration'];
                 }
-                fputcsv($out, [$label, '', '', '', '', '', '', '', ''], ';');
+                $rows[] = array($label, '', '', '', '', '', '', '', '');
             }
         }
 
-        fclose($out);
+        return array(
+            'name' => 'carnet_route_' . $macid . '_' . $date_debut . '_' . $date_fin,
+            'rows' => $rows,
+        );
     }
 
     /**

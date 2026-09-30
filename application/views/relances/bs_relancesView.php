@@ -103,6 +103,7 @@ $this->lang->load('relances');
 <?php
 $bar = array(
     array('label' => "CSV",  'url' => "relances/export_csv"),
+    array('label' => "Xlsx",  'url' => "relances/export_xlsx"),
     array('label' => "Pdf",  'url' => "relances/export_pdf"),
 );
 echo button_bar4($bar);

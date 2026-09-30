@@ -98,4 +98,68 @@ class XlsxTableExportTest extends TestCase
         $this->assertGreaterThan(1000, strlen($content), "generated xlsx should not be empty/truncated");
         $this->assertStringEndsWith('.xlsx', $filename, "filename should have an .xlsx extension");
     }
+
+    /**
+     * Read one entry of an in-memory zip (xlsx) by walking its local file
+     * headers — the zip extension is not available on every PHP build used
+     * by the project (e.g. the 7.4 environment).
+     */
+    private function readZipEntry($zip, $name)
+    {
+        $offset = 0;
+        while (($pos = strpos($zip, "PK\x03\x04", $offset)) !== false) {
+            $h = unpack('vversion/vflags/vmethod/vtime/vdate/Vcrc/Vcsize/Vsize/vnamelen/vextralen', substr($zip, $pos + 4, 26));
+            $entry = substr($zip, $pos + 30, $h['namelen']);
+            $data_start = $pos + 30 + $h['namelen'] + $h['extralen'];
+            if ($entry === $name) {
+                $data = substr($zip, $data_start, $h['csize']);
+                return $h['method'] == 8 ? gzinflate($data) : $data;
+            }
+            $offset = $data_start + $h['csize'];
+        }
+        $this->fail("zip entry $name not found");
+    }
+
+    /**
+     * Regression: a title containing a date (jj/mm/aaaa) was used as sheet
+     * name, but '/' (like \ ? * [ ] :) is forbidden there — Excel reports the
+     * file as corrupted.
+     */
+    public function testSheetNameDropsForbiddenCharacters()
+    {
+        $data = [['debit' => '100.00', 'credit' => '0.00']];
+        list($xlsx, $filename) = $this->gvvmetadata->xlsx_workbook('vue_comptes', $data, [
+            'title' => 'Balance=30/09/2026 [test]: a?b*',
+            'fields' => ['debit', 'credit'],
+        ]);
+
+        $workbook = $this->readZipEntry((string) $xlsx, 'xl/workbook.xml');
+        $this->assertRegExp('/<sheet name="([^"]*)"/', $workbook);
+        preg_match('/<sheet name="([^"]*)"/', $workbook, $m);
+        $this->assertNotRegExp('#[\\\\/?*\[\]:]#', $m[1], "sheet name must not contain forbidden characters");
+        $this->assertStringNotContainsString('/', $filename, "filename must not contain a path separator");
+    }
+
+    /**
+     * xlsx_file() (csv_helper, xlsx counterpart of csv_file()): title row,
+     * bold and frozen header row, amounts kept as numbers.
+     */
+    public function testXlsxFileKeepsNumbersAndFreezesHeader()
+    {
+        get_instance()->load->helper('csv');
+        $data = [
+            ['Sous-titre'],
+            [],
+            ['Nom', 'Solde'],
+            ['Dupont Jean', -12.5],
+        ];
+
+        $xlsx = xlsx_file('Relances test', $data, 2, false);
+        $sheet = $this->readZipEntry((string) $xlsx, 'xl/worksheets/sheet1.xml');
+
+        // title row + 2 rows before the header: header on row 4, frozen below
+        $this->assertRegExp('/<pane [^>]*topLeftCell="A5"[^>]*state="frozen"/', $sheet);
+        // the amount is an unstyled numeric cell, not a string
+        $this->assertRegExp('/<c r="B5"><v>-12\.5<\/v><\/c>/', $sheet);
+    }
 }

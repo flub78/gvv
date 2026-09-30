@@ -890,6 +890,19 @@ abstract class Metadata {
     }
 
     /**
+     * Export xlsx de la table stockée par le modèle (store_table()), pendant
+     * de csv() : mêmes attributs (title, fields, numbered), valeurs typées.
+     *
+     * @param string $table name
+     * @param array $attrs display attributes
+     */
+    function xlsx($table, $attrs = array()) {
+        if (!array_key_exists($table, $this->db))
+            throw new Exception('unknown table ' . $table);
+        return $this->xlsx_table($table, $this->db[$table], $attrs);
+    }
+
+    /**
      * Export the table in comma separated value
      *
      * @param string $table name
@@ -1045,13 +1058,16 @@ abstract class Metadata {
         if (isset($attrs['filename'])) {
             $filename = $attrs['filename'];
         } elseif (isset($attrs['title'])) {
-            $title = strtolower(str_replace([' ', '-', ',', '='], ['_', '', '', '_'], $attrs['title']));
+            $title = strtolower(str_replace([' ', '-', ',', '=', '/'], ['_', '', '', '_', '_'], $attrs['title']));
             $filename = "gvv_" . $title . ".xlsx";
         } else {
             $filename = "gvv_" . $table . "_$dt.xlsx";
         }
 
         $sheet_name = isset($attrs['title']) ? $attrs['title'] : $table;
+        // Caractères interdits dans un nom de feuille Excel (sinon le fichier
+        // est signalé comme corrompu à l'ouverture), ex. une date jj/mm/aaaa.
+        $sheet_name = str_replace(array('\\', '/', '?', '*', '[', ']', ':'), '-', $sheet_name);
         $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $sheet_name);
         $xlsx->freezePanes($numbered ? 'B2' : 'A2');
         return array($xlsx, $filename);

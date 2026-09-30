@@ -83,6 +83,53 @@ if (!function_exists('csv_spaced_line')) {
     }
 }
 
+if (!function_exists('xlsx_file')) {
+
+    /**
+     * Pendant xlsx de csv_file() : envoie un classeur d'une feuille dont la
+     * première ligne est le titre, suivie des lignes de $data. Les montants
+     * doivent être passés en int/float PHP natifs (pas de chaîne formatée)
+     * pour rester des nombres dans le tableur.
+     *
+     * @param string $title Titre (première ligne, nom de feuille et de fichier)
+     * @param array $data Lignes (tableaux de valeurs)
+     * @param int|null $header_index Index dans $data de la ligne d'en-tête de
+     *                               colonnes : mise en gras et figée
+     * @param bool $download Envoie le fichier au navigateur si vrai
+     * @return \Shuchkin\SimpleXLSXGen
+     */
+    function xlsx_file($title, $data, $header_index = null, $download = true) {
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $rows = array(array('<b>' . $title . '</b>'));
+        foreach ($data as $i => $row) {
+            if ($i === $header_index) {
+                $bold = array();
+                foreach ($row as $cell) {
+                    $bold[] = ($cell === '' || $cell === null) ? '' : '<b>' . $cell . '</b>';
+                }
+                $row = $bold;
+            }
+            $rows[] = empty($row) ? array('') : array_values($row);
+        }
+
+        $sheet_name = str_replace(array('\\', '/', '?', '*', '[', ']', ':'), '-', $title);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $sheet_name);
+        if ($header_index !== null) {
+            // +1 pour la ligne de titre, +1 pour figer sous l'en-tête
+            $xlsx->freezePanes('A' . ($header_index + 3));
+        }
+
+        if ($download) {
+            date_default_timezone_set('Europe/Paris');
+            $filename = "gvv_" . $title . "_" . date("Y_m_d") . ".xlsx";
+            $filename = str_replace(array(' ', '/'), '_', strtolower($filename));
+            $xlsx->downloadAs($filename);
+        }
+        return $xlsx;
+    }
+}
+
 if (!function_exists('csv_file')) {
 
     /**

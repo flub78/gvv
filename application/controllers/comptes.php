@@ -1072,12 +1072,14 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
-     * Balance des comptes
+     * Données de la balance simple, partagées par balance_csv() et
+     * balance_xlsx()
      *
-     * @param
-     *            $comptes
+     * @param string $codec Code compte début
+     * @param string $codec2 Code compte fin
+     * @return array [titre, lignes, champs]
      */
-    function balance_csv($codec = '', $codec2 = "") {
+    private function balance_export_data($codec = '', $codec2 = "") {
         $general = $this->session->userdata('general');
 
         // selection des codec
@@ -1128,7 +1130,27 @@ class Comptes extends Gvv_Controller {
             );
         }
 
+        return array($titre, $result, $fields);
+    }
+
+    /**
+     * Export CSV de la balance simple (générale ou détaillée selon la session)
+     */
+    function balance_csv($codec = '', $codec2 = "") {
+        list($titre, $result, $fields) = $this->balance_export_data($codec, $codec2);
         $this->gvvmetadata->csv_table("vue_comptes", $result, array(
+            'title' => $titre,
+            'fields' => $fields
+        ));
+    }
+
+    /**
+     * Export xlsx de la balance simple : mêmes lignes que balance_csv(),
+     * soldes typés
+     */
+    function balance_xlsx($codec = '', $codec2 = "") {
+        list($titre, $result, $fields) = $this->balance_export_data($codec, $codec2);
+        $this->gvvmetadata->xlsx_table("vue_comptes", $result, array(
             'title' => $titre,
             'fields' => $fields
         ));

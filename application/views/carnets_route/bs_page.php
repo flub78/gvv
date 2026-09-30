@@ -156,6 +156,9 @@ if ($has_anomaly):
     <a href="<?= controller_url('carnets_route/csv') ?>" class="btn btn-outline-secondary me-1">
         <i class="fas fa-file-csv"></i> CSV
     </a>
+    <a href="<?= controller_url('carnets_route/xlsx') ?>" class="btn btn-outline-secondary me-1">
+        <i class="fas fa-file-excel"></i> Xlsx
+    </a>
     <a href="<?= controller_url('carnets_route/pdf') ?>" class="btn btn-outline-secondary">
         <i class="fas fa-file-pdf"></i> PDF
     </a>

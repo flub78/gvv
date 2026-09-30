@@ -251,6 +251,7 @@ echo '</div>';
 <?php
 $bar = array(
     array('label' => "CSV", 'url' => "licences/per_year_detail_csv"),
+    array('label' => "Xlsx", 'url' => "licences/per_year_detail_xlsx"),
     array('label' => "Pdf",   'url' => "licences/per_year_detail_pdf"),
 );
 echo button_bar4($bar);

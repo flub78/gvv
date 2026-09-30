@@ -1062,6 +1062,14 @@ class Vols_avion extends Gvv_Controller {
     }
 
     /**
+     * Export au format xlsx (mêmes colonnes que le CSV, valeurs typées)
+     */
+    function xlsx() {
+        $this->select_page(0, "", 100000);
+        $this->gvvmetadata->xlsx("vue_vols_avion");
+    }
+
+    /**
      * Export des planches au format PDF
      */
     function pdf() {
