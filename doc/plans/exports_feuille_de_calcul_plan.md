@@ -1,9 +1,9 @@
 # Implementation Plan: Exports feuille de calcul (xlsx)
 
 **Related design note:** `doc/design_notes/exports_feuille_de_calcul_design.md`
-**Status:** Phase 0 terminée (branche `feature/exports-xlsx-phase-0`) — Phase 1 non démarrée
+**Status:** Phase 0 terminée — Phase 1 en cours, 4 rapports sur 8 (branche `feature/exports-xlsx-phase-0`)
 **Created:** 2026-09-18
-**Last Updated:** 2026-09-18 (Phase 0 implémentée et testée)
+**Last Updated:** 2026-09-30 (`resultat_par_sections` + détail terminés)
 **Complexity:** Moyenne à élevée (dépend fortement de la phase)
 
 ---
@@ -34,7 +34,7 @@ Remplace le duo actuel CSV (mal étiqueté « Excel ») + PDF par un vrai export
 
 **Objectif** : la vraie raison d'être du chantier. Ces pages construisent aujourd'hui leur CSV/PDF à la main (ex. `comptes::bilan_csv()`, ~150 lignes de composition manuelle) — pas de passage par `csv_table()`/`pdf_table()`. L'export xlsx demande donc un code de mise en page dédié par rapport, réutilisant la librairie de la phase 0.
 
-Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, puis `resultat_par_sections` (+ détail), `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
+Pages concernées, dans l'ordre : `comptes::bilan` ✅ **terminé (2026-09-18)**, `comptes::resultat` ✅ **terminé (2026-09-18)**, `resultat_avec_depreciation` ✅ **terminé (2026-09-18)**, `resultat_par_sections` (+ détail) ✅ **terminé (2026-09-30)**, puis `balance`, `compta::journal` (+ journal par compte), `tresorerie`, `resultatCategorie`.
 
 Exigences de qualité (le "soin" attendu, au-delà du simple fonctionnel) :
 1. **Vraies valeurs numériques**, pas de texte formaté — un montant doit rester une cellule de type nombre pour permettre sommes/formules côté tableur, objectif même du chantier.
@@ -63,6 +63,12 @@ Chaque rapport est une unité de livraison indépendante (pas de dépendance ent
 **Retour d'expérience `resultat_avec_depreciation`** :
 - Même levier que `resultat` (mode `xlsx` de `euro()`, aucune modification de `resultat_avec_depreciation_table()`), mais la mise en gras ne peut pas se faire par position : ce rapport a deux blocs de totaux/bénéfice-perte ("avant" et "après" dépréciations) séparés par un nombre variable de lignes de comptes 68x/78x. Repérage par **contenu** à la place : liste des libellés connus (`comptes_label_total_charges_hd`, `comptes_label_resultat_avant_dep`, etc.) obtenue une fois via `lang->line()`, puis `array_intersect($row, $bold_labels)` par ligne. Généralisable à tout rapport dont les totaux ne sont pas à une position fixe.
 - `resultat_avec_depreciation_table()` retourne des lignes de données en **tableau creux** (clé PHP `6` absente, gardée `5`→séparateur puis `7..11`→colonnes produits) — un `foreach` classique les parcourt sans problème (11 valeurs quel que soit le jeu de clés), donc aucune précaution particulière à prendre au-delà de rester sur `foreach ($row as $cell)` plutôt que d'indexer par clé numérique attendue.
+
+**Retour d'expérience `resultat_par_sections`** :
+- Montants typés à la source : `format_numeric_columns()` (modèle `comptes`) a reçu un mode `'xlsx'` (float natif), et `select_resultat_par_sections_deux_annees()` un paramètre `$number_format` distinct de `$html` (qui ne pilote plus que les liens `<a>` sur le codec). Même levier que `euro()` pour `resultat`, mais côté modèle `comptes`.
+- Premier rapport à trois tableaux : **une feuille par tableau** (Charges, Produits, Total) plutôt qu'une feuille unique, pour pouvoir figer l'en-tête à deux lignes (sections / années) et les colonnes Code/Libellé de chaque tableau. Noms de section fusionnés (`mergeCells`) au-dessus de leurs colonnes d'années ; couleur d'en-tête de section du PDF (`DAE3EC`) reprise sur les en-têtes uniquement.
+- **Bug CSV existant corrigé** : le tableau des totaux gardait la colonne Code (vide) alors que son en-tête l'omet — les montants étaient décalés d'une colonne par rapport aux noms de section. Les lignes sont désormais tronquées comme dans le PDF (`array_slice($row, 1)`) ; seules ces 4 lignes du CSV changent (vérifié par diff), test de non-régression dans le spec xlsx du rapport.
+- CSV non refactoré par ailleurs (identique avant/après hors ce correctif) : le xlsx réutilise directement `transform_to_two_line_header()`, sans méthode de lignes partagée — la construction est déjà factorisée là.
 
 ## Phase 2 — Rollout sur les listes simples déjà en CSV+PDF (19 pages)
 

@@ -1529,7 +1529,11 @@ class Comptes_model extends Common_Model {
             foreach ($row as $col_index => $cell_value) {
                 if ($col_index >= $start_col && $row_index > 0) {
                     // Colonne numérique (pas l'en-tête)
-                    if ($format_html) {
+                    if ($format_html === 'xlsx') {
+                        // Float natif (pas une chaîne formatée) pour permettre
+                        // le calcul côté tableur.
+                        $formatted_row[] = ($cell_value === '' || $cell_value === null) ? '' : (float) $cell_value;
+                    } elseif ($format_html) {
                         $formatted_row[] = euro($cell_value);
                     } else {
                         $formatted_row[] = number_format((float) $cell_value, 2, ",", " ");
@@ -1847,11 +1851,17 @@ class Comptes_model extends Common_Model {
      * puis accumule les montants en PHP par codec, section et année.
      *
      * @param string $balance_date Date de fin d'exercice (format: DD/MM/YYYY)
-     * @param bool   $html         Formatage HTML (liens, euros)
+     * @param bool   $html         Génère des liens <a> sur le codec (uniquement pour l'affichage HTML)
      * @param bool   $use_full_names Noms complets des sections dans les en-têtes
+     * @param mixed  $number_format Mode de formatage des montants passé à format_numeric_columns()
+     *                              (bool true=euro/html, false=chaîne "1 234,56", 'xlsx'=float natif).
+     *                              Par défaut, reprend la valeur de $html (comportement historique).
      * @return array Tableaux 'charges', 'produits', 'resultat'
      */
-    function select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false) {
+    function select_resultat_par_sections_deux_annees($balance_date, $html = false, $use_full_names = false, $number_format = null) {
+        if ($number_format === null) {
+            $number_format = $html;
+        }
         // Détermine les années
         $year_current = 0;
         $date_parts = explode('/', $balance_date);
@@ -2011,9 +2021,9 @@ class Comptes_model extends Common_Model {
             $tables['charges'], $tables['produits'], $dep68, $rec78
         );
 
-        $tables['charges']  = $this->format_numeric_columns($tables['charges'],  2, $html);
-        $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $html);
-        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $html);
+        $tables['charges']  = $this->format_numeric_columns($tables['charges'],  2, $number_format);
+        $tables['produits'] = $this->format_numeric_columns($tables['produits'], 2, $number_format);
+        $tables['resultat'] = $this->format_numeric_columns($tables['resultat'], 2, $number_format);
 
         return $tables;
     }

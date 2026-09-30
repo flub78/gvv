@@ -379,6 +379,7 @@ function render_two_line_header_table($data, $table_class = 'resultat-table', $s
     // Boutons d'export
     $bar = array(
         array('label' => "CSV", 'url' => "comptes/resultat_par_sections_detail/$codec/csv", 'role' => 'ca'),
+        array('label' => "Xlsx", 'url' => "comptes/resultat_par_sections_detail/$codec/xlsx", 'role' => 'ca'),
         array('label' => "Pdf", 'url' => "comptes/resultat_par_sections_detail/$codec/pdf", 'role' => 'ca'),
     );
     echo button_bar4($bar);

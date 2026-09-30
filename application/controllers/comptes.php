@@ -2479,7 +2479,7 @@ class Comptes extends Gvv_Controller {
     /**
      * Affiche le résultat d'exploitation par sections pour deux années consécutives
      * 
-     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv', 'pdf' ou 'xlsx'
      */
     function resultat_par_sections($mode = 'html') {
         $this->data['controller'] = 'comptes';
@@ -2498,7 +2498,8 @@ class Comptes extends Gvv_Controller {
         // Récupération des données pour deux années
         $html = ($mode == "html");
         $use_full_names = true; // Utiliser les noms complets partout (HTML, PDF, CSV)
-        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names);
+        $number_format = ($mode == "xlsx") ? 'xlsx' : $html;
+        $tables = $this->gvv_model->select_resultat_par_sections_deux_annees($this->data['balance_date'], $html, $use_full_names, $number_format);
 
         $this->data['charges'] = $tables['charges'];
         $this->data['produits'] = $tables['produits'];
@@ -2525,6 +2526,9 @@ class Comptes extends Gvv_Controller {
         } else if ($mode == "pdf") {
             $this->pdf_resultat_par_sections($this->data);
             return;
+        } else if ($mode == "xlsx") {
+            $this->xlsx_resultat_par_sections($this->data);
+            return;
         }
 
         $this->push_return_url("resultat_par_sections");
@@ -2536,7 +2540,7 @@ class Comptes extends Gvv_Controller {
      * Affiche le détail d'un codec par sections pour deux années consécutives
      *
      * @param string $codec Code comptable (ex: '606', '701')
-     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv' ou 'pdf'
+     * @param string $mode Mode d'affichage: 'html' (défaut), 'csv', 'pdf' ou 'xlsx'
      */
     function resultat_par_sections_detail($codec = '', $mode = 'html') {
         if (empty($codec)) {
@@ -2578,11 +2582,11 @@ class Comptes extends Gvv_Controller {
         // Formatage selon le mode d'affichage
         // Colonnes: Code, Libellé, compte_id (caché), Section, Year N, Year N-1
         // Les colonnes numériques commencent à l'index 4
-        $html = ($mode == "html");
-        $detail = $this->gvv_model->format_numeric_columns($detail, 4, $html);
+        $number_format = ($mode == "xlsx") ? 'xlsx' : ($mode == "html");
+        $detail = $this->gvv_model->format_numeric_columns($detail, 4, $number_format);
 
-        // Pour CSV et PDF, supprimer la colonne compte_id (index 2) qui est cachée
-        if ($mode == "csv" || $mode == "pdf") {
+        // Pour CSV, PDF et xlsx, supprimer la colonne compte_id (index 2) qui est cachée
+        if ($mode == "csv" || $mode == "pdf" || $mode == "xlsx") {
             $detail_export = array();
             foreach ($detail as $row_idx => $row) {
                 $export_row = array();
@@ -2613,6 +2617,9 @@ class Comptes extends Gvv_Controller {
             return;
         } else if ($mode == "pdf") {
             $this->pdf_resultat_par_sections_detail($this->data);
+            return;
+        } else if ($mode == "xlsx") {
+            $this->xlsx_resultat_par_sections_detail($this->data);
             return;
         }
 
@@ -2732,7 +2739,12 @@ class Comptes extends Gvv_Controller {
             if (!empty($transformed['header_sections'])) {
                 $csv_data[] = $transformed['header_sections'];
                 $csv_data[] = $transformed['header_years'];
-                $csv_data = array_merge($csv_data, $transformed['rows']);
+                foreach ($transformed['rows'] as $row) {
+                    // Sans colonnes Code/Comptes dans l'en-tête, retirer aussi
+                    // la colonne Code (vide) des lignes pour garder les montants
+                    // alignés sous leur section, comme dans le PDF.
+                    $csv_data[] = $skip_label_cols ? array_slice($row, 1) : $row;
+                }
             }
         };
 
@@ -2746,6 +2758,104 @@ class Comptes extends Gvv_Controller {
         $add_section($this->lang->line("comptes_label_total"), $data['resultat'], true);
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export xlsx du résultat par sections : une feuille par tableau
+     * (charges, produits, total), chacune avec l'en-tête à deux lignes
+     * (sections / années) du CSV et du PDF, figé, les noms de sections
+     * fusionnés au-dessus de leurs colonnes d'années.
+     *
+     * Les montants arrivent déjà en float natif (mode 'xlsx' de
+     * format_numeric_columns()) ; comme pour les autres rapports, gras et
+     * couleur de fond (celle des en-têtes de section du PDF) ne sont posés
+     * que sur les cellules texte, jamais sur un montant.
+     *
+     * La colonne Code, vide dans le tableau des totaux, est retirée comme
+     * dans le PDF, pour que les montants restent alignés sous leur section.
+     *
+     * @param array $data Données à exporter
+     */
+    private function xlsx_resultat_par_sections($data) {
+        $title = $this->lang->line("gvv_comptes_title_resultat_par_sections");
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::create($title);
+
+        $add_sheet = function ($sheet_title, $section_data, $is_total) use ($xlsx, $title, $data) {
+            $transformed = $this->transform_to_two_line_header($section_data, $is_total);
+            $label_cols = $is_total ? 1 : 2;
+
+            $rows = array();
+            $rows[] = array('<b>' . $title . ' - ' . $sheet_title . '</b>');
+            $rows[] = array($this->lang->line("comptes_label_date"), $data['balance_date']);
+            $rows[] = array('');
+            $rows[] = $this->xlsx_header_cells($transformed['header_sections']);
+            $rows[] = $this->xlsx_header_cells($transformed['header_years']);
+
+            $nb_rows = count($transformed['rows']);
+            foreach ($transformed['rows'] as $i => $row) {
+                if ($is_total) {
+                    $row = array_slice($row, 1);
+                }
+                // Lignes de total : dernière ligne des charges/produits
+                // ("Total des ..."), toutes les lignes du tableau des totaux.
+                $bold = $is_total || ($i === $nb_rows - 1);
+                $line = array();
+                foreach ($row as $cell) {
+                    if (is_int($cell) || is_float($cell)) {
+                        $line[] = (float) $cell;
+                    } elseif ($bold && is_string($cell) && $cell !== '') {
+                        $line[] = '<b>' . $cell . '</b>';
+                    } else {
+                        $line[] = $cell;
+                    }
+                }
+                $rows[] = $line;
+            }
+
+            $xlsx->addSheet($rows, $sheet_title);
+
+            // Nom de section fusionné au-dessus de ses colonnes d'années (ligne 4)
+            $col = $label_cols;
+            foreach ($transformed['sections'] as $section) {
+                $span = count($section['years']);
+                if ($span > 1) {
+                    $xlsx->mergeCells(\Shuchkin\SimpleXLSXGen::coord2cell($col, 3) . ':'
+                        . \Shuchkin\SimpleXLSXGen::coord2cell($col + $span - 1, 3));
+                }
+                $col += $span;
+            }
+            $xlsx->freezePanes(\Shuchkin\SimpleXLSXGen::coord2cell($label_cols, 5));
+        };
+
+        $add_sheet($this->lang->line("comptes_label_charges"), $data['charges'], false);
+        $add_sheet($this->lang->line("comptes_label_produits"), $data['produits'], false);
+        $add_sheet($this->lang->line("comptes_label_total"), $data['resultat'], true);
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
+    }
+
+    /**
+     * Cellules d'en-tête xlsx : gras + couleur de fond des en-têtes de
+     * section du PDF (218, 227, 236). Les cellules vides reçoivent un espace
+     * pour pouvoir porter la couleur.
+     *
+     * @param array $cells Libellés de la ligne d'en-tête
+     * @return array
+     */
+    private function xlsx_header_cells($cells) {
+        $line = array();
+        foreach ($cells as $cell) {
+            $text = ($cell === '' || $cell === null) ? ' ' : $cell;
+            $line[] = '<b><style bgcolor="DAE3EC">' . $text . '</style></b>';
+        }
+        return $line;
     }
 
     /**
@@ -2961,6 +3071,48 @@ class Comptes extends Gvv_Controller {
         $csv_data = array_merge($csv_data, $data['detail']);
 
         csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export xlsx du détail d'un codec par sections : mêmes lignes que le
+     * CSV, montants en float natif (mode 'xlsx' de format_numeric_columns()),
+     * ligne d'en-tête figée.
+     *
+     * @param array $data Données à exporter
+     */
+    private function xlsx_resultat_par_sections_detail($data) {
+        $title = sprintf($this->lang->line("gvv_comptes_title_resultat_par_sections_detail"), $data['codec'] . ' - ' . $data['codec_nom']);
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $section_label = $data['is_charge'] ? $this->lang->line("comptes_label_charges") : $this->lang->line("comptes_label_produits");
+
+        $rows = array();
+        $rows[] = array('<b>' . $title . '</b>');
+        $rows[] = array($this->lang->line("comptes_label_date"), $data['balance_date']);
+        $rows[] = array('');
+        $rows[] = array('<b>' . $section_label . ' - ' . $data['codec'] . ' ' . $data['codec_nom'] . '</b>');
+        foreach ($data['detail'] as $i => $row) {
+            if ($i === 0) {
+                $rows[] = $this->xlsx_header_cells($row);
+                continue;
+            }
+            $line = array();
+            foreach ($row as $cell) {
+                $line[] = (is_int($cell) || is_float($cell)) ? (float) $cell : $cell;
+            }
+            $rows[] = $line;
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $data['codec']);
+        $xlsx->setTitle($title);
+        $xlsx->freezePanes('A6');
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        $filename = strtolower(str_replace([' ', "'"], ['_', ''], $title)) . "_$dt.xlsx";
+
+        $xlsx->downloadAs($filename);
     }
 
     /**
