@@ -834,6 +834,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
+        get_instance()->load->helper('csv');
         $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
@@ -866,7 +867,7 @@ abstract class Metadata {
                 $value = isset($row[$field]) ? $row[$field] : '';
                 $cells[] = $this->array_field($table, $field, $value, $row, "csv");
             }
-            $res .= $this->csv_line($cells);
+            $res .= csv_spaced_line($cells); // valeurs spéciales encadrées (csv_helper)
         }
         $res .= $footer;
         // echo $res . br() ; return;
@@ -886,36 +887,6 @@ abstract class Metadata {
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
         force_download($filename, $res);
-    }
-
-    /**
-     * Ligne CSV au format historique de GVV ("a; b; c; " + saut de ligne),
-     * avec encadrement RFC 4180 des valeurs contenant un point-virgule, un
-     * guillemet ou un saut de ligne : sans lui, une description multi-lignes
-     * (ex. motif de virement) coupait l'enregistrement en plusieurs lignes à
-     * l'import dans un tableur.
-     *
-     * L'espace qui suit chaque séparateur fait partie de la valeur suivante :
-     * un champ n'est reconnu comme encadré que si le guillemet est son
-     * premier caractère, l'espace est donc placé à l'intérieur des
-     * guillemets. Les valeurs sans caractère spécial restent inchangées à
-     * l'octet près.
-     *
-     * @param array $cells Valeurs déjà formatées pour le CSV
-     * @return string
-     */
-    private function csv_line($cells) {
-        $line = '';
-        $first = true;
-        foreach ($cells as $cell) {
-            $cell = ($first ? '' : ' ') . $cell;
-            if (preg_match('/[;"\r\n]/', $cell)) {
-                $cell = '"' . str_replace('"', '""', $cell) . '"';
-            }
-            $line .= $cell . ';';
-            $first = false;
-        }
-        return $line . " \n";
     }
 
     /**
@@ -945,6 +916,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
+        get_instance()->load->helper('csv');
         $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
@@ -977,7 +949,7 @@ abstract class Metadata {
                 $value = isset($row[$field]) ? $row[$field] : '';
                 $cells[] = $this->array_field($table, $field, $value, $row, "csv");
             }
-            $res .= $this->csv_line($cells);
+            $res .= csv_spaced_line($cells); // valeurs spéciales encadrées (csv_helper)
         }
         $res .= $footer;
         // echo $res . br() ; return;

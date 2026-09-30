@@ -2886,46 +2886,6 @@ class Compta extends Gvv_Controller {
     }
 
     /**
-     * Échappe un champ pour l'export CSV selon RFC 4180
-     * 
-     * Encadre le champ avec des guillemets doubles si nécessaire :
-     * - Si le champ contient un point-virgule (séparateur)
-     * - Si le champ contient un guillemet double
-     * - Si le champ contient un retour à la ligne
-     * 
-     * Les guillemets doubles dans le champ sont doublés selon la norme.
-     * 
-     * @param string $field Le champ à échapper
-     * @return string Le champ échappé
-     */
-    private function csv_escape($field) {
-        // Si le champ est null ou vide, retourner une chaîne vide
-        if ($field === null || $field === '') {
-            return '';
-        }
-        
-        // Convertir en chaîne si ce n'est pas déjà le cas
-        $field = (string)$field;
-        
-        // Si le champ contient un point-virgule, un guillemet double, ou un retour à la ligne
-        // il doit être encadré de guillemets doubles
-        if (strpos($field, ';') !== false || 
-            strpos($field, '"') !== false || 
-            strpos($field, "\n") !== false || 
-            strpos($field, "\r") !== false) {
-            
-            // Doubler les guillemets doubles existants (RFC 4180)
-            $field = str_replace('"', '""', $field);
-            
-            // Encadrer avec des guillemets doubles
-            return '"' . $field . '"';
-        }
-        
-        // Sinon, retourner le champ tel quel
-        return $field;
-    }
-
-    /**
      * Génère un extrait de compte sous Excel ou PDF
      *
      * @param unknown_type $compte
@@ -3013,16 +2973,18 @@ class Compta extends Gvv_Controller {
             $cp = $this->data['pilote_info']['cp'];
             $ville = $this->data['pilote_info']['ville'];
 
-            $str .= "$nom_club;; " . $this->data['pilote_name'] . "\n";
+            // Valeurs saisies (adresse multi-lignes...) encadrées si besoin,
+            // espace de tête compris pour que le guillemet ouvre bien le champ
+            $str .= "$nom_club;;" . csv_escape_cell(' ' . $this->data['pilote_name']) . "\n";
             // Add section name to CSV export if available
             if ($section) {
-                $str .= $this->lang->line("gvv_compta_label_section") . ":; " . $section['nom'] . ";;\n";
+                $str .= $this->lang->line("gvv_compta_label_section") . ":;" . csv_escape_cell(' ' . $section['nom']) . ";;\n";
             }
-            $str .= "$adresse_club;; " . $this->data['pilote_info']['madresse'] . "\n";
-            $str .= "$cp_club; $ville_club; " . sprintf("%05d", $cp) . "; $ville\n";
-            $str .= "$tel_club; $email_club; " . $this->data['pilote_info']['memail'] . "\n";
+            $str .= "$adresse_club;;" . csv_escape_cell(' ' . $this->data['pilote_info']['madresse']) . "\n";
+            $str .= "$cp_club; $ville_club; " . sprintf("%05d", $cp) . ";" . csv_escape_cell(" $ville") . "\n";
+            $str .= "$tel_club; $email_club;" . csv_escape_cell(' ' . $this->data['pilote_info']['memail']) . "\n";
         } else {
-            $str .= $this->lang->line("gvv_compta_compte") . "; " . $this->data['nom'] . "; " . $this->data['desc'] . "\n";
+            $str .= $this->lang->line("gvv_compta_compte") . ";" . csv_escape_cell(' ' . $this->data['nom']) . ";" . csv_escape_cell(' ' . $this->data['desc']) . "\n";
         }
 
         $str .= $this->lang->line("gvv_compta_label_balance_before") . "; " . $this->data['date_deb'] . ";";
@@ -3063,24 +3025,23 @@ class Compta extends Gvv_Controller {
                 $nom_compte = $row['nom_compte1'];
             }
 
-            $str .= date_db2ht($row['date_op']) . "; ";
+            $cells = array(date_db2ht($row['date_op']));
             if ($this->data['codec'] != 411) {
-                $str .= $code . "; ";
-                $str .= $this->csv_escape($nom_compte) . "; ";
+                $cells[] = $code;
+                $cells[] = $nom_compte;
             }
-            // Encadrer les champs texte avec des guillemets doubles selon RFC 4180
-            // pour gérer correctement les point-virgules et autres caractères spéciaux
-            $str .= $this->csv_escape($row['description']) . "; ";
-            $str .= $this->csv_escape($row['num_cheque']) . "; ";
+            $cells[] = $row['description'];
+            $cells[] = $row['num_cheque'];
             if ($this->data['codec'] == 411) {
-                $str .= $prix . "; ";
-                $str .= $quantite . "; ";
+                $cells[] = $prix;
+                $cells[] = $quantite;
             }
-            $str .= $debit . "; ";
-            $str .= $credit . "; ";
-            $solde_formatted = isset($row['solde']) ? number_format($row['solde'], 2, ",", "") : '';
-            $str .= $solde_formatted . "; ";
-            $str .= "\n";
+            $cells[] = $debit;
+            $cells[] = $credit;
+            $cells[] = isset($row['solde']) ? number_format($row['solde'], 2, ",", "") : '';
+            // Encadrement RFC 4180 des champs texte (description multi-lignes,
+            // point-virgules...), espace de tête compris : cf. csv_spaced_line()
+            $str .= csv_spaced_line($cells);
         }
 
         // Solde

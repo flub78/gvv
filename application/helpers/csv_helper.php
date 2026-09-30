@@ -36,6 +36,53 @@ if (!function_exists('pdf_filename')) {
     }
 }
 
+if (!function_exists('csv_escape_cell')) {
+
+    /**
+     * Encadre une valeur CSV selon la RFC 4180 si elle contient le séparateur
+     * (point-virgule), un guillemet ou un saut de ligne ; sinon la renvoie
+     * inchangée. Sans cela, une description multi-lignes coupe
+     * l'enregistrement en plusieurs lignes à l'import dans un tableur.
+     *
+     * Le guillemet n'ouvre un champ encadré que s'il en est le premier
+     * caractère : la valeur passée doit donc inclure un éventuel espace de
+     * tête (cf. csv_spaced_line()).
+     *
+     * @param mixed $cell Valeur déjà formatée
+     * @return string
+     */
+    function csv_escape_cell($cell) {
+        $cell = (string) $cell;
+        if (preg_match('/[;"\r\n]/', $cell)) {
+            return '"' . str_replace('"', '""', $cell) . '"';
+        }
+        return $cell;
+    }
+}
+
+if (!function_exists('csv_spaced_line')) {
+
+    /**
+     * Ligne CSV au format historique de GVV "a; b; c; " + saut de ligne.
+     * L'espace qui suit chaque séparateur fait partie de la valeur suivante :
+     * il est placé à l'intérieur des guillemets quand la valeur doit être
+     * encadrée. Les valeurs sans caractère spécial restent inchangées à
+     * l'octet près.
+     *
+     * @param array $cells Valeurs déjà formatées
+     * @return string
+     */
+    function csv_spaced_line($cells) {
+        $line = '';
+        $first = true;
+        foreach ($cells as $cell) {
+            $line .= csv_escape_cell(($first ? '' : ' ') . $cell) . ';';
+            $first = false;
+        }
+        return $line . " \n";
+    }
+}
+
 if (!function_exists('csv_file')) {
 
     /**
@@ -62,18 +109,18 @@ if (!function_exists('csv_file')) {
 
         $str = "\xEF\xBB\xBF";
         if ($title)
-            $str .= $title . ";\n";
+            $str .= csv_escape_cell($title) . ";\n";
         foreach ($data as $row) {
             if ($header) {        // affichage des noms des champs sur la première ligne
                 foreach ($row as $key => $cell) {
-                    $str .= $key . ";";
+                    $str .= csv_escape_cell($key) . ";";
                 }
                 $str .= "\n";
                 $header = False;
             }
             foreach ($row as $cell) {
                 $formatted_cell = is_numeric($cell) ? str_replace('.', ',', $cell) : $cell;
-                $str .= $formatted_cell . ";";
+                $str .= csv_escape_cell($formatted_cell) . ";";
             }
             $str .= "\n";
         }

@@ -191,18 +191,14 @@ class Reports extends Gvv_Controller {
      */
     private function gen_csv($request, $title, $data, $fields) {
         $res = "";
-        $res .= "$title\n";
+        $res .= csv_escape_cell($title) . "\n";
 
-        foreach ($fields as $field) {
-            $res .= "$field; ";
-        }
-        $res .= "\n";
+        // csv_spaced_line() (csv_helper) : format "a; b; " historique, valeurs
+        // multi-lignes ou contenant ; ou " encadrées
+        $res .= csv_spaced_line($fields);
 
         foreach ($data as $row) {
-            foreach ($row as $elt) {
-                $res .= "$elt; ";
-            }
-            $res .= "\n";
+            $res .= csv_spaced_line($row);
         }
 
         date_default_timezone_set('Europe/Paris');
