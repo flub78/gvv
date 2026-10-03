@@ -7,8 +7,9 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  * Logique métier pure, sans dépendance au framework CI.
  *
  * Règles :
- *   - admin / planchiste       : toutes les catégories
- *   - instructeur              : Standard, VD, Essai, Propriétaire, PO, BIA, Convoyage, Standardisation, Solo supervisé, DC
+ *   - admin / planchiste       : toutes les catégories sauf Vol d'essai
+ *   - Vol d'essai              : réservé à club_admin et mecano
+ *   - instructeur              : Standard, VD, Propriétaire, PO, BIA, Convoyage, Standardisation, Solo supervisé, DC
  *   - pilote_vd                : Standard, VD, PO, BIA, Solo supervisé, DC
  *   - pilote_rem               : Standard, Remorquage, Convoyage, Solo supervisé, DC (JS filtre selon machine)
  *   - propriétaire de machine  : Standard, Vol propriétaire (JS filtre selon machine)
@@ -16,7 +17,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *   - auto_planchiste seul     : Standard, Solo supervisé, DC
  *
  * @param array $all   Tableau complet [int => string] (config categories_vol_avion)
- * @param array $roles Drapeaux booléens : admin, planchiste, instructeur,
+ * @param array $roles Drapeaux booléens : admin, club_admin, planchiste, instructeur,
  *                     pilote_vd, pilote_rem, auto_planchiste, owns_machine, mecano
  * @return array       Sous-tableau des catégories autorisées (clés préservées)
  */
@@ -24,6 +25,7 @@ function compute_vols_avion_categories(array $all, array $roles)
 {
     $r = array_merge(array(
         'admin'           => false,
+        'club_admin'      => false,
         'planchiste'      => false,
         'instructeur'     => false,
         'pilote_vd'       => false,
@@ -33,8 +35,14 @@ function compute_vols_avion_categories(array $all, array $roles)
         'mecano'          => false,
     ), $roles);
 
-    if ($r['admin'] || $r['planchiste']) {
-        return $all;
+    $can_essai = $r['club_admin'] || $r['mecano'];
+
+    if ($r['admin'] || $r['planchiste'] || $r['club_admin']) {
+        $allowed = $all;
+        if (!$can_essai) {
+            unset($allowed[2]);
+        }
+        return $allowed;
     }
 
     $allowed = array();
@@ -57,8 +65,8 @@ function compute_vols_avion_categories(array $all, array $roles)
         $allowed[6] = $all[6];
     }
 
-    // Vol d'essai (2)
-    if ($r['instructeur'] || $r['mecano']) {
+    // Vol d'essai (2) : club_admin et mecano uniquement
+    if ($can_essai) {
         $allowed[2] = $all[2];
     }
 

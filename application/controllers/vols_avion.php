@@ -263,6 +263,16 @@ class Vols_avion extends Gvv_Controller {
 
         // Catégories de vol filtrées selon le rôle
         $allowed = $this->get_allowed_categories();
+        // En modification, conserver la catégorie actuelle du vol même si l'utilisateur
+        // ne peut pas la choisir (ex. planchiste sur un vol d'essai) : sinon le select
+        // basculerait silencieusement sur une autre catégorie.
+        $current_cat = isset($this->data['vacategorie']) ? $this->data['vacategorie'] : '';
+        $all_cats = $this->config->item('categories_vol_avion');
+        if ($action != CREATION && $current_cat !== '' && $current_cat !== null
+            && !array_key_exists((int)$current_cat, $allowed) && isset($all_cats[(int)$current_cat])) {
+            $allowed[(int)$current_cat] = $all_cats[(int)$current_cat];
+            ksort($allowed);
+        }
         $this->gvvmetadata->field['volsa']['vacategorie']['Enumerate'] = $allowed;
 
         // Données JS pour le filtrage dynamique (machine → proprio, remorqueur)
@@ -281,7 +291,8 @@ class Vols_avion extends Gvv_Controller {
     /**
      * Retourne la liste filtrée des catégories de vol accessibles à l'utilisateur connecté.
      * - planchiste / club-admin / ca / bureau : toutes les catégories
-     * - instructeur : Standard, VD, Essai, Propriétaire, PO, BIA
+     *   (Vol d'essai réservé à club-admin et mecano)
+     * - instructeur : Standard, VD, Propriétaire, PO, BIA
      * - pilote_vd   : Standard, VD, PO, BIA
      * - pilote_rem  : Standard, Remorquage (JS contrôle la visibilité selon la machine)
      * - proprio     : Standard + Propriétaire (JS contrôle selon la machine)
@@ -301,6 +312,7 @@ class Vols_avion extends Gvv_Controller {
         $this->load->helper('vols_avion_categories');
         return compute_vols_avion_categories($all, array(
             'admin'           => $is_admin,
+            'club_admin'      => $this->user_has_role('club-admin'),
             'planchiste'      => $this->user_has_role('planchiste'),
             'instructeur'     => $this->user_has_role('instructeur'),
             'pilote_vd'       => $this->user_has_role('pilote_vd'),
@@ -436,8 +448,7 @@ class Vols_avion extends Gvv_Controller {
         // Vérifier que la catégorie soumise est dans la liste autorisée
         $submitted_cat = $this->input->post('vacategorie');
         if ($submitted_cat !== false) {
-            $allowed = $this->get_allowed_categories();
-            if (!array_key_exists((int)$submitted_cat, $allowed)) {
+            if (!$this->categorie_access_allowed($submitted_cat)) {
                 $this->form_validation->set_rules('vacategorie', 'vacategorie',
                     'callback_valid_categorie_access');
             }
@@ -563,9 +574,26 @@ class Vols_avion extends Gvv_Controller {
         return true;
     }
 
+    /**
+     * Vrai si la catégorie fait partie des catégories autorisées, ou si c'est
+     * la catégorie déjà enregistrée du vol modifié (conservée sans changement).
+     */
+    private function categorie_access_allowed($value) {
+        if (array_key_exists((int)$value, $this->get_allowed_categories())) {
+            return true;
+        }
+        $vaid = intval($this->input->post('vaid'));
+        if ($vaid > 0) {
+            $flight = $this->gvv_model->get_by_id('vaid', $vaid);
+            if (!empty($flight) && (int)$flight['vacategorie'] === (int)$value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function valid_categorie_access($value) {
-        $allowed = $this->get_allowed_categories();
-        if (!array_key_exists((int)$value, $allowed)) {
+        if (!$this->categorie_access_allowed($value)) {
             $this->form_validation->set_message('valid_categorie_access',
                 $this->lang->line('gvv_vols_avion_error_categorie_access'));
             return false;

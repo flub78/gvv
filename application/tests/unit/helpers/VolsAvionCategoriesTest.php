@@ -11,7 +11,7 @@ require_once dirname(__DIR__, 3) . '/helpers/vols_avion_categories_helper.php';
  *
  *   Standard (0)          : auto_planchiste, instructeur, club_admin
  *   Vol de découverte (1) : instructeur, club_admin, pilote_vd
- *   Vol d'essai (2)       : instructeur, club_admin
+ *   Vol d'essai (2)       : club_admin, mecano uniquement
  *   Remorquage (3)        : pilote_rem (+ machine remorqueur côté JS)
  *   Vol propriétaire (4)  : instructeur, club_admin, propriétaire de la machine
  *   Vol porte ouverte (5) : instructeur, club_admin, pilote_vd
@@ -41,6 +41,8 @@ class VolsAvionCategoriesTest extends TestCase
     {
         return array_merge(array(
             'admin'           => false,
+            'club_admin'      => false,
+            'mecano'          => false,
             'planchiste'      => false,
             'instructeur'     => false,
             'pilote_vd'       => false,
@@ -84,7 +86,7 @@ class VolsAvionCategoriesTest extends TestCase
         $result = $this->compute($this->roles(['instructeur' => true]));
         $this->assertArrayHasKey(0, $result, 'Standard');
         $this->assertArrayHasKey(1, $result, 'Vol de découverte');
-        $this->assertArrayHasKey(2, $result, "Vol d'essai");
+        $this->assertArrayNotHasKey(2, $result, "Vol d'essai interdit");
         $this->assertArrayNotHasKey(3, $result, 'Remorquage interdit');
         $this->assertArrayHasKey(4, $result, 'Vol propriétaire');
         $this->assertArrayHasKey(5, $result, 'Vol porte ouverte');
@@ -96,12 +98,35 @@ class VolsAvionCategoriesTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // club_admin (drapeau admin)
+    // admin (ca, bureau) et club_admin
     // ------------------------------------------------------------------
 
-    public function test_admin_gets_all_categories()
+    public function test_admin_gets_all_categories_except_essai()
     {
         $result = $this->compute($this->roles(['admin' => true]));
+        $expected = array_values(array_diff(array_keys(self::$all), [2]));
+        $this->assertSame($expected, array_keys($result));
+    }
+
+    public function test_club_admin_gets_all_categories()
+    {
+        $result = $this->compute($this->roles(['admin' => true, 'club_admin' => true]));
+        $this->assertSame(array_keys(self::$all), array_keys($result));
+    }
+
+    // ------------------------------------------------------------------
+    // mecano
+    // ------------------------------------------------------------------
+
+    public function test_mecano_only_essai()
+    {
+        $result = $this->compute($this->roles(['mecano' => true]));
+        $this->assertSame([2], array_keys($result));
+    }
+
+    public function test_planchiste_mecano_gets_all_categories()
+    {
+        $result = $this->compute($this->roles(['planchiste' => true, 'mecano' => true]));
         $this->assertSame(array_keys(self::$all), array_keys($result));
     }
 
@@ -109,10 +134,11 @@ class VolsAvionCategoriesTest extends TestCase
     // planchiste
     // ------------------------------------------------------------------
 
-    public function test_planchiste_gets_all_categories()
+    public function test_planchiste_gets_all_categories_except_essai()
     {
         $result = $this->compute($this->roles(['planchiste' => true]));
-        $this->assertSame(array_keys(self::$all), array_keys($result));
+        $expected = array_values(array_diff(array_keys(self::$all), [2]));
+        $this->assertSame($expected, array_keys($result));
     }
 
     // ------------------------------------------------------------------
