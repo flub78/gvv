@@ -51,12 +51,13 @@ echo '<div class="mb-3">'
     . '</div>';
 
 echo $this->gvvmetadata->table("vue_terrains", $attrs, "");
-/*
+
+// Export buttons
 $bar = array(
-	array('label' => "CSV", 'url' =>"$controller/export/csv", 'role' => 'ca'),
-	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
-	);
+    array('label' => "CSV", 'url' => "$controller/export/csv", 'role' => 'ca'),
+    array('label' => "Xlsx", 'url' => "$controller/export/xlsx", 'role' => 'ca'),
+    array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
+);
 echo button_bar4($bar);
-*/
 
 echo '</div>';

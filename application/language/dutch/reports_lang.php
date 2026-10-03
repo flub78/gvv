@@ -15,6 +15,7 @@ $lang['gvv_reports_field_align'] = "Uitlijning kolommen";
 $lang['gvv_reports_field_width'] = "Breedte kolommen PDF";
 $lang['gvv_reports_field_landscape'] = "Orientatie PDF in landschap";
 $lang['gvv_reports_field_sql'] = "SQL query";
+$lang['gvv_reports_error_sql'] = "Rapport « %s » kon niet worden uitgevoerd: de SQL-query is mislukt.";
 
 $lang['gvv_vue_reports_short_field_nom'] = "Naam";
 $lang['gvv_vue_reports_short_field_titre'] = "Titel";

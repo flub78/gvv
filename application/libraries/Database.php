@@ -418,9 +418,10 @@ class Database {
 					// de s'exécuter. Mais on ne doit plus jamais rester silencieux dessus
 					// (c'est exactement ce qui a produit des restaurations partielles
 					// non détectées).
-					$db_error = $this->CI->db->error();
-					$errors[] = $db_error['message'];
-					gvv_error("Database::sql(): requête échouée (" . $db_error['message'] . ") -- " . substr(trim($req), 0, 300));
+					// API CodeIgniter 2 : db->error() n'existe qu'à partir de CI 3
+					$db_error = $this->CI->db->_error_message();
+					$errors[] = $db_error;
+					gvv_error("Database::sql(): requête échouée (" . $db_error . ") -- " . substr(trim($req), 0, 300));
 					continue;
 				}
 				if ($return_result && $res instanceof CI_DB_result)
@@ -428,7 +429,7 @@ class Database {
 			}
 		}
 		if (!empty($errors)) {
-			throw new Exception(count($errors) . " requête(s) SQL en échec pendant l'import. Première erreur : " . $errors[0]);
+			throw new Exception(count($errors) . " requête(s) SQL en échec. Première erreur : " . $errors[0]);
 		}
 		return $all_results;
 	}

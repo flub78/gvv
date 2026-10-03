@@ -27,6 +27,7 @@ const LIST_PAGES = [
   { name: 'avions', page: '/index.php/avion/page', link: 'avion/export/xlsx' },
   { name: 'planeurs', page: '/index.php/planeur/page', link: 'planeur/export/xlsx' },
   { name: 'sections', page: '/index.php/sections/page', link: 'sections/export/xlsx' },
+  { name: 'terrains', page: '/index.php/terrains/page', link: 'terrains/export/xlsx' },
   { name: 'plan comptable', page: '/index.php/plan_comptable/page', link: 'plan_comptable/export/xlsx' },
   { name: 'vols de découverte', page: '/index.php/vols_decouverte/page', link: 'vols_decouverte/export/xlsx' },
   { name: 'membres', page: '/index.php/membre/page', link: 'membre/export/xlsx' },

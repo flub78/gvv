@@ -22,12 +22,11 @@
  * @package vues
  */
 
-$this->load->view('header');
-$this->load->view('banner');
-$this->load->view('sidebar');
-$this->load->view('menu');
+$this->load->view('bs_header');
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
 
-echo '<div id="body" class="body ui-widget-content">';
+echo '<div id="body" class="body container-fluid">';
 
 echo heading("Liste des licenciés", 3);
 
@@ -36,13 +35,14 @@ $attrs = array(
     'actions' => array ('edit', 'delete'),
     'fields' => array('mnom', 'mprenom', 'madresse', 'cp', 'ville'),
     'mode' => ($has_modification_rights) ? "rw" : "ro",
-    'class' => "datatable",
+    'class' => "datatable table table-striped",
     'numbered' => 1);
 
 echo $this->gvvmetadata->table("membres", $attrs);
 
 $bar = array(
 	array('label' => "CSV", 'url' =>"$controller/export/csv", 'role' => 'ca'),
+	array('label' => "Xlsx", 'url' =>"$controller/export/xlsx", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
 	);
 echo button_bar4($bar);

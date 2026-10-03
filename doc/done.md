@@ -274,3 +274,5 @@
 * [x] Unifier les erreurs de validation
 
 * [x] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
+
+* [x] Ajout de vrais export excel en sus des csv.

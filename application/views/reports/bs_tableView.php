@@ -31,6 +31,7 @@ $this->lang->load('reports');
 echo '<div id="body" class="body container-fluid">';
 
 echo heading("gvv_reports_title_list", 3);
+echo render_flash($this->session);
 echo form_hidden('controller_url', controller_url($controller), '"id"="controller_url"');
 
 $attrs = array(

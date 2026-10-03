@@ -185,9 +185,11 @@ class Comptes_model extends Common_Model {
             $this->db->where('masked', 1);
         }
 
+        // club puis id départagent les comptes de même codec et même nom
+        // (un par section), sans quoi leur ordre varie d'un appel à l'autre
         $result = $this->db->
             // ->limit($nb, $debut)
-            order_by('codec, nom')->get()->result_array();
+            order_by('codec, nom, club, id')->get()->result_array();
 
         $balance_date = date_ht2db($date);
 

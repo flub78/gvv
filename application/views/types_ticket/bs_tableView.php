@@ -42,13 +42,6 @@ $attrs = array(
 
 echo $this->gvvmetadata->table("vue_type_ticket", $attrs, "");
 
-/*
-$bar = array(
-	array('label' => "CSV", 'url' =>"$controller/ventes_csv/$year", 'role' => 'ca'),
-	array('label' => "Pdf", 'url' => controller_url("rapports/ventes"), 'role' => 'ca'),
-	);
-echo button_bar4($bar);
-*/
 
 echo '</div>';
 
