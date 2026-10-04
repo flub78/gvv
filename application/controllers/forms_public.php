@@ -109,6 +109,31 @@ class Forms_public extends CI_Controller {
             $current_page_number = (int) $current_page['page_number'];
         }
 
+        $session_key_pilot        = 'forms_gvv_pilot_'      . md5($slug);
+        $session_key_instructor   = 'forms_gvv_instructor_'  . md5($slug);
+        $session_key_machine      = 'forms_gvv_machine_'     . md5($slug);
+        $session_key_b_prefill    = 'forms_b_prefill_'       . md5($slug);
+        $session_key_b_lock       = 'forms_b_lock_'           . md5($slug);
+        $session_key_subject_type = 'forms_subject_type_'     . md5($slug);
+        $session_key_subject_id   = 'forms_subject_id_'       . md5($slug);
+        $session_key_link_token   = 'forms_link_token_'       . md5($slug);
+        $session_key_subform_tokens = 'forms_subform_tokens_' . md5($slug);
+
+        // Fresh open (URL without ?page=, i.e. not a navigation/validation redirect,
+        // which always carry one): forget the context left in session by a previous
+        // use of this form — subject reference, prefilled values, pilot/instructor/
+        // machine, sub-form token, pages accumulated by an abandoned attempt. Otherwise
+        // a form opened without parameters (e.g. from the dashboard) would be prefilled
+        // with the previous passenger and its submission attached to the previous subject.
+        if ($this->input->get('page') === false) {
+            foreach (array($session_key_pilot, $session_key_instructor, $session_key_machine,
+                           $session_key_b_prefill, $session_key_b_lock,
+                           $session_key_subject_type, $session_key_subject_id, $session_key_link_token,
+                           'forms_page_values_' . md5($slug), 'forms_page_files_' . md5($slug)) as $stale_key) {
+                $this->session->unset_userdata($stale_key);
+            }
+        }
+
         $fields = $this->forms_field_parser->parse_fields((string) $current_page['content_html']);
         $old_values     = $this->session->flashdata('forms_public_old_values') ?: array();
         $sig_canvas_data = $this->session->flashdata('forms_public_sig_canvas')  ?: array();
@@ -127,16 +152,6 @@ class Forms_public extends CI_Controller {
             $fields,
             $old_values
         );
-
-        $session_key_pilot        = 'forms_gvv_pilot_'      . md5($slug);
-        $session_key_instructor   = 'forms_gvv_instructor_'  . md5($slug);
-        $session_key_machine      = 'forms_gvv_machine_'     . md5($slug);
-        $session_key_b_prefill    = 'forms_b_prefill_'       . md5($slug);
-        $session_key_b_lock       = 'forms_b_lock_'           . md5($slug);
-        $session_key_subject_type = 'forms_subject_type_'     . md5($slug);
-        $session_key_subject_id   = 'forms_subject_id_'       . md5($slug);
-        $session_key_link_token   = 'forms_link_token_'       . md5($slug);
-        $session_key_subform_tokens = 'forms_subform_tokens_' . md5($slug);
 
         // Mechanism A — pilot/instructor login, machine registration
         $get_pilot      = trim((string) $this->input->get('pilot_login'));
@@ -542,7 +557,23 @@ class Forms_public extends CI_Controller {
                     @unlink($fp);
                 }
             }
-            $this->session->set_flashdata('forms_public_error', 'Impossible d\'enregistrer votre réponse pour le moment.');
+            $this->lang->load('forms');
+            $db_error = $this->form_submissions_model->last_error;
+            log_message('error', 'forms_public: submission failed for form "' . $slug . '" (subject '
+                . ($subject_type ?: '-') . '#' . ($subject_id ?: '-') . ', user agent '
+                . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '-') . '): '
+                . ($db_error ? $db_error['code'] . ' ' . $db_error['message'] : 'no SQL error recorded'));
+            if ($db_error) {
+                $error_message = sprintf($this->lang->line('forms_submit_error_db'), (int) $db_error['code']);
+                // Le détail SQL n'est montré qu'aux utilisateurs connectés (pilote qui fait
+                // remplir le briefing), pas aux visiteurs anonymes d'un formulaire public.
+                if ($this->dx_auth->is_logged_in() && $db_error['message'] !== '') {
+                    $error_message .= '<br><small>' . html_escape(sprintf($this->lang->line('forms_submit_error_detail'), $db_error['message'])) . '</small>';
+                }
+            } else {
+                $error_message = $this->lang->line('forms_submit_error_unknown');
+            }
+            $this->session->set_flashdata('forms_public_error', $error_message);
             $this->session->set_flashdata('forms_public_old_values', $submitted_values);
             redirect('forms/' . rawurlencode($slug) . '?page=' . (int) $page_number . $gvv_params);
             return;
@@ -615,13 +646,13 @@ class Forms_public extends CI_Controller {
 
         if (empty($form['allow_upload_response'])) {
             $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_disabled'));
-            redirect('forms/' . rawurlencode($slug));
+            redirect('forms/' . rawurlencode($slug) . '?page=1');
             return;
         }
 
         if (!isset($_FILES['upload_response_file']) || empty($_FILES['upload_response_file']['name'])) {
             $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_no_file'));
-            redirect('forms/' . rawurlencode($slug));
+            redirect('forms/' . rawurlencode($slug) . '?page=1');
             return;
         }
 
@@ -635,7 +666,7 @@ class Forms_public extends CI_Controller {
             umask($old_umask);
             if (!$created) {
                 $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_storage'));
-                redirect('forms/' . rawurlencode($slug));
+                redirect('forms/' . rawurlencode($slug) . '?page=1');
                 return;
             }
         }
@@ -651,7 +682,7 @@ class Forms_public extends CI_Controller {
 
         if (!$submission_id) {
             $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_generic'));
-            redirect('forms/' . rawurlencode($slug));
+            redirect('forms/' . rawurlencode($slug) . '?page=1');
             return;
         }
 
@@ -671,7 +702,7 @@ class Forms_public extends CI_Controller {
             $error = strip_tags($this->upload->display_errors('', ''));
             $this->form_submissions_model->delete_submission($submission_id);
             $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_file_type') . ' ' . $error);
-            redirect('forms/' . rawurlencode($slug));
+            redirect('forms/' . rawurlencode($slug) . '?page=1');
             return;
         }
 

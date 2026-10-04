@@ -106,6 +106,9 @@ $lang['forms_upload_error_no_file']       = 'Selecteer een bestand om te uploade
 $lang['forms_upload_error_storage']       = 'Kan de opslagmap niet voorbereiden.';
 $lang['forms_upload_error_generic']       = 'Uw reactie kan momenteel niet worden opgeslagen.';
 $lang['forms_upload_error_file_type']     = 'Bestand geweigerd (toegestane formaten: PDF, JPG, PNG, GIF, WEBP).';
+$lang['forms_submit_error_db']            = 'Uw reactie kan niet worden opgeslagen: de database heeft de registratie geweigerd (code %s). Uw invoer is bewaard, u kunt het opnieuw proberen. Meld deze code aan de club als het probleem aanhoudt.';
+$lang['forms_submit_error_unknown']       = 'Uw reactie kan niet worden opgeslagen: onverwachte fout bij het opslaan. Uw invoer is bewaard, u kunt het opnieuw proberen. Meld het aan de club als het probleem aanhoudt.';
+$lang['forms_submit_error_detail']        = 'Technisch detail: %s';
 
 // Blank PDF template (Lot 16 / EF18)
 $lang['forms_title_pdf_template']         = 'Blanco formulier (PDF)';

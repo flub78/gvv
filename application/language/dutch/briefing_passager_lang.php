@@ -39,6 +39,9 @@ $lang['briefing_passager_select_vld']         = 'Selecteer een ontdekkingsvlucht
 
 $lang['briefing_passager_upload_success']     = 'Briefing succesvol opgeslagen.';
 $lang['briefing_passager_upload_error']       = 'Fout bij opslaan van de briefing.';
+$lang['briefing_passager_subject_missing']    = 'De briefing is opgeslagen (reactie nr. %d) maar kon niet aan de ontdekkingsvlucht worden gekoppeld: de vluchtreferentie ontbreekt of is ongeldig. Meld het reactienummer aan een beheerder.';
+$lang['briefing_passager_saved_without_vld']  = 'Briefing succesvol opgeslagen (reactie nr. %d). Hij is aan geen enkele ontdekkingsvlucht gekoppeld.';
+$lang['briefing_passager_vld_missing']        = 'De briefing is opgeslagen (reactie nr. %d) maar ontdekkingsvlucht nr. %d werd niet gevonden. Meld het reactienummer aan een beheerder.';
 $lang['briefing_passager_fields_required']    = 'De volgende velden zijn verplicht: %s';
 $lang['briefing_passager_already_exists']     = 'Er bestaat al een briefing voor deze vlucht. Wilt u die vervangen?';
 $lang['briefing_passager_confirm_delete']     = 'Weet u zeker dat u deze briefing wilt verwijderen?';

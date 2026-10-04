@@ -106,6 +106,9 @@ $lang['forms_upload_error_no_file']       = 'Please select a file to upload.';
 $lang['forms_upload_error_storage']       = 'Unable to prepare the storage directory.';
 $lang['forms_upload_error_generic']       = 'Unable to save your response at this time.';
 $lang['forms_upload_error_file_type']     = 'File rejected (accepted formats: PDF, JPG, PNG, GIF, WEBP).';
+$lang['forms_submit_error_db']            = 'Unable to save your response: the database rejected the record (code %s). Your input has been kept, you can try again. If the problem persists, report this code to the club.';
+$lang['forms_submit_error_unknown']       = 'Unable to save your response: unexpected error while saving. Your input has been kept, you can try again. If the problem persists, report it to the club.';
+$lang['forms_submit_error_detail']        = 'Technical detail: %s';
 
 // Blank PDF template (Lot 16 / EF18)
 $lang['forms_title_pdf_template']         = 'Blank form (PDF)';

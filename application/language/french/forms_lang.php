@@ -106,6 +106,9 @@ $lang['forms_upload_error_no_file']       = 'Veuillez sélectionner un fichier �
 $lang['forms_upload_error_storage']       = 'Impossible de préparer le répertoire de stockage.';
 $lang['forms_upload_error_generic']       = 'Impossible d\'enregistrer votre réponse pour le moment.';
 $lang['forms_upload_error_file_type']     = 'Fichier refusé (formats acceptés : PDF, JPG, PNG, GIF, WEBP).';
+$lang['forms_submit_error_db']            = 'Impossible d\'enregistrer votre réponse : la base de données a refusé l\'enregistrement (code %s). Vos saisies ont été conservées, vous pouvez réessayer. Si le problème persiste, signalez ce code au club.';
+$lang['forms_submit_error_unknown']       = 'Impossible d\'enregistrer votre réponse : erreur inattendue lors de l\'enregistrement. Vos saisies ont été conservées, vous pouvez réessayer. Si le problème persiste, signalez-le au club.';
+$lang['forms_submit_error_detail']        = 'Détail technique : %s';
 
 // Blank PDF template (Lot 16 / EF18)
 $lang['forms_title_pdf_template']         = 'Formulaire vierge (PDF)';
