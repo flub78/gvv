@@ -21,6 +21,7 @@ const MY_DOCS_URL = '/index.php/archived_documents/my_documents';
 const ADMIN_LIST_URL = '/index.php/archived_documents/page';
 const EXPIRED_URL = '/index.php/archived_documents/page?filter=expired';
 const CREATE_PILOT_URL = '/index.php/archived_documents/create_pilot';
+const CREATE_URL = '/index.php/archived_documents/create';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const PILOT_USER = { username: 'testuser', password: 'password' };
@@ -104,6 +105,44 @@ test.describe('Archived Documents Smoke Tests', () => {
     await expect(typeSelect).toBeVisible();
 
     console.log('Pilot document creation form loaded successfully');
+  });
+
+  // Regression: Chromium browsers could not read a file dropped from the Linux
+  // file manager (Nemo, via the document portal) and failed at submit time with
+  // ERR_FILE_NOT_FOUND. The drop zone now copies the file into memory at drop
+  // time and shows an alert if it cannot be read.
+  test('dropped file is copied into the input, unreadable drop shows an alert', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await page.goto(CREATE_URL);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    const dropped = await page.evaluate(async () => {
+      const zone = document.getElementById('drop-zone-userfile');
+      const file = new File(['abc'], 'Capture d\u2019\u00e9cran.png', { type: 'image/png' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      zone.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+      await new Promise(r => setTimeout(r, 200));
+      const f = document.getElementById('userfile').files[0];
+      return { name: f && f.name, size: f && f.size, copied: f !== file,
+               label: document.getElementById('filename-userfile').textContent };
+    });
+    expect(dropped).toEqual({ name: 'Capture d\u2019\u00e9cran.png', size: 3, copied: true,
+                              label: 'Capture d\u2019\u00e9cran.png' });
+    await expect(page.locator('.gvv-drop-file-error')).toHaveCount(0);
+
+    // Simulate a file the browser cannot read
+    await page.evaluate(async () => {
+      const zone = document.getElementById('drop-zone-userfile');
+      const input = document.getElementById('userfile');
+      const file = new File(['abc'], 'unreadable.png', { type: 'image/png' });
+      file.arrayBuffer = () => Promise.reject(new Error('NotFoundError'));
+      await gvvDropFile(file, input, zone, 'unreadable');
+    });
+    await expect(page.locator('.gvv-drop-file-error')).toHaveCount(1);
+    await expect(page.locator('.gvv-drop-file-error')).toContainText('unreadable.png');
+    expect(await page.evaluate(() => document.getElementById('userfile').files.length)).toBe(0);
   });
 
   test('pilot can access their own documents page', async ({ page }) => {

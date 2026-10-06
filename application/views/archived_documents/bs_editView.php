@@ -174,6 +174,7 @@ $this->lang->load('archived_documents');
 }
 </style>
 
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
 <script>
 function initDropZone(inputId) {
     var input = document.getElementById(inputId);
@@ -210,10 +211,11 @@ function initDropZone(inputId) {
     zone.addEventListener('drop', function (e) {
         e.preventDefault();
         zone.classList.remove('drag-over');
-        var dt = e.dataTransfer;
-        if (dt.files.length > 0) {
-            input.files = dt.files;
-            updateFilename(dt.files);
+        var file = e.dataTransfer.files[0];
+        if (file) {
+            gvvDropFile(file, input, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+                if (copy) updateFilename(input.files);
+            });
         }
     });
 }

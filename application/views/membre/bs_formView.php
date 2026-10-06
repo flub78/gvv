@@ -529,6 +529,7 @@ echo '</div>';
 }
 </style>
 
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var fileInput = document.getElementById('fileInput');
@@ -595,10 +596,11 @@ document.addEventListener('DOMContentLoaded', function () {
     zone.addEventListener('drop', function (e) {
         e.preventDefault();
         zone.classList.remove('drag-over');
-        var dt = e.dataTransfer;
-        if (dt.files.length > 0) {
-            fileInput.files = dt.files;
-            updatePreview(dt.files[0]);
+        var file = e.dataTransfer.files[0];
+        if (file) {
+            gvvDropFile(file, fileInput, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+                if (copy) updatePreview(copy);
+            });
         }
     });
 });

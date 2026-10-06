@@ -86,6 +86,7 @@ $this->lang->load('attachments');
 }
 </style>
 
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('input[type="file"]').forEach(function (input) {
@@ -159,10 +160,11 @@ document.addEventListener('DOMContentLoaded', function () {
         zone.addEventListener('drop', function (e) {
             e.preventDefault();
             zone.classList.remove('drag-over');
-            var dt = e.dataTransfer;
-            if (dt.files.length > 0) {
-                newInput.files = dt.files;
-                updateFilename(dt.files);
+            var file = e.dataTransfer.files[0];
+            if (file) {
+                gvvDropFile(file, newInput, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+                    if (copy) updateFilename(newInput.files);
+                });
             }
         });
     });
