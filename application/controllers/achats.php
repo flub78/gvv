@@ -118,8 +118,13 @@ class Achats extends Gvv_Controller {
      *            identifiant à modifier
      */
     function edit($id = "", $load_view = TRUE, $action = MODIFICATION) {
-        $action = (count($this->ecritures_model->select_frozen_lines($id))) ? VISUALISATION : MODIFICATION;
+        $locked = count($this->ecritures_model->select_frozen_lines($id)) > 0;
+        $action = $locked ? VISUALISATION : MODIFICATION;
         parent::edit($id, FALSE, $action);
+        if ($locked) {
+            $this->lang->load('compta');
+            $this->data['message'] = lock_alert($this->lang->line('gvv_compta_billing_locked_readonly'));
+        }
         $this->data['date'] = date_db2ht($this->data['date']);
 
         if (isset($this->data['vol_avion'])) {
@@ -204,6 +209,9 @@ class Achats extends Gvv_Controller {
      *            tableau des champs de l'enregistrement
      */
     function pre_update($id, &$data = array()) {
+        // Refus avant de toucher aux tickets si la facturation touche une période clôturée
+        $this->gvv_model->check_billing_modifiable(array('id' => $data[$id]), $data['date']);
+
         // cancel previous action
         $previous = $this->gvv_model->get_by_id('id', $data[$id]);
 

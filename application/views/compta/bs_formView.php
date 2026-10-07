@@ -33,7 +33,12 @@ echo '<div id="body" class="body container-fluid">';
 echo checkalert($this->session, isset($popup) ? $popup : "");
 
 ?>
-<h3><?= $title ?></h3>
+<?php $inverse = isset($inverse) ? (int) $inverse : 0; ?>
+<h3><?= $title ?>
+    <span id="badge_inverse" class="badge bg-warning text-dark ms-2"<?= $inverse ? '' : ' style="display:none"' ?>>
+        <i class="fas fa-arrows-alt-v"></i> <?= $this->lang->line('gvv_compta_badge_inverted') ?>
+    </span>
+</h3>
 
 <?php if (isset($ran_mode_enabled) && $ran_mode_enabled): ?>
 <div class="alert alert-danger border border-danger" role="alert">
@@ -79,6 +84,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
         echo form_hidden('date_creation', $date_creation);
         echo form_hidden('title_key', $title_key);
         echo form_hidden('categorie', 0);
+        echo '<input type="hidden" name="inverse" id="inverse" value="' . $inverse . '">';
 
         // Store account selection filters to preserve them during validation errors
         if (isset($emploi_selection)) {
@@ -101,12 +107,19 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
             'gel' => $gel
         )));
 
+        // Bouton d'inversion des comptes (création uniquement), placé sous le compte
+        // de crédit par le script ci-dessous
+        if ($action == CREATION && (!isset($errors) || !$errors)) {
+            echo '<button type="button" id="btn_inverse" class="btn btn-sm btn-outline-secondary"'
+                . ' title="' . $this->lang->line('gvv_compta_button_invert_title') . '">'
+                . '<i class="fas fa-arrows-alt-v"></i> ' . $this->lang->line('gvv_compta_button_invert')
+                . '</button>';
+        }
+
         if (!isset($errors) || !$errors) {
             if (isset($frozen_message) && $frozen_message) {
                 // Show disabled button with message for frozen lines
-                echo '<div class="alert alert-warning mt-3" role="alert">';
-                echo '<i class="bi bi-lock-fill"></i> ' . $frozen_message;
-                echo '</div>';
+                echo lock_alert($frozen_message, 'mt-3');
                 echo '<button type="submit" class="btn btn-primary mt-3" disabled>';
                 echo $this->lang->line("gvv_button_validate");
                 echo '</button>';
@@ -209,6 +222,30 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
 
 <script>
 $(document).ready(function() {
+    // Place le bouton d'inversion sur une ligne juste sous le compte de crédit
+    var $compte2Row = $('select[name="compte2"]').closest('tr');
+    if ($('#btn_inverse').length && $compte2Row.length) {
+        var $cell = $('<td></td>').append($('#btn_inverse'));
+        $compte2Row.after($('<tr></tr>').append('<td></td>', $cell));
+    }
+
+    // Inversion des comptes de débit et de crédit : échange des listes et des
+    // sélections. Deux appuis successifs reviennent à l'état initial.
+    $('#btn_inverse').on('click', function() {
+        var $c1 = $('select[name="compte1"]');
+        var $c2 = $('select[name="compte2"]');
+        var v1 = $c1.val();
+        var v2 = $c2.val();
+        var options1 = $c1.children().detach();
+        var options2 = $c2.children().detach();
+        $c1.append(options2).val(v2).trigger('change');
+        $c2.append(options1).val(v1).trigger('change');
+
+        var inverse = $('#inverse').val() === '1' ? '0' : '1';
+        $('#inverse').val(inverse);
+        $('#badge_inverse').toggle(inverse === '1');
+    });
+
     var uploadedFiles = {};
 
     // PRD CA1.9: Restore pending attachments from session (on validation error)

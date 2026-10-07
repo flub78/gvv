@@ -777,7 +777,12 @@ class Vols_avion extends Gvv_Controller {
             }
         }
 
+        // Facturation gelée ou dans une période clôturée : consultation uniquement
         $this->load->model('ecritures_model');
+        $locked = count($this->ecritures_model->select_flight_frozen_lines($id, "vol_avion")) > 0;
+        if ($locked) {
+            $action = VISUALISATION;
+        }
         if ($bypass_modification_level) {
             // Temporarily clear modification_level so ensure_modification_rights() in parent::edit()
             // skips the planchiste check — ownership was already verified above.
@@ -787,6 +792,10 @@ class Vols_avion extends Gvv_Controller {
             $this->modification_level = $saved_level;
         } else {
             parent::edit($id, FALSE, $action);
+        }
+        if ($locked) {
+            $this->lang->load('compta');
+            $this->data['message'] = lock_alert($this->lang->line('gvv_compta_billing_locked_readonly'));
         }
         
         // Convert member ID to account ID for payeur field (for form display)

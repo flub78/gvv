@@ -536,6 +536,10 @@ class Vols_avion_model extends Common_Model {
      * @return bool Le résultat de la requête
      */
     public function update($keyid, $data, $keyvalue = '') {
+        // Refus avant toute modification si la facturation touche une période clôturée
+        $this->load->model('achats_model');
+        $this->achats_model->check_billing_modifiable(array('vol_avion' => $data[$keyid]), $data['vadate']);
+
         $this->inject_audit_fields($data, FALSE);
         // detruit les lignes d'achat correspondante
         $this->delete_facture($data[$keyid]);

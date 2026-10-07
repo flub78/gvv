@@ -121,5 +121,7 @@ $lang['gvv_vd_quota_erreur_post']         = "Cette section n'accepte plus de nou
 $lang['gvv_vd_date_vol_future']           = "Entrez la date où le vol a été effectué. Ce n'est pas une date de planification";
 $lang['gvv_vd_button_create_and_debit']   = "Créer et débiter";
 $lang['gvv_vd_error_no_compte_411']       = "Vous n'avez pas de compte client (411) dans cette section. Contactez le trésorier pour en faire créer un avant de pouvoir créer et débiter un vol de découverte.";
+$lang['gvv_vd_error_date_vente_into_closed'] = "La date de vente est antérieure ou égale à la date de gel (%s) : la période est clôturée.";
+$lang['gvv_vd_error_date_vente_from_closed'] = "La date de vente ne peut pas être modifiée : le bon a été vendu dans une période clôturée (date de gel : %s).";
 $lang['gvv_vd_public_contact_us']        = "Pour toute question, contactez-nous :";
 $lang['gvv_vd_public_no_section_available'] = "Le service d'achat de vols de découverte en ligne n'est pas disponible en ce moment.";

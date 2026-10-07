@@ -71,6 +71,7 @@ if ($modification_type == 'edit') {
 				<div class="col-md-6 mb-3">
 					<label for="date_vente" class="form-label"><?php echo $this->lang->line('gvv_vols_decouverte_field_date_vente'); ?></label>
 					<?php echo $this->gvvmetadata->input_field('vols_decouverte', 'date_vente', $date_vente, 'modification'); ?>
+					<?php echo form_error('date_vente', '<div class="text-danger">', '</div>'); ?>
 				</div>
 				<div class="col-md-6 mb-3">
 					<label for="date_validite" class="form-label"><?php echo $this->lang->line('gvv_vols_decouverte_field_date_validite') ?: 'Date de validité'; ?></label>

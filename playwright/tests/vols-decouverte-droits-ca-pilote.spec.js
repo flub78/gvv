@@ -28,6 +28,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { deleteTestVds } = require('./helpers/vdCleanup');
 
 const VD_LIST_URL   = '/index.php/vols_decouverte/page';
 const VD_CREATE_URL = '/index.php/vols_decouverte/create';
@@ -67,12 +68,19 @@ test.describe('VD — trois niveaux de droits', () => {
     let vdPreFlightUrlPlaneur;
     let vdDoneUrlPlaneur;
 
+    let benefPrefixes = [];
+
+    test.afterAll(async () => {
+        await deleteTestVds(benefPrefixes);
+    });
+
     test.beforeAll(async ({ browser }) => {
         // --- VD section Avion créé par goudurix (trésorier) ---
         const pageAvion = await browser.newPage();
         await loginAs(pageAvion, 'goudurix', AVION_SECTION);
 
         const ts = Date.now();
+        benefPrefixes = [`PW DROITS AVION ${ts}`, `PW DROITS PLANEUR ${ts}`];
         const benefAvion = `PW DROITS AVION ${ts}`;
 
         await pageAvion.goto(VD_CREATE_URL);

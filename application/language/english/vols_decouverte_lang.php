@@ -121,5 +121,7 @@ $lang['gvv_vd_quota_erreur_post']         = "This section is no longer accepting
 $lang['gvv_vd_date_vol_future']           = "Enter the date the flight was performed. This is not a planning date";
 $lang['gvv_vd_button_create_and_debit']   = "Create and debit";
 $lang['gvv_vd_error_no_compte_411']       = "You do not have a client account (411) in this section. Contact the treasurer to have one created before you can create and debit a discovery flight.";
+$lang['gvv_vd_error_date_vente_into_closed'] = "The sale date is on or before the freeze date (%s): the period is closed.";
+$lang['gvv_vd_error_date_vente_from_closed'] = "The sale date cannot be changed: the voucher was sold in a closed period (freeze date: %s).";
 $lang['gvv_vd_public_contact_us']        = "For any questions, contact us:";
 $lang['gvv_vd_public_no_section_available'] = "The online discovery flight booking service is not available at the moment.";

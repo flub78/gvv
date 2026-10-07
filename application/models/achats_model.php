@@ -215,6 +215,8 @@ class Achats_model extends Common_Model {
             $data['description'] = $product_info['description'];
         }
 
+        $this->check_billing_modifiable(array(), $data['date']);
+
         $this->db->trans_start();
 
         if (isset($data['format'])) {
@@ -266,11 +268,13 @@ class Achats_model extends Common_Model {
         if (empty($data['vol_avion'])) unset($data['vol_avion']);
         if (empty($data['mvt_pompe'])) unset($data['mvt_pompe']);
 
+        $this->check_billing_modifiable(array('id' => $data[$keyid]), $data['date']);
+
         // détruit la ligne d'écriture correspondante
         $this->load->model('ecritures_model');
-        $this->ecritures_model->delete_all(array(
-            'achat' => $data[$keyid]
-        ));
+        if (!$this->ecritures_model->delete_all(array('achat' => $data[$keyid]))) {
+            throw new Exception($this->lang->line('gvv_compta_error_billing_not_deleted'));
+        }
 
         // enregistre le prix unitaire du produit au moment de l'achat
         $produit = $data['produit'];
@@ -298,6 +302,51 @@ class Achats_model extends Common_Model {
         }
 
         $this->gen_ecriture($data);
+    }
+
+    /**
+     * Refuse (exception) toute opération de facturation qui toucherait une
+     * période clôturée : écriture liée aux achats sélectionnés gelée ou
+     * antérieure ou égale à la date de gel de sa section, ou nouvelle date de
+     * facturation antérieure ou égale à la date de gel de la section active
+     * (celle des écritures générées par gen_ecriture()).
+     *
+     * À appeler avant toute modification, pour ne rien laisser à moitié fait.
+     *
+     * @param array $where sélection des achats existants, array() pour une création
+     * @param string|null $new_date date de la nouvelle facturation, null pour une suppression
+     * @throws Exception
+     */
+    public function check_billing_modifiable($where = array(), $new_date = null) {
+        $this->load->model('clotures_model');
+        $this->lang->load('compta');
+
+        if (!empty($where)) {
+            $this->db->select('ecritures.date_op, ecritures.gel, ecritures.club')
+                ->from('ecritures')
+                ->join('achats', 'achats.id = ecritures.achat');
+            foreach ($where as $key => $value) {
+                $this->db->where('achats.' . $key, $value);
+            }
+            foreach ($this->db->get()->result_array() as $line) {
+                if ($line['gel']) {
+                    throw new Exception($this->lang->line('gvv_compta_error_billing_frozen'));
+                }
+                $freeze_date = $this->clotures_model->section_freeze_date($line['club']);
+                if (Clotures_model::date_is_closed($line['date_op'], $freeze_date)) {
+                    throw new Exception(sprintf($this->lang->line('gvv_compta_error_billing_closed'),
+                        date_db2ht($freeze_date)));
+                }
+            }
+        }
+
+        if ($new_date) {
+            $freeze_date = $this->clotures_model->section_freeze_date();
+            if (Clotures_model::date_is_closed($new_date, $freeze_date)) {
+                throw new Exception(sprintf($this->lang->line('gvv_compta_error_billing_new_date_closed'),
+                    date_db2ht(Clotures_model::db_date($new_date)), date_db2ht($freeze_date)));
+            }
+        }
     }
 
     /**
@@ -355,15 +404,17 @@ class Achats_model extends Common_Model {
         $username = $this->dx_auth->get_username();
         gvv_info("delete requested, table=" . $this->table . ", by=" . $username . ", where=" . json_encode($where));
 
-        // détruit les lignes d'écriture correspondante        
+        $this->check_billing_modifiable($where);
+
+        // détruit les lignes d'écriture correspondante
         $selection = $this->select_all($where);
         $this->load->model('ecritures_model');
         $this->load->model('tickets_model');
 
         foreach ($selection as $row) {
-            $this->ecritures_model->delete_all(array(
-                'achat' => $row['id']
-            ));
+            if (!$this->ecritures_model->delete_all(array('achat' => $row['id']))) {
+                throw new Exception($this->lang->line('gvv_compta_error_billing_not_deleted'));
+            }
             $this->tickets_model->delete_all(array(
                 'achat' => $row['id']
             ));

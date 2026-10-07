@@ -329,7 +329,7 @@ class Vols_planeur extends Gvv_Controller {
         $is_auto_planchiste = $this->user_has_role('auto_planchiste');
         $is_mecano = !$is_planchiste && $this->user_has_role('mecano');
         if (! $is_planchiste) {
-            $flight = $this->model->get_by_id('vpid', $id);
+            $flight = $this->gvv_model->get_by_id('vpid', $id);
             $mlogin = $this->dx_auth->get_username();
             $is_own_flight = (!empty($flight) && $flight['vppilid'] == $mlogin);
             if (! $is_own_flight) {
@@ -347,8 +347,17 @@ class Vols_planeur extends Gvv_Controller {
         }
         
         $this->load->model('ecritures_model');
-        $action = (count($this->ecritures_model->select_flight_frozen_lines($id, "vol_planeur"))) ? VISUALISATION : MODIFICATION;
+        // Facturation gelée ou dans une période clôturée : consultation uniquement.
+        // Ne fait que restreindre le mode déterminé par les droits ci-dessus.
+        $locked = count($this->ecritures_model->select_flight_frozen_lines($id, "vol_planeur")) > 0;
+        if ($locked) {
+            $action = VISUALISATION;
+        }
         parent::edit($id, FALSE, $action);
+        if ($locked) {
+            $this->lang->load('compta');
+            $this->data['message'] = lock_alert($this->lang->line('gvv_compta_billing_locked_readonly'));
+        }
         
         // Convert member ID to account ID for payeur field (for form display)
         if (!empty($this->data['payeur'])) {

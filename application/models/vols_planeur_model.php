@@ -631,6 +631,10 @@ if ($where) {
      */
     public function update($keyid, $data, $keyvalue = '') {
         gvv_debug("update vol planeur, keyid=$keyid, data = " . var_export($data, true));
+        // Refus avant toute modification si la facturation touche une période clôturée
+        $this->load->model('achats_model');
+        $this->achats_model->check_billing_modifiable(array('vol_planeur' => $data[$keyid]), $data['vpdate']);
+
         $this->inject_audit_fields($data, FALSE);
 
         // detruit les lignes d'achat correspondante

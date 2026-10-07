@@ -68,6 +68,9 @@ $lang['gvv_compta_montant_max'] = "Maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Debet en credit', 1 => 'Debet', 2 => 'Credit');
 
 $lang['gvv_compta_button_freeze'] = "Lock";
+$lang['gvv_compta_button_invert'] = "Rekeningen omwisselen";
+$lang['gvv_compta_button_invert_title'] = "Debet- en creditrekening omwisselen";
+$lang['gvv_compta_badge_inverted'] = "omgekeerd";
 
 $lang['gvv_vue_journal_short_field_id'] = "Id";
 $lang['gvv_vue_journal_short_field_date_op'] = "Datum";
@@ -142,6 +145,15 @@ $lang['gvv_compta_csv_header'] = array('Datum', 'Code', 'Rekening', 'Omschrijvin
 $lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie', 'Prijs', 'Aantal', 'Debet', 'Credit', 'Saldo');
 
 $lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";
+$lang['gvv_compta_error_update_previous_before_freeze_date'] = "Wijziging onmogelijk: de boeking hoort bij een afgesloten periode (afsluitdatum: %s).";
+$lang['gvv_compta_error_update_new_before_freeze_date'] = "Wijziging onmogelijk: de nieuwe datum ligt op of vóór de afsluitdatum (%s).";
+$lang['gvv_compta_error_update_entry_frozen'] = "Wijziging onmogelijk: de boeking is vergrendeld.";
+$lang['gvv_compta_error_update_refused'] = "Wijziging onmogelijk: controle van de afsluitdatum (%s) mislukt.";
+$lang['gvv_compta_error_billing_frozen'] = "Wijziging onmogelijk: de bijbehorende facturatie bevat een vergrendelde boeking.";
+$lang['gvv_compta_error_billing_closed'] = "Wijziging onmogelijk: de bijbehorende facturatie hoort bij een afgesloten periode (afsluitdatum: %s).";
+$lang['gvv_compta_error_billing_new_date_closed'] = "Wijziging onmogelijk: de datum %s ligt op of vóór de afsluitdatum (%s).";
+$lang['gvv_compta_error_billing_not_deleted'] = "Wijziging onmogelijk: de vorige facturatie kon niet worden verwijderd.";
+$lang['gvv_compta_billing_locked_readonly'] = "Facturatie vergrendeld (vergrendelde boeking of afgesloten periode): alleen raadplegen.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "Wijziging van een vergrendelde boeking is verboden.";
 $lang['gvv_compta_frozen_line_cannot_delete'] = "Verwijdering van een vergrendelde boeking is verboden.";
 $lang['gvv_compta_other_section_cannot_modify'] = "U bent penningmeester van een andere sectie: deze boeking is alleen-lezen.";
