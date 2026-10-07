@@ -960,3 +960,19 @@ if (! function_exists('translation')) {
         return ($translated) ? $translated : $title_id;
     }
 }
+
+if (! function_exists('lock_alert')) {
+
+    /**
+     * Bandeau d'avertissement « verrouillé » (cadenas) expliquant pourquoi un
+     * formulaire est en consultation seule.
+     *
+     * @param string $message texte déjà traduit
+     * @param string $extra_class classes Bootstrap supplémentaires
+     * @return string HTML
+     */
+    function lock_alert($message, $extra_class = '') {
+        return '<div class="alert alert-warning' . ($extra_class ? ' ' . $extra_class : '') . '" role="alert">'
+            . '<i class="fas fa-lock"></i> ' . $message . '</div>';
+    }
+}

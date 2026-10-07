@@ -332,8 +332,8 @@ class Achats_model extends Common_Model {
                 if ($line['gel']) {
                     throw new Exception($this->lang->line('gvv_compta_error_billing_frozen'));
                 }
-                $freeze_date = $this->clotures_model->freeze_date(false, !empty($line['club']) ? $line['club'] : '');
-                if ($freeze_date && $line['date_op'] <= $freeze_date) {
+                $freeze_date = $this->clotures_model->section_freeze_date($line['club']);
+                if (Clotures_model::date_is_closed($line['date_op'], $freeze_date)) {
                     throw new Exception(sprintf($this->lang->line('gvv_compta_error_billing_closed'),
                         date_db2ht($freeze_date)));
                 }
@@ -341,13 +341,10 @@ class Achats_model extends Common_Model {
         }
 
         if ($new_date) {
-            if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $new_date, $m)) {
-                $new_date = sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
-            }
-            $freeze_date = $this->clotures_model->freeze_date();
-            if ($freeze_date && $new_date <= $freeze_date) {
+            $freeze_date = $this->clotures_model->section_freeze_date();
+            if (Clotures_model::date_is_closed($new_date, $freeze_date)) {
                 throw new Exception(sprintf($this->lang->line('gvv_compta_error_billing_new_date_closed'),
-                    date_db2ht($new_date), date_db2ht($freeze_date)));
+                    date_db2ht(Clotures_model::db_date($new_date)), date_db2ht($freeze_date)));
             }
         }
     }

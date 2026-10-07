@@ -795,8 +795,7 @@ class Vols_avion extends Gvv_Controller {
         }
         if ($locked) {
             $this->lang->load('compta');
-            $this->data['message'] = '<div class="alert alert-warning"><i class="fas fa-lock"></i> '
-                . $this->lang->line('gvv_compta_billing_locked_readonly') . '</div>';
+            $this->data['message'] = lock_alert($this->lang->line('gvv_compta_billing_locked_readonly'));
         }
         
         // Convert member ID to account ID for payeur field (for form display)

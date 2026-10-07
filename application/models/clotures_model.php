@@ -95,6 +95,55 @@ class Clotures_model extends Common_Model {
     }
 
     /**
+     * Date de gel d'une section ; une section vide ou 0 désigne la section active.
+     *
+     * @return string date de gel au format AAAA-MM-JJ, '' si aucune clôture
+     */
+    public function section_freeze_date($section_id = '') {
+        return $this->freeze_date(false, !empty($section_id) ? $section_id : '');
+    }
+
+    /**
+     * Vrai si $date est dans la période clôturée de la section
+     * (antérieure ou égale à sa date de gel).
+     *
+     * @param string $date AAAA-MM-JJ ou JJ/MM/AAAA
+     */
+    public function is_closed($date, $section_id = '') {
+        return self::date_is_closed($date, $this->section_freeze_date($section_id));
+    }
+
+    /**
+     * Règle de la période clôturée : $date est antérieure ou égale à $freeze_date.
+     * Toujours faux sans date de gel ou si la date est invalide (le format des
+     * dates saisies est contrôlé par ailleurs).
+     *
+     * @param string $date AAAA-MM-JJ ou JJ/MM/AAAA
+     * @param string $freeze_date AAAA-MM-JJ, '' si aucune clôture
+     */
+    public static function date_is_closed($date, $freeze_date) {
+        $date = self::db_date($date);
+        $freeze_date = self::db_date($freeze_date);
+        return $date !== null && $freeze_date !== null && $date <= $freeze_date;
+    }
+
+    /**
+     * Convertit une date AAAA-MM-JJ ou JJ/MM/AAAA au format AAAA-MM-JJ.
+     *
+     * @return string|null null si la date n'est dans aucun de ces formats
+     */
+    public static function db_date($date) {
+        $date = trim((string) $date);
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $date;
+        }
+        if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $date, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+        }
+        return null;
+    }
+
+    /**
      * Check if the freeze date is after or before a given date
      * parameters:
      *      $date : a localized string date

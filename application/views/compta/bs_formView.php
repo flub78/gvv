@@ -119,9 +119,7 @@ echo checkalert($this->session, isset($popup) ? $popup : "");
         if (!isset($errors) || !$errors) {
             if (isset($frozen_message) && $frozen_message) {
                 // Show disabled button with message for frozen lines
-                echo '<div class="alert alert-warning mt-3" role="alert">';
-                echo '<i class="fas fa-lock"></i> ' . $frozen_message;
-                echo '</div>';
+                echo lock_alert($frozen_message, 'mt-3');
                 echo '<button type="submit" class="btn btn-primary mt-3" disabled>';
                 echo $this->lang->line("gvv_button_validate");
                 echo '</button>';

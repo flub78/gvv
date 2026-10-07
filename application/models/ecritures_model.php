@@ -595,9 +595,9 @@ class Ecritures_model extends Common_Model {
      * Règle de la date de gel pour la modification d'une écriture : ni la date
      * actuelle (extraction d'une écriture clôturée) ni la nouvelle date
      * (insertion dans une période clôturée) ne peuvent être antérieures ou
-     * égales à la date de gel. Dates au format base de données (AAAA-MM-JJ).
+     * égales à la date de gel (cf. Clotures_model::date_is_closed()).
      *
-     * @param string $freeze_date date de gel, '' si aucune clôture
+     * @param string $freeze_date date de gel AAAA-MM-JJ, '' si aucune clôture
      * @return string '' si la modification est autorisée, sinon le motif :
      *         'previous_before_freeze_date', 'new_before_freeze_date' ou 'invalid_date_format'
      */
@@ -606,32 +606,38 @@ class Ecritures_model extends Common_Model {
             return '';
         }
         foreach ([$freeze_date, $previous_date_op, $new_date_op] as $date) {
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $date)) {
+            if (Clotures_model::db_date($date) === null) {
                 return 'invalid_date_format';
             }
         }
-        if ($previous_date_op <= $freeze_date) {
+        if (Clotures_model::date_is_closed($previous_date_op, $freeze_date)) {
             return 'previous_before_freeze_date';
         }
-        if ($new_date_op <= $freeze_date) {
+        if (Clotures_model::date_is_closed($new_date_op, $freeze_date)) {
             return 'new_before_freeze_date';
         }
         return '';
     }
 
     /**
-     * Applique freeze_date_update_violation() à l'écriture $id avec la date de
+     * Vérifie qu'une écriture existante peut être modifiée : elle ne doit pas
+     * être gelée, et freeze_date_update_violation() s'applique avec la date de
      * gel de sa propre section.
      *
-     * @return string '' si autorisée, sinon le motif ('entry_not_found' si l'écriture n'existe pas)
+     * @param string|null $freeze_date reçoit la date de gel appliquée (AAAA-MM-JJ, '' si aucune)
+     * @return string '' si autorisée, sinon le motif ('entry_not_found', 'entry_frozen'
+     *         ou un motif de freeze_date_update_violation())
      */
-    public function update_freeze_date_violation($id, $new_date_op) {
+    public function update_freeze_date_violation($id, $new_date_op, &$freeze_date = null) {
+        $freeze_date = '';
         $previous = $this->get_by_id('id', $id);
         if (!$previous || !isset($previous['id'])) {
             return 'entry_not_found';
         }
-        $section_id = !empty($previous['club']) ? $previous['club'] : '';
-        $freeze_date = $this->clotures_model->freeze_date(false, $section_id);
+        $freeze_date = $this->clotures_model->section_freeze_date($previous['club']);
+        if (!empty($previous['gel'])) {
+            return 'entry_frozen';
+        }
         return self::freeze_date_update_violation($freeze_date, $previous['date_op'], $new_date_op);
     }
 

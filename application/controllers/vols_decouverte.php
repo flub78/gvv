@@ -402,8 +402,10 @@ class Vols_decouverte extends Gvv_Controller {
      * @return string message d'erreur, '' si la date est acceptée
      */
     private function _date_vente_freeze_error($date_vente, $id = null) {
-        $new_date = date_ht2db(trim((string) $date_vente));
-        if ($new_date === '') {
+        $this->load->model('clotures_model');
+        // Date invalide ou absente : contrôlée par les autres règles du champ
+        $new_date = Clotures_model::db_date($date_vente);
+        if ($new_date === null) {
             return '';
         }
 
@@ -413,23 +415,19 @@ class Vols_decouverte extends Gvv_Controller {
             $previous = $this->gvv_model->get_by_id($this->kid, $id);
             if (!empty($previous)) {
                 $previous_date = $previous['date_vente'];
-                $section_id = !empty($previous['club']) ? $previous['club'] : '';
+                $section_id = $previous['club'];
             }
         }
         if ($previous_date === $new_date) {
             return '';
         }
 
-        $this->load->model('clotures_model');
-        $freeze_date = $this->clotures_model->freeze_date(false, $section_id);
-        if (!$freeze_date) {
-            return '';
-        }
+        $freeze_date = $this->clotures_model->section_freeze_date($section_id);
         $this->lang->load('vols_decouverte');
-        if ($previous_date !== null && $previous_date <= $freeze_date) {
+        if ($previous_date !== null && Clotures_model::date_is_closed($previous_date, $freeze_date)) {
             return sprintf($this->lang->line('gvv_vd_error_date_vente_from_closed'), date_db2ht($freeze_date));
         }
-        if ($new_date <= $freeze_date) {
+        if (Clotures_model::date_is_closed($new_date, $freeze_date)) {
             return sprintf($this->lang->line('gvv_vd_error_date_vente_into_closed'), date_db2ht($freeze_date));
         }
         return '';

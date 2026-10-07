@@ -122,18 +122,17 @@ class Compta extends Gvv_Controller {
         $is_frozen = $this->data['gel'];
         $entry_section_id = isset($this->data['club']) ? $this->data['club'] : NULL;
         $can_modify_entry = $this->has_modification_rights($entry_section_id);
-        $is_closed = $this->gvv_model->update_freeze_date_violation($id, $this->data['date_op'])
+        $freeze_date = '';
+        $is_closed = $this->gvv_model->update_freeze_date_violation($id, $this->data['date_op'], $freeze_date)
             == 'previous_before_freeze_date';
 
         if ($is_frozen) {
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = $this->lang->line('gvv_compta_frozen_line_cannot_modify');
         } elseif ($is_closed) {
-            $this->load->model('clotures_model');
-            $date_gel = $this->clotures_model->freeze_date(true, $entry_section_id ? $entry_section_id : '');
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = sprintf(
-                $this->lang->line('gvv_compta_error_update_previous_before_freeze_date'), $date_gel);
+                $this->lang->line('gvv_compta_error_update_previous_before_freeze_date'), date_db2ht($freeze_date));
         } elseif (!$can_modify_entry) {
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = $this->lang->line('gvv_compta_other_section_cannot_modify');
@@ -552,17 +551,18 @@ class Compta extends Gvv_Controller {
                     return;
                 }
 
-                // Une écriture ne peut ni sortir d'une période clôturée ni y entrer.
+                // Une écriture gelée ne peut pas être modifiée, ni une écriture sortir
+                // d'une période clôturée ou y entrer. Contrôle avant change_ecriture(),
+                // qui annule les soldes précédents avant d'enregistrer.
+                $freeze_date = '';
                 $violation = $this->gvv_model->update_freeze_date_violation(
-                    $processed_data['id'], $processed_data['date_op']);
+                    $processed_data['id'], $processed_data['date_op'], $freeze_date);
                 if ($violation) {
-                    $this->load->model('clotures_model');
-                    $date_gel = $this->clotures_model->freeze_date(true, $entry_section_id ? $entry_section_id : '');
                     $line = $this->lang->line('gvv_compta_error_update_' . $violation);
                     if (!$line) {
                         $line = $this->lang->line('gvv_compta_error_update_refused');
                     }
-                    $this->data['errors'] = sprintf($line, $date_gel);
+                    $this->data['errors'] = sprintf($line, date_db2ht($freeze_date));
                     $this->form_static_element($action);
                     load_last_view($this->form_view, $this->data);
                     return;

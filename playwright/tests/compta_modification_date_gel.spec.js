@@ -67,6 +67,56 @@ async function submitEditDate(page, id, dbDate) {
     await page.waitForLoadState('networkidle');
 }
 
+/**
+ * Crée une écriture de dépense datée de $dbDate via le formulaire et retourne
+ * { id, comptes, soldesAvant } (soldes des deux comptes avant la création).
+ */
+async function createEntry(page, connection, description, dbDate) {
+    await page.goto('/index.php/compta/depenses');
+    await page.waitForLoadState('networkidle');
+    const [charge, banque] = await page.evaluate(() => ['compte1', 'compte2'].map(n =>
+        Array.from(document.querySelectorAll(`select[name="${n}"] option`)).map(o => o.value).find(v => v !== '')));
+    const comptes = [Number(charge), Number(banque)];
+    const soldesAvant = await soldes(connection, comptes);
+
+    await page.evaluate(([c1, c2]) => {
+        $('select[name="compte1"]').val(c1).trigger('change');
+        $('select[name="compte2"]').val(c2).trigger('change');
+    }, [charge, banque]);
+    await page.fill('input[name="date_op"]', dbToFr(dbDate));
+    await page.fill('input[name="montant"]', '1.11');
+    await page.fill('textarea[name="description"]', description);
+    await page.click('#validate');
+    await page.waitForLoadState('networkidle');
+
+    const [created] = await connection.query('SELECT id FROM ecritures WHERE description = ?', [description]);
+    expect(created.length).toBe(1);
+    return { id: created[0].id, comptes, soldesAvant };
+}
+
+async function soldes(connection, comptes) {
+    const [rows] = await connection.query(
+        'SELECT id, debit, credit FROM comptes WHERE id IN (?) ORDER BY id', [comptes]);
+    return rows;
+}
+
+/** Supprime l'écriture via l'application (soldes rétablis) et vérifie les soldes initiaux */
+async function deleteEntry(page, connection, description, id, comptes, soldesAvant) {
+    if (id === null) {
+        const [rows] = await connection.query('SELECT id FROM ecritures WHERE description = ?', [description]);
+        if (rows.length) id = rows[0].id;
+    }
+    if (id !== null) {
+        await page.goto(`/index.php/compta/delete/${id}`);
+        await page.waitForLoadState('networkidle');
+        const [left] = await connection.query('SELECT id FROM ecritures WHERE id = ?', [id]);
+        expect(left.length).toBe(0);
+    }
+    if (soldesAvant) {
+        expect(await soldes(connection, comptes)).toEqual(soldesAvant);
+    }
+}
+
 async function dateOp(connection, id) {
     const [rows] = await connection.query("SELECT DATE_FORMAT(date_op, '%Y-%m-%d') AS d FROM ecritures WHERE id = ?", [id]);
     return rows.length ? rows[0].d : null;
@@ -152,28 +202,7 @@ test.describe('Compta - modification et date de gel', () => {
             await login(page);
 
             // Création d'une écriture datée d'aujourd'hui (période ouverte)
-            await page.goto('/index.php/compta/depenses');
-            await page.waitForLoadState('networkidle');
-            const [charge, banque] = await page.evaluate(() => ['compte1', 'compte2'].map(n =>
-                Array.from(document.querySelectorAll(`select[name="${n}"] option`)).map(o => o.value).find(v => v !== '')));
-            comptes = [Number(charge), Number(banque)];
-            const [soldes] = await connection.query(
-                'SELECT id, debit, credit FROM comptes WHERE id IN (?) ORDER BY id', [comptes]);
-            soldesAvant = soldes;
-
-            await page.evaluate(([c1, c2]) => {
-                $('select[name="compte1"]').val(c1).trigger('change');
-                $('select[name="compte2"]').val(c2).trigger('change');
-            }, [charge, banque]);
-            await page.fill('input[name="date_op"]', dbToFr(today));
-            await page.fill('input[name="montant"]', '1.11');
-            await page.fill('textarea[name="description"]', description);
-            await page.click('#validate');
-            await page.waitForLoadState('networkidle');
-
-            const [created] = await connection.query('SELECT id FROM ecritures WHERE description = ?', [description]);
-            expect(created.length).toBe(1);
-            id = created[0].id;
+            ({ id, comptes, soldesAvant } = await createEntry(page, connection, description, today));
 
             // Accepté : nouvelle date postérieure à la date de gel
             await submitEditDate(page, id, later);
@@ -189,21 +218,47 @@ test.describe('Compta - modification et date de gel', () => {
             await expect(page.locator('body')).toContainText(dbToFr(freezeDate));
             expect(await dateOp(connection, id)).toBe(later);
         } finally {
-            if (id === null) {
-                const [rows] = await connection.query('SELECT id FROM ecritures WHERE description = ?', [description]);
-                if (rows.length) id = rows[0].id;
-            }
+            await deleteEntry(page, connection, description, id, comptes, soldesAvant);
+        }
+    });
+
+    test('rejette la modification forcée d\'une écriture gelée sans toucher aux soldes', async ({ page }) => {
+        const description = `PW GEL ${Date.now()}`;
+        let id = null;
+        let comptes = [];
+        let soldesAvant = null;
+
+        try {
+            await login(page);
+            ({ id, comptes, soldesAvant } = await createEntry(page, connection, description, toDb(new Date())));
+            const soldesCrees = await soldes(connection, comptes);
+            await connection.query('UPDATE ecritures SET gel = 1 WHERE id = ?', [id]);
+
+            // Formulaire en lecture seule ; envoi forcé avec un autre montant
+            await page.goto(`/index.php/compta/edit/${id}`);
+            await page.waitForLoadState('networkidle');
+            await expect(page.locator('form[name="saisie"] button[type="submit"]')).toBeDisabled();
+            await page.evaluate(() => {
+                const form = document.forms['saisie'];
+                form.elements['montant'].removeAttribute('readonly');
+                form.elements['montant'].value = '2.22';
+                const button = form.querySelector('button[type="submit"]');
+                button.disabled = false;
+                button.name = 'button';
+                button.value = 'Valider';
+            });
+            await page.click('form[name="saisie"] button[type="submit"]');
+            await page.waitForLoadState('networkidle');
+
+            await expect(page.locator('body')).toContainText("l'écriture est gelée");
+            const [[row]] = await connection.query('SELECT montant FROM ecritures WHERE id = ?', [id]);
+            expect(Number(row.montant)).toBe(1.11);
+            expect(await soldes(connection, comptes)).toEqual(soldesCrees);
+        } finally {
             if (id !== null) {
-                await page.goto(`/index.php/compta/delete/${id}`);
-                await page.waitForLoadState('networkidle');
-                const [left] = await connection.query('SELECT id FROM ecritures WHERE id = ?', [id]);
-                expect(left.length).toBe(0);
+                await connection.query('UPDATE ecritures SET gel = 0 WHERE id = ?', [id]);
             }
-            if (soldesAvant) {
-                const [soldesApres] = await connection.query(
-                    'SELECT id, debit, credit FROM comptes WHERE id IN (?) ORDER BY id', [comptes]);
-                expect(soldesApres).toEqual(soldesAvant);
-            }
+            await deleteEntry(page, connection, description, id, comptes, soldesAvant);
         }
     });
 });

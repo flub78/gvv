@@ -147,6 +147,7 @@ $lang['gvv_compta_csv_header_411'] = array('Datum', 'Omschrijving', 'Referentie'
 $lang['gvv_compta_error_same_accounts'] = "Bij een boekhoudkundige boeking moeten de rekeningen verschillend zijn.";
 $lang['gvv_compta_error_update_previous_before_freeze_date'] = "Wijziging onmogelijk: de boeking hoort bij een afgesloten periode (afsluitdatum: %s).";
 $lang['gvv_compta_error_update_new_before_freeze_date'] = "Wijziging onmogelijk: de nieuwe datum ligt op of vóór de afsluitdatum (%s).";
+$lang['gvv_compta_error_update_entry_frozen'] = "Wijziging onmogelijk: de boeking is vergrendeld.";
 $lang['gvv_compta_error_update_refused'] = "Wijziging onmogelijk: controle van de afsluitdatum (%s) mislukt.";
 $lang['gvv_compta_error_billing_frozen'] = "Wijziging onmogelijk: de bijbehorende facturatie bevat een vergrendelde boeking.";
 $lang['gvv_compta_error_billing_closed'] = "Wijziging onmogelijk: de bijbehorende facturatie hoort bij een afgesloten periode (afsluitdatum: %s).";

@@ -149,6 +149,7 @@ $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', '
 $lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
 $lang['gvv_compta_error_update_previous_before_freeze_date'] = "Modification refused: the entry belongs to a closed period (freeze date: %s).";
 $lang['gvv_compta_error_update_new_before_freeze_date'] = "Modification refused: the new operation date is on or before the freeze date (%s).";
+$lang['gvv_compta_error_update_entry_frozen'] = "Modification refused: the entry is frozen.";
 $lang['gvv_compta_error_update_refused'] = "Modification refused: freeze date check (%s) failed.";
 $lang['gvv_compta_error_billing_frozen'] = "Modification refused: the related billing contains a frozen entry.";
 $lang['gvv_compta_error_billing_closed'] = "Modification refused: the related billing belongs to a closed period (freeze date: %s).";
