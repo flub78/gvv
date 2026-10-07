@@ -69,6 +69,9 @@ $lang['gvv_compta_montant_max'] = "maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Debits and credits', 1 => 'Debits', 2 => 'Credits');
 
 $lang['gvv_compta_button_freeze'] = "Freeze";
+$lang['gvv_compta_button_invert'] = "Swap accounts";
+$lang['gvv_compta_button_invert_title'] = "Swap the debit and credit accounts";
+$lang['gvv_compta_badge_inverted'] = "reversed";
 
 $lang['gvv_vue_journal_short_field_id'] = "Id";
 $lang['gvv_vue_journal_short_field_date_op'] = "Date";
@@ -144,6 +147,14 @@ $lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Account', 'Description',
 $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Reference', 'Price', 'Quantity', 'Debit', 'Credit', 'Balance');
 
 $lang['gvv_compta_error_same_accounts'] = "In an accounting entry, the accounts must be different.";
+$lang['gvv_compta_error_update_previous_before_freeze_date'] = "Modification refused: the entry belongs to a closed period (freeze date: %s).";
+$lang['gvv_compta_error_update_new_before_freeze_date'] = "Modification refused: the new operation date is on or before the freeze date (%s).";
+$lang['gvv_compta_error_update_refused'] = "Modification refused: freeze date check (%s) failed.";
+$lang['gvv_compta_error_billing_frozen'] = "Modification refused: the related billing contains a frozen entry.";
+$lang['gvv_compta_error_billing_closed'] = "Modification refused: the related billing belongs to a closed period (freeze date: %s).";
+$lang['gvv_compta_error_billing_new_date_closed'] = "Modification refused: the date %s is on or before the freeze date (%s).";
+$lang['gvv_compta_error_billing_not_deleted'] = "Modification refused: the previous billing could not be deleted.";
+$lang['gvv_compta_billing_locked_readonly'] = "Billing locked (frozen entry or closed period): read only.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "Modification of a frozen entry is forbidden.";
 $lang['gvv_compta_frozen_line_cannot_delete'] = "Deletion of a frozen entry is forbidden.";
 $lang['gvv_compta_other_section_cannot_modify'] = "You are treasurer of another section: this entry is read-only.";

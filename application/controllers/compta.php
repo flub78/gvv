@@ -122,10 +122,18 @@ class Compta extends Gvv_Controller {
         $is_frozen = $this->data['gel'];
         $entry_section_id = isset($this->data['club']) ? $this->data['club'] : NULL;
         $can_modify_entry = $this->has_modification_rights($entry_section_id);
+        $is_closed = $this->gvv_model->update_freeze_date_violation($id, $this->data['date_op'])
+            == 'previous_before_freeze_date';
 
         if ($is_frozen) {
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = $this->lang->line('gvv_compta_frozen_line_cannot_modify');
+        } elseif ($is_closed) {
+            $this->load->model('clotures_model');
+            $date_gel = $this->clotures_model->freeze_date(true, $entry_section_id ? $entry_section_id : '');
+            $this->form_static_element(VISUALISATION);
+            $this->data['frozen_message'] = sprintf(
+                $this->lang->line('gvv_compta_error_update_previous_before_freeze_date'), $date_gel);
         } elseif (!$can_modify_entry) {
             $this->form_static_element(VISUALISATION);
             $this->data['frozen_message'] = $this->lang->line('gvv_compta_other_section_cannot_modify');
@@ -216,10 +224,23 @@ class Compta extends Gvv_Controller {
         $current_compte1 = isset($this->data['compte1']) ? $this->data['compte1'] : null;
         $current_compte2 = isset($this->data['compte2']) ? $this->data['compte2'] : null;
 
+        // Écriture inversée (création uniquement) : les listes de débit et de
+        // crédit sont échangées. $this->data['inverse'] prime sur le POST pour
+        // permettre de revenir à l'état normal après "Créer et continuer".
+        $inverse = 0;
+        if ($action == CREATION) {
+            $inverse = isset($this->data['inverse'])
+                ? (int) $this->data['inverse']
+                : (int) $this->input->post('inverse');
+        }
+        $this->data['inverse'] = $inverse;
+        $compte1_selection = $inverse ? $this->resource_selection : $this->emploi_selection;
+        $compte2_selection = $inverse ? $this->emploi_selection : $this->resource_selection;
+
         $this->gvvmetadata->set_selector('compte1_selector',
-            $this->comptes_model->selector_with_null_force_include($this->emploi_selection, TRUE, $current_compte1));
+            $this->comptes_model->selector_with_null_force_include($compte1_selection, TRUE, $current_compte1));
         $this->gvvmetadata->set_selector('compte2_selector',
-            $this->comptes_model->selector_with_null_force_include($this->resource_selection, TRUE, $current_compte2));
+            $this->comptes_model->selector_with_null_force_include($compte2_selection, TRUE, $current_compte2));
 
         $this->data['date_creation'] = date("d/m/Y");
 
@@ -508,6 +529,13 @@ class Compta extends Gvv_Controller {
                 if ($button != "Créer") {
                     // Créer et continuer, on reste sur la page de création
                     $this->data['message'] = '<div class="text-success">' . $msg . '</div>';
+                    // Retour à l'état normal si l'écriture était inversée
+                    if ($this->input->post('inverse')) {
+                        $compte1 = $this->data['compte1'];
+                        $this->data['compte1'] = $this->data['compte2'];
+                        $this->data['compte2'] = $compte1;
+                    }
+                    $this->data['inverse'] = 0;
                     // Display the form again
                     $this->form_static_element($action);
                     load_last_view($this->form_view, $this->data);
@@ -521,6 +549,22 @@ class Compta extends Gvv_Controller {
                 $entry_section_id = isset($processed_data['club']) ? $processed_data['club'] : NULL;
                 if (!$this->has_modification_rights($entry_section_id)) {
                     $this->_deny_access();
+                    return;
+                }
+
+                // Une écriture ne peut ni sortir d'une période clôturée ni y entrer.
+                $violation = $this->gvv_model->update_freeze_date_violation(
+                    $processed_data['id'], $processed_data['date_op']);
+                if ($violation) {
+                    $this->load->model('clotures_model');
+                    $date_gel = $this->clotures_model->freeze_date(true, $entry_section_id ? $entry_section_id : '');
+                    $line = $this->lang->line('gvv_compta_error_update_' . $violation);
+                    if (!$line) {
+                        $line = $this->lang->line('gvv_compta_error_update_refused');
+                    }
+                    $this->data['errors'] = sprintf($line, $date_gel);
+                    $this->form_static_element($action);
+                    load_last_view($this->form_view, $this->data);
                     return;
                 }
 

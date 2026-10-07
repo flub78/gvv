@@ -68,6 +68,9 @@ $lang['gvv_compta_montant_max'] = "maximum";
 $lang['gvv_compta_selector_debit_credit'] = array(0 => 'Débits et crédits', 1 => 'Débits', 2 => 'Crédits');
 
 $lang['gvv_compta_button_freeze'] = "Gel";
+$lang['gvv_compta_button_invert'] = "Inverser les comptes";
+$lang['gvv_compta_button_invert_title'] = "Inverser les comptes de débit et de crédit";
+$lang['gvv_compta_badge_inverted'] = "inversée";
 
 $lang['gvv_vue_journal_short_field_id'] = "Id";
 $lang['gvv_vue_journal_short_field_date_op'] = "Date";
@@ -143,6 +146,14 @@ $lang['gvv_compta_csv_header'] = array('Date', 'Code', 'Compte', 'Description', 
 $lang['gvv_compta_csv_header_411'] = array('Date', 'Description', 'Référence', 'Prix', 'Quantité', 'Débit', 'Crédit', 'Solde');
 
 $lang['gvv_compta_error_same_accounts'] = "Dans une écriture, les comptes doivent être différents.";
+$lang['gvv_compta_error_update_previous_before_freeze_date'] = "Modification impossible : l'écriture appartient à une période clôturée (date de gel : %s).";
+$lang['gvv_compta_error_update_new_before_freeze_date'] = "Modification impossible : la nouvelle date d'opération est antérieure ou égale à la date de gel (%s).";
+$lang['gvv_compta_error_update_refused'] = "Modification impossible : contrôle de la date de gel (%s) en échec.";
+$lang['gvv_compta_error_billing_frozen'] = "Modification impossible : la facturation correspondante contient une écriture gelée.";
+$lang['gvv_compta_error_billing_closed'] = "Modification impossible : la facturation correspondante appartient à une période clôturée (date de gel : %s).";
+$lang['gvv_compta_error_billing_new_date_closed'] = "Modification impossible : la date %s est antérieure ou égale à la date de gel (%s).";
+$lang['gvv_compta_error_billing_not_deleted'] = "Modification impossible : la facturation précédente n'a pas pu être supprimée.";
+$lang['gvv_compta_billing_locked_readonly'] = "Facturation verrouillée (écriture gelée ou période clôturée) : consultation uniquement.";
 $lang['gvv_compta_frozen_line_cannot_modify'] = "La modification d'une écriture gelée est interdite.";
 $lang['gvv_compta_frozen_line_cannot_delete'] = "La suppression d'une écriture gelée est interdite.";
 $lang['gvv_compta_other_section_cannot_modify'] = "Vous êtes trésorier d'une autre section : cette écriture est en lecture seule.";

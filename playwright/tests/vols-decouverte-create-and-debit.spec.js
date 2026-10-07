@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { deleteTestVds } = require('./helpers/vdCleanup');
 
 const LOGIN_URL = '/index.php/auth/login';
 const VD_CREATE_URL = '/index.php/vols_decouverte/create';
@@ -38,6 +39,13 @@ async function selectFirstNonEmptyOption(page, selector) {
 }
 
 test.describe('Vols decouverte - Creer et debiter', () => {
+  // Bons créés (et débits associés), supprimés en fin de suite
+  const benefPrefixes = [];
+
+  test.afterAll(async () => {
+    await deleteTestVds(benefPrefixes);
+  });
+
   test('gestion_vd voit le bouton "Creer et debiter" et il cree le vol + debite le compte 411', async ({ page }) => {
     await loginAs(page, 'idefix', 'password');
 
@@ -52,6 +60,7 @@ test.describe('Vols decouverte - Creer et debiter', () => {
 
     const timestamp = Date.now();
     const beneficiaire = `PW VD DEBIT ${timestamp}`;
+    benefPrefixes.push(beneficiaire);
 
     await selectFirstNonEmptyOption(page, 'select[name="product"]');
     await page.fill('input[name="beneficiaire"]', beneficiaire);
@@ -77,6 +86,7 @@ test.describe('Vols decouverte - Creer et debiter', () => {
     await expect(debitButton).toBeVisible();
 
     const timestamp = Date.now();
+    benefPrefixes.push(`PW VD NOACCOUNT ${timestamp}`);
     await selectFirstNonEmptyOption(page, 'select[name="product"]');
     await page.fill('input[name="beneficiaire"]', `PW VD NOACCOUNT ${timestamp}`);
     await page.fill('input[name="de_la_part"]', 'Playwright');

@@ -592,6 +592,50 @@ class Ecritures_model extends Common_Model {
     }
 
     /**
+     * Règle de la date de gel pour la modification d'une écriture : ni la date
+     * actuelle (extraction d'une écriture clôturée) ni la nouvelle date
+     * (insertion dans une période clôturée) ne peuvent être antérieures ou
+     * égales à la date de gel. Dates au format base de données (AAAA-MM-JJ).
+     *
+     * @param string $freeze_date date de gel, '' si aucune clôture
+     * @return string '' si la modification est autorisée, sinon le motif :
+     *         'previous_before_freeze_date', 'new_before_freeze_date' ou 'invalid_date_format'
+     */
+    public static function freeze_date_update_violation($freeze_date, $previous_date_op, $new_date_op) {
+        if ($freeze_date === '' || $freeze_date === null) {
+            return '';
+        }
+        foreach ([$freeze_date, $previous_date_op, $new_date_op] as $date) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $date)) {
+                return 'invalid_date_format';
+            }
+        }
+        if ($previous_date_op <= $freeze_date) {
+            return 'previous_before_freeze_date';
+        }
+        if ($new_date_op <= $freeze_date) {
+            return 'new_before_freeze_date';
+        }
+        return '';
+    }
+
+    /**
+     * Applique freeze_date_update_violation() à l'écriture $id avec la date de
+     * gel de sa propre section.
+     *
+     * @return string '' si autorisée, sinon le motif ('entry_not_found' si l'écriture n'existe pas)
+     */
+    public function update_freeze_date_violation($id, $new_date_op) {
+        $previous = $this->get_by_id('id', $id);
+        if (!$previous || !isset($previous['id'])) {
+            return 'entry_not_found';
+        }
+        $section_id = !empty($previous['club']) ? $previous['club'] : '';
+        $freeze_date = $this->clotures_model->freeze_date(false, $section_id);
+        return self::freeze_date_update_violation($freeze_date, $previous['date_op'], $new_date_op);
+    }
+
+    /**
      * Creation d'une ecriture comptable.
      * Enregistre l'écriture et modifie les soldes
      * des comptes référencés.
@@ -753,9 +797,14 @@ class Ecritures_model extends Common_Model {
             ->get();
         $result = $this->get_to_array($db_res);
 
+        // Retourne FALSE si au moins une écriture n'a pas pu être supprimée
+        $all_deleted = TRUE;
         foreach ($result as $row) {
-            $this->ecritures_model->delete_ecriture($row['id']);
+            if (!$this->ecritures_model->delete_ecriture($row['id'])) {
+                $all_deleted = FALSE;
+            }
         }
+        return $all_deleted;
     }
 
     /**
@@ -1183,18 +1232,24 @@ array (size=2)
     }
 
     /**
+     * Expression SQL de la date de gel de la section de l'écriture
+     * (NULL si la section n'a pas de clôture).
+     */
+    private function freeze_date_sql() {
+        return "(SELECT MAX(clotures.date) FROM clotures WHERE clotures.section = ecritures.club)";
+    }
+
+    /**
      * Selectionne les lignes d'un achat gelée
      *
      * @param
      *            $achat
      */
     function select_frozen_lines($achat) {
-        $date_gel = $this->clotures_model->freeze_date();
-
         $db_res = $this->db
             ->select("achat, gel, date_op")
             ->from("ecritures")
-            ->where("(gel != 0  or date_op<=\"$date_gel\" )")
+            ->where("(gel != 0 or date_op <= " . $this->freeze_date_sql() . ")")
             ->where("achat = \"$achat\"")
             ->get();
         $res = $this->get_to_array($db_res);
@@ -1212,12 +1267,10 @@ array (size=2)
      *            du champ 'vol_planeur', 'vol_avion'
      */
     function select_flight_frozen_lines($vol, $field) {
-        $date_gel = $this->clotures_model->freeze_date();
-
         $db_res = $this->db
             ->select("achat, gel, $field, date_op")
             ->from("ecritures, achats")
-            ->where("(gel != 0 or date_op<=\"$date_gel\" )")
+            ->where("(gel != 0 or date_op <= " . $this->freeze_date_sql() . ")")
             ->where("achats.id = ecritures.achat")
             ->where("$field = \"$vol\"")
             ->get();

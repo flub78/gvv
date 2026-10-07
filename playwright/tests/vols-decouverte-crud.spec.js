@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { deleteTestVds } = require('./helpers/vdCleanup');
 
 const LOGIN_URL = '/index.php/auth/login';
 const LOGOUT_URL = '/index.php/auth/logout';
@@ -43,12 +44,20 @@ async function selectFirstNonEmptyOption(page, selector) {
 }
 
 test.describe('Vols decouverte CRUD (gestionnaire)', () => {
+  // Filet de sécurité : le test supprime son bon, sauf s'il échoue avant
+  const benefPrefixes = [];
+
+  test.afterAll(async () => {
+    await deleteTestVds(benefPrefixes);
+  });
+
   test('should create, list, edit and delete a discovery flight', async ({ page }) => {
     await loginAs(page, 'testadmin', 'password');
 
     const timestamp = Date.now();
     const beneficiaire = `PW VD ${timestamp}`;
     const updatedBeneficiaire = `PW VD MAJ ${timestamp}`;
+    benefPrefixes.push(beneficiaire, updatedBeneficiaire);
 
     // CREATE
     await page.goto(VD_CREATE_URL);
@@ -126,6 +135,11 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
   let vdActionUrl;
   let vdPreFlightUrl;
   let vdDoneUrl;
+  let beneficiaire;
+
+  test.afterAll(async () => {
+    await deleteTestVds([beneficiaire]);
+  });
 
   // Create a fresh non-expired VD as admin for pilot tests
   test.beforeAll(async ({ browser }) => {
@@ -133,7 +147,7 @@ test.describe('Vols decouverte - droits pilote_vd', () => {
     await loginAs(page, 'testadmin', 'password');
 
     const timestamp = Date.now();
-    const beneficiaire = `PW PILOT ${timestamp}`;
+    beneficiaire = `PW PILOT ${timestamp}`;
 
     await page.goto(VD_CREATE_URL);
     await page.waitForLoadState('domcontentloaded');

@@ -117,6 +117,11 @@ class Pompes_model extends Common_Model {
      */
     public function update($keyid, $data, $keyvalue = '') {
     	$this->load->model('tarifs_model');
+        // Refus avant toute modification si la facturation touche une période clôturée
+        $this->load->model('achats_model');
+        $this->achats_model->check_billing_modifiable(array('mvt_pompe' => $data[$keyid]),
+            $data['ptype'] == 'D' ? $data['pdatemvt'] : null);
+
         // detruit les lignes d'achat correspondante
         $this->delete_facture($data[$keyid]);
         

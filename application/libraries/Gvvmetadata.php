@@ -30,6 +30,7 @@ class GVVMetadata extends Metadata {
 
                 $this->field['achats']['id']['Name'] = 'Id';
                 $this->field['achats']['date']['Name'] = 'Date';
+                $this->field['achats']['date']['Subtype'] = 'activity_date';
                 $this->field['produits']['reference']['Name'] = 'Produit';
                 $this->field['achats']['quantite']['Name'] = 'Quantité';
                 $this->field['achats']['prix']['Name'] = 'Prix';

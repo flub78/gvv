@@ -42,6 +42,7 @@ class Vols_decouverte extends Gvv_Controller {
     protected $rules = array(
         'club'     => "callback_section_selected",
         'date_vol' => "callback_date_vol_not_future",
+        'date_vente' => "callback_date_vente_freeze_check",
     );
 
     // Méthodes accessibles sans authentification
@@ -339,6 +340,12 @@ class Vols_decouverte extends Gvv_Controller {
         $button = $this->input->post('button');
 
         if ($button === 'payer_cb' && (int) $action === CREATION) {
+            // Le paiement CB ne passe pas par la validation générique : contrôle explicite
+            $freeze_error = $this->_date_vente_freeze_error($this->input->post('date_vente'));
+            if ($freeze_error) {
+                $this->_redirect_decouverte_create_with_error($freeze_error, $this->_get_decouverte_form_input());
+                return;
+            }
             $this->_initiate_decouverte_helloasso();
             return;
         }
@@ -367,6 +374,65 @@ class Vols_decouverte extends Gvv_Controller {
         }
 
         return parent::formValidation($action, $return_on_success);
+    }
+
+    /**
+     * Callback de validation de la date de vente (date comptable du bon et du
+     * débit éventuel) : un bon ne peut pas être créé dans une période clôturée,
+     * et sa date de vente ne peut ni y entrer ni en sortir. Les autres
+     * modifications d'un bon vendu avant la date de gel restent permises
+     * (enregistrement du vol notamment).
+     */
+    public function date_vente_freeze_check($date_vente) {
+        $id = $this->input->post('original_' . $this->kid);
+        if (!$id) {
+            $id = $this->input->post($this->kid);
+        }
+        $error = $this->_date_vente_freeze_error($date_vente, $id);
+        if ($error) {
+            $this->form_validation->set_message('date_vente_freeze_check', $error);
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    /**
+     * @param string $date_vente nouvelle date de vente (JJ/MM/AAAA ou AAAA-MM-JJ)
+     * @param int|null $id bon modifié, null en création
+     * @return string message d'erreur, '' si la date est acceptée
+     */
+    private function _date_vente_freeze_error($date_vente, $id = null) {
+        $new_date = date_ht2db(trim((string) $date_vente));
+        if ($new_date === '') {
+            return '';
+        }
+
+        $previous_date = null;
+        $section_id = '';
+        if ($id) {
+            $previous = $this->gvv_model->get_by_id($this->kid, $id);
+            if (!empty($previous)) {
+                $previous_date = $previous['date_vente'];
+                $section_id = !empty($previous['club']) ? $previous['club'] : '';
+            }
+        }
+        if ($previous_date === $new_date) {
+            return '';
+        }
+
+        $this->load->model('clotures_model');
+        $freeze_date = $this->clotures_model->freeze_date(false, $section_id);
+        if (!$freeze_date) {
+            return '';
+        }
+        $this->lang->load('vols_decouverte');
+        if ($previous_date !== null && $previous_date <= $freeze_date) {
+            return sprintf($this->lang->line('gvv_vd_error_date_vente_from_closed'), date_db2ht($freeze_date));
+        }
+        if ($new_date <= $freeze_date) {
+            return sprintf($this->lang->line('gvv_vd_error_date_vente_into_closed'), date_db2ht($freeze_date));
+        }
+        return '';
     }
 
     /**
