@@ -479,7 +479,11 @@ abstract class Metadata {
         $count = (isset($attrs['count'])) ? $attrs['count'] : '';
         $page = (isset($attrs['page'])) ? $attrs['page'] : 'page';
         $uri_segment = (isset($attrs['uri_segment'])) ? $attrs['uri_segment'] : 3;
-        $class = (isset($attrs['class'])) ? "class=\"" . $attrs['class'] . "\"" : "class=\"sql_table datatab\"";
+        $css_class = (isset($attrs['class'])) ? $attrs['class'] : "sql_table datatab";
+        if (strpos($css_class, 'table-hover') === FALSE) {
+            $css_class .= ' table-hover';
+        }
+        $class = "class=\"" . $css_class . "\"";
         $mode = "ro";
         if (isset($attrs['mode']) && ($attrs['mode'] == "rw")) {
             $mode = "rw";
@@ -535,6 +539,7 @@ abstract class Metadata {
             ), $per_page, "id='per_page' onchange=per_page();") . nbs(4) . $pagination . "</td></tr></table>";
         }
 
+        $res .= "<div class=\"table-responsive\">\n";
         $res .= "<table $class>\n";
 
         // Table title
@@ -658,6 +663,7 @@ abstract class Metadata {
             }
         }
         $res .= "</table>\n";
+        $res .= "</div>\n";
 
         if ($count != '' && (!$datatable)) {
             $res .= "<table><tr><td>" . $pagination . "</td></tr></table>";
@@ -745,7 +751,11 @@ abstract class Metadata {
         $actions = (isset($attrs['actions'])) ? $attrs['actions'] : array();
         $base_controller = isset($attrs['controller']) ? $attrs['controller'] : '';
         $controller = (isset($attrs['controller'])) ? controller_url($attrs['controller']) : '';
-        $class = (isset($attrs['class'])) ? "class=\"" . $attrs['class'] . "\"" : "class=\"sql_table datatab\"";
+        $css_class = (isset($attrs['class'])) ? $attrs['class'] : "sql_table datatab";
+        if (strpos($css_class, 'table-hover') === FALSE) {
+            $css_class .= ' table-hover';
+        }
+        $class = "class=\"" . $css_class . "\"";
         $widths = isset($attrs['width']) ? $attrs['width'] : array();
 
         $mode = "ro";
@@ -765,6 +775,7 @@ abstract class Metadata {
 
         $res = "";
 
+        $res .= "<div class=\"table-responsive\">\n";
         $res .= "<table $class>\n";
 
         // Table title
@@ -798,6 +809,7 @@ abstract class Metadata {
         $res .= "</thead>\n";
 
         $res .= "</table>\n";
+        $res .= "</div>\n";
 
         return $res;
     }
