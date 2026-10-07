@@ -17,8 +17,16 @@ class BriefingPassagerUlmHandler implements GvvFormHandlerInterface {
         $CI->lang->load('briefing_passager');
         $redirect_url = site_url('vols_decouverte/page');
 
+        // Briefing rempli sans vol de découverte (formulaire ouvert depuis le tableau
+        // de bord ou par lien direct) : la réponse est enregistrée et consultable dans
+        // la liste des briefings, il n'y a simplement aucun vol à mettre à jour.
+        if ($subject_type === null && empty($subject_id)) {
+            $CI->session->set_flashdata('message', $this->_alert('success', sprintf($CI->lang->line('briefing_passager_saved_without_vld'), $submission_id)));
+            return array('redirect_url' => $redirect_url, 'error' => null);
+        }
+
         if ($subject_type !== 'vols_decouverte' || empty($subject_id)) {
-            $CI->session->set_flashdata('message', $this->_alert('danger', $CI->lang->line('briefing_passager_upload_error')));
+            $CI->session->set_flashdata('message', $this->_alert('danger', sprintf($CI->lang->line('briefing_passager_subject_missing'), $submission_id)));
             return array(
                 'redirect_url' => $redirect_url,
                 'error'        => 'BriefingPassagerUlmHandler: subject_type/subject_id manquant ou invalide pour la soumission ' . $submission_id,
@@ -30,7 +38,7 @@ class BriefingPassagerUlmHandler implements GvvFormHandlerInterface {
 
         $vld = $CI->vols_decouverte_model->get_by_id('id', $subject_id);
         if (!$vld) {
-            $CI->session->set_flashdata('message', $this->_alert('danger', $CI->lang->line('briefing_passager_not_found')));
+            $CI->session->set_flashdata('message', $this->_alert('danger', sprintf($CI->lang->line('briefing_passager_vld_missing'), $submission_id, $subject_id)));
             return array(
                 'redirect_url' => $redirect_url,
                 'error'        => 'BriefingPassagerUlmHandler: vols_decouverte #' . $subject_id . ' introuvable (soumission ' . $submission_id . ')',

@@ -343,7 +343,8 @@ echo $this->gvvmetadata->table("vue_vols_avion", $attrs, "");
 echo br();
 
 $bar = array(
-    array('label' => "Excel", 'url' => "$controller/csv/$year"),
+    array('label' => "CSV", 'url' => "$controller/csv/$year"),
+    array('label' => "Xlsx", 'url' => "$controller/xlsx/$year"),
     array('label' => "Pdf", 'url' => "$controller/pdf/$year"),
 );
 echo br() . button_bar4($bar);

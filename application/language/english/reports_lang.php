@@ -15,6 +15,7 @@ $lang['gvv_reports_field_align'] = "Columns alignment";
 $lang['gvv_reports_field_width'] = "Columns width for PDF";
 $lang['gvv_reports_field_landscape'] = "PDF landscape";
 $lang['gvv_reports_field_sql'] = "SQL query";
+$lang['gvv_reports_error_sql'] = "Report « %s » could not be run: its SQL query failed.";
 
 $lang['gvv_vue_reports_short_field_nom'] = "Name";
 $lang['gvv_vue_reports_short_field_titre'] = "Title";

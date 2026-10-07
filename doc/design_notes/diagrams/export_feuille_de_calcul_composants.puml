@@ -1,0 +1,49 @@
+@startuml
+skinparam componentStyle rectangle
+title Export feuille de calcul — architecture générique proposée
+
+package "Vue (bs_tableView.php, ...)" {
+  [button_bar4()] as bar
+}
+
+package "Contrôleur (avion.php, planeur.php, membre.php, ...)" {
+  [export($mode)] as export_ctrl
+}
+
+package "application/libraries/MetaData.php" {
+  [csv_table()] as csv
+  [pdf_table()] as pdf
+  [xlsx_table()] as xlsx_new #LightGreen
+  [array_field($mode)] as array_field
+}
+
+package "application/third_party/" {
+  [tfpdf.php\n(existant)] as tfpdf
+  [SimpleXLSXGen.php\n(nouveau, fichier unique)] as xlsxlib #LightGreen
+}
+
+bar --> export_ctrl : lien "CSV" / "PDF" / "Xlsx"
+export_ctrl --> csv : mode=csv
+export_ctrl --> pdf : mode=pdf
+export_ctrl --> xlsx_new : mode=xlsx
+csv --> array_field : mode="csv"
+pdf --> array_field : mode="pdf"
+xlsx_new --> array_field : mode="xlsx"\n(valeurs typées,\npas de mise en forme texte)
+pdf --> tfpdf
+xlsx_new --> xlsxlib
+
+note right of xlsx_new
+  Même signature que csv_table()/pdf_table() :
+  xlsx_table($table, $data, $attrs)
+  - réutilise $fields / $title / $filename
+  - un seul point d'entrée pour toutes
+    les pages "liste simple"
+end note
+
+note bottom of array_field
+  Nouveau mode "xlsx" : les valeurs numériques/
+  monétaires/dates restent typées (float, DateTime)
+  au lieu d'être formatées en chaîne, pour permettre
+  les calculs côté tableur.
+end note
+@enduml

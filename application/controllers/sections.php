@@ -114,6 +114,13 @@ class Sections extends Gvv_Controller {
             ));
         }
 
+        if ($mode === 'xlsx') {
+            return $this->gvvmetadata->xlsx_table('vue_sections', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
         $this->load->library('Pdf');
         $pdf = new Pdf();
         $pdf->AddPage('P');

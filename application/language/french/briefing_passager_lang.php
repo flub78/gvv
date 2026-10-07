@@ -39,6 +39,9 @@ $lang['briefing_passager_select_vld']         = 'Sélectionner un vol de découv
 
 $lang['briefing_passager_upload_success']     = 'Briefing enregistré avec succès.';
 $lang['briefing_passager_upload_error']       = 'Erreur lors de l\'enregistrement du briefing.';
+$lang['briefing_passager_subject_missing']    = 'Le briefing a été enregistré (réponse n°%d) mais n\'a pas pu être rattaché au vol de découverte : la référence du vol est absente ou invalide. Signalez le n° de réponse à un gestionnaire.';
+$lang['briefing_passager_saved_without_vld']  = 'Briefing enregistré avec succès (réponse n°%d). Il n\'est rattaché à aucun vol de découverte.';
+$lang['briefing_passager_vld_missing']        = 'Le briefing a été enregistré (réponse n°%d) mais le vol de découverte n°%d est introuvable. Signalez le n° de réponse à un gestionnaire.';
 $lang['briefing_passager_fields_required']    = 'Les champs suivants sont obligatoires : %s';
 $lang['briefing_passager_already_exists']     = 'Un briefing existe déjà pour ce vol. Voulez-vous le remplacer ?';
 $lang['briefing_passager_confirm_delete']     = 'Êtes-vous sûr de vouloir supprimer ce briefing ?';

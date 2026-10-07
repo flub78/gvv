@@ -3206,6 +3206,7 @@ SQL;
      * POST: send email and redirect back with success/error flash
      */
     public function test_email() {
+        $this->load->helper('email');
         $data = array(
             'title'   => 'Test email',
             'success' => $this->session->flashdata('email_test_success'),
@@ -3217,7 +3218,7 @@ SQL;
         );
 
         if ($this->input->post('send')) {
-            $to      = trim($this->input->post('to'));
+            $to      = extract_email(trim($this->input->post('to')));
             $subject = trim($this->input->post('subject'));
             $body    = trim($this->input->post('body'));
 

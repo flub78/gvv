@@ -729,6 +729,10 @@ class Membre extends Gvv_Controller {
                 'mdaten'
             )
         );
+        if ($mode == 'xlsx') {
+            $this->gvvmetadata->xlsx("membres", $attrs);
+            return;
+        }
         $this->gvvmetadata->csv("membres", $attrs);
     }
 

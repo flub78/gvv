@@ -1251,6 +1251,7 @@ class Archived_documents extends Gvv_Controller {
         $parsed = array_filter(array_map('trim', explode(',', $recipients_raw)));
         $valid_recipients = array();
         foreach ($parsed as $addr) {
+            $addr = extract_email($addr);
             if (filter_var($addr, FILTER_VALIDATE_EMAIL)) {
                 $valid_recipients[] = $addr;
             }

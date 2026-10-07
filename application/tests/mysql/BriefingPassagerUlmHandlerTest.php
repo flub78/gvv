@@ -130,6 +130,26 @@ class BriefingPassagerUlmHandlerTest extends TestCase
         $this->assertSame('Ancien Nom', $vld['beneficiaire']);
     }
 
+    /**
+     * Régression : formulaire ouvert depuis le tableau de bord, sans vol de découverte.
+     * La réponse est enregistrée, ce n'est pas une erreur.
+     */
+    public function testAfterSubmitWithoutSubjectIsASuccess()
+    {
+        $submission_id = $this->createSubmission(array('nom' => 'Dupont'), null);
+
+        $handler = new BriefingPassagerUlmHandler();
+        $result = $handler->after_submit($submission_id, null, null);
+
+        $this->assertNull($result['error']);
+        $message = $this->flashMessage();
+        $this->assertStringContainsString('alert-success', $message);
+        $this->assertStringContainsString('briefing_passager_saved_without_vld', $message);
+
+        $vld = $this->db->where('id', $this->vld_id)->get('vols_decouverte')->row_array();
+        $this->assertSame('Ancien Nom', $vld['beneficiaire']);
+    }
+
     public function testAfterSubmitWithMissingVldLogsErrorWithoutCrashing()
     {
         $submission_id = $this->createSubmission(array('nom' => 'Dupont'), $this->vld_id);

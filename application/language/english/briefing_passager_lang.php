@@ -39,6 +39,9 @@ $lang['briefing_passager_select_vld']         = 'Select a discovery flight';
 
 $lang['briefing_passager_upload_success']     = 'Briefing saved successfully.';
 $lang['briefing_passager_upload_error']       = 'Error saving the briefing.';
+$lang['briefing_passager_subject_missing']    = 'The briefing was saved (response #%d) but could not be linked to the discovery flight: the flight reference is missing or invalid. Report the response number to a manager.';
+$lang['briefing_passager_saved_without_vld']  = 'Briefing saved successfully (response #%d). It is not linked to any discovery flight.';
+$lang['briefing_passager_vld_missing']        = 'The briefing was saved (response #%d) but discovery flight #%d could not be found. Report the response number to a manager.';
 $lang['briefing_passager_fields_required']    = 'The following fields are required: %s';
 $lang['briefing_passager_already_exists']     = 'A briefing already exists for this flight. Do you want to replace it?';
 $lang['briefing_passager_confirm_delete']     = 'Are you sure you want to delete this briefing?';

@@ -26,6 +26,7 @@ class Payments extends CI_Controller {
         $this->load->config('helloasso');
         $this->load->helper('form');
         $this->load->helper('url');
+        $this->load->helper('email');
     }
 
     /**
@@ -174,7 +175,7 @@ class Payments extends CI_Controller {
         }
 
         // Email validation (optional)
-        $payer_email = $this->input->post('payer_email');
+        $payer_email = extract_email($this->input->post('payer_email'));
         if (!empty($payer_email) && !filter_var($payer_email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Invalid email address';
         }

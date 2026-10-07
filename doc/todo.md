@@ -7,8 +7,6 @@
 * [] déplacer les répertoire de travail ailleurs que dans l'arborescence servie par apache.
 
 ## Reste à faire
-  
-* [] Ajout de vrais export excel en sus des csv.
 
 * [~] Support de la gestion de la maintenance,  
   visite périodique, équipements à potentiel, 
@@ -16,10 +14,10 @@
 
   A tester en fonction du guide dans doc/users/fr/16_maintenance_aeronefs.md
 
+* [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
+  
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
    
-* [] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
-
 * [] Unifier la configuration globale de l'application avec des onglets ou des pages, un peu comme la procédure d'installation.
 Suivant les cas, la procédure éditera des fichiers de configuration ou des enregistrements dans la base de données. 
   * [] Gestion des emails (smtp, etc)
@@ -34,8 +32,6 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
   * [] Gestion des types de maintenance.
   
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
-  
-* [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Informer le trésorier des renouvellement de cotisation par email
 

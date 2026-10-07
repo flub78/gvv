@@ -1089,12 +1089,20 @@ class Email_lists_model extends CI_Model
         // 4. Add sublists (table email_list_sublists) - Source 4
         $sublists = $this->get_sublists($list_id);
         foreach ($sublists as $sublist) {
-            // Get emails from sublist (using textual_list for simplicity)
+            // Recurse into detailed_list() (rather than textual_list()) so that
+            // names resolved within the sublist are not lost.
             // No risk of infinite recursion due to depth=1 validation in add_sublist()
-            $sublist_emails = $this->textual_list($sublist['id']);
-            foreach ($sublist_emails as $email) {
-                $email_lower = strtolower(trim($email));
+            $sublist_items = $this->detailed_list($sublist['id']);
+            foreach ($sublist_items as $sub_item) {
+                $email_lower = strtolower(trim($sub_item['email']));
                 $all_emails[] = $email_lower;
+                // Keep the name resolved within the sublist, if any
+                if (!empty($sub_item['name']) && !isset($member_names[$email_lower]) && !isset($external_with_names[$email_lower])) {
+                    $member_names[$email_lower] = $sub_item['name'];
+                }
+                if (!empty($sub_item['is_external'])) {
+                    $external_emails_set[$email_lower] = true;
+                }
                 // Set source as sublist with list name
                 // Only set if not already set by a more specific source
                 if (!isset($email_sources[$email_lower])) {

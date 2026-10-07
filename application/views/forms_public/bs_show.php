@@ -160,6 +160,7 @@
 .drop-zone.drag-over { border-color: #0d6efd; background-color: #e8f0fe; }
 .drop-zone.has-file { border-color: #198754; background-color: #f0fff4; }
 </style>
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
 <script>
 (function () {
     var input = document.getElementById('upload_response_file');
@@ -185,10 +186,11 @@
     zone.addEventListener('drop', function (e) {
         e.preventDefault();
         zone.classList.remove('drag-over');
-        var dt = e.dataTransfer;
-        if (dt.files.length > 0) {
-            input.files = dt.files;
-            updateFilename(dt.files);
+        var file = e.dataTransfer.files[0];
+        if (file) {
+            gvvDropFile(file, input, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+                if (copy) updateFilename(input.files);
+            });
         }
     });
 })();

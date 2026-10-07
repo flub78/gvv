@@ -54,6 +54,7 @@ echo p($this->lang->line("gvv_of_select"));
   </button>
 </form>
 
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
 <script>
 (function () {
   var zone    = document.getElementById('drop-zone');
@@ -89,7 +90,16 @@ echo p($this->lang->line("gvv_of_select"));
     e.preventDefault();
     zone.style.background = '#e8f4fd';
     var file = e.dataTransfer.files[0];
-    if (file) setFile(file);
+    if (!file) return;
+    gvvDropFile(file, input, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+      if (copy) {
+        setFile(copy);
+      } else {
+        nameEl.textContent = '';
+        btn.disabled = true;
+        zone.style.background = '';
+      }
+    });
   });
 }());
 </script>

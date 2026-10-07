@@ -74,7 +74,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/total"
                 ),
                 array(
@@ -98,7 +98,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/total_solo"
                 ),
                 array(
@@ -122,7 +122,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/hours_per_year"
                 ),
                 array(
@@ -146,7 +146,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/flights_per_year"
                 ),
                 array(
@@ -170,7 +170,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/double_per_year"
                 ),
                 array(
@@ -194,7 +194,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         $table->display();
         $bar = array(
                 array(
-                        'label' => "Excel",
+                        'label' => "CSV",
                         'url' => "$controller/par_pilote_machine/csv/solo_per_year"
                 ),
                 array(

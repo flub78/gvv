@@ -51,12 +51,5 @@ echo '<div class="mb-3">'
     . '</div>';
 
 echo $this->gvvmetadata->table("vue_configuration", $attrs, "");
-/*
-$bar = array(
-	array('label' => "Excel", 'url' =>"$controller/export/csv", 'role' => 'ca'),
-	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
-	);
-echo button_bar4($bar);
-*/
 
 echo '</div>';

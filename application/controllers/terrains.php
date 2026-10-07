@@ -132,4 +132,41 @@ class Terrains extends Gvv_Controller {
         )));
     }
 
+    /**
+     * Export de la liste des terrains
+     *
+     * @param string $mode csv, xlsx ou pdf
+     */
+    public function export($mode = 'csv') {
+        $this->lang->load('terrains');
+        $rows = $this->gvv_model->select_page(10000, 0);
+        $fields = array('oaci', 'nom', 'freq1', 'freq2', 'comment');
+        $title = $this->lang->line('gvv_terrains_title_list');
+
+        if ($mode === 'csv') {
+            return $this->gvvmetadata->csv_table('vue_terrains', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        if ($mode === 'xlsx') {
+            return $this->gvvmetadata->xlsx_table('vue_terrains', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
+        $this->load->library('Pdf');
+        $pdf = new Pdf();
+        $pdf->AddPage('P');
+        $width = array(20, 60, 20, 20, 60);
+        $this->gvvmetadata->pdf_table('vue_terrains', $rows, $pdf, array(
+            'title' => $title,
+            'fields' => $fields,
+            'width' => $width,
+        ));
+        $pdf->Output('I', pdf_filename($title));
+    }
+
 }

@@ -44,7 +44,8 @@ $attrs = array(
 echo $this->gvvmetadata->table("vue_solde_tickets", $attrs, "");
 
 $bar = array(
-	array('label' => "Excel", 'url' => "$controller/solde/csv"),
+	array('label' => "CSV", 'url' => "$controller/solde/csv"),
+	array('label' => "Xlsx", 'url' => "$controller/solde/xlsx"),
 	array('label' => "Pdf", 'url' => "$controller/solde/pdf"),
 );
 echo button_bar4($bar);

@@ -400,6 +400,30 @@ class Licences extends Gvv_Controller {
      * Export CSV de la vue par année
      */
     public function per_year_detail_csv() {
+        list($title, $csv_data) = $this->per_year_detail_rows();
+
+        $this->load->helper('csv');
+        csv_file($title, $csv_data);
+    }
+
+    /**
+     * Export xlsx du détail des licences de l'année : mêmes lignes que
+     * per_year_detail_csv()
+     */
+    public function per_year_detail_xlsx() {
+        list($title, $csv_data) = $this->per_year_detail_rows();
+
+        $this->load->helper('csv');
+        xlsx_file($title, $csv_data, 3);
+    }
+
+    /**
+     * Lignes du détail des licences de l'année (filtres de session), partagées
+     * par les exports CSV et xlsx
+     *
+     * @return array [titre, lignes]
+     */
+    private function per_year_detail_rows() {
         $this->load->model('licences_model');
         $this->load->model('sections_model');
 
@@ -436,8 +460,7 @@ class Licences extends Gvv_Controller {
             $csv_data[] = $row;
         }
 
-        $this->load->helper('csv');
-        csv_file($title, $csv_data);
+        return array($title, $csv_data);
     }
 
     /**

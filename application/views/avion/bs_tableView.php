@@ -112,7 +112,8 @@ echo $this->gvvmetadata->table("vue_avions", $attrs, "");
 
 // Export buttons
 $bar = array(
-	array('label' => "Excel", 'url' => "$controller/export/csv", 'role' => 'ca'),
+	array('label' => "CSV", 'url' => "$controller/export/csv", 'role' => 'ca'),
+	array('label' => "Xlsx", 'url' => "$controller/export/xlsx", 'role' => 'ca'),
 	array('label' => "Pdf", 'url' => "$controller/export/pdf", 'role' => 'ca'),
 );
 echo button_bar4($bar);

@@ -557,29 +557,10 @@ abstract class Metadata {
             $res .= "<th $align>N°</th>";
         }
 
-        // Optional global Create button (Bootstrap) in header when provided
-        $header_create_html = '';
-        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
-            $create_url = $attrs['create']['url'];
-            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
-            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
-            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
-                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
-                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
-                                . '</a>';
-        }
-
         // Actions title
-        $action_cnt = count($actions);
         foreach ($actions as $action) {
-            $action_cnt--;
-            $name = '';
-            if ($action_cnt == 0) {
-                // Put Create button in the last actions header cell if available
-                $name = $header_create_html;
-            }
             if ($mode == "rw")
-                $res .= "<th class=\"ui-state-default\" >$name</th>";
+                $res .= "<th class=\"ui-state-default\" ></th>";
         }
 
         // column title
@@ -807,28 +788,10 @@ abstract class Metadata {
         $res .= "\t<thead>";
         $res .= "<tr>";
 
-        // Optional global Create button (Bootstrap) in header when provided
-        $header_create_html = '';
-        if (isset($attrs['create']) && is_array($attrs['create']) && isset($attrs['create']['url'])) {
-            $create_url = $attrs['create']['url'];
-            $label_key = isset($attrs['create']['label_key']) ? $attrs['create']['label_key'] : 'gvv_button_create';
-            $create_label = $this->CI->lang->line($label_key) ?: $this->CI->lang->line('gvv_button_create');
-            $header_create_html = '<a href="' . site_url(trim($create_url, '/')) . '" class="btn btn-sm btn-success">'
-                                . '<i class="fas fa-plus" aria-hidden="true"></i> '
-                                . htmlspecialchars($create_label, ENT_QUOTES, 'UTF-8')
-                                . '</a>';
-        }
-
         // Actions title
-        $action_cnt = count($actions);
         foreach ($actions as $action) {
-            $action_cnt--;
-            $name = '';
-            if ($action_cnt == 0) {
-                $name = $header_create_html;
-            }
             if ($mode == "rw")
-                $res .= "<th>$name</th>";
+                $res .= "<th></th>";
         }
 
         // column title
@@ -883,6 +846,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
+        get_instance()->load->helper('csv');
         $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
@@ -905,19 +869,17 @@ abstract class Metadata {
         // Value lines
         $cnt = 1;
         foreach ($this->db[$table] as $row) {
-            // Columns
+            $cells = array();
             if ($numbered) {
-                $res .= "$cnt; ";
+                $cells[] = $cnt;
                 $cnt++;
             }
 
             foreach ($fields as $field) {
-
                 $value = isset($row[$field]) ? $row[$field] : '';
-                $res .= $this->array_field($table, $field, $value, $row, "csv");
-                $res .= "; ";
+                $cells[] = $this->array_field($table, $field, $value, $row, "csv");
             }
-            $res .= "\n";
+            $res .= csv_spaced_line($cells); // valeurs spéciales encadrées (csv_helper)
         }
         $res .= $footer;
         // echo $res . br() ; return;
@@ -937,6 +899,19 @@ abstract class Metadata {
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
         force_download($filename, $res);
+    }
+
+    /**
+     * Export xlsx de la table stockée par le modèle (store_table()), pendant
+     * de csv() : mêmes attributs (title, fields, numbered), valeurs typées.
+     *
+     * @param string $table name
+     * @param array $attrs display attributes
+     */
+    function xlsx($table, $attrs = array()) {
+        if (!array_key_exists($table, $this->db))
+            throw new Exception('unknown table ' . $table);
+        return $this->xlsx_table($table, $this->db[$table], $attrs);
     }
 
     /**
@@ -966,6 +941,7 @@ abstract class Metadata {
         $header = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
         $footer = (isset($attrs['header'])) ? $attrs['header'] . "\n" : '';
 
+        get_instance()->load->helper('csv');
         $res = "\xEF\xBB\xBF" . $header;
         // Table title
         if (isset($attrs['title'])) {
@@ -988,19 +964,17 @@ abstract class Metadata {
         // Value lines
         $cnt = 1;
         foreach ($data as $row) {
-            // Columns
+            $cells = array();
             if ($numbered) {
-                $res .= "$cnt; ";
+                $cells[] = $cnt;
                 $cnt++;
             }
 
             foreach ($fields as $field) {
-
                 $value = isset($row[$field]) ? $row[$field] : '';
-                $res .= $this->array_field($table, $field, $value, $row, "csv");
-                $res .= "; ";
+                $cells[] = $this->array_field($table, $field, $value, $row, "csv");
             }
-            $res .= "\n";
+            $res .= csv_spaced_line($cells); // valeurs spéciales encadrées (csv_helper)
         }
         $res .= $footer;
         // echo $res . br() ; return;
@@ -1020,6 +994,95 @@ abstract class Metadata {
         // Load the download helper and send the file to your desktop
         $CI->load->helper('download');
         force_download($filename, $res);
+    }
+
+    /**
+     * Export a table as a real spreadsheet (.xlsx), unlike csv_table() values
+     * are kept typed (numbers, dates) instead of formatted strings, so the
+     * operator can compute on them directly in the spreadsheet.
+     *
+     * @param string $table name
+     * @param $data the
+     *            table to display
+     * @param $attrs display
+     *            attributes
+     *            possible values:
+     *            - title
+     *            - fields
+     *            - filename
+     *            - numbered
+     */
+    function xlsx_table($table, $data, $attrs = array()) {
+        list($xlsx, $filename) = $this->xlsx_workbook($table, $data, $attrs);
+        $xlsx->downloadAs($filename);
+    }
+
+    /**
+     * Build the \Shuchkin\SimpleXLSXGen workbook for xlsx_table(), without
+     * sending it to the browser. Split out from xlsx_table() so it can be
+     * unit-tested (no headers sent) and reused by report-specific exports
+     * that need to add more sheets before downloading.
+     *
+     * @return array [SimpleXLSXGen $xlsx, string $filename]
+     */
+    function xlsx_workbook($table, $data, $attrs = array()) {
+        $numbered = (isset($attrs['numbered'])) ? $attrs['numbered'] : 0;
+        if (isset($attrs['fields'])) {
+            $fields = $attrs['fields'];
+        } else {
+            if (isset($this->db['default_fields'][$table])) {
+                $fields = $this->db['default_fields'][$table];
+            } else {
+                $fields = array_keys(($data[0]));
+            }
+        }
+
+        require_once APPPATH . 'third_party/simplexlsxgen/SimpleXLSXGen.php';
+
+        $rows = array();
+
+        // Header row, bold
+        $header = array();
+        if ($numbered) {
+            $header[] = '<b>N°</b>';
+        }
+        foreach ($fields as $field) {
+            $header[] = '<b>' . $this->field_name($table, $field) . '</b>';
+        }
+        $rows[] = $header;
+
+        // Value rows
+        $cnt = 1;
+        foreach ($data as $row) {
+            $line = array();
+            if ($numbered) {
+                $line[] = $cnt++;
+            }
+            foreach ($fields as $field) {
+                $value = isset($row[$field]) ? $row[$field] : '';
+                $line[] = $this->array_field($table, $field, $value, $row, "xlsx");
+            }
+            $rows[] = $line;
+        }
+
+        date_default_timezone_set('Europe/Paris');
+        $dt = date("Y_m_d");
+        if (isset($attrs['filename'])) {
+            $filename = $attrs['filename'];
+        } elseif (isset($attrs['title'])) {
+            $title = strtolower(str_replace([' ', '-', ',', '=', '/'], ['_', '', '', '_', '_'], $attrs['title']));
+            $filename = "gvv_" . $title . ".xlsx";
+        } else {
+            $filename = "gvv_" . $table . "_$dt.xlsx";
+        }
+
+        $sheet_name = isset($attrs['title']) ? $attrs['title'] : $table;
+        // Caractères interdits dans un nom de feuille Excel (sinon le fichier
+        // est signalé comme corrompu à l'ouverture), ex. une date jj/mm/aaaa.
+        $sheet_name = str_replace(array('\\', '/', '?', '*', '[', ']', ':'), '-', $sheet_name);
+        $xlsx = \Shuchkin\SimpleXLSXGen::fromArray($rows, $sheet_name);
+        $xlsx->freezePanes($numbered ? 'B2' : 'A2');
+        return array($xlsx, $filename);
     }
 
     /**
@@ -1187,6 +1250,41 @@ abstract class Metadata {
         $type = $this->field_type($table, $field);
         $subtype = $this->field_subtype($table, $field);
         // gvv_debug("array_field ($table, $field), id=$id, type=$type, subtype=$subtype, value=$value");
+
+        if ($mode == 'xlsx') {
+            // Unlike csv/pdf/html, keep values typed (not pre-formatted strings)
+            // so the operator can compute on them directly in the spreadsheet.
+            // Dates (DB format Y-m-d / Y-m-d H:i:s) and plain numbers are left
+            // as-is: the xlsx writer auto-detects and types them natively.
+            if ($value === '' || $value === null) {
+                return '';
+            }
+            if ($subtype == 'boolean' || $subtype == 'checkbox') {
+                return (int) $value;
+            }
+            if ($subtype == 'currency' || $type == 'decimal') {
+                return (float) $value;
+            }
+            if ($subtype == 'enumerate') {
+                if (isset($this->field[$table][$field]['Enumerate'])) {
+                    $values = $this->field[$table][$field]['Enumerate'];
+                    return (isset($values[$value])) ? $values[$value] : $value;
+                }
+                return $value;
+            }
+            if ($subtype == 'key') {
+                if (isset($this->field[$table][$field]['Image'])) {
+                    $image = $this->field[$table][$field]['Image'];
+                    return $row[$image];
+                }
+                return $value;
+            }
+            if ($subtype == 'image' || $subtype == 'upload_image' || $subtype == 'color') {
+                // Not representable as a spreadsheet cell value.
+                return '';
+            }
+            return $value;
+        }
 
         if ($subtype == 'boolean') {
             if ($mode == 'csv' || $mode == 'pdf')

@@ -307,8 +307,8 @@ window.addExternalEmails = function() {
             emails.forEach(email => {
                 name = name.replace(email, '');
             });
-            // Clean up separators and whitespace
-            name = name.replace(/[,;]+/g, ' ').replace(/\s+/g, ' ').trim();
+            // Clean up angle brackets, separators and whitespace
+            name = name.replace(/[<>]+/g, ' ').replace(/[,;]+/g, ' ').replace(/\s+/g, ' ').trim();
 
             // Add all emails from this line with the same name
             emails.forEach(email => {

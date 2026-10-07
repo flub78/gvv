@@ -11,6 +11,8 @@
 
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
+const fs = require('fs');
+const path = require('path');
 
 const LOGIN_URL        = '/index.php/auth/login';
 const VLD_LIST_URL     = '/index.php/vols_decouverte';
@@ -318,6 +320,89 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
             }
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
+        await connection.end();
+    }
+});
+
+// --- Régression 2026-10-04 : formulaire ouvert sans vol (carte du tableau de bord) ---
+// Avant correctif : le contexte d'un briefing précédent (vol, passager pré-rempli) restait
+// en session, et une réponse sans vol était signalée « Erreur lors de l'enregistrement du
+// briefing. ». Désormais une ouverture sans paramètre repart d'un formulaire vierge et
+// la réponse est acceptée sans être rattachée à un vol.
+
+test('briefing opened without VLD after a VLD briefing: blank form, saved, not attached to the previous VLD', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const benef = `PW BRIEFING SANS VLD ${Date.now()}`;
+    const [maxRows] = await connection.execute('SELECT COALESCE(MAX(id), 0) AS max_id FROM form_submissions');
+    const maxSubmissionId = maxRows[0].max_id;
+    const [ins] = await connection.execute(
+        "INSERT INTO vols_decouverte (date_vente, club, product, saisie_par, beneficiaire) VALUES (CURDATE(), 2, 'abbeville_ulm', 'playwright', ?)",
+        [benef]
+    );
+    const vdId = ins.insertId;
+
+    try {
+        await login(page, ADMIN_USER, 2);
+
+        // Briefing commencé depuis le vol puis abandonné : le contexte du vol est en session.
+        await page.goto(`/index.php/briefing_passager/upload/${vdId}`);
+        await page.waitForLoadState('domcontentloaded');
+        await selectFirstNonEmptyOption(page, 'select[name="aerodrome"]');
+        await selectFirstNonEmptyOption(page, 'select[name="airplane_immat"]');
+        await selectFirstNonEmptyOption(page, 'select[name="pilote"]');
+        await page.click('button[type="submit"][name="action"][value="link2"]');
+        await page.waitForLoadState('domcontentloaded');
+        await expect(page.locator('input[name="nom"]')).toHaveValue(benef);
+
+        // Ouverture sans paramètre, comme depuis le tableau de bord : formulaire vierge.
+        await page.goto('/forms/briefing-passager-ulm');
+        await page.waitForLoadState('domcontentloaded');
+        await expect(page.locator('input[name="nom"]')).toHaveValue('');
+        await expect(page.locator('input[name="site_decollage"]')).toHaveValue('');
+
+        await page.fill('input[name="date_vol"]', '2026-10-04');
+        await page.fill('input[name="prenom"]', 'Jean');
+        await page.fill('input[name="nom"]', 'SansVol');
+        await page.fill('input[name="date_naissance"]', '1990-01-01');
+        await page.fill('input[name="poids_declare"]', '70');
+        await page.fill('input[name="personne_a_prevenir"]', 'Marie');
+        await page.fill('input[name="telephone"]', '0600000000');
+        await page.click('button[data-sig-tab="text"]');
+        await page.fill('.gvv-sig-text-input', 'Jean SansVol');
+        await page.click('button[type="submit"].btn-success');
+        await page.waitForLoadState('domcontentloaded');
+
+        const successAlert = page.locator('.alert-success.alert-dismissible');
+        await expect(successAlert).toBeVisible();
+        await expect(successAlert).toContainText('aucun vol de découverte');
+        await expect(page.locator('.alert-danger')).toHaveCount(0);
+
+        const [subs] = await connection.execute(
+            'SELECT id, subject_type, subject_id FROM form_submissions WHERE form_id = 2 AND id > ?',
+            [maxSubmissionId]
+        );
+        expect(subs.length).toBe(1);
+        expect(subs[0].subject_type).toBeNull();
+        expect(subs[0].subject_id).toBeNull();
+
+        const [vld] = await connection.execute('SELECT beneficiaire FROM vols_decouverte WHERE id = ?', [vdId]);
+        expect(vld[0].beneficiaire).toBe(benef);
+    } finally {
+        const [subs] = await connection.execute(
+            'SELECT id FROM form_submissions WHERE form_id = 2 AND id > ?',
+            [maxSubmissionId]
+        );
+        for (const row of subs) {
+            const [files] = await connection.execute('SELECT storage_path FROM form_submission_files WHERE submission_id = ?', [row.id]);
+            for (const f of files) {
+                const p = path.resolve(__dirname, '../..', String(f.storage_path).replace(/^\/+/, ''));
+                if (fs.existsSync(p)) fs.unlinkSync(p);
+            }
+            await connection.execute('DELETE FROM form_submission_files WHERE submission_id = ?', [row.id]);
+            await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [row.id]);
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [row.id]);
+        }
+        await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         await connection.end();
     }
 });

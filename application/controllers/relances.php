@@ -81,11 +81,41 @@ class Relances extends MY_Controller
      */
     public function export_csv()
     {
+        $csv_data = $this->export_rows(false);
+
+        $this->load->helper('csv');
+        csv_file("Relances_debiteurs", $csv_data);
+    }
+
+    /**
+     * Export xlsx des débiteurs : mêmes lignes que export_csv(), soldes en
+     * nombres natifs
+     */
+    public function export_xlsx()
+    {
+        $rows = $this->export_rows(true);
+
+        $this->load->helper('csv');
+        xlsx_file("Relances_debiteurs", $rows, 3);
+    }
+
+    /**
+     * Lignes de l'export des débiteurs (titre, date, en-tête ligne 3, un
+     * débiteur par ligne), partagées par export_csv() et export_xlsx().
+     *
+     * @param bool $raw_numbers Soldes en float (xlsx) plutôt qu'en chaîne
+     *                          "1 234,56" (CSV)
+     * @return array
+     */
+    private function export_rows($raw_numbers)
+    {
         $data = $this->relances_model->get_debiteurs();
         $sections = $data['sections'];
         $debiteurs = $data['rows'];
 
-        $title = "Relances_debiteurs";
+        $amount = function ($value) use ($raw_numbers) {
+            return $raw_numbers ? (float) $value : number_format($value, 2, ',', ' ');
+        };
 
         $header = array($this->lang->line('relances_col_nom'));
         foreach ($sections as $s) {
@@ -105,16 +135,15 @@ class Relances extends MY_Controller
             $row = array($d['mnom'] . ' ' . $d['mprenom']);
             foreach ($sections as $s) {
                 $solde = $d['par_section'][$s['id']]['solde'] ?? 0;
-                $row[] = $solde != 0 ? number_format($solde, 2, ',', ' ') : '';
+                $row[] = $solde != 0 ? $amount($solde) : '';
             }
-            $row[] = number_format($d['total'],    2, ',', ' ');
-            $row[] = number_format($d['total_6m'], 2, ',', ' ');
-            $row[] = number_format($d['total_1an'], 2, ',', ' ');
+            $row[] = $amount($d['total']);
+            $row[] = $amount($d['total_6m']);
+            $row[] = $amount($d['total_1an']);
             $csv_data[] = $row;
         }
 
-        $this->load->helper('csv');
-        csv_file($title, $csv_data);
+        return $csv_data;
     }
 
     /**

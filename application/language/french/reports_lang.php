@@ -15,6 +15,7 @@ $lang['gvv_reports_field_align'] = "Alignement des colonnes";
 $lang['gvv_reports_field_width'] = "Largeur des colonnes PDF";
 $lang['gvv_reports_field_landscape'] = "Orientation du PDF en paysage";
 $lang['gvv_reports_field_sql'] = "Requête SQL";
+$lang['gvv_reports_error_sql'] = "Le rapport « %s » n'a pas pu être exécuté : sa requête SQL est en erreur.";
 
 $lang['gvv_vue_reports_short_field_nom'] = "Nom";
 $lang['gvv_vue_reports_short_field_titre'] = "Titre";

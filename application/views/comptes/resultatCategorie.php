@@ -23,12 +23,11 @@
  */
 
 $this->load->library('DataTable');
-$this->load->view('header');
-$this->load->view('banner');
-$this->load->view('sidebar');
-$this->load->view('menu');
+$this->load->view('bs_header');
+$this->load->view('bs_menu');
+$this->load->view('bs_banner');
 $this->load->library('ButtonView');
-echo '<div id="body" class="body ui-widget-content">';
+echo '<div id="body" class="body container-fluid">';
 
 echo heading("Dépenses $annee_exercise par catégories", 2, "");
 echo br();
@@ -81,7 +80,10 @@ $table = new DataTable(array(
 
 $table->display();
 
-echo button_bar(array('Excel' => "$controller/csv_resultat_categories", 'Pdf' => "rapports/pdf_resultats_par_categories"));
+echo button_bar4(array(
+    array('label' => "CSV", 'url' => "$controller/csv_resultat_categories"),
+    array('label' => "Pdf", 'url' => "rapports/pdf_resultats_par_categories"),
+));
 
 echo '</div>';
 ?>

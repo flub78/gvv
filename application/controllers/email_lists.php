@@ -379,8 +379,15 @@ class Email_lists extends Gvv_Controller
 
             // Add new emails
             foreach ($external_emails as $index => $email) {
+                $name = isset($external_names[$index]) ? trim((string) $external_names[$index]) : '';
+                // Parse "Nom <email>" format: populate name if not already provided
+                if (preg_match('/^(.+?)\s*<([^>]+)>\s*$/', trim($email), $matches)) {
+                    if (empty($name)) {
+                        $name = trim($matches[1]);
+                    }
+                    $email = trim($matches[2]);
+                }
                 if (!in_array($email, $current_external_emails)) {
-                    $name = isset($external_names[$index]) ? $external_names[$index] : '';
                     log_message('debug', "EMAIL_LISTS UPDATE: Adding external email: $email, name: $name");
                     $result = $this->email_lists_model->add_external_email($id, $email, $name);
                     log_message('debug', "EMAIL_LISTS UPDATE: Add result: " . ($result ? $result : 'FALSE'));
@@ -460,12 +467,20 @@ class Email_lists extends Gvv_Controller
         header('Content-Type: application/json');
 
         $list_id = $this->input->post('list_id');
-        $email = $this->input->post('email');
-        $name = $this->input->post('name');
+        $email   = trim((string) $this->input->post('email'));
+        $name    = trim((string) $this->input->post('name'));
 
         if (empty($list_id) || empty($email)) {
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
             return;
+        }
+
+        // Parse "Nom <email>" format: populate name if not already provided
+        if (preg_match('/^(.+?)\s*<([^>]+)>\s*$/', $email, $matches)) {
+            if (empty($name)) {
+                $name = trim($matches[1]);
+            }
+            $email = trim($matches[2]);
         }
 
         // Verify list exists

@@ -175,6 +175,13 @@ class Planeur extends Gvv_Controller {
             ));
         }
 
+        if ($mode === 'xlsx') {
+            return $this->gvvmetadata->xlsx_table('vue_planeurs', $rows, array(
+                'title' => $title,
+                'fields' => $fields,
+            ));
+        }
+
         // PDF
         $this->load->library('Pdf');
         $pdf = new Pdf();

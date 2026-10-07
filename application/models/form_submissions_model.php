@@ -13,11 +13,20 @@ class Form_submissions_model extends CI_Model {
     public $values_table = 'form_submission_values';
     public $files_table = 'form_submission_files';
 
+    /**
+     * Première erreur SQL rencontrée par create_submission()/save_submission_values()
+     * (array('code' => int, 'message' => string)), null si aucune. Permet à l'appelant
+     * d'afficher un message détaillé : les requêtes suivantes (ROLLBACK…) effacent
+     * l'erreur du driver.
+     */
+    public $last_error = null;
+
     public function __construct() {
         parent::__construct();
     }
 
     public function create_submission(array $data) {
+        $this->last_error = null;
         if (empty($data['form_id'])) {
             return false;
         }
@@ -36,8 +45,8 @@ class Form_submissions_model extends CI_Model {
             'subject_type'    => isset($data['subject_type']) ? $data['subject_type'] : null,
             'subject_id'      => isset($data['subject_id']) ? $data['subject_id'] : null,
             'link_token'      => isset($data['link_token']) && $data['link_token'] !== '' ? $data['link_token'] : null,
-            'submitter_email' => isset($data['submitter_email']) ? $data['submitter_email'] : null,
-            'submitter_name'  => isset($data['submitter_name']) ? $data['submitter_name'] : null,
+            'submitter_email' => isset($data['submitter_email']) ? $this->strip_4byte_chars($data['submitter_email']) : null,
+            'submitter_name'  => isset($data['submitter_name']) ? $this->strip_4byte_chars($data['submitter_name']) : null,
             'source_ip'       => isset($data['source_ip']) ? $data['source_ip'] : null,
             'user_agent'      => isset($data['user_agent']) ? $data['user_agent'] : null,
             'submitted_at'    => isset($data['submitted_at']) ? $data['submitted_at'] : $now,
@@ -47,7 +56,10 @@ class Form_submissions_model extends CI_Model {
             'updated_by'      => isset($data['created_by']) ? $data['created_by'] : null,
         );
 
-        $this->db->insert($this->table, $row);
+        if (!$this->db->insert($this->table, $row)) {
+            $this->record_db_error();
+            return false;
+        }
         $id = $this->db->insert_id();
 
         if (!$id) {
@@ -380,6 +392,7 @@ class Form_submissions_model extends CI_Model {
     }
 
     public function save_submission_values($submission_id, array $values_by_field, $updated_by = null) {
+        $this->last_error = null;
         $submission = $this->get_by_id($submission_id);
         if (!$submission) {
             return false;
@@ -401,7 +414,7 @@ class Form_submissions_model extends CI_Model {
                 ->row_array();
 
             if ($existing) {
-                $this->db
+                $ok = $this->db
                     ->where('id', (int) $existing['id'])
                     ->update($this->values_table, array(
                         'value_text'  => $value_text,
@@ -409,7 +422,7 @@ class Form_submissions_model extends CI_Model {
                         'updated_by'  => $updated_by,
                     ));
             } else {
-                $this->db->insert($this->values_table, array(
+                $ok = $this->db->insert($this->values_table, array(
                     'submission_id' => (int) $submission_id,
                     'field_name'    => $field_name,
                     'value_text'    => $value_text,
@@ -418,6 +431,10 @@ class Form_submissions_model extends CI_Model {
                     'created_by'    => $updated_by,
                     'updated_by'    => $updated_by,
                 ));
+            }
+            if (!$ok) {
+                $this->record_db_error('champ « ' . $field_name . ' »');
+                return false;
             }
         }
 
@@ -617,7 +634,33 @@ class Form_submissions_model extends CI_Model {
         if ($value === null) {
             return null;
         }
-        return (string) $value;
+        return $this->strip_4byte_chars((string) $value);
+    }
+
+    /**
+     * Supprime les caractères hors plan multilingue de base (emoji…), encodés
+     * sur 4 octets en UTF-8 : la connexion et les tables sont en utf8 (utf8mb3)
+     * et MySQL en mode strict rejette alors tout l'INSERT (erreur 1366), ce qui
+     * faisait échouer la soumission entière (saisie au clavier de smartphone).
+     */
+    private function strip_4byte_chars($value) {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+        $clean = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $value);
+        return $clean === null ? $value : $clean;
+    }
+
+    private function record_db_error($context = '') {
+        if ($this->last_error !== null) {
+            return;
+        }
+        $message = (string) $this->db->_error_message();
+        $this->last_error = array(
+            'code'    => (int) $this->db->_error_number(),
+            'message' => $context !== '' ? $context . ' : ' . $message : $message,
+        );
+        log_message('error', 'form_submissions_model: SQL error ' . $this->last_error['code'] . ' — ' . $this->last_error['message']);
     }
 
     private function generate_submission_uuid() {

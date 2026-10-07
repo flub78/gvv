@@ -230,7 +230,7 @@ class DatabaseRestoreTest extends TestCase
         $this->fake_db()->fail_on = array('BOOM');
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessageMatches('/requête\(s\) SQL en échec/');
+        $this->expectExceptionMessageMatches('/requête\(s\) SQL en échec.*Simulated failure near: BOOM/');
         $this->sql($sql);
     }
 
@@ -291,8 +291,10 @@ class FakeDbForDatabaseSqlTest
         return TRUE;
     }
 
-    public function error()
+    // API CodeIgniter 2 (db->error() n'existe qu'à partir de CI 3 : la
+    // fausse base ne doit pas l'offrir, sinon elle masque son absence)
+    public function _error_message()
     {
-        return $this->last_error;
+        return $this->last_error['message'];
     }
 }

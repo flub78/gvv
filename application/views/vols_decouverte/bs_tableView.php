@@ -205,7 +205,8 @@ echo $this->gvvmetadata->table("vue_vols_decouverte", $attrs, "");
 
 if ($has_modification_rights) {
     $bar = array(
-        array('label' => "Excel", 'url' => "$controller/export/csv"),
+        array('label' => "CSV", 'url' => "$controller/export/csv"),
+        array('label' => "Xlsx", 'url' => "$controller/export/xlsx"),
         array('label' => "Pdf",   'url' => "$controller/export/pdf", 'target' => '_blank'),
     );
     echo button_bar4($bar);

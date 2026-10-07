@@ -171,4 +171,83 @@ class CsvHelperTest extends TestCase
         $lines = explode("\n", $result);
         $this->assertGreaterThan(2, count($lines)); // Title + data rows
     }
+
+    /**
+     * Parse CSV text with a real RFC 4180 reader (';' separator)
+     */
+    private function parseCsv($text)
+    {
+        $records = array();
+        $fh = fopen('php://memory', 'r+');
+        fwrite($fh, $text);
+        rewind($fh);
+        while (($record = fgetcsv($fh, 0, ';', '"', '')) !== false) {
+            $records[] = $record;
+        }
+        fclose($fh);
+        return $records;
+    }
+
+    /**
+     * csv_escape_cell() quotes only values containing ; " or a line break
+     */
+    public function testCsvEscapeCell()
+    {
+        $this->assertSame('plain value', csv_escape_cell('plain value'));
+        $this->assertSame('12,50', csv_escape_cell('12,50'));
+        $this->assertSame('', csv_escape_cell(null));
+        $this->assertSame('"a;b"', csv_escape_cell('a;b'));
+        $this->assertSame('"say ""hi"""', csv_escape_cell('say "hi"'));
+        $this->assertSame("\"line1\nline2\"", csv_escape_cell("line1\nline2"));
+    }
+
+    /**
+     * Plain values keep the historical "a; b; c; " layout byte for byte
+     */
+    public function testCsvSpacedLineKeepsHistoricalLayout()
+    {
+        $this->assertSame("12; 01/01/2026; 198,56; \n", csv_spaced_line(array(12, '01/01/2026', '198,56')));
+    }
+
+    /**
+     * Regression: a multi-line value (bank transfer motive) must not split
+     * the record; the space following the separator stays inside the quotes
+     * so that the quote opens the field.
+     */
+    public function testCsvSpacedLineMultiLineValueParsesAsOneRecord()
+    {
+        $description = "DATE: 04/01/2026\nMOTIF: cotisation; \"junior\"";
+        $records = $this->parseCsv(csv_spaced_line(array('38007', $description, '100,00')));
+
+        $this->assertCount(1, $records, 'The multi-line value must not split the record');
+        $this->assertSame('38007', $records[0][0]);
+        $this->assertSame(' ' . $description, $records[0][1]);
+        $this->assertSame(' 100,00', $records[0][2]);
+    }
+
+    /**
+     * A special character in the first cell is quoted without a leading space
+     */
+    public function testCsvSpacedLineFirstCellHasNoLeadingSpace()
+    {
+        $this->assertSame("\"a;b\"; c; \n", csv_spaced_line(array('a;b', 'c')));
+    }
+
+    /**
+     * Regression: csv_file() quotes multi-line / semicolon values
+     */
+    public function testCsvFileQuotesSpecialValues()
+    {
+        $data = [
+            ['Libellé', 'Montant'],
+            ["Virement\nMOTIF: licence; junior", 12.5],
+        ];
+
+        $records = $this->parseCsv(csv_file('Titre', $data, false));
+
+        // title, header, one data row (+ empty trailing field from the final ';')
+        $this->assertCount(3, $records);
+        $this->assertSame("Virement\nMOTIF: licence; junior", $records[2][0]);
+        $this->assertSame('12,5', $records[2][1]);
+    }
 }

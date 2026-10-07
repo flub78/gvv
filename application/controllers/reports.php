@@ -48,6 +48,26 @@ class Reports extends Gvv_Controller {
     }
 
     /**
+     * Exécute la requête d'un rapport. En cas d'échec (requête invalide,
+     * colonne disparue du schéma...), retourne à la liste des rapports avec
+     * le message d'erreur SQL au lieu d'une erreur 500.
+     *
+     * @param string $name Report identifier
+     * @param string $sql Report query
+     * @return array Results, one array of rows per query
+     */
+    private function report_sql($name, $sql) {
+        try {
+            return $this->database->sql($sql, true);
+        } catch (Exception $e) {
+            $this->lang->load('reports');
+            $this->session->set_flashdata('error',
+                sprintf($this->lang->line('gvv_reports_error_sql'), $name) . "\n" . $e->getMessage());
+            redirect(controller_url("reports/page"));
+        }
+    }
+
+    /**
      * Executes SQL query and displays results in HTML table
      *
      * @param string|int $id Report identifier
@@ -56,7 +76,7 @@ class Reports extends Gvv_Controller {
         $elt = $this->gvv_model->get_by_id('nom', $id);
 
         $sql = $elt['sql'];
-        $select = $this->database->sql($sql, true);
+        $select = $this->report_sql($elt['nom'], $sql);
 
         $this->lang->load('reports');
 
@@ -84,7 +104,7 @@ class Reports extends Gvv_Controller {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
         $sql = $elt['sql'];
-        $select = $this->database->sql($sql, true);
+        $select = $this->report_sql($elt['nom'], $sql);
         $data = $select[0];
         $title = $elt['titre'];
         $fields = explode(",", $elt['fields_list']);
@@ -108,7 +128,7 @@ class Reports extends Gvv_Controller {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
         $sql = $elt['sql'];
-        $select = $this->database->sql($sql, true);
+        $select = $this->report_sql($elt['nom'], $sql);
         $data = $select[0];
         $title = $elt['titre'];
         $fields = explode(",", $elt['fields_list']);
@@ -128,7 +148,7 @@ class Reports extends Gvv_Controller {
         $elt = $this->gvv_model->get_by_id('nom', $request);
 
         $sql = $elt['sql'];
-        $select = $this->database->sql($sql, true);
+        $select = $this->report_sql($elt['nom'], $sql);
         $data = $select[0];
         $title = $elt['titre'];
         $fields = explode(",", $elt['fields_list']);
@@ -191,18 +211,14 @@ class Reports extends Gvv_Controller {
      */
     private function gen_csv($request, $title, $data, $fields) {
         $res = "";
-        $res .= "$title\n";
+        $res .= csv_escape_cell($title) . "\n";
 
-        foreach ($fields as $field) {
-            $res .= "$field; ";
-        }
-        $res .= "\n";
+        // csv_spaced_line() (csv_helper) : format "a; b; " historique, valeurs
+        // multi-lignes ou contenant ; ou " encadrées
+        $res .= csv_spaced_line($fields);
 
         foreach ($data as $row) {
-            foreach ($row as $elt) {
-                $res .= "$elt; ";
-            }
-            $res .= "\n";
+            $res .= csv_spaced_line($row);
         }
 
         date_default_timezone_set('Europe/Paris');

@@ -13,7 +13,7 @@
  *   npx playwright test tests/archived-documents-smoke.spec.js --reporter=line
  */
 
-const { test, expect } = require('@playwright/test');
+const { test, expect, devices } = require('@playwright/test');
 const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
 
 const LOGIN_URL = '/index.php/auth/login';
@@ -21,6 +21,7 @@ const MY_DOCS_URL = '/index.php/archived_documents/my_documents';
 const ADMIN_LIST_URL = '/index.php/archived_documents/page';
 const EXPIRED_URL = '/index.php/archived_documents/page?filter=expired';
 const CREATE_PILOT_URL = '/index.php/archived_documents/create_pilot';
+const CREATE_URL = '/index.php/archived_documents/create';
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const PILOT_USER = { username: 'testuser', password: 'password' };
@@ -104,6 +105,44 @@ test.describe('Archived Documents Smoke Tests', () => {
     await expect(typeSelect).toBeVisible();
 
     console.log('Pilot document creation form loaded successfully');
+  });
+
+  // Regression: Chromium browsers could not read a file dropped from the Linux
+  // file manager (Nemo, via the document portal) and failed at submit time with
+  // ERR_FILE_NOT_FOUND. The drop zone now copies the file into memory at drop
+  // time and shows an alert if it cannot be read.
+  test('dropped file is copied into the input, unreadable drop shows an alert', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await page.goto(CREATE_URL);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    const dropped = await page.evaluate(async () => {
+      const zone = document.getElementById('drop-zone-userfile');
+      const file = new File(['abc'], 'Capture d\u2019\u00e9cran.png', { type: 'image/png' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      zone.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+      await new Promise(r => setTimeout(r, 200));
+      const f = document.getElementById('userfile').files[0];
+      return { name: f && f.name, size: f && f.size, copied: f !== file,
+               label: document.getElementById('filename-userfile').textContent };
+    });
+    expect(dropped).toEqual({ name: 'Capture d\u2019\u00e9cran.png', size: 3, copied: true,
+                              label: 'Capture d\u2019\u00e9cran.png' });
+    await expect(page.locator('.gvv-drop-file-error')).toHaveCount(0);
+
+    // Simulate a file the browser cannot read
+    await page.evaluate(async () => {
+      const zone = document.getElementById('drop-zone-userfile');
+      const input = document.getElementById('userfile');
+      const file = new File(['abc'], 'unreadable.png', { type: 'image/png' });
+      file.arrayBuffer = () => Promise.reject(new Error('NotFoundError'));
+      await gvvDropFile(file, input, zone, 'unreadable');
+    });
+    await expect(page.locator('.gvv-drop-file-error')).toHaveCount(1);
+    await expect(page.locator('.gvv-drop-file-error')).toContainText('unreadable.png');
+    expect(await page.evaluate(() => document.getElementById('userfile').files.length)).toBe(0);
   });
 
   test('pilot can access their own documents page', async ({ page }) => {
@@ -277,4 +316,50 @@ test.describe('Archived Documents Smoke Tests', () => {
     console.log('Document email sent successfully, flash message shown');
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// Mobile: modals must open inside the visible area of a page widened by
+// gvvSyncWideTableLayout() (regression: on Android the email modal opened
+// off-screen, at the top-left of the widened page).
+// ---------------------------------------------------------------------------
+test.describe('Archived Documents on smartphone', () => {
+  const { defaultBrowserType, ...pixel } = devices['Pixel 7'];
+  test.use(pixel);
+
+  test('email modal opens inside the visible viewport', async ({ page }) => {
+    await login(page, ADMIN_USER);
+
+    await page.goto(ADMIN_LIST_URL);
+    await page.waitForLoadState('networkidle');
+    await checkNoPhpErrors(page);
+
+    const emailButtons = page.locator('.doc-email-btn');
+    test.skip(await emailButtons.count() === 0, 'No document in the database');
+
+    // Scroll to the Actions column, as a user would, then tap the email icon
+    // (Playwright's tap() only scrolls the layout viewport, hence the JS click.)
+    const button = emailButtons.first();
+    await button.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'center' }));
+    await page.waitForTimeout(300);
+    await button.evaluate(el => el.click());
+    await expect(page.locator('#docEmailModal')).toBeVisible();
+    // Wait for the end of the opening animation ("shown.bs.modal")
+    await page.waitForFunction(() =>
+      document.querySelector('#docEmailModal .modal-dialog').getBoundingClientRect().width > 200);
+
+    const geom = await page.evaluate(() => {
+      const d = document.querySelector('#docEmailModal .modal-dialog').getBoundingClientRect();
+      const vv = window.visualViewport;
+      return { left: d.left, top: d.top, width: d.width,
+               vvLeft: vv.offsetLeft, vvTop: vv.offsetTop, vvWidth: vv.width };
+    });
+    expect(geom.width).toBeGreaterThan(200);
+    expect(geom.left).toBeGreaterThanOrEqual(geom.vvLeft);
+    expect(geom.left + geom.width).toBeLessThanOrEqual(geom.vvLeft + geom.vvWidth + 1);
+    expect(geom.top).toBeGreaterThanOrEqual(geom.vvTop);
+
+    await page.locator('#docEmailModal button[data-bs-dismiss="modal"]').first().evaluate(el => el.click());
+    await expect(page.locator('#docEmailModal')).toBeHidden();
+  });
 });
