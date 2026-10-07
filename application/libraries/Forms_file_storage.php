@@ -394,6 +394,85 @@ class Forms_file_storage {
     }
 
     /**
+     * Association stamp (Lot 17 / EF19) — one PNG per scope: global.png, or
+     * section_{id}.png overriding it for one section. Stored under a reserved
+     * directory (.tampons, outside the alpha_dash alphabet of form codes, so
+     * it can never collide with a form) and deliberately NOT under .commun/:
+     * .commun/images/ is publicly served by forms_public/shared_image, and the
+     * stamp must never be reachable from a public URL. No route serves
+     * .tampons/ at all — admin views and the PDF inline it as a data: URI.
+     *
+     * @param int|null $section_id  null = global scope
+     */
+    public function stamp_dir() {
+        return $this->base_dir . '/.tampons';
+    }
+
+    public function stamp_path($section_id = null) {
+        $name = ((int) $section_id > 0) ? 'section_' . (int) $section_id . '.png' : 'global.png';
+        return $this->stamp_dir() . '/' . $name;
+    }
+
+    public function write_stamp($section_id, $content) {
+        $dir = $this->stamp_dir();
+        $this->make_dir($dir);
+        $htaccess = $dir . '/.htaccess';
+        if (!file_exists($htaccess)) {
+            $this->write_file($htaccess, "Require all denied\n");
+        }
+        $this->write_file($this->stamp_path($section_id), $content);
+    }
+
+    public function has_stamp($section_id = null) {
+        return file_exists($this->stamp_path($section_id));
+    }
+
+    public function delete_stamp($section_id = null) {
+        $path = $this->stamp_path($section_id);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
+     * Stamp to apply for a form attached to $section_id: the section's own
+     * stamp, else the global one, else null.
+     */
+    public function resolve_stamp_path($section_id = null) {
+        if ((int) $section_id > 0 && $this->has_stamp($section_id)) {
+            return $this->stamp_path($section_id);
+        }
+        return $this->has_stamp(null) ? $this->stamp_path(null) : null;
+    }
+
+    /** Resolved stamp as a data: URI ready for an <img src>, or null. */
+    public function stamp_data_uri($section_id = null) {
+        $path = $this->resolve_stamp_path($section_id);
+        if ($path === null || !is_readable($path)) {
+            return null;
+        }
+        return 'data:image/png;base64,' . base64_encode(file_get_contents($path));
+    }
+
+    /**
+     * True if PNG content carries transparency: colour type 4/6 (alpha
+     * channel) in the IHDR chunk, or a tRNS chunk (palette/key transparency).
+     */
+    public function png_has_transparency($content) {
+        $content = (string) $content;
+        if (strlen($content) < 26 || substr($content, 0, 8) !== "\x89PNG\r\n\x1a\n") {
+            return false;
+        }
+        $color_type = ord($content[25]);
+        if ($color_type === 4 || $color_type === 6) {
+            return true;
+        }
+        $idat = strpos($content, 'IDAT');
+        $trns = strpos($content, 'tRNS');
+        return $trns !== false && ($idat === false || $trns < $idat);
+    }
+
+    /**
      * True if this form already has any content on disk (used by the
      * one-time base->file migration to skip already-migrated forms).
      */

@@ -72,6 +72,7 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Bouton de modification d'une réponse déjà soumise, depuis la liste admin des réponses, rechargeant le formulaire pré-rempli et permettant une resoumission qui met à jour la réponse en place (EF16).
 - Lien de modification public à usage unique, généré à la demande depuis la liste admin des réponses, permettant à l'utilisateur d'origine de compléter ou corriger sa réponse (EF16-bis).
 - Comportement non bloquant des pièces obligatoires de type fichier/signature à la soumission, avec liste explicite des pièces manquantes et indicateur de complétude en admin (EF17).
+- Tampon de l'association apposé sur le PDF d'une réponse, à l'emplacement prévu par le formulaire, uniquement lors de la génération par un administrateur (EF19).
 
 ### Exclu
 
@@ -91,6 +92,8 @@ Une autre extension future probable consiste à gérer des pages/sections condit
 - Distinction visuelle de l'état d'un lien de modification (actif/consommé/expiré) dans la liste admin (EF16-bis) — l'action de génération est toujours valide et régénère systématiquement.
 - Expiration ou usage unique configurable par formulaire (EF16-bis) — durée fixe de 7 jours et usage unique pour tous les formulaires.
 - Flag "bloquant/non bloquant" configurable par champ (EF17) — le comportement non bloquant est déterminé uniquement par le type de champ (fichier/signature), pas configurable individuellement.
+- Plusieurs tampons différents sur un même formulaire, ou choix du tampon par formulaire (EF19) — un seul tampon par section, avec repli sur le tampon global.
+- Champ image générique alimenté par la personne qui remplit le formulaire (EF19) — besoin distinct, déjà couvert par les champs fichier et le mode « importer une image » du widget signature.
 
 ## Taxonomie des formulaires
 
@@ -462,6 +465,20 @@ Sur un formulaire où la soumission par téléchargement (EF12) est activée, l'
 
 Voir : [Design modèle PDF vierge téléchargeable](../design_notes/remplissage_formulaires_design.md#22-modèle-pdf-vierge-téléchargeable-ef18)
 
+### EF19 : Tampon de l'association
+
+Certaines administrations refusent un formulaire qui ne porte pas le tampon de l'association. Le PDF généré à partir d'une réponse doit pouvoir porter ce tampon, sans que le tampon soit accessible ou reproductible par une personne qui remplit le formulaire depuis le lien public.
+
+1. Un emplacement de tampon se déclare dans le HTML du formulaire, au même titre qu'un champ signature. Sa position et sa taille sont définies par le formulaire (typiquement en chevauchement de la zone de signature du responsable).
+2. L'admin dépose l'image du tampon depuis l'écran de configuration des formulaires. Un tampon global (toutes sections) et un tampon par section peuvent coexister ; un nouveau dépôt remplace le précédent, une suppression est possible.
+3. Le tampon utilisé pour une réponse est celui de la section du formulaire, à défaut le tampon global. En l'absence de tout tampon, l'emplacement reste vide, sans erreur ni blocage de la génération.
+4. Le tampon apparaît uniquement dans les rendus réservés aux administrateurs : détail d'une réponse et PDF imprimable. Sur le formulaire public (remplissage initial, reprise par lien de modification) et dans le formulaire vierge, l'emplacement est matérialisé par un repère « Tampon de l'association », jamais par l'image réelle.
+5. L'image du tampon n'est jamais téléchargeable ni affichable depuis une URL publique.
+6. Le format attendu est une image PNG à fond transparent, pour que le tampon puisse chevaucher une signature ou un texte sans les masquer. Un PNG sans transparence est accepté mais l'admin en est averti explicitement au dépôt ; tout autre format est refusé avec un message explicite.
+7. L'écran de configuration affiche un aperçu du tampon actuellement défini pour chaque portée (global, section).
+
+Voir : [Design tampon de l'association](../design_notes/remplissage_formulaires_design.md#23-tampon-de-lassociation-ef19)
+
 ## Exigences non fonctionnelles
 
 - **UX** : résultat explicite après chaque action (création, soumission, échec, archivage).
@@ -497,6 +514,7 @@ Voir : [Design modèle PDF vierge téléchargeable](../design_notes/remplissage_
 - EF14 : un formulaire admin doit-il pouvoir restreindre quels formulaires publiés sont utilisables comme sous-formulaire (liste blanche), ou n'importe quel formulaire publié est-il éligible ? *(Non tranché : n'importe quel formulaire publié est éligible en V1.)*
 - EF16 : la modification en place doit-elle un jour être proposée aussi pour les réponses de type téléchargement (remplacement de scan), au-delà de la rotation déjà couverte par EF12 ?
 - EF16-bis : faut-il à terme permettre l'envoi automatique du lien de modification par email, ou la transmission manuelle par l'admin reste-t-elle suffisante ?
+- EF19 : le dépôt du tampon doit-il être réservé au rôle `club-admin`, plus restrictif que l'accès à l'administration des formulaires ? *(Non tranché : mêmes droits que l'écran de configuration en V1.)*
 
 ### Résolues
 

@@ -287,5 +287,22 @@ $lang['forms_help_target_export'] = 'Si les deux champs sont renseignés, un bou
 $lang['forms_badge_subform_unattached']      = 'Non rattaché';
 $lang['forms_help_badge_subform_unattached'] = 'Cette réponse a été soumise comme sous-formulaire, mais son formulaire maître n\'a jamais été validé.';
 
+// Tampon de l'association (Lot 17 / EF19)
+$lang['forms_stamp_title'] = 'Tampon de l\'association';
+$lang['forms_stamp_help'] = 'Image PNG à fond transparent, apposée sur le PDF et le détail des réponses à l\'emplacement prévu par le formulaire. Le tampon d\'une section remplace le tampon global pour les formulaires de cette section. Il n\'est jamais visible sur le formulaire public.';
+$lang['forms_stamp_help_html'] = 'Dans le HTML du formulaire : &lt;div data-gvv-type="stamp" style="position:absolute; right:0; width:4cm"&gt;Tampon de l\'association&lt;/div&gt;, à placer dans un conteneur en position:relative.';
+$lang['forms_stamp_label_preview'] = 'Aperçu';
+$lang['forms_stamp_none'] = 'Aucun tampon';
+$lang['forms_stamp_button_upload'] = 'Déposer';
+$lang['forms_stamp_button_replace'] = 'Remplacer';
+$lang['forms_stamp_confirm_delete'] = 'Supprimer ce tampon ?';
+$lang['forms_stamp_uploaded'] = 'Tampon enregistré.';
+$lang['forms_stamp_deleted'] = 'Tampon supprimé.';
+$lang['forms_stamp_warning_opaque'] = 'Ce PNG n\'a pas de fond transparent : le tampon masquera la signature ou le texte qu\'il recouvre. Préférez une image détourée.';
+$lang['forms_stamp_error_missing'] = 'Aucune image reçue.';
+$lang['forms_stamp_error_too_large'] = 'Image trop volumineuse (2 Mo maximum).';
+$lang['forms_stamp_error_not_png'] = 'Le tampon doit être une image PNG.';
+$lang['forms_stamp_error_scope'] = 'Portée de tampon inconnue.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/french/forms_lang.php */

@@ -37,6 +37,8 @@
             <?= str_ireplace('</style>', '<\/style>', $this->forms_renderer->scope_css((string) $form['global_css'], $scope_class)) ?>
         </style>
     <?php endif; ?>
+    <?php /* Stamp placeholder (EF19): may overlap the signature widget — never block it. */ ?>
+    <style>[data-gvv-type="stamp"] { pointer-events: none !important; opacity: .6; }</style>
 
     <div class="mb-4">
         <h1 class="h3 mb-1"><?= html_escape($form['title']) ?></h1>

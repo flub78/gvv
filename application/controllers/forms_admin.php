@@ -928,6 +928,8 @@ class Forms_admin extends MY_Controller {
         $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
         $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
         $pages      = $this->_overlay_pages_from_file($form['code'], $pages);
+        // Association stamp (EF19): admin-only renders get the real image.
+        $stamp      = $this->forms_file_storage->stamp_data_uri(!empty($form['club']) ? (int) $form['club'] : null);
 
         $values_by_name = array();
         foreach ($values_raw as $v) {
@@ -958,7 +960,10 @@ class Forms_admin extends MY_Controller {
             $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
             $raw = trim($raw);
 
-            $body_parts[] = $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name, $sig_files);
+            $body_parts[] = $this->forms_renderer->inject_stamp(
+                $this->_fill_html_values_readonly($raw, $values_by_name, $files_by_name, $sig_files),
+                $stamp
+            );
         }
 
         $scope_class  = $this->_scope_class_for_form($form);
@@ -1038,6 +1043,8 @@ class Forms_admin extends MY_Controller {
         $files_raw  = $this->form_submissions_model->get_submission_files((int) $submission['id']);
         $pages      = $this->form_pages_model->get_form_pages((int) $form['id']);
         $pages      = $this->_overlay_pages_from_file($form['code'], $pages);
+        // Association stamp (EF19): admin-only renders get the real image.
+        $stamp      = $this->forms_file_storage->stamp_data_uri(!empty($form['club']) ? (int) $form['club'] : null);
 
         $values_by_name = array();
         foreach ($values_raw as $v) {
@@ -1076,7 +1083,10 @@ class Forms_admin extends MY_Controller {
             $raw = preg_replace('/<input\b[^>]*\btype=["\']?(submit|reset|button)["\']?[^>]*\/?>/i', '', $raw);
             $raw = trim($raw);
 
-            $body_parts[] = $this->_fill_html_values($raw, $values_by_name, $files_by_name, $sig_files);
+            $body_parts[] = $this->forms_renderer->inject_stamp(
+                $this->_fill_html_values($raw, $values_by_name, $files_by_name, $sig_files),
+                $stamp
+            );
         }
 
         // Include Bootstrap CSS so grid/component classes (col-md-*, form-control, etc.)
@@ -2936,10 +2946,28 @@ class Forms_admin extends MY_Controller {
         }
         unset($p);
 
+        // Association stamp (EF19): one row for the global scope, then one per section.
+        $stamps = array(array(
+            'scope'    => 'global',
+            'label'    => $this->lang->line('forms_config_scope_global'),
+            'data_uri' => $this->forms_file_storage->has_stamp(null) ? $this->forms_file_storage->stamp_data_uri(null) : null,
+        ));
+        foreach ($sections as $s) {
+            $stamps[] = array(
+                'scope'    => (string) (int) $s['id'],
+                'label'    => $s['name'],
+                'data_uri' => $this->forms_file_storage->has_stamp((int) $s['id'])
+                    ? 'data:image/png;base64,' . base64_encode(file_get_contents($this->forms_file_storage->stamp_path((int) $s['id'])))
+                    : null,
+            );
+        }
+
         $data = array(
             'controller' => $this->controller,
             'params'     => $params,
+            'stamps'     => $stamps,
             'success'    => $this->session->flashdata('forms_success') ?: '',
+            'warning'    => $this->session->flashdata('forms_warning') ?: '',
             'error'      => $this->session->flashdata('forms_error') ?: '',
         );
         $this->render_view('forms_admin/bs_config', $data);
@@ -3075,6 +3103,89 @@ class Forms_admin extends MY_Controller {
         $this->load->model('form_config_params_model');
         $this->form_config_params_model->delete((int) $id);
         $this->session->set_flashdata('forms_success', $this->lang->line('forms_config_deleted'));
+        redirect('forms_admin/config');
+    }
+
+    // -------------------------------------------------------------------------
+    // Association stamp (Lot 17 / EF19)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Stamp scope from the URL: 'global' => null, an existing section id =>
+     * that id, anything else => false.
+     */
+    private function _stamp_scope($scope) {
+        if ($scope === 'global') {
+            return null;
+        }
+        if (!ctype_digit((string) $scope) || (int) $scope <= 0) {
+            return false;
+        }
+        $exists = $this->db->where('id', (int) $scope)->count_all_results('sections');
+        return $exists ? (int) $scope : false;
+    }
+
+    public function stamp_upload($scope = '') {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $section_id = $this->_stamp_scope($scope);
+        if ($section_id === false) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_scope'));
+            redirect('forms_admin/config');
+            return;
+        }
+
+        if (empty($_FILES['stamp']['tmp_name']) || (int) $_FILES['stamp']['error'] !== UPLOAD_ERR_OK) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_missing'));
+            redirect('forms_admin/config');
+            return;
+        }
+
+        if ((int) $_FILES['stamp']['size'] > $this->image_max_bytes) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_too_large'));
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $info = @getimagesize($_FILES['stamp']['tmp_name']);
+        if ($info === false || $info['mime'] !== 'image/png') {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_not_png'));
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $content = file_get_contents($_FILES['stamp']['tmp_name']);
+        $this->forms_file_storage->write_stamp($section_id, $content);
+        log_message('info', 'GVV: forms stamp uploaded, scope=' . ($section_id === null ? 'global' : $section_id)
+            . ' by ' . $this->dx_auth->get_username());
+
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_stamp_uploaded'));
+        if (!$this->forms_file_storage->png_has_transparency($content)) {
+            $this->session->set_flashdata('forms_warning', $this->lang->line('forms_stamp_warning_opaque'));
+        }
+        redirect('forms_admin/config');
+    }
+
+    public function stamp_delete($scope = '') {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $section_id = $this->_stamp_scope($scope);
+        if ($section_id === false) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_scope'));
+            redirect('forms_admin/config');
+            return;
+        }
+
+        $this->forms_file_storage->delete_stamp($section_id);
+        log_message('info', 'GVV: forms stamp deleted, scope=' . ($section_id === null ? 'global' : $section_id)
+            . ' by ' . $this->dx_auth->get_username());
+        $this->session->set_flashdata('forms_success', $this->lang->line('forms_stamp_deleted'));
         redirect('forms_admin/config');
     }
 

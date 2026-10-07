@@ -13,15 +13,16 @@ Ce document s'adresse à qui **rédige ou modifie le contenu** d'un formulaire G
 5. [Convertir un formulaire PDF existant](#convertir-un-formulaire-pdf-existant)
 6. [Ajouter un champ à une page](#ajouter-un-champ-à-une-page)
 7. [Ajouter une signature](#ajouter-une-signature)
-8. [Styliser une page (CSS)](#styliser-une-page-css)
-9. [Pré-remplir un champ avec les données GVV](#pré-remplir-un-champ-avec-les-données-gvv)
-10. [Générer un lien pré-rempli (page de génération)](#générer-un-lien-pré-rempli-page-de-génération)
-11. [Ajouter un sous-formulaire](#ajouter-un-sous-formulaire)
-12. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
-13. [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet)
-14. [Référence — métadonnées du conteneur](#référence--métadonnées-du-conteneur)
-15. [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées)
-16. [Exemples de formulaires](#exemples-de-formulaires)
+8. [Ajouter le tampon de l'association](#ajouter-le-tampon-de-lassociation)
+9. [Styliser une page (CSS)](#styliser-une-page-css)
+10. [Pré-remplir un champ avec les données GVV](#pré-remplir-un-champ-avec-les-données-gvv)
+11. [Générer un lien pré-rempli (page de génération)](#générer-un-lien-pré-rempli-page-de-génération)
+12. [Ajouter un sous-formulaire](#ajouter-un-sous-formulaire)
+13. [Exporter une réponse vers un formulaire de création](#exporter-une-réponse-vers-un-formulaire-de-création)
+14. [Sauvegarder ou transférer un formulaire complet](#sauvegarder-ou-transférer-un-formulaire-complet)
+15. [Référence — métadonnées du conteneur](#référence--métadonnées-du-conteneur)
+16. [Référence — champs, types et métadonnées](#référence--champs-types-et-métadonnées)
+17. [Exemples de formulaires](#exemples-de-formulaires)
 
 ---
 
@@ -167,6 +168,34 @@ GVV remplace automatiquement ce `<div>` par le widget interactif lors du rendu p
 ```
 
 Pour pré-remplir une signature avec celle déjà enregistrée dans GVV (profil membre, événement), voir [Pré-remplir un champ avec les données GVV](#pré-remplir-un-champ-avec-les-données-gvv).
+
+---
+
+## Ajouter le tampon de l'association
+
+Certaines administrations exigent le tampon de l'association sur un formulaire. Le widget tampon indique **où** le placer ; l'image elle-même est déposée une seule fois pour tous les formulaires, dans l'écran de configuration (voir [Déposer le tampon de l'association](13_formulaires.md#déposer-le-tampon-de-lassociation)).
+
+```html
+<div style="position:relative">
+  <div data-gvv-type="signature" data-gvv-name="signature_instructeur">Signature de l'instructeur</div>
+  <div data-gvv-type="stamp" style="position:absolute; right:0; top:-10px; width:4cm">
+    <img src="/assets/images/forms-widgets/stamp-placeholder.svg" alt="Tampon"><br>
+    Tampon de l'association
+  </div>
+</div>
+```
+
+| Élément | Rôle |
+|---|---|
+| `data-gvv-type="stamp"` | Identifie l'emplacement du tampon (obligatoire) |
+| `style="position:absolute; …; width:…"` | Position et taille du tampon, relatives au conteneur `position:relative` qui l'englobe |
+| Contenu du `<div>` | Repère visuel, affiché tel quel sur le formulaire public |
+
+- Le tampon n'est **pas un champ** : la personne qui remplit le formulaire ne le voit jamais, elle ne voit que le repère.
+- L'image réelle remplace le repère uniquement dans la **vue d'une réponse** et dans son **PDF**, toutes deux réservées aux administrateurs.
+- Faire chevaucher le tampon et la signature est voulu : le PNG transparent laisse la signature visible en dessous.
+- Sans tampon configuré, l'emplacement reste simplement vide dans le PDF.
+- Plusieurs widgets tampon peuvent figurer dans un même formulaire (une attestation par page, par exemple) : ils reçoivent tous la même image.
 
 ---
 

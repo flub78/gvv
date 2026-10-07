@@ -520,4 +520,83 @@ class FormsFileStorageTest extends TestCase
         $htaccess = $this->storage->shared_dir() . '/.htaccess';
         $this->assertFileExists($htaccess);
     }
+
+    // -------------------------------------------------------------------
+    // Association stamp (Lot 17 / EF19)
+    // -------------------------------------------------------------------
+
+    private function _png($with_alpha)
+    {
+        $img = imagecreatetruecolor(4, 4);
+        if ($with_alpha) {
+            imagesavealpha($img, true);
+            imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
+        }
+        ob_start();
+        imagepng($img);
+        $png = ob_get_clean();
+        imagedestroy($img);
+        return $png;
+    }
+
+    public function testStampPathsAreFixedPerScopeUnderReservedDir()
+    {
+        $this->assertSame($this->storage->stamp_dir() . '/global.png', $this->storage->stamp_path(null));
+        $this->assertSame($this->storage->stamp_dir() . '/section_3.png', $this->storage->stamp_path(3));
+        $this->assertStringEndsWith('/uploads/formulaires/.tampons', $this->storage->stamp_dir());
+        $this->assertStringNotContainsString('.commun', $this->storage->stamp_dir());
+    }
+
+    public function testWriteStampOverwritesAndCreatesDenyAllHtaccess()
+    {
+        $this->storage->write_stamp(null, 'v1');
+        $this->storage->write_stamp(null, 'v2');
+
+        $this->assertSame('v2', file_get_contents($this->storage->stamp_path(null)));
+        $this->assertCount(1, glob($this->storage->stamp_dir() . '/*.png'));
+        $this->assertFileExists($this->storage->stamp_dir() . '/.htaccess');
+    }
+
+    public function testDeleteStampOnlyAffectsItsScope()
+    {
+        $this->storage->write_stamp(null, 'global');
+        $this->storage->write_stamp(2, 'section');
+
+        $this->storage->delete_stamp(2);
+        $this->assertFalse($this->storage->has_stamp(2));
+        $this->assertTrue($this->storage->has_stamp(null));
+
+        // No error when there is nothing to delete.
+        $this->storage->delete_stamp(2);
+        $this->assertFalse($this->storage->has_stamp(2));
+    }
+
+    public function testResolveStampFallsBackFromSectionToGlobalToNone()
+    {
+        $this->assertNull($this->storage->resolve_stamp_path(2));
+        $this->assertNull($this->storage->stamp_data_uri(2));
+
+        $this->storage->write_stamp(null, 'global');
+        $this->assertSame($this->storage->stamp_path(null), $this->storage->resolve_stamp_path(2));
+        $this->assertSame($this->storage->stamp_path(null), $this->storage->resolve_stamp_path(null));
+
+        $this->storage->write_stamp(2, 'section');
+        $this->assertSame($this->storage->stamp_path(2), $this->storage->resolve_stamp_path(2));
+        $this->assertSame($this->storage->stamp_path(null), $this->storage->resolve_stamp_path(5));
+        $this->assertSame('data:image/png;base64,' . base64_encode('section'), $this->storage->stamp_data_uri(2));
+    }
+
+    public function testStampDirIsNotSeenAsAFormDirectory()
+    {
+        $this->storage->write_stamp(null, 'global');
+        $this->assertFalse($this->storage->has_content('.tampons'));
+        $this->assertNotSame($this->storage->stamp_dir(), $this->storage->form_dir('.tampons'));
+    }
+
+    public function testPngTransparencyDetection()
+    {
+        $this->assertTrue($this->storage->png_has_transparency($this->_png(true)));
+        $this->assertFalse($this->storage->png_has_transparency($this->_png(false)));
+        $this->assertFalse($this->storage->png_has_transparency('not a png'));
+    }
 }
