@@ -659,6 +659,45 @@ Décisions retenues :
 
 **Ajustement UX post-livraison** (24 août 2026) : la carte "Formulaire vierge (PDF)" a été déplacée juste sous la case "Autoriser la soumission par téléchargement (scan)" dans `bs_form.php`, avec visibilité conditionnée à l'état de la case (affichée si cochée, masquée sinon — état initial calculé côté serveur, bascule en direct via un petit script au `change` de la case). Elle apparaissait auparavant dans une carte séparée après "Images", sans lien visuel avec la case dont elle dépend fonctionnellement — source de confusion signalée après livraison (carte présente mais son utilité pas évidente sans dérouler toute la page). Contrainte technique résolue au passage : les boutons/l'input fichier de la carte ne peuvent pas vivre dans un `<form>` imbriqué dans le formulaire principal (HTML invalide) ; ils utilisent l'attribut `form="..."` pour cibler deux `<form>` vides et invisibles déclarés juste après la fermeture du formulaire principal, qui portent seuls `action`/`method`/`enctype` — aucun changement côté contrôleur. Vérifié en conditions réelles sur gvv.net (formulaires de test temporaires, supprimés après vérification) : bascule d'affichage au clic sur la case, dépôt/suppression du PDF toujours fonctionnels, soumission du formulaire principal (titre, case à cocher, etc.) inchangée. Suite complète verte (1943 tests, 0 échec, mêmes 63 skips).
 
+### Lot 17 — Tampon de l'association (EF19)
+
+Objectif : apposer le tampon de l'association sur le PDF d'une réponse, à l'emplacement déclaré par le formulaire, sans jamais exposer l'image du tampon côté public. Dépend du socle (Lot 1), de la configuration des formulaires (Lot 4-bis) et de la convention des widgets/images de substitution (Lot 2-quater). Indépendant des autres lots.
+
+Voir : [Design tampon de l'association](../design_notes/remplissage_formulaires_design.md#23-tampon-de-lassociation-ef19) et PRD EF19.
+
+Décisions retenues :
+- Widget `data-gvv-type="stamp"` positionné par le CSS du formulaire ; pas un champ (exclu des champs dérivés, des valeurs, des fichiers de soumission et de la complétude).
+- Stockage fichier sous `uploads/formulaires/.tampons/` (`global.png`, `section_{id}.png`), sans colonne en base ni route publique ; intégration en base64 dans les rendus admin et le PDF.
+- Portée résolue depuis la section du formulaire (`forms.club`), repli sur le tampon global.
+- PNG uniquement ; PNG sans transparence accepté avec avertissement.
+
+#### Étape 1 — Stockage ✅
+
+- [x] `Forms_file_storage` : `write_stamp()`, `stamp_path()`, `has_stamp()`, `delete_stamp()`, `resolve_stamp_path()` (repli section → global), `stamp_data_uri()`, `png_has_transparency()` (IHDR type 4/6 ou chunk `tRNS`).
+- [x] Test PHPUnit `FormsFileStorageTest` étendu (6 tests) : écriture/écrasement/suppression par portée, résolution section → global → aucun, absence d'interférence avec les répertoires de formulaires (`.tampons` ignoré par les opérations sur les formulaires).
+
+#### Étape 2 — Administration ✅
+
+- [x] `forms_admin::stamp_upload($scope)` / `stamp_delete($scope)` : contrôle PNG via `getimagesize()`, détection de la transparence (avertissement si absente), limite 2 Mo, messages explicites succès/erreur/avertissement.
+- [x] Vue de `forms_admin/config` : carte « Tampon de l'association », une ligne par portée (global + sections) avec aperçu base64, dépôt/remplacement, suppression avec confirmation.
+- [x] Test PHPUnit `FormsStampTest` (mysql, harnais HTTP de `FormsPdfTemplateTest`, 7 tests ; tampon global réel sauvegardé/restauré) : dépôt PNG transparent, dépôt PNG opaque (avertissement), type refusé, remplacement sans accumulation, suppression, requête non authentifiée refusée ; fichiers créés supprimés en teardown. Couvre aussi la règle de rendu (repère public, image réelle dans `submission_view`).
+
+#### Étape 3 — Rendu ✅
+
+- [x] `assets/images/forms-widgets/stamp-placeholder.svg`.
+- [x] `Forms_renderer` : le widget `stamp` reste un repère statique en rendu public, reprise par lien et édition admin (contenu inchangé ; une règle CSS de `bs_show.php`/`bs_submission_edit.php` le rend semi-transparent et `pointer-events:none` pour ne jamais bloquer le widget signature qu'il chevauche) ; `Forms_field_parser` l'ignore (il ne retient que les widgets `signature`/`subform`). Nouvelle méthode `Forms_renderer::inject_stamp()`.
+- [x] `forms_admin::submission_pdf()` et `submission_view()` : sortie de `_fill_html_values()`/`_fill_html_values_readonly()` passée à `inject_stamp()` — remplacement du contenu du widget par l'image base64 du tampon résolu (style inline de la `<div>` conservé), vide si aucun tampon.
+- [x] Tests PHPUnit (`FormsRendererStampTest`, 4 tests + `FormsStampTest`) : tampon absent du HTML public et de l'édition, présent dans le détail admin et le HTML du PDF, repli global, aucun tampon → pas d'erreur ; aucun chemin `.tampons` dans le HTML produit.
+- [x] Test Playwright `forms-stamp-smoke.spec.js` : dépôt du tampon par l'écran de configuration, page publique sans image réelle, vue admin avec image réelle, PDF contenant l'image et son masque de transparence (`pdfimages -list`), suppression ; formulaire, réponse et tampon d'origine restaurés en `finally`. Note : wkhtmltopdf omet du PDF une image entièrement transparente — l'image de test doit avoir des pixels visibles.
+
+#### Étape 4 — Traductions et documentation ✅
+
+- [x] Clés fr/en/nl (15 clés `forms_stamp_*`) : titre et aide de la carte, libellés de portée, boutons, confirmation, messages succès/avertissement/erreur, libellé du repère public.
+- [x] `doc/users/fr/13_formulaires_creation.md` : section « Ajouter le tampon de l'association » ; `doc/users/fr/13_formulaires.md` : section « Déposer le tampon de l'association » (préparation du PNG transparent avec GIMP, dépôt, portées).
+- [x] **Validation non-régression** : formulaires sans widget `stamp` inchangés (`inject_stamp()` renvoie le HTML tel quel, test unitaire) ; suite PHPUnit complète verte (2083 tests, 0 échec, mêmes 63 skips pré-existants) ; tests Playwright du module formulaires verts (4/4).
+
+**Lot 17 terminé** — reste la validation en conditions réelles sur `attestation_de_test_au_sol` / `attestation_de_test_en_vol` avec le tampon de l'aéroclub.
+
 ## Stratégie de livraison
 
 ### Phase 1 — Socle formulaires autonome (catégorie 1)
@@ -739,6 +778,12 @@ Objectif : permettre à l'admin d'associer un PDF vierge téléchargeable à un 
 
 Lots inclus : 16.
 
+### Phase 14 — Tampon de l'association
+
+Objectif : permettre d'apposer le tampon de l'association sur le PDF d'une réponse, réservé aux administrateurs. Dépend du socle (phase 1) et de la configuration des formulaires (phase 2, Lot 4-bis). Indépendant de toutes les autres phases.
+
+Lots inclus : 17.
+
 ## Ordre de réalisation recommandé
 
 1. Lot 1 (migration)
@@ -759,7 +804,8 @@ Lots inclus : 16.
 16. Lot 14 (lien de modification public à usage unique) — dépend du socle (Lot 1), des fichiers (Lot 2) et de Lot 13
 17. Lot 15 (complétude des pièces obligatoires) — dépend uniquement du socle (Lot 1)
 18. Lot 16 (modèle PDF vierge téléchargeable) — dépend de Lot 9 (`allow_upload_response`), indépendant des autres lots
-19. Lot 8 (documentation et validation)
+19. Lot 17 (tampon de l'association) — dépend de Lot 4-bis, indépendant des autres lots
+20. Lot 8 (documentation et validation)
 
 ## Critères de fin
 
@@ -821,6 +867,11 @@ Lots inclus : 16.
 - La liste des pièces manquantes est affichée par libellé, en saisie initiale et en reprise.
 - Un groupe de pièces alternatives est satisfait dès qu'un seul membre est fourni.
 - L'indicateur de complétude est visible dans la liste admin des réponses.
+
+### Tampon de l'association
+- Un tampon global et un tampon par section peuvent être déposés, remplacés et supprimés depuis la configuration des formulaires, avec aperçu.
+- Le PDF et le détail admin d'une réponse affichent le tampon de la section du formulaire, à défaut le tampon global, à l'emplacement déclaré.
+- Le formulaire public, la reprise par lien et l'édition n'affichent qu'un repère ; l'image du tampon n'est accessible par aucune URL publique.
 
 ### Qualité transversale
 - Chaque lot commence par une migration explicite et testée.

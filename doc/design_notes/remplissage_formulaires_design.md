@@ -1212,6 +1212,87 @@ Nouvelle route `forms_public::pdf_template($code)`, sur le même principe que `i
 
 Mêmes garanties que pour les images : le fichier n'est jamais servi de façon statique, toujours via la route applicative avec vérification de confinement ; le nom de fichier sur disque (`template.pdf`) ne dérive jamais d'une entrée utilisateur.
 
+### 23. Tampon de l'association (EF19)
+
+#### Principe
+
+Un widget `stamp`, sur le modèle des widgets signature et paiement : le formulaire déclare *où* va le tampon, la configuration des formulaires fournit *quelle* image. Le tampon n'est résolu en image réelle que dans les rendus réservés aux administrateurs (détail de réponse, PDF) ; partout ailleurs, seul un repère visuel est affiché.
+
+```
+              ┌───────────────────────────┐
+  HTML ──────►│ <div data-gvv-type=stamp> │
+              └─────────────┬─────────────┘
+                            │ rendu
+          ┌─────────────────┼──────────────────────┐
+          ▼                 ▼                      ▼
+   public / reprise /   détail réponse admin   PDF (submission_pdf)
+   édition admin        (submission_view)
+   → repère SVG         → image réelle         → image réelle
+```
+
+#### Déclaration dans le HTML
+
+```html
+<div class="zone-signature" style="position:relative">
+  <div data-gvv-type="signature" data-gvv-name="signature_president">Signature du président</div>
+  <div data-gvv-type="stamp" style="position:absolute; right:0; top:-10px; width:4cm">
+    <img src="/assets/images/forms-widgets/stamp-placeholder.svg" alt="Tampon">
+    Tampon de l'association
+  </div>
+</div>
+```
+
+Le positionnement relève exclusivement du CSS du formulaire (conteneur `relative`, tampon `absolute`), que wkhtmltopdf respecte. Le chevauchement avec la signature repose sur la transparence du PNG : `mix-blend-mode` n'est pas pris en charge de façon fiable par le moteur WebKit de wkhtmltopdf. Le widget n'est pas un champ : il n'apparaît ni dans les champs dérivés du fichier (`Forms_field_parser`), ni dans les valeurs ou fichiers de soumission, ni dans le calcul de complétude (section 21).
+
+Le repère `stamp-placeholder.svg` rejoint `signature-placeholder.svg` sous `assets/images/forms-widgets/` (convention des images de substitution, voir [Design stockage fichier](formulaires_sync_fichiers_design.md#convention-des-images-de-substitution)).
+
+#### Stockage
+
+```
+uploads/formulaires/.tampons/
+    global.png
+    section_{id}.png
+```
+
+- Répertoire réservé, nom hors alphabet `alpha_dash` des codes de formulaire (même principe que `.commun/`) : aucune collision possible avec un formulaire.
+- **Pas sous `.commun/images/`** : ce répertoire est servi publiquement par `forms_public/shared_image/{fichier}`, ce qui rendrait le tampon téléchargeable par n'importe qui.
+- Aucune route publique ne sert `.tampons/`. Les rendus admin et le PDF intègrent l'image en `data:image/png;base64,...` directement dans le HTML, ce qui évite toute route dédiée — y compris pour l'aperçu de l'écran de configuration.
+- Nom de fichier fixe par portée, jamais dérivé d'une entrée utilisateur : un nouveau dépôt écrase le précédent, pas d'orphelin (même raisonnement que `template.pdf`, section 22).
+- Pas de colonne en base : la présence du tampon est purement fichier.
+- Hors du cycle de vie d'un formulaire : non concerné par `form_backup()`, `form_import_zip()`, duplication, renommage ou suppression d'un formulaire. Inclus dans la sauvegarde globale de `uploads/` sans modification.
+
+Nouvelles méthodes sur `Forms_file_storage` : `write_stamp($section_id|null, $content)`, `stamp_path($section_id|null)`, `has_stamp(...)`, `delete_stamp(...)`, et `resolve_stamp_path($section_id|null)` qui applique le repli section → global.
+
+#### Résolution de la portée
+
+La section retenue est celle **du formulaire** (`forms.club`), pas la section active de la session : un même PDF régénéré par deux admins dans des contextes différents doit porter le même tampon. Formulaire sans section → tampon global directement.
+
+#### Rendu
+
+| Point de rendu | Méthode | Contenu du widget |
+|---|---|---|
+| Formulaire public, reprise par lien (§ 20), édition admin (§ 19) | vues `bs_show` / `bs_submission_edit` | Repère statique (texte + SVG), rendu semi-transparent et `pointer-events:none` : il chevauche souvent le widget signature et ne doit jamais en bloquer la saisie |
+| Détail d'une réponse | `forms_admin::_fill_html_values_readonly()` | `<img>` base64 du tampon résolu, sinon vide |
+| PDF imprimable | `forms_admin::_fill_html_values()` | idem |
+
+Le style inline de la `<div>` d'origine (position, largeur) est conservé ; seul son contenu est remplacé, l'`<img>` prenant `width:100%`.
+
+#### Administration
+
+Nouvelle carte « Tampon de l'association » sur l'écran `forms_admin/config` : une ligne par portée (global, puis chaque section), avec aperçu, bouton de dépôt/remplacement et bouton de suppression. Contrôleur `forms_admin::stamp_upload($scope)` / `stamp_delete($scope)`, même pattern que `image_upload()` (`$_FILES` brut) :
+
+- type vérifié par `getimagesize()` : PNG uniquement (format dont la transparence est rendue de façon sûre par wkhtmltopdf 0.12 ; la prise en charge de WEBP y dépend des greffons Qt installés) ;
+- PNG sans canal alpha (type de couleur IHDR 4 ou 6, ou chunk `tRNS`) : accepté, avec un avertissement explicite dans le message de succès ;
+- taille limitée à 2 Mo (un tampon à 300 dpi sur 4 à 5 cm pèse quelques dizaines de Ko).
+
+Mêmes droits que le reste de l'écran de configuration (question ouverte PRD EF19 sur une restriction `club-admin`).
+
+La protection CSRF étant désactivée globalement et le cookie de session sans attribut `SameSite`, `stamp_upload()`/`stamp_delete()` vérifient en plus que la requête provient d'une page GVV : l'hôte (et le port) de l'en-tête `Origin` — à défaut `Referer` — doit correspondre à `base_url()`, une requête sans aucun des deux est refusée. Sans ce contrôle, n'importe quel site visité par un administrateur connecté pourrait remplacer ou supprimer le tampon.
+
+#### Alternative écartée — image statique dans le HTML
+
+Un `<img src=".commun/images/tampon.png">` codé en dur fonctionne sans développement (images partagées intégrées au PDF par `_embed_local_images_as_base64()`), mais le tampon apparaît alors sur la page publique, sur le formulaire vierge et sur toute réponse, et l'image est téléchargeable via `shared_image`. Acceptable comme palliatif ponctuel, pas comme mécanisme : le tampon atteste une validation par l'association et ne doit être apposé que par elle.
+
 ## Décisions actées (juillet 2026) — remplacement du briefing passager
 
 **Statut : tranché pour la migration `briefing_passager` → `forms`. Remplace la discussion ouverte précédente sur ce sujet.**

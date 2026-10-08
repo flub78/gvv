@@ -288,5 +288,23 @@ $lang['forms_help_target_export'] = 'Als beide velden zijn ingevuld, verschijnt 
 $lang['forms_badge_subform_unattached']      = 'Niet gekoppeld';
 $lang['forms_help_badge_subform_unattached'] = 'Dit antwoord werd ingediend als subformulier, maar het hoofdformulier is nooit definitief ingediend.';
 
+// Tampon de l'association (Lot 17 / EF19)
+$lang['forms_stamp_title'] = 'Stempel van de vereniging';
+$lang['forms_stamp_help'] = 'PNG-afbeelding met transparante achtergrond, aangebracht op de PDF en de detailweergave van antwoorden op de plaats die het formulier aangeeft. De stempel van een sectie vervangt de globale stempel voor de formulieren van die sectie. Hij is nooit zichtbaar op het openbare formulier.';
+$lang['forms_stamp_help_html'] = 'In de HTML van het formulier: &lt;div data-gvv-type="stamp" style="position:absolute; right:0; width:4cm"&gt;Stempel van de vereniging&lt;/div&gt;, binnen een container met position:relative.';
+$lang['forms_stamp_label_preview'] = 'Voorbeeld';
+$lang['forms_stamp_none'] = 'Geen stempel';
+$lang['forms_stamp_button_upload'] = 'Uploaden';
+$lang['forms_stamp_button_replace'] = 'Vervangen';
+$lang['forms_stamp_confirm_delete'] = 'Deze stempel verwijderen?';
+$lang['forms_stamp_uploaded'] = 'Stempel opgeslagen.';
+$lang['forms_stamp_deleted'] = 'Stempel verwijderd.';
+$lang['forms_stamp_warning_opaque'] = 'Deze PNG heeft geen transparante achtergrond: de stempel zal de handtekening of tekst eronder bedekken. Gebruik bij voorkeur een uitgesneden afbeelding.';
+$lang['forms_stamp_error_missing'] = 'Geen afbeelding ontvangen.';
+$lang['forms_stamp_error_too_large'] = 'Afbeelding te groot (maximaal 2 MB).';
+$lang['forms_stamp_error_not_png'] = 'De stempel moet een PNG-afbeelding zijn.';
+$lang['forms_stamp_error_scope'] = 'Onbekend bereik voor de stempel.';
+$lang['forms_stamp_error_origin'] = 'Verzoek geweigerd: het komt niet van een GVV-pagina. Laad de configuratiepagina opnieuw en probeer het nog eens.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/dutch/forms_lang.php */

@@ -14,6 +14,7 @@ Pour **rédiger le contenu HTML/CSS d'un formulaire** ou **l'intégrer aux donn�
   - [Corriger une réponse déjà soumise](#corriger-une-réponse-déjà-soumise)
   - [Accepter une réponse déposée par scan ou photo](#accepter-une-réponse-déposée-par-scan-ou-photo)
   - [Associer un formulaire vierge téléchargeable](#associer-un-formulaire-vierge-téléchargeable)
+  - [Déposer le tampon de l'association](#déposer-le-tampon-de-lassociation)
   - [Pour aller plus loin](#pour-aller-plus-loin)
 
 ---
@@ -99,6 +100,36 @@ Pour un formulaire où le dépôt par scan est activé (section précédente), u
 4. Le bouton **"Supprimer"** de la carte retire le PDF (et le lien public disparaît) sans affecter le reste du formulaire.
 
 Ce PDF suit le formulaire lors d'un renommage, d'une duplication, d'une suppression ou d'une sauvegarde (export ZIP) — comme les images du formulaire (voir [Ajouter une image](13_formulaires_creation.md#ajouter-une-image)), il ne fait en revanche pas partie du contenu remplacé par un dépôt d'archive (voir [Modifier le contenu d'un formulaire existant](13_formulaires_creation.md#modifier-le-contenu-dun-formulaire-existant)) : il se dépose et se supprime uniquement depuis cette carte.
+
+---
+
+## Déposer le tampon de l'association
+
+Le tampon de l'association peut être apposé automatiquement sur le PDF des réponses, aux formulaires qui prévoient son emplacement (voir [Ajouter le tampon de l'association](13_formulaires_creation.md#ajouter-le-tampon-de-lassociation)).
+
+### Préparer l'image
+
+Le tampon doit être une image **PNG à fond transparent**. Un fond blanc masquerait la signature ou le texte qu'il recouvre.
+
+1. Apposer le tampon sur une feuille blanche, bien encré, puis le numériser en **300 dpi** (ou le photographier bien à plat, en lumière uniforme).
+2. Ouvrir l'image dans **GIMP** (gratuit), recadrer au plus près du tampon (*Image → Rogner selon le contenu*, ou outil de découpe).
+3. *Calque → Transparence → Ajouter un canal alpha*.
+4. *Couleurs → Couleur vers alpha…*, couleur **blanc** : le fond disparaît (damier), l'encre reste. Ajuster le seuil si un léger voile subsiste.
+5. Optionnel : *Couleurs → Teinte-Saturation* pour raviver une encre pâle.
+6. Si l'image est très grande, *Image → Échelle et taille de l'image* : environ **500 px** de large suffisent pour un tampon imprimé à 4 cm.
+7. *Fichier → Exporter sous…* au format `.png`.
+
+Sans GIMP, un service en ligne de suppression d'arrière-plan donne un résultat comparable. Il faut alors accepter de confier l'image du tampon à un tiers.
+
+### Déposer l'image
+
+1. Page d'administration des formulaires → carte **"Configuration"**, puis carte **"Tampon de l'association"** en bas de page.
+2. Ligne **Global** : tampon utilisé par tous les formulaires. Ligne d'une section : tampon propre aux formulaires rattachés à cette section, prioritaire sur le tampon global.
+3. Choisir le fichier PNG puis **"Déposer"** (ou **"Remplacer"**). L'aperçu s'affiche sur un damier : les zones transparentes y apparaissent en damier.
+4. Un PNG sans transparence est accepté, avec un **avertissement** : mieux vaut le retravailler (étapes ci-dessus). Tout autre format est refusé.
+5. **"Supprimer"** retire le tampon de la portée correspondante. Les formulaires concernés se rabattent alors sur le tampon global, ou n'affichent plus de tampon.
+
+L'image du tampon n'est accessible à aucune adresse publique. Elle n'apparaît que dans la vue d'une réponse et dans son PDF, réservés aux administrateurs.
 
 ---
 

@@ -288,5 +288,23 @@ $lang['forms_help_target_export'] = 'If both fields are set, a button appears on
 $lang['forms_badge_subform_unattached']      = 'Unattached';
 $lang['forms_help_badge_subform_unattached'] = 'This response was submitted as a sub-form, but its master form was never finalized.';
 
+// Tampon de l'association (Lot 17 / EF19)
+$lang['forms_stamp_title'] = 'Association stamp';
+$lang['forms_stamp_help'] = 'PNG image with a transparent background, applied to the PDF and the answer detail at the location defined by the form. A section\'s stamp overrides the global stamp for that section\'s forms. It is never shown on the public form.';
+$lang['forms_stamp_help_html'] = 'In the form HTML: &lt;div data-gvv-type="stamp" style="position:absolute; right:0; width:4cm"&gt;Association stamp&lt;/div&gt;, inside a container with position:relative.';
+$lang['forms_stamp_label_preview'] = 'Preview';
+$lang['forms_stamp_none'] = 'No stamp';
+$lang['forms_stamp_button_upload'] = 'Upload';
+$lang['forms_stamp_button_replace'] = 'Replace';
+$lang['forms_stamp_confirm_delete'] = 'Delete this stamp?';
+$lang['forms_stamp_uploaded'] = 'Stamp saved.';
+$lang['forms_stamp_deleted'] = 'Stamp deleted.';
+$lang['forms_stamp_warning_opaque'] = 'This PNG has no transparent background: the stamp will hide the signature or text underneath. Prefer a cut-out image.';
+$lang['forms_stamp_error_missing'] = 'No image received.';
+$lang['forms_stamp_error_too_large'] = 'Image too large (2 MB maximum).';
+$lang['forms_stamp_error_not_png'] = 'The stamp must be a PNG image.';
+$lang['forms_stamp_error_scope'] = 'Unknown stamp scope.';
+$lang['forms_stamp_error_origin'] = 'Request refused: it does not come from a GVV page. Reload the configuration page and try again.';
+
 /* End of file forms_lang.php */
 /* Location: ./application/language/english/forms_lang.php */

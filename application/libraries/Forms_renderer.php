@@ -674,6 +674,54 @@ class Forms_renderer {
     }
 
     /**
+     * Replace the content of <div data-gvv-type="stamp"> elements with the
+     * association stamp (Lot 17 / EF19). Only called from admin-only renders
+     * (submission detail, PDF): the public form keeps the author's static
+     * placeholder untouched. The div itself — and its inline position/width
+     * style set by the form author — is kept; only its content changes.
+     * With no stamp configured ($stamp_data_uri null), the div is emptied so
+     * the placeholder never leaks into a printed answer.
+     */
+    public function inject_stamp($html, $stamp_data_uri = null) {
+        if (stripos($html, 'data-gvv-type') === false) {
+            return $html;
+        }
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $html . '</body></html>');
+        libxml_clear_errors();
+        $xpath = new DOMXPath($dom);
+
+        $found = false;
+        foreach (iterator_to_array($xpath->query('//*[@data-gvv-type]')) as $node) {
+            if (strtolower(trim($node->getAttribute('data-gvv-type'))) !== 'stamp') {
+                continue;
+            }
+            $found = true;
+            while ($node->firstChild) {
+                $node->removeChild($node->firstChild);
+            }
+            if ($stamp_data_uri) {
+                $img = $dom->createElement('img');
+                $img->setAttribute('src', $stamp_data_uri);
+                $img->setAttribute('alt', '');
+                $img->setAttribute('style', 'width:100%; height:auto; display:block;');
+                $node->appendChild($img);
+            }
+        }
+        if (!$found) {
+            return $html;
+        }
+
+        $result = '';
+        foreach ($dom->getElementsByTagName('body')->item(0)->childNodes as $child) {
+            $result .= $dom->saveHTML($child);
+        }
+        return $result;
+    }
+
+    /**
      * Render the HTML for a composite signature widget.
      *
      * Three tabs: Draw (canvas + SignaturePad), Upload (image file), Type (handwriting font canvas).
