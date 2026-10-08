@@ -34,6 +34,8 @@ class Formation_rapports extends MY_Controller
         // Check feature flag
         $this->load->library('formation_access');
         $this->formation_access->check_access_or_403();
+        $this->lang->load('formation');
+        $this->formation_access->require_view_formations_or_403();
 
         $this->load->model('formation_inscription_model');
         $this->load->model('formation_seance_model');

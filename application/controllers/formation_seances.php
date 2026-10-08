@@ -59,6 +59,13 @@ class Formation_seances extends MY_Controller {
             redirect('auth/login');
         }
 
+        // Seul le détail est accessible au pilote (pour ses propres séances),
+        // le reste est réservé aux instructeurs / responsables
+        $this->load->library('formation_access');
+        if ($this->router->fetch_method() !== 'detail') {
+            $this->formation_access->require_view_formations_or_403();
+        }
+
         // Bouton retour → tableau de bord Formation
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
@@ -479,6 +486,9 @@ class Formation_seances extends MY_Controller {
         $seance = $this->formation_seance_model->get_full($id);
         if (!$seance) {
             show_404();
+        }
+        if (!$this->formation_access->can_view_pilote($seance['pilote_id'])) {
+            show_error($this->lang->line('formation_acces_refuse'), 403);
         }
 
         // Get evaluations

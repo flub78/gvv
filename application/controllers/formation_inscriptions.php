@@ -45,6 +45,13 @@ class Formation_inscriptions extends MY_Controller {
             redirect('auth/login');
         }
 
+        // Seul le détail est accessible au pilote (pour sa propre formation),
+        // le reste est réservé aux instructeurs / responsables
+        $this->load->library('formation_access');
+        if ($this->router->fetch_method() !== 'detail') {
+            $this->formation_access->require_view_formations_or_403();
+        }
+
         // Bouton retour → tableau de bord Formation
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
@@ -333,6 +340,9 @@ class Formation_inscriptions extends MY_Controller {
         if (!$inscription) {
             show_404();
         }
+        if (!$this->formation_access->can_view_inscription($inscription)) {
+            show_error($this->lang->line('formation_acces_refuse'), 403);
+        }
         
         // Get flight sessions for this inscription
         $seances_vol = $this->formation_seance_model->get_by_inscription($id);
@@ -364,7 +374,6 @@ class Formation_inscriptions extends MY_Controller {
         $is_student_view = ($current_user === $inscription['pilote_id']);
 
         // Check if current user is an instructor
-        $this->load->library('formation_access');
         $is_instructeur = $this->formation_access->is_instructeur();
 
         // Get solo authorizations for this inscription

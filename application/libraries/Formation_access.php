@@ -109,39 +109,76 @@ class Formation_access {
     }
 
     /**
-     * Check if user can view a specific enrollment
+     * Check if current user can view the training data of all pilots
+     *
+     * Same population as the "Formation" dashboard card (welcome::can_view_formation):
+     * admin, instructeur, CA/club-admin in any section, RP in the current section.
+     *
+     * @return bool True if user can view all formations
+     */
+    public function can_view_formations() {
+        if (!$this->is_enabled()) {
+            return false;
+        }
+
+        // Admin and instructors
+        if ($this->is_instructeur()) {
+            return true;
+        }
+
+        $this->CI->load->library('Gvv_Authorization');
+        $user_id = $this->CI->dx_auth->get_user_id();
+        if ($this->CI->gvv_authorization->has_any_role($user_id, ['ca', 'club-admin'], NULL)) {
+            return true;
+        }
+
+        $raw_section_id = $this->CI->session->userdata('section');
+        $section_id = $raw_section_id ? (int)$raw_section_id : NULL;
+        return $this->CI->gvv_authorization->has_role($user_id, 'rp', $section_id);
+    }
+
+    /**
+     * Show a 403 error unless the current user can view all formations
+     *
+     * @return void
+     */
+    public function require_view_formations_or_403() {
+        if (!$this->can_view_formations()) {
+            show_error($this->CI->lang->line('formation_acces_refuse') ?: 'Accès refusé.', 403);
+        }
+    }
+
+    /**
+     * Check if user can view the training data of a given pilot
      *
      * Rules:
-     * - Admin can view all
-     * - Instructor can view their students
-     * - Pilot can view their own enrollments
+     * - The pilot can view their own data
+     * - Users allowed to view all formations (see can_view_formations)
      *
-     * @param array $inscription Enrollment data
+     * @param string $pilote_id Pilot login (membres.mlogin)
      * @return bool True if user can view
      */
-    public function can_view_inscription($inscription) {
+    public function can_view_pilote($pilote_id) {
         if (!$this->is_enabled()) {
             return false;
         }
 
         $username = $this->CI->dx_auth->get_username();
-
-        // Admin can view all
-        if ($this->CI->dx_auth->is_admin()) {
+        if ($username !== null && $username !== '' && $pilote_id === $username) {
             return true;
         }
 
-        // Student can view their own
-        if ($inscription['pilote_id'] == $username) {
-            return true;
-        }
+        return $this->can_view_formations();
+    }
 
-        // Instructor can view their students
-        if ($inscription['instructeur_referent_id'] == $username) {
-            return true;
-        }
-
-        return false;
+    /**
+     * Check if user can view a specific enrollment
+     *
+     * @param array $inscription Enrollment data
+     * @return bool True if user can view
+     */
+    public function can_view_inscription($inscription) {
+        return $this->can_view_pilote($inscription['pilote_id']);
     }
 
     /**

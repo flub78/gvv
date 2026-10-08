@@ -42,6 +42,14 @@ class Formation_seances_theoriques extends MY_Controller {
             redirect('auth/login');
         }
 
+        // Le détail et la liste des pièces jointes sont accessibles aux participants,
+        // le reste est réservé aux instructeurs / responsables
+        $this->load->library('formation_access');
+        $method = $this->router->fetch_method();
+        if (!in_array($method, array('detail', 'ajax_get_attachments'))) {
+            $this->formation_access->require_view_formations_or_403();
+        }
+
         // Bouton retour → tableau de bord Formation
         $this->lang->load('tableaux_de_bord');
         $this->load->vars([
@@ -271,6 +279,7 @@ class Formation_seances_theoriques extends MY_Controller {
         }
 
         $participants = $this->formation_seance_model->get_participants((int)$id);
+        $this->_check_can_view_seance($participants);
         $type = array();
         if (!empty($seance['type_seance_id'])) {
             $type = $this->formation_type_seance_model->get_by_id('id', $seance['type_seance_id']);
@@ -448,6 +457,8 @@ class Formation_seances_theoriques extends MY_Controller {
      * GET : retourne le HTML de la liste des pièces jointes d'une séance.
      */
     public function ajax_get_attachments($seance_id) {
+        $this->_check_can_view_seance($this->formation_seance_model->get_participants((int)$seance_id));
+
         $this->load->model('attachments_model');
 
         $attachments = $this->db
@@ -542,6 +553,24 @@ class Formation_seances_theoriques extends MY_Controller {
      * Used when "Toutes" section is active: any active member can be selected as instructor.
      * Returns an array suitable for form select: [login => 'nom prenom']
      */
+    /**
+     * 403 sauf si l'utilisateur voit toutes les formations ou participe à la séance.
+     *
+     * @param array $participants Participants de la séance (pilote_id)
+     */
+    private function _check_can_view_seance($participants) {
+        if ($this->formation_access->can_view_formations()) {
+            return;
+        }
+        $username = $this->dx_auth->get_username();
+        foreach ($participants as $p) {
+            if ($p['pilote_id'] === $username) {
+                return;
+            }
+        }
+        show_error($this->lang->line('formation_acces_refuse'), 403);
+    }
+
     private function _get_all_instructeurs() {
         return $this->_get_all_members();
     }

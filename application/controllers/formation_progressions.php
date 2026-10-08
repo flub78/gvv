@@ -59,6 +59,8 @@ class Formation_progressions extends MY_Controller
         $data['title'] = $this->lang->line('formation_progressions_title');
         $data['controller'] = $this->controller;
 
+        $this->formation_access->require_view_formations_or_403();
+
         // Récupérer toutes les formations ouvertes ou clôturées de la section
         $filters = [];
         $formations = $this->formation_inscription_model->get_all($filters);
@@ -114,6 +116,9 @@ class Formation_progressions extends MY_Controller
         if (!$inscription) {
             show_404();
             return;
+        }
+        if (!$this->formation_access->can_view_inscription($inscription)) {
+            show_error($this->lang->line('formation_acces_refuse'), 403);
         }
 
         $this->load->model('formation_seance_model');
@@ -178,6 +183,9 @@ class Formation_progressions extends MY_Controller
         if (!$progression) {
             show_error('Formation introuvable', 404);
             return;
+        }
+        if (!$this->formation_access->can_view_inscription($progression['inscription'])) {
+            show_error($this->lang->line('formation_acces_refuse'), 403);
         }
 
         $this->load->library('Pdf');
