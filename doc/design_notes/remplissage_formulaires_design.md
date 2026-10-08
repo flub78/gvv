@@ -1287,6 +1287,8 @@ Nouvelle carte « Tampon de l'association » sur l'écran `forms_admin/config` :
 
 Mêmes droits que le reste de l'écran de configuration (question ouverte PRD EF19 sur une restriction `club-admin`).
 
+La protection CSRF étant désactivée globalement et le cookie de session sans attribut `SameSite`, `stamp_upload()`/`stamp_delete()` vérifient en plus que la requête provient d'une page GVV : l'hôte (et le port) de l'en-tête `Origin` — à défaut `Referer` — doit correspondre à `base_url()`, une requête sans aucun des deux est refusée. Sans ce contrôle, n'importe quel site visité par un administrateur connecté pourrait remplacer ou supprimer le tampon.
+
 #### Alternative écartée — image statique dans le HTML
 
 Un `<img src=".commun/images/tampon.png">` codé en dur fonctionne sans développement (images partagées intégrées au PDF par `_embed_local_images_as_base64()`), mais le tampon apparaît alors sur la page publique, sur le formulaire vierge et sur toute réponse, et l'image est téléchargeable via `shared_image`. Acceptable comme palliatif ponctuel, pas comme mécanisme : le tampon atteste une validation par l'association et ne doit être apposé que par elle.

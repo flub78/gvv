@@ -304,6 +304,7 @@ $lang['forms_stamp_error_missing'] = 'Geen afbeelding ontvangen.';
 $lang['forms_stamp_error_too_large'] = 'Afbeelding te groot (maximaal 2 MB).';
 $lang['forms_stamp_error_not_png'] = 'De stempel moet een PNG-afbeelding zijn.';
 $lang['forms_stamp_error_scope'] = 'Onbekend bereik voor de stempel.';
+$lang['forms_stamp_error_origin'] = 'Verzoek geweigerd: het komt niet van een GVV-pagina. Laad de configuratiepagina opnieuw en probeer het nog eens.';
 
 /* End of file forms_lang.php */
 /* Location: ./application/language/dutch/forms_lang.php */

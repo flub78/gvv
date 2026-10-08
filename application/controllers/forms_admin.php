@@ -3125,8 +3125,43 @@ class Forms_admin extends MY_Controller {
         return $exists ? (int) $scope : false;
     }
 
+    /**
+     * True if the POST comes from a GVV page (same host as base_url()), judged
+     * from Origin, or Referer when Origin is absent. CSRF protection is off
+     * globally (config.php) and the session cookie has no SameSite attribute,
+     * so without this check any site visited by a logged-in admin could
+     * replace or delete the stamp — the very mark that certifies a document.
+     * A request carrying neither header is refused: browsers always send
+     * Origin on a POST.
+     */
+    private function _is_same_origin_post() {
+        $source = (string) $this->input->server('HTTP_ORIGIN');
+        if ($source === '' || $source === 'null') {
+            $source = (string) $this->input->server('HTTP_REFERER');
+        }
+        if ($source === '') {
+            return false;
+        }
+        $expected = parse_url(base_url());
+        $actual   = parse_url($source);
+        if (empty($expected['host']) || empty($actual['host'])) {
+            return false;
+        }
+        $expected_port = isset($expected['port']) ? (int) $expected['port'] : 0;
+        $actual_port   = isset($actual['port']) ? (int) $actual['port'] : 0;
+        return strcasecmp($expected['host'], $actual['host']) === 0 && $expected_port === $actual_port;
+    }
+
     public function stamp_upload($scope = '') {
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        if (!$this->_is_same_origin_post()) {
+            log_message('error', 'GVV: forms stamp ' . $this->router->fetch_method() . ' refused, foreign origin: '
+                . $this->input->server('HTTP_ORIGIN') . ' / ' . $this->input->server('HTTP_REFERER'));
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_origin'));
             redirect('forms_admin/config');
             return;
         }
@@ -3171,6 +3206,14 @@ class Forms_admin extends MY_Controller {
 
     public function stamp_delete($scope = '') {
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('forms_admin/config');
+            return;
+        }
+
+        if (!$this->_is_same_origin_post()) {
+            log_message('error', 'GVV: forms stamp ' . $this->router->fetch_method() . ' refused, foreign origin: '
+                . $this->input->server('HTTP_ORIGIN') . ' / ' . $this->input->server('HTTP_REFERER'));
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_stamp_error_origin'));
             redirect('forms_admin/config');
             return;
         }

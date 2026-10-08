@@ -304,6 +304,7 @@ $lang['forms_stamp_error_missing'] = 'No image received.';
 $lang['forms_stamp_error_too_large'] = 'Image too large (2 MB maximum).';
 $lang['forms_stamp_error_not_png'] = 'The stamp must be a PNG image.';
 $lang['forms_stamp_error_scope'] = 'Unknown stamp scope.';
+$lang['forms_stamp_error_origin'] = 'Request refused: it does not come from a GVV page. Reload the configuration page and try again.';
 
 /* End of file forms_lang.php */
 /* Location: ./application/language/english/forms_lang.php */

@@ -303,6 +303,7 @@ $lang['forms_stamp_error_missing'] = 'Aucune image reçue.';
 $lang['forms_stamp_error_too_large'] = 'Image trop volumineuse (2 Mo maximum).';
 $lang['forms_stamp_error_not_png'] = 'Le tampon doit être une image PNG.';
 $lang['forms_stamp_error_scope'] = 'Portée de tampon inconnue.';
+$lang['forms_stamp_error_origin'] = 'Requête refusée : elle ne provient pas d\'une page de GVV. Rechargez la page de configuration et recommencez.';
 
 /* End of file forms_lang.php */
 /* Location: ./application/language/french/forms_lang.php */

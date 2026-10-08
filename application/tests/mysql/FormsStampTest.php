@@ -71,21 +71,26 @@ class FormsStampTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->saved_global_stamp !== null) {
-            $this->storage->write_stamp(null, $this->saved_global_stamp);
-        } else {
+        try {
+            // The file left by a test was written by the web server (www-data):
+            // unlink it first so the restored copy belongs to the test runner,
+            // which write_stamp() can then chmod.
             $this->storage->delete_stamp(null);
-        }
-        if (!$this->stamp_dir_existed && is_dir($this->storage->stamp_dir())) {
-            @unlink($this->storage->stamp_dir() . '/.htaccess');
-            @rmdir($this->storage->stamp_dir());
-        }
-        $this->db->where('id', $this->submission_id)->delete('form_submissions');
-        $this->db->where('form_id', $this->form_id)->delete('form_pages');
-        $this->db->where('id', $this->form_id)->delete('forms');
-        $this->storage->delete_form_dir($this->code);
-        foreach ($this->tmp_files as $f) {
-            @unlink($f);
+            if ($this->saved_global_stamp !== null) {
+                $this->storage->write_stamp(null, $this->saved_global_stamp);
+            }
+            if (!$this->stamp_dir_existed && is_dir($this->storage->stamp_dir())) {
+                @unlink($this->storage->stamp_dir() . '/.htaccess');
+                @rmdir($this->storage->stamp_dir());
+            }
+        } finally {
+            $this->db->where('id', $this->submission_id)->delete('form_submissions');
+            $this->db->where('form_id', $this->form_id)->delete('form_pages');
+            $this->db->where('id', $this->form_id)->delete('forms');
+            $this->storage->delete_form_dir($this->code);
+            foreach ($this->tmp_files as $f) {
+                @unlink($f);
+            }
         }
     }
 
@@ -154,7 +159,7 @@ class FormsStampTest extends TestCase
         return (string) @file_get_contents($url, false, $context);
     }
 
-    private function upload_stamp($scope, $path, $type, $cookie)
+    private function upload_stamp($scope, $path, $type, $cookie, $origin = 'http://gvv.net')
     {
         $boundary = '----GvvTest' . uniqid();
         $body = "--$boundary\r\n"
@@ -166,7 +171,8 @@ class FormsStampTest extends TestCase
             'http' => array(
                 'method'          => 'POST',
                 'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n"
-                                    . "Cookie: " . ($cookie ?: '') . "\r\n",
+                                    . "Cookie: " . ($cookie ?: '') . "\r\n"
+                                    . ($origin !== null ? "Origin: $origin\r\n" : ''),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -177,12 +183,13 @@ class FormsStampTest extends TestCase
         return isset($http_response_header) ? $http_response_header : array();
     }
 
-    private function http_post($url, $cookie)
+    private function http_post($url, $cookie, $origin = 'http://gvv.net')
     {
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Cookie: " . ($cookie ?: '') . "\r\n",
+                'header'          => "Cookie: " . ($cookie ?: '') . "\r\n"
+                                    . ($origin !== null ? "Origin: $origin\r\n" : ''),
                 'content'         => '',
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -296,5 +303,37 @@ class FormsStampTest extends TestCase
         );
         $this->assertStringContainsString($data_uri, $view);
         $this->assertStringNotContainsString('stamp-placeholder.svg', $view);
+    }
+
+    public function testUploadFromForeignOriginIsRefused()
+    {
+        $cookie = $this->login_as_admin();
+
+        $this->upload_stamp('global', $this->png_file(true), 'image/png', $cookie, 'https://evil.example');
+
+        $this->assertFalse($this->storage->has_stamp(null), 'Un dépôt venant d\'un autre site ne doit rien écrire.');
+        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $this->assertStringContainsString('Requête refusée', $page);
+    }
+
+    public function testUploadWithoutOriginNorRefererIsRefused()
+    {
+        $cookie = $this->login_as_admin();
+
+        $this->upload_stamp('global', $this->png_file(true), 'image/png', $cookie, null);
+
+        $this->assertFalse($this->storage->has_stamp(null));
+    }
+
+    public function testDeleteFromForeignOriginIsRefused()
+    {
+        $cookie = $this->login_as_admin();
+        $png = file_get_contents($this->png_file(true));
+        $this->storage->write_stamp(null, $png);
+
+        $this->http_post($this->base_url() . 'forms_admin/stamp_delete/global', $cookie, 'http://gvv.net.evil.example');
+
+        $this->assertTrue($this->storage->has_stamp(null), 'Une suppression venant d\'un autre site doit être refusée.');
+        $this->assertSame($png, file_get_contents($this->storage->stamp_path(null)));
     }
 }

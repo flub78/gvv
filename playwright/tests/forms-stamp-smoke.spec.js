@@ -127,10 +127,13 @@ test('association stamp: configured in admin, applied to answer view and PDF, ne
         // --- Admin: delete the stamp ---
         await page.goto('/index.php/forms_admin/config');
         await page.waitForLoadState('networkidle');
-        page.once('dialog', dialog => dialog.accept());
+        let confirmMessage = null;
+        page.once('dialog', dialog => { confirmMessage = dialog.message(); dialog.accept(); });
         await card.locator('tbody tr').first().locator('form[action*="stamp_delete/global"] button').click();
         await page.waitForLoadState('networkidle');
         await expect(page.locator('.alert-success')).toContainText('Tampon supprimé.');
+        // The confirmation text is JSON-encoded into the handler: it must reach the dialog intact.
+        expect(confirmMessage).toBe('Supprimer ce tampon ?');
         expect(fs.existsSync(GLOBAL_STAMP)).toBe(false);
     } finally {
         if (savedStamp !== null) {

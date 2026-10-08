@@ -67,7 +67,7 @@
                                     <td>
                                         <div class="d-flex justify-content-end gap-1">
                                             <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/config_edit/' . $p['id']) ?>"><?= $this->lang->line('forms_config_button_edit') ?></a>
-                                            <form method="post" action="<?= site_url('forms_admin/config_delete/' . $p['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $this->lang->line('forms_config_confirm_delete') ?>');">
+                                            <form method="post" action="<?= site_url('forms_admin/config_delete/' . $p['id']) ?>" style="display:contents" onsubmit="return confirm(<?= html_escape(json_encode($this->lang->line('forms_config_confirm_delete'), JSON_UNESCAPED_UNICODE)) ?>);">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_config_button_delete') ?></button>
                                             </form>
                                         </div>
@@ -122,7 +122,7 @@
                                             </button>
                                         </form>
                                         <?php if ($st['data_uri']): ?>
-                                            <form method="post" action="<?= site_url('forms_admin/stamp_delete/' . $st['scope']) ?>" style="display:contents" onsubmit="return confirm('<?= $this->lang->line('forms_stamp_confirm_delete') ?>');">
+                                            <form method="post" action="<?= site_url('forms_admin/stamp_delete/' . $st['scope']) ?>" style="display:contents" onsubmit="return confirm(<?= html_escape(json_encode($this->lang->line('forms_stamp_confirm_delete'), JSON_UNESCAPED_UNICODE)) ?>);">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_config_button_delete') ?></button>
                                             </form>
                                         <?php endif; ?>
