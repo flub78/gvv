@@ -508,6 +508,9 @@ $lang['delete'] = 'Supprimer';
 
 $lang['section_selected'] = 'Sélectionnez une section pour réaliser cette action';
 $lang['gvv_error_duplicate_entry'] = 'Erreur : doublon détecté. Cet élément existe déjà.';
+$lang['gvv_error_duplicate_field'] = 'Erreur : doublon interdit sur le champ « %1$s » : la valeur « %2$s » est déjà utilisée par un autre enregistrement (table: %3$s).';
+$lang['gvv_error_duplicate_fields'] = 'Erreur : doublon interdit sur les champs « %1$s » : la combinaison « %2$s » est déjà utilisée par un autre enregistrement (table: %3$s).';
+$lang['gvv_error_duplicate_empty_value'] = '(vide)';
 $lang['gvv_error_foreign_key_constraint'] = 'Contrainte de clé étrangère.';
 $lang['gvv_error_create_record'] = 'Lors de la création en base de données.';
 

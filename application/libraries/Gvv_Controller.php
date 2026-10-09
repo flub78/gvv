@@ -621,6 +621,44 @@ class Gvv_Controller extends MY_Controller {
     }
 
     /**
+     * Message d'erreur d'une violation d'unicité (erreur MySQL 1062).
+     *
+     * Le message MySQL donne la valeur refusée et l'index (parse_duplicate_entry()) ;
+     * les colonnes de l'index sont lues dans le schéma pour afficher le libellé du
+     * ou des champs concernés. Si le message n'a pas la forme attendue, le message
+     * générique est utilisé.
+     *
+     * @param string $mysql_message message de _error_message()
+     * @return string message HTML-safe
+     */
+    protected function duplicate_entry_message($mysql_message) {
+        $table = $this->gvv_model->table();
+        $generic = $this->lang->line("gvv_error_duplicate_entry") . " (table: " . $table . ")";
+
+        $this->load->helper('validation');
+        $duplicate = parse_duplicate_entry($mysql_message);
+        if (!$duplicate) {
+            return $generic;
+        }
+        $value = $duplicate['value'];
+
+        $index = $this->db->query("SHOW INDEX FROM `" . $table . "` WHERE Key_name = " . $this->db->escape($duplicate['key']));
+        $labels = array();
+        foreach ($index ? $index->result_array() : array() as $row) {
+            $label = trim(strip_tags($this->gvvmetadata->field_long_name($table, $row['Column_name'])));
+            $labels[] = rtrim($label, " *");
+        }
+        if (!$labels) {
+            return $generic;
+        }
+
+        $value_txt = ($value === '') ? $this->lang->line("gvv_error_duplicate_empty_value") : $value;
+        $line = (count($labels) > 1) ? "gvv_error_duplicate_fields" : "gvv_error_duplicate_field";
+        return sprintf($this->lang->line($line),
+            htmlspecialchars(implode(', ', $labels)), htmlspecialchars($value_txt), $table);
+    }
+
+    /**
      * Validation du formulaire d'édition
      *
      * @param $action CREATION
@@ -698,7 +736,7 @@ class Gvv_Controller extends MY_Controller {
                             $msg = $this->db->_error_message();
 
                             if ($code == 1062) {
-                                $msg = $this->lang->line("gvv_error_duplicate_entry") . " (table: " . $this->gvv_model->table() . ")";
+                                $msg = $this->duplicate_entry_message($msg);
                             } elseif ($code == 1451) {
                                 $msg = "Erreur:" . $msg . $this->lang->line("gvv_error_foreign_key_constraint");
                             } else {
@@ -764,7 +802,7 @@ class Gvv_Controller extends MY_Controller {
                         $msg = $this->db->_error_message();
 
                         if ($code == 1062) {
-                            $msg = $this->lang->line("gvv_error_duplicate_entry") . " (table: " . $this->gvv_model->table() . ")";
+                            $msg = $this->duplicate_entry_message($msg);
                         } elseif ($code == 1451 || $code == 1452) {
                             // 1451: Cannot delete or update a parent row
                             // 1452: Cannot add or update a child row (FK constraint)
