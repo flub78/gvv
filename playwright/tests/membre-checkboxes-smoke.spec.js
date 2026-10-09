@@ -16,11 +16,11 @@
 
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
+const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const MEMBER = 'asterix';
 const YEAR = 2099;
-const DB_CONFIG = { host: 'localhost', user: 'gvv_user', password: 'lfoyfgbj', database: 'gvv2' };
 
 async function login(page, user) {
     await page.goto('/index.php/auth/logout');
