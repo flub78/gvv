@@ -1082,17 +1082,6 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
-        <?php if ($show_avions && has_role('club-admin')): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-book text-warning"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_carnets_route') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_carnets_route') ?></div>
-                <a href="<?= controller_url('carnets_route/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_controle') ?></a>
-            </div>
-        </div>
-        <?php endif; ?>
-
         <?php if ($show_planeurs): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
@@ -1208,6 +1197,38 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
         <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_h5_doc_management')); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php
+    $show_carnets_route = $show_avions && has_role('club-admin');
+    $show_vols_sans_cotisation = has_role('ca');
+    $controls_title = $this->lang->line('db_h5_controls');
+    ?>
+    <?php if ($show_carnets_route || $show_vols_sans_cotisation || !empty($shortcuts_by_section[$controls_title])) : ?>
+    <h5 class="mt-4 mb-3"><?= $controls_title ?></h5>
+    <div class="row g-2">
+        <?php if ($show_carnets_route): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-book text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_carnets_route') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_carnets_route') ?></div>
+                <a href="<?= controller_url('carnets_route/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_controle') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php if ($show_vols_sans_cotisation): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-user-times text-danger"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_vols_sans_cotisation') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_vols_sans_cotisation') ?></div>
+                <a href="<?= controller_url('licences/vols_sans_cotisation') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_controle') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $controls_title); ?>
     </div>
     <?php endif; ?>
 
