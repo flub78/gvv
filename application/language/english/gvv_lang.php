@@ -456,6 +456,9 @@ $lang['Tests controleurs et models'] = "Controller and model tests";
 $lang['Tests fonctionels'] = "Functional tests";
 $lang['datatable_no_data'] = "No data available in table";
 $lang['gvv_error_duplicate_entry'] = "Duplicate entry";
+$lang['gvv_error_duplicate_field'] = 'Error: duplicate not allowed on field "%1$s": the value "%2$s" is already used by another record (table: %3$s).';
+$lang['gvv_error_duplicate_fields'] = 'Error: duplicate not allowed on fields "%1$s": the combination "%2$s" is already used by another record (table: %3$s).';
+$lang['gvv_error_duplicate_empty_value'] = '(empty)';
 $lang['gvv_error_foreign_key_constraint'] = "Foreign key constraint violation";
 $lang['gvv_error_create_record'] = "Error creating record";
 

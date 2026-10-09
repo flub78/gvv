@@ -564,6 +564,11 @@ class Membre extends Gvv_Controller {
             if ($processed_data[$field] == '')
                 unset($processed_data[$field]);
         }
+        // memail porte un index unique : MySQL accepte plusieurs NULL mais un seul '',
+        // un email vide doit donc être enregistré à NULL (cf. migration 107)
+        if (array_key_exists('memail', $processed_data) && trim((string) $processed_data['memail']) === '') {
+            $processed_data['memail'] = null;
+        }
         if (!$processed_data['photo']) unset($processed_data['photo']);
         return $processed_data;
     }

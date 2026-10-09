@@ -456,6 +456,9 @@ $lang['Tests controleurs et models'] = "Controller en model tests";
 $lang['Tests fonctionels'] = "Functionele tests";
 $lang['datatable_no_data'] = "Geen gegevens beschikbaar in tabel";
 $lang['gvv_error_duplicate_entry'] = "Dubbele invoer";
+$lang['gvv_error_duplicate_field'] = 'Fout: dubbele waarde niet toegestaan in veld "%1$s": de waarde "%2$s" wordt al gebruikt door een ander record (tabel: %3$s).';
+$lang['gvv_error_duplicate_fields'] = 'Fout: dubbele waarde niet toegestaan in velden "%1$s": de combinatie "%2$s" wordt al gebruikt door een ander record (tabel: %3$s).';
+$lang['gvv_error_duplicate_empty_value'] = '(leeg)';
 $lang['gvv_error_foreign_key_constraint'] = "Buitenlandse sleutel beperking overtreding";
 $lang['gvv_error_create_record'] = "Fout bij aanmaken record";
 

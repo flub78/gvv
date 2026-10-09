@@ -406,3 +406,24 @@ if (! function_exists('line_of')) {
         return $txt;
     }
 }
+
+if (! function_exists('parse_duplicate_entry')) {
+    /**
+     * Analyse le message MySQL/MariaDB d'une violation d'unicité (erreur 1062)
+     * « Duplicate entry 'valeur' for key 'index' ».
+     * MySQL 8 préfixe l'index par le nom de la table (« membres.idx_membres_memail ») :
+     * le préfixe est retiré.
+     *
+     * @param string $message message de l'erreur
+     * @return array|null array('value' => ..., 'key' => ...) ou null si le message n'a pas cette forme
+     */
+    function parse_duplicate_entry($message) {
+        if (!preg_match("/Duplicate entry '(.*)' for key '([^']+)'/s", (string) $message, $matches)) {
+            return null;
+        }
+        return array(
+            'value' => $matches[1],
+            'key' => preg_replace('/^.*\./', '', $matches[2]),
+        );
+    }
+}

@@ -270,6 +270,29 @@ class ValidationHelperTest extends TestCase
         // Test end of year
         $this->assertEquals("1999-12-31", date_ht2db("31/12/1999"));
     }
+
+    /**
+     * Test parse_duplicate_entry() on MySQL/MariaDB duplicate key messages
+     */
+    public function testParseDuplicateEntry()
+    {
+        $this->assertEquals(
+            array('value' => 'a@example.com', 'key' => 'idx_membres_memail'),
+            parse_duplicate_entry("Duplicate entry 'a@example.com' for key 'idx_membres_memail'")
+        );
+        // MySQL 8 prefixes the key with the table name
+        $this->assertEquals(
+            array('value' => '', 'key' => 'idx_membres_memail'),
+            parse_duplicate_entry("Duplicate entry '' for key 'membres.idx_membres_memail'")
+        );
+        // Composite key values contain a dash and may contain quotes
+        $this->assertEquals(
+            array('value' => "d'Artagnan-2026", 'key' => 'uk_pilote_year'),
+            parse_duplicate_entry("Duplicate entry 'd'Artagnan-2026' for key 'uk_pilote_year'")
+        );
+        $this->assertNull(parse_duplicate_entry("Cannot add or update a child row"));
+        $this->assertNull(parse_duplicate_entry(''));
+    }
 }
 
 ?>
