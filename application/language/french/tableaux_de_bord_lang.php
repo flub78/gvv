@@ -50,6 +50,7 @@ $lang['db_sub_db_consistency']   = "Cohérence de la base de données";
 // ─── Titres h5 ───────────────────────────────────────────────────────────────
 $lang['db_h5_member_management'] = "Gestion des membres";
 $lang['db_h5_doc_management']    = "Gestion documentaire";
+$lang['db_h5_controls']          = "Contrôles et vérifications";
 
 // ─── Titres des cartes ───────────────────────────────────────────────────────
 $lang['db_card_calendar']           = "Calendrier";
@@ -267,6 +268,8 @@ $lang['db_desc_mes_reservations'] = "Consulter et gérer vos réservations à ve
 
 $lang['db_card_carnets_route']    = "Carnets de route";
 $lang['db_desc_carnets_route']    = "Contrôle de continuité horamètre";
+$lang['db_card_vols_sans_cotisation'] = "Vols sans cotisation";
+$lang['db_desc_vols_sans_cotisation'] = "Pilotes ayant volé sans cotisation";
 $lang['db_btn_controle']          = "Contrôler";
 
 $lang['db_card_relances']         = "Relances débiteurs";

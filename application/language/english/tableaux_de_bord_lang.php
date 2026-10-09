@@ -50,6 +50,7 @@ $lang['db_sub_db_consistency']   = "Database consistency";
 // ─── h5 headings ─────────────────────────────────────────────────────────────
 $lang['db_h5_member_management'] = "Member management";
 $lang['db_h5_doc_management']    = "Document management";
+$lang['db_h5_controls']          = "Checks and verifications";
 
 // ─── Card titles ─────────────────────────────────────────────────────────────
 $lang['db_card_calendar']           = "Calendar";
@@ -267,6 +268,8 @@ $lang["db_desc_mes_reservations"] = "View and manage your upcoming reservations"
 
 $lang['db_card_carnets_route']    = "Flight logs";
 $lang['db_desc_carnets_route']    = "Hobbs continuity control";
+$lang['db_card_vols_sans_cotisation'] = "Flights without fee";
+$lang['db_desc_vols_sans_cotisation'] = "Pilots who flew without membership fee";
 $lang['db_btn_controle']          = "Check";
 
 $lang['db_card_relances']         = "Debtor reminders";

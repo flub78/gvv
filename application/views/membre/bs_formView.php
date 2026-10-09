@@ -275,18 +275,27 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 ?>
             </div>
 
-            <!-- Active Status & Exemption solde -->
+            <!-- Active Status, Exemption solde & Pilote extérieur -->
             <div class="col-md-6">
                 <?php echo form_hidden('actif', $actif); ?>
                 <?php if ($has_modification_rights): ?>
                 <div class="form-check mt-1">
+                    <?php echo form_hidden('exemption_solde', 0); ?>
                     <?php echo form_checkbox(array('name' => 'exemption_solde', 'class' => 'form-check-input', 'id' => 'exemption_solde', 'value' => 1, 'checked' => (!empty($exemption_solde)))); ?>
                     <label class="form-check-label" for="exemption_solde" title="Ce pilote peut réserver un appareil même si son solde est insuffisant">
                         <?php echo $this->lang->line("gvv_membres_field_exemption_solde"); ?>
                     </label>
                 </div>
+                <div class="form-check mt-1">
+                    <?php echo form_hidden('ext', 0); ?>
+                    <?php echo form_checkbox(array('name' => 'ext', 'class' => 'form-check-input', 'id' => 'ext', 'value' => 1, 'checked' => (!empty($ext)))); ?>
+                    <label class="form-check-label" for="ext" title="<?php echo $this->lang->line("gvv_membres_field_ext_title"); ?>">
+                        <?php echo $this->lang->line("gvv_membres_field_ext"); ?>
+                    </label>
+                </div>
                 <?php else: ?>
                     <?php echo form_hidden('exemption_solde', !empty($exemption_solde) ? 1 : 0); ?>
+                    <?php echo form_hidden('ext', !empty($ext) ? 1 : 0); ?>
                 <?php endif; ?>
             </div>
 

@@ -520,6 +520,28 @@ class Licences extends Gvv_Controller {
         $pdf->Output('I', pdf_filename($title));
     }
 
+    /**
+     * Contrôle : pilotes ayant volé (planeur, avion, ULM) sans cotisation activée pour l'année.
+     *
+     * @param int $year Année contrôlée, année courante par défaut
+     */
+    public function vols_sans_cotisation($year = '') {
+        $this->lang->load('licences');
+        $this->load->model('licences_model');
+
+        $year = ($year === '') ? (int) date('Y') : (int) $year;
+        if ($year < 1990 || $year > 2100) {
+            $year = (int) date('Y');
+        }
+
+        $data['controller'] = $this->controller;
+        $data['year'] = $year;
+        $data['year_selector'] = $this->licences_model->vols_year_selector();
+        $data['pilotes'] = $this->licences_model->pilotes_vols_sans_cotisation($year);
+
+        load_last_view('licences/vols_sans_cotisation', $data);
+    }
+
     public function set_detail_year($year) {
         $year = (int)$year;
         $this->session->set_userdata('licence_detail_year', $year);

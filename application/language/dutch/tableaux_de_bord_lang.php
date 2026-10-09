@@ -50,6 +50,7 @@ $lang['db_sub_db_consistency']   = "Databaseconsistentie";
 // ─── h5 koppen ────────────────────────────────────────────────────────────────
 $lang['db_h5_member_management'] = "Ledenbeheer";
 $lang['db_h5_doc_management']    = "Documentbeheer";
+$lang['db_h5_controls']          = "Controles en verificaties";
 
 // ─── Kaarttitels ─────────────────────────────────────────────────────────────
 $lang['db_card_calendar']           = "Kalender";
@@ -267,6 +268,8 @@ $lang["db_desc_mes_reservations"] = "Uw aankomende reserveringen bekijken en beh
 
 $lang['db_card_carnets_route']    = "Vluchtenlogboeken";
 $lang['db_desc_carnets_route']    = "Hobbs-continuïteitscontrole";
+$lang['db_card_vols_sans_cotisation'] = "Vluchten zonder contributie";
+$lang['db_desc_vols_sans_cotisation'] = "Piloten die zonder contributie vlogen";
 $lang['db_btn_controle']          = "Controleren";
 
 $lang['db_card_relances']         = "Debiteuren aanmaningen";
