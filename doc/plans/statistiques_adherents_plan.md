@@ -57,7 +57,7 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
 - [x] 2. Lot 2 — Démographie et évolution (EF5, EF6, EF7, EF11) (2 j)
   - Actions :
     - Bibliothèque : répartition par sexe (avec « Non renseigné »), croisement sexe × tranche de 10 ans, âge moyen et médian par section et club.
-    - Bibliothèque : série pluriannuelle sur les 10 dernières années ayant des cotisations (effectif, âge moyen, classes réglementaires).
+    - Bibliothèque : série pluriannuelle sur les 10 dernières années civiles, années sans cotisation signalées (effectif, âge moyen, classes réglementaires).
     - Vue : tableau H/F, pyramide des âges, bloc d'indicateurs synthétiques, tableau et graphique d'évolution.
     - Traductions FR / EN / NL.
   - Validation :

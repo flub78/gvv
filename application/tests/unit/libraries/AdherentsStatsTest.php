@@ -135,7 +135,7 @@ class AdherentsStatsTest extends TestCase
             $this->member('d', '1940-03-03', array(2025), array()),         // 84 ans, sans compte 411
             $this->member('e', '1990-03-03', array(2025), array(99)),       // section inexistante
         );
-        $r = $this->stats->repartition_par_age($adherents, $this->sections(), 2025, 'tranche_10_ans');
+        $r = $this->stats->repartition_par_tranche_10_ans($adherents, $this->sections(), 2025);
 
         $this->assertSame(1, $r['counts']['lt_20']['section_1']);
         $this->assertSame(1, $r['counts']['40_49']['section_1']);
@@ -159,7 +159,7 @@ class AdherentsStatsTest extends TestCase
 
     public function testRepartitionReglementaireToutesLesClesPresentes()
     {
-        $r = $this->stats->repartition_par_age(array(), $this->sections(), 2025, 'classe_reglementaire');
+        $r = $this->stats->repartition_par_classe_reglementaire(array(), $this->sections(), 2025);
         $this->assertSame(array('under_25', '25_to_59', '60_and_over', 'unknown'), array_keys($r['counts']));
         $this->assertSame(array('section_1' => 0, 'section_2' => 0, 'club_total' => 0), $r['total']);
     }
@@ -273,30 +273,60 @@ class AdherentsStatsTest extends TestCase
 
     // --- Évolution ---
 
-    public function testEvolutionIgnoreLesAnneesSansCotisationEtLesAnneesFutures()
+    public function testEvolutionAnneesConsecutivesAvecTrous()
     {
         $members = array(
-            'a' => $this->member('a', '2000-06-01', array(2012, 2025, 2026)),
-            'b' => $this->member('b', '1950-06-01', array(2025)),
+            'a' => $this->member('a', '2000-06-01', array(2020, 2023, 2026)),
+            'b' => $this->member('b', '1950-06-01', array(2023)),
             'c' => $this->member('c', null, array(2026)),
         );
         $e = $this->stats->evolution($members, 2025);
 
-        $this->assertSame(array(2012, 2025), array_keys($e));
-        $this->assertSame(1, $e[2012]['effectif']);
-        $this->assertSame(11.0, $e[2012]['age_moyen']);
-        $this->assertSame(2, $e[2025]['effectif']);
-        $this->assertSame(1, $e[2025]['under_25']);
-        $this->assertSame(1, $e[2025]['60_and_over']);
-        $this->assertSame(0, $e[2025]['unknown']);
-        $this->assertSame(49.0, $e[2025]['age_moyen']);
+        // De la première année ayant des cotisations à l'année demandée, sans trou ni année future
+        $this->assertSame(range(2020, 2025), array_keys($e));
+        $this->assertSame(1, $e[2020]['effectif']);
+        $this->assertSame(19.0, $e[2020]['age_moyen']);
+        $this->assertSame(2, $e[2023]['effectif']);
+        $this->assertSame(1, $e[2023]['under_25']);
+        $this->assertSame(1, $e[2023]['60_and_over']);
+        $this->assertSame(0, $e[2023]['unknown']);
+        $this->assertSame(47.0, $e[2023]['age_moyen']);
+
+        // Années sans aucune cotisation : toutes les valeurs à null
+        foreach (array(2021, 2022, 2024, 2025) as $y) {
+            $this->assertNull($e[$y]['effectif'], "effectif $y");
+            $this->assertNull($e[$y]['age_moyen'], "age_moyen $y");
+            $this->assertNull($e[$y]['under_25'], "under_25 $y");
+        }
     }
 
-    public function testEvolutionLimiteeAuxDernieresAnnees()
+    public function testEvolutionLimiteeAuxDernieresAnneesCiviles()
     {
-        $members = array('a' => $this->member('a', '1980-01-01', range(2000, 2025)));
+        $members = array('a' => $this->member('a', '1980-01-01', array(2000, 2010, 2025)));
         $e = $this->stats->evolution($members, 2025, 10);
         $this->assertSame(range(2016, 2025), array_keys($e));
+        $this->assertNull($e[2016]['effectif']);
+        $this->assertSame(1, $e[2025]['effectif']);
+    }
+
+    public function testEvolutionSansCotisation()
+    {
+        $this->assertSame(array(), $this->stats->evolution(array(), 2025));
+    }
+
+    public function testDateInvalideOuDatetimeRejetee()
+    {
+        $this->assertNull($this->stats->age_au_1er_janvier('2000-01-01 00:00:00', 2025));
+        $member = $this->member('a', '1980-01-01', array());
+        $member['inscription_date'] = '2011-03-01 00:00:00';
+        $this->assertNull($this->stats->anciennete($member, 2025), 'même règle de validité pour la date d\'inscription');
+        $member['inscription_date'] = '2011-03-01';
+        $this->assertSame(13, $this->stats->anciennete($member, 2025));
+    }
+
+    public function testColonnes()
+    {
+        $this->assertSame(array('section_1', 'section_2', 'club_total'), $this->stats->colonnes($this->sections()));
     }
 
     // --- Fidélisation ---
@@ -333,8 +363,8 @@ class AdherentsStatsTest extends TestCase
         // Effectif N = nouveaux + retours + renouvellements ; effectif N-1 = renouvellements + départs
         $adherents_n = $this->stats->adherents_de_l_annee($members, 2025);
         $adherents_n1 = $this->stats->adherents_de_l_annee($members, 2024);
-        $total_n = $this->stats->repartition_par_age($adherents_n, $this->sections(), 2025, 'classe_reglementaire')['total'];
-        $total_n1 = $this->stats->repartition_par_age($adherents_n1, $this->sections(), 2024, 'classe_reglementaire')['total'];
+        $total_n = $this->stats->repartition_par_classe_reglementaire($adherents_n, $this->sections(), 2025)['total'];
+        $total_n1 = $this->stats->repartition_par_classe_reglementaire($adherents_n1, $this->sections(), 2024)['total'];
         foreach ($total_n as $column => $n) {
             $this->assertSame($n, $f['counts']['nouveau'][$column] + $f['counts']['retour'][$column] + $f['counts']['renouvellement'][$column], "N $column");
             $this->assertSame($total_n1[$column], $f['counts']['renouvellement'][$column] + $f['counts']['depart'][$column], "N-1 $column");

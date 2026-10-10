@@ -107,7 +107,7 @@ La page **Statistiques adhérents** décrit la population des adhérents d'une a
 
 ### Accès
 
-La page est réservée aux membres du CA. Elle est accessible :
+La page est réservée aux membres du CA. Elle couvre tout le club : un membre du CA d'une seule section voit aussi les chiffres et les listes de noms des autres sections. Elle est accessible :
 - par le menu **Gestion → Rapports → Statistiques adhérents** ;
 - par la carte **Statistiques adhérents** du tableau de bord **Administration du club**.
 
@@ -147,7 +147,7 @@ Le tableau donne la répartition hommes / femmes par section. La pyramide des â
 
 ![Évolution du club](../screenshots/08_reports/stats_adherents_evolution.png)
 
-Le tableau et le graphique présentent, pour les 10 dernières années ayant des cotisations enregistrées, l'effectif du club, l'âge moyen et la répartition par classe réglementaire.
+Le tableau et le graphique présentent, pour les 10 dernières années civiles, l'effectif du club, l'âge moyen et la répartition par classe réglementaire. Une année sans aucune cotisation enregistrée est signalée par « Aucune cotisation enregistrée » et laisse un trou dans la courbe.
 
 > **Attention** : une baisse brutale de l'effectif traduit souvent des cotisations qui n'ont pas été saisies dans GVV cette année-là, et non une baisse réelle du nombre d'adhérents.
 

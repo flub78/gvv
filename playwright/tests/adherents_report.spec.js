@@ -108,6 +108,11 @@ test.describe('Statistiques adhérents', () => {
         await expect(lastRow.locator('td').first()).toHaveText(year);
         const clubTotal = regl.total[regl.total.length - 1];
         await expect(lastRow.locator('td').nth(1)).toHaveText(String(clubTotal));
+
+        // Années civiles consécutives, sans trou dans l'axe
+        const years = await page.locator('#evolution tbody tr').evaluateAll(
+            trs => trs.map(tr => parseInt(tr.dataset.year, 10)));
+        years.forEach((y, i) => { if (i > 0) expect(y).toBe(years[i - 1] + 1); });
     });
 
     test('affiche fidélisation et ancienneté cohérentes avec les effectifs', async ({ page }) => {

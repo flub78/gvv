@@ -28,6 +28,7 @@ Par ailleurs, les membres dont la date de naissance n'est pas renseignée sont a
 - **Membre du CA / bureau** : consulte les statistiques, compare les années, prépare l'assemblée générale et les dossiers de subvention.
 - **Administrateur club** : utilise la liste des membres à l'âge inconnu pour compléter les fiches.
 - L'accès est réservé aux mêmes rôles que le rapport actuel (niveau CA).
+- La page couvre tout le club : un membre du CA d'une seule section voit les statistiques et les listes de noms (âge inconnu, fidélisation) de toutes les sections. Ce choix est assumé : le CA a déjà accès à la liste des membres.
 
 ## Définitions
 - **Adhérent de l'année N** : membre ayant une cotisation enregistrée pour l'année N (même règle que le rapport existant).
@@ -78,8 +79,8 @@ Par ailleurs, les membres dont la date de naissance n'est pas renseignée sont a
 - Les adhérents d'âge inconnu sont exclus du calcul de l'âge moyen et médian ; leur nombre est indiqué à côté de ces indicateurs.
 
 ### EF7 — Évolution pluriannuelle
-- Tableau et graphique de l'effectif club sur les 10 dernières années disponibles (jusqu'à l'année sélectionnée incluse) : effectif total, âge moyen, effectif par classe réglementaire.
-- Les années sans aucune cotisation enregistrée ne sont pas affichées.
+- Tableau et graphique de l'effectif club sur les 10 dernières années civiles (jusqu'à l'année sélectionnée incluse, sans remonter avant la première année ayant des cotisations) : effectif total, âge moyen, effectif par classe réglementaire.
+- Les années sont consécutives. Une année sans aucune cotisation enregistrée est affichée comme telle dans le tableau et laisse un trou dans la courbe, pour ne pas laisser croire à une variation continue entre deux années éloignées.
 
 ### EF8 — Fidélisation
 Pour l'année sélectionnée N, par section et pour le club (une colonne par section et une colonne total club) :

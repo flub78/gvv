@@ -62,16 +62,12 @@ class Adherents_stats {
      * @return int|null
      */
     public function age_au_1er_janvier($mdaten, $year) {
-        if (empty($mdaten) || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $mdaten, $m)) {
+        $date = $this->parse_date($mdaten);
+        if ($date === null) {
             return null;
         }
-        $by = (int) $m[1];
-        $bm = (int) $m[2];
-        $bd = (int) $m[3];
-        if ($by < 1900 || !checkdate($bm, $bd, $by)) {
-            return null;
-        }
-        if ($mdaten > sprintf('%04d-01-01', $year)) {
+        list($by, $bm, $bd) = $date;
+        if (sprintf('%04d-%02d-%02d', $by, $bm, $bd) > sprintf('%04d-01-01', $year)) {
             return null;
         }
         // Seule une naissance un 1er janvier donne un anniversaire déjà atteint au 1er janvier
@@ -122,25 +118,35 @@ class Adherents_stats {
     }
 
     /**
-     * Répartition des adhérents par section et pour le club selon une classification.
+     * Répartition des adhérents par classe d'âge réglementaire, par section et pour le club.
      *
-     * Les colonnes sont 'section_<id>' pour chaque section et 'club_total'.
-     * Un membre est compté dans chaque section où il est rattaché, et une seule
-     * fois dans le total club.
+     * Les colonnes sont celles de colonnes(). Un membre est compté dans chaque
+     * section où il est rattaché, et une seule fois dans le total club.
      *
      * @param array $adherents Adhérents de l'année
      * @param array $sections Liste des sections (id, nom)
      * @param int $year
-     * @param string $classification 'classe_reglementaire' ou 'tranche_10_ans'
      * @return array array('counts' => [clé => [colonne => n]], 'total' => [colonne => n])
      */
-    public function repartition_par_age($adherents, $sections, $year, $classification) {
-        $keys = ($classification == 'tranche_10_ans')
-            ? $this->cles_tranches_10_ans()
-            : $this->cles_classes_reglementaires();
+    public function repartition_par_classe_reglementaire($adherents, $sections, $year) {
         $self = $this;
-        return $this->repartition($adherents, $sections, $keys, function ($member) use ($self, $year, $classification) {
-            return $self->$classification($self->age_au_1er_janvier($member['mdaten'], $year));
+        return $this->repartition($adherents, $sections, $this->cles_classes_reglementaires(), function ($member) use ($self, $year) {
+            return $self->classe_reglementaire($self->age_au_1er_janvier($member['mdaten'], $year));
+        });
+    }
+
+    /**
+     * Répartition des adhérents par tranche de 10 ans, par section et pour le club.
+     *
+     * @param array $adherents Adhérents de l'année
+     * @param array $sections Liste des sections (id, nom)
+     * @param int $year
+     * @return array Même structure que repartition_par_classe_reglementaire()
+     */
+    public function repartition_par_tranche_10_ans($adherents, $sections, $year) {
+        $self = $this;
+        return $this->repartition($adherents, $sections, $this->cles_tranches_10_ans(), function ($member) use ($self, $year) {
+            return $self->tranche_10_ans($self->age_au_1er_janvier($member['mdaten'], $year));
         });
     }
 
@@ -149,7 +155,7 @@ class Adherents_stats {
      *
      * @param array $adherents
      * @param array $sections
-     * @return array Même structure que repartition_par_age()
+     * @return array Même structure que repartition_par_classe_reglementaire()
      */
     public function repartition_par_sexe($adherents, $sections) {
         $self = $this;
@@ -228,7 +234,12 @@ class Adherents_stats {
     }
 
     /**
-     * Évolution de l'effectif du club sur les dernières années ayant des cotisations.
+     * Évolution de l'effectif du club sur les dernières années civiles.
+     *
+     * Les années sont consécutives, de la plus récente entre (année - nb_years + 1)
+     * et la première année ayant des cotisations, jusqu'à l'année incluse.
+     * Une année sans aucune cotisation enregistrée a toutes ses valeurs à null,
+     * pour la distinguer d'un effectif réellement nul.
      *
      * @param array $members Tous les membres, avec leurs années de cotisation
      * @param int $year Dernière année incluse
@@ -236,20 +247,26 @@ class Adherents_stats {
      * @return array [année => [effectif, age_moyen, under_25, 25_to_59, 60_and_over, unknown]], années croissantes
      */
     public function evolution($members, $year, $nb_years = 10) {
-        $years = array();
+        $year = (int) $year;
+        $with_fees = array();
         foreach ($members as $member) {
             foreach ($member['years'] as $y) {
                 if ($y <= $year) {
-                    $years[$y] = true;
+                    $with_fees[$y] = true;
                 }
             }
         }
-        $years = array_keys($years);
-        sort($years);
-        $years = array_slice($years, -$nb_years);
+        if (!$with_fees) {
+            return array();
+        }
+        $first = max(min(array_keys($with_fees)), $year - $nb_years + 1);
 
         $result = array();
-        foreach ($years as $y) {
+        foreach (range($first, $year) as $y) {
+            if (!isset($with_fees[$y])) {
+                $result[$y] = array_fill_keys(array_merge(array('effectif', 'age_moyen'), $this->cles_classes_reglementaires()), null);
+                continue;
+            }
             $row = array_merge(array('effectif' => 0, 'age_moyen' => null), array_fill_keys($this->cles_classes_reglementaires(), 0));
             $ages = array();
             foreach ($this->adherents_de_l_annee($members, $y) as $member) {
@@ -371,7 +388,7 @@ class Adherents_stats {
      */
     public function anciennete($member, $year) {
         $dates = array();
-        if ($this->date_valide(isset($member['inscription_date']) ? $member['inscription_date'] : null)) {
+        if ($this->parse_date(isset($member['inscription_date']) ? $member['inscription_date'] : null) !== null) {
             $dates[] = $member['inscription_date'];
         }
         if (!empty($member['years'])) {
@@ -410,7 +427,7 @@ class Adherents_stats {
      * @param array $adherents
      * @param array $sections
      * @param int $year
-     * @return array Même structure que repartition_par_age()
+     * @return array Même structure que repartition_par_classe_reglementaire()
      */
     public function repartition_par_anciennete($adherents, $sections, $year) {
         $self = $this;
@@ -465,9 +482,21 @@ class Adherents_stats {
         return $list;
     }
 
-    private function date_valide($date) {
-        return !empty($date) && preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $date, $m)
-            && (int) $m[1] >= 1900 && checkdate((int) $m[2], (int) $m[3], (int) $m[1]);
+    /**
+     * @param string|null $date Date au format Y-m-d
+     * @return array|null array(année, mois, jour), null si absente, mal formée, impossible ou antérieure à 1900
+     */
+    private function parse_date($date) {
+        if (empty($date) || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $m)) {
+            return null;
+        }
+        $y = (int) $m[1];
+        $mo = (int) $m[2];
+        $d = (int) $m[3];
+        if ($y < 1900 || !checkdate($mo, $d, $y)) {
+            return null;
+        }
+        return array($y, $mo, $d);
     }
 
     /**
@@ -503,7 +532,13 @@ class Adherents_stats {
         return array('counts' => $counts, 'total' => $total);
     }
 
-    private function colonnes($sections) {
+    /**
+     * Colonnes des tableaux : 'section_<id>' pour chaque section, puis 'club_total'.
+     *
+     * @param array $sections
+     * @return array
+     */
+    public function colonnes($sections) {
         $columns = array();
         foreach ($sections as $section) {
             $columns[] = 'section_' . $section['id'];

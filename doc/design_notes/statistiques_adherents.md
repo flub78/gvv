@@ -57,5 +57,5 @@ La page affiche les données telles qu'elles sont, sans chercher à détecter le
 - **Graphiques** : Chart.js 4.3.0, la version déjà utilisée par les statistiques d'autorisation, copiée dans `assets/javascript/` pour ne pas dépendre d'un CDN. Les données sont injectées en JSON dans la vue. Chaque graphique est accompagné du tableau chiffré correspondant, qui reste la référence et assure l'accessibilité.
   - Histogramme horizontal des tranches de 10 ans.
   - Pyramide des âges : barres horizontales, hommes en valeurs négatives et femmes en valeurs positives, axe affiché en valeur absolue.
-  - Évolution : courbe de l'effectif et de l'âge moyen.
-- **Droits** : page réservée au rôle CA (`require_roles(['ca'])`).
+  - Évolution : courbe de l'effectif et de l'âge moyen sur des années civiles consécutives ; une année sans cotisation vaut `null` et laisse un trou dans la courbe.
+- **Droits** : page réservée au rôle CA (`require_roles(['ca'])`), vérifié dans la section courante de la session. La page n'est pas filtrée par section : un CA d'une seule section voit aussi les listes de noms des autres sections (choix accepté, voir le PRD).

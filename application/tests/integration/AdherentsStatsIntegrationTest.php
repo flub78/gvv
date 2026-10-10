@@ -104,7 +104,7 @@ class AdherentsStatsIntegrationTest extends TransactionalTestCase
         $this->assertCount(4, $adherents);
 
         $col = 'section_' . $this->section_id;
-        $r = $this->stats->repartition_par_age($adherents, $data['sections'], self::YEAR, 'tranche_10_ans');
+        $r = $this->stats->repartition_par_tranche_10_ans($adherents, $data['sections'], self::YEAR);
         $this->assertSame(4, $r['total']['club_total']);
         $this->assertSame(3, $r['total'][$col]);
         $this->assertSame(1, $r['counts']['lt_20']['club_total']);
@@ -113,7 +113,7 @@ class AdherentsStatsIntegrationTest extends TransactionalTestCase
         $this->assertSame(1, $r['counts']['60_69'][$col]);
         $this->assertSame(1, $r['counts']['unknown'][$col]);
 
-        $regl = $this->stats->repartition_par_age($adherents, $data['sections'], self::YEAR, 'classe_reglementaire');
+        $regl = $this->stats->repartition_par_classe_reglementaire($adherents, $data['sections'], self::YEAR);
         $this->assertSame(1, $regl['counts']['under_25']['club_total']);
         $this->assertSame(1, $regl['counts']['25_to_59']['club_total']);
         $this->assertSame(1, $regl['counts']['60_and_over']['club_total']);

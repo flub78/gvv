@@ -52,26 +52,33 @@ $this->load->view('bs_banner');
         return ($age === null) ? '—' : number_format($age, 1, ',', '');
     };
 
+    $column_label = function ($column) use ($section_names) {
+        return ($column == 'club_total')
+            ? translation('gvv_adherents_report_club_total')
+            : $section_names[(int) substr($column, strlen('section_'))];
+    };
+
+    // En-tête commun : une colonne par section, puis le total club
+    $render_header = function () use ($columns, $column_label) {
+        ?>
+        <thead class="table-dark">
+            <tr>
+                <th></th>
+                <?php foreach ($columns as $column): ?>
+                    <th class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>"><?= htmlspecialchars($column_label($column)) ?></th>
+                <?php endforeach; ?>
+            </tr>
+        </thead>
+        <?php
+    };
+
     // Tableau de répartition : une ligne par classe, une colonne par section + total club
-    $render_repartition = function ($repartition, $show_percent) use ($sections) {
+    $render_repartition = function ($repartition, $show_percent) use ($columns, $render_header) {
         $CI = &get_instance();
-        $columns = array();
-        foreach ($sections as $section) {
-            $columns[] = 'section_' . $section['id'];
-        }
-        $columns[] = 'club_total';
         ?>
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-sm mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th></th>
-                        <?php foreach ($sections as $section): ?>
-                            <th class="text-center"><?= htmlspecialchars($section['nom']) ?></th>
-                        <?php endforeach; ?>
-                        <th class="text-center table-primary"><?= translation('gvv_adherents_report_club_total') ?></th>
-                    </tr>
-                </thead>
+                <?php $render_header(); ?>
                 <tbody>
                     <?php foreach ($repartition['counts'] as $key => $row): ?>
                         <tr class="<?= (substr($key, -7) == 'unknown') ? 'table-warning' : '' ?>" data-age-class="<?= $key ?>">
@@ -155,20 +162,13 @@ $this->load->view('bs_banner');
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-sm mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th></th>
-                            <?php foreach ($sections as $section): ?>
-                                <th class="text-center"><?= htmlspecialchars($section['nom']) ?></th>
-                            <?php endforeach; ?>
-                            <th class="text-center table-primary"><?= translation('gvv_adherents_report_club_total') ?></th>
-                        </tr>
-                    </thead>
+                    <?php $render_header(); ?>
                     <tbody>
                         <?php foreach (array('effectif', 'age_moyen', 'age_median', 'age_inconnu') as $indicateur): ?>
                             <tr data-indicateur="<?= $indicateur ?>">
                                 <td><strong><?= translation('gvv_adherents_report_ind_' . $indicateur) ?></strong></td>
-                                <?php foreach ($indicateurs as $column => $values): ?>
+                                <?php foreach ($columns as $column): ?>
+                                    <?php $values = $indicateurs[$column]; ?>
                                     <td class="text-center<?= ($column == 'club_total') ? ' table-primary fw-bold' : '' ?>">
                                         <?= in_array($indicateur, array('age_moyen', 'age_median')) ? $fmt_age($values[$indicateur]) : $values[$indicateur] ?>
                                     </td>
@@ -253,20 +253,24 @@ $this->load->view('bs_banner');
                             <th><?= translation('gvv_adherents_report_col_year') ?></th>
                             <th class="text-center"><?= translation('gvv_adherents_report_ind_effectif') ?></th>
                             <th class="text-center"><?= translation('gvv_adherents_report_ind_age_moyen') ?></th>
-                            <?php foreach (array('under_25', '25_to_59', '60_and_over', 'unknown') as $classe): ?>
+                            <?php foreach ($cles_classes_reglementaires as $classe): ?>
                                 <th class="text-center"><?= translation('gvv_adherents_report_' . $classe) ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($evolution as $evol_year => $row): ?>
-                            <tr class="<?= ($evol_year == $year) ? 'table-primary' : '' ?>">
+                            <tr class="<?= ($evol_year == $year) ? 'table-primary' : '' ?>" data-year="<?= $evol_year ?>">
                                 <td><strong><?= $evol_year ?></strong></td>
-                                <td class="text-center"><?= $row['effectif'] ?></td>
-                                <td class="text-center"><?= $fmt_age($row['age_moyen']) ?></td>
-                                <?php foreach (array('under_25', '25_to_59', '60_and_over', 'unknown') as $classe): ?>
-                                    <td class="text-center"><?= $row[$classe] ?></td>
-                                <?php endforeach; ?>
+                                <?php if ($row['effectif'] === null): ?>
+                                    <td class="text-center text-muted fst-italic" colspan="<?= 2 + count($cles_classes_reglementaires) ?>"><?= translation('gvv_adherents_report_evol_no_data') ?></td>
+                                <?php else: ?>
+                                    <td class="text-center"><?= $row['effectif'] ?></td>
+                                    <td class="text-center"><?= $fmt_age($row['age_moyen']) ?></td>
+                                    <?php foreach ($cles_classes_reglementaires as $classe): ?>
+                                        <td class="text-center"><?= $row[$classe] ?></td>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -282,13 +286,6 @@ $this->load->view('bs_banner');
     </div>
 
     <!-- Fidélisation -->
-    <?php
-    $fid_columns = array_keys($fidelisation['retention']);
-    $fid_column_label = function ($column) use ($section_names) {
-        $id = (int) substr($column, strlen('section_'));
-        return ($column == 'club_total') ? translation('gvv_adherents_report_club_total') : $section_names[$id];
-    };
-    ?>
     <div class="card mb-4" id="fidelisation">
         <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_fid_title') ?></h5></div>
         <div class="card-body">
@@ -300,19 +297,12 @@ $this->load->view('bs_banner');
             <?php endif; ?>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-sm mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th></th>
-                            <?php foreach ($fid_columns as $column): ?>
-                                <th class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>"><?= htmlspecialchars($fid_column_label($column)) ?></th>
-                            <?php endforeach; ?>
-                        </tr>
-                    </thead>
+                    <?php $render_header(); ?>
                     <tbody>
                         <?php foreach ($fidelisation['counts'] as $key => $row): ?>
                             <tr data-fidelisation="<?= $key ?>">
                                 <td><strong><?= translation('gvv_adherents_report_' . $key) ?></strong></td>
-                                <?php foreach ($fid_columns as $column): ?>
+                                <?php foreach ($columns as $column): ?>
                                     <td class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>">
                                         <?php if ($row[$column] > 0): ?>
                                             <button type="button" class="btn btn-link btn-sm p-0<?= ($column == 'club_total') ? ' fw-bold' : '' ?>"
@@ -327,7 +317,7 @@ $this->load->view('bs_banner');
                         <?php endforeach; ?>
                         <tr data-fidelisation="retention">
                             <td><strong><?= sprintf(translation('gvv_adherents_report_fid_retention'), $year - 1) ?></strong></td>
-                            <?php foreach ($fid_columns as $column): ?>
+                            <?php foreach ($columns as $column): ?>
                                 <?php $r = $fidelisation['retention'][$column]; ?>
                                 <td class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>">
                                     <?php if ($r['taux'] === null): ?>
@@ -349,7 +339,7 @@ $this->load->view('bs_banner');
                         <?php if (count($list) == 0) continue; ?>
                         <div class="collapse" id="fid_<?= $key ?>_<?= $column ?>" data-bs-parent="#fid_lists">
                             <div class="card card-body mt-2">
-                                <h6><?= translation('gvv_adherents_report_' . $key) ?> — <?= htmlspecialchars($fid_column_label($column)) ?> (<?= count($list) ?>)</h6>
+                                <h6><?= translation('gvv_adherents_report_' . $key) ?> — <?= htmlspecialchars($column_label($column)) ?> (<?= count($list) ?>)</h6>
                                 <ul class="list-unstyled mb-0" style="columns: 16rem;">
                                     <?php foreach ($list as $member): ?>
                                         <li><a href="<?= controller_url('membre/edit/' . rawurlencode($member['mlogin'])) ?>"><?= htmlspecialchars($member['mnom'] . ' ' . $member['mprenom']) ?></a></li>
