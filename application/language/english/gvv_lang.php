@@ -675,8 +675,8 @@ $lang['email_lists_confirm_delete_file'] = 'Are you sure you want to delete this
 $lang['email_lists_delete_file'] = 'Delete file';
 
 // Adherents Report
-$lang['gvv_menu_adherents_report'] = 'Members Report';
-$lang['gvv_adherents_report_title'] = 'Members Report';
+$lang['gvv_menu_adherents_report'] = 'Member statistics';
+$lang['gvv_adherents_report_title'] = 'Member statistics';
 $lang['gvv_adherents_report_select_year'] = 'Select year';
 $lang['gvv_adherents_report_under_25'] = 'Under 25';
 $lang['gvv_adherents_report_25_to_59'] = '25-59 years old';
@@ -684,6 +684,26 @@ $lang['gvv_adherents_report_60_and_over'] = '60 and over';
 $lang['gvv_adherents_report_total'] = 'Total';
 $lang['gvv_adherents_report_club_total'] = 'Club Total';
 $lang['gvv_adherents_report_note'] = 'Note: The club total may be less than the sum of sections because some members practice multiple activities.';
+$lang['gvv_adherents_report_regl_title'] = 'Regulatory age classes (FFVV)';
+$lang['gvv_adherents_report_tranches_title'] = 'Breakdown by 10-year age bands';
+$lang['gvv_adherents_report_unknown'] = 'Unknown age';
+$lang['gvv_adherents_report_lt_20'] = 'Under 20';
+$lang['gvv_adherents_report_20_29'] = '20-29';
+$lang['gvv_adherents_report_30_39'] = '30-39';
+$lang['gvv_adherents_report_40_49'] = '40-49';
+$lang['gvv_adherents_report_50_59'] = '50-59';
+$lang['gvv_adherents_report_60_69'] = '60-69';
+$lang['gvv_adherents_report_70_79'] = '70-79';
+$lang['gvv_adherents_report_80_plus'] = '80 and over';
+$lang['gvv_adherents_report_unknown_count'] = '%d member(s) without a usable birth date: they are counted in the "Unknown age" row.';
+$lang['gvv_adherents_report_show_list'] = 'Show list';
+$lang['gvv_adherents_report_unknown_list_title'] = 'Members whose birth date is missing or invalid';
+$lang['gvv_adherents_report_none_unknown'] = 'All members of the year have a birth date.';
+$lang['gvv_adherents_report_col_member'] = 'Member';
+$lang['gvv_adherents_report_col_sections'] = 'Sections';
+$lang['gvv_adherents_report_no_section'] = 'None';
+$lang['gvv_adherents_report_chart_title'] = 'Club — members of known age by 10-year band';
+$lang['gvv_adherents_report_age_note'] = 'Age is computed on January 1st of the selected year.';
 
 $lang['gvv_drop_file_here'] = 'Drag and drop a file here';
 $lang['gvv_or'] = 'or';

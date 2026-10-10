@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Contrôleur pour le rapport des adhérents par année et classe d'âge
+ * Contrôleur des statistiques adhérents
  *
  * @package controllers
  */
@@ -40,7 +40,10 @@ class Adherents_report extends MY_Controller {
         }
         $this->dx_auth->check_uri_permissions();
 
+        $this->require_roles(['ca']);
+
         $this->load->model('adherents_report_model');
+        $this->load->library('adherents_stats');
         $this->lang->load('gvv');
 
         // Bouton retour → tableau de bord Administration du club
@@ -69,16 +72,18 @@ class Adherents_report extends MY_Controller {
             $this->session->set_userdata('adherents_report_year', $year);
         }
 
-        // Récupérer les statistiques
-        $stats_data = $this->adherents_report_model->get_adherents_stats($year);
+        $raw = $this->adherents_report_model->get_adherents_data($year);
+        $sections = $raw['sections'];
+        $adherents = $this->adherents_stats->adherents_de_l_annee($raw['members'], $year);
 
-        // Préparer les données pour la vue
         $data = array(
             'controller' => $this->controller,
             'year' => $year,
             'year_selector' => $this->adherents_report_model->get_year_selector(),
-            'sections' => $stats_data['sections'],
-            'stats' => $stats_data['stats']
+            'sections' => $sections,
+            'classes_reglementaires' => $this->adherents_stats->repartition_par_age($adherents, $sections, $year, 'classe_reglementaire'),
+            'tranches_10_ans' => $this->adherents_stats->repartition_par_age($adherents, $sections, $year, 'tranche_10_ans'),
+            'age_inconnu' => $this->adherents_stats->adherents_age_inconnu($adherents, $year),
         );
 
         load_last_view('adherents_report/bs_page', $data);

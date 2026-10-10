@@ -675,8 +675,8 @@ $lang['email_lists_confirm_delete_file'] = 'Weet u zeker dat u dit bestand en al
 $lang['email_lists_delete_file'] = 'Verwijder bestand';
 
 // Adherents Report
-$lang['gvv_menu_adherents_report'] = 'Ledenrapport';
-$lang['gvv_adherents_report_title'] = 'Ledenrapport';
+$lang['gvv_menu_adherents_report'] = 'Ledenstatistieken';
+$lang['gvv_adherents_report_title'] = 'Ledenstatistieken';
 $lang['gvv_adherents_report_select_year'] = 'Selecteer jaar';
 $lang['gvv_adherents_report_under_25'] = 'Jonger dan 25';
 $lang['gvv_adherents_report_25_to_59'] = '25-59 jaar';
@@ -684,6 +684,26 @@ $lang['gvv_adherents_report_60_and_over'] = '60 jaar en ouder';
 $lang['gvv_adherents_report_total'] = 'Totaal';
 $lang['gvv_adherents_report_club_total'] = 'Club Totaal';
 $lang['gvv_adherents_report_note'] = 'Opmerking: Het clubtotaal kan lager zijn dan de som van de secties omdat sommige leden meerdere activiteiten beoefenen.';
+$lang['gvv_adherents_report_regl_title'] = 'Reglementaire leeftijdsklassen (FFVV)';
+$lang['gvv_adherents_report_tranches_title'] = 'Verdeling per leeftijdsgroep van 10 jaar';
+$lang['gvv_adherents_report_unknown'] = 'Onbekende leeftijd';
+$lang['gvv_adherents_report_lt_20'] = 'Jonger dan 20';
+$lang['gvv_adherents_report_20_29'] = '20-29 jaar';
+$lang['gvv_adherents_report_30_39'] = '30-39 jaar';
+$lang['gvv_adherents_report_40_49'] = '40-49 jaar';
+$lang['gvv_adherents_report_50_59'] = '50-59 jaar';
+$lang['gvv_adherents_report_60_69'] = '60-69 jaar';
+$lang['gvv_adherents_report_70_79'] = '70-79 jaar';
+$lang['gvv_adherents_report_80_plus'] = '80 jaar en ouder';
+$lang['gvv_adherents_report_unknown_count'] = '%d lid/leden zonder bruikbare geboortedatum: zij worden geteld in de rij "Onbekende leeftijd".';
+$lang['gvv_adherents_report_show_list'] = 'Lijst tonen';
+$lang['gvv_adherents_report_unknown_list_title'] = 'Leden met ontbrekende of ongeldige geboortedatum';
+$lang['gvv_adherents_report_none_unknown'] = 'Alle leden van het jaar hebben een geboortedatum.';
+$lang['gvv_adherents_report_col_member'] = 'Lid';
+$lang['gvv_adherents_report_col_sections'] = 'Secties';
+$lang['gvv_adherents_report_no_section'] = 'Geen';
+$lang['gvv_adherents_report_chart_title'] = 'Club — leden met bekende leeftijd per groep van 10 jaar';
+$lang['gvv_adherents_report_age_note'] = 'De leeftijd wordt berekend op 1 januari van het geselecteerde jaar.';
 
 $lang['gvv_drop_file_here'] = 'Sleep een bestand hierheen';
 $lang['gvv_or'] = 'of';

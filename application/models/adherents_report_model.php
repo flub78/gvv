@@ -16,20 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Modèle pour le rapport des adhérents par année et classe d'âge
+ * Modèle des statistiques adhérents : accès aux données uniquement
  *
  * @package models
  */
 
-$CI = &get_instance();
-$CI->load->helper('statistic');
-
 class Adherents_report_model extends CI_Model {
 
     const LICENCE_TYPE_COTISATION = 0;
-    const AGE_UNDER_25 = 'under_25';
-    const AGE_25_TO_59 = '25_to_59';
-    const AGE_60_AND_OVER = '60_and_over';
 
     public function __construct() {
         parent::__construct();
@@ -37,162 +31,62 @@ class Adherents_report_model extends CI_Model {
     }
 
     /**
-     * Récupère les statistiques d'adhérents pour une année donnée
+     * Charge les données brutes nécessaires aux statistiques adhérents.
      *
-     * @param int $year L'année pour laquelle calculer les statistiques
-     * @return array Tableau avec les sections et les statistiques par classe d'âge
+     * Aucun calcul statistique ici : voir la bibliothèque Adherents_stats.
+     *
+     * @param int $year Année sélectionnée ; les cotisations postérieures sont ignorées
+     * @return array array(
+     *     'sections' => liste des sections,
+     *     'members'  => [mlogin => [mlogin, mnom, mprenom, mdaten, msexe,
+     *                     inscription_date, years => [années de cotisation],
+     *                     sections => [ids des sections où le membre a un compte 411]]]
+     * )
      */
-    public function get_adherents_stats($year) {
-        // Récupérer la liste des sections
-        $sections = $this->sections_model->section_list();
+    public function get_adherents_data($year) {
+        $rows = $this->db
+            ->distinct()
+            ->select('membres.mlogin, membres.mnom, membres.mprenom, membres.mdaten, membres.msexe, membres.inscription_date, licences.year')
+            ->from('licences')
+            ->join('membres', 'membres.mlogin = licences.pilote', 'inner')
+            ->where('licences.type', self::LICENCE_TYPE_COTISATION)
+            ->where('licences.year <=', (int) $year)
+            ->get()->result_array();
 
-        // Initialiser les compteurs
-        $stats = array(
-            self::AGE_UNDER_25 => array(),
-            self::AGE_25_TO_59 => array(),
-            self::AGE_60_AND_OVER => array(),
-            'total' => array()
-        );
-
-        // Initialiser les compteurs pour chaque section
-        foreach ($sections as $section) {
-            $section_key = 'section_' . $section['id'];
-            $stats[self::AGE_UNDER_25][$section_key] = 0;
-            $stats[self::AGE_25_TO_59][$section_key] = 0;
-            $stats[self::AGE_60_AND_OVER][$section_key] = 0;
-            $stats['total'][$section_key] = 0;
+        $members = array();
+        foreach ($rows as $row) {
+            $mlogin = $row['mlogin'];
+            if (!isset($members[$mlogin])) {
+                $members[$mlogin] = array(
+                    'mlogin' => $mlogin,
+                    'mnom' => $row['mnom'],
+                    'mprenom' => $row['mprenom'],
+                    'mdaten' => $row['mdaten'],
+                    'msexe' => $row['msexe'],
+                    'inscription_date' => $row['inscription_date'],
+                    'years' => array(),
+                    'sections' => array(),
+                );
+            }
+            $members[$mlogin]['years'][] = (int) $row['year'];
         }
 
-        // Initialiser les totaux club (dédoublonnés)
-        $stats[self::AGE_UNDER_25]['club_total'] = 0;
-        $stats[self::AGE_25_TO_59]['club_total'] = 0;
-        $stats[self::AGE_60_AND_OVER]['club_total'] = 0;
-        $stats['total']['club_total'] = 0;
-
-        // Dates limites pour le calcul d'âge au 1er janvier
-        $date_25 = ($year - 25) . '-01-01';  // Né après cette date = moins de 25 ans
-        $date_60 = ($year - 60) . '-01-01';  // Né avant ou le cette date = 60 ans et plus
-
-        // Pour chaque section, compter les adhérents par classe d'âge
-        foreach ($sections as $section) {
-            $section_key = 'section_' . $section['id'];
-            $section_id = $section['id'];
-
-            // Adhérents de moins de 25 ans dans cette section
-            $stats[self::AGE_UNDER_25][$section_key] = $this->count_adherents_by_age_and_section(
-                $year, $section_id, 'under_25', $date_25, $date_60
-            );
-
-            // Adhérents de 25 à 59 ans dans cette section
-            $stats[self::AGE_25_TO_59][$section_key] = $this->count_adherents_by_age_and_section(
-                $year, $section_id, '25_to_59', $date_25, $date_60
-            );
-
-            // Adhérents de 60 ans et plus dans cette section
-            $stats[self::AGE_60_AND_OVER][$section_key] = $this->count_adherents_by_age_and_section(
-                $year, $section_id, '60_and_over', $date_25, $date_60
-            );
-
-            // Total pour cette section
-            $stats['total'][$section_key] = $stats[self::AGE_UNDER_25][$section_key]
-                + $stats[self::AGE_25_TO_59][$section_key]
-                + $stats[self::AGE_60_AND_OVER][$section_key];
+        $accounts = $this->db
+            ->distinct()
+            ->select('pilote, club')
+            ->from('comptes')
+            ->where('codec', '411')
+            ->get()->result_array();
+        foreach ($accounts as $account) {
+            if (isset($members[$account['pilote']])) {
+                $members[$account['pilote']]['sections'][] = (int) $account['club'];
+            }
         }
-
-        // Calculer les totaux club (dédoublonnés - chaque membre compté une seule fois)
-        $stats[self::AGE_UNDER_25]['club_total'] = $this->count_adherents_by_age_club_total(
-            $year, 'under_25', $date_25, $date_60
-        );
-        $stats[self::AGE_25_TO_59]['club_total'] = $this->count_adherents_by_age_club_total(
-            $year, '25_to_59', $date_25, $date_60
-        );
-        $stats[self::AGE_60_AND_OVER]['club_total'] = $this->count_adherents_by_age_club_total(
-            $year, '60_and_over', $date_25, $date_60
-        );
-        $stats['total']['club_total'] = $stats[self::AGE_UNDER_25]['club_total']
-            + $stats[self::AGE_25_TO_59]['club_total']
-            + $stats[self::AGE_60_AND_OVER]['club_total'];
 
         return array(
-            'sections' => $sections,
-            'stats' => $stats,
-            'year' => $year
+            'sections' => $this->sections_model->section_list(),
+            'members' => $members,
         );
-    }
-
-    /**
-     * Compte les adhérents par classe d'âge pour une section donnée
-     *
-     * @param int $year L'année
-     * @param int $section_id L'ID de la section
-     * @param string $age_group Le groupe d'âge ('under_25', '25_to_59', '60_and_over')
-     * @param string $date_25 Date limite pour moins de 25 ans
-     * @param string $date_60 Date limite pour 60 ans et plus
-     * @return int Le nombre d'adhérents
-     */
-    private function count_adherents_by_age_and_section($year, $section_id, $age_group, $date_25, $date_60) {
-        $this->db->distinct();
-        $this->db->select('membres.mlogin');
-        $this->db->from('membres');
-        $this->db->join('licences', 'membres.mlogin = licences.pilote', 'inner');
-        $this->db->join('comptes', 'membres.mlogin = comptes.pilote', 'inner');
-        $this->db->where('licences.type', self::LICENCE_TYPE_COTISATION);
-        $this->db->where('licences.year', $year);
-        $this->db->where('comptes.codec', '411');
-        $this->db->where('comptes.club', $section_id);
-
-        // Filtrer par classe d'âge
-        $this->apply_age_filter($age_group, $date_25, $date_60);
-
-        return $this->db->count_all_results();
-    }
-
-    /**
-     * Compte les adhérents par classe d'âge pour tout le club (dédoublonnés)
-     *
-     * @param int $year L'année
-     * @param string $age_group Le groupe d'âge
-     * @param string $date_25 Date limite pour moins de 25 ans
-     * @param string $date_60 Date limite pour 60 ans et plus
-     * @return int Le nombre d'adhérents
-     */
-    private function count_adherents_by_age_club_total($year, $age_group, $date_25, $date_60) {
-        $this->db->distinct();
-        $this->db->select('membres.mlogin');
-        $this->db->from('membres');
-        $this->db->join('licences', 'membres.mlogin = licences.pilote', 'inner');
-        $this->db->where('licences.type', self::LICENCE_TYPE_COTISATION);
-        $this->db->where('licences.year', $year);
-
-        // Filtrer par classe d'âge
-        $this->apply_age_filter($age_group, $date_25, $date_60);
-
-        return $this->db->count_all_results();
-    }
-
-    /**
-     * Applique le filtre d'âge à la requête en cours
-     *
-     * @param string $age_group Le groupe d'âge
-     * @param string $date_25 Date limite pour moins de 25 ans
-     * @param string $date_60 Date limite pour 60 ans et plus
-     */
-    private function apply_age_filter($age_group, $date_25, $date_60) {
-        switch ($age_group) {
-            case 'under_25':
-                // Né après le 1er janvier de (année - 25) = moins de 25 ans au 1er janvier
-                $this->db->where('membres.mdaten >', $date_25);
-                break;
-            case '25_to_59':
-                // Né entre les deux dates
-                $this->db->where('membres.mdaten <=', $date_25);
-                $this->db->where('membres.mdaten >', $date_60);
-                break;
-            case '60_and_over':
-                // Né avant ou le 1er janvier de (année - 60) = 60 ans et plus au 1er janvier
-                $this->db->where('membres.mdaten <=', $date_60);
-                break;
-        }
     }
 
     /**
