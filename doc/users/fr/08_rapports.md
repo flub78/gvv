@@ -6,10 +6,11 @@ Ce guide présente les fonctionnalités de reporting de GVV. Vous apprendrez à 
 
 1. [Vue d'ensemble](#vue-ensemble)
 2. [Types de rapports](#types-rapports)
-3. [Génération de rapports](#generation)
-4. [Formats d'export](#formats)
-5. [Analyses statistiques](#statistiques)
-6. [Tableaux de bord](#tableaux-bord)
+3. [Statistiques adhérents](#statistiques-adherents)
+4. [Génération de rapports](#generation)
+5. [Formats d'export](#formats)
+6. [Analyses statistiques](#statistiques)
+7. [Tableaux de bord](#tableaux-bord)
 
 ## Vue d'ensemble {#vue-ensemble}
 
@@ -99,6 +100,84 @@ Les rapports sont accessibles via :
 - **Demandes** de vol
 - **Optimisation** des plannings
 - **Prévisions** d'activité
+
+## Statistiques adhérents {#statistiques-adherents}
+
+La page **Statistiques adhérents** décrit la population des adhérents d'une année : âges, répartition hommes / femmes, évolution sur plusieurs années, fidélisation et ancienneté, par section et pour le club.
+
+### Accès
+
+La page est réservée aux membres du CA. Elle est accessible :
+- par le menu **Gestion → Rapports → Statistiques adhérents** ;
+- par la carte **Statistiques adhérents** du tableau de bord **Administration du club**.
+
+Le sélecteur en haut de la page choisit l'année affichée. L'année reste mémorisée pendant la session.
+
+### Définitions
+
+- **Adhérent de l'année** : membre ayant une cotisation enregistrée pour cette année. Les membres sans cotisation ne sont pas comptés, même s'ils sont actifs.
+- **Adhérent d'une section** : adhérent ayant un compte pilote (compte 411) dans cette section. Un membre qui a un compte dans plusieurs sections est compté dans chacune d'elles, mais une seule fois dans le total club. La somme des colonnes de section peut donc dépasser le total club.
+- **Âge** : âge en années révolues au **1er janvier** de l'année sélectionnée, comme pour les déclarations fédérales.
+
+### Âge inconnu
+
+Les adhérents sans date de naissance, ou avec une date invalide, sont comptés sur une ligne **Âge inconnu** et exclus des âges moyens et médians. Un bandeau en haut de la page indique leur nombre. Le bouton du bandeau déplie leur liste, avec un lien vers chaque fiche membre pour compléter la date de naissance.
+
+### Indicateurs et répartition par âge
+
+![Indicateurs](../screenshots/08_reports/stats_adherents_indicateurs.png)
+
+Le bloc **Indicateurs** donne l'effectif, l'âge moyen et l'âge médian de chaque section et du club.
+
+Deux tableaux répartissent ensuite les adhérents par âge :
+- **Classes réglementaires** : moins de 25 ans, 25-59 ans, 60 ans et plus. Ce sont les classes demandées par la fédération.
+- **Tranches de 10 ans** : de « moins de 20 ans » à « 80 ans et plus », avec un histogramme pour le club.
+
+![Répartition par tranches de 10 ans](../screenshots/08_reports/stats_adherents_tranches_10_ans.png)
+
+Chaque cellule indique le nombre d'adhérents et, entre parenthèses, le pourcentage de la colonne.
+
+### Hommes / femmes et pyramide des âges
+
+![Répartition hommes / femmes](../screenshots/08_reports/stats_adherents_sexes.png)
+
+Le tableau donne la répartition hommes / femmes par section. La pyramide des âges croise le sexe et les tranches de 10 ans pour le club : les hommes à gauche, les femmes à droite.
+
+### Évolution
+
+![Évolution du club](../screenshots/08_reports/stats_adherents_evolution.png)
+
+Le tableau et le graphique présentent, pour les 10 dernières années ayant des cotisations enregistrées, l'effectif du club, l'âge moyen et la répartition par classe réglementaire.
+
+> **Attention** : une baisse brutale de l'effectif traduit souvent des cotisations qui n'ont pas été saisies dans GVV cette année-là, et non une baisse réelle du nombre d'adhérents.
+
+### Fidélisation
+
+![Fidélisation](../screenshots/08_reports/stats_adherents_fidelisation.png)
+
+Pour l'année N sélectionnée, chaque adhérent est classé dans une catégorie :
+- **Nouveaux** : première cotisation en N ;
+- **Retours** : adhérents en N, absents en N-1 mais adhérents auparavant ;
+- **Renouvellements** : adhérents en N-1 et en N ;
+- **Départs** : adhérents en N-1 qui n'ont pas cotisé en N.
+
+On a toujours : nouveaux + retours + renouvellements = effectif de N, et renouvellements + départs = effectif de N-1.
+
+La ligne **Rétention des nouveaux** donne la part des nouveaux de N-1 qui sont encore adhérents en N.
+
+Cliquer sur un nombre affiche la liste des membres concernés, avec un lien vers leur fiche. Une seule liste est ouverte à la fois.
+
+Les sections sont calculées à partir des comptes pilotes actuels : un membre passé d'une section à une autre n'est pas vu comme un départ de l'une et une arrivée dans l'autre.
+
+> **Année en cours** : tant que toutes les cotisations ne sont pas enregistrées, les départs sont provisoires. Un bandeau le rappelle.
+
+### Ancienneté
+
+![Ancienneté](../screenshots/08_reports/stats_adherents_anciennete.png)
+
+L'ancienneté est calculée à partir de la plus ancienne des deux dates : date d'inscription de la fiche membre ou première cotisation enregistrée. Les tranches sont : moins de 2 ans, 2 à 5 ans, 5 à 10 ans, 10 ans et plus. La ligne **Inconnue** regroupe les membres sans date d'inscription ni cotisation exploitable.
+
+> **Limite** : pour les membres saisis à la mise en service de GVV, la date d'inscription est souvent celle de la création de la fiche et non celle de l'adhésion réelle. L'ancienneté est alors faussée ; corriger la date d'inscription dans la fiche membre si nécessaire.
 
 ## Génération de rapports {#generation}
 

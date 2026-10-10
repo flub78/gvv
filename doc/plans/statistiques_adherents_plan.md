@@ -79,8 +79,9 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
 
 - [ ] 4. Finalisation (0,5 j)
   - Actions :
-    - Documentation utilisateur (voir ci-dessous).
-    - Passage complet des suites PHPUnit et Playwright, en PHP 7.4 et PHP 8.4.
+    - [x] Documentation utilisateur : section « Statistiques adhérents » dans `doc/users/fr/08_rapports.md`, 6 captures dans `doc/users/screenshots/08_reports/`, entrée dans `doc/release_notes.md`.
+    - [x] Passage complet des suites PHPUnit en PHP 7.4 et PHP 8.4 : toutes les suites au vert.
+    - [x] Passage complet de la suite Playwright : 848 tests passés, 34 ignorés, aucun échec.
     - Proposer `/create-pr` une fois les trois lots validés.
   - Validation :
     - Recette par un membre du CA sur la base de développement.
