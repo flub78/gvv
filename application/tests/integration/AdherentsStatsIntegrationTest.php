@@ -156,4 +156,31 @@ class AdherentsStatsIntegrationTest extends TransactionalTestCase
         $this->assertSame(3, $evolution[self::YEAR]['effectif']);
         $this->assertSame(1, $evolution[self::YEAR]['unknown']);
     }
+
+    public function testFidelisationEtAnciennete()
+    {
+        $renouvele = $this->create_member('1980-06-15', array(1994, self::YEAR));
+        $nouveau = $this->create_member('1980-06-15', array(self::YEAR));
+        $parti = $this->create_member('1980-06-15', array(1994));
+        $sans_compte = $this->create_member('1980-06-15', array(1994), false);
+
+        $data = $this->model->get_adherents_data(self::YEAR);
+        $col = 'section_' . $this->section_id;
+        $f = $this->stats->fidelisation($data['members'], $data['sections'], self::YEAR);
+
+        $this->assertSame(1, $f['counts']['renouvellement'][$col]);
+        $this->assertSame(1, $f['counts']['nouveau'][$col]);
+        $this->assertSame(1, $f['counts']['depart'][$col]);
+        $this->assertSame(2, $f['counts']['depart']['club_total']);
+        $this->assertSame(array($nouveau), array_column($f['members']['nouveau'][$col], 'mlogin'));
+        $this->assertContains($sans_compte, array_column($f['members']['depart']['club_total'], 'mlogin'));
+        // Nouveaux de 1994 : renouvele, parti, sans_compte ; seul renouvele est resté
+        $this->assertSame(array('nouveaux_n1' => 3, 'toujours_adherents' => 1, 'taux' => 33), $f['retention']['club_total']);
+
+        $adherents = $this->stats->adherents_de_l_annee($data['members'], self::YEAR);
+        $anc = $this->stats->repartition_par_anciennete($adherents, $data['sections'], self::YEAR);
+        $this->assertSame(2, $anc['counts']['anc_lt_2']['club_total']);
+        $this->assertNotContains($parti, array_column($adherents, 'mlogin'));
+        $this->assertContains($renouvele, array_column($adherents, 'mlogin'));
+    }
 }

@@ -88,6 +88,9 @@ class Adherents_report extends MY_Controller {
             'pyramide' => $this->adherents_stats->pyramide_des_ages($adherents, $year),
             'indicateurs' => $this->adherents_stats->indicateurs($adherents, $sections, $year),
             'evolution' => $this->adherents_stats->evolution($raw['members'], $year),
+            'fidelisation' => $this->adherents_stats->fidelisation($raw['members'], $sections, $year),
+            'anciennete' => $this->adherents_stats->repartition_par_anciennete($adherents, $sections, $year),
+            'annee_en_cours' => ($year == (int) date('Y')),
         );
 
         load_last_view('adherents_report/bs_page', $data);

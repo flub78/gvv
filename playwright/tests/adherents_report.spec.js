@@ -110,6 +110,42 @@ test.describe('Statistiques adhérents', () => {
         await expect(lastRow.locator('td').nth(1)).toHaveText(String(clubTotal));
     });
 
+    test('affiche fidélisation et ancienneté cohérentes avec les effectifs', async ({ page }) => {
+        await page.goto(REPORT_URL);
+        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('#fidelisation')).toBeVisible();
+        await expect(page.locator('#anciennete')).toBeVisible();
+
+        const regl = await readRepartition(page, 'classes_reglementaires');
+        const anciennete = await readRepartition(page, 'anciennete');
+        expect(anciennete.total).toEqual(regl.total);
+
+        // Effectif N = nouveaux + retours + renouvellements, pour chaque colonne
+        const fid = await page.locator('#fidelisation table').evaluate(table => {
+            const rows = {};
+            table.querySelectorAll('tbody tr[data-fidelisation]').forEach(tr => {
+                rows[tr.dataset.fidelisation] = Array.from(tr.querySelectorAll('td')).slice(1)
+                    .map(td => parseInt(td.innerText.trim(), 10));
+            });
+            return rows;
+        });
+        regl.total.forEach((total, col) => {
+            expect(fid.nouveau[col] + fid.retour[col] + fid.renouvellement[col]).toBe(total);
+        });
+
+        // Un compteur non nul ouvre la liste des membres correspondante
+        const counter = page.locator('#fidelisation tbody button[data-bs-toggle="collapse"]').first();
+        if (await counter.count() > 0) {
+            const target = await counter.getAttribute('data-bs-target');
+            const expected = parseInt(await counter.innerText(), 10);
+            await expect(page.locator(target)).toBeHidden();
+            await counter.click();
+            await expect(page.locator(target)).toBeVisible();
+            await expect(page.locator(`${target} li`)).toHaveCount(expected);
+        }
+    });
+
     test('la liste des âges inconnus est accessible', async ({ page }) => {
         await page.goto(REPORT_URL);
         await page.waitForLoadState('networkidle');

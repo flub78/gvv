@@ -267,6 +267,159 @@ class Adherents_stats {
     }
 
     /**
+     * @return array Catégories de fidélisation
+     */
+    public function cles_fidelisation() {
+        return array('nouveau', 'retour', 'renouvellement', 'depart');
+    }
+
+    /**
+     * Catégorie de fidélisation d'un membre pour l'année.
+     *
+     * @param array $years Années de cotisation du membre
+     * @param int $year
+     * @return string|null nouveau, retour, renouvellement, depart, ou null si non concerné
+     */
+    public function categorie_fidelisation($years, $year) {
+        $year = (int) $year;
+        $in_n = in_array($year, $years);
+        $in_n1 = in_array($year - 1, $years);
+        if ($in_n && $in_n1) {
+            return 'renouvellement';
+        }
+        if ($in_n) {
+            return (min($years) < $year) ? 'retour' : 'nouveau';
+        }
+        return $in_n1 ? 'depart' : null;
+    }
+
+    /**
+     * Fidélisation par section et pour le club.
+     *
+     * @param array $members Tous les membres, avec leurs années de cotisation
+     * @param array $sections
+     * @param int $year
+     * @return array array(
+     *     'counts'    => [catégorie => [colonne => n]],
+     *     'members'   => [catégorie => [colonne => [membres triés par nom]]],
+     *     'retention' => [colonne => [nouveaux_n1, toujours_adherents, taux (int|null)]]
+     * )
+     */
+    public function fidelisation($members, $sections, $year) {
+        $columns = $this->colonnes($sections);
+        $counts = array();
+        $lists = array();
+        foreach ($this->cles_fidelisation() as $key) {
+            $counts[$key] = array_fill_keys($columns, 0);
+            $lists[$key] = array_fill_keys($columns, array());
+        }
+        $retention = array();
+        foreach ($columns as $column) {
+            $retention[$column] = array('nouveaux_n1' => 0, 'toujours_adherents' => 0, 'taux' => null);
+        }
+
+        foreach ($members as $member) {
+            $member_columns = $this->colonnes_du_membre($member, $retention);
+            $key = $this->categorie_fidelisation($member['years'], $year);
+            if ($key !== null) {
+                foreach ($member_columns as $column) {
+                    $counts[$key][$column]++;
+                    $lists[$key][$column][] = $member;
+                }
+            }
+            if ($this->categorie_fidelisation($member['years'], $year - 1) === 'nouveau') {
+                foreach ($member_columns as $column) {
+                    $retention[$column]['nouveaux_n1']++;
+                    if (in_array((int) $year, $member['years'])) {
+                        $retention[$column]['toujours_adherents']++;
+                    }
+                }
+            }
+        }
+
+        foreach ($lists as $key => $by_column) {
+            foreach ($by_column as $column => $list) {
+                $lists[$key][$column] = $this->trier_par_nom($list);
+            }
+        }
+        foreach ($retention as $column => $row) {
+            if ($row['nouveaux_n1'] > 0) {
+                $retention[$column]['taux'] = $this->pourcentage($row['toujours_adherents'], $row['nouveaux_n1']);
+            }
+        }
+
+        return array('counts' => $counts, 'members' => $lists, 'retention' => $retention);
+    }
+
+    /**
+     * @return array Clés des tranches d'ancienneté, suivies de anc_unknown
+     */
+    public function cles_anciennete() {
+        return array('anc_lt_2', 'anc_2_5', 'anc_5_10', 'anc_10_plus', 'anc_unknown');
+    }
+
+    /**
+     * Ancienneté au club en années révolues au 1er janvier de l'année.
+     *
+     * La date de référence est la plus ancienne entre la date d'inscription
+     * et le 1er janvier de la première année de cotisation. Une date de
+     * référence postérieure au 1er janvier donne une ancienneté de 0.
+     *
+     * @param array $member
+     * @param int $year
+     * @return int|null null si aucune date de référence n'est disponible
+     */
+    public function anciennete($member, $year) {
+        $dates = array();
+        if ($this->date_valide(isset($member['inscription_date']) ? $member['inscription_date'] : null)) {
+            $dates[] = $member['inscription_date'];
+        }
+        if (!empty($member['years'])) {
+            $dates[] = sprintf('%04d-01-01', min($member['years']));
+        }
+        if (!$dates) {
+            return null;
+        }
+        $reference = min($dates);
+        if ($reference > sprintf('%04d-01-01', $year)) {
+            return 0;
+        }
+        return $this->age_au_1er_janvier($reference, $year);
+    }
+
+    /**
+     * @param int|null $anciennete
+     * @return string Clé de tranche d'ancienneté
+     */
+    public function tranche_anciennete($anciennete) {
+        if ($anciennete === null) {
+            return 'anc_unknown';
+        }
+        if ($anciennete < 2) {
+            return 'anc_lt_2';
+        }
+        if ($anciennete < 5) {
+            return 'anc_2_5';
+        }
+        return ($anciennete < 10) ? 'anc_5_10' : 'anc_10_plus';
+    }
+
+    /**
+     * Répartition des adhérents par ancienneté, par section et pour le club.
+     *
+     * @param array $adherents
+     * @param array $sections
+     * @param int $year
+     * @return array Même structure que repartition_par_age()
+     */
+    public function repartition_par_anciennete($adherents, $sections, $year) {
+        $self = $this;
+        return $this->repartition($adherents, $sections, $this->cles_anciennete(), function ($member) use ($self, $year) {
+            return $self->tranche_anciennete($self->anciennete($member, $year));
+        });
+    }
+
+    /**
      * @param array $values
      * @return float|null Moyenne arrondie à une décimale, null si vide
      */
@@ -302,10 +455,19 @@ class Adherents_stats {
                 $result[] = $member;
             }
         }
-        usort($result, function ($a, $b) {
+        return $this->trier_par_nom($result);
+    }
+
+    private function trier_par_nom($list) {
+        usort($list, function ($a, $b) {
             return strcasecmp($a['mnom'] . ' ' . $a['mprenom'], $b['mnom'] . ' ' . $b['mprenom']);
         });
-        return $result;
+        return $list;
+    }
+
+    private function date_valide($date) {
+        return !empty($date) && preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $date, $m)
+            && (int) $m[1] >= 1900 && checkdate((int) $m[2], (int) $m[3], (int) $m[1]);
     }
 
     /**

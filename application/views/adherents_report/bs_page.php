@@ -74,7 +74,7 @@ $this->load->view('bs_banner');
                 </thead>
                 <tbody>
                     <?php foreach ($repartition['counts'] as $key => $row): ?>
-                        <tr class="<?= ($key == 'unknown') ? 'table-warning' : '' ?>" data-age-class="<?= $key ?>">
+                        <tr class="<?= (substr($key, -7) == 'unknown') ? 'table-warning' : '' ?>" data-age-class="<?= $key ?>">
                             <td><strong><?= translation('gvv_adherents_report_' . $key) ?></strong></td>
                             <?php foreach ($columns as $column): ?>
                                 <td class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>">
@@ -278,6 +278,102 @@ $this->load->view('bs_banner');
                 </div>
             <?php endif; ?>
             <p class="text-muted small mt-2 mb-0"><?= translation('gvv_adherents_report_evol_note') ?></p>
+        </div>
+    </div>
+
+    <!-- Fidélisation -->
+    <?php
+    $fid_columns = array_keys($fidelisation['retention']);
+    $fid_column_label = function ($column) use ($section_names) {
+        $id = (int) substr($column, strlen('section_'));
+        return ($column == 'club_total') ? translation('gvv_adherents_report_club_total') : $section_names[$id];
+    };
+    ?>
+    <div class="card mb-4" id="fidelisation">
+        <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_fid_title') ?></h5></div>
+        <div class="card-body">
+            <?php if ($annee_en_cours): ?>
+                <div class="alert alert-warning py-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <?= translation('gvv_adherents_report_fid_provisional') ?>
+                </div>
+            <?php endif; ?>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th></th>
+                            <?php foreach ($fid_columns as $column): ?>
+                                <th class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>"><?= htmlspecialchars($fid_column_label($column)) ?></th>
+                            <?php endforeach; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($fidelisation['counts'] as $key => $row): ?>
+                            <tr data-fidelisation="<?= $key ?>">
+                                <td><strong><?= translation('gvv_adherents_report_' . $key) ?></strong></td>
+                                <?php foreach ($fid_columns as $column): ?>
+                                    <td class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>">
+                                        <?php if ($row[$column] > 0): ?>
+                                            <button type="button" class="btn btn-link btn-sm p-0<?= ($column == 'club_total') ? ' fw-bold' : '' ?>"
+                                                data-bs-toggle="collapse" data-bs-target="#fid_<?= $key ?>_<?= $column ?>"
+                                                aria-expanded="false" aria-controls="fid_<?= $key ?>_<?= $column ?>"><?= $row[$column] ?></button>
+                                        <?php else: ?>
+                                            0
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr data-fidelisation="retention">
+                            <td><strong><?= sprintf(translation('gvv_adherents_report_fid_retention'), $year - 1) ?></strong></td>
+                            <?php foreach ($fid_columns as $column): ?>
+                                <?php $r = $fidelisation['retention'][$column]; ?>
+                                <td class="text-center<?= ($column == 'club_total') ? ' table-primary' : '' ?>">
+                                    <?php if ($r['taux'] === null): ?>
+                                        —
+                                    <?php else: ?>
+                                        <?= $r['taux'] ?>&nbsp;% <small class="text-muted">(<?= $r['toujours_adherents'] ?>/<?= $r['nouveaux_n1'] ?>)</small>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endforeach; ?>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2 mb-1"><?= translation('gvv_adherents_report_fid_list_hint') ?></p>
+
+            <div id="fid_lists">
+                <?php foreach ($fidelisation['members'] as $key => $by_column): ?>
+                    <?php foreach ($by_column as $column => $list): ?>
+                        <?php if (count($list) == 0) continue; ?>
+                        <div class="collapse" id="fid_<?= $key ?>_<?= $column ?>" data-bs-parent="#fid_lists">
+                            <div class="card card-body mt-2">
+                                <h6><?= translation('gvv_adherents_report_' . $key) ?> — <?= htmlspecialchars($fid_column_label($column)) ?> (<?= count($list) ?>)</h6>
+                                <ul class="list-unstyled mb-0" style="columns: 16rem;">
+                                    <?php foreach ($list as $member): ?>
+                                        <li><a href="<?= controller_url('membre/edit/' . rawurlencode($member['mlogin'])) ?>"><?= htmlspecialchars($member['mnom'] . ' ' . $member['mprenom']) ?></a></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
+
+            <p class="text-muted small mt-2 mb-0">
+                <?= sprintf(translation('gvv_adherents_report_fid_note'), $year, $year - 1) ?>
+                <?= translation('gvv_adherents_report_fid_section_note') ?>
+            </p>
+        </div>
+    </div>
+
+    <!-- Ancienneté -->
+    <div class="card mb-4" id="anciennete">
+        <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_anc_title') ?></h5></div>
+        <div class="card-body">
+            <?php $render_repartition($anciennete, true); ?>
+            <p class="text-muted small mt-2 mb-0"><?= translation('gvv_adherents_report_anc_note') ?></p>
         </div>
     </div>
 

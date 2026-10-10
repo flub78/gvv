@@ -66,7 +66,7 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
     - Âge médian vérifié à la main sur une section de petite taille.
     - Constat sur la base de développement : l'évolution reflète l'historique lacunaire des cotisations (1 à 4 adhérents de 2020 à 2024) ; une note sous le tableau avertit qu'une baisse brutale peut traduire des cotisations non saisies.
 
-- [ ] 3. Lot 3 — Fidélisation et ancienneté (EF8, EF9, EF11) (2,5 j)
+- [x] 3. Lot 3 — Fidélisation et ancienneté (EF8, EF9, EF11) (2,5 j)
   - Actions :
     - Bibliothèque : pour l'année N, par section et club, nouveaux / retours / renouvellements / départs, taux de rétention des nouveaux de N-1.
     - Bibliothèque : ancienneté par tranches, à partir de la plus ancienne entre date d'inscription et première cotisation.
@@ -75,6 +75,7 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
   - Validation :
     - Pour le club et chaque section : nouveaux + retours + renouvellements = effectif N ; renouvellements + départs = effectif N-1.
     - Contrôle croisé avec la page « Licences/Cotisations par année » sur une année passée.
+    - Constat 2026 sur la base de développement : 23 nouveaux + 2 retours + 58 renouvellements = 83 adhérents, 58 renouvellements + 13 départs = 71 adhérents 2025. 80 % des adhérents ont 10 ans d'ancienneté ou plus, car 286 fiches ont une date d'inscription en 2011 (mise en service de GVV, pas l'adhésion réelle).
 
 - [ ] 4. Finalisation (0,5 j)
   - Actions :

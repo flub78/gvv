@@ -44,6 +44,7 @@ Volume constaté sur la base de développement : environ 500 membres et 300 coti
 Constat sur la base de développement (octobre 2026), à reprendre dans la documentation utilisateur :
 
 - L'historique des cotisations est lacunaire : 24 à 28 adhérents par an de 2011 à 2013, aucun de 2014 à 2019, 1 à 4 de 2020 à 2024, puis 71 en 2025 et 83 en 2026. L'évolution pluriannuelle et la fidélisation ne sont significatives que pour les années précédées d'une année complètement saisie. Pour 2025, presque tous les adhérents apparaissent comme « nouveaux » ou « retours ».
+- 286 fiches membres ont une date d'inscription en 2011, année de mise en service de GVV : pour ces membres, l'ancienneté calculée est un minimum et ne reflète pas la date d'adhésion réelle.
 - 16 % des adhérents 2026 n'ont pas de date de naissance, d'où l'importance de la liste « Âge inconnu ».
 - Le sexe est toujours renseigné.
 
