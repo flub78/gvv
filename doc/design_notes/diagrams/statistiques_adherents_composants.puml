@@ -1,0 +1,62 @@
+@startuml
+skinparam componentStyle rectangle
+title Statistiques adhérents — composants
+
+package "application/controllers/adherents_report.php" {
+  [page()] as page
+  [set_year($year)] as set_year
+}
+
+package "application/models/adherents_report_model.php" {
+  [get_adherents_data($year)] as data #LightGreen
+  [get_year_selector()] as years
+}
+
+package "application/libraries/Adherents_stats.php" #LightGreen {
+  [age / tranches / âge inconnu] as age
+  [sexe, moyenne, médiane] as demo
+  [évolution pluriannuelle] as evol
+  [fidélisation, ancienneté] as fid
+}
+
+package "application/views/adherents_report/bs_page.php" {
+  [tableaux + listes repliables] as tables
+  [graphiques] as charts
+}
+
+database "MySQL" {
+  [licences (type cotisation)] as lic
+  [membres] as mbr
+  [comptes (411)] as cpt
+  [sections] as sec
+}
+
+[assets/javascript/chart.umd.min.js\n(Chart.js 4.3.0, local)] as chartjs #LightGreen
+
+set_year --> page : année en session
+page --> data
+page --> years
+page --> age
+page --> demo
+page --> evol
+page --> fid
+data --> lic
+data --> mbr
+data --> cpt
+data --> sec
+page --> tables
+tables --> charts
+charts --> chartjs
+
+note right of data
+  Accès aux données uniquement :
+  3 requêtes + liste des sections,
+  aucun calcul statistique
+end note
+
+note bottom of fid
+  Fonctions pures sur des tableaux PHP,
+  sans base de données ni CodeIgniter :
+  testables unitairement
+end note
+@enduml
