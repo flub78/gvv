@@ -21,14 +21,14 @@ class AdherentsStatsTest extends TestCase
         $this->stats = $CI->adherents_stats;
     }
 
-    private function member($mlogin, $mdaten, $years, $sections = array(), $mnom = null)
+    private function member($mlogin, $mdaten, $years, $sections = array(), $mnom = null, $msexe = 'M')
     {
         return array(
             'mlogin' => $mlogin,
             'mnom' => $mnom ?: strtoupper($mlogin),
             'mprenom' => 'Test',
             'mdaten' => $mdaten,
-            'msexe' => 'M',
+            'msexe' => $msexe,
             'inscription_date' => null,
             'years' => $years,
             'sections' => $sections,
@@ -184,5 +184,118 @@ class AdherentsStatsTest extends TestCase
         $this->assertSame(33, $this->stats->pourcentage(1, 3));
         $this->assertSame(100, $this->stats->pourcentage(4, 4));
         $this->assertSame(0, $this->stats->pourcentage(0, 0));
+    }
+
+    // --- Sexe ---
+
+    public function testSexe()
+    {
+        $this->assertSame('sex_M', $this->stats->sexe('M'));
+        $this->assertSame('sex_F', $this->stats->sexe('F'));
+        $this->assertSame('sex_unknown', $this->stats->sexe(''));
+        $this->assertSame('sex_unknown', $this->stats->sexe(null));
+        $this->assertSame('sex_unknown', $this->stats->sexe('X'));
+    }
+
+    public function testRepartitionParSexe()
+    {
+        $adherents = array(
+            $this->member('a', '1980-01-01', array(2025), array(1), null, 'F'),
+            $this->member('b', '1980-01-01', array(2025), array(1, 2), null, 'M'),
+            $this->member('c', '1980-01-01', array(2025), array(2), null, ''),
+        );
+        $r = $this->stats->repartition_par_sexe($adherents, $this->sections());
+        $this->assertSame(array('sex_M', 'sex_F', 'sex_unknown'), array_keys($r['counts']));
+        $this->assertSame(1, $r['counts']['sex_F']['section_1']);
+        $this->assertSame(1, $r['counts']['sex_M']['section_2']);
+        $this->assertSame(1, $r['counts']['sex_unknown']['club_total']);
+        $this->assertSame(array('section_1' => 2, 'section_2' => 2, 'club_total' => 3), $r['total']);
+    }
+
+    public function testPyramideDesAges()
+    {
+        $adherents = array(
+            $this->member('a', '1960-05-05', array(2025), array(), null, 'F'),   // 64 ans
+            $this->member('b', '1962-05-05', array(2025), array(), null, 'M'),   // 62 ans
+            $this->member('c', '1958-05-05', array(2025), array(), null, 'M'),   // 66 ans
+            $this->member('d', null, array(2025), array(), null, 'F'),
+        );
+        $p = $this->stats->pyramide_des_ages($adherents, 2025);
+        $this->assertSame($this->stats->cles_tranches_10_ans(), array_keys($p));
+        $this->assertSame(array('sex_M' => 2, 'sex_F' => 1, 'sex_unknown' => 0), $p['60_69']);
+        $this->assertSame(1, $p['unknown']['sex_F']);
+        $this->assertSame(0, $p['20_29']['sex_M']);
+    }
+
+    // --- Moyenne et médiane ---
+
+    public function testMoyenne()
+    {
+        $this->assertSame(20.0, $this->stats->moyenne(array(10, 30)));
+        $this->assertSame(23.3, $this->stats->moyenne(array(10, 30, 30)));
+        $this->assertNull($this->stats->moyenne(array()));
+    }
+
+    public function testMediane()
+    {
+        $this->assertSame(30.0, $this->stats->mediane(array(70, 10, 30)));
+        $this->assertSame(25.0, $this->stats->mediane(array(40, 10, 20, 30)));
+        $this->assertSame(42.5, $this->stats->mediane(array(42, 43)));
+        $this->assertSame(17.0, $this->stats->mediane(array(17)));
+        $this->assertNull($this->stats->mediane(array()));
+    }
+
+    // --- Indicateurs ---
+
+    public function testIndicateurs()
+    {
+        $adherents = array(
+            $this->member('a', '2005-03-03', array(2025), array(1)),     // 19 ans
+            $this->member('b', '1965-03-03', array(2025), array(1, 2)),  // 59 ans
+            $this->member('c', null, array(2025), array(2)),
+            $this->member('d', '1975-03-03', array(2025), array()),      // 49 ans
+        );
+        $i = $this->stats->indicateurs($adherents, $this->sections(), 2025);
+
+        $this->assertSame(array('effectif' => 2, 'age_moyen' => 39.0, 'age_median' => 39.0, 'age_inconnu' => 0), $i['section_1']);
+        $this->assertSame(array('effectif' => 2, 'age_moyen' => 59.0, 'age_median' => 59.0, 'age_inconnu' => 1), $i['section_2']);
+        $this->assertSame(array('effectif' => 4, 'age_moyen' => 42.3, 'age_median' => 49.0, 'age_inconnu' => 1), $i['club_total']);
+    }
+
+    public function testIndicateursSansAgeConnu()
+    {
+        $i = $this->stats->indicateurs(array($this->member('a', null, array(2025), array(1))), $this->sections(), 2025);
+        $this->assertNull($i['section_1']['age_moyen']);
+        $this->assertNull($i['section_1']['age_median']);
+        $this->assertSame(1, $i['section_1']['age_inconnu']);
+        $this->assertSame(0, $i['section_2']['effectif']);
+    }
+
+    // --- Évolution ---
+
+    public function testEvolutionIgnoreLesAnneesSansCotisationEtLesAnneesFutures()
+    {
+        $members = array(
+            'a' => $this->member('a', '2000-06-01', array(2012, 2025, 2026)),
+            'b' => $this->member('b', '1950-06-01', array(2025)),
+            'c' => $this->member('c', null, array(2026)),
+        );
+        $e = $this->stats->evolution($members, 2025);
+
+        $this->assertSame(array(2012, 2025), array_keys($e));
+        $this->assertSame(1, $e[2012]['effectif']);
+        $this->assertSame(11.0, $e[2012]['age_moyen']);
+        $this->assertSame(2, $e[2025]['effectif']);
+        $this->assertSame(1, $e[2025]['under_25']);
+        $this->assertSame(1, $e[2025]['60_and_over']);
+        $this->assertSame(0, $e[2025]['unknown']);
+        $this->assertSame(49.0, $e[2025]['age_moyen']);
+    }
+
+    public function testEvolutionLimiteeAuxDernieresAnnees()
+    {
+        $members = array('a' => $this->member('a', '1980-01-01', range(2000, 2025)));
+        $e = $this->stats->evolution($members, 2025, 10);
+        $this->assertSame(range(2016, 2025), array_keys($e));
     }
 }

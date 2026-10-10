@@ -138,34 +138,154 @@ class Adherents_stats {
         $keys = ($classification == 'tranche_10_ans')
             ? $this->cles_tranches_10_ans()
             : $this->cles_classes_reglementaires();
+        $self = $this;
+        return $this->repartition($adherents, $sections, $keys, function ($member) use ($self, $year, $classification) {
+            return $self->$classification($self->age_au_1er_janvier($member['mdaten'], $year));
+        });
+    }
 
-        $columns = array();
-        foreach ($sections as $section) {
-            $columns[] = 'section_' . $section['id'];
+    /**
+     * Répartition des adhérents par sexe, par section et pour le club.
+     *
+     * @param array $adherents
+     * @param array $sections
+     * @return array Même structure que repartition_par_age()
+     */
+    public function repartition_par_sexe($adherents, $sections) {
+        $self = $this;
+        return $this->repartition($adherents, $sections, $this->cles_sexes(), function ($member) use ($self) {
+            return $self->sexe($member['msexe']);
+        });
+    }
+
+    /**
+     * @return array Clés de sexe : sex_M, sex_F, sex_unknown
+     */
+    public function cles_sexes() {
+        return array('sex_M', 'sex_F', 'sex_unknown');
+    }
+
+    /**
+     * @param string|null $msexe
+     * @return string Clé de sexe
+     */
+    public function sexe($msexe) {
+        return in_array($msexe, array('M', 'F'), true) ? 'sex_' . $msexe : 'sex_unknown';
+    }
+
+    /**
+     * Pyramide des âges du club : effectif par tranche de 10 ans et par sexe.
+     *
+     * @param array $adherents
+     * @param int $year
+     * @return array [tranche => [sex_M => n, sex_F => n, sex_unknown => n]], tranches dans l'ordre croissant, âge inconnu en dernier
+     */
+    public function pyramide_des_ages($adherents, $year) {
+        $result = array();
+        foreach ($this->cles_tranches_10_ans() as $tranche) {
+            $result[$tranche] = array_fill_keys($this->cles_sexes(), 0);
         }
-        $columns[] = 'club_total';
-
-        $counts = array();
-        foreach ($keys as $key) {
-            $counts[$key] = array_fill_keys($columns, 0);
-        }
-        $total = array_fill_keys($columns, 0);
-
         foreach ($adherents as $member) {
-            $key = $this->$classification($this->age_au_1er_janvier($member['mdaten'], $year));
-            $member_columns = array('club_total');
-            foreach ($member['sections'] as $section_id) {
-                if (isset($total['section_' . $section_id])) {
-                    $member_columns[] = 'section_' . $section_id;
+            $tranche = $this->tranche_10_ans($this->age_au_1er_janvier($member['mdaten'], $year));
+            $result[$tranche][$this->sexe($member['msexe'])]++;
+        }
+        return $result;
+    }
+
+    /**
+     * Indicateurs synthétiques par section et pour le club.
+     *
+     * L'âge moyen et l'âge médian sont calculés sur les âges connus ;
+     * ils valent null quand aucun âge n'est connu.
+     *
+     * @param array $adherents
+     * @param array $sections
+     * @param int $year
+     * @return array [colonne => [effectif, age_moyen, age_median, age_inconnu]]
+     */
+    public function indicateurs($adherents, $sections, $year) {
+        $ages = array_fill_keys($this->colonnes($sections), array());
+        $result = array();
+        foreach (array_keys($ages) as $column) {
+            $result[$column] = array('effectif' => 0, 'age_moyen' => null, 'age_median' => null, 'age_inconnu' => 0);
+        }
+        foreach ($adherents as $member) {
+            $age = $this->age_au_1er_janvier($member['mdaten'], $year);
+            foreach ($this->colonnes_du_membre($member, $result) as $column) {
+                $result[$column]['effectif']++;
+                if ($age === null) {
+                    $result[$column]['age_inconnu']++;
+                } else {
+                    $ages[$column][] = $age;
                 }
             }
-            foreach ($member_columns as $column) {
-                $counts[$key][$column]++;
-                $total[$column]++;
+        }
+        foreach ($ages as $column => $values) {
+            $result[$column]['age_moyen'] = $this->moyenne($values);
+            $result[$column]['age_median'] = $this->mediane($values);
+        }
+        return $result;
+    }
+
+    /**
+     * Évolution de l'effectif du club sur les dernières années ayant des cotisations.
+     *
+     * @param array $members Tous les membres, avec leurs années de cotisation
+     * @param int $year Dernière année incluse
+     * @param int $nb_years Nombre maximal d'années
+     * @return array [année => [effectif, age_moyen, under_25, 25_to_59, 60_and_over, unknown]], années croissantes
+     */
+    public function evolution($members, $year, $nb_years = 10) {
+        $years = array();
+        foreach ($members as $member) {
+            foreach ($member['years'] as $y) {
+                if ($y <= $year) {
+                    $years[$y] = true;
+                }
             }
         }
+        $years = array_keys($years);
+        sort($years);
+        $years = array_slice($years, -$nb_years);
 
-        return array('counts' => $counts, 'total' => $total);
+        $result = array();
+        foreach ($years as $y) {
+            $row = array_merge(array('effectif' => 0, 'age_moyen' => null), array_fill_keys($this->cles_classes_reglementaires(), 0));
+            $ages = array();
+            foreach ($this->adherents_de_l_annee($members, $y) as $member) {
+                $age = $this->age_au_1er_janvier($member['mdaten'], $y);
+                $row['effectif']++;
+                $row[$this->classe_reglementaire($age)]++;
+                if ($age !== null) {
+                    $ages[] = $age;
+                }
+            }
+            $row['age_moyen'] = $this->moyenne($ages);
+            $result[$y] = $row;
+        }
+        return $result;
+    }
+
+    /**
+     * @param array $values
+     * @return float|null Moyenne arrondie à une décimale, null si vide
+     */
+    public function moyenne($values) {
+        return $values ? round(array_sum($values) / count($values), 1) : null;
+    }
+
+    /**
+     * @param array $values
+     * @return float|null Médiane (moyenne des deux valeurs centrales pour un effectif pair), null si vide
+     */
+    public function mediane($values) {
+        $n = count($values);
+        if ($n == 0) {
+            return null;
+        }
+        sort($values);
+        $middle = intdiv($n, 2);
+        return ($n % 2) ? (float) $values[$middle] : ($values[$middle - 1] + $values[$middle]) / 2.0;
     }
 
     /**
@@ -197,6 +317,50 @@ class Adherents_stats {
      */
     public function pourcentage($count, $total) {
         return $total ? (int) round(100 * $count / $total) : 0;
+    }
+
+    /**
+     * Répartition générique : une ligne par clé, une colonne par section + club_total.
+     */
+    private function repartition($adherents, $sections, $keys, $classify) {
+        $columns = $this->colonnes($sections);
+        $counts = array();
+        foreach ($keys as $key) {
+            $counts[$key] = array_fill_keys($columns, 0);
+        }
+        $total = array_fill_keys($columns, 0);
+
+        foreach ($adherents as $member) {
+            $key = $classify($member);
+            foreach ($this->colonnes_du_membre($member, $total) as $column) {
+                $counts[$key][$column]++;
+                $total[$column]++;
+            }
+        }
+
+        return array('counts' => $counts, 'total' => $total);
+    }
+
+    private function colonnes($sections) {
+        $columns = array();
+        foreach ($sections as $section) {
+            $columns[] = 'section_' . $section['id'];
+        }
+        $columns[] = 'club_total';
+        return $columns;
+    }
+
+    /**
+     * Colonnes où le membre est compté : club_total et chaque section existante où il a un compte.
+     */
+    private function colonnes_du_membre($member, $existing_columns) {
+        $columns = array('club_total');
+        foreach ($member['sections'] as $section_id) {
+            if (isset($existing_columns['section_' . $section_id])) {
+                $columns[] = 'section_' . $section_id;
+            }
+        }
+        return $columns;
     }
 
     private function classer($age, $bornes) {

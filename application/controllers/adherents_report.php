@@ -84,6 +84,10 @@ class Adherents_report extends MY_Controller {
             'classes_reglementaires' => $this->adherents_stats->repartition_par_age($adherents, $sections, $year, 'classe_reglementaire'),
             'tranches_10_ans' => $this->adherents_stats->repartition_par_age($adherents, $sections, $year, 'tranche_10_ans'),
             'age_inconnu' => $this->adherents_stats->adherents_age_inconnu($adherents, $year),
+            'sexes' => $this->adherents_stats->repartition_par_sexe($adherents, $sections),
+            'pyramide' => $this->adherents_stats->pyramide_des_ages($adherents, $year),
+            'indicateurs' => $this->adherents_stats->indicateurs($adherents, $sections, $year),
+            'evolution' => $this->adherents_stats->evolution($raw['members'], $year),
         );
 
         load_last_view('adherents_report/bs_page', $data);

@@ -54,7 +54,7 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
     - Somme des tranches (âge inconnu inclus) = total de chaque section et total club, vérifiée par les tests.
     - Page générée en environ 0,06 s ; pas de défilement horizontal de la page à 390 px de large.
 
-- [ ] 2. Lot 2 — Démographie et évolution (EF5, EF6, EF7, EF11) (2 j)
+- [x] 2. Lot 2 — Démographie et évolution (EF5, EF6, EF7, EF11) (2 j)
   - Actions :
     - Bibliothèque : répartition par sexe (avec « Non renseigné »), croisement sexe × tranche de 10 ans, âge moyen et médian par section et club.
     - Bibliothèque : série pluriannuelle sur les 10 dernières années ayant des cotisations (effectif, âge moyen, classes réglementaires).
@@ -64,6 +64,7 @@ Faire évoluer le rapport `adherents_report` en page « Statistiques adhérents 
     - Somme H + F + non renseigné = total de chaque colonne.
     - L'effectif de l'année sélectionnée dans la série pluriannuelle est égal au total club du lot 1.
     - Âge médian vérifié à la main sur une section de petite taille.
+    - Constat sur la base de développement : l'évolution reflète l'historique lacunaire des cotisations (1 à 4 adhérents de 2020 à 2024) ; une note sous le tableau avertit qu'une baisse brutale peut traduire des cotisations non saisies.
 
 - [ ] 3. Lot 3 — Fidélisation et ancienneté (EF8, EF9, EF11) (2,5 j)
   - Actions :

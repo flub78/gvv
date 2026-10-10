@@ -129,4 +129,31 @@ class AdherentsStatsIntegrationTest extends TransactionalTestCase
         $data = $this->model->get_adherents_data(1994);
         $this->assertSame(array(1994), $data['members'][$login]['years']);
     }
+
+    public function testIndicateursSexesEtEvolution()
+    {
+        $a = $this->create_member('1985-06-15', array(1994, self::YEAR));   // 8 ans en 1994, 9 ans en 1995
+        $b = $this->create_member('1935-06-15', array(self::YEAR));         // 59 ans
+        $this->create_member(null, array(self::YEAR));
+
+        $data = $this->model->get_adherents_data(self::YEAR);
+        $adherents = $this->stats->adherents_de_l_annee($data['members'], self::YEAR);
+        $col = 'section_' . $this->section_id;
+
+        $ind = $this->stats->indicateurs($adherents, $data['sections'], self::YEAR);
+        $this->assertSame(3, $ind[$col]['effectif']);
+        $this->assertSame(34.0, $ind[$col]['age_moyen']);
+        $this->assertSame(34.0, $ind[$col]['age_median']);
+        $this->assertSame(1, $ind[$col]['age_inconnu']);
+
+        $sexes = $this->stats->repartition_par_sexe($adherents, $data['sections']);
+        $this->assertSame(3, $sexes['counts']['sex_F']['club_total']);
+
+        $evolution = $this->stats->evolution($data['members'], self::YEAR);
+        $this->assertSame(array(1994, self::YEAR), array_keys($evolution));
+        $this->assertSame(1, $evolution[1994]['effectif']);
+        $this->assertSame(8.0, $evolution[1994]['age_moyen']);
+        $this->assertSame(3, $evolution[self::YEAR]['effectif']);
+        $this->assertSame(1, $evolution[self::YEAR]['unknown']);
+    }
 }

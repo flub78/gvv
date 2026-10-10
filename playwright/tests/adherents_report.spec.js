@@ -24,7 +24,7 @@ async function login(page, user) {
 
 /** Lit un tableau de répartition : { cléDeLigne: [valeurs par colonne] } et la ligne total */
 async function readRepartition(page, cardId) {
-    return page.locator(`#${cardId} table`).evaluate(table => {
+    return page.locator(`#${cardId} table`).first().evaluate(table => {
         const value = cell => parseInt(cell.innerText.trim().split(/\s/)[0], 10);
         const rows = {};
         table.querySelectorAll('tbody tr').forEach(tr => {
@@ -81,6 +81,33 @@ test.describe('Statistiques adhérents', () => {
             });
         }
         expect(tranches.rows.unknown).toEqual(regl.rows.unknown);
+    });
+
+    test('affiche indicateurs, répartition H/F, pyramide et évolution cohérents', async ({ page }) => {
+        await page.goto(REPORT_URL);
+        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('#indicateurs')).toBeVisible();
+        await expect(page.locator('#sexes')).toBeVisible();
+        await expect(page.locator('#evolution')).toBeVisible();
+        await expect(page.locator('#sexes tbody').first()).toContainText('Hommes');
+        await expect(page.locator('#pyramide_table tbody tr')).toHaveCount(9);
+        await expect(page.locator('canvas#pyramide_chart')).toBeVisible();
+
+        const regl = await readRepartition(page, 'classes_reglementaires');
+        const sexes = await readRepartition(page, 'sexes');
+        expect(sexes.total).toEqual(regl.total);
+
+        const effectifs = await page.locator('#indicateurs tr[data-indicateur="effectif"] td').evaluateAll(
+            tds => tds.slice(1).map(td => parseInt(td.innerText, 10)));
+        expect(effectifs).toEqual(regl.total);
+
+        // La dernière ligne de l'évolution correspond à l'année sélectionnée
+        const year = await page.locator('#year_selector').inputValue();
+        const lastRow = page.locator('#evolution tbody tr').last();
+        await expect(lastRow.locator('td').first()).toHaveText(year);
+        const clubTotal = regl.total[regl.total.length - 1];
+        await expect(lastRow.locator('td').nth(1)).toHaveText(String(clubTotal));
     });
 
     test('la liste des âges inconnus est accessible', async ({ page }) => {

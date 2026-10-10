@@ -48,6 +48,10 @@ $this->load->view('bs_banner');
         $section_names[$section['id']] = $section['nom'];
     }
 
+    $fmt_age = function ($age) {
+        return ($age === null) ? '—' : number_format($age, 1, ',', '');
+    };
+
     // Tableau de répartition : une ligne par classe, une colonne par section + total club
     $render_repartition = function ($repartition, $show_percent) use ($sections) {
         $CI = &get_instance();
@@ -145,6 +149,38 @@ $this->load->view('bs_banner');
         </div>
     <?php endif; ?>
 
+    <!-- Indicateurs -->
+    <div class="card mb-4" id="indicateurs">
+        <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_ind_title') ?></h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th></th>
+                            <?php foreach ($sections as $section): ?>
+                                <th class="text-center"><?= htmlspecialchars($section['nom']) ?></th>
+                            <?php endforeach; ?>
+                            <th class="text-center table-primary"><?= translation('gvv_adherents_report_club_total') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach (array('effectif', 'age_moyen', 'age_median', 'age_inconnu') as $indicateur): ?>
+                            <tr data-indicateur="<?= $indicateur ?>">
+                                <td><strong><?= translation('gvv_adherents_report_ind_' . $indicateur) ?></strong></td>
+                                <?php foreach ($indicateurs as $column => $values): ?>
+                                    <td class="text-center<?= ($column == 'club_total') ? ' table-primary fw-bold' : '' ?>">
+                                        <?= in_array($indicateur, array('age_moyen', 'age_median')) ? $fmt_age($values[$indicateur]) : $values[$indicateur] ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Classes d'âge réglementaires -->
     <div class="card mb-4" id="classes_reglementaires">
         <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_regl_title') ?></h5></div>
@@ -165,6 +201,86 @@ $this->load->view('bs_banner');
         </div>
     </div>
 
+    <!-- Hommes / femmes -->
+    <div class="card mb-4" id="sexes">
+        <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_sex_title') ?></h5></div>
+        <div class="card-body">
+            <?php $render_repartition($sexes, true); ?>
+
+            <h6 class="mt-4"><?= translation('gvv_adherents_report_pyramid_title') ?></h6>
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-sm" id="pyramide_table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><?= translation('gvv_adherents_report_col_tranche') ?></th>
+                                    <?php foreach (array_keys(reset($pyramide)) as $sex): ?>
+                                        <th class="text-center"><?= translation('gvv_adherents_report_' . $sex) ?></th>
+                                    <?php endforeach; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($pyramide as $tranche => $row): ?>
+                                    <tr class="<?= ($tranche == 'unknown') ? 'table-warning' : '' ?>">
+                                        <td><?= translation('gvv_adherents_report_' . $tranche) ?></td>
+                                        <?php foreach ($row as $count): ?>
+                                            <td class="text-center"><?= $count ?></td>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="pyramide_chart" aria-label="<?= htmlspecialchars(translation('gvv_adherents_report_pyramid_title')) ?>" role="img"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Évolution -->
+    <div class="card mb-4" id="evolution">
+        <div class="card-header"><h5 class="mb-0"><?= translation('gvv_adherents_report_evol_title') ?></h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><?= translation('gvv_adherents_report_col_year') ?></th>
+                            <th class="text-center"><?= translation('gvv_adherents_report_ind_effectif') ?></th>
+                            <th class="text-center"><?= translation('gvv_adherents_report_ind_age_moyen') ?></th>
+                            <?php foreach (array('under_25', '25_to_59', '60_and_over', 'unknown') as $classe): ?>
+                                <th class="text-center"><?= translation('gvv_adherents_report_' . $classe) ?></th>
+                            <?php endforeach; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($evolution as $evol_year => $row): ?>
+                            <tr class="<?= ($evol_year == $year) ? 'table-primary' : '' ?>">
+                                <td><strong><?= $evol_year ?></strong></td>
+                                <td class="text-center"><?= $row['effectif'] ?></td>
+                                <td class="text-center"><?= $fmt_age($row['age_moyen']) ?></td>
+                                <?php foreach (array('under_25', '25_to_59', '60_and_over', 'unknown') as $classe): ?>
+                                    <td class="text-center"><?= $row[$classe] ?></td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php if (count($evolution) > 1): ?>
+                <div style="position: relative; height: 300px; max-width: 900px;">
+                    <canvas id="evolution_chart" aria-label="<?= htmlspecialchars(translation('gvv_adherents_report_evol_title')) ?>" role="img"></canvas>
+                </div>
+            <?php endif; ?>
+            <p class="text-muted small mt-2 mb-0"><?= translation('gvv_adherents_report_evol_note') ?></p>
+        </div>
+    </div>
+
     <!-- Note explicative -->
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i>
@@ -182,6 +298,30 @@ foreach ($tranches_10_ans['counts'] as $key => $row) {
     }
     $chart_labels[] = translation('gvv_adherents_report_' . $key);
     $chart_values[] = $row['club_total'];
+}
+
+// Pyramide : tranches de la plus âgée à la plus jeune, hommes en valeurs négatives
+$pyramide_labels = array();
+$pyramide_hommes = array();
+$pyramide_femmes = array();
+foreach (array_reverse($pyramide, true) as $tranche => $row) {
+    if ($tranche == 'unknown') {
+        continue;
+    }
+    $pyramide_labels[] = translation('gvv_adherents_report_' . $tranche);
+    $pyramide_hommes[] = -$row['sex_M'];
+    $pyramide_femmes[] = $row['sex_F'];
+}
+
+// Axe symétrique autour de zéro
+$pyramide_max = max(1, max(array_merge(array_map('abs', $pyramide_hommes), $pyramide_femmes)));
+
+$evolution_years = array_map('strval', array_keys($evolution));
+$evolution_effectif = array();
+$evolution_age = array();
+foreach ($evolution as $row) {
+    $evolution_effectif[] = $row['effectif'];
+    $evolution_age[] = $row['age_moyen'];
 }
 ?>
 <script src="<?= js_url('chart.umd.min') ?>"></script>
@@ -208,6 +348,67 @@ document.addEventListener('DOMContentLoaded', function() {
             scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
+
+    var pyramide = document.getElementById('pyramide_chart');
+    if (pyramide) {
+        new Chart(pyramide, {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode($pyramide_labels) ?>,
+                datasets: [{
+                    label: <?= json_encode(translation('gvv_adherents_report_sex_M')) ?>,
+                    data: <?= json_encode($pyramide_hommes) ?>,
+                    backgroundColor: '#2a7ab0'
+                }, {
+                    label: <?= json_encode(translation('gvv_adherents_report_sex_F')) ?>,
+                    data: <?= json_encode($pyramide_femmes) ?>,
+                    backgroundColor: '#c0507a'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, min: -<?= $pyramide_max ?>, max: <?= $pyramide_max ?>, ticks: { precision: 0, callback: function(v) { return Math.abs(v); } } },
+                    y: { stacked: true }
+                },
+                plugins: {
+                    tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ' : ' + Math.abs(ctx.raw); } } }
+                }
+            }
+        });
+    }
+
+    var evolution = document.getElementById('evolution_chart');
+    if (evolution) {
+        new Chart(evolution, {
+            type: 'line',
+            data: {
+                labels: <?= json_encode($evolution_years) ?>,
+                datasets: [{
+                    label: <?= json_encode(translation('gvv_adherents_report_ind_effectif')) ?>,
+                    data: <?= json_encode($evolution_effectif) ?>,
+                    borderColor: '#2a7ab0',
+                    backgroundColor: '#2a7ab0',
+                    yAxisID: 'y'
+                }, {
+                    label: <?= json_encode(translation('gvv_adherents_report_ind_age_moyen')) ?>,
+                    data: <?= json_encode($evolution_age) ?>,
+                    borderColor: '#e08a1e',
+                    backgroundColor: '#e08a1e',
+                    borderDash: [6, 4],
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: <?= json_encode(translation('gvv_adherents_report_ind_effectif')) ?> } },
+                    y1: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: <?= json_encode(translation('gvv_adherents_report_ind_age_moyen')) ?> } }
+                }
+            }
+        });
+    }
 });
 </script>
 
