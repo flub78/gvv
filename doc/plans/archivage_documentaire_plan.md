@@ -1,6 +1,6 @@
 # Plan d’implémentation — Archivage Documentaire
 
-Date : 4 février 2026 — mis à jour le 22 février 2026 (suppression unique_per_entity)
+Date : 4 février 2026 — mis à jour le 12 octobre 2026 (Lot 5 : notifications et abonnements)
 
 ## Références
 - PRD : [doc/prds/archivage_documentaire_prd.md](doc/prds/archivage_documentaire_prd.md)
@@ -79,10 +79,87 @@ Livrer un module d’archivage documentaire conforme au PRD, réutilisant les m�
 - [x] Indicateurs visuels (expiré, proche, manquant, alerte désactivée) via Bootstrap 5
 - [x] Entrées de menu ajoutées dans `bs_menu.php` (Membres → Mes documents, Admin → Documents expirés)
 
-### Lot 5 — Notifications
-- [ ] Requête de détection des documents proches de l'expiration (excluant `alarm_disabled = 1`)
-- [ ] Tâche d'envoi d'alertes (cron/script existant ou nouveau)
-- [ ] Notification à la connexion (bannière ou alertes en UI)
+### Lot 5 — Notifications et abonnements
+
+Exigences : PRD §10 (notifications pilote, abonnements administrateurs, anti-spam). Conception : [gestion_alarmes_design.md § Lot 5](../design_notes/gestion_alarmes_design.md). Périmètre limité aux documents archivés ; l'intégration aux alarmes calculées via `AlarmAggregator` est reportée.
+
+**Hypothèses de réalisation**
+- Seuls les membres actifs génèrent des alertes ; `alarm_disabled = 1` et documents non approuvés sont exclus.
+- Les emails ne contiennent que des métadonnées et un lien vers GVV, jamais le fichier.
+- Redirection test via `test_intercept_email()`, comme les rappels de réservation.
+- Déclenchement sur le modèle de `reservation_scheduler` : entrée CLI pour le cron quotidien et URL protégée par un secret.
+- Première alerte pilote à `alert_days_before` du type de document (borné à 90 jours), puis calendrier du PRD §10.4.
+
+**5.1 — Détection** (0,5 j)
+- [x] Requêtes expirés / expiration proche excluant `alarm_disabled = 1` (`get_expired_documents()`, `get_expiring_soon_documents()`)
+- [ ] Filtrer les membres inactifs
+- [ ] Collecte des documents obligatoires manquants pour tous les membres actifs (réutilise `get_missing_documents()`)
+- [ ] Résolution des sections d'un document selon sa portée (cf. conception)
+
+**5.2 — Modèle de données** (1 j)
+- [ ] Migration `177_document_alarm_subscriptions.php` :
+  - table `document_alarm_subscriptions` (critères facultatifs, statuts surveillés, champs d'audit)
+  - table `notification_history` (champs d'audit inclus)
+  - colonnes `membres.doc_alarm_personal` et `membres.doc_alarm_digest_frequency`
+  - abonnement « tous documents » créé pour chaque `club-admin` actif ; supprimé au `down()`
+- [ ] `application/config/migration.php` → 177
+- [ ] Modèles `document_alarm_subscriptions_model.php` (CRUD + correspondance document ↔ abonnement) et `notification_history_model.php`
+- [ ] Métadonnées `Gvvmetadata.php` (sélecteurs type de document, section, document ; statuts surveillés ; fréquence)
+
+**5.3 — Bibliothèque `Notification_manager`** (2 j)
+- [ ] Alertes pilote : calendrier anti-spam évalué contre `notification_history`, respect de la désinscription
+- [ ] Synthèses abonnés : union des documents correspondant aux abonnements, contrôle des droits, dédoublonnage, fréquence hebdomadaire (lundi) ou quotidienne
+- [ ] Composition des emails HTML (alerte pilote ; synthèse groupée par section puis par statut, avec lien vers la liste admin)
+- [ ] Envoi, journalisation dans `notification_history` et dans les logs (`grep "GVV: DOCALARM"`), poursuite du traitement si un envoi échoue
+- [ ] Idempotence : une exécution répétée le même jour n'envoie rien de plus
+
+**5.4 — Déclencheur** (0,5 j)
+- [ ] Contrôleur `document_alarm_scheduler.php` : `cron()` (CLI uniquement) et `run($secret)` (URL publique, réponse JSON)
+- [ ] Secret `document_alarm_scheduler_secret` dans `program.php` et `program.example.php`
+- [ ] Ligne crontab d'exemple (quotidienne) dans l'en-tête du contrôleur et la doc utilisateur
+
+**5.5 — Gestion des abonnements** (2 j)
+- [ ] Contrôleur `document_alarm_subscriptions.php`, réservé aux rôles `ca`, `bureau`, `club-admin` : liste « Mes abonnements », création, modification, suppression ; réglage de la fréquence de synthèse sur la même page
+- [ ] Refus explicite (message d'erreur) d'un abonnement hors des droits de consultation de l'abonné
+- [ ] Bouton « S'abonner » sur la fiche document (`bs_view.php`), pré-remplissant l'abonnement sur ce document
+- [ ] Entrée de menu (Admin → Mes abonnements aux alarmes)
+- [ ] Liste admin des documents expirés (`bs_expired.php`) : badge « non couvert » sur les documents qu'aucun abonnement ne couvre
+- [ ] Formulaire membre (`membre/bs_formView.php`, à côté des préférences de rappel) : case de désinscription des alertes personnelles
+- [ ] Message de confirmation après chaque action
+
+**5.6 — Administration des abonnements** (1,5 j)
+- [ ] Page réservée à `club-admin` dans le même contrôleur : liste de tous les abonnements filtrable par abonné, type de document et section (`$this->gvvmetadata->table()`)
+- [ ] Création pour n'importe quel membre (sélecteur d'abonné), modification et suppression de n'importe quel abonnement
+- [ ] Validation des droits appliquée à l'abonné, avec message explicite en cas de refus
+- [ ] Colonne « créé par » sur « Mes abonnements » pour les abonnements créés par un administrateur
+- [ ] Entrée de menu (Admin → Abonnements aux alarmes)
+
+**5.7 — Bannière à la connexion** (1 j)
+- [ ] Dashboard (`welcome`) : alerte Bootstrap refermable listant les documents expirés, proches ou manquants du membre connecté, avec lien vers « Mes documents »
+- [ ] Pour les abonnés : alerte refermable indiquant le nombre de documents en alerte couverts par leurs abonnements, avec lien vers la liste admin
+- [ ] Pas de bannière quand il n'y a rien à signaler
+
+**5.8 — Langues** (0,5 j)
+- [ ] Libellés FR/EN/NL : emails, bannières, pages des abonnements (personnelle et administration), préférences, messages du scheduler
+
+**5.9 — Tests** (2,5 j)
+- [ ] PHPUnit MySQL `DocumentAlarmSubscriptionsModelTest.php` : CRUD, correspondance par type / section / document précis, résolution de section des documents pilote via `user_roles_per_section`, documents club, détection des documents non couverts, création pour un tiers (`created_by` ≠ abonné) et refus quand l'abonné n'a pas les droits
+- [ ] PHPUnit MySQL `NotificationManagerTest.php` : dédoublonnage multi-abonnements, contrôle des droits (dont retrait de rôle et types privés), fréquences, calendrier anti-spam pilote, désinscription, idempotence, exclusion des membres inactifs et des alertes désactivées ; envoi d'email bouchonné
+- [ ] PHPUnit migration 177 : up/down avec sauvegarde et restauration des colonnes `membres` et des abonnements existants
+- [ ] Toutes les fixtures sont créées et supprimées par les tests (y compris en cas d'échec), sans dépendance aux données existantes
+- [ ] Playwright `document-alarm-subscriptions-smoke.spec.js` : création / modification / suppression d'un abonnement, bouton « S'abonner », refus hors droits, page d'administration (accès `club-admin` seul, abonnement créé pour un autre membre visible dans sa liste avec son auteur), bannières pilote et abonné, déclenchement `run($secret)` (403 avec un mauvais secret, JSON avec le bon)
+- [ ] Smoke tests complets phpunit + playwright avant clôture
+
+**5.10 — Documentation** (0,5 j)
+- [ ] Guide utilisateur `doc/users/fr/19_alertes_documents.md` : alertes pilote, abonnements, administration des abonnements, configuration du cron et du secret
+
+**Estimation totale Lot 5 : ~12 jours.** Ressources : serveur de test gvv.net (redirection email `test_email` active), accès crontab pour la validation en conditions réelles.
+
+**Validation**
+- Un administrateur abonné aux certificats médicaux de la section ULM reçoit, dans la boîte de test, une synthèse ne contenant que ces documents ; un `club-admin` avec l'abonnement par défaut reçoit tout ; un abonnement créé par un `club-admin` pour un autre membre produit la même synthèse que s'il l'avait créé lui-même.
+- Un document couvert par deux abonnements d'une même personne n'apparaît qu'une fois.
+- Une deuxième exécution le même jour n'envoie aucun email supplémentaire.
+- Un document avec alerte désactivée n'apparaît ni dans les emails ni dans les bannières ; un document sans abonné est signalé dans la liste admin.
 
 ### Lot 6 — Internationalisation
 - [x] Ajouter les libellés FR/EN/NL — fichiers de langue créés dans `application/language/{french,english,dutch}/archived_documents_lang.php`

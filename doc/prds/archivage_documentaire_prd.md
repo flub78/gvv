@@ -1,6 +1,6 @@
 # PRD — Archivage Documentaire
 
-Date : 4 février 2026 — mis à jour le 22 février 2026 (suppression unique_per_entity)
+Date : 4 février 2026 — mis à jour le 12 octobre 2026 (abonnements aux alarmes documentaires)
 
 ## Contexte
 L’association doit archiver des documents liés aux pilotes et, potentiellement, à d’autres usages (documents club, déclarations d’activité, renouvellements, etc.). Les documents peuvent avoir une date de validité, être remplacés par des versions plus récentes, nécessiter une validation administrative et faire l’objet d’alertes d’expiration.
@@ -15,6 +15,8 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 - Conserver l'historique des versions lors d'un remplacement.
 - Exposer une liste dédiée des documents expirés pour les administrateurs.
 - Notifier avant l'expiration (email + notification à la connexion).
+- Permettre aux administrateurs de s'abonner aux alarmes des documents qui les concernent, et de gérer leurs abonnements.
+- Permettre à l'administrateur club de gérer les abonnements de tous les membres.
 - Permettre aux administrateurs de désactiver les alertes document par document.
 - Permettre la réutilisation du stockage pour un futur module d'acceptation de documents (PRD séparé).
 
@@ -38,15 +40,17 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
 ## Personae & rôles
 - **Pilote** : peut consulter ses documents, en ajouter, supprimer ses propres documents.
-- **Administrateur (membre du CA)** : accès à tous les documents, voit la liste des documents expirés, peut désactiver les alertes par document.
+- **Administrateur (membre du CA)** : accès à tous les documents, voit la liste des documents expirés, peut désactiver les alertes par document, gère ses abonnements aux alarmes documentaires.
+- **Administrateur club (`club-admin`)** : gère en plus les abonnements de tous les membres.
 - **Association/Club** : documents non liés à un pilote (documents club/sections).
 
 ## Parcours clés
 1. **Pilote ajoute un document** → choisit le type, saisit un libellé si nécessaire → document visible immédiatement dans sa liste.
-2. **Document arrive à expiration** → marqueur d'expiration affiché → alertes email envoyées → visible dans la liste "expirés" des administrateurs.
-3. **Administrateur désactive une alerte** → clic sur l'alerte du document → plus d'alertes pour ce document.
-4. **Edition d'un document** → l'utilisateur modifie le libellé, la description ou remplace le fichier en place → aucune nouvelle version créée → le document reste le même dans la chaîne.
-5. **Nouvelle version** → l'utilisateur clique "Nouvelle version" sur un document existant → un nouveau maillon est créé dans la chaîne → la nouvelle version devient active → les versions précédentes restent accessibles.
+2. **Document arrive à expiration** → marqueur d'expiration affiché → alerte email au pilote concerné et aux administrateurs abonnés → visible dans la liste "expirés" des administrateurs.
+3. **Administrateur s'abonne à des alarmes** → crée un abonnement (ex. certificats médicaux des pilotes de la section ULM, ou un document précis) → reçoit une synthèse email des documents correspondants → consulte, modifie ou supprime ses abonnements à tout moment.
+4. **Administrateur désactive une alerte** → clic sur l'alerte du document → plus d'alertes pour ce document.
+5. **Edition d'un document** → l'utilisateur modifie le libellé, la description ou remplace le fichier en place → aucune nouvelle version créée → le document reste le même dans la chaîne.
+6. **Nouvelle version** → l'utilisateur clique "Nouvelle version" sur un document existant → un nouveau maillon est créé dans la chaîne → la nouvelle version devient active → les versions précédentes restent accessibles.
 
 ## Exigences fonctionnelles
 1. **Ajout de documents par les administrateurs**
@@ -90,21 +94,34 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
    
    **10.1 Destinataires des notifications**
    
-   Le système de notifications fonctionne sur trois niveaux :
+   Le système de notifications fonctionne sur deux niveaux :
    
-   - **Notifications personnelles (pilote)** : Chaque pilote reçoit des alertes concernant ses propres documents (expiration proche, document manquant). Canal : email + bannière UI à la connexion.
+   - **Notifications personnelles (pilote)** : Chaque pilote reçoit des alertes concernant ses propres documents (expiration proche, expiré, document manquant). Canal : email + bannière UI à la connexion.
    
-   - **Notifications administratives (bureau/CA)** : Les membres du bureau et les administrateurs reçoivent des alertes groupées concernant tous les documents expirés ou manquants. Canal : email quotidien/hebdomadaire + bannière UI + liste dédiée.
+   - **Notifications par abonnement (administrateurs)** : Les administrateurs reçoivent une synthèse des documents correspondant à leurs abonnements (cf. 10.2). Canal : email de synthèse + bannière UI + liste dédiée.
    
-   - **Notifications section (optionnel, phase 2)** : Si le système de rôles le permet, les responsables de section peuvent recevoir des alertes concernant les documents de leur section.
+   **10.2 Abonnements aux alarmes**
    
-   **10.2 Mécanisme de souscription**
-   
-   Les notifications sont basées sur les rôles avec possibilité d'opt-out :
-   
-   - **Pilotes** : notifications automatiques pour leurs propres documents (peuvent désactiver dans leurs préférences)
-   - **Bureau/Admin** : notifications automatiques pour documents expirés/manquants (peuvent désactiver par type de notification)
-   - **Section** : opt-in pour recevoir les alertes de leur section
+   - Les notifications personnelles des pilotes sont automatiques ; un pilote peut s'en désinscrire dans ses préférences.
+   - Un administrateur s'abonne explicitement aux alarmes qui le concernent. Un abonnement combine des critères facultatifs (un critère non renseigné signifie « tous ») :
+     - type de document (ex. certificat médical),
+     - section (ex. ULM),
+     - document précis (ex. l'attestation d'assurance d'une machine),
+     - statuts surveillés : expiration proche, expiré, manquant.
+   - Exemples : « certificats médicaux des pilotes de la section ULM », « tous les documents de la section planeur », « ce document précis ».
+   - Pour un document de pilote, le critère de section porte sur les sections dans lesquelles le pilote est actif. Pour un document de section, il porte sur la section du document. Les documents club ne sont couverts que par les abonnements sans critère de section.
+   - Chaque administrateur dispose d'une page listant ses abonnements, depuis laquelle il peut les créer, les modifier et les supprimer. Un bouton « S'abonner » est disponible depuis la fiche d'un document.
+   - La fréquence de la synthèse email (hebdomadaire le lundi, ou quotidienne) est un réglage par personne, commun à tous ses abonnements. Un document couvert par plusieurs abonnements d'une même personne n'apparaît qu'une fois dans sa synthèse.
+   - Un administrateur ne peut s'abonner qu'aux documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
+   - Aucune alarme ne doit être perdue silencieusement :
+     - à la mise en service, les administrateurs `club-admin` reçoivent un abonnement couvrant tous les documents, qu'ils peuvent ensuite modifier ;
+     - la liste des documents expirés signale les documents qu'aucun abonnement ne couvre.
+   - Un administrateur club (`club-admin`) dispose d'une page de gestion de tous les abonnements :
+     - liste de tous les abonnements, filtrable par abonné, type de document et section ;
+     - création d'un abonnement pour n'importe quel membre, modification et suppression de n'importe quel abonnement ;
+     - un abonnement créé pour un membre qui n'a pas le droit de consulter les documents visés est refusé avec un message explicite.
+   - Un membre voit dans sa propre liste les abonnements créés pour lui par un administrateur, avec le nom de leur auteur, et peut les modifier ou les supprimer comme les siens. Aucun email n'est envoyé lors de cette création : la synthèse suivante en tient lieu.
+   - Hors périmètre phase 1 : les responsables de section non administrateurs.
    
    **10.3 Canaux de notification**
    
@@ -114,7 +131,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
    
    **10.4 Gestion des rappels et anti-spam**
    
-   Pour éviter de spammer les utilisateurs, le système applique des règles de fréquence basées sur l'urgence :
+   Pour éviter de spammer les pilotes, le système applique aux notifications personnelles des règles de fréquence basées sur l'urgence (les synthèses abonnés suivent la fréquence choisie par l'abonné) :
    
    - **90 jours avant expiration** : 1 notification initiale
    - **30 jours avant** : rappel si pas de notification depuis 15 jours
@@ -129,7 +146,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
    - **Document expire bientôt** : notification au pilote concerné selon le délai configuré dans le type de document
    - **Document expiré** : notification au pilote + ajout à la liste admin
    - **Document manquant** : pour les types obligatoires, notification si aucun document valide n'existe
-   - **Résumé administratif** : email groupé hebdomadaire (lundi) avec la liste complète des documents nécessitant attention
+   - **Synthèse abonné** : email groupé, hebdomadaire (lundi) ou quotidien selon le réglage de l'abonné, listant les documents correspondant à ses abonnements
    
    Le délai d'alerte est paramétrable par type de document (champ `alert_days_before` de la table `document_types`, valeur par défaut : 30 jours).
 **10.6 Infrastructure technique**
@@ -138,6 +155,7 @@ Le système de notifications s'appuie sur :
 
 - **Tâche CRON quotidienne** : détection des documents proches de l'expiration (excluant `alarm_disabled = 1`)
 - **Table `notification_history`** : traçabilité des notifications envoyées pour éviter les doublons
+- **Abonnements** : stockage des abonnements des administrateurs et de leurs critères
 - **Bibliothèque `Notification_manager`** : gestion centralisée de l'envoi et des règles de fréquence
 - **Templates email** : réutilisation de l'infrastructure existante (`application/libraries/Email.php`)
 

@@ -1,6 +1,6 @@
 # Design Notes — Gestion Générique des Alarmes
 
-Date : 30 mai 2026 — mis à jour le 30 mai 2026 (portée par section)
+Date : 30 mai 2026 — mis à jour le 12 octobre 2026 (Lot 5 documentaire sans agrégateur)
 
 ## Contexte et objectif
 
@@ -109,7 +109,45 @@ Le code existant n'est pas modifié en phase 1 — les providers sont des adapta
 
 ## Lot 5 — Notifications documentaires
 
-Le Lot 5 du plan `archivage_documentaire_plan.md` (notifications email et bannière UI) est en attente. Ce lot doit s'appuyer sur `AlarmAggregator` plutôt qu'accéder directement à `archived_documents_model`, afin que les emails de synthèse couvrent aussi les alarmes calculées.
+Décision du 12 octobre 2026 : le Lot 5 du plan `archivage_documentaire_plan.md` (notifications email et bannière UI) est livré pour les documents uniquement. Il s'appuie directement sur `archived_documents_model` via la bibliothèque `Notification_manager`, sans attendre `AlarmAggregator`.
+
+Lors de la mise en place de l'agrégateur, `Notification_manager` deviendra un consommateur de `AlarmAggregator` : la sélection des destinataires, l'anti-spam (`notification_history`) et la composition des emails restent inchangés, seule la source des alarmes change. Les synthèses couvriront alors aussi les alarmes calculées.
+
+### Abonnements
+
+Exigences : PRD archivage documentaire §10.2.
+
+![Schéma des abonnements](diagrams/abonnements_alarmes_documents.png)
+
+- **`document_alarm_subscriptions`** : un abonnement = un abonné + des critères facultatifs (type, section, document précis ; `NULL` = tous) + les statuts surveillés. Les critères se combinent en ET.
+- **Préférences sur `membres`** : désinscription des alertes personnelles du pilote, et fréquence de synthèse de l'abonné (réglage par personne, commun à tous ses abonnements).
+- **`notification_history`** : un enregistrement par envoi ; sert à l'anti-spam des alertes pilote, à l'idempotence des synthèses et à la traçabilité.
+
+**Résolution de la section d'un document** — utilisée pour confronter un document au critère de section :
+
+| Portée du document | Sections retenues |
+|---|---|
+| `pilot` | Sections où le pilote détient le rôle `user` (`user_roles_per_section`, règle « actif par section ») |
+| `section`, `machine` | `archived_documents.section_id`, à défaut `document_types.section_id` |
+| `club` | Aucune — seul un abonnement sans critère de section le couvre |
+
+**Calcul d'une synthèse** : documents en alerte (expirés, proches, manquants) → pour chaque abonné, union des documents qui satisfont au moins un de ses abonnements → filtrage par droits de consultation → dédoublonnage → un seul email.
+
+**Contrôle des droits** : porte toujours sur l'abonné, pas sur l'auteur de l'abonnement. Appliqué à la création ou modification d'un abonnement (y compris par un `club-admin` pour un tiers) et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet sans modifier les abonnements existants.
+
+**Gestion pour un tiers** : un abonnement créé par un `club-admin` pour un autre membre ne se distingue que par `created_by` ≠ `subscriber_login`. Aucune table ni statut supplémentaire ; la page personnelle et la page d'administration partagent le même modèle et les mêmes règles de validation, seul le périmètre des abonnements affichés diffère.
+
+**Couverture** : la même fonction de correspondance détermine, pour la liste admin des documents expirés, les documents qu'aucun abonnement ne couvre.
+
+### Composants
+
+| Responsabilité | Composant |
+|---|---|
+| Lecture des documents en alerte | `archived_documents_model` |
+| Stockage et correspondance des abonnements | `document_alarm_subscriptions_model` |
+| Destinataires, anti-spam, composition et envoi | `Notification_manager` |
+| Déclenchement (cron, URL à secret) | `document_alarm_scheduler` |
+| Gestion des abonnements : personnelle (tout abonné) et administration (`club-admin`, tous les membres) | `document_alarm_subscriptions` (contrôleur) |
 
 ---
 
