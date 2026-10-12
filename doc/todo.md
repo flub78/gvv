@@ -48,3 +48,4 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
 
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
+* avoir un bouton pour inverser les comptes dans une écriture comptable
