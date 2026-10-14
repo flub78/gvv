@@ -1417,9 +1417,9 @@ $this->load->view('bs_banner');
                     <div class="mb-3">
                         <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                         <select class="form-control" id="eventStatus" ${readOnlyAttr}>
-                            ${Object.entries(STATUSES).map(([code, props]) => {
-                                if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano) return '';
-                                return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
+                            ${Object.entries(STATUSES).map(([code, statusDef]) => {
+                                if (statusDef.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano && code !== status) return '';
+                                return `<option value="${code}" ${status === code ? 'selected' : ''}>${statusDef.label}</option>`;
                             }).join('')}
                         </select>
                     </div>
@@ -1487,7 +1487,7 @@ $this->load->view('bs_banner');
                 document.getElementById('eventStatus').addEventListener('change', function() {
                     updatePilotVisibility(this.value);
                 });
-                updatePilotVisibility(document.getElementById('eventStatus').value);
+                updatePilotVisibility(status);
 
                 console.log('Modal shown');
                 

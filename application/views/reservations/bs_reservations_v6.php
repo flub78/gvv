@@ -228,7 +228,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             const aircraftId = props.aircraft_id || props.aircraft || '';
             const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
             // auto_planchiste creating a new event: force pilot to self
-            const pilotId = props.pilot_member_id || (lockPilotToSelf ? CONFIG.currentUser : '');
+            const pilotId = props.pilot_member_id || (isCreate && lockPilotToSelf ? CONFIG.currentUser : '');
             const instructorId = props.instructor_member_id || '';
             const notes = props.notes || '';
             const status = props.status || Object.keys(STATUSES)[0];
@@ -305,9 +305,9 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 <div class="mb-3">
                     <label for="eventStatus" class="form-label"><strong>${TRANSLATIONS.form_status}:</strong></label>
                     <select class="form-control" id="eventStatus" ${roAttr}>
-                        ${Object.entries(STATUSES).map(([code, props]) => {
-                            if (props.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano) return '';
-                            return `<option value="${code}" ${status === code ? 'selected' : ''}>${props.label}</option>`;
+                        ${Object.entries(STATUSES).map(([code, statusDef]) => {
+                            if (statusDef.admin_only && CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers && !CONFIG.isMecano && code !== status) return '';
+                            return `<option value="${code}" ${status === code ? 'selected' : ''}>${statusDef.label}</option>`;
                         }).join('')}
                     </select>
                 </div>
@@ -340,7 +340,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             document.getElementById('eventStatus').addEventListener('change', function() {
                 updatePilotVisibility(this.value);
             });
-            updatePilotVisibility(document.getElementById('eventStatus').value);
+            updatePilotVisibility(status);
 
         } catch (error) {
             console.error('Error in displayEventModal:', error);
