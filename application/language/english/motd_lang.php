@@ -20,7 +20,7 @@ $lang['motd_field_target_list_id'] = 'Mailing list';
 $lang['motd_field_target_user_login'] = 'User';
 $lang['motd_field_origin'] = 'Origin';
 $lang['motd_field_recipient_count'] = 'Recipient count';
-$lang['motd_field_acknowledged_count'] = 'Acknowledged';
+$lang['motd_field_acknowledged_count'] = 'Read by';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -79,8 +79,10 @@ $lang['motd_replies_title'] = 'Replies';
 
 $lang['motd_action_hide'] = 'Hide';
 $lang['motd_action_hide_all'] = 'Hide all messages';
-$lang['motd_action_acknowledge'] = 'I acknowledge this message';
-$lang['motd_acknowledged_badge'] = 'Acknowledged';
+$lang['motd_action_acknowledge'] = 'Mark as read';
+$lang['motd_action_acknowledge_tooltip'] = 'Only records that you have read this message. It does not count as accepting a document.';
+$lang['motd_action_validate_document'] = 'Validate the document';
+$lang['motd_acknowledged_badge'] = 'Read';
 $lang['motd_reply_placeholder'] = 'Your reply...';
 $lang['motd_reply_submit'] = 'Reply';
 $lang['motd_reply_to_reply'] = 'Reply';

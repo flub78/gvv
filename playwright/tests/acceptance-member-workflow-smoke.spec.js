@@ -158,6 +158,17 @@ test.describe.serial('Acceptance member workflow smoke test', () => {
     const beforeAcceptBody = await page.textContent('body');
     expect(beforeAcceptBody).toContain(itemTitle);
 
+    // When the member did land on welcome, the item's message du jour must
+    // offer a single "Valider le document" action (no "Marquer comme lu",
+    // which would be mistaken for an acceptance).
+    const motdItem = page.locator('#motdAccordion .accordion-item', { hasText: itemTitle });
+    if (await motdItem.count() > 0) {
+      const validateBtn = motdItem.locator('.motd-validate-doc-btn');
+      await expect(validateBtn).toBeVisible();
+      await expect(validateBtn).toHaveAttribute('href', new RegExp('acceptance/read/' + itemId + '$'));
+      await expect(motdItem.locator('.motd-ack-btn')).toHaveCount(0);
+    }
+
     const [motdRowsBeforeAccept] = await conn.query(
       "SELECT id, dismissible FROM motd_messages WHERE source_type = 'acceptance_item' AND source_ref = ? AND target_user_login = ?",
       [String(itemId), MEMBER_USER.username]

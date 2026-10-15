@@ -20,7 +20,7 @@ $lang['motd_field_target_list_id'] = 'Mailinglijst';
 $lang['motd_field_target_user_login'] = 'Gebruiker';
 $lang['motd_field_origin'] = 'Oorsprong';
 $lang['motd_field_recipient_count'] = 'Aantal ontvangers';
-$lang['motd_field_acknowledged_count'] = 'Kennis genomen';
+$lang['motd_field_acknowledged_count'] = 'Gelezen door';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -79,8 +79,10 @@ $lang['motd_replies_title'] = 'Reacties';
 
 $lang['motd_action_hide'] = 'Verbergen';
 $lang['motd_action_hide_all'] = 'Alle berichten verbergen';
-$lang['motd_action_acknowledge'] = 'Ik heb hiervan kennis genomen';
-$lang['motd_acknowledged_badge'] = 'Kennis van genomen';
+$lang['motd_action_acknowledge'] = 'Markeren als gelezen';
+$lang['motd_action_acknowledge_tooltip'] = 'Geeft alleen aan dat u dit bericht hebt gelezen. Geldt niet als aanvaarding van een document.';
+$lang['motd_action_validate_document'] = 'Document valideren';
+$lang['motd_acknowledged_badge'] = 'Gelezen';
 $lang['motd_reply_placeholder'] = 'Uw reactie...';
 $lang['motd_reply_submit'] = 'Beantwoorden';
 $lang['motd_reply_to_reply'] = 'Beantwoorden';

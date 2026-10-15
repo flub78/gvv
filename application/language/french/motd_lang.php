@@ -20,7 +20,7 @@ $lang['motd_field_target_list_id'] = 'Liste de diffusion';
 $lang['motd_field_target_user_login'] = 'Utilisateur';
 $lang['motd_field_origin'] = 'Origine';
 $lang['motd_field_recipient_count'] = 'Nb. destinataires';
-$lang['motd_field_acknowledged_count'] = 'Pris connaissance';
+$lang['motd_field_acknowledged_count'] = 'Lu par';
 
 // field_long_name() looks these up (gvv_{table}_field_{field}) before
 // falling back to the DB column COMMENT, which would otherwise leak our
@@ -79,8 +79,10 @@ $lang['motd_replies_title'] = 'Réponses';
 
 $lang['motd_action_hide'] = 'Masquer';
 $lang['motd_action_hide_all'] = 'Masquer tous les messages';
-$lang['motd_action_acknowledge'] = "J'ai pris connaissance";
-$lang['motd_acknowledged_badge'] = 'Pris connaissance';
+$lang['motd_action_acknowledge'] = 'Marquer comme lu';
+$lang['motd_action_acknowledge_tooltip'] = "Indique seulement que vous avez lu ce message. Ne vaut pas acceptation d'un document.";
+$lang['motd_action_validate_document'] = 'Valider le document';
+$lang['motd_acknowledged_badge'] = 'Lu';
 $lang['motd_reply_placeholder'] = 'Votre réponse...';
 $lang['motd_reply_submit'] = 'Répondre';
 $lang['motd_reply_to_reply'] = 'Répondre';

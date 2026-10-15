@@ -2,7 +2,7 @@
  * Playwright smoke tests for user actions on Messages du jour (MOTD)
  *
  * Tests:
- * - Acknowledge a message ("j'ai pris connaissance") and reply to another
+ * - Acknowledge a message ("Marquer comme lu") and reply to another
  * - Hide a single message
  * - Admin replies to an existing reply (nested reply, visible to all)
  * - Hide all remaining active messages

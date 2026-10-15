@@ -106,8 +106,15 @@
                             <i class="fas fa-lock" aria-hidden="true"></i> <?= $this->lang->line('motd_not_dismissible_badge') ?>
                         </span>
                     <?php endif; ?>
-                    <?php if (empty($motd_message['acknowledged'])): ?>
-                        <button type="button" class="btn btn-sm btn-outline-success motd-ack-btn" data-message-id="<?= $motd_message['id'] ?>">
+                    <?php if (isset($motd_message['source_type']) && $motd_message['source_type'] === 'acceptance_item'): ?>
+                        <!-- Accepting/refusing the document deletes this message
+                             for the user, so no separate "read" action here. -->
+                        <a href="<?= site_url('acceptance/read/' . (int) $motd_message['source_ref']) ?>" class="btn btn-sm btn-primary motd-validate-doc-btn">
+                            <i class="fas fa-file-signature" aria-hidden="true"></i> <?= $this->lang->line('motd_action_validate_document') ?>
+                        </a>
+                    <?php elseif (empty($motd_message['acknowledged'])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-success motd-ack-btn" data-message-id="<?= $motd_message['id'] ?>"
+                                title="<?= htmlspecialchars($this->lang->line('motd_action_acknowledge_tooltip')) ?>">
                             <i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('motd_action_acknowledge') ?>
                         </button>
                     <?php else: ?>
