@@ -1,18 +1,12 @@
-# PRD : veille sécurité et réglementaire automatisée
+# PRD : newsletter de veille sécurité et réglementaire
 
 | | |
 |---|---|
-| **Version** | 0.2 (brouillon) |
-| **Date** | 14/10/2026 |
+| **Version** | 0.4 (brouillon) |
+| **Date** | 15/10/2026 |
 | **Auteur** | Frédéric Peignot, avec Claude |
 | **Statut** | À valider |
 | **Premier client** | Aéroclub d'Abbeville-Buigny-Baie de Somme (ACS), DTO FR.DTO.0645 |
-
-**Changements depuis la version 0.1 :**
-- la rédaction est confiée à un **agent périodique** qui n'accède aux données que par des serveurs MCP en lecture seule et n'a qu'une seule sortie, `save_draft` ;
-- un **relecteur IA sans outils** est ajouté ;
-- l'envoi passe par un **diffuseur déterministe** qui exige plusieurs conditions ;
-- un **mode « validation par veto »** est prévu pour après la période de rodage.
 
 ---
 
@@ -22,340 +16,357 @@ Un DTO doit assurer une veille réglementaire et sécurité (DTO.GEN.210, § B-9
 
 Aujourd'hui, cette veille est manuelle et dispersée :
 
-- **Les informations arrivent par de nombreux canaux** : la boîte `info@aeroclub-abbeville.fr` (IONOS), les boîtes personnelles du président, du RP et du CPS, les sites web (veilledoc.dsac.fr, EASA, BEA, Légifrance), les lettres des fédérations (FFA, FFVP, FFPLUM), et des REX transmis par des pilotes ou des amis.
-- **Personne n'a le temps de tout lire, trier et résumer** chaque mois.
-- **La diffusion aux membres est irrégulière.**
+- **Les informations arrivent par de nombreux canaux** : la boîte `info@aeroclub-abbeville.fr` (IONOS), les boîtes personnelles du président, du RP et du CPS, les sites et les flux des organismes officiels (veilledoc.dsac.fr, EASA, BEA, Légifrance), les lettres et les espaces licenciés des fédérations (FFA, FFVP, FFPLUM), et des REX transmis par des pilotes ou des amis.
+- **Personne n'a le temps de tout lire, trier et résumer** à chaque période.
+- **La diffusion aux membres est irrégulière** et peu attractive.
 - **La preuve de veille n'est pas archivée** de façon structurée.
+
+La newsletter répond à ces quatre points : elle centralise la veille, elle est rédigée automatiquement puis validée par un humain, elle est rendue attractive par des REX, des articles de membres et un quiz, et chaque édition constitue une trace datée de la veille.
 
 ## 2. Objectifs
 
 | # | Objectif | Indicateur |
 |---|---|---|
 | O1 | Collecter automatiquement les informations sécurité et réglementaires de toutes les sources | Au moins 95 % des éléments pertinents retenus, mesuré par un test rétroactif contre une liste de référence établie par le RP |
-| O2 | Produire chaque mois une lettre de synthèse utile pour les membres | Relecture en 30 min ou moins ; au moins 80 % des éléments jugés pertinents par le CPS |
-| O3 | Ne jamais diffuser d'information fausse ou malveillante | 0 lien hors liste autorisée ; aucune lettre envoyée sans que toutes les conditions de diffusion soient réunies (F9) |
-| O4 | Fournir une preuve de veille présentable en audit | Journal horodaté de chaque élément : source, date, décision, diffusion ; conservé au moins 36 mois |
-| O5 | Garantir la sécurité et la confidentialité | Aucun composant IA ne peut envoyer, supprimer, modifier une boîte ni ouvrir une URL libre ; le traitement est déclaré au registre RGPD |
+| O2 | Produire à chaque période une newsletter utile et agréable à lire pour les membres | Validation en 30 min ou moins ; au moins 80 % des articles proposés jugés pertinents par le validateur |
+| O3 | Ne jamais diffuser d'information fausse ou malveillante | 0 lien hors liste autorisée ; aucune newsletter envoyée sans validation humaine |
+| O4 | Fournir une preuve de veille présentable en audit | Journal horodaté de chaque information : source, date, décision, édition de diffusion ; conservé au moins 36 mois |
+| O5 | Garantir la sécurité et la confidentialité | L'agent IA ne peut que lire les sources et créer des fichiers de proposition : il ne peut ni envoyer, ni supprimer, ni modifier un mail, ni ouvrir une URL libre ; le traitement est déclaré au registre RGPD |
+| O6 | Faire participer les membres | Au moins une contribution de membre publiée par édition, après la phase de lancement |
 
 ### Hors objectifs (version 1)
 
 - Remplacer la responsabilité du représentant du DTO et du RP pour la veille.
 - Notifier des événements à l'autorité (ECCAIRS) : le système **signale** les événements à notifier, il ne les déclare pas.
 - Modifier automatiquement le manuel de sécurité : le système **propose** des modifications, il ne les fait pas.
-- Gérer des sources payantes ou sous identifiant (à prévoir en V2 si besoin).
+- Gérer des sources payantes (à prévoir en V2 si besoin).
+- Publier un article sans validation humaine.
 
-## 3. Utilisateurs
+## 3. Utilisateurs et acteurs
 
 | Rôle | Besoin |
 |---|---|
-| **CPS** (validateur principal) | Relire, corriger, valider ou mettre son veto sur la lettre |
-| **RP / représentant du DTO** | Voir les éléments réglementaires qui ont un impact sur le DTO ; consulter le journal de veille pour l'audit ; valider en suppléance |
-| **Administrateur technique** (Frédéric) | Configurer les sources, les règles et les clés ; surveiller le fonctionnement |
-| **Membres abonnés** | Recevoir une lettre courte et claire ; pouvoir se désabonner |
-| **Contributeurs** (pilotes, amis) | Envoyer facilement un REX ou une information à `securite@` |
+| **Administrateur** | Définir les sources et leurs identifiants d'accès, la périodicité de la newsletter, la description du DTO, les contributeurs autorisés ; gérer les abonnés (ajout, liste noire, validation des abonnements en option) ; surveiller le fonctionnement |
+| **Abonnés** (membres et sympathisants) | S'abonner, se désabonner, recevoir la newsletter par email à chaque période |
+| **Agent IA** (acteur automatique) | Analyser périodiquement les sources, filtrer les informations pertinentes, rédiger les articles et la proposition de newsletter |
+| **Validateur** (CPS, RP en suppléance) | Être informé qu'une proposition est disponible ; la valider globalement, valider ou rejeter chaque article, ou la modifier |
+| **Contributeurs** (personnes informées du mécanisme et, en option, abonnés) | Proposer un article par simple email, éventuellement illustré de photos |
+| **RP / représentant du DTO** | Voir les informations réglementaires qui ont un impact sur le DTO ; consulter le journal de veille pour l'audit |
 | **Auditeur DSAC** (indirect) | Constater que la veille existe, qu'elle est tracée et suivie d'effets |
 
-## 4. Principes d'architecture
+## 4. Principes
 
-1. **Chaque composant a le minimum de pouvoirs.** Un composant qui lit du contenu non fiable (mails, REX, PDF) ne peut pas agir sur le monde extérieur.
-2. **Les pouvoirs sont limités par les outils, pas par les consignes.** Un agent ne peut faire que ce que ses outils permettent ; les consignes dans les prompts ne sont qu'une protection secondaire.
-3. **Celui qui vérifie n'envoie pas, celui qui envoie ne lit pas de contenu non fiable.** Le relecteur IA n'a aucun outil, et le diffuseur est un script sans IA.
-4. **Pas de lecture web libre.** Les agents ne peuvent lire que des sources fixées à l'avance, ce qui supprime le canal de fuite par URL.
-5. **Les garanties fortes sont déterministes.** Contrôles par script, isolement des utilisateurs système, filtrage réseau. Les composants IA améliorent la qualité, ils ne portent pas la sécurité.
+1. **L'agent IA n'a que deux capacités** : consulter les sources en lecture seule et créer des fichiers de proposition dans un dossier dédié. Même compromis (par exemple par un mail piégé), il ne peut ni supprimer un mail, ni envoyer quoi que ce soit, ni agir ailleurs que dans ce dossier.
+2. **Les pouvoirs sont limités par les outils, pas par les consignes.** La lecture seule est garantie par le serveur MCP, pas par le prompt de l'agent.
+3. **Rien n'est diffusé sans validation humaine.** L'envoi est réalisé par un composant sans IA, déclenché uniquement par le validateur.
+4. **Pas de lecture web libre.** L'agent ne lit que des sources fixées à l'avance ; il ne peut pas ouvrir une URL de son choix.
+5. **Les garanties fortes sont déterministes** : contrôles par script, isolement des utilisateurs système, filtrage réseau. L'IA améliore la qualité, elle ne porte pas la sécurité.
 
-## 5. Périmètre fonctionnel
+## 5. Contenu de la newsletter
 
-### 5.1 Sources
+Chaque édition comprend, dans cet ordre :
 
-| Type | Exemples | Mode de collecte |
+1. **Un titre.**
+2. **La période couverte**, selon la périodicité fixée par l'administrateur, par exemple « mars-avril 2027 ».
+3. **Une introduction** présentant la newsletter : elle rassemble les informations sur les évolutions réglementaires et la sécurité des vols, elle est préparée avec une assistance automatisée et validée par le club.
+4. **Veille réglementaire** : une série d'articles. Chaque article contient :
+   - un titre ;
+   - une synthèse de l'information ;
+   - une description de sa source (émetteur, nature du document, date, lien).
+5. **REX et technique** : au choix de l'agent IA pour l'édition (F4.2),
+   - une sélection de REX ou de rapports d'accident, par exemple un REX planeur, un REX avion et un REX ULM ;
+   - ou un article technique sur une des activités pratiquées au club.
+6. **Articles des contributeurs** : les articles rédigés à partir des propositions reçues par email (F5), illustrés des photos jointes.
+7. **Quiz** : quelques questions courtes, soit sur l'article technique de l'édition, soit issues des programmes théoriques PPL, SPL et théorique ULM. Les réponses figurent en fin de newsletter.
+8. **Pied de page** : mention « Synthèse indicative, préparée avec une assistance automatisée et validée par le club. Seuls les textes officiels font foi. », lien de désinscription en un clic.
+
+Une section vide est omise (par exemple aucune contribution reçue sur la période).
+
+## 6. Périmètre fonctionnel
+
+### 6.1 Sources
+
+| Type | Exemples | Accès |
 |---|---|---|
-| Boîte de collecte | `veille@aeroclub-abbeville.fr` sur ratus80 (Dovecot) | Lecture seule (`EXAMINE` et `BODY.PEEK`) ou lecture directe du Maildir |
-| Copie de info@ | Tout le courrier de `info@` (IONOS) | `imapsync` de info@ vers veille@, historique compris |
-| Contributions volontaires | `securite@aeroclub-abbeville.fr`, formulaire web | Transfert vers veille@ |
-| Boîtes personnelles | RP, président, CPS | Règles de transfert filtrées par expéditeur, définies par chaque titulaire |
-| Flux RSS | EASA, BEA, fédérations (si disponibles) | Relevé périodique et archivage local, à partir d'une liste fermée |
-| Pages web | veilledoc.dsac.fr, pages d'actualité DSAC, Légifrance | Relevé périodique, détection des changements, à partir d'une liste fermée |
+| Boîte de collecte | `veille@aeroclub-abbeville.fr` sur ratus80 (Dovecot) | Lecture seule via le serveur MCP mail |
+| Copie de info@ | Tout le courrier de `info@` (IONOS), copié vers veille@ par `imapsync` | Idem |
+| Contributions | Emails envoyés à la boîte surveillée avec « proposition d'article » dans le sujet, par un contributeur autorisé (F5) | Idem |
+| Boîtes personnelles | RP, président, CPS | Règles de transfert vers veille@, filtrées par expéditeur, définies par chaque titulaire |
+| Flux RSS | EASA, BEA, DSAC, fédérations (selon disponibilité) | Lecture seule via le serveur MCP RSS, à partir d'une liste fermée |
+| Sites web publics | veilledoc.dsac.fr, pages d'actualité DSAC, Légifrance | Lecture seule via le serveur MCP web, à partir d'une liste fermée de pages |
+| Sites web avec identification | Espaces licenciés des fédérations (REX FFA, FFVP), espaces DTO | Idem, avec les identifiants saisis par l'administrateur, jamais accessibles à l'agent |
 
-### 5.2 Fonctionnalités
+La liste des sources et leurs identifiants d'accès sont définis par l'administrateur (F11).
 
-**F1. Collecte (sans IA)**
-- F1.1 Relève veille@, les flux et les pages selon un calendrier configurable (par défaut toutes les heures).
-- F1.2 N'ouvre jamais une boîte en écriture et ne modifie jamais la boîte source.
-- F1.3 Normalise chaque mail en texte brut (HTML retiré) avec ses métadonnées : expéditeur, date, sujet, `Message-ID`.
-- F1.4 Évite les doublons grâce au `Message-ID` ou à une empreinte du contenu.
-- F1.5 Archive localement les flux RSS et les pages, pour constituer progressivement un historique.
+### 6.2 Fonctionnalités
+
+**F1. Accès en lecture seule aux sources (serveurs MCP, sans IA)**
+
+Les serveurs MCP sont les seules interfaces entre l'agent IA et les sources.
+
+- F1.1 **Serveur MCP mail** : il permet de lister les mails d'une période, de lire leur texte normalisé (HTML retiré, métadonnées : expéditeur, date, sujet, `Message-ID`) et le texte extrait de leurs pièces jointes.
+- F1.2 Il garantit la lecture seule : la boîte est ouverte sans droit d'écriture, les mails ne sont jamais marqués lus, déplacés ou supprimés, et aucun outil d'écriture, d'envoi ou de suppression n'est exposé.
+- F1.3 **Serveur MCP RSS** : il permet de lister les flux configurés et de lire leurs entrées sur une période, à partir d'une archive locale relevée périodiquement.
+- F1.4 **Serveur MCP web** : il permet de lister les pages configurées et de lire leur contenu et leurs changements sur une période, à partir de relevés périodiques archivés localement. Pour les sites avec identification, la connexion est faite par la collecte avec les identifiants de l'administrateur ; l'agent ne voit que le texte des pages relevées.
+- F1.5 Aucun outil n'accepte une URL fournie par l'agent : seules les sources configurées sont accessibles.
+- F1.6 Les serveurs acceptent une période passée, pour le test rétroactif : ils ne renvoient alors que les éléments datés de cette période.
 
 **F2. Pièces jointes (sans IA)**
-- F2.1 Accepte uniquement les types autorisés (PDF, DOCX, XLSX, ODT, PNG, JPG) et une taille maximale configurable (20 Mo par défaut).
-- F2.2 Analyse chaque pièce jointe avec ClamAV (`clamdscan`). Une pièce infectée est mise en quarantaine et une alerte est envoyée à l'administrateur.
-- F2.3 Convertit en texte (`pdftotext`, `pandoc`) dans un environnement isolé, sans réseau et sans droits.
-- F2.4 Conserve l'original, avec son empreinte SHA-256, comme preuve de veille.
-- F2.5 (Option) Désarme les fichiers en convertissant les PDF en images puis de nouveau en PDF.
+- F2.1 Seuls les types autorisés sont traités (PDF, DOCX, ODT, XLSX, PNG, JPG) dans une taille maximale configurable (20 Mo par défaut).
+- F2.2 Chaque pièce jointe est analysée par un antivirus ; une pièce infectée n'est pas exposée à l'agent et une alerte est envoyée à l'administrateur.
+- F2.3 Les documents sont convertis en texte dans un environnement isolé, sans réseau.
+- F2.4 Les photos sont mises à disposition comme illustrations : l'agent les désigne par leur identifiant, il ne manipule pas leur contenu. Elles sont redimensionnées et leurs métadonnées (EXIF, géolocalisation) sont supprimées avant publication.
+- F2.5 L'original de chaque pièce jointe retenue est conservé avec son empreinte SHA-256, comme preuve de veille.
 
-**F3. Pré-tri (sans IA)**
-- F3.1 S'appuie sur une liste de retenue (expéditeurs officiels : DSAC, fédérations, EASA, BEA) et une liste d'exclusion (fournisseurs, banque, assurance, publicités).
-- F3.2 Seuls les cas indéterminés passent au classement par IA (F4).
+**F3. Analyse et filtrage par l'agent IA**
+- F3.1 L'agent est lancé périodiquement selon un calendrier fixé par l'administrateur (par défaut une fois par semaine), et à la demande pour les tests.
+- F3.2 À chaque exécution, il parcourt les nouveaux éléments des sources et retient ceux qui concernent l'évolution de la réglementation ou la sécurité des vols, pour les activités du club (avion, planeur, ULM).
+- F3.3 Pour chaque information pertinente, il rédige une synthèse et l'ajoute comme article de la proposition de newsletter de la période en cours.
+- F3.4 Il ne crée pas de doublon : une information déjà traitée dans la période, ou déjà publiée, n'est pas reprise.
+- F3.5 Il signale à part, sans les publier :
+  - les informations qui pourraient appeler une notification à l'autorité (§ H-6 du manuel) ;
+  - les informations qui pourraient appeler une modification du manuel, avec le chapitre concerné.
 
-**F4. Classement par IA, mail par mail (IA sans outils)**
-- F4.1 Envoie à l'IA uniquement l'expéditeur, le sujet et les 1 000 premiers caractères du texte, **un mail par appel**.
-- F4.2 Reçoit une réponse JSON : `{securite: bool, categorie, confiance, raison}`.
-- F4.3 Un script applique la décision : le mail va dans le dossier `retenus` ou dans le dossier `écartés`, conservé 30 jours puis supprimé.
-- F4.4 Envoie chaque mois au RP la liste des sujets écartés, pour un contrôle rapide.
-- F4.5 Les catégories sont : `reglementation`, `info_securite_officielle`, `rex`, `notam_aerodrome`, `navigabilite`, `formation`, `autre_securite`.
+**F4. Rédaction de la proposition de newsletter par l'agent IA**
+- F4.1 En fin de période, selon la périodicité fixée par l'administrateur, l'agent complète la proposition : titre, période couverte, introduction, sélection de REX ou article technique, quiz (§ 5).
+- F4.2 L'agent choisit entre une sélection de REX et un article technique selon ce qui lui semble le plus pertinent pour la période. Son choix s'appuie sur la description des activités et de l'historique du DTO saisie par l'administrateur (F11.4).
+- F4.3 Les articles de veille sont classés par impact pour le club, pas par date.
+- F4.4 Les REX sont anonymisés : pas de nom, pas d'immatriculation, pas de lieu précis, sauf accord de l'auteur. Ils sont présentés comme des témoignages, pas comme des règles.
+- F4.5 Le quiz comprend de 3 à 6 questions, avec leurs réponses et, pour chacune, la référence : article technique de l'édition, ou programme théorique PPL, SPL ou théorique ULM.
+- F4.6 Les liens cités doivent provenir des sources utilisées.
+- F4.7 Les propositions sont enregistrées comme fichiers dans un dossier dédié. L'agent ne peut que **créer** des fichiers dans ce dossier : il ne peut ni écraser, ni supprimer un fichier existant. Le nombre de fichiers créés par exécution est plafonné.
 
-**F5. Serveurs MCP (sans IA)**
+**F5. Propositions d'articles par email**
+- F5.1 Un contributeur autorisé propose un article en écrivant à la boîte surveillée avec les mots « proposition d'article » dans le sujet (sans tenir compte des majuscules ni des accents).
+- F5.2 Sont autorisées les adresses de la liste des contributeurs, c'est-à-dire des personnes informées du mécanisme, tenue par l'administrateur. En option, tous les abonnés sont aussi autorisés. Une adresse en liste noire n'est jamais autorisée.
+- F5.3 Une proposition venant d'une adresse non autorisée, ou dont l'authenticité de l'expéditeur n'est pas confirmée (SPF, DKIM, DMARC quand ils sont disponibles), n'est pas transmise à l'agent. Elle est tracée et l'administrateur peut la consulter.
+- F5.4 L'agent rédige l'article à partir du corps de l'email, en respectant le propos de l'auteur ; il peut le raccourcir et le mettre en forme.
+- F5.5 Les photos jointes à l'email illustrent l'article.
+- F5.6 L'article mentionne son auteur, sauf demande contraire de celui-ci.
+- F5.7 Un accusé de réception est envoyé au contributeur autorisé par un composant sans IA, puis il est informé de la publication ou du rejet de son article.
+- F5.8 Une proposition reçue trop tard pour la période en cours est reportée à l'édition suivante.
 
-Ce sont les seules interfaces entre l'agent rédacteur et les données.
+**F6. Contrôles automatiques (sans IA)**
 
-- F5.1 **`veille_mail`, en lecture seule.** Il n'expose que les éléments du dossier `retenus`, jamais la boîte complète. Outils :
-  - `list_items(since, until, category?)` : identifiant, date, expéditeur, sujet, catégorie ;
-  - `get_item(id)` : texte normalisé et liste des pièces jointes ;
-  - `get_attachment_text(id, n)` : texte extrait d'une pièce jointe saine (F2).
-- F5.2 **`veille_feeds`, en lecture seule.** Outils :
-  - `list_feeds()` ;
-  - `get_feed_items(feed_id, since, until)` : depuis l'archive locale (F1.5) ;
-  - `get_page_snapshot(page_id, date)`.
+Ils sont appliqués à chaque proposition créée par l'agent, puis à nouveau après chaque modification du validateur et avant l'envoi.
 
-  Aucun outil n'accepte une URL libre.
-- F5.3 **`veille_out`, en écriture contrainte.** Un seul outil, `save_draft(periode, json)` :
-  - il valide le JSON par rapport au schéma (§ 7.2) et applique les contrôles F7 ;
-  - il écrit dans `brouillons/` sous un nom de fichier choisi par le serveur (`AAAA-MM_vN.json`) ;
-  - il n'écrase rien et refuse au-delà de 5 brouillons par période ;
-  - il renvoie à l'agent la liste des erreurs, pour qu'il corrige.
-- F5.4 Aucun serveur MCP ne propose d'outil d'envoi, de suppression, de déplacement, de marquage ou de lecture web libre.
+- F6.1 La proposition respecte le format attendu (sections du § 5, champs obligatoires de chaque article).
+- F6.2 Liens : seules sont acceptées les URL présentes dans les sources citées **et** appartenant à la liste de domaines autorisés (annexe A).
+- F6.3 Chaque article de veille cite au moins une source existante dans la période.
+- F6.4 La taille est limitée : nombre maximal d'articles par section et longueur maximale par champ.
+- F6.5 Les données personnelles résiduelles (adresses mail, téléphones, immatriculations F-XXXX) sont repérées et signalées au validateur ; elles bloquent l'envoi tant qu'elles ne sont pas levées ou justifiées (auteur d'une contribution, par exemple).
+- F6.6 Une liste de motifs suspects est contrôlée : texte invisible, caractères de contrôle, sollicitations du type « cliquez », « identifiants », « virement ».
+- F6.7 Les illustrations référencées existent et ont passé l'antivirus (F2).
 
-**F6. Agent rédacteur (agent périodique)**
-- F6.1 Il est lancé par un timer systemd, une fois par mois (date configurable), et à la demande pour les tests.
-- F6.2 Il parcourt les éléments de la période avec `veille_mail` et `veille_feeds`, puis rédige la lettre et l'enregistre avec `save_draft`.
-- F6.3 Chaque élément de la lettre contient :
-  - un titre ;
-  - un résumé de 3 à 6 lignes ;
-  - « ce que ça change pour nous » ;
-  - le public concerné (avion, planeur, ULM, instructeurs, tous) ;
-  - l'urgence ;
-  - la ou les sources, avec l'identifiant interne et l'URL.
-- F6.4 La lettre est organisée en rubriques :
-  1. À retenir ce mois-ci ;
-  2. Réglementation ;
-  3. Informations sécurité officielles ;
-  4. Retours d'expérience (non officiels) ;
-  5. Vie du club / sécurité locale.
-- F6.5 Les REX sont anonymisés : pas de nom, pas d'immatriculation, pas de lieu précis, sauf mention d'accord.
-- F6.6 L'agent signale à part, dans la section `alertes` du JSON :
-  - les éléments qui pourraient appeler une notification à l'autorité (§ H-6 du manuel) ;
-  - les éléments qui pourraient appeler une modification du manuel, avec le chapitre concerné.
-- F6.7 Mode test rétroactif : l'agent reçoit une période passée, et les serveurs MCP ne renvoient que des éléments datés de cette période.
+**F7. Validation**
+- F7.1 Le validateur est informé par email qu'une nouvelle proposition de newsletter est disponible.
+- F7.2 L'écran de validation présente la newsletter mise en page, et pour chaque article ses sources et le résultat des contrôles F6. Les signalements F3.5 sont présentés à part.
+- F7.3 Le validateur peut :
+  - valider la newsletter globalement ;
+  - valider ou rejeter chaque article individuellement ;
+  - modifier la proposition : texte d'un article, ordre, ajout ou suppression d'un article, remplacement d'une question du quiz, choix des illustrations.
+- F7.4 Seuls les articles validés sont publiés. Un article rejeté reste tracé dans le journal (F10) avec la raison du rejet.
+- F7.5 Les contrôles F6 sont relancés après chaque modification ; l'envoi est impossible tant qu'un contrôle bloquant échoue.
+- F7.6 Une proposition non validée sous 15 jours déclenche une relance au validateur et à son suppléant.
 
-**F7. Contrôles automatiques (sans IA, dans `save_draft` puis à nouveau avant diffusion)**
-- F7.1 Le JSON doit respecter le schéma.
-- F7.2 Liens : seules sont acceptées les URL présentes dans les éléments sources cités **et** appartenant à la liste de domaines autorisés (annexe A).
-- F7.3 Chaque élément doit citer au moins une source existante dans la période.
-- F7.4 La lettre est limitée en taille : 12 éléments au plus, et une longueur maximale par champ.
-- F7.5 Les données personnelles résiduelles (adresses mail, téléphones, immatriculations F-XXXX) sont repérées par expression régulière et bloquent la lettre.
-- F7.6 Une liste de motifs suspects est contrôlée : texte invisible, caractères de contrôle, sollicitations du type « cliquez », « identifiants », « virement ».
+**F8. Diffusion (sans IA)**
+- F8.1 L'envoi n'est déclenché que par l'action de validation du validateur.
+- F8.2 La newsletter est mise en page avec un modèle fixe (HTML et texte), photos comprises.
+- F8.3 Les destinataires viennent uniquement de la liste des abonnés actifs (confirmés, validés si l'option est active, hors liste noire), jamais de la proposition. Le sujet suit un format fixe, du type `[Veille sécurité ACS] <période>`.
+- F8.4 Chaque envoi comprend un lien de désinscription en un clic.
+- F8.5 Chaque édition est archivée et consultable (page web ou PDF) sur le site de gestion.
 
-**F8. Relecteur IA (IA sans aucun outil)**
-- F8.1 Il est lancé par un script quand un brouillon passe les contrôles F7.
-- F8.2 Il reçoit le brouillon et les extraits de sources cités, et renvoie un JSON :
-  - `avis` : `ok` ou `a_revoir` ;
-  - `motifs` : la liste des problèmes relevés ;
-  - `elements_douteux` : les identifiants concernés.
-- F8.3 Il vérifie :
-  - la fidélité des résumés aux sources ;
-  - le ton ;
-  - l'absence de consignes adressées aux lecteurs qui ne viennent pas d'une source officielle ;
-  - l'absence de contenu promotionnel ou de manipulation ;
-  - l'anonymisation des REX.
-- F8.4 Il utilise un modèle ou un prompt différent de ceux du rédacteur. Il n'a aucun outil, aucun accès au réseau autre que l'API, aucun droit d'écriture : c'est le script qui enregistre son avis.
-- F8.5 Son avis est **une condition parmi d'autres**. Il ne déclenche jamais un envoi à lui seul.
-
-**F9. Validation et diffusion (diffuseur sans IA)**
-- F9.1 L'écran de validation présente la lettre mise en page, les sources, les résultats des contrôles F7 et l'avis du relecteur F8.
-- F9.2 Le validateur peut modifier, supprimer ou ajouter un élément. Après une modification, les contrôles F7 sont relancés.
-- F9.3 Il y a deux modes de diffusion, choisis par l'administrateur :
-  - **Validation explicite** (par défaut, obligatoire en phases P0 à P2) : la lettre part quand trois conditions sont réunies : les contrôles F7 sont OK, l'avis F8 est `ok`, et le CPS ou le RP a cliqué sur « Valider ».
-  - **Validation par veto** (à partir de la phase P3, sur décision du bureau) : les contrôles F7 sont OK et l'avis F8 est `ok`. Le brouillon est notifié au CPS et au RP, et part automatiquement après **48 h sans veto**. Si les contrôles ou le relecteur signalent un problème, le mode bascule en validation explicite.
-- F9.4 Le diffuseur met la lettre en page avec un modèle fixe (HTML et texte). Les destinataires viennent uniquement de la base des abonnés, jamais du brouillon. Le sujet suit un format fixe, du type `[Veille sécurité ACS] <mois>`.
-- F9.5 Envoi par SMTP ou par listmonk, avec un lien de désinscription en un clic.
-- F9.6 La lettre est publiée en PDF ou en page web dans les archives (site de gestion).
-- F9.7 Un brouillon non validé sous 15 jours, en mode explicite, déclenche une relance.
+**F9. Abonnements**
+- F9.1 Inscription par double confirmation (opt-in).
+- F9.2 En option (F11.6), l'abonnement doit être validé par l'administrateur. Il comporte alors une adresse email et un nom, et l'abonné n'est actif qu'après validation. Le demandeur est informé de l'acceptation ou du refus.
+- F9.3 Désinscription en un clic depuis la newsletter, ou depuis la page d'abonnement.
+- F9.4 Une adresse en liste noire ne peut pas s'abonner ; sa demande est refusée sans révéler la raison.
+- F9.5 Version 1 : liste propre au service. Version 2 : synchronisation avec les membres GVV.
 
 **F10. Journal de veille (pour l'audit)**
-- F10.1 Pour chaque élément : date de réception, source, décision (retenu ou écarté, avec la raison), lettre de diffusion, suite donnée (aucune, information, modification du manuel, notification).
-- F10.2 Pour chaque lettre : versions des brouillons, résultats des contrôles, avis du relecteur, validation ou veto (qui et quand), date d'envoi.
+- F10.1 Pour chaque information : date de réception, source, décision de l'agent (retenue ou non, avec la raison), décision du validateur, édition de diffusion, suite donnée (aucune, information, modification du manuel, notification).
+- F10.2 Pour chaque édition : propositions successives, résultats des contrôles, modifications et validation (qui et quand), date d'envoi, nombre de destinataires.
 - F10.3 Export PDF ou CSV par période, présentable à la DSAC.
 - F10.4 Conservation d'au moins 36 mois (cohérent avec l'AltMOC Alt/26/0006).
 
-**F11. Abonnements**
-- F11.1 Inscription et désinscription par double confirmation (opt-in).
-- F11.2 Version 1 : liste propre au service. Version 2 : synchronisation avec les membres GVV.
+**F11. Administration**
+- F11.1 **Sources** : l'administrateur ajoute, modifie, désactive les sources (boîtes mail, flux RSS, pages web publiques ou avec identification) et peut tester l'accès à chacune.
+- F11.2 **Identifiants d'accès** : il saisit les identifiants des boîtes et des sites. Ils sont stockés chiffrés, ne sont jamais réaffichés en clair et ne sont accessibles ni à l'agent ni au validateur.
+- F11.3 **Périodicité** : il fixe la périodicité de la newsletter (par exemple mensuelle, bimestrielle, trimestrielle), la date de clôture de chaque période et la fréquence d'exécution de l'agent.
+- F11.4 **Description du DTO** : il saisit une description des activités du DTO (avion, planeur, ULM, types de formation, terrain) et de son historique (incidents, thèmes de sécurité récurrents). Elle est fournie à l'agent pour orienter le filtrage et le choix entre REX et article technique.
+- F11.5 **Contributeurs** : il tient la liste des contributeurs autorisés et choisit si les abonnés sont également autorisés à contribuer.
+- F11.6 **Abonnés** : il peut ajouter ou retirer un abonné, mettre une adresse en liste noire ou l'en retirer, et activer l'option de validation des abonnements. Il valide ou refuse les demandes en attente.
+- F11.7 **Validateurs** : il désigne le validateur principal et son suppléant.
+- F11.8 **Supervision** : il consulte les journaux d'exécution de l'agent, les propositions non autorisées (F5.3), les alertes antivirus et la consommation du budget.
+- F11.9 Chaque modification de configuration est tracée (qui, quand, quoi), sans enregistrer les identifiants.
 
-## 6. Exigences de sécurité
+## 7. Exigences de sécurité
 
 | # | Exigence |
 |---|---|
-| S1 | **Séparation des rôles et des utilisateurs système** : `veille-collect` (collecte, pré-tri, pièces jointes), `veille-mcp` (serveurs MCP), `veille-agent` (rédacteur, classeur, relecteur), `veille-send` (diffuseur). Chacun n'a que ses propres secrets. |
-| S2 | **Agent rédacteur** : outils intégrés désactivés (`--tools ""`) ; seuls les serveurs MCP `veille_mail`, `veille_feeds` et `veille_out` sont chargés (`--bare`, `--strict-mcp-config`) ; tout le reste est refusé (`--permission-mode dontAsk`, `--permission-prompts none`) ; durée et coût plafonnés (`--max-turns`, `--max-budget-usd`). |
-| S3 | **Classeur et relecteur** : appels à l'API sans aucun outil déclaré. |
-| S4 | **Les serveurs MCP tournent comme services HTTP locaux** (`127.0.0.1`) sous l'utilisateur `veille-mcp`, avec un jeton d'accès. Ils ne sont **pas** lancés en stdio par l'agent, sinon ils tourneraient sous son utilisateur et il pourrait lire leurs secrets. |
-| S5 | **Pas de lecture web libre** : aucun outil n'accepte d'URL fournie par l'agent. Les flux et les pages viennent d'une liste fermée relevée par le collecteur. |
-| S6 | **Réseau sortant** : `veille-agent` ne peut joindre que l'API Anthropic et `127.0.0.1` (proxy en liste blanche ou nftables par utilisateur). Seul `veille-send` peut joindre le serveur SMTP. |
-| S7 | Aucun identifiant IMAP ou SMTP n'est accessible à `veille-agent` : secrets dans des fichiers `.env` aux droits 600, propriété de l'utilisateur concerné. |
-| S8 | Le contenu des sources est transmis comme une **donnée délimitée**, avec la consigne d'ignorer toute instruction qu'il contient. Protection secondaire : S1 à S7 suffisent à elles seules. |
-| S9 | Le classement se fait **mail par mail** (F4) : un mail piégé ne peut influencer que sa propre décision. L'agent rédacteur ne voit que les éléments retenus. |
-| S10 | Les pièces jointes passent par l'antivirus, sont converties dans un environnement isolé et filtrées par type (F2). |
-| S11 | Chaque exécution d'un agent est journalisée (sortie `--output-format json` : outils appelés, refus, coût). Le contenu n'est pas conservé au-delà de 30 jours. |
-| S12 | Un budget mensuel global plafonné coupe le système en cas de dépassement. |
+| S1 | **Séparation des utilisateurs système** : un utilisateur pour les serveurs MCP et la collecte, un pour l'agent IA, un pour l'application de validation et la diffusion. Chacun n'a que ses propres secrets. |
+| S2 | **Agent IA** : outils intégrés désactivés ; seuls les serveurs MCP de lecture (mail, RSS, web) et l'outil de création de proposition sont disponibles ; tout autre appel est refusé sans demande de confirmation ; durée et coût plafonnés par exécution. |
+| S3 | **Lecture seule garantie par le serveur MCP mail** : accès à la boîte sans droit d'écriture ; aucun outil d'envoi, de suppression, de déplacement ou de marquage n'existe. |
+| S4 | **Écriture limitée au dossier des propositions** : création de nouveaux fichiers uniquement, sans écrasement ni suppression, avec un nom choisi par le serveur et un quota par exécution. |
+| S5 | Les serveurs MCP tournent comme services locaux sous leur propre utilisateur, avec un jeton d'accès. Ils ne sont pas lancés par l'agent, pour qu'il ne puisse pas lire leurs secrets. |
+| S6 | **Pas de lecture web libre** : aucun outil n'accepte d'URL fournie par l'agent ; les flux RSS et les pages web viennent d'une liste fermée relevée par la collecte. |
+| S7 | **Réseau sortant** : l'agent ne peut joindre que l'API du modèle d'IA et les serveurs MCP locaux. Seule la collecte peut joindre les sources ; seul le composant de diffusion peut joindre le serveur SMTP. |
+| S8 | Aucun identifiant (IMAP, SMTP, sites web) n'est accessible à l'agent. Les identifiants des sources sont stockés chiffrés et ne sont lisibles que par la collecte. |
+| S9 | Le contenu des sources est transmis comme une **donnée délimitée**, avec la consigne d'ignorer toute instruction qu'il contient. Protection secondaire : S1 à S8 suffisent à elles seules. |
+| S10 | Les pièces jointes passent par l'antivirus, sont filtrées par type et converties dans un environnement isolé (F2). |
+| S11 | Chaque exécution de l'agent est journalisée (outils appelés, refus, coût). Le contenu n'est pas conservé au-delà de 30 jours. |
+| S12 | Un budget mensuel global plafonné coupe l'agent en cas de dépassement. |
 
 **Modèle de menace résiduel :**
-- un agent rédacteur compromis peut lire les éléments retenus de la période et écrire un mauvais brouillon. Il ne peut ni envoyer, ni supprimer, ni joindre une URL externe ;
-- un relecteur compromis peut rendre un faux avis `ok`. Les contrôles F7 et la validation humaine, ou la fenêtre de veto, restent en place ;
-- une injection conçue pour tromper à la fois le rédacteur et le relecteur est possible, car deux IA ne sont pas des protections indépendantes. D'où la validation humaine obligatoire tant que le système n'a pas fait ses preuves.
+- un agent compromis (par exemple par un mail ou une contribution piégés) peut lire les sources de la période et écrire une mauvaise proposition. Il ne peut ni envoyer, ni supprimer ou modifier un mail, ni modifier une proposition existante, ni joindre une URL externe ;
+- une mauvaise proposition est arrêtée par les contrôles F6 et par la validation humaine, qui reste obligatoire ;
+- une adresse d'expéditeur peut être usurpée, et un contributeur autorisé peut lui-même transmettre un contenu piégé : une contribution reste un contenu non fiable, publiée seulement après validation humaine ;
+- les identifiants des sites avec identification sont la donnée la plus sensible du service : ils ne sont jamais exposés à l'agent (S8), et un compte dédié en lecture seule est utilisé quand le site le permet.
 
-## 7. Architecture technique
+## 8. Architecture technique (indicative)
 
-### 7.1 Vue d'ensemble
+### 8.1 Vue d'ensemble
 
 ```
 info@ (IONOS) ──imapsync──┐
-securite@ ────────────────┤
-transferts personnels ────┼──► veille@ (Dovecot, ratus80)
-RSS / pages (liste fermée)┘
+contributions ────────────┼──► veille@ (Dovecot, ratus80)
+transferts personnels ────┘
+flux RSS (liste fermée) ──────┐
+sites web (liste fermée, ─────┼──► archive locale
+  avec ou sans identification)┘
                 │
-   [veille-collect] collecte · pré-tri · ClamAV · conversion isolée
+   [collecte] identifiants · antivirus · conversion isolée · photos nettoyées
+              · filtrage des contributeurs
                 │
-   [classeur IA, sans outils, mail par mail] ──► écartés (30 j)
-                │ retenus
+   serveurs MCP locaux :
+     mail · rss · web (lecture seule) · propositions (création de fichiers)
                 │
-   [veille-mcp] serveurs MCP HTTP locaux :
-     veille_mail (lecture) · veille_feeds (lecture) · veille_out (save_draft)
+   [agent IA périodique] analyse · filtre · rédige
+                │ création de fichiers uniquement
+          propositions/<période>/
                 │
-   [veille-agent] agent rédacteur périodique (claude -p, timer systemd)
-                │ save_draft
-          brouillons/AAAA-MM_vN.json
+   contrôles F6 (script) ──► notification au validateur
                 │
-   contrôles F7 (script) ──► [relecteur IA, sans outils] ──► avis
+   écran de validation : globale · par article · modification
                 │
-   écran de validation : validation explicite ou veto 48 h
-                │
-   [veille-send] diffuseur (script) ──► abonnés · archives · journal
+   [diffusion] (script) ──► abonnés · archives · journal
+
+   écran d'administration : sources · identifiants · périodicité ·
+     description du DTO · contributeurs · abonnés · liste noire
 ```
 
-### 7.2 Format de sortie du rédacteur (extrait)
+### 8.2 Format d'une proposition (extrait)
 
 ```json
 {
-  "periode": "2026-09",
-  "elements": [
+  "periode": "2027-03/2027-04",
+  "titre": "…",
+  "introduction": "…",
+  "veille_reglementaire": [
     {
       "id_sources": ["msg:abc123", "rss:easa:456"],
-      "rubrique": "reglementation",
-      "titre": "Règlement (UE) 2024/2076 : remise à niveau SEP précisée",
-      "resume": "…",
-      "impact_acs": "…",
-      "public": ["avion", "instructeurs"],
-      "urgence": "normale",
-      "liens": ["https://www.ecologie.gouv.fr/…"]
+      "titre": "…",
+      "synthese": "…",
+      "source": "EASA, décision de l'agence du …",
+      "liens": ["https://www.easa.europa.eu/…"]
     }
   ],
-  "alertes": {
+  "rex_technique": {
+    "type": "rex",
+    "articles": [
+      {"activite": "planeur", "titre": "…", "synthese": "…", "source": "…", "id_sources": ["…"]}
+    ]
+  },
+  "contributions": [
+    {"id_source": "msg:def789", "auteur": "…", "titre": "…", "texte": "…", "illustrations": ["pj:def789:1"]}
+  ],
+  "quiz": [
+    {"question": "…", "choix": ["…", "…", "…"], "reponse": 1, "reference": "programme SPL, météorologie"}
+  ],
+  "signalements": {
     "notification_possible": [],
     "modification_manuel": [{"chapitre": "E-9", "objet": "…"}]
   }
 }
 ```
 
-### 7.3 Lancement de l'agent rédacteur (exemple)
+### 8.3 Pile envisagée
 
-```bash
-# /etc/systemd/system/veille-rediger.service (User=veille-agent), déclenché par un timer mensuel
-claude --bare -p "$(cat /opt/veille/prompts/redacteur.md) Période : ${PERIODE}" \
-  --tools "" \
-  --strict-mcp-config --mcp-config /opt/veille/mcp.json \
-  --allowedTools "mcp__veille_mail__*" "mcp__veille_feeds__*" "mcp__veille_out__save_draft" \
-  --permission-mode dontAsk --permission-prompts none \
-  --max-turns 60 --max-budget-usd 3 \
-  --no-session-persistence --output-format json \
-  > /var/log/veille/rediger-${PERIODE}.json
-```
+- **Agent IA** : Claude Code en mode non interactif (`claude -p`) ou Agent SDK, lancé par un timer systemd, avec uniquement les serveurs MCP du service (`--tools ""`, `--strict-mcp-config`, `--allowedTools`, `--permission-mode dontAsk`, `--max-turns`, `--max-budget-usd`).
+- **Serveurs MCP** : Python (SDK MCP officiel) ou PHP, en HTTP local avec jeton.
+- **Application** : administration, validation, abonnements, diffusion et journal (Laravel sur ratus80, ou module GVV).
+- **Relevé des sites web** : client HTTP pour les pages publiques ; navigateur automatisé (Playwright) pour les sites avec identification.
+- **Messagerie** : Dovecot pour veille@, `imapsync` pour la copie de info@ ; envoi par le SMTP du domaine ou listmonk.
+- **Antivirus et conversion** : ClamAV ; `pdftotext` et `pandoc` dans `bubblewrap` ou `firejail`.
 
-Le fichier `mcp.json` déclare les trois serveurs en HTTP local (`http://127.0.0.1:87xx/mcp`), chacun avec son jeton. L'authentification à l'API se fait par `ANTHROPIC_API_KEY`, propre à `veille-agent`. Variante possible : un script Agent SDK (Python ou TypeScript) avec les mêmes restrictions (`allowed_tools`, `disallowed_tools`, `permission_mode`).
+### 8.4 Volumétrie et coûts estimés
 
-### 7.4 Pile technique
+- info@ : quelques centaines de mails par mois.
+- Coût de l'IA : estimé à quelques euros par mois au plus. À confirmer avec les tarifs en vigueur de l'API.
 
-- **Application** : Laravel (base Laraskel) sur ratus80 (Hestia, PHP-FPM), pour la base, l'écran de validation, le diffuseur, les abonnés et le journal.
-- **Commandes** : `veille:collecter`, `veille:classer`, `veille:controler`, `veille:relire`, `veille:diffuser`, `veille:purger`.
-- **Serveurs MCP** : Python (SDK MCP officiel, FastMCP) ou PHP. Transport HTTP local, jeton par serveur, sous l'utilisateur `veille-mcp`.
-- **Agent rédacteur** : Claude Code en mode non interactif (`claude -p`) ou Agent SDK, lancé par un timer systemd.
-- **IA** : un petit modèle (Haiku) pour le classement ; un modèle plus capable (Sonnet) pour la rédaction ; un modèle ou un prompt différent pour la relecture.
-- **Messagerie** : Dovecot sous Hestia pour veille@ ; `imapsync` pour la copie de info@.
-- **Antivirus et conversion** : ClamAV (`clamd`, `freshclam`) ; `pdftotext` et `pandoc` dans `bubblewrap` ou `firejail`.
-- **Envoi** : SMTP du domaine, ou listmonk.
-- **Données** : MySQL ou SQLite. Tables : `sources`, `elements`, `pieces_jointes`, `decisions`, `brouillons`, `controles`, `avis_relecteur`, `validations`, `lettres`, `abonnes`, `journal_ia`.
+## 9. RGPD et conformité
 
-### 7.5 Volumétrie et coûts estimés
-
-- info@ : quelques centaines de mails par mois, dont environ 10 à 20 % classés par l'IA après le pré-tri.
-- Coût de l'IA (classement, rédaction et relecture) : estimé à quelques euros par mois au plus. À confirmer avec les tarifs en vigueur de l'API.
-
-## 8. RGPD et conformité
-
-- **Traitement à inscrire au registre** du club. Finalité : veille sécurité et information des membres. Base légale : intérêt légitime (sécurité des vols, obligation DTO.GEN.210). Sous-traitant : Anthropic (API). Durées : 30 jours pour les mails écartés et les journaux d'exécution, 36 mois pour les éléments retenus et le journal de veille.
-- **Décision du bureau** pour la copie intégrale de info@ et pour le passage en validation par veto ; **information des membres**.
-- **Minimisation** : seuls des extraits sont envoyés à l'IA pour le classement, et l'agent rédacteur ne voit que les éléments retenus.
+- **Traitement à inscrire au registre** du club. Finalité : veille sécurité et information des membres. Base légale : intérêt légitime (sécurité des vols, obligation DTO.GEN.210) ; consentement pour l'abonnement. Sous-traitant : Anthropic (API). Durées : 30 jours pour les journaux d'exécution, 36 mois pour le journal de veille et les éditions.
+- **Décision du bureau** pour la copie intégrale de info@ ; **information des membres**.
+- **Minimisation** : l'agent ne lit que la boîte de collecte et les flux et pages configurés.
+- **Abonnés** : nom (si la validation des abonnements est active) et adresse email, conservés jusqu'à la désinscription. La liste noire ne conserve que l'adresse et la date d'inscription sur la liste.
+- **Sites avec identification** : respect des conditions d'utilisation de chaque site ; le contenu réservé n'est que résumé, jamais reproduit.
 - **Anonymisation** des REX ; accord de l'auteur avant de publier un REX venu d'un membre.
-- **Droits sur les contenus** : résumer et renvoyer vers la source. Pas de republication intégrale, en particulier pour les contenus réservés aux licenciés (REX FFA).
-- **Mention dans chaque lettre** : « Synthèse indicative, préparée avec une assistance automatisée et validée par le CPS. Seuls les textes officiels font foi. »
+- **Contributions** : l'envoi d'une proposition vaut accord de publication après validation ; l'auteur peut demander à ne pas être nommé ou retirer son article avant l'envoi.
+- **Droit à l'image** : une photo montrant des personnes identifiables n'est publiée qu'avec leur accord, vérifié par le validateur.
+- **Droits sur les contenus** : résumer et renvoyer vers la source. Pas de republication intégrale, en particulier pour les contenus réservés aux licenciés (REX FFA). Les questions de quiz sont rédigées, pas copiées de banques de questions protégées.
 
-## 9. Plan de livraison
+## 10. Plan de livraison
 
 | Phase | Contenu | Critère de sortie |
 |---|---|---|
-| **P0. Test rétroactif** (2 semaines) | `imapsync` de l'historique de info@ (juillet à septembre 2026), serveurs MCP en mode période, rédaction de 3 lettres de test, comparaison avec la liste de référence du RP | Rappel ≥ 90 %, précision ≥ 70 %, aucune erreur de fond, aucun refus de permission inattendu dans les journaux |
-| **P1. MVP ACS** (1 à 2 mois) | F1 à F10 ; validation explicite ; envoi à un groupe pilote (bureau et instructeurs) | 3 lettres validées, relecture ≤ 30 min chacune |
-| **P2. Ouverture aux membres** | Envoi à tous les abonnés ; ajout de `securite@` et du formulaire ; validation explicite maintenue | Désabonnements < 5 % ; avis du relecteur concordant avec le CPS sur au moins 90 % des éléments |
-| **P3. Validation par veto** (sur décision du bureau) | Passage au mode veto 48 h (F9.3) | 6 mois sans correction de fond par le CPS ; aucun incident de sécurité |
-| **P4. Service mutualisé** (option) | Service central (sources publiques, multi-locataire) et module club (sources privées) ; module GVV ; profils DTO | 3 à 5 clubs pilotes satisfaits ; décision sur la monétisation |
+| **P0. Test rétroactif** (2 semaines) | Copie de l'historique de info@ (juillet à septembre 2026), serveurs MCP en mode période, rédaction de 2 newsletters de test, comparaison avec la liste de référence du RP | Rappel ≥ 90 %, précision ≥ 70 %, aucune erreur de fond, aucun refus de permission inattendu dans les journaux |
+| **P1. MVP ACS** (1 à 2 mois) | Veille réglementaire, REX, quiz, validation, diffusion, journal ; envoi à un groupe pilote (bureau et instructeurs) | 2 éditions validées, validation ≤ 30 min chacune |
+| **P2. Ouverture aux membres** | Envoi à tous les abonnés ; ouverture des propositions d'articles par email | Désabonnements < 5 % ; au moins une contribution publiée par édition |
+| **P3. Service mutualisé** (option) | Service central (sources publiques, multi-clubs) et module club (sources privées) ; module GVV | 3 à 5 clubs pilotes satisfaits ; décision sur la monétisation |
 
-## 10. Risques
+## 11. Risques
 
 | Risque | Impact | Parade |
 |---|---|---|
-| Information fausse ou mal résumée | Élevé | Relecteur IA, validation humaine ou veto, lien vers la source, mention « seuls les textes officiels font foi » |
-| Mail piégé (injection de prompt) | Moyen | Outils limités par conception (F5, S2 à S7), classement mail par mail, pas de lecture web libre, contrôles F7, relecteur, validation humaine |
-| Injection qui trompe à la fois le rédacteur et le relecteur | Moyen | Contrôles déterministes F7 ; validation explicite tant que P3 n'est pas atteint ; relecteur avec un modèle ou un prompt différent |
-| Agent qui contourne ses permissions | Faible | Aucun outil dangereux n'existe (F5.4) ; utilisateurs système séparés (S1, S4) ; filtrage réseau (S6) |
-| Fuite de données par URL | Faible | Aucun outil n'accepte d'URL libre (S5) ; réseau sortant limité à l'API (S6) |
-| Pièce jointe malveillante | Moyen | ClamAV, liste de types, conversion isolée, désarmement en option |
-| Élément important écarté à tort | Moyen | Liste de retenue des expéditeurs officiels, dossier « écartés » sur 30 jours, contrôle mensuel |
-| Fuite de données personnelles dans la lettre | Élevé | Minimisation, anonymisation, contrôle F7.5 bloquant, relecteur, RGPD (§ 8) |
-| Validateur indisponible | Faible | Relance à 15 jours, suppléant (RP), mode veto en phase P3 |
-| Coût de l'IA qui dérape | Faible | `--max-budget-usd` par exécution et budget mensuel global (S12) |
-| Changement d'API, de modèle ou de CLI | Faible | Tests de non-régression sur le jeu P0 ; version de Claude Code figée et mise à jour contrôlée |
+| Information fausse ou mal résumée | Élevé | Description et lien de la source dans chaque article, validation humaine, mention « seuls les textes officiels font foi » |
+| Mail ou contribution piégés (injection de prompt) | Moyen | Capacités de l'agent limitées par conception (S2 à S8), pas de lecture web libre, contrôles F6, validation humaine |
+| Contribution malveillante, diffamatoire ou hors sujet | Moyen | Contributeurs autorisés uniquement, vérification de l'expéditeur, liste noire, validation humaine article par article |
+| Fuite des identifiants d'un site avec identification | Élevé | Stockage chiffré, lisibles par la collecte seule (S8), compte dédié en lecture seule si possible |
+| Site web modifié qui casse le relevé | Moyen | Test d'accès par source (F11.1), alerte à l'administrateur en cas d'échec ou de page vide |
+| Photo inappropriée ou portant atteinte au droit à l'image | Moyen | Antivirus, nettoyage des métadonnées, choix des illustrations par le validateur |
+| Quiz avec une réponse fausse | Moyen | Référence de chaque question, relecture du validateur |
+| Agent qui contourne ses permissions | Faible | Aucun outil dangereux n'existe (F1.2, F1.5, F4.7) ; utilisateurs système séparés (S1, S5) ; filtrage réseau (S7) |
+| Fuite de données par URL | Faible | Aucun outil n'accepte d'URL libre (S6) ; réseau sortant limité (S7) |
+| Pièce jointe malveillante | Moyen | Antivirus, liste de types, conversion isolée |
+| Information importante non retenue par l'agent | Moyen | Journal des éléments non retenus consultable par le RP, test rétroactif P0 |
+| Fuite de données personnelles dans la newsletter | Élevé | Anonymisation, contrôle F6.5, validation humaine, RGPD (§ 9) |
+| Validateur indisponible | Moyen | Relance à 15 jours, suppléant (RP) |
+| Coût de l'IA qui dérape | Faible | Plafond par exécution et budget mensuel global (S12) |
+| Changement d'API, de modèle ou de CLI | Faible | Tests de non-régression sur le jeu P0 ; version figée et mise à jour contrôlée |
 
-## 11. Questions ouvertes
+## 12. Questions ouvertes
 
-1. Qui est le validateur principal : le CPS, ou le RP en suppléance ?
-2. Quel jour d'envoi chaque mois ?
-3. Faut-il une alerte immédiate, hors lettre mensuelle, pour les informations urgentes (consigne de navigabilité urgente, NOTAM local) ? Si oui, avec quel mode de validation ?
-4. Sera-t-elle publiée sur le site de gestion, en accès public ou réservé aux membres ?
-5. Quand faut-il synchroniser les abonnés avec GVV : dès la version 1, ou en version 2 ?
-6. Le bureau valide-t-il la copie intégrale de info@ ?
-7. Quels flux RSS et pages web retenir ? Il faut inventorier les sources effectivement disponibles.
-8. Faut-il ajouter au § B-9 du manuel une mention de l'outil comme moyen de veille ?
-9. En quel langage écrire les serveurs MCP : Python, plus simple avec le SDK officiel, ou PHP, pour rester proche de Laraskel ?
-10. Faut-il passer au mode veto (P3), et à quelles conditions exactes ?
+1. Qui est le validateur principal : le CPS, avec le RP en suppléance ?
+2. Faut-il une alerte immédiate, hors newsletter, pour les informations urgentes (consigne de navigabilité urgente, NOTAM local) ? Si oui, avec quel mode de validation ?
+3. Les archives sont-elles publiques ou réservées aux membres ?
+4. Quand faut-il synchroniser les abonnés avec GVV : dès la version 1, ou en version 2 ?
+5. Le bureau valide-t-il la copie intégrale de info@ ?
+6. Quels flux RSS et quelles pages web retenir ? Il faut inventorier les sources effectivement disponibles.
+7. Les conditions d'utilisation des espaces licenciés (FFA, FFVP, FFPLUM) autorisent-elles un relevé automatisé avec les identifiants du club ?
+8. Faut-il ajouter au § B-9 du manuel une mention de la newsletter comme moyen de veille ?
 
 ## Annexe A : domaines autorisés (première liste)
 
 `aviation-civile.gouv.fr`, `ecologie.gouv.fr`, `sia.aviation-civile.gouv.fr`, `veilledoc.dsac.fr`, `legifrance.gouv.fr`, `eur-lex.europa.eu`, `easa.europa.eu`, `bea.aero`, `ffa-aero.fr`, `ffvp.fr`, `ffplum.fr`, `aeroclub-abbeville.fr`
 
-## Annexe B : critères de la lettre
+## Annexe B : critères de la newsletter
 
-- Elle se lit en 5 minutes au plus.
-- Chaque élément répond à trois questions : *quoi ?*, *qui est concerné ?*, *que dois-je faire ?*
-- Les éléments sont classés par impact pour l'ACS, pas par date.
+- Elle se lit en 10 minutes au plus, quiz compris.
+- Chaque article de veille répond à trois questions : *quoi ?*, *qui est concerné ?*, *que dois-je faire ?*
+- Les articles de veille sont classés par impact pour le club, pas par date.
 - Les REX sont présentés comme des témoignages, pas comme des règles.
+- Le ton est factuel pour la veille, plus libre pour les contributions et le quiz.
 
 ## Annexe C : références techniques
 
