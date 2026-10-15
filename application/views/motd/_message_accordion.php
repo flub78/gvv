@@ -64,6 +64,21 @@
     padding: 0.5rem 0.75rem;
     border-left: 1px solid var(--bs-accordion-border-color, rgba(0, 0, 0, .175));
 }
+/* Narrow screens: the actions get their own line under the heading instead
+   of squeezing it (title/date/buttons overlapped on smartphones). */
+@media (max-width: 575.98px) {
+    #motdAccordion .motd-header-row {
+        flex-wrap: wrap;
+    }
+    #motdAccordion .accordion-header {
+        flex-basis: 100%;
+    }
+    #motdAccordion .motd-header-actions {
+        flex-basis: 100%;
+        border-left: 0;
+        border-top: 1px solid var(--bs-accordion-border-color, rgba(0, 0, 0, .175));
+    }
+}
 </style>
 <div class="accordion" id="motdAccordion">
     <?php
