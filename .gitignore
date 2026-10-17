@@ -69,3 +69,6 @@ uploads/reponses/*
 !backups/
 backups/*
 !backups/.htaccess
+
+# Configuration PHP-FPM locale
+.user.ini
