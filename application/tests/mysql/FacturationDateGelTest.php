@@ -41,15 +41,21 @@ class FacturationDateGelTest extends TransactionalTestCase
         $this->CI->lang->load('facturation', 'french');
         $this->CI->lang->load('compta', 'french');
 
-        // Pilote, avion et produit d'un vol avion déjà facturé : tarif et compte pilote existent
-        $row = $this->CI->db->select('v.vapilid, v.vamacid, a.produit')
+        // Pilote, avion et produit d'un vol avion déjà facturé : tarif et compte pilote existent.
+        // Le tarif (tarifs_model::get_tarif) et le compte pilote sont cherchés dans la section
+        // active : le vol et son produit doivent donc appartenir à cette section.
+        $section_id = $this->CI->achats_model->section_id();
+        $this->CI->db->select('v.vapilid, v.vamacid, a.produit')
             ->from('volsa v')
             ->join('achats a', 'a.vol_avion = v.vaid')
             ->join('ecritures e', 'e.achat = a.id')
-            ->order_by('v.vadate', 'desc')
-            ->limit(1)->get()->row_array();
+            ->join('produits p', 'p.reference = a.produit');
+        if ($section_id) {
+            $this->CI->db->where('v.club', $section_id)->where('p.club', $section_id);
+        }
+        $row = $this->CI->db->order_by('v.vadate', 'desc')->limit(1)->get()->row_array();
         if (empty($row)) {
-            $this->markTestSkipped('Aucun vol avion facturé en base');
+            $this->markTestSkipped('Aucun vol avion facturé en base pour la section active');
         }
         $this->pilot = $row['vapilid'];
         $this->plane = $row['vamacid'];
