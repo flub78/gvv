@@ -28,11 +28,18 @@ $_SERVER['QUERY_STRING'] = '';
 $_SERVER['PHP_SELF'] = '/index.php';
 
 // Real database configuration from application/config/database.php
+// (not tracked by git: credentials must never be hard-coded here)
+function gvv_test_app_db_config() {
+    $db = array();
+    include APPPATH . 'config/database.php';
+    return $db['default'];
+}
+$app_db_config = gvv_test_app_db_config();
 $db_config = [
-    'hostname' => 'localhost',
-    'username' => 'gvv_user',
-    'password' => 'lfoyfgbj',
-    'database' => 'gvv2',
+    'hostname' => $app_db_config['hostname'],
+    'username' => $app_db_config['username'],
+    'password' => $app_db_config['password'],
+    'database' => $app_db_config['database'],
     'dbdriver' => 'mysqli',
     'dbprefix' => '',
     'pconnect' => FALSE, // Use non-persistent connections for tests
@@ -45,6 +52,36 @@ $db_config = [
     'autoinit' => TRUE,
     'stricton' => FALSE
 ];
+
+// Test prerequisites, checked once before any test:
+// - the test users must exist (a database restore removes them): stop with a
+//   clear message instead of letting dozens of tests fail on login;
+// - failed login attempts of the local IP addresses are cleared: past
+//   DX_max_login_attempts the login page requires a CAPTCHA and the tests
+//   that log in over HTTP all fail.
+(function ($config) {
+    $required = array('testadmin', 'asterix', 'obelix', 'abraracourcix', 'goudurix', 'panoramix');
+
+    $mysqli = @new mysqli($config['hostname'], $config['username'], $config['password'], $config['database']);
+    if ($mysqli->connect_error) {
+        return; // reported by the tests themselves
+    }
+    $mysqli->query("DELETE FROM login_attempts WHERE ip_address IN ('127.0.0.1', '::1')");
+
+    $found = array();
+    $res = $mysqli->query("SELECT username FROM users WHERE username IN ('" . implode("', '", $required) . "')");
+    while ($res && ($row = $res->fetch_assoc())) {
+        $found[] = $row['username'];
+    }
+    $mysqli->close();
+
+    $missing = array_diff($required, $found);
+    if (!empty($missing)) {
+        fwrite(STDERR, "\nUtilisateurs de test absents : " . implode(', ', $missing)
+            . ".\nLancer bin/create_test_users.sh (par exemple après une restauration de la base).\n\n");
+        exit(1);
+    }
+})($db_config);
 
 // Create a real database connection
 class RealDatabase {
@@ -1006,6 +1043,10 @@ class MockConfig {
             return TRUE;
         }
         return $fail_gracefully ? FALSE : TRUE;
+    }
+
+    public function set_item($item, $value) {
+        $this->config[$item] = $value;
     }
 
     public function item($item, $index = '') {

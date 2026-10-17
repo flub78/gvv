@@ -113,11 +113,15 @@ $config['DX_autologin_cookie_life'] = 60*60*24*31*2;
 |
 | 'DX_count_login_attempts' = Determine if DX Auth should count login attempt when user failed to login.
 | 'DX_max_login_attempts' =  Determine max login attempt before function is_login_attempt_exceeded() returning TRUE.
+| 'DX_login_attempts_window' = Only failed attempts younger than this many seconds are counted,
+|   so a locked IP address is released automatically once the window has elapsed.
+|   Defaults to 1800 when not set; 0 counts every failed attempt ever recorded.
 |
 */
 
 $config['DX_count_login_attempts'] = TRUE;
 $config['DX_max_login_attempts'] = 3; 
+$config['DX_login_attempts_window'] = 1800;
 
 /*
 |--------------------------------------------------------------------------

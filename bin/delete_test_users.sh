@@ -4,10 +4,7 @@
 # ⚠️  Keep this list synchronized with create_test_users.sh
 
 # Get database credentials from config
-DB_HOST="${MYSQL_HOST:-localhost}"
-DB_USER="${MYSQL_USER:-gvv_user}"
-DB_PASS="${MYSQL_PASSWORD:-lfoyfgbj}"
-DB_NAME="${MYSQL_DATABASE:-gvv2}"
+source "$(dirname "$0")/db_config.sh"
 
 mysql_exec() {
     mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" "$@"

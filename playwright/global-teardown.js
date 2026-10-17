@@ -5,6 +5,7 @@
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
+const { DB_CONFIG } = require('./tests/helpers/gvv-config');
 
 const CONFIG_KEY = 'vd.email.sender_email';
 const SAVE_FILE = path.join(__dirname, '.original_sender_email.tmp');
@@ -18,12 +19,7 @@ module.exports = async function globalTeardown() {
     const original = fs.readFileSync(SAVE_FILE, 'utf8');
     fs.unlinkSync(SAVE_FILE);
 
-    const connection = await mysql.createConnection({
-        host: 'localhost',
-        user: 'gvv_user',
-        password: 'lfoyfgbj',
-        database: 'gvv2',
-    });
+    const connection = await mysql.createConnection(DB_CONFIG);
 
     await connection.execute(
         'UPDATE configuration SET valeur = ? WHERE cle = ?',

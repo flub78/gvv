@@ -24,10 +24,7 @@
 #    - ARE in use_new_authorization table
 
 # Get database credentials from config
-DB_HOST="${MYSQL_HOST:-localhost}"
-DB_USER="${MYSQL_USER:-gvv_user}"
-DB_PASS="${MYSQL_PASSWORD:-lfoyfgbj}"
-DB_NAME="${MYSQL_DATABASE:-gvv2}"
+source "$(dirname "$0")/db_config.sh"
 
 # Common password hash for "password" (MD5 crypt)
 PASSWORD_HASH='$1$wu3.3t2.$Wgk43dHPPi3PTv5atdpnz0'
@@ -434,10 +431,20 @@ echo "========================================="
 echo "Verifying user logins"
 echo "========================================="
 
+# Les échecs de connexion sont comptés par adresse IP : au-delà de
+# DX_max_login_attempts, la page de connexion exige un CAPTCHA et toute
+# vérification automatique échoue. On repart donc d'un compteur vide pour
+# les connexions locales.
+mysql_exec -e "DELETE FROM login_attempts WHERE ip_address IN ('127.0.0.1', '::1')"
+
+LOGIN_TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$LOGIN_TMP_DIR"' EXIT
+
 # Function to test login
 test_login() {
     local username=$1
     local password="password"
+    local page="$LOGIN_TMP_DIR/login_${username}.html"
 
     echo -n "Testing login for $username... "
 
@@ -446,17 +453,20 @@ test_login() {
     response=$(curl -s -X POST "http://gvv.net/auth/login" \
         -d "username=$username" \
         -d "password=$password" \
-        -c /tmp/cookies_${username}.txt \
+        -c "$LOGIN_TMP_DIR/cookies_${username}.txt" \
         -L \
         -w "%{http_code}" \
-        -o /tmp/login_response_${username}.html)
+        -o "$page")
 
     # Check if login was successful
-    if grep -q "login failed\|incorrect password\|invalid credentials" /tmp/login_response_${username}.html 2>/dev/null; then
+    if grep -q 'name="captcha"' "$page" 2>/dev/null; then
+        echo "FAILED - CAPTCHA required (too many failed logins from this IP, see login_attempts)"
+        return 1
+    elif grep -q "login failed\|incorrect password\|invalid credentials" "$page" 2>/dev/null; then
         echo "FAILED - Invalid credentials"
         return 1
     elif [ "$response" = "200" ] || [ "$response" = "302" ] || [ "$response" = "303" ]; then
-        if grep -q 'name="username"' /tmp/login_response_${username}.html 2>/dev/null; then
+        if grep -q 'name="username"' "$page" 2>/dev/null; then
             echo "FAILED - Still on login page"
             return 1
         else
@@ -467,9 +477,6 @@ test_login() {
         echo "FAILED - HTTP $response"
         return 1
     fi
-
-    # Cleanup
-    rm -f /tmp/cookies_${username}.txt /tmp/login_response_${username}.html
 }
 
 # Test all created users
