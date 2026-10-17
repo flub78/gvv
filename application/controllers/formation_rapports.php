@@ -264,6 +264,35 @@ class Formation_rapports extends MY_Controller
     }
 
     /**
+     * Niveau d'entraînement : heures de vol des pilotes solo sur les 12
+     * derniers mois, par ordre croissant. Pour les instructeurs, les heures
+     * de double commande données s'ajoutent aux heures solo.
+     */
+    public function niveau_entrainement()
+    {
+        $date_debut = date('Y-m-d', strtotime('-12 months'));
+
+        // Section ne gérant ni planeurs ni avions : aucun vol à analyser
+        $section = $this->formation_seance_model->section();
+        $section_sans_vols = !empty($section)
+            && empty($section['gestion_planeurs']) && empty($section['gestion_avions']);
+
+        $pilotes = $this->formation_seance_model->get_niveau_entrainement($date_debut);
+
+        $data = array(
+            'title'                => $this->lang->line('formation_niveau_entrainement_title'),
+            'controller'           => $this->controller,
+            'pilotes'              => $pilotes,
+            'date_debut'           => $date_debut,
+            'seuil_heures'         => 10,
+            'section_sans_vols'    => $section_sans_vols,
+            'section_active_label' => $this->_section_active_label(),
+        );
+
+        $this->load->view('formation_rapports/niveau_entrainement', $data);
+    }
+
+    /**
      * Export CSV du rapport annuel consolidé par instructeur.
      *
      * @param int $year

@@ -891,6 +891,15 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('formation_seances_theoriques') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-tachometer-alt text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_training_level') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_last_12_months') ?></div>
+                <a href="<?= controller_url('formation_rapports') ?>/niveau_entrainement" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
+            </div>
+        </div>
         <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_sub_instructor')); ?>
 
         <div class="col-12 mt-3">
