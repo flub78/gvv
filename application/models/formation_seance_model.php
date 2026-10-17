@@ -561,6 +561,10 @@ class Formation_seance_model extends Common_Model {
      * Sources : section gérant des planeurs → volsp seulement (les heures
      * de remorquage ne comptent pas pour l'entraînement planeur) ; autre
      * section → volsa des machines de la section ; aucune section → les deux.
+     * La section d'un vol planeur se déduit de machinesp.club : avec une
+     * section sélectionnée, les vols sur un planeur absent de machinesp
+     * (planeur extérieur ou supprimé) ne sont pas comptés ; ils le sont
+     * dans la vue "Toutes".
      *
      * @param string $date_debut Date de début (aaaa-mm-jj), incluse
      * @return array [mlogin, mnom, mprenom, heures_solo, heures_dc, heures_instruction,

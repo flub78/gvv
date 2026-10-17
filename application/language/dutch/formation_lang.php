@@ -418,6 +418,7 @@ $lang['formation_attachment_error_delete']            = 'Fout bij het verwijdere
 $lang['formation_niveau_entrainement_title'] = "Trainingsniveau";
 $lang['formation_niveau_entrainement_intro'] = "Vlieguren sinds %s van solo vliegende piloten die actief zijn in de sectie en hun lidmaatschap dit jaar of vorig jaar betaald hebben, in oplopende volgorde. Het totaal telt de solo-uren, de dubbelbesturing-uren en, voor instructeurs, de gegeven instructie-uren op.";
 $lang['formation_niveau_entrainement_avertissement'] = "Alleen de in GVV geregistreerde uren worden meegeteld: sommige piloten kunnen ook bij andere clubs gevlogen hebben.";
+$lang['formation_niveau_entrainement_section_sans_vols'] = "Deze sectie beheert geen zweefvliegtuigen of vliegtuigen: er zijn geen vluchten om te analyseren. Kies een andere sectie of \"Alle\".";
 $lang['formation_niveau_entrainement_aucun'] = "Geen solopiloot gevonden.";
 $lang['formation_niveau_entrainement_alerte'] = "%d piloot/piloten vlogen minder dan %d uur in de afgelopen 12 maanden.";
 $lang['formation_niveau_entrainement_sous_seuil'] = "Minder dan %d uur in 12 maanden";

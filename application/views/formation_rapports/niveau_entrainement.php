@@ -39,7 +39,12 @@ foreach ($pilotes as $p) {
         <?= $this->lang->line('formation_niveau_entrainement_avertissement') ?>
     </p>
 
-    <?php if (empty($pilotes)): ?>
+    <?php if ($section_sans_vols): ?>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            <?= $this->lang->line('formation_niveau_entrainement_section_sans_vols') ?>
+        </div>
+    <?php elseif (empty($pilotes)): ?>
         <div class="alert alert-info">
             <i class="fas fa-info-circle" aria-hidden="true"></i>
             <?= $this->lang->line('formation_niveau_entrainement_aucun') ?>

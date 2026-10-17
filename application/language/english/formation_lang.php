@@ -418,6 +418,7 @@ $lang['formation_attachment_error_delete']            = 'Error while deleting.';
 $lang['formation_niveau_entrainement_title'] = "Training level";
 $lang['formation_niveau_entrainement_intro'] = "Flight hours since %s of solo pilots active in the section who paid their membership fee this year or last year, in ascending order. The total adds solo hours, dual hours and, for instructors, instruction hours given.";
 $lang['formation_niveau_entrainement_avertissement'] = "Only hours recorded in GVV are taken into account: some pilots may also have flown with other clubs.";
+$lang['formation_niveau_entrainement_section_sans_vols'] = "This section manages neither gliders nor aircraft: there are no flights to analyse. Select another section or \"All\".";
 $lang['formation_niveau_entrainement_aucun'] = "No solo pilot found.";
 $lang['formation_niveau_entrainement_alerte'] = "%d pilot(s) flew less than %d hours in the last 12 months.";
 $lang['formation_niveau_entrainement_sous_seuil'] = "Less than %d hours in 12 months";

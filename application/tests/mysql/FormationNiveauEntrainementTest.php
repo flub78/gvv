@@ -38,6 +38,10 @@ class FormationNiveauEntrainementTest extends TestCase
         $this->CI->load->model('formation_seance_model');
         $this->model = $this->CI->formation_seance_model;
 
+        // Sauvegardée avant tout skip : tearDown() la restaure dans tous les cas
+        $this->saved_section = $this->model->section;
+        $this->saved_section_id = $this->model->section_id;
+
         // Section de test gérant des avions : volsa filtré sur cette section,
         // pilotes actifs = rôle 'user' non révoqué dans cette section
         // (volsa.club est un tinyint : une section créée pour le test aurait
@@ -49,8 +53,6 @@ class FormationNiveauEntrainementTest extends TestCase
         }
         $this->section_id = (int) $section['id'];
 
-        $this->saved_section = $this->model->section;
-        $this->saved_section_id = $this->model->section_id;
         $this->model->section = $section;
         $this->model->section_id = $this->section_id;
 
@@ -223,6 +225,16 @@ class FormationNiveauEntrainementTest extends TestCase
         $rows = $this->model->get_niveau_entrainement(date('Y-m-d', strtotime('-12 months')));
         $this->assertNull($this->find_row($rows, $this->pilote_solo),
             'Une cotisation antérieure à l\'année précédente ne suffit pas');
+    }
+
+    public function test_section_sans_planeurs_ni_avions_vide(): void
+    {
+        $recent = date('Y-m-d', strtotime('-1 month'));
+        $this->insertFlight($this->pilote_solo, null, 2.00, $recent);
+
+        $this->model->section = array('id' => $this->section_id, 'gestion_planeurs' => 0, 'gestion_avions' => 0);
+        $rows = $this->model->get_niveau_entrainement(date('Y-m-d', strtotime('-12 months')));
+        $this->assertSame(array(), $rows);
     }
 
     public function test_pilote_inactif_dans_la_section_exclu(): void
