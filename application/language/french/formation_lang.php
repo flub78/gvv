@@ -428,5 +428,20 @@ $lang['formation_attachment_error_upload']            = 'Erreur lors de l\'envoi
 $lang['formation_attachment_error_update']            = 'Erreur lors de la mise à jour.';
 $lang['formation_attachment_error_delete']            = 'Erreur lors de la suppression.';
 
+// Niveau d'entraînement
+$lang['formation_niveau_entrainement_title'] = "Niveau d'entrainement";
+$lang['formation_niveau_entrainement_intro'] = "Heures de vol depuis le %s des pilotes actifs dans la section, volant en solo et ayant pris leur cotisation cette année ou l'année précédente, par ordre croissant. Le total cumule les heures solo, les heures en double commande et, pour les instructeurs, les heures d'instruction données.";
+$lang['formation_niveau_entrainement_avertissement'] = "Seules les heures enregistrées dans GVV sont prises en compte : certains pilotes peuvent aussi avoir volé dans d'autres clubs.";
+$lang['formation_niveau_entrainement_aucun'] = "Aucun pilote solo trouvé.";
+$lang['formation_niveau_entrainement_alerte'] = "%d pilote(s) ont volé moins de %d heures sur les 12 derniers mois.";
+$lang['formation_niveau_entrainement_sous_seuil'] = "Moins de %d heures sur 12 mois";
+$lang['formation_niveau_entrainement_heures_solo'] = "Heures solo";
+$lang['formation_niveau_entrainement_heures_dc'] = "Heures en DC";
+$lang['formation_niveau_entrainement_heures_instruction'] = "Heures instruction";
+$lang['formation_niveau_entrainement_heures_total'] = "Total (solo + DC + instruction)";
+$lang['formation_niveau_entrainement_nb_vols'] = "Vols";
+$lang['formation_niveau_entrainement_dernier_vol'] = "Dernier vol";
+$lang['formation_niveau_entrainement_instructeur'] = "Instructeur";
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/french/formation_lang.php */

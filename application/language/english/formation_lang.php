@@ -414,5 +414,20 @@ $lang['formation_attachment_error_upload']            = 'Error while uploading t
 $lang['formation_attachment_error_update']            = 'Error while updating.';
 $lang['formation_attachment_error_delete']            = 'Error while deleting.';
 
+// Niveau d'entraînement
+$lang['formation_niveau_entrainement_title'] = "Training level";
+$lang['formation_niveau_entrainement_intro'] = "Flight hours since %s of solo pilots active in the section who paid their membership fee this year or last year, in ascending order. The total adds solo hours, dual hours and, for instructors, instruction hours given.";
+$lang['formation_niveau_entrainement_avertissement'] = "Only hours recorded in GVV are taken into account: some pilots may also have flown with other clubs.";
+$lang['formation_niveau_entrainement_aucun'] = "No solo pilot found.";
+$lang['formation_niveau_entrainement_alerte'] = "%d pilot(s) flew less than %d hours in the last 12 months.";
+$lang['formation_niveau_entrainement_sous_seuil'] = "Less than %d hours in 12 months";
+$lang['formation_niveau_entrainement_heures_solo'] = "Solo hours";
+$lang['formation_niveau_entrainement_heures_dc'] = "Dual hours";
+$lang['formation_niveau_entrainement_heures_instruction'] = "Instruction hours";
+$lang['formation_niveau_entrainement_heures_total'] = "Total (solo + dual + instruction)";
+$lang['formation_niveau_entrainement_nb_vols'] = "Flights";
+$lang['formation_niveau_entrainement_dernier_vol'] = "Last flight";
+$lang['formation_niveau_entrainement_instructeur'] = "Instructor";
+
 /* End of file formation_lang.php */
 /* Location: ./application/language/english/formation_lang.php */

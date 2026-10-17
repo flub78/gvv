@@ -546,6 +546,93 @@ class Formation_seance_model extends Common_Model {
     }
 
     /**
+     * Niveau d'entraînement : heures de vol des pilotes solo (membres actifs
+     * dans la section affichée, ou dans au moins une section pour la vue
+     * "Toutes", à jour de cotisation, ayant au moins un vol hors double
+     * commande enregistré) depuis une date.
+     *
+     * Cotisation à jour = cotisation de l'année en cours ou de l'année
+     * précédente, la période glissante de 12 mois couvrant deux années civiles.
+     *
+     * Chaque vol est attribué selon le rôle du membre : solo (S), double
+     * commande reçue comme pilote (R), instruction donnée sur un vol DC (I).
+     * Le total retenu cumule solo, DC reçue et instruction donnée.
+     *
+     * Sources : section gérant des planeurs → volsp seulement (les heures
+     * de remorquage ne comptent pas pour l'entraînement planeur) ; autre
+     * section → volsa des machines de la section ; aucune section → les deux.
+     *
+     * @param string $date_debut Date de début (aaaa-mm-jj), incluse
+     * @return array [mlogin, mnom, mprenom, heures_solo, heures_dc, heures_instruction,
+     *                heures_total, nb_vols, nb_vols_instruction, dernier_vol],
+     *               trié par heures_total croissant
+     */
+    public function get_niveau_entrainement($date_debut) {
+        $use_planeurs = !$this->section || !empty($this->section['gestion_planeurs']);
+        $use_avions   = !$this->section || (empty($this->section['gestion_planeurs']) && !empty($this->section['gestion_avions']));
+        $sid = (int) $this->section_id;
+
+        $parts = array();
+        if ($use_planeurs) {
+            $from = "FROM volsp v LEFT JOIN machinesp mp ON v.vpmacid = mp.mpimmat
+                WHERE 1 " . ($this->section ? "AND mp.club = $sid" : '');
+            $parts[] = "
+                SELECT v.vppilid AS pilote, IF(v.vpdc = 1, 'R', 'S') AS role,
+                       v.vpduree / 60 AS heures, v.vpdate AS date_vol
+                $from";
+            $parts[] = "
+                SELECT v.vpinst AS pilote, 'I' AS role,
+                       v.vpduree / 60 AS heures, v.vpdate AS date_vol
+                $from AND v.vpdc = 1 AND v.vpinst IS NOT NULL AND v.vpinst <> ''";
+        }
+        if ($use_avions) {
+            $from = "FROM volsa v
+                WHERE 1 " . ($this->section ? "AND v.club = $sid" : '');
+            $parts[] = "
+                SELECT v.vapilid AS pilote, IF(v.vadc = 1, 'R', 'S') AS role,
+                       v.vaduree AS heures, v.vadate AS date_vol
+                $from";
+            $parts[] = "
+                SELECT v.vainst AS pilote, 'I' AS role,
+                       v.vaduree AS heures, v.vadate AS date_vol
+                $from AND v.vadc = 1 AND v.vainst IS NOT NULL AND v.vainst <> ''";
+        }
+        if (empty($parts)) {
+            return array();
+        }
+        $actif_filter = $this->section ? "AND urps.section_id = $sid" : '';
+
+        $sql = "
+            SELECT m.mlogin, m.mnom, m.mprenom,
+                   ROUND(SUM(IF(f.role = 'S' AND f.date_vol >= ?, f.heures, 0)) * 60) / 60 AS heures_solo,
+                   ROUND(SUM(IF(f.role = 'R' AND f.date_vol >= ?, f.heures, 0)) * 60) / 60 AS heures_dc,
+                   ROUND(SUM(IF(f.role = 'I' AND f.date_vol >= ?, f.heures, 0)) * 60) / 60 AS heures_instruction,
+                   ROUND(SUM(IF(f.date_vol >= ?, f.heures, 0)) * 60) / 60 AS heures_total,
+                   SUM(f.date_vol >= ?) AS nb_vols,
+                   SUM(f.role = 'I' AND f.date_vol >= ?) AS nb_vols_instruction,
+                   MAX(f.date_vol) AS dernier_vol
+            FROM (" . implode("\n UNION ALL ", $parts) . ") f
+            JOIN membres m ON m.mlogin = f.pilote
+            WHERE EXISTS (SELECT 1 FROM users u
+                          JOIN user_roles_per_section urps ON urps.user_id = u.id
+                          JOIN types_roles tr ON tr.id = urps.types_roles_id
+                          WHERE u.username = m.mlogin AND tr.nom = 'user'
+                            AND urps.revoked_at IS NULL $actif_filter)
+              AND EXISTS (SELECT 1 FROM licences lic
+                          WHERE lic.pilote = m.mlogin AND lic.type = 0 AND lic.year IN (?, ?))
+            GROUP BY m.mlogin, m.mnom, m.mprenom
+            HAVING SUM(f.role = 'S') > 0
+            ORDER BY heures_total ASC, m.mnom ASC, m.mprenom ASC
+        ";
+        $params = array_fill(0, 6, $date_debut);
+        $params[] = (int) date('Y');
+        $params[] = (int) date('Y') - 1;
+        $rows = $this->db->query($sql, $params)->result_array();
+        gvv_debug("sql: get_niveau_entrainement: " . $this->db->last_query());
+        return $rows;
+    }
+
+    /**
      * Get year selector for all seances (formation + libre)
      *
      * @param string $date_field Date field name (default: 'date_seance')
