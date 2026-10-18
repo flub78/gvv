@@ -8,10 +8,11 @@ if (!defined('BASEPATH'))
  * Traduit les documents archivés en occurrences d'alarme (AlarmItem) pour
  * les alarmes du catalogue de source « document » et « missing_document ».
  *
- * AlarmItem (tableau) : definition_id, definition_code, kind, key,
+ * AlarmItem (tableau) : definition_id, definition_code, key,
  * entity_type (pilot|section|machine|club), entity_id, pilot_login,
  * section_ids (vide = sans section), label, detail, state (upcoming|active),
- * due_date, link.
+ * due_date, link (page de traitement pour un superviseur), link_own (page
+ * de traitement pour le membre concerné).
  *
  * Règles :
  * - documents courants, approuvés, à alerte non désactivée, avec date d'expiration ;
@@ -161,7 +162,6 @@ class Document_alarm_provider {
         return array(
             'definition_id' => (int) $def['id'],
             'definition_code' => $def['code'],
-            'kind' => $def['kind'],
             'key' => 'document:' . $doc['id'],
             'entity_type' => $entity_type,
             'entity_id' => $entity_id,
@@ -172,6 +172,7 @@ class Document_alarm_provider {
             'state' => $state,
             'due_date' => $doc['valid_until'],
             'link' => 'archived_documents/view/' . $doc['id'],
+            'link_own' => 'archived_documents/view/' . $doc['id'],
         );
     }
 
@@ -230,11 +231,9 @@ class Document_alarm_provider {
                     if (!empty($def['section_id']) && !in_array((int) $def['section_id'], $sections, true)) {
                         continue;
                     }
-                    $personal = ($def['kind'] === Alarm_definitions_model::KIND_PERSONAL);
                     $items[] = array(
                         'definition_id' => (int) $def['id'],
                         'definition_code' => $def['code'],
-                        'kind' => $def['kind'],
                         'key' => 'missing:' . $type['id'] . ':' . $login,
                         'entity_type' => 'pilot',
                         'entity_id' => $login,
@@ -244,8 +243,8 @@ class Document_alarm_provider {
                         'detail' => isset($names[$login]) ? $names[$login] : $login,
                         'state' => 'active',
                         'due_date' => null,
-                        'link' => $personal ? 'archived_documents/my_documents'
-                                            : 'archived_documents/pilot_documents/' . rawurlencode($login),
+                        'link' => 'archived_documents/pilot_documents/' . rawurlencode($login),
+                        'link_own' => 'archived_documents/my_documents',
                     );
                 }
             }

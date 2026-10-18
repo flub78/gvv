@@ -156,7 +156,6 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
               <tr>
                 <th class="text-center"><?= $this->lang->line('alarm_admin_active') ?></th>
                 <th><?= $this->lang->line('alarm_col_alarm') ?></th>
-                <th><?= $this->lang->line('alarm_admin_kind') ?></th>
                 <th><?= $this->lang->line('alarm_col_section') ?></th>
                 <th><?= $this->lang->line('alarm_admin_lead_days') ?></th>
               </tr>
@@ -166,7 +165,6 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
                 <tr>
                   <td class="text-center"><input class="form-check-input" type="checkbox" name="active[]" value="<?= (int) $def['id'] ?>" <?= $def['active'] ? 'checked' : '' ?>></td>
                   <td><?= htmlspecialchars($def['display_label']) ?></td>
-                  <td><?= $this->lang->line('alarm_config_group_' . $def['kind']) ?></td>
                   <td><?= htmlspecialchars($def['section_name'] ?: $this->lang->line('alarm_filter_all')) ?></td>
                   <td style="max-width:7rem;">
                     <?php if ($def['source'] === 'document'): ?>

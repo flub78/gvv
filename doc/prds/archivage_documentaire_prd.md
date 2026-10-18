@@ -90,10 +90,10 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
    Les notifications des documents sont assurées par la gestion générique des alarmes : [gestion_alarmes_generiques_prd.md](gestion_alarmes_generiques_prd.md), Lot 1 du MVP. Ce PRD en fixe seulement les règles propres aux documents :
 
-   - Chaque type de document à date d'expiration donne lieu à deux alarmes du catalogue : une alarme personnelle (les documents du membre lui-même) et une alarme de supervision (les documents des autres membres, des machines, des sections et du club). Les documents obligatoires manquants donnent lieu aux mêmes deux alarmes.
+   - Chaque type de document à date d'expiration donne lieu à une alarme du catalogue (et non une par document). Elle couvre, pour un abonné, ses propres documents et ceux des autres membres, des machines, des sections et du club qu'il a le droit de consulter. Les documents obligatoires manquants donnent lieu à une alarme du même principe. Les types sans date d'expiration n'ont pas d'alarme.
    - Un document est « à venir » à partir du délai d'alerte de son type (champ `alert_days_before`, 30 jours par défaut) et « actif » une fois expiré ; un document obligatoire manquant est actif.
    - Les abonnements, les canaux (email, message du jour, SMS), la fréquence des synthèses et l'anti-spam sont ceux de la gestion générique des alarmes. En particulier, un membre ne reçoit des notifications de documents que s'il est abonné, par lui-même ou par un administrateur.
-   - Un membre ne reçoit en supervision que les documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
+   - Hors ses propres documents, un membre ne reçoit que les documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
    - Pour un document de pilote, la section retenue est celle où le pilote est actif ; pour un document de section ou de machine, celle du document ; un document club n'est rattaché à aucune section.
    - Un document dont l'alerte est désactivée (§9) n'est jamais notifié.
    - Les notifications ne contiennent que des métadonnées et un lien vers GVV, jamais le fichier.

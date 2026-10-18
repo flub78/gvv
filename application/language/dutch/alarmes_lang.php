@@ -5,11 +5,8 @@
  * @see doc/prds/gestion_alarmes_generiques_prd.md
  */
 
-$lang['alarm_label_document_personal'] = "Mijn documenten: %s";
-$lang['alarm_label_document_supervision'] = "%s (toezicht)";
-$lang['alarm_label_document_target'] = "%s — %s (toezicht)";
-$lang['alarm_label_missing_personal'] = "Mijn ontbrekende verplichte documenten";
-$lang['alarm_label_missing_supervision'] = "Ontbrekende verplichte documenten (toezicht)";
+$lang['alarm_label_document_target'] = "%s — %s";
+$lang['alarm_label_missing'] = "Ontbrekende verplichte documenten";
 $lang['alarm_item_missing'] = "%s ontbreekt";
 $lang['alarm_error_unknown'] = "Onbekend alarm.";
 $lang['alarm_error_no_right'] = "Het alarm \"%s\" is niet toegankelijk voor %s.";
@@ -36,10 +33,8 @@ $lang['alarm_config_title'] = "Alarminstellingen";
 $lang['alarm_my_alarms_title'] = "Mijn alarmen";
 $lang['alarm_config_member'] = "Lid";
 $lang['alarm_config_alarms'] = "Alarmen";
-$lang['alarm_config_alarms_help'] = "Vink de alarmen aan die u wilt ontvangen. Zonder aangevinkt alarm ontvangt u niets.";
+$lang['alarm_config_alarms_help'] = "Vink de alarmen aan die u wilt ontvangen: elk alarm dekt uw eigen documenten en die van andere leden, toestellen en secties die u mag raadplegen. Zonder aangevinkt alarm ontvangt u niets.";
 $lang['alarm_config_none_available'] = "Er is geen alarm beschikbaar voor dit lid.";
-$lang['alarm_config_group_personal'] = "Persoonlijk";
-$lang['alarm_config_group_supervision'] = "Toezicht";
 $lang['alarm_config_mandatory'] = "Verplicht";
 $lang['alarm_config_by_category'] = "Geabonneerd via categorie";
 $lang['alarm_config_by_admin'] = "Aangemaakt door %s";
@@ -75,7 +70,6 @@ $lang['alarm_admin_categories_none'] = "Geen categorieabonnement.";
 $lang['alarm_admin_delete'] = "Verwijderen";
 $lang['alarm_admin_catalogue'] = "Alarmcatalogus";
 $lang['alarm_admin_active'] = "Actief";
-$lang['alarm_admin_kind'] = "Type";
 $lang['alarm_admin_lead_days'] = "Waarschuwingstermijn (dagen)";
 $lang['alarm_admin_catalogue_saved'] = "Alarmcatalogus opgeslagen.";
 $lang['alarm_admin_category_added'] = "Categorieabonnement toegevoegd.";

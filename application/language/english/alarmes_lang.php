@@ -5,11 +5,8 @@
  * @see doc/prds/gestion_alarmes_generiques_prd.md
  */
 
-$lang['alarm_label_document_personal'] = "My documents: %s";
-$lang['alarm_label_document_supervision'] = "%s (supervision)";
-$lang['alarm_label_document_target'] = "%s — %s (supervision)";
-$lang['alarm_label_missing_personal'] = "My missing mandatory documents";
-$lang['alarm_label_missing_supervision'] = "Missing mandatory documents (supervision)";
+$lang['alarm_label_document_target'] = "%s — %s";
+$lang['alarm_label_missing'] = "Missing mandatory documents";
 $lang['alarm_item_missing'] = "%s missing";
 $lang['alarm_error_unknown'] = "Unknown alarm.";
 $lang['alarm_error_no_right'] = "The alarm \"%s\" is not available to %s.";
@@ -36,10 +33,8 @@ $lang['alarm_config_title'] = "Alarm settings";
 $lang['alarm_my_alarms_title'] = "My alarms";
 $lang['alarm_config_member'] = "Member";
 $lang['alarm_config_alarms'] = "Alarms";
-$lang['alarm_config_alarms_help'] = "Tick the alarms you want to receive. With no alarm ticked, you receive nothing.";
+$lang['alarm_config_alarms_help'] = "Tick the alarms you want to receive: each covers your own documents and those of other members, aircraft and sections you are allowed to view. With no alarm ticked, you receive nothing.";
 $lang['alarm_config_none_available'] = "No alarm is available for this member.";
-$lang['alarm_config_group_personal'] = "Personal";
-$lang['alarm_config_group_supervision'] = "Supervision";
 $lang['alarm_config_mandatory'] = "Mandatory";
 $lang['alarm_config_by_category'] = "Subscribed by category";
 $lang['alarm_config_by_admin'] = "Created by %s";
@@ -75,7 +70,6 @@ $lang['alarm_admin_categories_none'] = "No category subscription.";
 $lang['alarm_admin_delete'] = "Delete";
 $lang['alarm_admin_catalogue'] = "Alarm catalogue";
 $lang['alarm_admin_active'] = "Active";
-$lang['alarm_admin_kind'] = "Type";
 $lang['alarm_admin_lead_days'] = "Lead time (days)";
 $lang['alarm_admin_catalogue_saved'] = "Alarm catalogue saved.";
 $lang['alarm_admin_category_added'] = "Category subscription added.";

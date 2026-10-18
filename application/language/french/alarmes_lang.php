@@ -5,11 +5,8 @@
  * @see doc/prds/gestion_alarmes_generiques_prd.md
  */
 
-$lang['alarm_label_document_personal'] = "Mes documents : %s";
-$lang['alarm_label_document_supervision'] = "%s (supervision)";
-$lang['alarm_label_document_target'] = "%s — %s (supervision)";
-$lang['alarm_label_missing_personal'] = "Mes documents obligatoires manquants";
-$lang['alarm_label_missing_supervision'] = "Documents obligatoires manquants (supervision)";
+$lang['alarm_label_document_target'] = "%s — %s";
+$lang['alarm_label_missing'] = "Documents obligatoires manquants";
 $lang['alarm_item_missing'] = "%s manquant";
 $lang['alarm_error_unknown'] = "Alarme inconnue.";
 $lang['alarm_error_no_right'] = "L'alarme « %s » n'est pas accessible à %s.";
@@ -36,10 +33,8 @@ $lang['alarm_config_title'] = "Configuration des alarmes";
 $lang['alarm_my_alarms_title'] = "Mes alarmes";
 $lang['alarm_config_member'] = "Membre";
 $lang['alarm_config_alarms'] = "Alarmes";
-$lang['alarm_config_alarms_help'] = "Cochez les alarmes que vous souhaitez recevoir. Sans aucune alarme cochée, vous ne recevez rien.";
+$lang['alarm_config_alarms_help'] = "Cochez les alarmes que vous souhaitez recevoir : chacune couvre vos propres documents et ceux des autres membres, des machines et des sections que vous avez le droit de consulter. Sans aucune alarme cochée, vous ne recevez rien.";
 $lang['alarm_config_none_available'] = "Aucune alarme n'est disponible pour ce membre.";
-$lang['alarm_config_group_personal'] = "Personnelles";
-$lang['alarm_config_group_supervision'] = "Supervision";
 $lang['alarm_config_mandatory'] = "Obligatoire";
 $lang['alarm_config_by_category'] = "Abonné par catégorie";
 $lang['alarm_config_by_admin'] = "Créé par %s";
@@ -75,7 +70,6 @@ $lang['alarm_admin_categories_none'] = "Aucun abonnement de catégorie.";
 $lang['alarm_admin_delete'] = "Supprimer";
 $lang['alarm_admin_catalogue'] = "Catalogue des alarmes";
 $lang['alarm_admin_active'] = "Active";
-$lang['alarm_admin_kind'] = "Type";
 $lang['alarm_admin_lead_days'] = "Délai d'anticipation (jours)";
 $lang['alarm_admin_catalogue_saved'] = "Catalogue des alarmes enregistré.";
 $lang['alarm_admin_category_added'] = "Abonnement de catégorie ajouté.";

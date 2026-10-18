@@ -11,7 +11,6 @@ entity alarm_definitions {
   --
   * code : varchar (unique)
   * label, description
-  * kind : enum(personal, supervision)
   * source : enum(document, missing_document, computed)
   document_type_id : int (FK, null)
   rule : varchar (règle calculée, null)

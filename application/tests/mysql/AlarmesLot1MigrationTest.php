@@ -79,21 +79,17 @@ class AlarmesLot1MigrationTest extends TestCase
         )->result_array();
         foreach ($types as $type) {
             $this->assertEquals(1, $this->countSql(
-                "SELECT COUNT(*) FROM alarm_definitions WHERE code = 'document_{$type['id']}_supervision'"
-            ), "Supervision du type {$type['id']}");
-            $expected_personal = ($type['scope'] === 'pilot') ? 1 : 0;
-            $this->assertEquals($expected_personal, $this->countSql(
-                "SELECT COUNT(*) FROM alarm_definitions WHERE code = 'document_{$type['id']}_personal'"
-            ), "Alarme personnelle du type {$type['id']}");
+                "SELECT COUNT(*) FROM alarm_definitions WHERE code = 'document_{$type['id']}'"
+            ), "Une alarme pour le type {$type['id']}");
         }
-        $this->assertEquals(2, $this->countSql(
+        $this->assertEquals(1, $this->countSql(
             "SELECT COUNT(*) FROM alarm_definitions WHERE source = 'missing_document'"
-        ));
+        ), 'Une alarme pour les documents manquants');
         $medical = $this->countSql("SELECT COALESCE(MAX(id), 0) FROM document_types WHERE code = 'medical' AND scope = 'pilot'");
         if ($medical) {
             $this->assertEquals($this->eleveRoleId(), $this->countSql(
-                "SELECT target_role_id FROM alarm_definitions WHERE code = 'document_{$medical}_supervision_eleve'"
-            ), 'Supervision des visites médicales des élèves');
+                "SELECT target_role_id FROM alarm_definitions WHERE code = 'document_{$medical}_eleve'"
+            ), 'Visites médicales des élèves');
         }
         $this->assertEquals(0, $this->countSql("SELECT COUNT(*) FROM alarm_subscriptions"),
             'Aucun abonnement créé par la migration');

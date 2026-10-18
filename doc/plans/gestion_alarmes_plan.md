@@ -29,7 +29,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 **1.2 — Modèle de données** (1,5 j)
 - [x] Migration `177_alarmes_lot1.php` :
   - tables `alarm_definitions`, `alarm_subscriptions`, `alarm_subscription_optouts`, `alarm_member_settings`, `notification_history` (champs d'audit inclus)
-  - catalogue initial : alarmes personnelle et de supervision par type de document à expiration et pour les documents manquants, supervision des visites médicales des élèves (`alarm_definitions.target_role_id`)
+  - catalogue initial : une alarme par type de document à expiration (pas une par document), une pour les documents manquants, une pour les visites médicales des élèves (`alarm_definitions.target_role_id`)
   - rôle `eleve` dans `types_roles`
   - colonne `document_types.required_role_id` ; visite médicale obligatoire pour le rôle `eleve`
   - `down()` symétrique, qui restaure `document_types` à l'identique
@@ -44,7 +44,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] Rôle `eleve` proposé dans la gestion des rôles par section, attribuable et retirable à la main par un administrateur ; libellés FR/EN/NL
 
 **1.4 — Bibliothèque `Notification_manager`** (2,5 j)
-- [x] Sélection par abonné : abonnements effectifs, filtre personnel / supervision, contrôle des droits, dédoublonnage
+- [x] Sélection par abonné : abonnements effectifs, ses propres documents et ceux qu'il peut superviser, dédoublonnage
 - [x] Fréquence immédiate : occurrences pas encore notifiées dans leur état courant
 - [x] Synthèses hebdomadaire (lundi) et mensuelle (premier lundi du mois) : toutes les occurrences actives et à venir ; aucune synthèse vide
 - [x] Canal email : composition HTML listant les alarmes (groupées par alarme puis par section, avec liens)
@@ -60,7 +60,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 
 **1.6 — Page de configuration des alarmes** (2 j)
 - [x] Contrôleur `alarmes_config.php` : liste des alarmes proposées au membre avec cases à cocher, canaux, rappel SMS, fréquence
-- [x] Alarmes de supervision limitées à celles que le membre peut consulter
+- [x] Alarmes sur des documents de machine, de section ou de club, et alarme des élèves, proposées seulement aux membres qui peuvent les superviser
 - [x] Abonnements créés par un administrateur affichés avec leur auteur ; abonnements obligatoires non décochables ; retrait d'un abonnement de catégorie (`alarm_subscription_optouts`)
 - [x] Au moins un canal exigé au premier abonnement ; option SMS désactivée et expliquée sans numéro de mobile
 - [x] Pour `club-admin` : sélecteur de membre sur la même page, positionné par défaut sur son propre profil ; configuration d'un autre membre avec les mêmes règles (y compris le rappel SMS), refus explicite hors droits du membre configuré
@@ -82,7 +82,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 
 **1.10 — Tests** (3 j)
 - [x] PHPUnit MySQL `AlarmesLot1ModelsTest.php` : catalogue, abonnements individuels et par catégorie, retraits, obligatoires, abonnements effectifs après changement de rôle, contrôle des droits, aucun abonnement par défaut ; documents expirés, proches, manquants (dont obligation par rôle), alertes désactivées, pilotes inactifs, sections
-- [x] PHPUnit MySQL `NotificationManagerTest.php` : personnel / supervision, dédoublonnage, fréquences et jours d'envoi, contenu des synthèses (actives et à venir), canaux, rappel SMS (jour de synthèse, un par période, rien sans alarme, interrupteur global, sans mobile, texte limité au lien), idempotence, membres sans configuration ; envois bouchonnés
+- [x] PHPUnit MySQL `NotificationManagerTest.php` : ses propres documents ou aussi ceux des autres selon les droits, dédoublonnage, fréquences et jours d'envoi, contenu des synthèses (actives et à venir), canaux, rappel SMS (jour de synthèse, un par période, rien sans alarme, interrupteur global, sans mobile, texte limité au lien), idempotence, membres sans configuration ; envois bouchonnés
 - [x] PHPUnit MySQL rôle élève : attribution à l'ouverture (section du programme, toutes les sections sans section), retrait à la clôture et à l'abandon, maintien si une autre formation est en cours, retrait manuel respecté
 - [x] PHPUnit migration 177 : up/down avec sauvegarde et restauration de `document_types` et `types_roles`
 - [x] Toutes les fixtures sont créées et supprimées par les tests (y compris en cas d'échec), sans dépendance aux données existantes
@@ -104,7 +104,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 ## Lot 2 — Alarmes de conformité calculées
 - [ ] Règle « vols sans licence » dans `licences_model`, sur le modèle de `pilotes_vols_sans_cotisation()`
 - [ ] `ComputedAlarmProvider` (vols sans licence, vols sans cotisation) branché sur `AlarmAggregator`
-- [ ] Migration : alarmes de supervision correspondantes dans le catalogue
+- [ ] Migration : alarmes correspondantes dans le catalogue
 - [ ] Tests PHPUnit des deux règles et de leur notification ; libellés FR/EN/NL
 
 ## Lots suivants

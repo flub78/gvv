@@ -21,14 +21,14 @@ Ouvrez **Configuration des alarmes**.
 
 ### 1.1 Les alarmes
 
-Les alarmes sont regroupées en deux familles :
+Il y a **une alarme par type de document** (certificat médical, attestation d'assurance, manuel d'exploitation s'il a une date de validité…), plus une pour les **documents obligatoires manquants** et une pour les **visites médicales des élèves**. Les types de documents sans date d'expiration n'ont pas d'alarme.
 
-| Famille | Ce qu'elle surveille | Exemple |
-|---|---|---|
-| **Personnelles** | Vos propres documents | « Mes documents : Certificat médical » |
-| **Supervision** | Les documents des autres membres, des machines, des sections et du club | « Attestation d'assurance (supervision) », « Certificat médical — Élève (supervision) » |
+Une alarme couvre à la fois :
 
-Les alarmes de supervision ne sont proposées qu'aux membres qui ont le droit de consulter ces documents : administrateurs club, membres du CA et du bureau pour leurs sections. L'alarme sur les visites médicales des élèves est aussi proposée aux instructeurs et aux responsables pédagogiques.
+- **vos propres documents** (ex. votre certificat médical) ;
+- **les documents des autres** membres, des machines, des sections et du club, **si vous avez le droit de les consulter** : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections. L'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques.
+
+Un simple membre ne voit donc dans la liste que les alarmes qui peuvent concerner ses propres documents.
 
 Cochez les alarmes que vous voulez recevoir. Certaines peuvent porter un badge :
 
@@ -81,7 +81,7 @@ Accessible depuis le tableau de bord **Administration club** (carte « Administr
 
 - **Alarmes actives ou à venir sans abonné** : ce que personne ne reçoit. Aucun abonnement n'est créé automatiquement, il faut donc abonner quelqu'un à chaque alarme utile.
 - **Abonnements de catégories de membres** : abonner tous les membres ayant un rôle (ex. les instructeurs de la section planeur) à une alarme, éventuellement en la rendant obligatoire. Un membre qui obtient le rôle est abonné ; un membre qui le perd ne l'est plus.
-- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute ses alarmes.
+- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme.
 
 ---
 

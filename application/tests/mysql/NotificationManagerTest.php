@@ -123,10 +123,17 @@ class NotificationManagerTest extends TestCase
         $this->CI->alarm_subscriptions_model->reset_roles_cache();
     }
 
-    private function defId($kind)
+    /** Alarme du type de test ('' = tous les membres, 'eleve' = restreinte aux élèves) */
+    private function defId($variant = '')
     {
-        return (int) $this->CI->db->get_where('alarm_definitions',
-            array('code' => 'document_' . $this->type_id . '_' . $kind))->row_array()['id'];
+        $code = 'document_' . $this->type_id . ($variant ? '_' . $variant : '');
+        if ($variant === 'eleve' && !$this->CI->db->where('code', $code)->count_all_results('alarm_definitions')) {
+            $eleve = $this->CI->db->get_where('types_roles', array('nom' => 'eleve'))->row_array()['id'];
+            $this->CI->db->insert('alarm_definitions', array('code' => $code, 'label' => 'Test élèves',
+                'source' => 'document', 'document_type_id' => $this->type_id, 'target_role_id' => $eleve,
+                'lead_days' => 30, 'active' => 1));
+        }
+        return (int) $this->CI->db->get_where('alarm_definitions', array('code' => $code))->row_array()['id'];
     }
 
     private function addDocument($pilot, $days_from_now)
@@ -142,10 +149,10 @@ class NotificationManagerTest extends TestCase
         return end($this->doc_ids);
     }
 
-    private function configure($login, $email, $motd, $sms, $frequency, $kinds = array('personal'))
+    private function configure($login, $email, $motd, $sms, $frequency, $variants = array(''))
     {
-        foreach ($kinds as $kind) {
-            $this->assertTrue($this->CI->alarm_subscriptions_model->subscribe($this->defId($kind), $login)['ok']);
+        foreach ($variants as $variant) {
+            $this->assertTrue($this->CI->alarm_subscriptions_model->subscribe($this->defId($variant), $login)['ok']);
         }
         $this->CI->alarm_member_settings_model->save_for($login, $email, $motd, $sms, $frequency);
     }
@@ -158,10 +165,24 @@ class NotificationManagerTest extends TestCase
 
     // ------------------------------------------------------------------
 
+    public function test_simple_membre_ne_recoit_que_ses_documents(): void
+    {
+        $this->addDocument(self::SUPERVISOR, 10);
+        $this->configure(self::PILOT, true, false, false, 'weekly');
+
+        $this->runOn(self::MONDAY);
+        $this->assertCount(0, $this->manager->emails, 'Aucun document du pilote');
+
+        $this->addDocument(self::PILOT, 10);
+        $this->runOn(self::FIRST_MONDAY);
+        $this->assertCount(1, $this->manager->emails);
+        $this->assertStringNotContainsString(self::SUPERVISOR, $this->manager->emails[0]['body']);
+    }
+
     public function test_sans_reglage_rien_n_est_envoye(): void
     {
         $this->addDocument(self::PILOT, 10);
-        $this->CI->alarm_subscriptions_model->subscribe($this->defId('personal'), self::PILOT);
+        $this->CI->alarm_subscriptions_model->subscribe($this->defId(), self::PILOT);
 
         $stats = $this->runOn(self::MONDAY);
         $this->assertEquals(0, $stats['email'] + $stats['motd'] + $stats['sms']);
@@ -227,20 +248,22 @@ class NotificationManagerTest extends TestCase
         $this->assertStringContainsString('Type notification test', $motd['content']);
     }
 
-    public function test_doublon_entre_alarme_personnelle_et_supervision(): void
+    public function test_document_couvert_par_deux_alarmes_liste_une_fois(): void
     {
-        $this->addDocument(self::SUPERVISOR, 10);
-        $this->configure(self::SUPERVISOR, true, false, false, 'weekly', array('personal', 'supervision'));
+        // Le document d'un élève relève de l'alarme du type et de celle des élèves
+        $this->grant(self::PILOT, 'eleve');
+        $this->addDocument(self::PILOT, 10);
+        $this->configure(self::SUPERVISOR, true, false, false, 'weekly', array('', 'eleve'));
 
         $this->runOn(self::MONDAY);
         $this->assertCount(1, $this->manager->emails);
         $this->assertEquals(1, substr_count($this->manager->emails[0]['body'], 'archived_documents/view/'));
     }
 
-    public function test_supervision_couvre_les_documents_des_autres(): void
+    public function test_superviseur_recoit_les_documents_des_autres(): void
     {
         $this->addDocument(self::PILOT, 10);
-        $this->configure(self::SUPERVISOR, true, false, false, 'weekly', array('supervision'));
+        $this->configure(self::SUPERVISOR, true, false, false, 'weekly');
 
         $this->runOn(self::MONDAY);
         $this->assertCount(1, $this->manager->emails);

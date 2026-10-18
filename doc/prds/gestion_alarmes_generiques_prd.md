@@ -1,6 +1,6 @@
 # PRD — Gestion Générique des Alarmes
 
-Date : 9 mai 2026 — mis à jour le 30 mai 2026 (portée par section) et le 18 octobre 2026 (Lot 1 du MVP : catalogue d'alarmes, pages de configuration et de consultation, canaux, synthèses ; rôle élève et visite médicale des élèves)
+Date : 9 mai 2026 — mis à jour le 30 mai 2026 (portée par section) et le 18 octobre 2026 (Lot 1 du MVP : catalogue d'alarmes par type de document, pages de configuration et de consultation, canaux, synthèses ; rôle élève et visite médicale des élèves)
 
 ## Contexte
 
@@ -97,15 +97,17 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 1. **Catalogue des alarmes (Lot 1)**
    - GVV fournit un catalogue d'alarmes. Chaque alarme du catalogue a un nom, une description compréhensible par un membre, une portée (toutes sections ou une section), et un délai d'anticipation (nombre de jours avant l'échéance où elle est considérée « à venir »).
    - Le catalogue du Lot 1 porte sur les documents archivés :
-     - pour chaque type de document à expiration (ex. visite médicale, assurance, brevet), une alarme personnelle et une alarme de supervision ;
-     - les documents obligatoires manquants, en alarme personnelle et en alarme de supervision.
+     - une alarme par type de document à expiration (ex. visite médicale, assurance, manuel d'exploitation s'il a une date de validité), et non une alarme par document ;
+     - une alarme pour les documents obligatoires manquants ;
+     - une alarme des visites médicales des élèves, restreinte aux membres ayant le rôle « élève ».
+   - Les types de documents sans date d'expiration n'ont pas d'alarme.
    - Le Lot 2 y ajoute les alarmes de conformité calculées : pilotes ayant volé sans licence valide, pilotes ayant volé sans cotisation à jour (réutilise le contrôle existant).
    - Un administrateur peut activer ou désactiver une alarme du catalogue et régler son délai d'anticipation ; pour une alarme documentaire, ce délai vaut par défaut le délai d'alerte du type de document.
    - Les types d'alarme sont extensibles : documentaire, maintenance, conformité calculée, expérience récente calculée.
 
-2. **Alarmes personnelles, alarmes de supervision et absence de configuration (Lot 1)**
-   - Une alarme **personnelle** concerne le membre lui-même (ex. sa visite médicale expire). Le membre la reçoit s'il s'y est abonné ou si un administrateur l'y a abonné, individuellement ou via une catégorie.
-   - Une alarme de **supervision** concerne d'autres membres ou des machines (ex. les visites médicales des élèves, les vols sans licence). Elle n'est proposée qu'aux membres autorisés à consulter les informations correspondantes.
+2. **Ce que couvre une alarme, et absence de configuration (Lot 1)**
+   - Une même alarme couvre, pour un abonné, **ses propres documents** (ex. sa visite médicale) et **les documents des autres** membres, des machines, des sections et du club **qu'il a le droit de consulter** (supervision).
+   - Les alarmes sur des documents de membre et l'alarme des documents manquants sont proposées à tout membre, au moins pour ses propres documents. Les alarmes sur des documents de machine, de section ou de club, et l'alarme des visites médicales des élèves, ne sont proposées qu'aux membres autorisés à consulter ces documents.
    - Aucun abonnement n'existe par défaut : un membre pour qui ni lui ni un administrateur n'a rien configuré (aucun abonnement individuel, aucune catégorie abonnée dont il fait partie) ne reçoit aucune alarme, sur aucun canal.
 
 3. **Page de configuration des alarmes (Lot 1)**
@@ -118,7 +120,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
    - Toute modification est confirmée à l'écran.
 
 4. **Page de consultation des alarmes (Lot 1)**
-   - Chaque membre abonné à au moins une alarme dispose dans GVV d'une page « Mes alarmes » qui liste les alarmes **actives** et **à venir** auxquelles il est abonné, qu'elles soient personnelles ou de supervision.
+   - Chaque membre abonné à au moins une alarme dispose dans GVV d'une page « Mes alarmes » qui liste les alarmes **actives** et **à venir** auxquelles il est abonné, pour ses propres documents comme pour ceux qu'il supervise.
    - Un membre sans aucun abonnement n'a pas accès à cette page : elle n'apparaît ni dans ses menus ni dans son tableau de bord. Elle y apparaît dès qu'un abonnement existe pour lui, qu'il l'ait créé ou qu'un administrateur l'ait créé.
    - Pour chaque alarme, la page indique ce qui est concerné (membre, document, machine), l'échéance ou la date de déclenchement, l'état (à venir, active) et l'action attendue, avec un lien vers la page GVV où la traiter.
    - La page est filtrable par alarme du catalogue et par section.
@@ -129,7 +131,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
    - La seule différence : la page lui présente en plus un sélecteur de membre, positionné par défaut sur son propre profil. En choisissant un autre membre, il voit et modifie la configuration de ce membre — abonnements, canaux, rappel par SMS, fréquence — avec les mêmes règles que pour lui-même. Le membre voit ensuite ces abonnements sur sa page, avec le nom de l'administrateur qui les a créés.
    - Il peut abonner une **catégorie de membres** à une alarme. Les catégories reposent sur les rôles existants (ex. instructeurs, bureau, CA, mécaniciens), éventuellement restreints à une section. Un membre qui obtient le rôle est abonné, un membre qui le perd ne l'est plus, sans autre intervention.
    - Un administrateur peut rendre un abonnement, individuel ou par catégorie, non désabonnable ; sinon, le membre peut s'en retirer.
-   - Un abonnement à une alarme de supervision n'est accepté que si l'abonné est autorisé à consulter les informations correspondantes ; sinon il est refusé avec un message explicite. Le contrôle est refait à chaque notification, pour qu'un retrait de droit prenne effet immédiatement.
+   - Un abonnement n'est accepté que si l'alarme est proposée à l'abonné (cf. exigence 2) ; sinon il est refusé avec un message explicite. Les droits de consultation sont contrôlés à nouveau à chaque notification, pour qu'un retrait de droit prenne effet immédiatement.
 
 6. **Canaux de notification (Lot 1)**
    - Le membre choisit lui-même ses canaux sur sa page de configuration ; au moins un des canaux email et message du jour doit rester actif tant qu'il a un abonnement.
@@ -155,7 +157,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
    - Le rôle « élève » peut servir de catégorie de membres pour les abonnements (cf. exigence 5) et de critère pour les documents obligatoires.
    - La visite médicale est obligatoire pour tout membre ayant le rôle « élève », dans la ou les sections où il le détient.
    - Un élève sans visite médicale valide apparaît comme ayant un document obligatoire manquant.
-   - L'approche puis le dépassement de la date d'expiration de la visite médicale d'un élève déclenchent l'alarme correspondante : l'élève est informé (alarme personnelle) et les abonnés à l'alarme de supervision des visites médicales des élèves le sont aussi.
+   - L'approche puis le dépassement de la date d'expiration de la visite médicale d'un élève déclenchent les alarmes correspondantes : l'élève abonné à l'alarme du certificat médical est informé pour son propre certificat, et les abonnés à l'alarme des visites médicales des élèves (ex. instructeurs, responsables pédagogiques) le sont aussi.
 
 9. **Déclenchement et fenêtres**
    - Une alarme à date fixe passe à l'état « à venir » au début de son délai d'anticipation, puis « active » à l'échéance.
@@ -226,7 +228,7 @@ Le mécanisme d'alarmes ne s'appuie pas sur le message du jour pour stocker ni o
 
 ## Mesures de succès
 - Adoption : part des membres actifs ayant au moins un abonnement ou une préférence de canal enregistrée.
-- Couverture : aucune alarme active de supervision sans abonné.
+- Couverture : aucune alarme active sans abonné.
 - Conformité : baisse du nombre d'élèves volant sans visite médicale valide, puis (Lot 2) de vols sans licence.
 - Qualité perçue : diminution des oublis d'échéance remontés par les responsables.
 

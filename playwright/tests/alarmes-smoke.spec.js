@@ -3,9 +3,10 @@
  *
  * Verifies:
  *   1. A member configures alarms; "Mes alarmes" is hidden without subscription
- *      and reachable once subscribed; supervision alarms are not offered to a
- *      plain member; a subscription without channel is refused with a message
- *   2. A club-admin sees the member selector positioned on himself and can
+ *      and reachable once subscribed; a subscription without channel is
+ *      refused with a message
+ *   2. A club-admin sees the member selector positioned on himself, is offered
+ *      more alarms than a plain member (documents he may supervise) and can
  *      configure another member, who then sees the subscription with its author
  *   3. A club-admin adds and deletes a category subscription
  *   4. The scheduler URL answers 403 with a wrong secret
@@ -57,9 +58,6 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator('.alert-danger')).toBeVisible();
         await expect(page.locator('a[href*="mes_alarmes"]')).toHaveCount(0);
 
-        // Les alarmes de supervision ne sont pas proposées à un simple membre
-        await expect(page.locator('#alarm-config-form')).not.toContainText('(supervision)');
-
         // Pas de canal : refus explicite
         const first = page.locator('input[name="alarms[]"]').first();
         await first.check();
@@ -86,12 +84,14 @@ test.describe('Alarmes – Lot 1', () => {
 
         // Sélecteur positionné sur son propre profil
         await expect(page.locator('#membre')).toHaveValue(ADMIN.username);
-        await expect(page.locator('#alarm-config-form')).toContainText('(supervision)');
+        const adminAlarms = await page.locator('input[name="alarms[]"][type="checkbox"]').count();
 
         // Configuration d'un autre membre
         await page.selectOption('#membre', MEMBER.username);
         await page.waitForLoadState('networkidle');
         await expect(page).toHaveURL(new RegExp('membre=' + MEMBER.username));
+        // Les documents de section ou de club ne sont proposés qu'à ceux qui peuvent les superviser
+        expect(await page.locator('input[name="alarms[]"][type="checkbox"]').count()).toBeLessThan(adminAlarms);
         const second = page.locator('input[name="alarms[]"]').nth(1);
         const alarmId = await second.getAttribute('value');
         await second.check();

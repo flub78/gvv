@@ -60,16 +60,7 @@ $csrf_value = $this->security->get_csrf_hash();
         <?php if (empty($proposed)): ?>
           <p class="text-muted mb-0"><?= $this->lang->line('alarm_config_none_available') ?></p>
         <?php else: ?>
-          <?php
-          $groups = array('personal' => array(), 'supervision' => array());
-          foreach ($proposed as $def) {
-              $groups[$def['kind']][] = $def;
-          }
-          ?>
-          <?php foreach ($groups as $kind => $defs): ?>
-            <?php if (empty($defs)) continue; ?>
-            <h6 class="mt-2"><?= $this->lang->line('alarm_config_group_' . $kind) ?></h6>
-            <?php foreach ($defs as $def): ?>
+            <?php foreach ($proposed as $def): ?>
               <?php
               $sub = isset($effective[$def['id']]) ? $effective[$def['id']] : null;
               $mandatory = $sub && $sub['mandatory'];
@@ -100,7 +91,6 @@ $csrf_value = $this->security->get_csrf_hash();
                 </label>
               </div>
             <?php endforeach; ?>
-          <?php endforeach; ?>
         <?php endif; ?>
       </div>
     </div>

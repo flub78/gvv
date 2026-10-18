@@ -180,6 +180,7 @@ class Alarm_subscriptions_model extends Common_Model {
 
     /**
      * Le membre peut-il voir cette occurrence d'alarme ?
+     * Ses propres documents, plus ceux qu'il a le droit de superviser.
      *
      * @param string $login
      * @param array $def
@@ -187,8 +188,8 @@ class Alarm_subscriptions_model extends Common_Model {
      * @return bool
      */
     public function can_see_item($login, $def, $item) {
-        if ($def['kind'] === Alarm_definitions_model::KIND_PERSONAL) {
-            return !empty($item['pilot_login']) && $item['pilot_login'] === $login;
+        if (!empty($item['pilot_login']) && $item['pilot_login'] === $login) {
+            return true;
         }
         $sections = $this->supervision_sections($login, $def);
         if ($sections === 'all') {
@@ -212,6 +213,10 @@ class Alarm_subscriptions_model extends Common_Model {
     /**
      * Le membre peut-il s'abonner à cette alarme ?
      *
+     * Documents de pilote et documents manquants : tout membre actif, pour
+     * ses propres documents. Autres documents et alarmes restreintes à une
+     * population (ex. élèves) : membres ayant le droit de les superviser.
+     *
      * @param string $login
      * @param array $def
      * @return bool
@@ -220,7 +225,9 @@ class Alarm_subscriptions_model extends Common_Model {
         if (!$this->is_active_member($login) || empty($def['active'])) {
             return false;
         }
-        if ($def['kind'] === Alarm_definitions_model::KIND_PERSONAL) {
+        $own_documents = $def['source'] === Alarm_definitions_model::SOURCE_MISSING_DOCUMENT
+            || (isset($def['type_scope']) && $def['type_scope'] === 'pilot');
+        if ($own_documents && empty($def['target_role_id'])) {
             return true;
         }
         $sections = $this->supervision_sections($login, $def);

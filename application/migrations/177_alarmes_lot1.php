@@ -34,7 +34,6 @@ class Migration_Alarmes_lot1 extends CI_Migration {
                 `code` VARCHAR(64) NOT NULL COMMENT 'Identifiant stable de l''alarme',
                 `label` VARCHAR(128) NOT NULL COMMENT 'Libellé de référence (affichage traduit par le modèle)',
                 `description` TEXT NULL,
-                `kind` ENUM('personal','supervision') NOT NULL,
                 `source` ENUM('document','missing_document','computed') NOT NULL,
                 `document_type_id` INT(11) UNSIGNED NULL COMMENT 'FK document_types (source document)',
                 `rule` VARCHAR(64) NULL COMMENT 'Règle calculée (source computed)',
@@ -202,9 +201,9 @@ class Migration_Alarmes_lot1 extends CI_Migration {
     }
 
     /**
-     * Catalogue initial : pour chaque type de document actif à expiration, une
-     * alarme de supervision et, pour les documents de pilote, une alarme
-     * personnelle ; plus les documents obligatoires manquants.
+     * Catalogue initial : une alarme par type de document actif à expiration,
+     * la visite médicale des élèves, les documents obligatoires manquants.
+     * Un abonné reçoit ses propres documents et ceux qu'il peut superviser.
      */
     private function _seed_catalogue() {
         $now = date('Y-m-d H:i:s');
@@ -213,30 +212,24 @@ class Migration_Alarmes_lot1 extends CI_Migration {
 
         $rows = array();
         foreach ($types as $type) {
-            $lead = ($type['alert_days_before'] !== NULL) ? (int) $type['alert_days_before'] : 30;
-            $kinds = ($type['scope'] === 'pilot') ? array('personal', 'supervision') : array('supervision');
-            foreach ($kinds as $kind) {
-                $rows[] = array(
-                    'code'             => 'document_' . $type['id'] . '_' . $kind,
-                    'label'            => $type['name'],
-                    'kind'             => $kind,
-                    'source'           => 'document',
-                    'document_type_id' => $type['id'],
-                    'section_id'       => $type['section_id'],
-                    'lead_days'        => $lead,
-                    'active'           => 1,
-                    'created_at'       => $now,
-                    'created_by'       => 'migration',
-                );
-            }
+            $rows[] = array(
+                'code'             => 'document_' . $type['id'],
+                'label'            => $type['name'],
+                'source'           => 'document',
+                'document_type_id' => $type['id'],
+                'section_id'       => $type['section_id'],
+                'lead_days'        => ($type['alert_days_before'] !== NULL) ? (int) $type['alert_days_before'] : 30,
+                'active'           => 1,
+                'created_at'       => $now,
+                'created_by'       => 'migration',
+            );
         }
         $medical = $this->db->where('code', 'medical')->where('scope', 'pilot')
             ->get('document_types')->row_array();
         if ($medical) {
             $rows[] = array(
-                'code'             => 'document_' . $medical['id'] . '_supervision_eleve',
+                'code'             => 'document_' . $medical['id'] . '_eleve',
                 'label'            => $medical['name'] . ' — élèves',
-                'kind'             => 'supervision',
                 'source'           => 'document',
                 'document_type_id' => $medical['id'],
                 'target_role_id'   => $this->_eleve_role_id(),
@@ -246,18 +239,15 @@ class Migration_Alarmes_lot1 extends CI_Migration {
                 'created_by'       => 'migration',
             );
         }
-        foreach (array('personal', 'supervision') as $kind) {
-            $rows[] = array(
-                'code'       => 'missing_document_' . $kind,
-                'label'      => 'Documents obligatoires manquants',
-                'kind'       => $kind,
-                'source'     => 'missing_document',
-                'lead_days'  => 0,
-                'active'     => 1,
-                'created_at' => $now,
-                'created_by' => 'migration',
-            );
-        }
+        $rows[] = array(
+            'code'       => 'missing_document',
+            'label'      => 'Documents obligatoires manquants',
+            'source'     => 'missing_document',
+            'lead_days'  => 0,
+            'active'     => 1,
+            'created_at' => $now,
+            'created_by' => 'migration',
+        );
 
         foreach ($rows as $row) {
             if ($this->db->where('code', $row['code'])->count_all_results('alarm_definitions') == 0) {

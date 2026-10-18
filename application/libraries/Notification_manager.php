@@ -118,6 +118,9 @@ class Notification_manager {
                     continue;
                 }
                 if ($this->CI->alarm_subscriptions_model->can_see_item($login, $definitions[$def_id], $item)) {
+                    if ($item['pilot_login'] === $login && !empty($item['link_own'])) {
+                        $item['link'] = $item['link_own'];
+                    }
                     $occurrences[$item['key']] = $item;
                 }
             }

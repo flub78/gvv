@@ -8,9 +8,11 @@ $CI->load->model('common_model');
 /**
  * Catalogue des alarmes (table alarm_definitions)
  *
- * Une ligne par alarme proposée aux membres : personnelle ou de supervision,
- * sur un type de document à expiration ou sur les documents obligatoires
- * manquants. Le catalogue suit les types de documents (sync_document_types).
+ * Une ligne par alarme proposée aux membres : une par type de document à
+ * expiration, éventuellement restreinte à une population (target_role_id,
+ * ex. les élèves), et une pour les documents obligatoires manquants. Un
+ * abonné reçoit ses propres documents et ceux qu'il a le droit de
+ * superviser. Le catalogue suit les types de documents (sync_document_types).
  *
  * @package models
  * @see application/migrations/177_alarmes_lot1.php
@@ -19,9 +21,6 @@ $CI->load->model('common_model');
 class Alarm_definitions_model extends Common_Model {
     public $table = 'alarm_definitions';
     protected $primary_key = 'id';
-
-    const KIND_PERSONAL = 'personal';
-    const KIND_SUPERVISION = 'supervision';
 
     const SOURCE_DOCUMENT = 'document';
     const SOURCE_MISSING_DOCUMENT = 'missing_document';
@@ -48,7 +47,6 @@ class Alarm_definitions_model extends Common_Model {
         if ($active_only) {
             $this->db->where('ad.active', 1);
         }
-        $this->db->order_by('ad.kind', 'asc');
         $this->db->order_by('ad.source', 'asc');
         $this->db->order_by('ad.label', 'asc');
         $rows = $this->get_to_array($this->db->get());
@@ -81,7 +79,7 @@ class Alarm_definitions_model extends Common_Model {
      */
     public function display_label($def) {
         if ($def['source'] === self::SOURCE_MISSING_DOCUMENT) {
-            return $this->lang->line('alarm_label_missing_' . $def['kind']);
+            return $this->lang->line('alarm_label_missing');
         }
         if ($def['source'] === self::SOURCE_DOCUMENT) {
             $name = !empty($def['type_name']) ? $def['type_name'] : $def['label'];
@@ -90,7 +88,7 @@ class Alarm_definitions_model extends Common_Model {
                     ? $this->lang->line($def['target_role_key']) : $def['target_role_name'];
                 return sprintf($this->lang->line('alarm_label_document_target'), $name, $role);
             }
-            return sprintf($this->lang->line('alarm_label_document_' . $def['kind']), $name);
+            return $name;
         }
         return $def['label'];
     }
@@ -104,38 +102,36 @@ class Alarm_definitions_model extends Common_Model {
      */
     public function sync_document_types() {
         $changes = 0;
-        $types = $this->db->get('document_types')->result_array();
-        foreach ($types as $type) {
+        foreach ($this->db->get('document_types')->result_array() as $type) {
             $expiring = !empty($type['active']) && !empty($type['has_expiration']);
-            $kinds = ($type['scope'] === 'pilot')
-                ? array(self::KIND_PERSONAL, self::KIND_SUPERVISION)
-                : array(self::KIND_SUPERVISION);
-
-            foreach ($kinds as $kind) {
-                $code = 'document_' . $type['id'] . '_' . $kind;
-                $existing = $this->db->where('code', $code)->get($this->table)->row_array();
-                if (!$existing) {
-                    if ($expiring) {
-                        $this->create(array(
-                            'code' => $code,
-                            'label' => $type['name'],
-                            'kind' => $kind,
-                            'source' => self::SOURCE_DOCUMENT,
-                            'document_type_id' => $type['id'],
-                            'section_id' => $type['section_id'],
-                            'lead_days' => ($type['alert_days_before'] !== null) ? (int) $type['alert_days_before'] : 30,
-                            'active' => 1,
-                        ));
-                        $changes++;
-                    }
-                } elseif ((int) $existing['active'] !== ($expiring ? 1 : 0) || $existing['label'] !== $type['name']) {
-                    $this->update('id', array(
-                        'id' => $existing['id'],
-                        'active' => $expiring ? 1 : 0,
+            $code = 'document_' . $type['id'];
+            $existing = $this->db->where('code', $code)->get($this->table)->row_array();
+            if (!$existing) {
+                if ($expiring) {
+                    $this->create(array(
+                        'code' => $code,
                         'label' => $type['name'],
+                        'source' => self::SOURCE_DOCUMENT,
+                        'document_type_id' => $type['id'],
+                        'section_id' => $type['section_id'],
+                        'lead_days' => ($type['alert_days_before'] !== null) ? (int) $type['alert_days_before'] : 30,
+                        'active' => 1,
                     ));
                     $changes++;
                 }
+            } elseif ((int) $existing['active'] !== ($expiring ? 1 : 0) || $existing['label'] !== $type['name']) {
+                $this->update('id', array(
+                    'id' => $existing['id'],
+                    'active' => $expiring ? 1 : 0,
+                    'label' => $type['name'],
+                ));
+                $changes++;
+            }
+            if (!$expiring) {
+                // Les alarmes restreintes à une population suivent aussi le type
+                $this->db->where('document_type_id', $type['id'])->where('active', 1)
+                    ->update($this->table, array('active' => 0));
+                $changes += $this->db->affected_rows();
             }
         }
         if ($changes) {

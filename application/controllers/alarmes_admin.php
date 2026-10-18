@@ -129,7 +129,7 @@ class Alarmes_admin extends MY_Controller
     {
         $active_defs = array();
         foreach ($definitions as $def) {
-            if ($def['active'] && $def['kind'] === Alarm_definitions_model::KIND_SUPERVISION) {
+            if ($def['active']) {
                 $active_defs[$def['id']] = $def;
             }
         }

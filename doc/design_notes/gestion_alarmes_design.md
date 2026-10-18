@@ -49,7 +49,8 @@ Toute alarme déclenchée, quelle que soit sa source, est représentée par un `
 | `label` | string | Texte descriptif de l'alarme |
 | `state` | string | `upcoming` (à venir) \| `active` |
 | `due_date` | date\|null | Échéance — null pour les alarmes calculées sans date fixe |
-| `link` | string | Page GVV où traiter l'alarme |
+| `link` | string | Page GVV où traiter l'alarme (superviseur) |
+| `link_own` | string | Page GVV où traiter l'alarme quand l'abonné est le membre concerné |
 
 ### Providers
 
@@ -83,13 +84,13 @@ AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmIte
 
 ### Catalogue
 
-**`alarm_definitions`** : une ligne par alarme proposée aux membres. Elle porte le type (`personal` ou `supervision`), la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), la population ciblée (`target_role_id`, ex. élèves), le délai d'anticipation et l'état actif.
+**`alarm_definitions`** : une ligne par alarme proposée aux membres — une par type de document à expiration, pas une par document. Elle porte la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), la population ciblée (`target_role_id`, ex. élèves), le délai d'anticipation et l'état actif.
 
-- La migration crée, pour chaque type de document à expiration, une alarme de supervision et, pour les documents de pilote, une alarme personnelle ; les alarmes personnelle et de supervision des documents manquants ; la supervision des visites médicales des élèves (`target_role_id` = `eleve`). Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
-- La création d'un type de document à expiration crée ses deux alarmes ; sa désactivation désactive ses alarmes.
+- La migration crée une alarme par type de document à expiration (`document_<id>`), l'alarme des documents manquants (`missing_document`) et celle des visites médicales des élèves (`document_<id>_eleve`, `target_role_id` = `eleve`). Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
+- La création d'un type de document à expiration crée son alarme ; un type désactivé ou sans expiration voit ses alarmes désactivées.
 - Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
-Une alarme **personnelle** ne retient, pour un abonné, que les `AlarmItem` dont il est l'entité. Une alarme de **supervision** retient tous les `AlarmItem` que l'abonné a le droit de consulter.
+Une alarme retient, pour un abonné, les `AlarmItem` dont il est l'entité (ses propres documents) et ceux qu'il a le droit de superviser. Elle est proposée à tout membre actif si elle porte sur des documents de pilote ou sur les documents manquants (au moins pour ses propres documents) ; sinon, et pour une alarme ciblant une population, seulement aux membres qui ont le droit de superviser.
 
 ### Abonnements
 
@@ -101,7 +102,7 @@ Une alarme **personnelle** ne retient, pour un abonné, que les `AlarmItem` dont
 
 **Aucune configuration, aucune alarme** : sans abonnement effectif, le membre ne reçoit rien et la page « Mes alarmes » est masquée. Un réglage de canaux sans abonnement n'a aucun effet.
 
-**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement de supervision et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections.
+**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections.
 
 ### Notifications
 
