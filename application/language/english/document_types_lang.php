@@ -32,6 +32,11 @@ $lang['document_types_filter_clear'] = 'Clear filters';
 
 $lang['document_types_confirm_delete'] = 'Are you sure you want to delete this document type?';
 $lang['document_types_no_types'] = 'No document types defined';
+$lang['document_types_toggle_on'] = "Type \"%s\": %s enabled.";
+$lang['document_types_toggle_off'] = "Type \"%s\": %s disabled.";
+$lang['document_types_toggle_denied'] = "You are not allowed to modify document types.";
+$lang['document_types_toggle_invalid'] = "Cannot modify: unknown type or field.";
+
 
 /* End of file document_types_lang.php */
 /* Location: ./application/language/english/document_types_lang.php */

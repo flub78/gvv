@@ -135,6 +135,41 @@ class Document_types extends Gvv_Controller {
     }
 
     /**
+     * Bascule en un clic d'un booléen depuis la liste des types (AJAX, POST
+     * id, field, value) ; réponse JSON success, value, message
+     */
+    public function ajax_toggle() {
+        header('Content-Type: application/json; charset=UTF-8');
+        $toggleable = array('required', 'has_expiration', 'alarm_enabled', 'active');
+        $id = (int) $this->input->post('id');
+        $field = $this->input->post('field');
+        $value = $this->input->post('value') ? 1 : 0;
+
+        if (!$this->has_modification_rights()) {
+            echo json_encode(array('success' => false, 'message' => $this->lang->line('document_types_toggle_denied')));
+            return;
+        }
+        $type = $id ? $this->gvv_model->get_by_id('id', $id) : null;
+        if (!in_array($field, $toggleable, true) || empty($type)) {
+            echo json_encode(array('success' => false, 'message' => $this->lang->line('document_types_toggle_invalid')));
+            return;
+        }
+
+        $this->gvv_model->update('id', array('id' => $id, $field => $value));
+        $this->load->model('alarm_definitions_model');
+        $this->alarm_definitions_model->sync_document_types();
+
+        $this->lang->load('gvv');
+        $label = $this->gvvmetadata->field_name('vue_document_types', $field);
+        echo json_encode(array(
+            'success' => true,
+            'value' => $value,
+            'message' => sprintf($this->lang->line($value ? 'document_types_toggle_on' : 'document_types_toggle_off'),
+                $type['name'], $label),
+        ));
+    }
+
+    /**
      * Après création : le catalogue des alarmes suit les types de documents
      */
     function post_create($data = array()) {

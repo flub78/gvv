@@ -81,7 +81,7 @@ Accessible depuis le tableau de bord **Administration club** (carte « Administr
 
 - **Alarmes actives ou à venir sans abonné** : ce que personne ne reçoit. Aucun abonnement n'est créé automatiquement, il faut donc abonner quelqu'un à chaque alarme utile.
 - **Abonnements de catégories de membres** : abonner tous les membres ayant un rôle (ex. les instructeurs de la section planeur) à une alarme, éventuellement en la rendant obligatoire. Un membre qui obtient le rôle est abonné ; un membre qui le perd ne l'est plus.
-- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme. Pour qu'un type n'ait jamais d'alarme, décochez **Alarmes possibles sur ce type** dans sa fiche (Types de documents) ; la case est cochée par défaut.
+- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme. Pour qu'un type n'ait jamais d'alarme, décochez **Alarmes possibles sur ce type** dans sa fiche, ou directement la case de la colonne **Alarmes** dans la liste des types de documents ; la case est cochée par défaut. Dans cette liste, les colonnes Obligatoire, Expiration, Alarmes et Actif sont des cases à cocher : un clic enregistre le changement, confirmé par un message en bas de l'écran.
 
 ---
 

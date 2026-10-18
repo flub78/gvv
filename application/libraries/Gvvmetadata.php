@@ -972,14 +972,18 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_document_types']['section_name']['Name'] = 'Section';
                 $this->field['vue_document_types']['scope']['Name'] = 'Portee';
                 $this->field['vue_document_types']['required']['Name'] = 'Obligatoire';
-                $this->field['vue_document_types']['required']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['required']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['required']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['has_expiration']['Name'] = 'Expiration';
-                $this->field['vue_document_types']['has_expiration']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['has_expiration']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['has_expiration']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
                 $this->field['vue_document_types']['alarm_enabled']['Name'] = 'Alarmes';
-                $this->field['vue_document_types']['alarm_enabled']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['alarm_enabled']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['alarm_enabled']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['active']['Name'] = 'Actif';
-                $this->field['vue_document_types']['active']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['active']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['active']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['display_order']['Name'] = 'Ordre';
 
                 /**

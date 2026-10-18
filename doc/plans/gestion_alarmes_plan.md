@@ -36,7 +36,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
   - `down()` symétrique, qui restaure `document_types` à l'identique
 - [x] `application/config/migration.php` → 177
 - [x] Modèles `alarm_definitions_model`, `alarm_subscriptions_model` (CRUD, abonnements effectifs, contrôle des droits), `alarm_member_settings_model`, `notification_history_model`
-- [x] Métadonnées `Gvvmetadata.php` : `document_types.required_role_id` et `alarm_enabled` (formulaire et liste des types) ; les pages d'alarmes affichent des données calculées (occurrences, abonnements effectifs), en tableaux Bootstrap
+- [x] Métadonnées `Gvvmetadata.php` : `document_types.required_role_id` et `alarm_enabled` (formulaire et liste des types) ; booléens de la liste des types modifiables en un clic (sous-type `toggle`, `document_types/ajax_toggle`) ; les pages d'alarmes affichent des données calculées (occurrences, abonnements effectifs), en tableaux Bootstrap
 - [x] Création et désactivation des alarmes d'un type de document depuis le contrôleur des types de documents
 
 **1.3 — Rôle élève** (1 j)
@@ -87,6 +87,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] PHPUnit MySQL rôle élève : attribution à l'ouverture (section du programme, toutes les sections sans section), retrait à la clôture et à l'abandon, maintien si une autre formation est en cours, retrait manuel respecté
 - [x] PHPUnit migration 177 : up/down avec sauvegarde et restauration de `document_types` et `types_roles`
 - [x] Toutes les fixtures sont créées et supprimées par les tests (y compris en cas d'échec), sans dépendance aux données existantes
+- [x] Playwright `document-types-toggle-smoke.spec.js` : bascule en un clic des booléens de la liste des types, effet sur le catalogue
 - [x] Playwright `alarmes-smoke.spec.js` : configuration par le membre, page « Mes alarmes » masquée puis visible, sélecteur de membre `club-admin` positionné sur son propre profil puis configuration d'un autre membre, abonnement de catégorie, refus hors droits, déclenchement `run($secret)` (403 avec un mauvais secret, JSON avec le bon)
 - [x] Smoke tests complets phpunit + playwright avant clôture
 
