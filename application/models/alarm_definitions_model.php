@@ -94,16 +94,17 @@ class Alarm_definitions_model extends Common_Model {
     }
 
     /**
-     * Met le catalogue en accord avec les types de documents : crée les
-     * alarmes des types actifs à expiration qui n'en ont pas, désactive
-     * celles des types inactifs ou sans expiration. Idempotent.
+     * Met le catalogue en accord avec les types de documents : crée l'alarme
+     * des types actifs, à expiration et à alarmes possibles qui n'en ont pas,
+     * désactive celles des autres types. Idempotent.
      *
      * @return int Nombre d'alarmes créées ou modifiées
      */
     public function sync_document_types() {
         $changes = 0;
         foreach ($this->db->get('document_types')->result_array() as $type) {
-            $expiring = !empty($type['active']) && !empty($type['has_expiration']);
+            // Alarme seulement pour un type actif, à expiration et à alarmes possibles
+            $expiring = !empty($type['active']) && !empty($type['has_expiration']) && !empty($type['alarm_enabled']);
             $code = 'document_' . $type['id'];
             $existing = $this->db->where('code', $code)->get($this->table)->row_array();
             if (!$existing) {

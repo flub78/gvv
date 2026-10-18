@@ -95,7 +95,8 @@ entity document_types {
   * id : int (PK)
   --
   section_id, alert_days_before,
-  required, required_role_id (FK, null)
+  required, required_role_id (FK, null),
+  alarm_enabled
 }
 
 alarm_definitions ||--o{ alarm_subscriptions

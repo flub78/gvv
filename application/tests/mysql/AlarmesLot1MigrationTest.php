@@ -55,6 +55,16 @@ class AlarmesLot1MigrationTest extends TestCase
         }
         $this->assertGreaterThan(0, $this->eleveRoleId(), 'Rôle eleve');
         $this->assertTrue($this->db->field_exists('required_role_id', 'document_types'));
+        $this->assertTrue($this->db->field_exists('alarm_enabled', 'document_types'));
+    }
+
+    public function testExistingDocumentTypesAllowAlarms()
+    {
+        $this->up();
+
+        $this->assertEquals(0, $this->countSql("SELECT COUNT(*) FROM document_types WHERE alarm_enabled IS NULL"));
+        $column = $this->db->query("SHOW COLUMNS FROM document_types LIKE 'alarm_enabled'")->row_array();
+        $this->assertEquals('1', $column['Default'], 'Alarmes possibles par défaut');
     }
 
     public function testUpIsIdempotent()
@@ -75,7 +85,7 @@ class AlarmesLot1MigrationTest extends TestCase
         $this->up();
 
         $types = $this->db->query(
-            "SELECT id, scope FROM document_types WHERE active = 1 AND has_expiration = 1"
+            "SELECT id, scope FROM document_types WHERE active = 1 AND has_expiration = 1 AND alarm_enabled = 1"
         )->result_array();
         foreach ($types as $type) {
             $this->assertEquals(1, $this->countSql(
@@ -131,6 +141,7 @@ class AlarmesLot1MigrationTest extends TestCase
             $this->assertTrue($migration->down(), 'Migration 177 down() doit réussir');
             $this->assertFalse($this->db->table_exists('alarm_definitions'));
             $this->assertFalse($this->db->field_exists('required_role_id', 'document_types'));
+            $this->assertFalse($this->db->field_exists('alarm_enabled', 'document_types'));
             $this->assertEquals(0, $this->eleveRoleId());
         } finally {
             $this->up();

@@ -21,7 +21,7 @@ Ouvrez **Configuration des alarmes**.
 
 ### 1.1 Les alarmes
 
-Il y a **une alarme par type de document** (certificat médical, attestation d'assurance, manuel d'exploitation s'il a une date de validité…), plus une pour les **documents obligatoires manquants** et une pour les **visites médicales des élèves**. Les types de documents sans date d'expiration n'ont pas d'alarme.
+Il y a **une alarme par type de document** (certificat médical, attestation d'assurance, manuel d'exploitation s'il a une date de validité…), plus une pour les **documents obligatoires manquants** et une pour les **visites médicales des élèves**. Les types de documents sans date d'expiration, et ceux pour lesquels un administrateur a décoché **Alarmes possibles sur ce type**, n'ont pas d'alarme.
 
 Une alarme couvre à la fois :
 
@@ -81,7 +81,7 @@ Accessible depuis le tableau de bord **Administration club** (carte « Administr
 
 - **Alarmes actives ou à venir sans abonné** : ce que personne ne reçoit. Aucun abonnement n'est créé automatiquement, il faut donc abonner quelqu'un à chaque alarme utile.
 - **Abonnements de catégories de membres** : abonner tous les membres ayant un rôle (ex. les instructeurs de la section planeur) à une alarme, éventuellement en la rendant obligatoire. Un membre qui obtient le rôle est abonné ; un membre qui le perd ne l'est plus.
-- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme.
+- **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme. Pour qu'un type n'ait jamais d'alarme, décochez **Alarmes possibles sur ce type** dans sa fiche (Types de documents) ; la case est cochée par défaut.
 
 ---
 

@@ -90,7 +90,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
    Les notifications des documents sont assurées par la gestion générique des alarmes : [gestion_alarmes_generiques_prd.md](gestion_alarmes_generiques_prd.md), Lot 1 du MVP. Ce PRD en fixe seulement les règles propres aux documents :
 
-   - Chaque type de document à date d'expiration donne lieu à une alarme du catalogue (et non une par document). Elle couvre, pour un abonné, ses propres documents et ceux des autres membres, des machines, des sections et du club qu'il a le droit de consulter. Les documents obligatoires manquants donnent lieu à une alarme du même principe. Les types sans date d'expiration n'ont pas d'alarme.
+   - Chaque type de document à date d'expiration donne lieu à une alarme du catalogue (et non une par document). Elle couvre, pour un abonné, ses propres documents et ceux des autres membres, des machines, des sections et du club qu'il a le droit de consulter. Les documents obligatoires manquants donnent lieu à une alarme du même principe. Les types sans date d'expiration, ou pour lesquels les alarmes ne sont pas possibles (cf. §13), n'ont pas d'alarme.
    - Un document est « à venir » à partir du délai d'alerte de son type (champ `alert_days_before`, 30 jours par défaut) et « actif » une fois expiré ; un document obligatoire manquant est actif.
    - Les abonnements, les canaux (email, message du jour, SMS), la fréquence des synthèses et l'anti-spam sont ceux de la gestion générique des alarmes. En particulier, un membre ne reçoit des notifications de documents que s'il est abonné, par lui-même ou par un administrateur.
    - Hors ses propres documents, un membre ne reçoit que les documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
@@ -104,7 +104,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 12. **Réutilisation des mécanismes existants**
    - Le système doit réutiliser les bibliothèques et mécanismes existants pour le stockage et la compression des fichiers.
 13. **Gestion des types de documents**
-   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, pour tous les pilotes ou pour un rôle, portée pilote/section/club, date d’expiration ou non, unique par entité ou non, délai d’alerte).
+   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, pour tous les pilotes ou pour un rôle, portée pilote/section/club, date d’expiration ou non, unique par entité ou non, délai d’alerte, alarmes possibles ou non — possibles par défaut).
    - Ces types définissent des règles applicables aux documents (obligatoire, portée, expiration, délai d'alerte), pas des emplacements uniques. Un pilote peut avoir plusieurs documents du même type simultanément.
 
 

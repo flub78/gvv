@@ -953,6 +953,8 @@ class GVVMetadata extends Metadata {
                 $this->field['document_types']['storage_by_year']['Subtype'] = 'checkbox';
                 $this->field['document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
                 $this->field['document_types']['alert_days_before']['Type'] = 'int';
+                $this->field['document_types']['alarm_enabled']['Name'] = 'Alarmes possibles';
+                $this->field['document_types']['alarm_enabled']['Subtype'] = 'checkbox';
                 $this->field['document_types']['active']['Name'] = 'Actif';
                 $this->field['document_types']['active']['Subtype'] = 'checkbox';
                 $this->field['document_types']['is_private']['Name'] = 'Confidentiel';
@@ -974,6 +976,8 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_document_types']['has_expiration']['Name'] = 'Expiration';
                 $this->field['vue_document_types']['has_expiration']['Subtype'] = 'boolean';
                 $this->field['vue_document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
+                $this->field['vue_document_types']['alarm_enabled']['Name'] = 'Alarmes';
+                $this->field['vue_document_types']['alarm_enabled']['Subtype'] = 'boolean';
                 $this->field['vue_document_types']['active']['Name'] = 'Actif';
                 $this->field['vue_document_types']['active']['Subtype'] = 'boolean';
                 $this->field['vue_document_types']['display_order']['Name'] = 'Ordre';

@@ -13,9 +13,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   pour un rôle) ; la visite médicale devient obligatoire pour les élèves
  *   seulement. down() supprime la restriction : la visite médicale reste
  *   alors obligatoire pour tous les pilotes.
- * - catalogue initial : alarmes des types de documents à expiration et des
- *   documents obligatoires manquants, plus la supervision des visites
- *   médicales des élèves. Aucun abonnement n'est créé.
+ * - document_types.alarm_enabled (alarmes possibles sur le type), à 1 pour
+ *   tous les types existants
+ * - catalogue initial : une alarme par type de document actif, à expiration
+ *   et à alarmes possibles, une pour les documents obligatoires manquants,
+ *   une pour les visites médicales des élèves. Aucun abonnement n'est créé.
  *
  * @see doc/prds/gestion_alarmes_generiques_prd.md
  * @see doc/design_notes/gestion_alarmes_design.md
@@ -148,8 +150,16 @@ class Migration_Alarmes_lot1 extends CI_Migration {
         if ($ok && !$this->db->field_exists('required_role_id', 'document_types')) {
             $ok = $this->_query(
                 "ALTER TABLE `document_types`
-                    ADD COLUMN `required_role_id` INT(11) NULL COMMENT 'Obligatoire seulement pour ce rôle (FK types_roles), NULL = tous les pilotes' AFTER `required`,
+                    ADD COLUMN `required_role_id` INT(11) NULL COMMENT 'Obligatoire seulement pour le rôle (vide = tous les pilotes)' AFTER `required`,
                     ADD CONSTRAINT `fk_document_types_required_role` FOREIGN KEY (`required_role_id`) REFERENCES `types_roles` (`id`) ON DELETE SET NULL"
+            );
+        }
+
+        // Alarmes possibles sur le type de document (tous les types existants)
+        if ($ok && !$this->db->field_exists('alarm_enabled', 'document_types')) {
+            $ok = $this->_query(
+                "ALTER TABLE `document_types`
+                    ADD COLUMN `alarm_enabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Alarmes possibles sur ce type' AFTER `alert_days_before`"
             );
         }
 
@@ -180,6 +190,10 @@ class Migration_Alarmes_lot1 extends CI_Migration {
             }
         }
 
+        if ($ok && $this->db->field_exists('alarm_enabled', 'document_types')) {
+            $ok = $this->_query("ALTER TABLE `document_types` DROP COLUMN `alarm_enabled`");
+        }
+
         if ($ok && $this->db->field_exists('required_role_id', 'document_types')) {
             $ok = $this->_query(
                 "ALTER TABLE `document_types`
@@ -207,7 +221,7 @@ class Migration_Alarmes_lot1 extends CI_Migration {
      */
     private function _seed_catalogue() {
         $now = date('Y-m-d H:i:s');
-        $types = $this->db->where('active', 1)->where('has_expiration', 1)
+        $types = $this->db->where('active', 1)->where('has_expiration', 1)->where('alarm_enabled', 1)
             ->order_by('display_order')->order_by('id')->get('document_types')->result_array();
 
         $rows = array();
@@ -225,6 +239,7 @@ class Migration_Alarmes_lot1 extends CI_Migration {
             );
         }
         $medical = $this->db->where('code', 'medical')->where('scope', 'pilot')
+            ->where('active', 1)->where('has_expiration', 1)->where('alarm_enabled', 1)
             ->get('document_types')->row_array();
         if ($medical) {
             $rows[] = array(

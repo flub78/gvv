@@ -100,7 +100,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
      - une alarme par type de document à expiration (ex. visite médicale, assurance, manuel d'exploitation s'il a une date de validité), et non une alarme par document ;
      - une alarme pour les documents obligatoires manquants ;
      - une alarme des visites médicales des élèves, restreinte aux membres ayant le rôle « élève ».
-   - Les types de documents sans date d'expiration n'ont pas d'alarme.
+   - Chaque type de document indique si des alarmes sont possibles sur ce type ; c'est le cas par défaut, y compris pour tous les types existants. Un type sans alarmes possibles, ou sans date d'expiration, n'a pas d'alarme dans le catalogue.
    - Le Lot 2 y ajoute les alarmes de conformité calculées : pilotes ayant volé sans licence valide, pilotes ayant volé sans cotisation à jour (réutilise le contrôle existant).
    - Un administrateur peut activer ou désactiver une alarme du catalogue et régler son délai d'anticipation ; pour une alarme documentaire, ce délai vaut par défaut le délai d'alerte du type de document.
    - Les types d'alarme sont extensibles : documentaire, maintenance, conformité calculée, expérience récente calculée.

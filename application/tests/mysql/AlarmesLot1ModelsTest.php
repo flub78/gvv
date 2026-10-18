@@ -156,6 +156,19 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->assertEquals(0, (int) $this->definition()['active'], 'Désactivée sans expiration');
     }
 
+    public function test_type_sans_alarmes_possibles(): void
+    {
+        $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 0));
+        $this->CI->alarm_definitions_model->sync_document_types();
+        $this->assertEquals(0, (int) $this->definition()['active'], 'Désactivée');
+        $this->assertFalse($this->CI->alarm_subscriptions_model->can_subscribe(self::PILOT, $this->definition()),
+            'Plus proposée');
+
+        $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 1));
+        $this->CI->alarm_definitions_model->sync_document_types();
+        $this->assertEquals(1, (int) $this->definition()['active'], 'Réactivée');
+    }
+
     public function test_aucun_abonnement_par_defaut(): void
     {
         $this->assertFalse($this->CI->alarm_subscriptions_model->has_effective_subscription(self::PILOT));

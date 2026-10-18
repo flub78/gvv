@@ -32,10 +32,11 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
   - catalogue initial : une alarme par type de document à expiration (pas une par document), une pour les documents manquants, une pour les visites médicales des élèves (`alarm_definitions.target_role_id`)
   - rôle `eleve` dans `types_roles`
   - colonne `document_types.required_role_id` ; visite médicale obligatoire pour le rôle `eleve`
+  - colonne `document_types.alarm_enabled` (alarmes possibles), à 1 pour tous les types existants
   - `down()` symétrique, qui restaure `document_types` à l'identique
 - [x] `application/config/migration.php` → 177
 - [x] Modèles `alarm_definitions_model`, `alarm_subscriptions_model` (CRUD, abonnements effectifs, contrôle des droits), `alarm_member_settings_model`, `notification_history_model`
-- [x] Métadonnées `Gvvmetadata.php` : `document_types.required_role_id` ; les pages d'alarmes affichent des données calculées (occurrences, abonnements effectifs), en tableaux Bootstrap
+- [x] Métadonnées `Gvvmetadata.php` : `document_types.required_role_id` et `alarm_enabled` (formulaire et liste des types) ; les pages d'alarmes affichent des données calculées (occurrences, abonnements effectifs), en tableaux Bootstrap
 - [x] Création et désactivation des alarmes d'un type de document depuis le contrôleur des types de documents
 
 **1.3 — Rôle élève** (1 j)

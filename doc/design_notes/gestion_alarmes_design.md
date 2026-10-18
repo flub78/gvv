@@ -87,7 +87,7 @@ AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmIte
 **`alarm_definitions`** : une ligne par alarme proposée aux membres — une par type de document à expiration, pas une par document. Elle porte la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), la population ciblée (`target_role_id`, ex. élèves), le délai d'anticipation et l'état actif.
 
 - La migration crée une alarme par type de document à expiration (`document_<id>`), l'alarme des documents manquants (`missing_document`) et celle des visites médicales des élèves (`document_<id>_eleve`, `target_role_id` = `eleve`). Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
-- La création d'un type de document à expiration crée son alarme ; un type désactivé ou sans expiration voit ses alarmes désactivées.
+- `document_types.alarm_enabled` (alarmes possibles, 1 par défaut et pour les types existants) : seul un type actif, à expiration et à alarmes possibles a une alarme. La création ou la modification d'un type crée ou réactive son alarme ; sinon ses alarmes sont désactivées.
 - Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
 Une alarme retient, pour un abonné, les `AlarmItem` dont il est l'entité (ses propres documents) et ceux qu'il a le droit de superviser. Elle est proposée à tout membre actif si elle porte sur des documents de pilote ou sur les documents manquants (au moins pour ses propres documents) ; sinon, et pour une alarme ciblant une population, seulement aux membres qui ont le droit de superviser.
