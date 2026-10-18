@@ -1,20 +1,22 @@
 # Design Notes — Gestion Générique des Alarmes
 
-Date : 30 mai 2026 — mis à jour le 12 octobre 2026 (Lot 5 documentaire sans agrégateur)
+Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire)
 
 ## Contexte et objectif
 
-GVV dispose de deux systèmes d'alarme existants non unifiés :
+GVV dispose de plusieurs sources d'alarme non unifiées :
 
 - **`archived_documents_model`** : alarmes documentaires basées sur `valid_until`. Statuts : active, expiring_soon, expired, missing.
 - **`alarmes.php`** : contrôleur calculant les conditions d'expérience à la volée depuis le carnet de vol (heures, décollages, emport passager, médical, instructeur).
+- **`licences_model`** : contrôle des pilotes ayant volé sans cotisation.
 
-L'objectif est d'unifier ces deux familles sous un contrat commun, sans réécrire les implémentations existantes, pour permettre :
-- l'affichage agrégé dans une vue unique,
-- le partage du code de notification (email, bannière UI),
-- l'ajout futur de nouvelles règles d'alarme sans duplication.
+L'objectif est d'unifier ces sources sous un contrat commun, sans réécrire les implémentations existantes, et de livrer au Lot 1 :
+- un catalogue d'alarmes auxquelles les membres s'abonnent,
+- l'envoi des notifications sur les canaux choisis par chaque membre (email, message du jour) et d'un rappel hebdomadaire ou mensuel par SMS,
+- les synthèses hebdomadaires et mensuelles,
+- les pages de configuration et de consultation.
 
-Document de référence : [gestion_alarmes_generiques_prd.md](../prds/gestion_alarmes_generiques_prd.md)
+Document de référence : [gestion_alarmes_generiques_prd.md](../prds/gestion_alarmes_generiques_prd.md). Les notifications documentaires du [PRD d'archivage documentaire](../prds/archivage_documentaire_prd.md) (§10) sont réalisées par ce mécanisme.
 
 ---
 
@@ -23,9 +25,9 @@ Document de référence : [gestion_alarmes_generiques_prd.md](../prds/gestion_al
 | Famille | Source | Stockage | Exemple |
 |---------|--------|----------|---------|
 | Alarme à date fixe | `archived_documents` | En base — champ `valid_until` | Visite médicale expire le 01/06/2026 |
-| Alarme calculée | Carnet de vol | Aucun — évaluée à la demande | Moins de 3 atterrissages CDB dans les 90 derniers jours |
+| Alarme calculée | Carnet de vol, licences | Aucun — évaluée à la demande | Pilote ayant volé sans licence |
 
-Les alarmes calculées ne doivent pas être stockées en base : elles reflètent l'état courant du carnet de vol et deviendraient obsolètes dès qu'un vol est enregistré.
+Les alarmes calculées ne sont pas stockées en base : elles reflètent l'état courant des données et deviendraient obsolètes dès qu'un vol ou une licence est enregistré. Seules leurs notifications sont historisées.
 
 ---
 
@@ -35,54 +37,111 @@ Les alarmes calculées ne doivent pas être stockées en base : elles reflètent
 
 ### AlarmItem — structure commune
 
-Toute alarme, quelle que soit sa source, est représentée par un `AlarmItem` :
+Toute alarme déclenchée, quelle que soit sa source, est représentée par un `AlarmItem` :
 
 | Champ | Type | Description |
 |-------|------|-------------|
-| `entity_type` | string | `pilot` \| `machine` \| `club` |
-| `entity_id` | string | Login pilote, immatriculation avion, etc. |
-| `section_id` | int\|null | Section de rattachement — null = alarme globale (toutes sections) |
+| `definition_code` | string | Alarme du catalogue qui l'a produite |
+| `key` | string | Identifiant stable de l'occurrence : `document:{id}`, `missing:{type}:{login}`, `computed:{règle}:{login}` |
+| `entity_type` | string | `pilot` \| `machine` \| `section` \| `club` |
+| `entity_id` | string | Login pilote, immatriculation, etc. |
+| `section_ids` | int[] | Sections de rattachement — vide = alarme globale |
 | `label` | string | Texte descriptif de l'alarme |
-| `status` | string | `active` \| `expiring_soon` \| `expired` \| `missing` \| `ok` |
-| `expiry_date` | date\|null | Date d'échéance — null pour les alarmes calculées sans date fixe |
-| `source` | string | `document:{id}` \| `computed:{rule_name}` |
-| `alarm_disabled` | bool | Alarme désactivée par un admin |
+| `state` | string | `upcoming` (à venir) \| `active` |
+| `due_date` | date\|null | Échéance — null pour les alarmes calculées sans date fixe |
+| `link` | string | Page GVV où traiter l'alarme |
+
+### Providers
+
+Chaque provider traduit une source existante en `AlarmItem[]`, sans modifier le code qu'il lit.
+
+- **`DocumentAlarmProvider`** — lit `archived_documents_model` : expirés et proches de l'expiration (état `upcoming` dans le délai d'anticipation), documents obligatoires manquants. `alarm_disabled = 1` et documents non approuvés sont exclus. Sections d'un document :
+
+  | Portée du document | Sections retenues |
+  |---|---|
+  | `pilot` | Sections où le pilote détient le rôle `user` (règle « actif par section ») |
+  | `section`, `machine` | `archived_documents.section_id`, à défaut `document_types.section_id` |
+  | `club` | Aucune — alarme globale |
+
+- **`ComputedAlarmProvider`** (Lot 2) — règles calculées : vols sans cotisation (`licences_model::pilotes_vols_sans_cotisation()`), vols sans licence (même principe sur les licences de section). Lots suivants : extraction des règles d'`alarmes.php` (médical, expérience récente, emport passager, instructeur).
+
+Au Lot 1, seul `DocumentAlarmProvider` est branché sur l'agrégateur ; le contrat `AlarmItem` et la colonne `source` du catalogue prévoient déjà les alarmes calculées.
 
 ### AlarmAggregator
 
-Service central. Collecte les `AlarmItem` de tous les providers enregistrés et expose une vue unifiée. Le filtrage par section est appliqué à ce niveau : seules les alarmes globales (`section_id = null`) et celles de la section demandée sont retournées.
+Service central. Interroge les providers pour les alarmes actives du catalogue et renvoie les `AlarmItem` correspondants, éventuellement restreints à une section.
 
 ```php
-AlarmAggregator::collect(string $pilot_login, ?int $section_id = null) : AlarmItem[]
-AlarmAggregator::collect_all(?int $section_id = null) : AlarmItem[]
-AlarmAggregator::disable(string $source) : void
+AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmItem[]
 ```
 
-### DocumentAlarmProvider
+---
 
-Adapte `archived_documents_model` au contrat `AlarmItem`. Traduit les statuts existants (`STATUS_ACTIVE`, `STATUS_EXPIRING_SOON`, `STATUS_EXPIRED`, `STATUS_MISSING`) vers les champs de `AlarmItem`. Aucun code existant n'est modifié.
+## Lot 1 — Catalogue, abonnements et notifications
 
-La portée par section est héritée directement de `document_types.section_id` : un type de document avec `section_id = null` génère une alarme globale ; un type avec `section_id = 42` génère une alarme rattachée à la section 42. Le `section_id` du `AlarmItem` est renseigné depuis le type de document.
+![Schéma des abonnements](diagrams/abonnements_alarmes.png)
 
-Sources utilisées :
-- `get_expired_documents()`
-- `get_expiring_soon_documents()`
-- `get_missing_documents($pilot_login, $section_id)`
+### Catalogue
 
-### ComputedAlarmProvider
+**`alarm_definitions`** : une ligne par alarme proposée aux membres. Elle porte le type (`personal` ou `supervision`), la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), le délai d'anticipation et l'état actif.
 
-Extrait la logique des méthodes privées d'`alarmes.php` (`medical()`, `brevet()`, `experience_recente()`, emport passager) et la rend disponible sous forme de `AlarmItem[]`. Les méthodes du contrôleur deviennent des appels au provider en phase 2.
+- La migration crée, pour chaque type de document à expiration, une alarme personnelle et une alarme de supervision, ainsi que les alarmes personnelle et de supervision des documents manquants. Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
+- La création d'un type de document à expiration crée ses deux alarmes ; sa désactivation désactive ses alarmes.
+- Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
-La plupart des règles calculées sont intrinsèquement liées au pilote, pas à une section. Elles produisent des alarmes avec `section_id = null` (globales). Une règle peut cependant être déclarée spécifique à une section si elle ne s'applique qu'aux pilotes de cette section (ex. règle propre à la section ULM).
+Une alarme **personnelle** ne retient, pour un abonné, que les `AlarmItem` dont il est l'entité. Une alarme de **supervision** retient tous les `AlarmItem` que l'abonné a le droit de consulter.
 
-Règles implémentées en phase 1 :
+### Abonnements
 
-| Règle | Source de données | Date fixe ? | Section |
-|-------|------------------|-------------|---------|
-| Visite médicale | `event_model::medical_validity_date()` | Oui | Globale |
-| Qualification instructeur | `event_model::inst_validity()` | Oui | Globale |
-| Emport passager : 3 atterrissages CDB / 90 jours | `vols_planeur_model::experience()` | Non | Globale |
-| Expérience BPP/SPL : heures et décollages / 24 mois | `vols_planeur_model::experience()` | Non | Globale |
+- **`alarm_subscriptions`** : un abonnement relie une alarme du catalogue soit à un membre (`subscriber_login`), soit à une catégorie (`role_id` de `types_roles`, éventuellement restreint à `role_section_id`). Il porte un indicateur `mandatory` et les champs d'audit ; `created_by` ≠ abonné signale un abonnement créé par un administrateur.
+- **`alarm_subscription_optouts`** : retrait d'un membre d'un abonnement de catégorie non obligatoire.
+- **`alarm_member_settings`** : réglages par membre, communs à toutes ses alarmes — canaux email et message du jour, rappel SMS, fréquence (`immediate`, `weekly`, `monthly`).
+
+**Abonnements effectifs** d'un membre = abonnements individuels ∪ abonnements des catégories dont il détient le rôle, non révoqué, dans la section visée (`user_roles_per_section`) − ses retraits. Ils sont recalculés à chaque usage : un changement de rôle prend effet sans modifier les abonnements.
+
+**Aucune configuration, aucune alarme** : sans abonnement effectif, le membre ne reçoit rien et la page « Mes alarmes » est masquée. Un réglage de canaux sans abonnement n'a aucun effet.
+
+**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement de supervision et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au bureau).
+
+### Notifications
+
+**`Notification_manager`** — consommateur de l'agrégateur, exécuté chaque jour :
+
+1. collecte une fois les `AlarmItem` de toutes les alarmes actives du catalogue ;
+2. pour chaque membre ayant au moins un abonnement effectif, retient les `AlarmItem` couverts par ses abonnements et autorisés par ses droits, sans doublon ;
+3. selon sa fréquence :
+   - `immediate` : notifie les occurrences pas encore notifiées dans leur état courant ;
+   - `weekly` (le lundi) ou `monthly` (le premier lundi du mois) : envoie la synthèse de toutes ses occurrences actives et à venir ; rien si elle est vide ;
+4. envoie sur ses canaux : email (`Email`) listant les occurrences (quoi, qui, échéance, action, lien), message du jour individuel (`motd_model::generate_system_message()`, `source_type = 'alarm'`, visible jusqu'à la synthèse suivante) ;
+5. le jour de synthèse — lundi pour `immediate` et `weekly`, premier lundi du mois pour `monthly` — envoie un rappel SMS (`Brevo_sms_adapter`) au mobile de la fiche membre (`membres.mtelm`) si l'option est activée, le mobile renseigné et au moins une occurrence active ou à venir ; le texte se limite à un message court et au lien vers `mes_alarmes` ; désactivable globalement (`alarm_sms_enabled`).
+
+**`notification_history`** : un enregistrement par envoi — destinataire, alarme, clé d'occurrence et état, canal, type (déclenchement ou synthèse), clé de période. Il sert à l'idempotence (une seconde exécution le même jour n'envoie rien), à l'anti-spam (un SMS par période, pas de double notification immédiate) et à la traçabilité.
+
+**`alarm_scheduler`** — déclencheur sur le modèle de `reservation_scheduler` : `cron()` en CLI pour la tâche quotidienne, `run($secret)` par URL protégée par un secret.
+
+### Pages
+
+| Page | Contrôleur | Accès |
+|---|---|---|
+| Configuration des alarmes : cases à cocher, canaux, rappel SMS, fréquence | `alarmes_config` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
+| Mes alarmes : occurrences actives et à venir des abonnements effectifs | `mes_alarmes` | Membre ayant au moins un abonnement effectif |
+| Catalogue (activation, délai), abonnements de catégories, alarmes actives sans abonné | `alarmes_admin` | `club-admin` |
+
+La page de configuration est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré).
+
+`alarmes.php` (expérience récente) est conservé tel quel au Lot 1.
+
+### Rôle élève
+
+- Nouveau rôle `eleve` dans `types_roles`, attribuable par section via `user_roles_per_section` comme les autres rôles.
+- Ouverture d'une formation (`formation_inscriptions`) : le rôle est accordé dans la section du programme (`formation_programmes.section_id`), ou dans toutes les sections si elle est nulle, là où il n'est pas déjà détenu.
+- Clôture ou abandon : le rôle est révoqué dans chaque section concernée où le membre n'a plus de formation ouverte ou suspendue ; un programme sans section couvre toutes les sections.
+- Ces automatismes n'agissent qu'à l'ouverture, à la clôture et à l'abandon : une attribution ou un retrait manuel par un administrateur (gestion des rôles existante) reste en place jusqu'au prochain de ces événements.
+- Les attributions automatiques sont tracées comme les autres (`granted_by`, `revoked_at`).
+
+### Documents obligatoires par rôle
+
+`document_types.required_role_id` (facultatif) restreint l'obligation d'un type de document aux membres détenant ce rôle dans la section concernée ; sans valeur, l'obligation s'applique à tous les pilotes, comme aujourd'hui. La visite médicale est rendue obligatoire pour le rôle `eleve` ; la détection des documents manquants (`get_missing_documents()`) applique ce critère.
 
 ---
 
@@ -91,69 +150,29 @@ Règles implémentées en phase 1 :
 | Responsabilité | Composant |
 |---|---|
 | Alarmes documentaires (expiration, manquant) | `DocumentAlarmProvider` → `archived_documents_model` |
-| Alarmes expérience vol (heures, atterrissages) | `ComputedAlarmProvider` → `vols_planeur_model`, `event_model` |
-| Agrégation et vue unifiée | `AlarmAggregator` |
-| Envoi de notifications (email, bannière) | Service notification — cf. Lot 5 de [archivage_documentaire_plan.md](../plans/archivage_documentaire_plan.md) |
-| Désactivation d'une alarme documentaire | `AlarmAggregator::disable()` → délègue à `DocumentAlarmProvider` |
+| Alarmes calculées — Lot 2 (licences, cotisations ; puis expérience) | `ComputedAlarmProvider` → `licences_model` (puis `vols_planeur_model`, `event_model`) |
+| Agrégation | `AlarmAggregator` |
+| Catalogue, abonnements, réglages, abonnements effectifs | `alarm_definitions_model`, `alarm_subscriptions_model`, `alarm_member_settings_model` |
+| Destinataires, droits, fréquences, composition, envoi, historique | `Notification_manager` |
+| Déclenchement | `alarm_scheduler` |
+| Pages membre et administration | `alarmes_config`, `mes_alarmes`, `alarmes_admin` |
+| Rôle élève | `formation_inscription_model` (ouverture, clôture, abandon) |
 
 ---
 
 ## Relation avec le code existant
 
-Le code existant n'est pas modifié en phase 1 — les providers sont des adaptateurs :
-
-- **`archived_documents_model`** : `DocumentAlarmProvider` lit ses méthodes sans les modifier.
-- **`alarmes.php`** : le contrôleur continue d'exister et affiche la vue pilote individuelle. En phase 2, ses méthodes privées sont extraites vers `ComputedAlarmProvider` ; le contrôleur devient un consommateur de l'agrégateur.
-
----
-
-## Lot 5 — Notifications documentaires
-
-Décision du 12 octobre 2026 : le Lot 5 du plan `archivage_documentaire_plan.md` (notifications email et bannière UI) est livré pour les documents uniquement. Il s'appuie directement sur `archived_documents_model` via la bibliothèque `Notification_manager`, sans attendre `AlarmAggregator`.
-
-Lors de la mise en place de l'agrégateur, `Notification_manager` deviendra un consommateur de `AlarmAggregator` : la sélection des destinataires, l'anti-spam (`notification_history`) et la composition des emails restent inchangés, seule la source des alarmes change. Les synthèses couvriront alors aussi les alarmes calculées.
-
-### Abonnements
-
-Exigences : PRD archivage documentaire §10.2.
-
-![Schéma des abonnements](diagrams/abonnements_alarmes_documents.png)
-
-- **`document_alarm_subscriptions`** : un abonnement = un abonné + des critères facultatifs (type, section, document précis ; `NULL` = tous) + les statuts surveillés. Les critères se combinent en ET.
-- **Préférences sur `membres`** : désinscription des alertes personnelles du pilote, et fréquence de synthèse de l'abonné (réglage par personne, commun à tous ses abonnements).
-- **`notification_history`** : un enregistrement par envoi ; sert à l'anti-spam des alertes pilote, à l'idempotence des synthèses et à la traçabilité.
-
-**Résolution de la section d'un document** — utilisée pour confronter un document au critère de section :
-
-| Portée du document | Sections retenues |
-|---|---|
-| `pilot` | Sections où le pilote détient le rôle `user` (`user_roles_per_section`, règle « actif par section ») |
-| `section`, `machine` | `archived_documents.section_id`, à défaut `document_types.section_id` |
-| `club` | Aucune — seul un abonnement sans critère de section le couvre |
-
-**Calcul d'une synthèse** : documents en alerte (expirés, proches, manquants) → pour chaque abonné, union des documents qui satisfont au moins un de ses abonnements → filtrage par droits de consultation → dédoublonnage → un seul email.
-
-**Contrôle des droits** : porte toujours sur l'abonné, pas sur l'auteur de l'abonnement. Appliqué à la création ou modification d'un abonnement (y compris par un `club-admin` pour un tiers) et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet sans modifier les abonnements existants.
-
-**Gestion pour un tiers** : un abonnement créé par un `club-admin` pour un autre membre ne se distingue que par `created_by` ≠ `subscriber_login`. Aucune table ni statut supplémentaire ; la page personnelle et la page d'administration partagent le même modèle et les mêmes règles de validation, seul le périmètre des abonnements affichés diffère.
-
-**Couverture** : la même fonction de correspondance détermine, pour la liste admin des documents expirés, les documents qu'aucun abonnement ne couvre.
-
-### Composants
-
-| Responsabilité | Composant |
-|---|---|
-| Lecture des documents en alerte | `archived_documents_model` |
-| Stockage et correspondance des abonnements | `document_alarm_subscriptions_model` |
-| Destinataires, anti-spam, composition et envoi | `Notification_manager` |
-| Déclenchement (cron, URL à secret) | `document_alarm_scheduler` |
-| Gestion des abonnements : personnelle (tout abonné) et administration (`club-admin`, tous les membres) | `document_alarm_subscriptions` (contrôleur) |
+- **`archived_documents_model`** : lu par `DocumentAlarmProvider` ; seule la détection des manquants prend en compte `required_role_id`.
+- **`licences_model`** : lu par `ComputedAlarmProvider` à partir du Lot 2.
+- **`motd_model`** : `generate_system_message()` est le point d'entrée existant des messages générés par GVV.
+- **`Brevo_sms_adapter`** : réutilisé tel quel pour les SMS.
+- **`alarmes.php`** : inchangé au Lot 1 ; ses règles migreront vers `ComputedAlarmProvider` dans un lot suivant.
 
 ---
 
 ## Hors périmètre
 
 - Moteur de règles métier orienté expressions libres.
-- Stockage des alarmes calculées en base.
-- Refactoring complet d'`alarmes.php` (conservé en phase 1).
-- Escalade multi-canal (SMS).
+- Stockage de l'état des alarmes calculées en base.
+- Refactoring d'`alarmes.php` (lot suivant).
+- Escalade d'un canal vers un autre.

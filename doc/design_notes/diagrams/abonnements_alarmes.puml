@@ -1,0 +1,110 @@
+@startuml abonnements_alarmes
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+hide circle
+hide methods
+
+title Alarmes — catalogue, abonnements et notifications (Lot 1)
+
+entity alarm_definitions {
+  * id : int (PK)
+  --
+  * code : varchar (unique)
+  * label, description
+  * kind : enum(personal, supervision)
+  * source : enum(document, missing_document, computed)
+  document_type_id : int (FK, null)
+  rule : varchar (règle calculée, null)
+  section_id : int (FK, null = toutes)
+  * lead_days : int
+  * active : tinyint(1)
+  created_at, updated_at
+  created_by, updated_by
+}
+
+entity alarm_subscriptions {
+  * id : int (PK)
+  --
+  * alarm_definition_id : int (FK)
+  subscriber_login : varchar(25) (FK, null)
+  role_id : int (FK types_roles, null)
+  role_section_id : int (FK, null = toutes)
+  * mandatory : tinyint(1)
+  created_at, updated_at
+  created_by, updated_by
+  ..
+  un abonné OU une catégorie
+}
+
+entity alarm_subscription_optouts {
+  * id : int (PK)
+  --
+  * subscription_id : int (FK)
+  * member_login : varchar(25) (FK)
+  created_at, updated_at
+  created_by, updated_by
+}
+
+entity alarm_member_settings {
+  * member_login : varchar(25) (PK, FK)
+  --
+  * channel_email : tinyint(1)
+  * channel_motd : tinyint(1)
+  * sms : tinyint(1)
+  * frequency : enum(immediate, weekly, monthly)
+  created_at, updated_at
+  created_by, updated_by
+}
+
+entity notification_history {
+  * id : bigint (PK)
+  --
+  * recipient_login : varchar(25)
+  * alarm_definition_id : int
+  * occurrence_key : varchar
+  * occurrence_state : enum(upcoming, active)
+  * channel : enum(email, motd, sms)
+  * kind : enum(trigger, digest)
+  period_key : varchar
+  * status, error
+  * sent_at : datetime
+  created_at, updated_at
+  created_by, updated_by
+}
+
+entity membres {
+  * mlogin : varchar(25) (PK)
+  --
+  mtelm
+}
+
+entity types_roles {
+  * id : int (PK)
+  --
+  nom (dont eleve)
+}
+
+entity user_roles_per_section {
+  * id : int (PK)
+  --
+  user_id, types_roles_id,
+  section_id, revoked_at
+}
+
+entity document_types {
+  * id : int (PK)
+  --
+  section_id, alert_days_before,
+  required, required_role_id (FK, null)
+}
+
+alarm_definitions ||--o{ alarm_subscriptions
+document_types |o--o{ alarm_definitions
+alarm_subscriptions ||--o{ alarm_subscription_optouts : retraits
+membres |o--o{ alarm_subscriptions : abonné
+types_roles |o--o{ alarm_subscriptions : catégorie
+membres ||--o| alarm_member_settings : réglages
+membres ||--o{ notification_history : destinataire
+types_roles ||--o{ user_roles_per_section
+types_roles |o--o{ document_types : obligatoire pour
+@enduml
