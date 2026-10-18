@@ -203,6 +203,12 @@ $config['brevo_sms_api_key'] = '';
 // Nom de l'expéditeur SMS affiché sur le téléphone (11 caractères max)
 $config['brevo_sms_sender']  = 'GVV';
 
+// Alarmes : secret protégeant l'URL de déclenchement manuel du scheduler
+$config['alarm_scheduler_secret'] = 'CHANGE_ME_IN_PRODUCTION';
+
+// Alarmes : rappel SMS des abonnés (FALSE = aucun SMS d'alarme, l'envoi est payant)
+$config['alarm_sms_enabled'] = TRUE;
+
 // Redirection test : si défini, tous les emails/SMS sortants sont redirigés vers ces adresses.
 // Laisser vide en production.
 $config['test_email'] = '';

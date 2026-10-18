@@ -26,6 +26,8 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
+const { DB_CONFIG } = require('../helpers/gvv-config');
 
 // Test configuration
 const LOGIN_URL = '/index.php/auth/login';
@@ -84,6 +86,24 @@ async function dismissAlerts(page) {
 
 test.describe('Formation Inscriptions Workflow', () => {
   test.describe.configure({ mode: 'serial' });
+
+  // L'ouverture d'une formation donne le rôle élève, sa clôture le révoque :
+  // les lignes de rôle créées pendant ces tests sont supprimées à la fin.
+  const startedAt = new Date();
+  test.afterAll(async () => {
+    const db = await mysql.createConnection(DB_CONFIG);
+    try {
+      await db.query(
+        `DELETE urps FROM user_roles_per_section urps
+         JOIN users u ON u.id = urps.user_id
+         JOIN types_roles tr ON tr.id = urps.types_roles_id
+         WHERE u.username = 'asterix' AND tr.nom = 'eleve' AND urps.granted_at >= ?`,
+        [startedAt]
+      );
+    } finally {
+      await db.end();
+    }
+  });
 
   // Shared state across serial tests
   let inscriptionId = null;

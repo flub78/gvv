@@ -21,6 +21,7 @@ class ArchivedDocumentsModelTest extends TestCase
 
     // Test data IDs for cleanup
     protected $test_document_ids = array();
+    protected $test_type_ids = array();
 
     protected function setUp(): void
     {
@@ -40,6 +41,10 @@ class ArchivedDocumentsModelTest extends TestCase
         // Clean up test documents
         foreach ($this->test_document_ids as $id) {
             $this->db->delete('archived_documents', array('id' => $id));
+        }
+        // Then the document types created by the tests
+        foreach ($this->test_type_ids as $id) {
+            $this->db->delete('document_types', array('id' => $id));
         }
     }
 
@@ -486,12 +491,14 @@ class ArchivedDocumentsModelTest extends TestCase
             $this->markTestSkipped('No pilot in database for testing');
         }
 
-        // Get required pilot types
-        $required_types = $this->document_types_model->get_required_pilot_types();
-        if (empty($required_types)) {
-            $this->markTestSkipped('No required pilot document type defined');
-        }
-        $type = $required_types[0];
+        // Own required type, for every pilot (no role restriction): the
+        // test must not depend on the document types present in the database
+        $this->db->insert('document_types', array(
+            'code' => 'zz_missing_test', 'name' => 'Missing test', 'scope' => 'pilot',
+            'required' => 1, 'has_expiration' => 1, 'active' => 1,
+        ));
+        $type = array('id' => (string) $this->db->insert_id());
+        $this->test_type_ids[] = $type['id'];
 
         // Ensure the pilot has no current document of this type
         $this->db->where('pilot_login', $pilot['mlogin']);

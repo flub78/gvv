@@ -294,6 +294,11 @@ if ($CI->dx_auth->is_logged_in()) {
             <li><a class="dropdown-item" href="<?= controller_url("compta/mon_compte") ?>"><i class="fas fa-file-invoice-dollar text-success"></i> <?= translation("gvv_menu_reports_my_bill") ?></a></li>
             <?php if ($this->config->item('gestion_documentaire')) : ?>
             <li><a class="dropdown-item" href="<?= controller_url("archived_documents/my_documents") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_my_documents") ?></a></li>
+            <?php $this->lang->load('alarmes'); ?>
+            <li><a class="dropdown-item" href="<?= controller_url("alarmes_config") ?>"><i class="fas fa-bell text-warning"></i> <?= translation("alarm_menu_config") ?></a></li>
+            <?php if (has_alarm_subscriptions()) : ?>
+            <li><a class="dropdown-item" href="<?= controller_url("mes_alarmes") ?>"><i class="fas fa-exclamation-triangle text-danger"></i> <?= translation("alarm_menu_my_alarms") ?></a></li>
+            <?php endif; ?>
             <?php endif; ?>
             <li>
               <a class="dropdown-item" href="<?= controller_url("acceptance") ?>">

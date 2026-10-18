@@ -17,8 +17,137 @@ class Formation_inscription_model extends Common_Model {
     public $table = 'formation_inscriptions';
     protected $primary_key = 'id';
 
+    /** Rôle attribué aux membres ayant une formation en cours */
+    const ROLE_ELEVE = 'eleve';
+
     function __construct() {
         parent::__construct();
+    }
+
+    /**
+     * Create an enrollment; an open enrollment grants the student role
+     *
+     * @param array $data
+     * @return int|false Inserted ID
+     */
+    public function create($data) {
+        $id = parent::create($data);
+        if ($id && (!isset($data['statut']) || $data['statut'] === 'ouverte')) {
+            $this->grant_eleve_role($id);
+        }
+        return $id;
+    }
+
+    /**
+     * Sections concerned by an enrollment: the program's section, or all
+     * sections when the program has none
+     *
+     * @param int $inscription_id
+     * @return array section ids
+     */
+    private function inscription_sections($inscription_id) {
+        $row = $this->db->select('p.section_id')
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'p.id = i.programme_id')
+            ->where('i.id', (int) $inscription_id)
+            ->get()->row_array();
+        if ($row && $row['section_id']) {
+            return array((int) $row['section_id']);
+        }
+        return array_map('intval', array_column($this->db->select('id')->get('sections')->result_array(), 'id'));
+    }
+
+    /**
+     * Grants the student role in the enrollment's sections where the pilot
+     * does not hold it yet
+     *
+     * @param int $inscription_id
+     */
+    public function grant_eleve_role($inscription_id) {
+        $inscription = $this->get($inscription_id);
+        $user_id = $inscription ? $this->user_id($inscription['pilote_id']) : 0;
+        $role_id = $this->eleve_role_id();
+        if (!$user_id || !$role_id) {
+            return;
+        }
+        foreach ($this->inscription_sections($inscription_id) as $section_id) {
+            $held = $this->db->where('user_id', $user_id)->where('types_roles_id', $role_id)
+                ->where('section_id', $section_id)->where('revoked_at IS NULL', null, false)
+                ->count_all_results('user_roles_per_section');
+            if (!$held) {
+                $this->db->insert('user_roles_per_section', array(
+                    'user_id' => $user_id,
+                    'types_roles_id' => $role_id,
+                    'section_id' => $section_id,
+                    'granted_by' => $this->current_user_id(),
+                    'granted_at' => date('Y-m-d H:i:s'),
+                    'notes' => 'Formation ' . (int) $inscription_id,
+                ));
+                gvv_info("FORMATION: rôle élève accordé à {$inscription['pilote_id']} (section $section_id, formation $inscription_id)");
+            }
+        }
+    }
+
+    /**
+     * Revokes the student role in the enrollment's sections where the pilot
+     * has no other open or suspended enrollment (a program without section
+     * covers all sections)
+     *
+     * @param int $inscription_id
+     */
+    public function revoke_eleve_role($inscription_id) {
+        $inscription = $this->get($inscription_id);
+        $user_id = $inscription ? $this->user_id($inscription['pilote_id']) : 0;
+        $role_id = $this->eleve_role_id();
+        if (!$user_id || !$role_id) {
+            return;
+        }
+        $others = $this->db->select('i.id, p.section_id')
+            ->from($this->table . ' i')
+            ->join('formation_programmes p', 'p.id = i.programme_id')
+            ->where('i.pilote_id', $inscription['pilote_id'])
+            ->where('i.id !=', (int) $inscription_id)
+            ->where_in('i.statut', array('ouverte', 'suspendue'))
+            ->get()->result_array();
+        $still_needed = array();
+        foreach ($others as $other) {
+            if (!$other['section_id']) {
+                return; // une autre formation couvre toutes les sections
+            }
+            $still_needed[(int) $other['section_id']] = true;
+        }
+        foreach ($this->inscription_sections($inscription_id) as $section_id) {
+            if (isset($still_needed[$section_id])) {
+                continue;
+            }
+            $this->db->where('user_id', $user_id)->where('types_roles_id', $role_id)
+                ->where('section_id', $section_id)->where('revoked_at IS NULL', null, false)
+                ->update('user_roles_per_section', array('revoked_at' => date('Y-m-d H:i:s')));
+            if ($this->db->affected_rows()) {
+                gvv_info("FORMATION: rôle élève retiré à {$inscription['pilote_id']} (section $section_id, formation $inscription_id)");
+            }
+        }
+    }
+
+    private function user_id($login) {
+        $row = $this->db->select('id')->where('username', $login)->get('users')->row_array();
+        return $row ? (int) $row['id'] : 0;
+    }
+
+    private function eleve_role_id() {
+        $row = $this->db->select('id')->where('nom', self::ROLE_ELEVE)->get('types_roles')->row_array();
+        return $row ? (int) $row['id'] : 0;
+    }
+
+    private function current_user_id() {
+        $CI = &get_instance();
+        if (isset($CI->dx_auth) && method_exists($CI->dx_auth, 'get_user_id')) {
+            $id = (int) $CI->dx_auth->get_user_id();
+            if ($id && $this->db->where('id', $id)->count_all_results('users')) {
+                return $id;
+            }
+        }
+        return null;
     }
 
     /**
@@ -318,6 +447,7 @@ class Formation_inscription_model extends Common_Model {
             'motif_cloture' => $motif
         );
         $this->update('id', $data, $id);
+        $this->revoke_eleve_role($id);
         // update() throws error on failure, so if we're here it succeeded
         return true;
     }

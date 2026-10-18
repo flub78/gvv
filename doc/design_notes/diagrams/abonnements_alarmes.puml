@@ -16,6 +16,7 @@ entity alarm_definitions {
   document_type_id : int (FK, null)
   rule : varchar (règle calculée, null)
   section_id : int (FK, null = toutes)
+  target_role_id : int (FK types_roles, null = tous)
   * lead_days : int
   * active : tinyint(1)
   created_at, updated_at
@@ -107,4 +108,5 @@ membres ||--o| alarm_member_settings : réglages
 membres ||--o{ notification_history : destinataire
 types_roles ||--o{ user_roles_per_section
 types_roles |o--o{ document_types : obligatoire pour
+types_roles |o--o{ alarm_definitions : population ciblée
 @enduml

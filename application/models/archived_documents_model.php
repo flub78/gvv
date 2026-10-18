@@ -399,6 +399,10 @@ class Archived_documents_model extends Common_Model {
      * (unique_per_entity=0) are all checked: at least one valid instance
      * is sufficient to satisfy the requirement.
      *
+     * A type required for a role only (document_types.required_role_id, e.g.
+     * the medical for students) applies only if the pilot holds that role,
+     * not revoked, in the given section (in any section when none is given).
+     *
      * @param string $pilot_login Pilot login
      * @param int|null $section_id Section ID for section-specific required types
      * @return array Missing document types
@@ -422,6 +426,10 @@ class Archived_documents_model extends Common_Model {
         // A required type is missing if no valid instance covers it
         $missing = array();
         foreach ($required_types as $type) {
+            if (!empty($type['required_role_id'])
+                && !$this->pilot_has_role($pilot_login, $type['required_role_id'], $section_id)) {
+                continue;
+            }
             if (!isset($covered_type_ids[$type['id']])) {
                 $type['expiration_status'] = self::STATUS_MISSING;
                 $missing[] = $type;
@@ -429,6 +437,25 @@ class Archived_documents_model extends Common_Model {
         }
 
         return $missing;
+    }
+
+    /**
+     * Does the pilot hold the role, not revoked, in the section (any section when null)?
+     * @param string $pilot_login
+     * @param int $role_id types_roles.id
+     * @param int|null $section_id
+     * @return bool
+     */
+    public function pilot_has_role($pilot_login, $role_id, $section_id = null) {
+        $this->db->from('user_roles_per_section urps');
+        $this->db->join('users u', 'u.id = urps.user_id');
+        $this->db->where('u.username', $pilot_login);
+        $this->db->where('urps.types_roles_id', (int) $role_id);
+        $this->db->where('urps.revoked_at IS NULL', null, false);
+        if ($section_id) {
+            $this->db->where('urps.section_id', (int) $section_id);
+        }
+        return $this->db->count_all_results() > 0;
     }
 
     /**

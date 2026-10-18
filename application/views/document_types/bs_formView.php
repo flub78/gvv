@@ -52,6 +52,7 @@ $form_fields = array(
     'section_id' => isset($section_id) ? $section_id : '',
     'scope' => isset($scope) ? $scope : 'pilot',
     'required' => isset($required) ? $required : 0,
+    'required_role_id' => isset($required_role_id) ? $required_role_id : '',
     'has_expiration' => isset($has_expiration) ? $has_expiration : 1,
     'storage_by_year' => isset($storage_by_year) ? $storage_by_year : 0,
     'alert_days_before' => isset($alert_days_before) ? $alert_days_before : 30,

@@ -944,6 +944,9 @@ class GVVMetadata extends Metadata {
                 );
                 $this->field['document_types']['required']['Name'] = 'Obligatoire';
                 $this->field['document_types']['required']['Subtype'] = 'checkbox';
+                $this->field['document_types']['required_role_id']['Name'] = 'Obligatoire seulement pour le rôle';
+                $this->field['document_types']['required_role_id']['Subtype'] = 'selector';
+                $this->field['document_types']['required_role_id']['Selector'] = 'role_selector_with_null';
                 $this->field['document_types']['has_expiration']['Name'] = 'Avec expiration';
                 $this->field['document_types']['has_expiration']['Subtype'] = 'checkbox';
                 $this->field['document_types']['storage_by_year']['Name'] = 'Stockage par annee';

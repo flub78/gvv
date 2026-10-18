@@ -83,9 +83,9 @@ AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmIte
 
 ### Catalogue
 
-**`alarm_definitions`** : une ligne par alarme proposée aux membres. Elle porte le type (`personal` ou `supervision`), la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), le délai d'anticipation et l'état actif.
+**`alarm_definitions`** : une ligne par alarme proposée aux membres. Elle porte le type (`personal` ou `supervision`), la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), la population ciblée (`target_role_id`, ex. élèves), le délai d'anticipation et l'état actif.
 
-- La migration crée, pour chaque type de document à expiration, une alarme personnelle et une alarme de supervision, ainsi que les alarmes personnelle et de supervision des documents manquants. Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
+- La migration crée, pour chaque type de document à expiration, une alarme de supervision et, pour les documents de pilote, une alarme personnelle ; les alarmes personnelle et de supervision des documents manquants ; la supervision des visites médicales des élèves (`target_role_id` = `eleve`). Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
 - La création d'un type de document à expiration crée ses deux alarmes ; sa désactivation désactive ses alarmes.
 - Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
@@ -101,7 +101,7 @@ Une alarme **personnelle** ne retient, pour un abonné, que les `AlarmItem` dont
 
 **Aucune configuration, aucune alarme** : sans abonnement effectif, le membre ne reçoit rien et la page « Mes alarmes » est masquée. Un réglage de canaux sans abonnement n'a aucun effet.
 
-**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement de supervision et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au bureau).
+**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement de supervision et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections.
 
 ### Notifications
 
@@ -113,7 +113,7 @@ Une alarme **personnelle** ne retient, pour un abonné, que les `AlarmItem` dont
    - `immediate` : notifie les occurrences pas encore notifiées dans leur état courant ;
    - `weekly` (le lundi) ou `monthly` (le premier lundi du mois) : envoie la synthèse de toutes ses occurrences actives et à venir ; rien si elle est vide ;
 4. envoie sur ses canaux : email (`Email`) listant les occurrences (quoi, qui, échéance, action, lien), message du jour individuel (`motd_model::generate_system_message()`, `source_type = 'alarm'`, visible jusqu'à la synthèse suivante) ;
-5. le jour de synthèse — lundi pour `immediate` et `weekly`, premier lundi du mois pour `monthly` — envoie un rappel SMS (`Brevo_sms_adapter`) au mobile de la fiche membre (`membres.mtelm`) si l'option est activée, le mobile renseigné et au moins une occurrence active ou à venir ; le texte se limite à un message court et au lien vers `mes_alarmes` ; désactivable globalement (`alarm_sms_enabled`).
+5. le jour de synthèse — lundi pour `immediate` et `weekly`, premier lundi du mois pour `monthly` — envoie un rappel SMS (`Brevo_sms_adapter`) au mobile de la fiche membre (`membres.mtelm`) si l'option est activée, le mobile renseigné et au moins une occurrence active ou à venir ; le texte se limite à un message court et au lien vers `mes_alarmes` ; actif seulement si `alarm_sms_enabled` vaut `TRUE` dans `program.php`.
 
 **`notification_history`** : un enregistrement par envoi — destinataire, alarme, clé d'occurrence et état, canal, type (déclenchement ou synthèse), clé de période. Il sert à l'idempotence (une seconde exécution le même jour n'envoie rien), à l'anti-spam (un SMS par période, pas de double notification immédiate) et à la traçabilité.
 

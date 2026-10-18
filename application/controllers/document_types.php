@@ -124,6 +124,32 @@ class Document_types extends Gvv_Controller {
         parent::form_static_element($action);
         $this->load->model('sections_model');
         $this->gvvmetadata->set_selector('section_selector_with_null', $this->sections_model->section_selector_with_null());
+
+        $roles = array('' => '');
+        foreach ($this->db->where('scope', 'section')->order_by('display_order')->get('types_roles')->result_array() as $role) {
+            $label = ($role['translation_key'] && $this->lang->line($role['translation_key']))
+                ? $this->lang->line($role['translation_key']) : $role['nom'];
+            $roles[$role['id']] = $label;
+        }
+        $this->gvvmetadata->set_selector('role_selector_with_null', $roles);
+    }
+
+    /**
+     * Après création : le catalogue des alarmes suit les types de documents
+     */
+    function post_create($data = array()) {
+        parent::post_create($data);
+        $this->load->model('alarm_definitions_model');
+        $this->alarm_definitions_model->sync_document_types();
+    }
+
+    /**
+     * Après modification : le catalogue des alarmes suit les types de documents
+     */
+    function post_update($data = array()) {
+        parent::post_update($data);
+        $this->load->model('alarm_definitions_model');
+        $this->alarm_definitions_model->sync_document_types();
     }
 }
 
