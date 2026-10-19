@@ -84,6 +84,9 @@ class AlarmesLot2Test extends TestCase
     protected function tearDown(): void
     {
         $this->cleanup();
+        // Le fournisseur est partagé par les tests suivants : date et année courantes
+        $this->provider->reset_reference();
+        $this->CI->computed_alarm_provider->reset_reference();
         foreach ($this->saved_active as $code => $active) {
             $this->CI->db->where('code', $code)->update('alarm_definitions', array('active' => $active));
         }

@@ -84,6 +84,9 @@ class AlarmesLot3Test extends TestCase
     protected function tearDown(): void
     {
         $this->cleanup();
+        // Le fournisseur est partagé par les tests suivants : date et année courantes
+        $this->provider->reset_reference();
+        $this->CI->computed_alarm_provider->reset_reference();
         foreach ($this->saved_active as $code => $active) {
             $this->CI->db->where('code', $code)->update('alarm_definitions', array('active' => $active));
         }
@@ -293,20 +296,67 @@ class AlarmesLot3Test extends TestCase
         $this->assertNull($this->item('inactivite', self::PILOT, $this->pla), 'Dernier vol il y a plus de 24 mois');
     }
 
+    /** Compte pilote de la section planeur avec une dette du montant donné (écriture d'hier) */
+    private function debt($amount)
+    {
+        if (!$this->compte_ids) {
+            $this->CI->db->insert('comptes', array('nom' => 'zz test lot 3 pilote', 'codec' => '411', 'pilote' => self::PILOT,
+                'club' => $this->pla, 'actif' => 1, 'masked' => 0));
+            $this->compte_ids['pilot'] = (int) $this->CI->db->insert_id();
+            $this->CI->db->insert('comptes', array('nom' => 'zz test lot 3 produit', 'codec' => '706', 'club' => $this->pla,
+                'actif' => 1, 'masked' => 0));
+            $this->compte_ids['product'] = (int) $this->CI->db->insert_id();
+        }
+        $this->CI->db->insert('ecritures', array('annee_exercise' => (int) date('Y'), 'date_creation' => date('Y-m-d'),
+            'date_op' => date('Y-m-d', strtotime('-1 day')), 'compte1' => $this->compte_ids['pilot'],
+            'compte2' => $this->compte_ids['product'], 'montant' => $amount, 'description' => 'zz test lot 3',
+            'saisie_par' => 'zztest', 'club' => $this->pla));
+    }
+
+    public function test_compte_debiteur_pilote_parti_toujours_signale(): void
+    {
+        $this->CI->load->library('Alarm_aggregator');
+        $def = $this->definition('compte_debiteur');
+        $key = 'computed:compte_debiteur:' . self::PILOT . ':' . $this->pla;
+        $keys = function () use ($def) {
+            return array_column($this->CI->alarm_aggregator->collect(array($def)), 'key');
+        };
+        $this->debt(100000);
+        $this->assertContains($key, $keys());
+
+        // Plus actif dans la section (ni nulle part) : toujours à relancer
+        $this->CI->db->where('user_id', $this->user_ids[self::PILOT])
+            ->update('user_roles_per_section', array('revoked_at' => date('Y-m-d H:i:s')));
+        $this->CI->alarm_subscriptions_model->reset_roles_cache();
+        $this->assertContains($key, $keys(), 'Pilote parti');
+
+        // Pilote extérieur : exclu
+        $this->CI->db->where('mlogin', self::PILOT)->update('membres', array('ext' => 1));
+        $this->assertNotContains($key, $keys(), 'Pilote extérieur');
+    }
+
+    public function test_compte_debiteur_super_tresorier_toutes_sections(): void
+    {
+        $role_id = $this->CI->db->get_where('types_roles', array('nom' => 'super-tresorier'))->row_array()['id'];
+        $this->CI->db->insert('user_roles_per_section', array('user_id' => $this->user_ids[self::CA],
+            'types_roles_id' => $role_id, 'section_id' => null));
+        $this->CI->alarm_subscriptions_model->reset_roles_cache();
+
+        $cells = $this->CI->alarm_subscriptions_model->allowed_cells(self::CA, $this->definition('compte_debiteur'));
+        $this->assertArrayHasKey($this->pla, $cells, 'Rôle global : toutes les sections');
+        $this->assertArrayHasKey($this->avi, $cells);
+        $this->assertEquals(array($this->pla => true),
+            $this->CI->alarm_subscriptions_model->allowed_cells(self::CA, $this->definition('inactivite')),
+            'Le rôle global ne s\'étend pas aux règles qui ne le citent pas');
+    }
+
     public function test_compte_debiteur_au_dela_du_seuil(): void
     {
         $this->CI->load->model('configuration_model');
-        $threshold = (float) ($this->CI->configuration_model->get_param('relances.seuil_alarme') ?: 300);
-        $this->CI->db->insert('comptes', array('nom' => 'zz test lot 3 pilote', 'codec' => '411', 'pilote' => self::PILOT,
-            'club' => $this->pla, 'actif' => 1, 'masked' => 0));
-        $pilot_account = (int) $this->CI->db->insert_id();
-        $this->CI->db->insert('comptes', array('nom' => 'zz test lot 3 produit', 'codec' => '706', 'club' => $this->pla,
-            'actif' => 1, 'masked' => 0));
-        $product = (int) $this->CI->db->insert_id();
-        $entry = function ($amount) use ($pilot_account, $product) {
-            $this->CI->db->insert('ecritures', array('annee_exercise' => (int) date('Y'), 'date_creation' => date('Y-m-d'),
-                'date_op' => date('Y-m-d', strtotime('-1 day')), 'compte1' => $pilot_account, 'compte2' => $product,
-                'montant' => $amount, 'description' => 'zz test lot 3', 'saisie_par' => 'zztest', 'club' => $this->pla));
+        $this->CI->load->model('relances_model');
+        $threshold = (float) ($this->CI->configuration_model->get_param('relances.seuil_alarme') ?: Relances_model::DEFAULT_SEUIL_ALARME);
+        $entry = function ($amount) {
+            $this->debt($amount);
         };
 
         $entry($threshold / 2);
