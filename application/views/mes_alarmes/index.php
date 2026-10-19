@@ -68,9 +68,20 @@ $csrf_value = $this->security->get_csrf_hash();
             <table class="table table-sm table-bordered table-hover align-middle mb-0" id="alarm-matrix">
               <thead class="table-light">
                 <tr>
-                  <th><?= $this->lang->line('alarm_col_alarm') ?></th>
+                  <th class="align-bottom">
+                    <input class="form-check-input matrix-all-toggle me-2" type="checkbox" id="all_toggle"
+                           title="<?= htmlspecialchars($this->lang->line('alarm_config_toggle_all')) ?>"
+                           aria-label="<?= htmlspecialchars($this->lang->line('alarm_config_toggle_all')) ?>">
+                    <label for="all_toggle"><?= $this->lang->line('alarm_col_alarm') ?></label>
+                  </th>
                   <?php foreach ($matrix_columns as $cell => $name): ?>
-                    <th class="text-center"><?= htmlspecialchars($name) ?></th>
+                    <th class="text-center">
+                      <div><?= htmlspecialchars($name) ?></div>
+                      <input class="form-check-input matrix-col-toggle" type="checkbox" data-cell="<?= (int) $cell ?>"
+                             id="col_toggle_<?= (int) $cell ?>"
+                             title="<?= htmlspecialchars(sprintf($this->lang->line('alarm_config_toggle_column'), $name)) ?>"
+                             aria-label="<?= htmlspecialchars(sprintf($this->lang->line('alarm_config_toggle_column'), $name)) ?>">
+                    </th>
                   <?php endforeach; ?>
                 </tr>
               </thead>
@@ -78,7 +89,13 @@ $csrf_value = $this->security->get_csrf_hash();
                 <?php foreach ($proposed as $def): ?>
                   <?php $def_id = (int) $def['id']; ?>
                   <tr>
-                    <td><?= htmlspecialchars($def['display_label']) ?></td>
+                    <td>
+                      <input class="form-check-input matrix-row-toggle me-2" type="checkbox" data-alarm="<?= $def_id ?>"
+                             id="row_toggle_<?= $def_id ?>"
+                             title="<?= htmlspecialchars(sprintf($this->lang->line('alarm_config_toggle_row'), $def['display_label'])) ?>"
+                             aria-label="<?= htmlspecialchars(sprintf($this->lang->line('alarm_config_toggle_row'), $def['display_label'])) ?>">
+                      <label for="row_toggle_<?= $def_id ?>"><?= htmlspecialchars($def['display_label']) ?></label>
+                    </td>
                     <?php foreach ($matrix_columns as $cell => $name): ?>
                       <td class="text-center">
                         <?php if (isset($def['cells'][$cell])): ?>
@@ -97,7 +114,7 @@ $csrf_value = $this->security->get_csrf_hash();
                           }
                           $label = $def['display_label'] . ' — ' . $name;
                           ?>
-                          <input class="form-check-input" type="checkbox" name="cells[<?= $def_id ?>][]" value="<?= (int) $cell ?>"
+                          <input class="form-check-input matrix-cell" type="checkbox" name="cells[<?= $def_id ?>][]" value="<?= (int) $cell ?>"
                                  id="cell_<?= $def_id ?>_<?= (int) $cell ?>" data-alarm="<?= $def_id ?>" data-cell="<?= (int) $cell ?>"
                                  aria-label="<?= htmlspecialchars($label) ?>"
                                  <?= $sub ? 'checked' : '' ?> <?= $mandatory ? 'disabled' : '' ?>>
@@ -119,6 +136,7 @@ $csrf_value = $this->security->get_csrf_hash();
             </table>
           </div>
           <p class="small text-muted mt-2 mb-0">
+            <?= $this->lang->line('alarm_config_toggle_help') ?><br>
             <i class="fas fa-lock text-danger" aria-hidden="true"></i> <?= $this->lang->line('alarm_config_mandatory') ?>
             &nbsp; <i class="fas fa-info-circle text-info" aria-hidden="true"></i> <?= $this->lang->line('alarm_config_origin_legend') ?>
           </p>
@@ -238,3 +256,47 @@ $csrf_value = $this->security->get_csrf_hash();
     </div>
   <?php endif; ?>
 </div>
+
+<script>
+// Matrice : une case en tête de ligne ou de colonne coche ou décoche toutes
+// les cases modifiables de la ligne ou de la colonne, celle du coin toutes
+// les cases de la matrice (les cases obligatoires, désactivées, ne changent pas). Son état suit celui des cases : cochée si
+// toutes le sont, indéterminée si certaines seulement.
+(function () {
+  var matrix = document.getElementById('alarm-matrix');
+  if (!matrix) {
+    return;
+  }
+  var TOGGLES = '.matrix-all-toggle, .matrix-row-toggle, .matrix-col-toggle';
+  function cells(toggle) {
+    var selector = '.matrix-cell';
+    if (toggle.classList.contains('matrix-row-toggle')) {
+      selector += '[data-alarm="' + toggle.dataset.alarm + '"]';
+    } else if (toggle.classList.contains('matrix-col-toggle')) {
+      selector += '[data-cell="' + toggle.dataset.cell + '"]';
+    }
+    return Array.prototype.slice.call(matrix.querySelectorAll(selector));
+  }
+  function refresh() {
+    matrix.querySelectorAll(TOGGLES).forEach(function (toggle) {
+      var editable = cells(toggle).filter(function (box) { return !box.disabled; });
+      var checked = editable.filter(function (box) { return box.checked; }).length;
+      toggle.disabled = editable.length === 0;
+      toggle.checked = editable.length > 0 && checked === editable.length;
+      toggle.indeterminate = checked > 0 && checked < editable.length;
+    });
+  }
+  matrix.addEventListener('change', function (event) {
+    var target = event.target;
+    if (target.matches(TOGGLES)) {
+      cells(target).forEach(function (box) {
+        if (!box.disabled) {
+          box.checked = target.checked;
+        }
+      });
+    }
+    refresh();
+  });
+  refresh();
+})();
+</script>

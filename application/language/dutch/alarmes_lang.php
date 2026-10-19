@@ -82,3 +82,7 @@ $lang['alarm_config_origin_legend'] = "Vakje aangevinkt door een beheerder of pe
 $lang['alarm_list_title'] = "Actieve en komende alarmen";
 $lang['alarm_badge_own'] = "Ik";
 $lang['alarm_card_active_count'] = "Actieve alarmen";
+$lang['alarm_config_toggle_column'] = "De hele kolom %s aan- of uitvinken";
+$lang['alarm_config_toggle_row'] = "De hele rij \"%s\" aan- of uitvinken";
+$lang['alarm_config_toggle_help'] = "Het vakje vooraan elke rij of kolom vinkt de hele rij of kolom aan of uit, dat in de hoek (naast \"Alarm\") de hele matrix; verplichte vakjes veranderen niet.";
+$lang['alarm_config_toggle_all'] = "Alle vakjes aan- of uitvinken";
