@@ -82,3 +82,7 @@ $lang['alarm_config_origin_legend'] = "Case cochée par un administrateur ou par
 $lang['alarm_list_title'] = "Alarmes actives et à venir";
 $lang['alarm_badge_own'] = "Moi";
 $lang['alarm_card_active_count'] = "Alarmes actives";
+$lang['alarm_config_toggle_column'] = "Cocher ou décocher toute la colonne %s";
+$lang['alarm_config_toggle_row'] = "Cocher ou décocher toute la ligne « %s »";
+$lang['alarm_config_toggle_help'] = "La case en tête de chaque ligne ou colonne coche ou décoche toute la ligne ou la colonne, celle du coin (à côté de « Alarme ») toute la matrice ; les cases obligatoires ne changent pas.";
+$lang['alarm_config_toggle_all'] = "Cocher ou décocher toutes les cases";

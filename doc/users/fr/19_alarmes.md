@@ -40,6 +40,8 @@ Cocher une case, c'est suivre cette alarme **pour cette section seulement**. Exe
 - La colonne **Club** couvre les documents qui ne dépendent d'aucune section (documents du club, machine sans section). Elle n'existe que pour ces alarmes.
 - Une case n'apparaît que si vous avez le droit correspondant : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections ; l'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques.
 
+Pour aller plus vite, la case placée **en tête de chaque ligne** (devant le nom de l'alarme) coche ou décoche toute la ligne, celle **sous le nom de chaque colonne** coche ou décoche toute la colonne, et celle **du coin**, à côté de « Alarme », coche ou décoche toute la matrice. Elle apparaît à moitié remplie quand une partie seulement des cases est cochée. Les cases obligatoires ne changent pas. Pensez à **Enregistrer**.
+
 Une case peut porter une icône :
 
 - **cadenas rouge** (obligatoire) : un administrateur l'a rendue obligatoire, vous ne pouvez pas la décocher ;

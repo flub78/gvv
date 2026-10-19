@@ -14,6 +14,7 @@
  *   5. A plain member cannot open the administration; the scheduler URL answers
  *      403 with a wrong secret
  *   6. The SMS reminder is refused for a member without a mobile number
+ *   7. A whole row or column, or the whole matrix, is ticked or unticked in one click
  *
  * Prerequisites: test users asterix (member, Planeur/Général), abraracourcix
  * (CA Avion), goudurix (member Avion) and panoramix (club-admin), migration
@@ -196,6 +197,56 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator(`#cell_${missingDefId}_${avionId}`)).toBeChecked();
         const origin = page.locator(`#cell_${missingDefId}_${avionId} ~ i.fa-info-circle`);
         await expect(origin).toHaveAttribute('title', /anoramix/i);
+    });
+
+    test('une ligne ou une colonne entière se coche ou se décoche en un clic', async ({ page }) => {
+        await login(page, ADMIN);
+        await page.goto('/index.php/mes_alarmes');
+
+        const column = page.locator(`.matrix-cell[data-cell="${avionId}"]:not([disabled])`);
+        const columnToggle = page.locator(`#col_toggle_${avionId}`);
+        expect(await column.count()).toBeGreaterThan(1);
+        await columnToggle.check();
+        for (const box of await column.all()) {
+            await expect(box).toBeChecked();
+        }
+        await columnToggle.uncheck();
+        for (const box of await column.all()) {
+            await expect(box).not.toBeChecked();
+        }
+
+        const row = page.locator(`.matrix-cell[data-alarm="${defId}"]:not([disabled])`);
+        const rowToggle = page.locator(`#row_toggle_${defId}`);
+        expect(await row.count()).toBeGreaterThan(1);
+        await rowToggle.check();
+        for (const box of await row.all()) {
+            await expect(box).toBeChecked();
+        }
+        // Une case décochée : la tête de ligne devient indéterminée ; un clic recoche tout
+        await row.first().uncheck();
+        expect(await rowToggle.evaluate(el => el.indeterminate)).toBe(true);
+        await rowToggle.click();
+        for (const box of await row.all()) {
+            await expect(box).toBeChecked();
+        }
+        await rowToggle.uncheck();
+        for (const box of await row.all()) {
+            await expect(box).not.toBeChecked();
+        }
+
+        // Case du coin : toute la matrice ; les têtes de ligne et de colonne suivent
+        const all = page.locator('.matrix-cell:not([disabled])');
+        await page.locator('#all_toggle').check();
+        for (const box of await all.all()) {
+            await expect(box).toBeChecked();
+        }
+        await expect(rowToggle).toBeChecked();
+        await expect(columnToggle).toBeChecked();
+        await page.locator('#all_toggle').uncheck();
+        for (const box of await all.all()) {
+            await expect(box).not.toBeChecked();
+        }
+        await expect(columnToggle).not.toBeChecked();
     });
 
     test('un administrateur gère les abonnements de catégories', async ({ page }) => {

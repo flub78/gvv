@@ -62,7 +62,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 
 **1.6 — Page « Mes alarmes »** (3 j)
 - [x] Contrôleur `mes_alarmes.php`, une seule page : configuration en haut, liste des alarmes en dessous
-- [x] Matrice alarme × colonne (sections supervisées, plus Club pour les documents sans section) ; une case seulement là où le membre a le droit ; pas de matrice sans droit de supervision, avec un message indiquant que les alarmes propres sont toujours suivies
+- [x] Matrice alarme × colonne (sections supervisées, plus Club pour les documents sans section) ; une case seulement là où le membre a le droit ; cocher ou décocher une ligne, une colonne ou toute la matrice en un clic (cases obligatoires exclues) ; pas de matrice sans droit de supervision, avec un message indiquant que les alarmes propres sont toujours suivies
 - [x] Cases cochées par un administrateur affichées avec leur auteur ; cases obligatoires non décochables ; retrait d'une case d'un abonnement de catégorie (`alarm_subscription_optouts`)
 - [x] Canaux (aucun exigé), rappel SMS, fréquence ; option SMS désactivée et expliquée sans numéro de mobile
 - [x] Liste : alarmes propres et occurrences des cases effectives, actives et à venir, filtres par alarme et par section, liens de traitement
@@ -85,7 +85,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] PHPUnit migration 177 : up/down avec sauvegarde et restauration de `document_types` et `types_roles`
 - [x] Toutes les fixtures sont créées et supprimées par les tests (y compris en cas d'échec), sans dépendance aux données existantes
 - [x] Playwright `document-types-toggle-smoke.spec.js` : bascule en un clic des booléens de la liste des types, effet sur le catalogue
-- [x] Playwright `alarmes-smoke.spec.js` : page « Mes alarmes » d'un simple membre (alarmes propres, pas de matrice), matrice par section d'un superviseur et alarmes filtrées par section, sélecteur de membre `club-admin` positionné sur son propre profil puis configuration d'un autre membre, abonnement de catégorie, refus hors droits, déclenchement `run($secret)` (403 avec un mauvais secret, JSON avec le bon)
+- [x] Playwright `alarmes-smoke.spec.js` : page « Mes alarmes » d'un simple membre (alarmes propres, pas de matrice), matrice par section d'un superviseur et alarmes filtrées par section, ligne, colonne et matrice entières cochées ou décochées en un clic, sélecteur de membre `club-admin` positionné sur son propre profil puis configuration d'un autre membre, abonnement de catégorie, refus hors droits, déclenchement `run($secret)` (403 avec un mauvais secret, JSON avec le bon)
 - [x] Smoke tests complets phpunit + playwright avant clôture
 
 **1.10 — Documentation** (0,5 j)
