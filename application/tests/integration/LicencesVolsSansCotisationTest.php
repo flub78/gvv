@@ -80,6 +80,16 @@ class LicencesVolsSansCotisationTest extends TransactionalTestCase
         $this->assertEquals(1, $row['avion']);
         $this->assertEquals(1, $row['ulm']);
         $this->assertSame(self::YEAR . '-05-10', $row['dernier_vol']);
+
+        // Sections des vols : planeur → section PLA, avion/ULM → section du vol
+        $pla = $this->CI->db->get_where('sections', array('acronyme' => 'PLA'))->row_array();
+        $expected = array($this->avion_section_id, $this->ulm_section_id);
+        if ($pla) {
+            $expected[] = (int) $pla['id'];
+        }
+        $expected = array_unique($expected);
+        sort($expected);
+        $this->assertSame($expected, array_map('intval', explode(',', $row['sections'])));
     }
 
     public function test_pilot_with_cotisation_is_not_listed()

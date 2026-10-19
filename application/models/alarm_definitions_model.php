@@ -26,6 +26,12 @@ class Alarm_definitions_model extends Common_Model {
     const SOURCE_MISSING_DOCUMENT = 'missing_document';
     const SOURCE_COMPUTED = 'computed';
 
+    /** Catégories d'alarmes, dans leur ordre d'affichage */
+    const CATEGORY_DOCUMENTS = 'documents';
+    const CATEGORY_ADHESION = 'adhesion';
+    const CATEGORY_COMPTES = 'comptes';
+    const CATEGORY_EXPERIENCE = 'experience';
+
     /** Auteur des activations et désactivations faites par sync_document_types() */
     const SYNC_USER = 'alarm_sync';
 
@@ -55,8 +61,57 @@ class Alarm_definitions_model extends Common_Model {
         $rows = $this->get_to_array($this->db->get());
         foreach ($rows as &$row) {
             $row['display_label'] = $this->display_label($row);
+            $row['category'] = self::category($row);
         }
         return $rows;
+    }
+
+    /**
+     * Catégories, dans leur ordre d'affichage
+     *
+     * @return array
+     */
+    public static function categories() {
+        return array(self::CATEGORY_DOCUMENTS, self::CATEGORY_ADHESION, self::CATEGORY_COMPTES, self::CATEGORY_EXPERIENCE);
+    }
+
+    /**
+     * Catégorie d'une alarme : documents, cotisation et licence, comptes,
+     * expérience récente
+     *
+     * @param array $def
+     * @return string
+     */
+    public static function category($def) {
+        if ($def['source'] !== self::SOURCE_COMPUTED) {
+            return self::CATEGORY_DOCUMENTS;
+        }
+        switch ($def['rule']) {
+            case 'compte_debiteur':
+                return self::CATEGORY_COMPTES;
+            case 'emport_passager':
+            case 'inactivite':
+            case 'remorquages':
+                return self::CATEGORY_EXPERIENCE;
+            default:
+                return self::CATEGORY_ADHESION;
+        }
+    }
+
+    /**
+     * Trie des alarmes par catégorie, puis par libellé
+     *
+     * @param array $defs Lignes de get_all()
+     * @return array
+     */
+    public static function sort_by_category($defs) {
+        $order = array_flip(self::categories());
+        usort($defs, function ($a, $b) use ($order) {
+            $ca = $order[$a['category']];
+            $cb = $order[$b['category']];
+            return ($ca !== $cb) ? $ca - $cb : strcasecmp($a['display_label'], $b['display_label']);
+        });
+        return $defs;
     }
 
     /**
@@ -92,6 +147,10 @@ class Alarm_definitions_model extends Common_Model {
                 return sprintf($this->lang->line('alarm_label_document_target'), $name, $role);
             }
             return $name;
+        }
+        if ($def['source'] === self::SOURCE_COMPUTED && $def['rule']
+            && $this->lang->line('alarm_label_rule_' . $def['rule'])) {
+            return $this->lang->line('alarm_label_rule_' . $def['rule']);
         }
         return $def['label'];
     }

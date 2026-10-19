@@ -118,6 +118,56 @@ if (!function_exists('is_admin')) {
     }
 }
 
+if (!function_exists('alarm_category_style')) {
+    /**
+     * Présentation d'une catégorie d'alarmes : icône Font Awesome et couleur
+     * Bootstrap (bordure, badge, texte)
+     *
+     * @param string $category Alarm_definitions_model::CATEGORY_*
+     * @return array ['icon' => string, 'color' => string]
+     */
+    function alarm_category_style($category) {
+        $styles = array(
+            'documents'  => array('icon' => 'fa-file-alt', 'color' => 'primary'),
+            'adhesion'   => array('icon' => 'fa-id-card', 'color' => 'success'),
+            'comptes'    => array('icon' => 'fa-euro-sign', 'color' => 'warning'),
+            'experience' => array('icon' => 'fa-plane', 'color' => 'info'),
+        );
+        return isset($styles[$category]) ? $styles[$category] : array('icon' => 'fa-bell', 'color' => 'secondary');
+    }
+}
+
+if (!function_exists('alarm_category_mark')) {
+    /**
+     * Attribut style d'une cellule marquée par la couleur de sa catégorie
+     * (barre à gauche, sans toucher aux bordures du tableau)
+     *
+     * @param string $category
+     * @return string
+     */
+    function alarm_category_mark($category) {
+        $style = alarm_category_style($category);
+        return 'style="box-shadow: inset 4px 0 0 var(--bs-' . $style['color'] . '); padding-left: .75rem;"';
+    }
+}
+
+if (!function_exists('alarm_category_badge')) {
+    /**
+     * Badge d'une catégorie d'alarmes (icône et libellé traduit)
+     *
+     * @param string $category
+     * @return string HTML
+     */
+    function alarm_category_badge($category) {
+        $CI = &get_instance();
+        $style = alarm_category_style($category);
+        $text = in_array($style['color'], array('warning', 'info'), true) ? ' text-dark' : '';
+        return '<span class="badge bg-' . $style['color'] . $text . ' alarm-category" data-category="' . htmlspecialchars($category) . '">'
+            . '<i class="fas ' . $style['icon'] . ' me-1" aria-hidden="true"></i>'
+            . htmlspecialchars($CI->lang->line('alarm_category_' . $category)) . '</span>';
+    }
+}
+
 if (!function_exists('has_role')) {
     function has_role($role) {
         $CI = &get_instance();

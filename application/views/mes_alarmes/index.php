@@ -26,9 +26,8 @@ $csrf_value = $this->security->get_csrf_hash();
         </span>
       <?php endif; ?>
     </h3>
-    <a href="#alarm-list" class="btn btn-outline-primary btn-sm">
-      <i class="fas fa-list me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_list_title') ?>
-      <span class="badge bg-secondary"><?= count($rows) ?></span>
+    <a href="#configuration" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-cog me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_config_title') ?>
     </a>
   </div>
 
@@ -49,7 +48,88 @@ $csrf_value = $this->security->get_csrf_hash();
     </form>
   <?php endif; ?>
 
+  <!-- Alarmes -->
+  <h4 id="alarm-list"><i class="fas fa-exclamation-triangle text-danger me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_list_title') ?>
+    <span class="badge bg-secondary align-middle" style="font-size:0.6em;"><?= count($rows) ?></span></h4>
+
+  <form method="get" action="<?= site_url('mes_alarmes') ?>#alarm-list" class="row g-2 align-items-end mb-3" id="alarm-filters">
+    <?php if (!$is_self): ?>
+      <input type="hidden" name="membre" value="<?= htmlspecialchars($member['mlogin']) ?>">
+    <?php endif; ?>
+    <div class="col-auto">
+      <label for="alarme" class="form-label small mb-0"><?= $this->lang->line('alarm_col_alarm') ?></label>
+      <select name="alarme" id="alarme" class="form-select form-select-sm">
+        <option value=""><?= $this->lang->line('alarm_filter_all') ?></option>
+        <?php foreach ($listed_defs as $id => $label): ?>
+          <option value="<?= (int) $id ?>" <?= $filter_def === (int) $id ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label for="section" class="form-label small mb-0"><?= $this->lang->line('alarm_col_section') ?></label>
+      <select name="section" id="section" class="form-select form-select-sm">
+        <option value=""><?= $this->lang->line('alarm_filter_all') ?></option>
+        <?php foreach ($sections as $id => $name): ?>
+          <option value="<?= (int) $id ?>" <?= $filter_section === (int) $id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary btn-sm"><?= $this->lang->line('alarm_filter_apply') ?></button>
+    </div>
+  </form>
+
+  <?php if (empty($rows)): ?>
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle me-1" aria-hidden="true"></i><?= $this->lang->line(empty($effective) ? 'alarm_my_alarms_none' : 'alarm_my_alarms_none_followed') ?>
+    </div>
+  <?php else: ?>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped table-hover" id="alarms-table">
+        <thead class="table-light">
+          <tr>
+            <th><?= $this->lang->line('alarm_col_alarm') ?></th>
+            <th><?= $this->lang->line('alarm_col_concerns') ?></th>
+            <th><?= $this->lang->line('alarm_col_section') ?></th>
+            <th class="text-center"><?= $this->lang->line('alarm_col_state') ?></th>
+            <th class="text-center"><?= $this->lang->line('alarm_col_due') ?></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($rows as $row): ?>
+            <?php $style = alarm_category_style($row['category']); ?>
+            <tr class="<?= $row['state'] === 'active' ? 'table-danger' : 'table-warning' ?>" data-category="<?= htmlspecialchars($row['category']) ?>">
+              <td <?= alarm_category_mark($row['category']) ?>>
+                <?= alarm_category_badge($row['category']) ?>
+                <div><?= htmlspecialchars($row['label']) ?></div>
+                <div class="small text-muted"><?= htmlspecialchars($row['definition_label']) ?></div></td>
+              <td><?= htmlspecialchars($row['detail']) ?>
+                <?php if (!empty($row['own'])): ?>
+                  <span class="badge bg-dark alarm-own"><i class="fas fa-user me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_badge_own') ?></span>
+                <?php endif; ?>
+              </td>
+              <td><?= htmlspecialchars(implode(', ', $row['section_names'])) ?></td>
+              <td class="text-center">
+                <span class="badge <?= $row['state'] === 'active' ? 'bg-danger' : 'bg-warning text-dark' ?>">
+                  <?= $this->lang->line('alarm_state_' . $row['state']) ?>
+                </span>
+              </td>
+              <td class="text-center"><?= $row['due_date'] ? date_db2ht($row['due_date']) : '' ?></td>
+              <td>
+                <?php if ($row['link'] !== ''): ?>
+                  <a href="<?= site_url($row['link']) ?>" class="btn btn-outline-primary btn-sm"><?= $this->lang->line('alarm_notification_open') ?></a>
+                <?php endif; ?>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  <?php endif; ?>
+
   <!-- Configuration -->
+  <h4 class="mt-4" id="configuration-title"><i class="fas fa-cog text-secondary me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_config_title') ?></h4>
   <form method="post" action="<?= site_url('mes_alarmes/save') ?>" id="configuration">
     <input type="hidden" name="<?= $csrf_name ?>" value="<?= $csrf_value ?>">
     <input type="hidden" name="membre" value="<?= htmlspecialchars($member['mlogin']) ?>">
@@ -86,10 +166,22 @@ $csrf_value = $this->security->get_csrf_hash();
                 </tr>
               </thead>
               <tbody>
+                <?php $current_category = null; ?>
                 <?php foreach ($proposed as $def): ?>
-                  <?php $def_id = (int) $def['id']; ?>
-                  <tr>
-                    <td>
+                  <?php
+                  $def_id = (int) $def['id'];
+                  $style = alarm_category_style($def['category']);
+                  ?>
+                  <?php if ($def['category'] !== $current_category): ?>
+                    <?php $current_category = $def['category']; ?>
+                    <tr class="alarm-category-row">
+                      <th colspan="<?= count($matrix_columns) + 1 ?>" class="text-<?= $style['color'] === 'warning' ? 'dark' : $style['color'] ?>" <?= alarm_category_mark($def['category']) ?>>
+                        <i class="fas <?= $style['icon'] ?> me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_category_' . $def['category']) ?>
+                      </th>
+                    </tr>
+                  <?php endif; ?>
+                  <tr data-category="<?= htmlspecialchars($def['category']) ?>">
+                    <td <?= alarm_category_mark($def['category']) ?>>
                       <input class="form-check-input matrix-row-toggle me-2" type="checkbox" data-alarm="<?= $def_id ?>"
                              id="row_toggle_<?= $def_id ?>"
                              title="<?= htmlspecialchars(sprintf($this->lang->line('alarm_config_toggle_row'), $def['display_label'])) ?>"
@@ -183,78 +275,6 @@ $csrf_value = $this->security->get_csrf_hash();
       <i class="fas fa-save me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_config_save') ?>
     </button>
   </form>
-
-  <!-- Alarmes -->
-  <h4 id="alarm-list"><i class="fas fa-exclamation-triangle text-danger me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_list_title') ?></h4>
-
-  <form method="get" action="<?= site_url('mes_alarmes') ?>#alarm-list" class="row g-2 align-items-end mb-3" id="alarm-filters">
-    <?php if (!$is_self): ?>
-      <input type="hidden" name="membre" value="<?= htmlspecialchars($member['mlogin']) ?>">
-    <?php endif; ?>
-    <div class="col-auto">
-      <label for="alarme" class="form-label small mb-0"><?= $this->lang->line('alarm_col_alarm') ?></label>
-      <select name="alarme" id="alarme" class="form-select form-select-sm">
-        <option value=""><?= $this->lang->line('alarm_filter_all') ?></option>
-        <?php foreach ($listed_defs as $id => $label): ?>
-          <option value="<?= (int) $id ?>" <?= $filter_def === (int) $id ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <div class="col-auto">
-      <label for="section" class="form-label small mb-0"><?= $this->lang->line('alarm_col_section') ?></label>
-      <select name="section" id="section" class="form-select form-select-sm">
-        <option value=""><?= $this->lang->line('alarm_filter_all') ?></option>
-        <?php foreach ($sections as $id => $name): ?>
-          <option value="<?= (int) $id ?>" <?= $filter_section === (int) $id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary btn-sm"><?= $this->lang->line('alarm_filter_apply') ?></button>
-    </div>
-  </form>
-
-  <?php if (empty($rows)): ?>
-    <div class="alert alert-success">
-      <i class="fas fa-check-circle me-1" aria-hidden="true"></i><?= $this->lang->line(empty($effective) ? 'alarm_my_alarms_none' : 'alarm_my_alarms_none_followed') ?>
-    </div>
-  <?php else: ?>
-    <div class="table-responsive">
-      <table class="table table-sm table-striped table-hover" id="alarms-table">
-        <thead class="table-light">
-          <tr>
-            <th><?= $this->lang->line('alarm_col_alarm') ?></th>
-            <th><?= $this->lang->line('alarm_col_concerns') ?></th>
-            <th><?= $this->lang->line('alarm_col_section') ?></th>
-            <th class="text-center"><?= $this->lang->line('alarm_col_state') ?></th>
-            <th class="text-center"><?= $this->lang->line('alarm_col_due') ?></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($rows as $row): ?>
-            <tr class="<?= $row['state'] === 'active' ? 'table-danger' : 'table-warning' ?>">
-              <td><?= htmlspecialchars($row['label']) ?>
-                <div class="small text-muted"><?= htmlspecialchars($row['definition_label']) ?></div></td>
-              <td><?= htmlspecialchars($row['detail']) ?>
-                <?php if (!empty($row['own'])): ?>
-                  <span class="badge bg-primary"><?= $this->lang->line('alarm_badge_own') ?></span>
-                <?php endif; ?>
-              </td>
-              <td><?= htmlspecialchars(implode(', ', $row['section_names'])) ?></td>
-              <td class="text-center">
-                <span class="badge <?= $row['state'] === 'active' ? 'bg-danger' : 'bg-warning text-dark' ?>">
-                  <?= $this->lang->line('alarm_state_' . $row['state']) ?>
-                </span>
-              </td>
-              <td class="text-center"><?= $row['due_date'] ? date_db2ht($row['due_date']) : '' ?></td>
-              <td><a href="<?= site_url($row['link']) ?>" class="btn btn-outline-primary btn-sm"><?= $this->lang->line('alarm_notification_open') ?></a></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-  <?php endif; ?>
 </div>
 
 <script>

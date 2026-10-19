@@ -1,6 +1,6 @@
 # Design Notes — Gestion Générique des Alarmes
 
-Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire) et le 19 octobre 2026 (page unique « Mes alarmes », abonnements par alarme et par section, alarmes propres)
+Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire) le 19 octobre 2026 (page unique « Mes alarmes », abonnements par alarme et par section, alarmes propres ; Lot 2 : alarmes calculées de vols sans cotisation et sans licence ; Lot 3 : emport passager, inactivité, compte débiteur)
 
 ## Contexte et objectif
 
@@ -14,7 +14,7 @@ L'objectif est d'unifier ces sources sous un contrat commun, sans réécrire les
 - un catalogue d'alarmes auxquelles les membres s'abonnent,
 - l'envoi des notifications sur les canaux choisis par chaque membre (email, message du jour) et d'un rappel hebdomadaire ou mensuel par SMS,
 - les synthèses hebdomadaires et mensuelles,
-- la page « Mes alarmes » (configuration puis liste) et la page d'administration.
+- la page « Mes alarmes » (liste puis configuration) et la page d'administration.
 
 Document de référence : [gestion_alarmes_generiques_prd.md](../prds/gestion_alarmes_generiques_prd.md). Les notifications documentaires du [PRD d'archivage documentaire](../prds/archivage_documentaire_prd.md) (§10) sont réalisées par ce mécanisme.
 
@@ -64,16 +64,32 @@ Chaque provider traduit une source existante en `AlarmItem[]`, sans modifier le 
   | `section`, `machine` | `archived_documents.section_id`, à défaut `document_types.section_id` |
   | `club` | Aucune — alarme globale |
 
-- **`ComputedAlarmProvider`** (Lot 2) — règles calculées : vols sans cotisation (`licences_model::pilotes_vols_sans_cotisation()`), vols sans licence (même principe sur les licences de section). Lots suivants : extraction des règles d'`alarmes.php` (médical, expérience récente, emport passager, instructeur).
+- **`ComputedAlarmProvider`** (Lots 2 et 3) — alarmes de source `computed`, une règle par alarme (`alarm_definitions.rule`). Lot 2, sur les vols de l'année civile en cours, pilotes extérieurs exclus :
 
-Au Lot 1, seul `DocumentAlarmProvider` est branché sur l'agrégateur ; le contrat `AlarmItem` et la colonne `source` du catalogue prévoient déjà les alarmes calculées.
+  | Règle | Source | Occurrence (`key`) |
+  |---|---|---|
+  | `vols_sans_cotisation` | `licences_model::pilotes_vols_sans_cotisation()` : vols sans licence de type 0 pour l'année | `computed:vols_sans_cotisation:{login}:{année}` |
+  | `vols_sans_licence` | `licences_model::pilotes_vols_sans_licence()` : vols d'une section sans la licence exigée par la section (`sections.licence_type`) pour l'année | `computed:vols_sans_licence:{login}:{section}:{année}` |
+
+  Une occurrence est toujours `active`, sans échéance. Ses sections sont celles des vols concernés : section qui gère les planeurs (`sections.gestion_planeurs`) pour un vol planeur (`volsp` ne porte pas de section), `volsa.club` pour les autres. Aucune section n'est connue du code : la licence exigée est un paramètre de la section (`sections.licence_type`, type de `licences`, vide = aucune), partagé avec la page « Licences par année » ; un remorquage, enregistré dans la section planeur, relève ainsi de la licence planeur. Lien superviseur : page de contrôle des licences (`licences/vols_sans_cotisation`, `licences/per_year`) ; lien du pilote : paiement de la cotisation en ligne pour la cotisation, aucun pour la licence (obtenue hors de GVV).
+
+  Lot 3, par section — vols planeur (`volsp`) pour la section qui gère les planeurs, sans ses remorquages ; vols `volsa` de la section (`club`) pour les autres :
+
+  | Règle | Population | Occurrence (`key`) | Échéance, état |
+  |---|---|---|---|
+  | `emport_passager` | rôle `emport_passager` non révoqué dans la section | `computed:emport_passager:{login}:{section}` | date du 3ᵉ atterrissage CDB le plus récent + 90 j ; à venir dans `lead_days`, active après (ou sans 3 atterrissages) |
+  | `remorquages` | rôle `pilote_rem` non révoqué dans une section qui gère les planeurs | `computed:remorquages:{login}:{section}` | date du 10ᵉ remorqué le plus récent (`volsp.pilote_remorqueur`, un vol planeur = un remorqué) + 12 mois ; à venir dans `lead_days`, active après (ou sans 10 remorqués) |
+  | `inactivite` | rôle `user` dans la section, sans rôle `eleve` ; dernier vol dans la section il y a moins de 24 mois | `computed:inactivite:{login}:{section}` | dernier vol + 120 j ; à venir dans `lead_days`, active après |
+  | `compte_debiteur` | comptes 411 (`Relances_model::soldes_debiteurs_par_section()`, même calcul que la page des relances, solde du jour seulement) | `computed:compte_debiteur:{login}:{section}` | aucune ; active si le solde de la section est inférieur à −`relances.seuil_alarme` |
+
+  Atterrissage CDB : en planeur, un vol où le pilote est `vppilid` sans double commande (`vpdc = 0`) ou instructeur (`vpinst`) ; en avion et ULM, `vaatt` atterrissages (1 à défaut) des vols où il est `vapilid` sans double commande ou `vainst`. Dernier vol : tout vol où il est pilote ou instructeur. Liens : liste des vols de l'activité (`vols_planeur/page`, `vols_avion/page`) ; pour le compte débiteur, `relances` (superviseur) et `compta/mon_compte/{section}` (pilote). Les seuils (3 atterrissages, 90 jours, 10 remorqués, 12 mois, 120 jours, 24 mois) sont des constantes du fournisseur ; le délai d'anticipation est réglable dans le catalogue. Lots suivants : extraction des autres règles d'`alarmes.php` (médical, expérience récente BPP/SPL, instructeur).
 
 ### AlarmAggregator
 
-Service central. Interroge les providers pour les alarmes actives du catalogue et renvoie les `AlarmItem` correspondants, éventuellement restreints à une section.
+Service central. Interroge les providers (`DocumentAlarmProvider`, `ComputedAlarmProvider`) pour les alarmes actives du catalogue et renvoie les `AlarmItem` correspondants. Il applique à toutes les sources la même règle de population : une occurrence qui concerne un pilote (`pilot_login`) est supprimée si le pilote est extérieur (`membres.ext`) et ne garde que les sections où il a le rôle `user` non révoqué ; sans section restante, elle est supprimée. Les occurrences de machine, de section ou de club ne sont pas filtrées.
 
 ```php
-AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmItem[]
+AlarmAggregator::collect(?array $definitions = null) : AlarmItem[]
 ```
 
 ---
@@ -86,7 +102,7 @@ AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmIte
 
 **`alarm_definitions`** : une ligne par alarme proposée aux membres — une par type de document à expiration, pas une par document. Elle porte la source (`document`, `missing_document`, `computed`), le type de document ou la règle calculée visés, la portée (section ou globale), la population ciblée (`target_role_id`, ex. élèves), le délai d'anticipation et l'état actif.
 
-- La migration crée une alarme par type de document à expiration (`document_<id>`), l'alarme des documents manquants (`missing_document`) et celle des visites médicales des élèves (`document_<id>_eleve`, `target_role_id` = `eleve`). Les règles calculées sont ajoutées au catalogue par la migration du Lot 2.
+- La migration crée une alarme par type de document à expiration (`document_<id>`), l'alarme des documents manquants (`missing_document`) et celle des visites médicales des élèves (`document_<id>_eleve`, `target_role_id` = `eleve`). La migration du Lot 2 (178) ajoute les alarmes calculées `computed_vols_sans_cotisation` et `computed_vols_sans_licence` ; celle du Lot 3 (179) `computed_emport_passager`, `computed_remorquages`, `computed_inactivite`, `computed_compte_debiteur`, le rôle `emport_passager` (attribué en section planeur aux membres ayant l'événement « Emport passager ») et la colonne `sections.licence_type` (initialisée une fois d'après les acronymes PLA, AVI, ULM).
 - `document_types.alarm_enabled` (alarmes possibles, 1 par défaut et pour les types existants) : seul un type actif, à expiration et à alarmes possibles a une alarme. La création ou la modification d'un type crée son alarme ; un type qui n'est plus éligible voit toutes ses alarmes désactivées (y compris celles d'une population), et réactivées s'il le redevient. Une alarme désactivée par un administrateur dans le catalogue reste désactivée.
 - Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
@@ -109,7 +125,7 @@ Cases autorisées d'un membre pour une alarme : les sections qu'il peut supervis
 
 **Sans abonnement** : le membre a toujours ses alarmes propres sur sa page. Elles ne sont envoyées que s'il a choisi un canal.
 
-**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections.
+**Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections ; une alarme calculée du Lot 2 (cotisation, licence), au rôle `tresorier` de ses sections ; une alarme d'emport passager, de remorquage ou d'inactivité (Lot 3), aux rôles `instructeur` et `rp`. L'alarme de compte débiteur remplace ces rôles par `bureau`, `tresorier` et `super-tresorier` (données financières personnelles, pas le CA).
 
 ### Notifications
 
@@ -131,10 +147,10 @@ Cases autorisées d'un membre pour une alarme : les sections qu'il peut supervis
 
 | Page | Contrôleur | Accès |
 |---|---|---|
-| Mes alarmes : configuration (matrice alarme × colonne, canaux, rappel SMS, fréquence) puis occurrences actives et à venir (propres et abonnements) | `mes_alarmes` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
+| Mes alarmes : occurrences actives et à venir (propres et abonnements), puis configuration (matrice alarme × colonne, canaux, rappel SMS, fréquence) | `mes_alarmes` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
 | Catalogue (activation, délai), abonnements de catégories, alarmes actives que personne ne reçoit | `alarmes_admin` | `club-admin` |
 
-La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré). La matrice n'apparaît que si le membre a au moins une case autorisée. Aucun canal n'est exigé. La carte « Mes alarmes » de l'espace personnel affiche le nombre d'occurrences actives du membre, calculé comme la liste de la page (`Notification_manager::member_occurrences()`).
+La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré). La matrice n'apparaît que si le membre a au moins une case autorisée. Chaque alarme a une catégorie, déduite de sa source et de sa règle (`Alarm_definitions_model::category()`) : documents, cotisation et licence, comptes, expérience récente ; la matrice et le catalogue sont triés par catégorie, et les vues marquent chaque catégorie d'une couleur et d'une icône (`alarm_category_style()`, `views_helper`). Aucun canal n'est exigé. La carte « Mes alarmes » de l'espace personnel affiche le nombre d'occurrences actives du membre, calculé comme la liste de la page (`Notification_manager::member_occurrences()`).
 
 `alarmes.php` (expérience récente) est conservé tel quel au Lot 1.
 
@@ -170,7 +186,7 @@ La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pou
 ## Relation avec le code existant
 
 - **`archived_documents_model`** : lu par `DocumentAlarmProvider` ; seule la détection des manquants prend en compte `required_role_id`.
-- **`licences_model`** : lu par `ComputedAlarmProvider` à partir du Lot 2.
+- **`licences_model`** : lu par `ComputedAlarmProvider` à partir du Lot 2 ; `pilotes_vols_sans_cotisation()` renvoie en plus les sections des vols, `pilotes_vols_sans_licence()` est ajoutée sur le même modèle.
 - **`motd_model`** : `generate_system_message()` est le point d'entrée existant des messages générés par GVV.
 - **`Brevo_sms_adapter`** : réutilisé tel quel pour les SMS.
 - **`alarmes.php`** : inchangé au Lot 1 ; ses règles migreront vers `ComputedAlarmProvider` dans un lot suivant.

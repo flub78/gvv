@@ -136,7 +136,14 @@ class AlarmesLot1MigrationTest extends TestCase
         $types_before = $this->db->query(
             "SELECT id, required FROM document_types ORDER BY id"
         )->result_array();
-        $definitions_before = $this->countSql("SELECT COUNT(*) FROM alarm_definitions");
+        // Sauvegarde pour restauration à l'identique : catalogue complet (y compris
+        // les alarmes des lots suivants, dans la même table) et colonnes ajoutées
+        // à document_types ; le rôle élève est recréé avec un autre identifiant
+        $old_eleve = $this->eleveRoleId();
+        $definitions = $this->db->get('alarm_definitions')->result_array();
+        $type_columns = $this->db->query(
+            "SELECT id, alarm_enabled, required_role_id FROM document_types ORDER BY id"
+        )->result_array();
 
         $migration = new Migration_Alarmes_lot1();
         try {
@@ -147,11 +154,49 @@ class AlarmesLot1MigrationTest extends TestCase
             $this->assertEquals(0, $this->eleveRoleId());
         } finally {
             $this->up();
+            $this->restore($definitions, $type_columns, $old_eleve);
         }
 
         $this->assertEquals($types_before, $this->db->query(
             "SELECT id, required FROM document_types ORDER BY id"
         )->result_array(), 'document_types identique après down/up');
-        $this->assertEquals($definitions_before, $this->countSql("SELECT COUNT(*) FROM alarm_definitions"));
+        $this->assertEquals($this->remapped($type_columns, $old_eleve), $this->db->query(
+            "SELECT id, alarm_enabled, required_role_id FROM document_types ORDER BY id"
+        )->result_array(), 'alarm_enabled et required_role_id restaurés');
+        $this->assertEquals(count($definitions), $this->countSql("SELECT COUNT(*) FROM alarm_definitions"));
+    }
+
+    /** Restaure le catalogue (par code) et les colonnes de document_types */
+    private function restore($definitions, $type_columns, $old_eleve)
+    {
+        $new_eleve = $this->eleveRoleId();
+        $map = function ($role_id) use ($old_eleve, $new_eleve) {
+            return ($role_id !== null && (int) $role_id === $old_eleve) ? $new_eleve : $role_id;
+        };
+        foreach ($type_columns as $row) {
+            $this->db->where('id', $row['id'])->update('document_types', array(
+                'alarm_enabled' => $row['alarm_enabled'], 'required_role_id' => $map($row['required_role_id'])));
+        }
+        foreach ($definitions as $row) {
+            unset($row['id']);
+            $row['target_role_id'] = $map($row['target_role_id']);
+            if ($this->db->where('code', $row['code'])->count_all_results('alarm_definitions')) {
+                $this->db->where('code', $row['code'])->update('alarm_definitions', $row);
+            } else {
+                $this->db->insert('alarm_definitions', $row);
+            }
+        }
+    }
+
+    /** Colonnes attendues après restauration : rôle élève remappé */
+    private function remapped($type_columns, $old_eleve)
+    {
+        $new_eleve = (string) $this->eleveRoleId();
+        foreach ($type_columns as &$row) {
+            if ($row['required_role_id'] !== null && (int) $row['required_role_id'] === $old_eleve) {
+                $row['required_role_id'] = $new_eleve;
+            }
+        }
+        return $type_columns;
     }
 }

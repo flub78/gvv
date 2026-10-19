@@ -2,15 +2,15 @@
 
 ## Vue d'ensemble
 
-GVV peut vous prévenir quand un document arrive à expiration ou a expiré, ou quand un document obligatoire manque : votre certificat médical, l'assurance d'une machine, les visites médicales des élèves, etc.
+GVV peut vous prévenir quand un document arrive à expiration ou a expiré, ou quand un document obligatoire manque (votre certificat médical, l'assurance d'une machine, les visites médicales des élèves…), quand un pilote a volé sans cotisation ou sans licence, quand son expérience récente ne suffit plus (emport passager, 120 jours sans voler) et quand son compte est trop débiteur.
 
-Une seule page, **Mes alarmes**, dans votre espace personnel (menu à votre nom et tableau de bord) : en haut la configuration, en dessous la liste de vos alarmes.
+Une seule page, **Mes alarmes**, dans votre espace personnel (menu à votre nom et tableau de bord) : en haut la liste de vos alarmes, en dessous la configuration (bouton **Configuration des alarmes** pour y aller directement).
 
-- **Vos propres alarmes** (vos documents qui expirent, vos documents obligatoires manquants) sont toujours suivies, sans rien configurer, et ne peuvent pas être désactivées.
-- Si vous en avez le droit (CA, bureau, instructeur, administrateur…), vous pouvez **suivre en plus les alarmes des autres**, alarme par alarme et section par section.
+- **Vos propres alarmes** (vos documents qui expirent, vos documents obligatoires manquants, vos vols sans cotisation ou sans licence, votre expérience récente, votre compte débiteur) sont toujours suivies, sans rien configurer, et ne peuvent pas être désactivées.
+- Si vous en avez le droit (CA, bureau, trésorier, instructeur, administrateur…), vous pouvez **suivre en plus les alarmes des autres**, alarme par alarme et section par section.
+- Seuls les pilotes **actifs dans la section** sont concernés : un pilote extérieur, ou un pilote dans une section où il n'est pas actif, n'a pas d'alarme pour cette section.
 - Vous choisissez comment les recevoir (email, message du jour dans GVV, rappel par SMS) et à quelle fréquence. **Sans canal choisi, vos alarmes restent seulement affichées sur la page.**
 
-> Le Lot 1 couvre les documents archivés (voir [Archivage documentaire](README.md)). Les alarmes sur les vols sans licence ou sans cotisation viendront ensuite.
 
 ---
 
@@ -21,6 +21,24 @@ Ouvrez **Mes alarmes**.
 ### 1.1 Les alarmes
 
 Il y a **une alarme par type de document** (certificat médical, attestation d'assurance, manuel d'exploitation s'il a une date de validité…), plus une pour les **documents obligatoires manquants** et une pour les **visites médicales des élèves**. Les types de documents sans date d'expiration, et ceux pour lesquels un administrateur a décoché **Alarmes possibles sur ce type**, n'ont pas d'alarme.
+
+S'y ajoutent deux alarmes sur les vols de l'**année en cours** (pilotes extérieurs non contrôlés) :
+
+- **Vols sans cotisation** : le pilote a volé (planeur, avion ou ULM) sans cotisation enregistrée pour l'année. Le bouton **Ouvrir** mène le pilote au paiement de sa cotisation en ligne, et un responsable à la page « Vols sans cotisation ».
+- **Vols sans licence** : le pilote a volé dans une section sans la licence exigée par cette section pour l'année. La licence exigée se règle dans la fiche de chaque section (**Licence exigée pour voler**), et sert aussi à la page « Licences par année ». Un remorquage, enregistré dans la section planeur, est couvert par la licence planeur. Une ligne par section. Pour un responsable, **Ouvrir** mène à la page des licences ; le pilote, qui obtient sa licence hors de GVV, n'a pas de bouton.
+
+Ces alarmes sont toujours actives et disparaissent dès que la cotisation ou la licence est enregistrée dans GVV. Un vol planeur relève de la section qui gère les planeurs, un autre vol de la section où il est enregistré. Si les licences ne sont pas saisies dans GVV, tous les pilotes apparaissent dans « Vols sans licence » : désactivez alors cette alarme dans le catalogue (§4.2).
+
+Enfin, quatre alarmes par section (en section planeur, seuls les vols planeur comptent, pas les remorquages) :
+
+- **Emport passager** : pour les pilotes qui ont le rôle **Emport passager** dans la section, au moins 3 atterrissages comme commandant de bord (y compris comme instructeur) dans les 90 derniers jours. L'alarme passe **à venir** quand le 3ᵉ atterrissage le plus récent va sortir de la période de 90 jours (15 jours avant par défaut), puis **active**. Les vols en double commande comme élève ne comptent pas ; en avion et ULM, chaque atterrissage enregistré compte.
+- **Remorquage** : pour les pilotes qui ont le rôle **Pilote remorqueur** dans la section planeur, au moins 10 remorqués dans les 12 derniers mois. Un remorqué compte quand le pilote est enregistré comme pilote remorqueur sur le vol planeur. L'alarme passe **à venir** quand le 10ᵉ remorqué le plus récent va sortir de la période de 12 mois (15 jours avant par défaut), puis **active**.
+- **120 jours sans voler** : pour les membres actifs de la section (hors élèves) qui ont volé dans la section au cours des 24 derniers mois, au-delà de 120 jours sans vol le prochain vol doit se faire avec un instructeur. L'alarme passe à venir 15 jours avant, puis active ; un vol, même avec instructeur, la fait disparaître.
+- **Compte débiteur** : la dette du pilote dans la section dépasse le seuil d'alarme réglé sur la page **Relances**. Le bouton **Ouvrir** mène le pilote à son compte, et un responsable à la page des relances.
+
+Les seuils (3 atterrissages, 90 jours, 10 remorqués, 12 mois, 120 jours, 24 mois) sont fixes ; le délai « à venir » se règle dans le catalogue (§4.2).
+
+Les alarmes sont rangées en quatre catégories, chacune avec sa couleur et son icône (barre à gauche de la ligne, badge dans la liste) : **Documents** (bleu), **Cotisation et licence** (vert), **Comptes** (jaune), **Expérience récente** (bleu clair). La matrice les présente groupées dans cet ordre.
 
 Un simple membre n'a rien à cocher : la page lui rappelle que ses propres alarmes sont toujours suivies.
 
@@ -38,7 +56,7 @@ Cocher une case, c'est suivre cette alarme **pour cette section seulement**. Exe
 
 - Pour les documents de pilote, une section couvre les pilotes actifs dans cette section ; pour les machines et les documents de section, ceux rattachés à cette section.
 - La colonne **Club** couvre les documents qui ne dépendent d'aucune section (documents du club, machine sans section). Elle n'existe que pour ces alarmes.
-- Une case n'apparaît que si vous avez le droit correspondant : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections ; l'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques.
+- Une case n'apparaît que si vous avez le droit correspondant : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections ; l'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques, celles des vols sans cotisation ou sans licence aux trésoriers de leurs sections, celles d'emport passager, de remorquage et des 120 jours sans voler aux instructeurs et responsables pédagogiques. L'alarme de compte débiteur, qui touche aux données financières personnelles, n'est ouverte qu'aux administrateurs club, au bureau et aux trésoriers, pas au CA.
 
 Pour aller plus vite, la case placée **en tête de chaque ligne** (devant le nom de l'alarme) coche ou décoche toute la ligne, celle **sous le nom de chaque colonne** coche ou décoche toute la colonne, et celle **du coin**, à côté de « Alarme », coche ou décoche toute la matrice. Elle apparaît à moitié remplie quand une partie seulement des cases est cochée. Les cases obligatoires ne changent pas. Pensez à **Enregistrer**.
 
@@ -66,7 +84,7 @@ Cliquez sur **Enregistrer** : un message confirme l'enregistrement, ou explique 
 
 La carte **Mes alarmes** du tableau de bord de votre espace personnel affiche dans un badge rouge le nombre de vos alarmes actives, s'il y en a.
 
-Sous la configuration, **Alarmes actives et à venir** liste vos alarmes actives (en rouge) et à venir (en orange) : vos propres alarmes (badge **Moi**) et celles des cases que vous avez cochées. Pour chacune : le document, la personne ou la machine concernée, la section, l'échéance, et un bouton **Ouvrir** vers la page où traiter l'alarme (déposer un nouveau document, par exemple). Vous pouvez filtrer par alarme et par section.
+En haut de la page, **Alarmes actives et à venir** liste vos alarmes actives (en rouge) et à venir (en orange) : vos propres alarmes (badge **Moi**) et celles des cases que vous avez cochées. Pour chacune : le document, la personne ou la machine concernée, la section, l'échéance, et un bouton **Ouvrir** vers la page où traiter l'alarme (déposer un nouveau document, par exemple). Vous pouvez filtrer par alarme et par section.
 
 Une alarme disparaît d'elle-même quand le problème est réglé : nouveau document valide déposé, ou alerte désactivée sur le document par un administrateur.
 
@@ -79,6 +97,12 @@ Une alarme disparaît d'elle-même quand le problème est réglé : nouveau docu
 - Le **certificat médical** est obligatoire pour les élèves : un élève sans certificat valide apparaît dans les documents obligatoires manquants (c'est une de ses alarmes propres).
 
 Un type de document peut ainsi être rendu obligatoire pour un rôle seulement : champ **Obligatoire seulement pour le rôle** de la fiche du type de document.
+
+---
+
+## 3 bis. Rôle Emport passager
+
+Le rôle **Emport passager** s'attribue par section dans la gestion des rôles, comme Pilote remorqueur. À sa création, il a été attribué en section planeur aux membres qui avaient l'événement « Emport passager ». Seuls les pilotes qui ont ce rôle sont concernés par l'alarme d'emport passager.
 
 ---
 

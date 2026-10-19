@@ -200,35 +200,54 @@ class Licences_model extends Common_Model {
     }
 
     /**
-     * Pilotes ayant volé pendant l'année sans cotisation (type 0) pour cette année.
-     * Les pilotes extérieurs (membres.ext = 1) ne sont pas censés cotiser et sont exclus.
+     * Vols planeur et avion/ULM de l'année, sous forme de sous-requête SQL :
+     * pilote, categorie (planeur | avion | ulm), date_vol, section_id,
+     * licence_type (licence exigée par la section du vol, sections.licence_type).
      *
-     * Les vols planeur viennent de volsp. Les vols avion/ULM viennent de volsa :
-     * ils sont classés ULM quand la section du vol a l'acronyme ULM, avion sinon.
+     * Les vols planeur viennent de volsp, qui ne porte pas de section : ils
+     * sont rattachés à la section qui gère les planeurs (gestion_planeurs).
+     * Les vols avion/ULM viennent de volsa, dans la section du vol (club) :
+     * un remorquage, enregistré dans la section planeur, relève donc de la
+     * licence de cette section. Catégorie : ULM quand la section du vol a
+     * l'acronyme ULM, avion sinon (colonnes de la page « Vols sans cotisation »).
      *
-     * @param int $year Année contrôlée
-     * @return array Une ligne par pilote : pilote, nom, prenom, planeur, avion, ulm, dernier_vol
+     * @param int $year
+     * @return string
      */
-    public function pilotes_vols_sans_cotisation($year) {
+    private function vols_annee_sql($year) {
         $year = (int) $year;
         $debut = $this->db->escape("$year-01-01");
         $fin = $this->db->escape("$year-12-31");
+        return "SELECT vppilid AS pilote, 'planeur' AS categorie, vpdate AS date_vol,
+                    gs.id AS section_id, gs.licence_type
+                FROM volsp
+                LEFT JOIN (SELECT id, licence_type FROM sections WHERE gestion_planeurs = 1 ORDER BY id LIMIT 1) gs ON 1 = 1
+                WHERE vpdate BETWEEN $debut AND $fin
+                UNION ALL
+                SELECT volsa.vapilid, IF(sections.acronyme = 'ULM', 'ulm', 'avion'), volsa.vadate,
+                    volsa.club, sections.licence_type
+                FROM volsa
+                LEFT JOIN sections ON sections.id = volsa.club
+                WHERE volsa.vadate BETWEEN $debut AND $fin";
+    }
 
+    /**
+     * Pilotes ayant volé pendant l'année sans cotisation (type 0) pour cette année.
+     * Les pilotes extérieurs (membres.ext = 1) ne sont pas censés cotiser et sont exclus.
+     *
+     * @param int $year Année contrôlée
+     * @return array Une ligne par pilote : pilote, nom, prenom, planeur, avion, ulm,
+     *               dernier_vol, sections (identifiants des sections des vols, séparés par des virgules)
+     */
+    public function pilotes_vols_sans_cotisation($year) {
+        $year = (int) $year;
         $sql = "SELECT v.pilote, m.mnom AS nom, m.mprenom AS prenom,
                     SUM(v.categorie = 'planeur') AS planeur,
                     SUM(v.categorie = 'avion') AS avion,
                     SUM(v.categorie = 'ulm') AS ulm,
-                    MAX(v.date_vol) AS dernier_vol
-                FROM (
-                    SELECT vppilid AS pilote, 'planeur' AS categorie, vpdate AS date_vol
-                    FROM volsp
-                    WHERE vpdate BETWEEN $debut AND $fin
-                    UNION ALL
-                    SELECT volsa.vapilid, IF(sections.acronyme = 'ULM', 'ulm', 'avion'), volsa.vadate
-                    FROM volsa
-                    LEFT JOIN sections ON sections.id = volsa.club
-                    WHERE volsa.vadate BETWEEN $debut AND $fin
-                ) v
+                    MAX(v.date_vol) AS dernier_vol,
+                    GROUP_CONCAT(DISTINCT v.section_id ORDER BY v.section_id) AS sections
+                FROM (" . $this->vols_annee_sql($year) . ") v
                 LEFT JOIN membres m ON m.mlogin = v.pilote
                 WHERE (m.ext IS NULL OR m.ext = 0)
                 AND NOT EXISTS (
@@ -237,6 +256,35 @@ class Licences_model extends Common_Model {
                 )
                 GROUP BY v.pilote, m.mnom, m.mprenom
                 ORDER BY m.mnom, m.mprenom, v.pilote";
+
+        return $this->db->query($sql)->result_array();
+    }
+
+    /**
+     * Pilotes ayant volé pendant l'année dans une section sans la licence
+     * exigée par cette section (sections.licence_type) pour l'année. Les
+     * sections sans licence exigée ne sont pas contrôlées ; les pilotes
+     * extérieurs (membres.ext = 1) sont exclus.
+     *
+     * @param int $year Année contrôlée
+     * @return array Une ligne par pilote et par section : pilote, nom, prenom, section_id,
+     *               section_nom, licence_type, vols, dernier_vol, sections (= section_id)
+     */
+    public function pilotes_vols_sans_licence($year) {
+        $year = (int) $year;
+        $sql = "SELECT v.pilote, m.mnom AS nom, m.mprenom AS prenom, v.section_id, s.nom AS section_nom,
+                    v.licence_type, COUNT(*) AS vols, MAX(v.date_vol) AS dernier_vol, v.section_id AS sections
+                FROM (" . $this->vols_annee_sql($year) . ") v
+                JOIN sections s ON s.id = v.section_id
+                LEFT JOIN membres m ON m.mlogin = v.pilote
+                WHERE (m.ext IS NULL OR m.ext = 0)
+                AND v.licence_type > 0
+                AND NOT EXISTS (
+                    SELECT 1 FROM licences l
+                    WHERE l.pilote = v.pilote AND l.year = $year AND l.type = v.licence_type
+                )
+                GROUP BY v.pilote, m.mnom, m.mprenom, v.section_id, s.nom, v.licence_type
+                ORDER BY m.mnom, m.mprenom, v.pilote, s.nom";
 
         return $this->db->query($sql)->result_array();
     }
@@ -295,31 +343,26 @@ class Licences_model extends Common_Model {
      * Colonnes : Pilote (nom+prénom), Email, Cotisation (type 0),
      * puis une colonne par section possédant un type de licence associé.
      *
-     * Mapping acronyme → type de licence :
-     *   PLA → 1 (Licence/Assurance planeur)
-     *   AVI → 2 (Licence/Assurance avion)
-     *   ULM → 3 (Licence/Assurance ULM)
+     * Type de licence d'une section : sections.licence_type (vide = pas de colonne).
      *
      * @param int    $year          Année à afficher
      * @param string $member_status 'active' | 'inactive' | 'all'
      * @return array ['members' => [...], 'sections' => [...]]
      */
     public function per_year_detail($year, $member_status = 'active') {
-        $CI = &get_instance();
-        $CI->load->model('sections_model');
-        $sections_raw = $CI->sections_model->section_list();
+        $sections_raw = $this->db->select('id, nom, acronyme, licence_type')
+            ->where('licence_type >', 0)
+            ->order_by('ordre_affichage', 'asc')->order_by('nom', 'asc')
+            ->get('sections')->result_array();
 
-        $acronyme_to_type = array('PLA' => 1, 'AVI' => 2, 'ULM' => 3);
         $sections = array();
         foreach ($sections_raw as $s) {
-            if (isset($acronyme_to_type[$s['acronyme']])) {
-                $sections[] = array(
-                    'id'           => $s['id'],
-                    'nom'          => $s['nom'],
-                    'acronyme'     => $s['acronyme'],
-                    'licence_type' => $acronyme_to_type[$s['acronyme']],
-                );
-            }
+            $sections[] = array(
+                'id'           => $s['id'],
+                'nom'          => $s['nom'],
+                'acronyme'     => $s['acronyme'],
+                'licence_type' => (int) $s['licence_type'],
+            );
         }
 
         // Membres
