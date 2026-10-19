@@ -281,6 +281,28 @@ class NotificationManagerTest extends TestCase
         $this->assertStringContainsString(self::PILOT, $this->manager->emails[0]['body']);
     }
 
+    public function test_cron_horaire_rien_avant_l_heure_puis_une_seule_synthese(): void
+    {
+        $saved = $this->CI->config->item('alarm_scheduler_hour');
+        $this->CI->config->set_item('alarm_scheduler_hour', 7);
+        try {
+            $this->addDocument(self::PILOT, 10);
+            $this->configure(self::PILOT, true, false, true, 'weekly');
+            $this->manager->set_today(self::MONDAY);
+
+            $this->assertNull($this->manager->run_scheduled('test', 0), 'Pas de synthèse la nuit');
+            $this->assertCount(0, $this->manager->emails);
+
+            foreach (array(7, 8, 15, 23) as $hour) {
+                $this->assertNotNull($this->manager->run_scheduled('test', $hour));
+            }
+            $this->assertCount(1, $this->manager->emails, 'Une seule synthèse par lundi');
+            $this->assertCount(1, $this->manager->sms, 'Un seul SMS par lundi');
+        } finally {
+            $this->CI->config->set_item('alarm_scheduler_hour', $saved);
+        }
+    }
+
     public function test_nombre_d_alarmes_actives_pour_le_tableau_de_bord(): void
     {
         $this->assertEquals(0, $this->manager->active_count_for(self::PILOT));

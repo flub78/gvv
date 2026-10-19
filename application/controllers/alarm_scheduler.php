@@ -3,15 +3,14 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 /**
- * Déclencheur quotidien des notifications d'alarmes
+ * Déclenchement manuel des notifications d'alarmes
  *
- * Deux entrées, sur le modèle de reservation_scheduler :
- * - cron() : ligne de commande uniquement, pour la tâche quotidienne ;
+ * En production, les alarmes sont traitées par le cron horaire des rappels
+ * de réservation (reservation_scheduler), sans entrée cron dédiée. Ce
+ * contrôleur permet un lancement immédiat, sans condition d'heure :
+ * - cron() : ligne de commande uniquement ;
  * - run($secret) : URL publique protégée par alarm_scheduler_secret
  *   (program.php), réponse JSON.
- *
- * Exemple de crontab (chaque jour à 7 h) :
- *   0 7 * * * cd /var/www/gvv && php index.php alarm_scheduler cron >> application/logs/alarm_scheduler.log 2>&1
  *
  * Une exécution répétée le même jour n'envoie rien de plus (notification_history).
  *

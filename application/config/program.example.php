@@ -209,6 +209,10 @@ $config['alarm_scheduler_secret'] = 'CHANGE_ME_IN_PRODUCTION';
 // Alarmes : rappel SMS des abonnés (FALSE = aucun SMS d'alarme, l'envoi est payant)
 $config['alarm_sms_enabled'] = TRUE;
 
+// Alarmes : heure à partir de laquelle le cron horaire des rappels de réservation
+// traite les alarmes (synthèses du lundi, rappels SMS)
+$config['alarm_scheduler_hour'] = 7;
+
 // Redirection test : si défini, tous les emails/SMS sortants sont redirigés vers ces adresses.
 // Laisser vide en production.
 $config['test_email'] = '';

@@ -125,7 +125,7 @@ Cases autorisées d'un membre pour une alarme : les sections qu'il peut supervis
 
 **`notification_history`** : un enregistrement par envoi — destinataire, alarme, clé d'occurrence et état, canal, type (déclenchement ou synthèse), clé de période. Il sert à l'idempotence (une seconde exécution le même jour n'envoie rien), à l'anti-spam (un SMS par période, pas de double notification immédiate) et à la traçabilité.
 
-**`alarm_scheduler`** — déclencheur sur le modèle de `reservation_scheduler` : `cron()` en CLI pour la tâche quotidienne, `run($secret)` par URL protégée par un secret.
+**Déclenchement** — pas de cron dédié : le cron horaire `reservation_scheduler` appelle aussi `Notification_manager::run_scheduled()` quand la gestion documentaire est active ; rien n'est traité avant `alarm_scheduler_hour` (7 h par défaut), pour que les synthèses ne partent pas la nuit. L'idempotence de `notification_history` limite chaque synthèse et chaque SMS à un envoi par période. **`alarm_scheduler`** reste disponible pour un lancement immédiat, sans condition d'heure : `cron()` en CLI, `run($secret)` par URL protégée par un secret.
 
 ### Pages
 
@@ -161,7 +161,7 @@ La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pou
 | Agrégation | `AlarmAggregator` |
 | Catalogue, abonnements, réglages, cases autorisées et effectives | `alarm_definitions_model`, `alarm_subscriptions_model`, `alarm_member_settings_model` |
 | Destinataires, droits, fréquences, composition, envoi, historique | `Notification_manager` |
-| Déclenchement | `alarm_scheduler` |
+| Déclenchement | `reservation_scheduler` (cron horaire), `alarm_scheduler` (lancement manuel) |
 | Pages membre et administration | `mes_alarmes`, `alarmes_admin` |
 | Rôle élève | `formation_inscription_model` (ouverture, clôture, abandon) |
 

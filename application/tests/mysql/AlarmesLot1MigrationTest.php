@@ -82,6 +82,8 @@ class AlarmesLot1MigrationTest extends TestCase
 
     public function testCatalogueCoversExpiringDocumentTypes()
     {
+        $subscriptions = $this->db->table_exists('alarm_subscriptions')
+            ? $this->countSql("SELECT COUNT(*) FROM alarm_subscriptions") : 0;
         $this->up();
 
         $types = $this->db->query(
@@ -101,7 +103,7 @@ class AlarmesLot1MigrationTest extends TestCase
                 "SELECT target_role_id FROM alarm_definitions WHERE code = 'document_{$medical}_eleve'"
             ), 'Visites médicales des élèves');
         }
-        $this->assertEquals(0, $this->countSql("SELECT COUNT(*) FROM alarm_subscriptions"),
+        $this->assertEquals($subscriptions, $this->countSql("SELECT COUNT(*) FROM alarm_subscriptions"),
             'Aucun abonnement créé par la migration');
     }
 

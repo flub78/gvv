@@ -106,29 +106,31 @@ $config['alarm_scheduler_secret'] = 'CHANGE_ME_IN_PRODUCTION';
 
 // Rappel SMS des abonnés (FALSE = aucun SMS d'alarme, l'envoi est payant)
 $config['alarm_sms_enabled'] = TRUE;
+
+// Heure à partir de laquelle le cron horaire traite les alarmes
+$config['alarm_scheduler_hour'] = 7;
 ```
 
 Remplacez le secret par une chaîne aléatoire longue (ex. `openssl rand -hex 32`). Les SMS utilisent la clé Brevo des rappels de réservation (`brevo_sms_api_key`, voir [Rappels de réservations](14_rappels_reservations.md)).
 
-### 5.2 Tâche quotidienne
+### 5.2 Déclenchement : le cron des rappels de réservation
 
-Les notifications sont calculées une fois par jour. Ajoutez à la crontab du serveur :
+**Aucune entrée cron dédiée.** Les alarmes sont traitées par le cron horaire des rappels de réservation (`reservation_scheduler cron`, voir [Rappels de réservations](14_rappels_reservations.md) §1.2), à chaque passage à partir de `alarm_scheduler_hour` (7 h par défaut), quand la gestion documentaire est active.
 
-```bash
-0 7 * * * XDEBUG_MODE=off /usr/bin/php7.4 /chemin/vers/gvv/index.php alarm_scheduler cron >> /var/log/gvv_alarm_scheduler.log 2>&1
-```
+- Les synthèses hebdomadaires et les rappels SMS ne partent **qu'une fois par lundi** (une fois le premier lundi du mois en fréquence mensuelle), au premier passage à partir de 7 h ; les passages suivants n'envoient rien de plus.
+- En fréquence immédiate, une nouvelle alarme est envoyée au premier passage qui la détecte, une seule fois par état (à venir, puis active).
 
-Résultat attendu d'un lancement manuel : `alarm_scheduler cron: email=N motd=N sms=N failed=N`.
+Résultat d'un passage du cron : `reservation_scheduler cron: sent=N` puis `alarms: email=N motd=N sms=N failed=N` (`alarms: skipped` avant l'heure ou sans gestion documentaire).
 
 > La ligne de commande demande `$config['uri_protocol'] = 'AUTO';` dans `application/config/config.php` (valeur de `config.example.php`).
 
-Sans accès à la crontab, l'URL suivante déclenche le même traitement et répond en JSON :
+Pour un lancement immédiat, sans condition d'heure (tests, rattrapage) :
 
-```
-https://votre-gvv/index.php/alarm_scheduler/run/<alarm_scheduler_secret>
+```bash
+XDEBUG_MODE=off /usr/bin/php7.4 /chemin/vers/gvv/index.php alarm_scheduler cron
 ```
 
-Une deuxième exécution le même jour n'envoie rien de plus.
+ou l'URL `https://votre-gvv/index.php/alarm_scheduler/run/<alarm_scheduler_secret>` (réponse JSON). Ce lancement respecte les mêmes règles : rien n'est envoyé deux fois pour la même période.
 
 ### 5.3 Tests
 

@@ -14,7 +14,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - Seuls les membres actifs génèrent des alarmes ; `alarm_disabled = 1` et documents non approuvés sont exclus.
 - Les emails et messages du jour ne contiennent que des métadonnées et un lien vers GVV, jamais un fichier.
 - Redirection des emails et SMS en test via `test_intercept_email()`, comme les rappels de réservation.
-- Déclenchement quotidien sur le modèle de `reservation_scheduler` : entrée CLI pour le cron et URL protégée par un secret.
+- Déclenchement par le cron horaire existant de `reservation_scheduler` (une seule entrée cron), à partir d'une heure configurable ; lancement manuel en CLI ou par URL protégée par un secret.
 - Aucun abonnement créé automatiquement, y compris à la migration.
 
 ## Lot 1 — Catalogue, abonnements et notifications
@@ -55,9 +55,10 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] Idempotence : une exécution répétée le même jour n'envoie rien de plus
 
 **1.5 — Déclencheur** (0,5 j)
-- [x] Contrôleur `alarm_scheduler.php` : `cron()` (CLI uniquement) et `run($secret)` (URL publique, réponse JSON)
-- [x] Secret `alarm_scheduler_secret` et interrupteur `alarm_sms_enabled` dans `program.php` et `program.example.php`
-- [x] Ligne crontab d'exemple (quotidienne) dans l'en-tête du contrôleur ; doc utilisateur en 1.10
+- [x] Traitement des alarmes par le cron horaire de `reservation_scheduler` (une seule entrée cron), à partir de `alarm_scheduler_hour` (`Notification_manager::run_scheduled()`)
+- [x] Contrôleur `alarm_scheduler.php` pour un lancement manuel : `cron()` (CLI uniquement) et `run($secret)` (URL publique, réponse JSON)
+- [x] Secret `alarm_scheduler_secret`, interrupteur `alarm_sms_enabled` et heure `alarm_scheduler_hour` dans `program.php` et `program.example.php`
+- [x] Pas d'entrée crontab dédiée ; doc utilisateur en 1.10
 
 **1.6 — Page « Mes alarmes »** (3 j)
 - [x] Contrôleur `mes_alarmes.php`, une seule page : configuration en haut, liste des alarmes en dessous
@@ -79,7 +80,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 
 **1.9 — Tests** (3 j)
 - [x] PHPUnit MySQL `AlarmesLot1ModelsTest.php` : catalogue, cases autorisées (sections supervisées, colonne Club), abonnements individuels et par catégorie par section, retraits de case, obligatoires, cases effectives après changement de rôle, contrôle des droits, aucun abonnement par défaut ; documents expirés, proches, manquants (dont obligation par rôle), alertes désactivées, pilotes inactifs, sections
-- [x] PHPUnit MySQL `NotificationManagerTest.php` : alarmes propres sans abonnement, occurrences limitées aux pilotes actifs des sections cochées, colonne Club, dédoublonnage, fréquences et jours d'envoi, contenu des synthèses (actives et à venir), canaux, rappel SMS (jour de synthèse, un par période, rien sans alarme, interrupteur global, sans mobile, texte limité au lien), idempotence, membres sans canal ; envois bouchonnés
+- [x] PHPUnit MySQL `NotificationManagerTest.php` : alarmes propres sans abonnement, occurrences limitées aux pilotes actifs des sections cochées, colonne Club, dédoublonnage, fréquences et jours d'envoi, contenu des synthèses (actives et à venir), canaux, rappel SMS (jour de synthèse, un par période, rien sans alarme, interrupteur global, sans mobile, texte limité au lien), idempotence, cron horaire (rien avant l'heure, une seule synthèse et un seul SMS par lundi), membres sans canal ; envois bouchonnés
 - [x] PHPUnit MySQL rôle élève : attribution à l'ouverture (section du programme, toutes les sections sans section), retrait à la clôture et à l'abandon, maintien si une autre formation est en cours, retrait manuel respecté
 - [x] PHPUnit migration 177 : up/down avec sauvegarde et restauration de `document_types` et `types_roles`
 - [x] Toutes les fixtures sont créées et supprimées par les tests (y compris en cas d'échec), sans dépendance aux données existantes
@@ -88,7 +89,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] Smoke tests complets phpunit + playwright avant clôture
 
 **1.10 — Documentation** (0,5 j)
-- [x] Guide utilisateur `doc/users/fr/19_alarmes.md` : page Mes alarmes (alarmes propres, matrice par section, réception, liste), administration, configuration du cron, du secret et des SMS
+- [x] Guide utilisateur `doc/users/fr/19_alarmes.md` : page Mes alarmes (alarmes propres, matrice par section, réception, liste), administration, déclenchement par le cron des rappels de réservation, secret et SMS
 
 **Estimation totale Lot 1 : ~15,5 jours.** Ressources : serveur de test gvv.net (redirection email `test_email` active), compte Brevo de test pour les SMS, accès crontab pour la validation en conditions réelles.
 

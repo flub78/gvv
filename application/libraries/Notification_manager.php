@@ -19,7 +19,10 @@ if (!defined('BASEPATH'))
  *   mensuel) : message court et lien vers « Mes alarmes » seulement.
  *
  * notification_history rend l'exécution idempotente : une seconde exécution
- * le même jour n'envoie rien de plus.
+ * le même jour n'envoie rien de plus. Le cron horaire des rappels de
+ * réservation l'appelle à chaque passage à partir de alarm_scheduler_hour
+ * (run_scheduled()) : chaque synthèse et chaque SMS ne partent qu'une fois
+ * par période.
  *
  * @package libraries
  * @see doc/design_notes/gestion_alarmes_design.md
@@ -87,6 +90,25 @@ class Notification_manager {
         gvv_info("ALARM scheduler source=$source email={$stats['email']} motd={$stats['motd']} "
             . "sms={$stats['sms']} failed={$stats['failed']}");
         return $stats;
+    }
+
+    /**
+     * Traitement planifié, appelé à chaque passage du cron horaire : rien
+     * avant l'heure alarm_scheduler_hour de program.php (7 h par défaut),
+     * pour que les synthèses ne partent pas la nuit.
+     *
+     * @param string $source
+     * @param int|null $hour Heure courante (tests) ; null = maintenant
+     * @return array|null Nombre d'envois par canal, null si pas encore l'heure
+     */
+    public function run_scheduled($source = 'cron', $hour = null) {
+        $hour = ($hour === null) ? (int) date('G') : (int) $hour;
+        $start = $this->CI->config->item('alarm_scheduler_hour');
+        $start = ($start === null || $start === '' || $start === false) ? 7 : (int) $start;
+        if ($hour < $start) {
+            return null;
+        }
+        return $this->run($source);
     }
 
     /**
