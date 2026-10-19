@@ -5,10 +5,10 @@ if (!defined('BASEPATH'))
 /**
  * Envoi des notifications d'alarmes
  *
- * Exécuté chaque jour par alarm_scheduler. Pour chaque membre ayant au moins
- * un abonnement effectif :
- * - retient les occurrences (AlarmItem) couvertes par ses abonnements et
- *   autorisées par ses droits, sans doublon ;
+ * Exécuté chaque jour par alarm_scheduler. Pour chaque membre actif ayant
+ * choisi au moins un canal ou le rappel SMS :
+ * - retient ses occurrences (AlarmItem) propres et celles de ses cases
+ *   effectives (alarme × section ou Club), sans doublon ;
  * - fréquence immediate : notifie les occurrences pas encore notifiées dans
  *   leur état courant ;
  * - fréquence weekly (le lundi) ou monthly (le premier lundi du mois) :
@@ -76,11 +76,11 @@ class Notification_manager {
         }
 
         $settings = $this->CI->alarm_member_settings_model->get_all_by_login();
-        foreach ($this->members_to_notify() as $login => $subscriptions) {
+        foreach ($this->members_to_notify() as $login => $cells) {
             if (empty($settings[$login])) {
                 continue; // aucun canal choisi
             }
-            $occurrences = $this->occurrences_for($login, $subscriptions, $definitions, $items_by_def);
+            $occurrences = $this->occurrences_for($login, $cells, $definitions, $items_by_def);
             $this->notify_member($login, $settings[$login], $occurrences, $stats);
         }
 
@@ -90,37 +90,52 @@ class Notification_manager {
     }
 
     /**
-     * Membres à traiter et leurs abonnements effectifs (restreint dans les tests)
+     * Membres à traiter et leurs cases effectives (restreint dans les tests) :
+     * membres actifs ayant enregistré des réglages
      *
-     * @return array login => abonnements effectifs
+     * @return array login => cases effectives (voir Alarm_subscriptions_model::effective_all())
      */
     protected function members_to_notify() {
-        return $this->CI->alarm_subscriptions_model->effective_all();
+        $settings = $this->CI->alarm_member_settings_model->get_all_by_login();
+        $effective = $this->CI->alarm_subscriptions_model->effective_all();
+        $members = array();
+        foreach ($this->CI->alarm_subscriptions_model->active_logins() as $login) {
+            if (isset($settings[$login])) {
+                $members[$login] = isset($effective[$login]) ? $effective[$login] : array();
+            }
+        }
+        return $members;
     }
 
     /**
-     * Occurrences visibles par un membre, sans doublon
+     * Occurrences d'un membre, sans doublon : ses occurrences propres (il en
+     * est le pilote), pour toutes les alarmes, et celles de ses cases effectives
      *
      * @param string $login
-     * @param array $subscriptions definition_id => abonnement effectif
+     * @param array $cells definition_id => [section_id|CLUB => abonnement] cases effectives
      * @param array $definitions definition_id => ligne du catalogue
      * @param array $items_by_def definition_id => AlarmItem[]
      * @return array key => AlarmItem
      */
-    public function occurrences_for($login, $subscriptions, $definitions, $items_by_def) {
+    public function occurrences_for($login, $cells, $definitions, $items_by_def) {
         $occurrences = array();
-        foreach (array_keys($subscriptions) as $def_id) {
-            if (empty($definitions[$def_id]) || empty($items_by_def[$def_id])) {
+        foreach ($items_by_def as $def_id => $items) {
+            if (empty($definitions[$def_id])) {
                 continue;
             }
-            foreach ($items_by_def[$def_id] as $item) {
+            $def_cells = isset($cells[$def_id]) ? $cells[$def_id] : array();
+            foreach ($items as $item) {
                 if (isset($occurrences[$item['key']])) {
                     continue;
                 }
-                if ($this->CI->alarm_subscriptions_model->can_see_item($login, $definitions[$def_id], $item)) {
-                    if ($item['pilot_login'] === $login && !empty($item['link_own'])) {
+                if ($item['pilot_login'] === $login) {
+                    if (!empty($item['link_own'])) {
                         $item['link'] = $item['link_own'];
                     }
+                    $item['own'] = true;
+                    $occurrences[$item['key']] = $item;
+                } elseif ($def_cells && Alarm_subscriptions_model::item_in_cells($item, $def_cells)) {
+                    $item['own'] = false;
                     $occurrences[$item['key']] = $item;
                 }
             }
@@ -353,7 +368,7 @@ class Notification_manager {
             . '</th><th>' . $lang->line('alarm_col_state') . '</th><th>' . $lang->line('alarm_col_due')
             . '</th><th></th></tr>' . $rows . '</table>'
             . '<p><a href="' . htmlspecialchars($this->url('mes_alarmes')) . '">' . $lang->line('alarm_notification_all') . '</a> — '
-            . '<a href="' . htmlspecialchars($this->url('alarmes_config')) . '">' . $lang->line('alarm_notification_settings') . '</a></p>';
+            . '<a href="' . htmlspecialchars($this->url('mes_alarmes')) . '#configuration">' . $lang->line('alarm_notification_settings') . '</a></p>';
     }
 
     private function url($path) {

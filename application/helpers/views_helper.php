@@ -118,25 +118,6 @@ if (!function_exists('is_admin')) {
     }
 }
 
-if (!function_exists('has_alarm_subscriptions')) {
-    /**
-     * L'utilisateur connecté a-t-il au moins un abonnement effectif à une
-     * alarme ? Conditionne l'accès à « Mes alarmes » (menu, tableau de bord).
-     */
-    function has_alarm_subscriptions() {
-        static $result = null;
-        if ($result === null) {
-            $CI = &get_instance();
-            $result = false;
-            if ($CI->dx_auth->is_logged_in() && $CI->db->table_exists('alarm_subscriptions')) {
-                $CI->load->model('alarm_subscriptions_model');
-                $result = $CI->alarm_subscriptions_model->has_effective_subscription($CI->dx_auth->get_username());
-            }
-        }
-        return $result;
-    }
-}
-
 if (!function_exists('has_role')) {
     function has_role($role) {
         $CI = &get_instance();

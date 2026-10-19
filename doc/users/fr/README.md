@@ -180,8 +180,9 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 
 #### [19. Alarmes](19_alarmes.md)
 **Être prévenu des documents qui expirent ou qui manquent**
-- Choix des alarmes, des canaux (email, message du jour, rappel SMS) et de la fréquence
-- Page « Mes alarmes », rôle Élève et certificat médical des élèves
+- Page « Mes alarmes » : vos alarmes propres, toujours suivies, et la liste des alarmes actives
+- Abonnement aux alarmes des autres par section (matrice), canaux (email, message du jour, rappel SMS) et fréquence
+- Rôle Élève et certificat médical des élèves
 - Administration : abonnements de catégories, catalogue, tâche quotidienne
 
 ---

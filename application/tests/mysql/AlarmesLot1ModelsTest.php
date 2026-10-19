@@ -3,8 +3,9 @@
 use PHPUnit\Framework\TestCase;
 
 /**
- * Alarmes, Lot 1 : catalogue, abonnements effectifs, droits, détection des
- * documents (expiration, manquants, obligation par rôle).
+ * Alarmes, Lot 1 : catalogue, cases autorisées et effectives (alarme ×
+ * section ou Club), droits, alarmes propres, détection des documents
+ * (expiration, manquants, obligation par rôle).
  *
  * Toutes les données sont créées par le test et supprimées en fin de test.
  *
@@ -144,6 +145,22 @@ class AlarmesLot1ModelsTest extends TestCase
         return $this->CI->alarm_aggregator->collect(array($def));
     }
 
+    /** Clés des occurrences d'une alarme retenues pour un membre (propres + cases effectives) */
+    private function visible($login, $def)
+    {
+        $this->CI->load->library('Notification_manager');
+        $cells = $this->CI->alarm_subscriptions_model->effective_for($login);
+        $keys = array_keys($this->CI->notification_manager->occurrences_for(
+            $login, $cells, array($def['id'] => $def), array($def['id'] => $this->itemsFor($def))));
+        sort($keys);
+        return $keys;
+    }
+
+    private function roleId($role)
+    {
+        return (int) $this->CI->db->get_where('types_roles', array('nom' => $role))->row_array()['id'];
+    }
+
     // ------------------------------------------------------------------
 
     public function test_catalogue_suit_le_type_de_document(): void
@@ -161,7 +178,7 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 0));
         $this->CI->alarm_definitions_model->sync_document_types();
         $this->assertEquals(0, (int) $this->definition()['active'], 'Désactivée');
-        $this->assertFalse($this->CI->alarm_subscriptions_model->can_subscribe(self::PILOT, $this->definition()),
+        $this->assertEmpty($this->CI->alarm_subscriptions_model->allowed_cells(self::SUPERVISOR, $this->definition()),
             'Plus proposée');
 
         $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 1));
@@ -171,61 +188,75 @@ class AlarmesLot1ModelsTest extends TestCase
 
     public function test_aucun_abonnement_par_defaut(): void
     {
-        $this->assertFalse($this->CI->alarm_subscriptions_model->has_effective_subscription(self::PILOT));
+        $this->assertEmpty($this->CI->alarm_subscriptions_model->effective_for(self::PILOT));
+        $this->assertEmpty($this->CI->alarm_subscriptions_model->effective_for(self::SUPERVISOR));
     }
 
-    public function test_droits_d_abonnement(): void
+    public function test_cases_autorisees(): void
     {
         $model = $this->CI->alarm_subscriptions_model;
+        $club = Alarm_subscriptions_model::CLUB;
         $section_def = $this->definition('document_' . $this->section_type_id);
 
-        $this->assertTrue($model->can_subscribe(self::PILOT, $this->definition()), 'Ses propres documents');
-        $this->assertTrue($model->can_subscribe(self::PILOT, $this->definition('missing_document')), 'Ses documents manquants');
-        $this->assertFalse($model->can_subscribe(self::PILOT, $section_def), 'Simple membre, document de section');
-        $this->assertTrue($model->can_subscribe(self::SUPERVISOR, $section_def), 'CA de la section');
-        $this->assertFalse($model->can_subscribe(self::INSTRUCTOR, $section_def), 'Instructeur, document de section');
+        $this->assertEmpty($model->allowed_cells(self::PILOT, $this->definition()), 'Simple membre');
+        $this->assertEmpty($model->allowed_cells(self::PILOT, $this->definition('missing_document')));
+        $this->assertEquals(array($this->section_id => true), $model->allowed_cells(self::SUPERVISOR, $this->definition()),
+            'CA : sa section, pas de colonne Club pour des documents de pilote');
+        $this->assertEquals(array($this->section_id => true, $club => true), $model->allowed_cells(self::SUPERVISOR, $section_def),
+            'Documents de section : colonne Club en plus');
+        $this->assertEmpty($model->allowed_cells(self::INSTRUCTOR, $section_def), 'Instructeur, document de section');
+        $this->assertEmpty($model->proposed_definitions(self::PILOT), 'Pas de matrice pour un simple membre');
 
-        $result = $model->subscribe($section_def['id'], self::PILOT);
+        $this->grant(self::SUPERVISOR, 'ca', $this->other_section_id);
+        $this->assertEquals(array($this->section_id => true, $this->other_section_id => true),
+            $model->allowed_cells(self::SUPERVISOR, $this->definition()), 'Une case par section supervisée');
+
+        $this->assertFalse($model->subscribe($section_def['id'], self::PILOT, $this->section_id)['ok']);
+        $this->assertFalse($model->subscribe($this->definition()['id'], self::SUPERVISOR, $club)['ok'], 'Pas de colonne Club');
+        $result = $model->subscribe($this->definition()['id'], self::INSTRUCTOR, $this->section_id);
         $this->assertFalse($result['ok']);
         $this->assertNotEmpty($result['error']);
+        $this->assertTrue($model->subscribe($this->definition()['id'], self::SUPERVISOR, $this->other_section_id)['ok']);
+        $this->assertEquals(array($this->other_section_id), array_keys($model->effective_for(self::SUPERVISOR)[$this->definition()['id']]));
     }
 
     public function test_abonnement_par_categorie_retrait_et_obligatoire(): void
     {
         $model = $this->CI->alarm_subscriptions_model;
         $def = $this->definition();
-        $user_role = $this->CI->db->get_where('types_roles', array('nom' => 'user'))->row_array()['id'];
+        $this->grant(self::INSTRUCTOR, 'ca', $this->section_id);
 
-        $this->assertTrue($model->subscribe_category($def['id'], $user_role, $this->section_id)['ok']);
-        $this->assertArrayHasKey($def['id'], $model->effective_for(self::PILOT));
-        $this->assertEquals('category', $model->effective_for(self::PILOT)[$def['id']]['origin']);
+        $this->assertTrue($model->subscribe_category($def['id'], $this->roleId('ca'), $this->section_id)['ok']);
+        $cell = $model->effective_for(self::SUPERVISOR)[$def['id']][$this->section_id];
+        $this->assertEquals('category', $cell['origin']);
+        $this->assertArrayNotHasKey($def['id'], $model->effective_for(self::PILOT), 'Pas le rôle');
 
-        // Décoché → retrait individuel, les autres membres restent abonnés
-        $model->save_choices(self::PILOT, array());
-        $this->assertArrayNotHasKey($def['id'], $model->effective_for(self::PILOT));
-        $this->assertArrayHasKey($def['id'], $model->effective_for(self::SUPERVISOR));
+        // Décochée → retrait de la case, les autres membres restent abonnés
+        $this->assertTrue($model->save_choices(self::SUPERVISOR, array())['ok']);
+        $this->assertArrayNotHasKey($def['id'], $model->effective_for(self::SUPERVISOR));
+        $this->assertArrayHasKey($def['id'], $model->effective_for(self::INSTRUCTOR));
 
-        // Recoché → retrait levé
-        $model->save_choices(self::PILOT, array($def['id']));
-        $this->assertArrayHasKey($def['id'], $model->effective_for(self::PILOT));
+        // Recochée → retrait levé
+        $model->save_choices(self::SUPERVISOR, array($def['id'] => array($this->section_id)));
+        $this->assertEquals('category', $model->effective_for(self::SUPERVISOR)[$def['id']][$this->section_id]['origin']);
 
-        // Obligatoire → ne peut pas être décoché
-        $model->subscribe($def['id'], self::PILOT, true);
-        $result = $model->save_choices(self::PILOT, array());
+        // Obligatoire → ne peut pas être décochée
+        $model->subscribe($def['id'], self::SUPERVISOR, $this->section_id, true);
+        $result = $model->save_choices(self::SUPERVISOR, array());
         $this->assertFalse($result['ok']);
-        $this->assertArrayHasKey($def['id'], $model->effective_for(self::PILOT));
+        $this->assertArrayHasKey($def['id'], $model->effective_for(self::SUPERVISOR));
     }
 
-    public function test_perte_du_role_supprime_l_abonnement_effectif(): void
+    public function test_categorie_sans_section_couvre_les_sections_du_role_et_club(): void
     {
         $model = $this->CI->alarm_subscriptions_model;
         $def = $this->definition('document_' . $this->section_type_id);
-        $ca_role = $this->CI->db->get_where('types_roles', array('nom' => 'ca'))->row_array()['id'];
-        $model->subscribe_category($def['id'], $ca_role, null);
+        $model->subscribe_category($def['id'], $this->roleId('ca'), null);
 
-        $this->assertArrayHasKey($def['id'], $model->effective_for(self::SUPERVISOR));
+        $this->assertEquals(array($this->section_id, Alarm_subscriptions_model::CLUB),
+            array_keys($model->effective_for(self::SUPERVISOR)[$def['id']]));
         $this->revoke(self::SUPERVISOR, 'ca');
-        $this->assertArrayNotHasKey($def['id'], $model->effective_for(self::SUPERVISOR));
+        $this->assertArrayNotHasKey($def['id'], $model->effective_for(self::SUPERVISOR), 'Perte du rôle');
     }
 
     public function test_detection_des_documents_qui_expirent(): void
@@ -245,62 +276,66 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->assertEquals(array($this->section_id), $items['document:' . $upcoming]['section_ids']);
     }
 
-    public function test_un_membre_voit_ses_documents_un_superviseur_aussi_ceux_des_autres(): void
+    public function test_alarmes_propres_sans_abonnement(): void
     {
         $pilot_doc = $this->addDocument(self::PILOT, 10);
         $supervisor_doc = $this->addDocument(self::SUPERVISOR, 10);
-        $model = $this->CI->alarm_subscriptions_model;
         $def = $this->definition();
-        $visible = function ($login) use ($model, $def) {
-            $keys = array();
-            foreach ($this->itemsFor($def) as $item) {
-                if ($model->can_see_item($login, $def, $item)) {
-                    $keys[] = $item['key'];
-                }
-            }
-            sort($keys);
-            return $keys;
-        };
 
-        $this->assertEquals(array('document:' . $pilot_doc), $visible(self::PILOT), 'Simple membre : ses documents');
+        $this->assertEquals(array('document:' . $pilot_doc), $this->visible(self::PILOT, $def), 'Simple membre : ses documents');
+        $this->assertEquals(array('document:' . $supervisor_doc), $this->visible(self::SUPERVISOR, $def),
+            'Superviseur non abonné : ses documents seulement');
+
+        $this->CI->alarm_subscriptions_model->subscribe($def['id'], self::SUPERVISOR, $this->section_id);
         $expected = array('document:' . $pilot_doc, 'document:' . $supervisor_doc);
         sort($expected);
-        $this->assertEquals($expected, $visible(self::SUPERVISOR), 'CA : aussi ceux de sa section');
+        $this->assertEquals($expected, $this->visible(self::SUPERVISOR, $def), 'Abonné à sa section : aussi ceux des autres');
     }
 
-    public function test_supervision_limitee_aux_sections_du_superviseur(): void
+    public function test_abonnement_limite_aux_pilotes_actifs_de_la_section(): void
     {
         $model = $this->CI->alarm_subscriptions_model;
         $def = $this->definition();
-        $doc = $this->addDocument(self::PILOT, 10);
-        $find = function () use ($def, $doc) {
-            return array_values(array_filter($this->itemsFor($def), function ($i) use ($doc) {
-                return $i['key'] === 'document:' . $doc;
-            }))[0];
-        };
+        $doc = 'document:' . $this->addDocument(self::PILOT, -2);
+        $this->grant(self::SUPERVISOR, 'ca', $this->other_section_id);
+        $model->subscribe($def['id'], self::SUPERVISOR, $this->other_section_id);
 
-        $this->assertTrue($model->can_see_item(self::SUPERVISOR, $def, $find()));
+        $this->assertNotContains($doc, $this->visible(self::SUPERVISOR, $def), 'Pilote actif dans une autre section');
 
-        // Le pilote ne relève plus que de l'autre section
-        $this->revoke(self::PILOT, 'user');
         $this->grant(self::PILOT, 'user', $this->other_section_id);
-        $this->assertFalse($model->can_see_item(self::SUPERVISOR, $def, $find()));
+        $this->assertContains($doc, $this->visible(self::SUPERVISOR, $def), 'Pilote actif dans la section cochée');
+
+        $this->revoke(self::SUPERVISOR, 'ca');
+        $this->assertNotContains($doc, $this->visible(self::SUPERVISOR, $def), 'Droit retiré');
+    }
+
+    public function test_colonne_club_pour_les_documents_sans_section(): void
+    {
+        $model = $this->CI->alarm_subscriptions_model;
+        $def = $this->definition('document_' . $this->section_type_id);
+        $doc = 'document:' . $this->addDocument(null, 5, array('document_type_id' => $this->section_type_id, 'uploaded_by' => self::SUPERVISOR));
+
+        $model->subscribe($def['id'], self::SUPERVISOR, $this->section_id);
+        $this->assertNotContains($doc, $this->visible(self::SUPERVISOR, $def), 'Case de section seulement');
+
+        $model->subscribe($def['id'], self::SUPERVISOR, Alarm_subscriptions_model::CLUB);
+        $this->assertContains($doc, $this->visible(self::SUPERVISOR, $def), 'Colonne Club');
     }
 
     public function test_alarme_restreinte_aux_eleves(): void
     {
         $model = $this->CI->alarm_subscriptions_model;
         $def = $this->eleveDefinition();
-        $this->addDocument(self::PILOT, 10);
+        $doc = 'document:' . $this->addDocument(self::PILOT, 10);
 
-        $this->assertTrue($model->can_subscribe(self::INSTRUCTOR, $def), 'Instructeur de la section');
-        $this->assertFalse($model->can_subscribe(self::PILOT, $def), 'Simple membre');
+        $this->assertEquals(array($this->section_id => true), $model->allowed_cells(self::INSTRUCTOR, $def), 'Instructeur de la section');
+        $this->assertEmpty($model->allowed_cells(self::PILOT, $def), 'Simple membre');
         $this->assertCount(0, $this->itemsFor($def), 'Pas encore élève');
 
         $this->grant(self::PILOT, 'eleve', $this->section_id);
-        $items = $this->itemsFor($def);
-        $this->assertCount(1, $items);
-        $this->assertTrue($model->can_see_item(self::INSTRUCTOR, $def, $items[0]));
+        $this->assertCount(1, $this->itemsFor($def));
+        $this->assertTrue($model->subscribe($def['id'], self::INSTRUCTOR, $this->section_id)['ok']);
+        $this->assertEquals(array($doc), $this->visible(self::INSTRUCTOR, $def));
     }
 
     public function test_pilote_inactif_sans_alarme(): void
@@ -313,7 +348,7 @@ class AlarmesLot1ModelsTest extends TestCase
 
     public function test_document_obligatoire_pour_un_role(): void
     {
-        $eleve = $this->CI->db->get_where('types_roles', array('nom' => 'eleve'))->row_array()['id'];
+        $eleve = $this->roleId('eleve');
         $this->CI->db->where('id', $this->type_id)
             ->update('document_types', array('required' => 1, 'required_role_id' => $eleve));
         $missing_def = $this->definition('missing_document');
@@ -327,10 +362,10 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->assertEmpty($find(), 'Pas élève');
 
         $this->grant(self::PILOT, 'eleve', $this->section_id);
-        $items = $find();
-        $this->assertCount(1, $items, 'Élève sans document');
-        $this->assertTrue($this->CI->alarm_subscriptions_model->can_see_item(self::PILOT, $missing_def, $items[0]));
-        $this->assertTrue($this->CI->alarm_subscriptions_model->can_see_item(self::SUPERVISOR, $missing_def, $items[0]));
+        $this->assertCount(1, $find(), 'Élève sans document');
+        $this->assertContains($key, $this->visible(self::PILOT, $missing_def), 'Alarme propre');
+        $this->CI->alarm_subscriptions_model->subscribe($missing_def['id'], self::SUPERVISOR, $this->section_id);
+        $this->assertContains($key, $this->visible(self::SUPERVISOR, $missing_def), 'Superviseur abonné');
 
         $this->addDocument(self::PILOT, 100);
         $this->assertEmpty($find(), 'Document valide');

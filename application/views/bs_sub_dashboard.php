@@ -279,21 +279,11 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-bell text-warning"></i>
-                <div class="card-title"><?= $this->lang->line('alarm_menu_config') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('alarm_card_config_desc') ?></div>
-                <a href="<?= controller_url('alarmes_config') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
-            </div>
-        </div>
-        <?php if (has_alarm_subscriptions()): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-exclamation-triangle text-danger"></i>
                 <div class="card-title"><?= $this->lang->line('alarm_menu_my_alarms') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('alarm_card_my_alarms_desc') ?></div>
-                <a href="<?= controller_url('mes_alarmes') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_consulter') ?></a>
+                <a href="<?= controller_url('mes_alarmes') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
             </div>
         </div>
-        <?php endif; ?>
         <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">

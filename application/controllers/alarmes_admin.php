@@ -7,10 +7,10 @@ if (!defined('BASEPATH'))
  *
  * - catalogue : activation et délai d'anticipation de chaque alarme ;
  * - abonnements de catégories de membres (rôle, section facultative, obligatoire) ;
- * - alarmes actives auxquelles personne n'est abonné.
+ * - alarmes actives ou à venir que personne ne reçoit.
  *
- * La configuration des alarmes d'un membre précis se fait sur la page de
- * configuration (alarmes_config), avec le sélecteur de membre.
+ * La configuration des alarmes d'un membre précis se fait sur la page
+ * Mes alarmes (mes_alarmes), avec le sélecteur de membre.
  *
  * @package controllers
  * @see doc/prds/gestion_alarmes_generiques_prd.md (exigences 1, 5 et 16)
@@ -33,6 +33,7 @@ class Alarmes_admin extends MY_Controller
 
         $this->load->model('alarm_definitions_model');
         $this->load->model('alarm_subscriptions_model');
+        $this->load->model('alarm_member_settings_model');
         $this->load->library('Notification_manager');
         $this->load->helper('validation');
         $this->lang->load('alarmes');
@@ -91,7 +92,7 @@ class Alarmes_admin extends MY_Controller
         $result = $this->alarm_subscriptions_model->subscribe_category(
             (int) $this->input->post('alarm_definition_id'),
             (int) $this->input->post('role_id'),
-            (int) $this->input->post('role_section_id') ?: null,
+            (int) $this->input->post('section_id') ?: null,
             (bool) $this->input->post('mandatory')
         );
         if ($result['ok']) {
@@ -120,7 +121,8 @@ class Alarmes_admin extends MY_Controller
     }
 
     /**
-     * Occurrences actives ou à venir qu'aucun abonné ne reçoit
+     * Occurrences actives ou à venir que personne ne reçoit : ni le membre
+     * concerné, ni un abonné, avec un canal choisi (email ou message du jour)
      *
      * @param array $definitions
      * @return array AlarmItem[] (une ligne par occurrence)
@@ -142,8 +144,14 @@ class Alarmes_admin extends MY_Controller
         foreach ($items as $item) {
             $items_by_def[$item['definition_id']][] = $item;
         }
-        foreach ($this->alarm_subscriptions_model->effective_all() as $login => $subscriptions) {
-            foreach ($this->notification_manager->occurrences_for($login, $subscriptions, $active_defs, $items_by_def) as $key => $item) {
+        $effective = $this->alarm_subscriptions_model->effective_all();
+        $active = array_flip($this->alarm_subscriptions_model->active_logins());
+        foreach ($this->alarm_member_settings_model->get_all_by_login() as $login => $settings) {
+            if (!isset($active[$login]) || (empty($settings['channel_email']) && empty($settings['channel_motd']))) {
+                continue;
+            }
+            $cells = isset($effective[$login]) ? $effective[$login] : array();
+            foreach ($this->notification_manager->occurrences_for($login, $cells, $active_defs, $items_by_def) as $key => $item) {
                 $covered[$key] = true;
             }
         }

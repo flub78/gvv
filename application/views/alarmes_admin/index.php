@@ -1,7 +1,7 @@
 <?php
 /**
  * Administration des alarmes : catalogue, abonnements de catégories,
- * alarmes sans abonné
+ * alarmes que personne ne reçoit
  *
  * @see application/controllers/alarmes_admin.php
  */
@@ -19,7 +19,7 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
 
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <h3 class="mb-0"><i class="fas fa-bell me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_admin_title') ?></h3>
-    <a href="<?= site_url('alarmes_config') ?>" class="btn btn-outline-secondary btn-sm">
+    <a href="<?= site_url('mes_alarmes') ?>" class="btn btn-outline-secondary btn-sm">
       <i class="fas fa-user-cog me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_admin_member_config') ?>
     </a>
   </div>
@@ -90,8 +90,8 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
           </select>
         </div>
         <div class="col-md-2">
-          <label for="role_section_id" class="form-label small mb-0"><?= $this->lang->line('alarm_col_section') ?></label>
-          <select name="role_section_id" id="role_section_id" class="form-select form-select-sm">
+          <label for="section_id" class="form-label small mb-0"><?= $this->lang->line('alarm_col_section') ?></label>
+          <select name="section_id" id="section_id" class="form-select form-select-sm">
             <option value=""><?= $this->lang->line('alarm_filter_all') ?></option>
             <?php foreach ($sections as $id => $name): ?>
               <option value="<?= (int) $id ?>"><?= htmlspecialchars($name) ?></option>

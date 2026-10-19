@@ -29,8 +29,8 @@ class Testable_notification_manager extends Notification_manager {
 }
 
 /**
- * Alarmes, Lot 1 : sélection par abonné, fréquences et jours d'envoi,
- * contenu des synthèses, canaux, rappel SMS, idempotence.
+ * Alarmes, Lot 1 : alarmes propres et cases d'abonnement, fréquences et
+ * jours d'envoi, contenu des synthèses, canaux, rappel SMS, idempotence.
  *
  * Toutes les données sont créées par le test et supprimées en fin de test.
  *
@@ -149,10 +149,14 @@ class NotificationManagerTest extends TestCase
         return end($this->doc_ids);
     }
 
-    private function configure($login, $email, $motd, $sms, $frequency, $variants = array(''))
+    /**
+     * Réglages d'un membre et, facultativement, abonnement à la case de la
+     * section du test pour chaque variante d'alarme
+     */
+    private function configure($login, $email, $motd, $sms, $frequency, $variants = array())
     {
         foreach ($variants as $variant) {
-            $this->assertTrue($this->CI->alarm_subscriptions_model->subscribe($this->defId($variant), $login)['ok']);
+            $this->assertTrue($this->CI->alarm_subscriptions_model->subscribe($this->defId($variant), $login, $this->section_id)['ok']);
         }
         $this->CI->alarm_member_settings_model->save_for($login, $email, $motd, $sms, $frequency);
     }
@@ -165,7 +169,7 @@ class NotificationManagerTest extends TestCase
 
     // ------------------------------------------------------------------
 
-    public function test_simple_membre_ne_recoit_que_ses_documents(): void
+    public function test_alarmes_propres_envoyees_sans_abonnement(): void
     {
         $this->addDocument(self::SUPERVISOR, 10);
         $this->configure(self::PILOT, true, false, false, 'weekly');
@@ -182,7 +186,9 @@ class NotificationManagerTest extends TestCase
     public function test_sans_reglage_rien_n_est_envoye(): void
     {
         $this->addDocument(self::PILOT, 10);
-        $this->CI->alarm_subscriptions_model->subscribe($this->defId(), self::PILOT);
+        $this->addDocument(self::SUPERVISOR, 10);
+        $this->configure(self::SUPERVISOR, false, false, false, 'weekly', array(''));
+        $this->CI->db->where('member_login', self::SUPERVISOR)->delete('alarm_member_settings');
 
         $stats = $this->runOn(self::MONDAY);
         $this->assertEquals(0, $stats['email'] + $stats['motd'] + $stats['sms']);
@@ -254,18 +260,23 @@ class NotificationManagerTest extends TestCase
         $this->grant(self::PILOT, 'eleve');
         $this->addDocument(self::PILOT, 10);
         $this->configure(self::SUPERVISOR, true, false, false, 'weekly', array('', 'eleve'));
+        $this->assertCount(2, $this->CI->alarm_subscriptions_model->effective_for(self::SUPERVISOR));
 
         $this->runOn(self::MONDAY);
         $this->assertCount(1, $this->manager->emails);
         $this->assertEquals(1, substr_count($this->manager->emails[0]['body'], 'archived_documents/view/'));
     }
 
-    public function test_superviseur_recoit_les_documents_des_autres(): void
+    public function test_superviseur_recoit_les_documents_des_autres_s_il_est_abonne(): void
     {
         $this->addDocument(self::PILOT, 10);
         $this->configure(self::SUPERVISOR, true, false, false, 'weekly');
 
         $this->runOn(self::MONDAY);
+        $this->assertCount(0, $this->manager->emails, 'Non abonné : rien que ses propres alarmes');
+
+        $this->configure(self::SUPERVISOR, true, false, false, 'weekly', array(''));
+        $this->runOn(self::FIRST_MONDAY);
         $this->assertCount(1, $this->manager->emails);
         $this->assertStringContainsString(self::PILOT, $this->manager->emails[0]['body']);
     }

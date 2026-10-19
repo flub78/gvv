@@ -1,6 +1,6 @@
 # Design Notes — Gestion Générique des Alarmes
 
-Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire)
+Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire) et le 19 octobre 2026 (page unique « Mes alarmes », abonnements par alarme et par section, alarmes propres)
 
 ## Contexte et objectif
 
@@ -14,7 +14,7 @@ L'objectif est d'unifier ces sources sous un contrat commun, sans réécrire les
 - un catalogue d'alarmes auxquelles les membres s'abonnent,
 - l'envoi des notifications sur les canaux choisis par chaque membre (email, message du jour) et d'un rappel hebdomadaire ou mensuel par SMS,
 - les synthèses hebdomadaires et mensuelles,
-- les pages de configuration et de consultation.
+- la page « Mes alarmes » (configuration puis liste) et la page d'administration.
 
 Document de référence : [gestion_alarmes_generiques_prd.md](../prds/gestion_alarmes_generiques_prd.md). Les notifications documentaires du [PRD d'archivage documentaire](../prds/archivage_documentaire_prd.md) (§10) sont réalisées par ce mécanisme.
 
@@ -90,17 +90,24 @@ AlarmAggregator::collect(array $definitions, ?int $section_id = null) : AlarmIte
 - `document_types.alarm_enabled` (alarmes possibles, 1 par défaut et pour les types existants) : seul un type actif, à expiration et à alarmes possibles a une alarme. La création ou la modification d'un type crée ou réactive son alarme ; sinon ses alarmes sont désactivées.
 - Le délai d'anticipation est initialisé depuis `document_types.alert_days_before`.
 
-Une alarme retient, pour un abonné, les `AlarmItem` dont il est l'entité (ses propres documents) et ceux qu'il a le droit de superviser. Elle est proposée à tout membre actif si elle porte sur des documents de pilote ou sur les documents manquants (au moins pour ses propres documents) ; sinon, et pour une alarme ciblant une population, seulement aux membres qui ont le droit de superviser.
+### Alarmes propres et cases d'abonnement
+
+Un membre reçoit deux sortes d'`AlarmItem` :
+
+- **propres** : ceux dont il est le pilote (`pilot_login`), pour toutes les alarmes actives du catalogue, sans abonnement ni désactivation possible ;
+- **par abonnement** : ceux des **cases** auxquelles il est abonné. Une case est un couple (alarme, colonne) ; la colonne est une section, ou **Club** pour les `AlarmItem` sans section (`section_ids` vide). Un `AlarmItem` relève d'une case de section si cette section figure dans ses `section_ids` — pour un document de pilote, les sections où le pilote est actif : la case (certificat médical, avion) ne retient que les pilotes actifs en section avion.
+
+Cases autorisées d'un membre pour une alarme : les sections qu'il peut superviser (cf. Contrôle des droits), restreintes à la section de l'alarme si elle en a une ; la colonne Club s'y ajoute pour une alarme sur des documents qui ne sont pas des documents de pilote (machine, section, club), dès qu'il supervise au moins une section. Une alarme sans case autorisée ne figure pas dans sa matrice.
 
 ### Abonnements
 
-- **`alarm_subscriptions`** : un abonnement relie une alarme du catalogue soit à un membre (`subscriber_login`), soit à une catégorie (`role_id` de `types_roles`, éventuellement restreint à `role_section_id`). Il porte un indicateur `mandatory` et les champs d'audit ; `created_by` ≠ abonné signale un abonnement créé par un administrateur.
-- **`alarm_subscription_optouts`** : retrait d'un membre d'un abonnement de catégorie non obligatoire.
+- **`alarm_subscriptions`** : un abonnement relie une alarme du catalogue soit à un membre (`subscriber_login`), soit à une catégorie (`role_id` de `types_roles`). `section_id` désigne la colonne : pour un abonnement individuel, la section de la case (NULL = Club) ; pour une catégorie, la section du rôle et de la case (NULL = toutes les sections où le titulaire détient le rôle, plus Club). Il porte un indicateur `mandatory` et les champs d'audit ; `created_by` ≠ abonné signale un abonnement créé par un administrateur.
+- **`alarm_subscription_optouts`** : retrait d'un membre d'une case d'un abonnement de catégorie non obligatoire (`section_id`, NULL = Club).
 - **`alarm_member_settings`** : réglages par membre, communs à toutes ses alarmes — canaux email et message du jour, rappel SMS, fréquence (`immediate`, `weekly`, `monthly`).
 
-**Abonnements effectifs** d'un membre = abonnements individuels ∪ abonnements des catégories dont il détient le rôle, non révoqué, dans la section visée (`user_roles_per_section`) − ses retraits. Ils sont recalculés à chaque usage : un changement de rôle prend effet sans modifier les abonnements.
+**Cases effectives** d'un membre = cases de ses abonnements individuels ∪ cases des abonnements des catégories dont il détient le rôle, non révoqué (`user_roles_per_section`) − ses retraits, le tout restreint à ses cases autorisées. Elles sont recalculées à chaque usage : un changement de rôle prend effet sans modifier les abonnements.
 
-**Aucune configuration, aucune alarme** : sans abonnement effectif, le membre ne reçoit rien et la page « Mes alarmes » est masquée. Un réglage de canaux sans abonnement n'a aucun effet.
+**Sans abonnement** : le membre a toujours ses alarmes propres sur sa page. Elles ne sont envoyées que s'il a choisi un canal.
 
 **Contrôle des droits** : porte toujours sur l'abonné. Appliqué à la création d'un abonnement et à nouveau à chaque calcul, pour qu'un retrait de rôle prenne effet immédiatement. Mêmes règles de consultation que la liste des documents (`club-admin` toutes sections ; `ca` et `bureau` leurs sections ; types privés réservés au `club-admin` et au bureau). Une alarme ciblant une population (ex. élèves) est aussi ouverte aux rôles `instructeur` et `rp` de leurs sections.
 
@@ -109,7 +116,7 @@ Une alarme retient, pour un abonné, les `AlarmItem` dont il est l'entité (ses 
 **`Notification_manager`** — consommateur de l'agrégateur, exécuté chaque jour :
 
 1. collecte une fois les `AlarmItem` de toutes les alarmes actives du catalogue ;
-2. pour chaque membre ayant au moins un abonnement effectif, retient les `AlarmItem` couverts par ses abonnements et autorisés par ses droits, sans doublon ;
+2. pour chaque membre actif ayant choisi au moins un canal (ou le SMS), retient ses `AlarmItem` propres et ceux de ses cases effectives, sans doublon ;
 3. selon sa fréquence :
    - `immediate` : notifie les occurrences pas encore notifiées dans leur état courant ;
    - `weekly` (le lundi) ou `monthly` (le premier lundi du mois) : envoie la synthèse de toutes ses occurrences actives et à venir ; rien si elle est vide ;
@@ -124,11 +131,10 @@ Une alarme retient, pour un abonné, les `AlarmItem` dont il est l'entité (ses 
 
 | Page | Contrôleur | Accès |
 |---|---|---|
-| Configuration des alarmes : cases à cocher, canaux, rappel SMS, fréquence | `alarmes_config` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
-| Mes alarmes : occurrences actives et à venir des abonnements effectifs | `mes_alarmes` | Membre ayant au moins un abonnement effectif |
-| Catalogue (activation, délai), abonnements de catégories, alarmes actives sans abonné | `alarmes_admin` | `club-admin` |
+| Mes alarmes : configuration (matrice alarme × colonne, canaux, rappel SMS, fréquence) puis occurrences actives et à venir (propres et abonnements) | `mes_alarmes` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
+| Catalogue (activation, délai), abonnements de catégories, alarmes actives que personne ne reçoit | `alarmes_admin` | `club-admin` |
 
-La page de configuration est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré).
+La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré). La matrice n'apparaît que si le membre a au moins une case autorisée.
 
 `alarmes.php` (expérience récente) est conservé tel quel au Lot 1.
 
@@ -153,10 +159,10 @@ La page de configuration est une seule vue, paramétrée par le membre concerné
 | Alarmes documentaires (expiration, manquant) | `DocumentAlarmProvider` → `archived_documents_model` |
 | Alarmes calculées — Lot 2 (licences, cotisations ; puis expérience) | `ComputedAlarmProvider` → `licences_model` (puis `vols_planeur_model`, `event_model`) |
 | Agrégation | `AlarmAggregator` |
-| Catalogue, abonnements, réglages, abonnements effectifs | `alarm_definitions_model`, `alarm_subscriptions_model`, `alarm_member_settings_model` |
+| Catalogue, abonnements, réglages, cases autorisées et effectives | `alarm_definitions_model`, `alarm_subscriptions_model`, `alarm_member_settings_model` |
 | Destinataires, droits, fréquences, composition, envoi, historique | `Notification_manager` |
 | Déclenchement | `alarm_scheduler` |
-| Pages membre et administration | `alarmes_config`, `mes_alarmes`, `alarmes_admin` |
+| Pages membre et administration | `mes_alarmes`, `alarmes_admin` |
 | Rôle élève | `formation_inscription_model` (ouverture, clôture, abandon) |
 
 ---

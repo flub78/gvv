@@ -5,8 +5,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Migration 177 : alarmes, Lot 1 (alarmes sur les documents archivés)
  *
  * - alarm_definitions : catalogue des alarmes proposées aux membres
- * - alarm_subscriptions : abonnements individuels ou par catégorie (rôle × section)
- * - alarm_subscription_optouts : retraits individuels d'un abonnement de catégorie
+ * - alarm_subscriptions : abonnements individuels ou par catégorie (rôle), par
+ *   alarme et par section (colonne de la matrice ; NULL = Club)
+ * - alarm_subscription_optouts : cases retirées par un membre d'un abonnement de catégorie
  * - alarm_member_settings : canaux, rappel SMS et fréquence de chaque membre
  * - notification_history : un enregistrement par envoi
  * - rôle « eleve » et document_types.required_role_id (documents obligatoires
@@ -62,7 +63,7 @@ class Migration_Alarmes_lot1 extends CI_Migration {
                 `alarm_definition_id` INT(11) UNSIGNED NOT NULL,
                 `subscriber_login` VARCHAR(25) NULL COMMENT 'Abonné individuel',
                 `role_id` INT(11) NULL COMMENT 'Catégorie : FK types_roles',
-                `role_section_id` INT(11) NULL COMMENT 'Catégorie : section du rôle, NULL = toutes',
+                `section_id` INT(11) NULL COMMENT 'Colonne : section ; NULL = Club (individuel), sections du rôle + Club (catégorie)',
                 `mandatory` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Non désabonnable par le membre',
                 `created_at` DATETIME NULL,
                 `updated_at` DATETIME NULL,
@@ -71,12 +72,12 @@ class Migration_Alarmes_lot1 extends CI_Migration {
                 PRIMARY KEY (`id`),
                 KEY `idx_alarm_subscriptions_def` (`alarm_definition_id`),
                 KEY `idx_alarm_subscriptions_login` (`subscriber_login`),
-                KEY `idx_alarm_subscriptions_role` (`role_id`, `role_section_id`),
+                KEY `idx_alarm_subscriptions_role` (`role_id`, `section_id`),
                 CONSTRAINT `fk_alarm_subscriptions_def` FOREIGN KEY (`alarm_definition_id`) REFERENCES `alarm_definitions` (`id`) ON DELETE CASCADE,
                 CONSTRAINT `fk_alarm_subscriptions_login` FOREIGN KEY (`subscriber_login`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT `fk_alarm_subscriptions_role` FOREIGN KEY (`role_id`) REFERENCES `types_roles` (`id`) ON DELETE CASCADE,
-                CONSTRAINT `fk_alarm_subscriptions_section` FOREIGN KEY (`role_section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Abonnements aux alarmes : un abonné ou une catégorie'"
+                CONSTRAINT `fk_alarm_subscriptions_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Abonnements aux alarmes : un abonné ou une catégorie, par section'"
         );
 
         $ok = $ok && $this->_query(
@@ -84,15 +85,17 @@ class Migration_Alarmes_lot1 extends CI_Migration {
                 `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `subscription_id` INT(11) UNSIGNED NOT NULL,
                 `member_login` VARCHAR(25) NOT NULL,
+                `section_id` INT(11) NULL COMMENT 'Case retirée : section, NULL = Club',
                 `created_at` DATETIME NULL,
                 `updated_at` DATETIME NULL,
                 `created_by` VARCHAR(25) NULL,
                 `updated_by` VARCHAR(25) NULL,
                 PRIMARY KEY (`id`),
-                UNIQUE KEY `uk_alarm_optouts` (`subscription_id`, `member_login`),
+                KEY `idx_alarm_optouts` (`subscription_id`, `member_login`),
                 CONSTRAINT `fk_alarm_optouts_subscription` FOREIGN KEY (`subscription_id`) REFERENCES `alarm_subscriptions` (`id`) ON DELETE CASCADE,
-                CONSTRAINT `fk_alarm_optouts_login` FOREIGN KEY (`member_login`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Retraits individuels d''un abonnement de catégorie'"
+                CONSTRAINT `fk_alarm_optouts_login` FOREIGN KEY (`member_login`) REFERENCES `membres` (`mlogin`) ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT `fk_alarm_optouts_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci COMMENT='Cases retirées d''un abonnement de catégorie'"
         );
 
         $ok = $ok && $this->_query(

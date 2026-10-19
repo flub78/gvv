@@ -28,12 +28,14 @@ entity alarm_subscriptions {
   * alarm_definition_id : int (FK)
   subscriber_login : varchar(25) (FK, null)
   role_id : int (FK types_roles, null)
-  role_section_id : int (FK, null = toutes)
+  section_id : int (FK, colonne de la case)
   * mandatory : tinyint(1)
   created_at, updated_at
   created_by, updated_by
   ..
   un abonné OU une catégorie
+  individuel : section_id null = Club
+  catégorie : null = sections du rôle + Club
 }
 
 entity alarm_subscription_optouts {
@@ -41,6 +43,7 @@ entity alarm_subscription_optouts {
   --
   * subscription_id : int (FK)
   * member_login : varchar(25) (FK)
+  section_id : int (FK, null = Club)
   created_at, updated_at
   created_by, updated_by
 }
@@ -101,7 +104,7 @@ entity document_types {
 
 alarm_definitions ||--o{ alarm_subscriptions
 document_types |o--o{ alarm_definitions
-alarm_subscriptions ||--o{ alarm_subscription_optouts : retraits
+alarm_subscriptions ||--o{ alarm_subscription_optouts : cases retirées
 membres |o--o{ alarm_subscriptions : abonné
 types_roles |o--o{ alarm_subscriptions : catégorie
 membres ||--o| alarm_member_settings : réglages
