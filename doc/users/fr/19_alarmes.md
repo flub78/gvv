@@ -47,7 +47,7 @@ Une case peut porter une icône :
 
 ### 1.3 Réception
 
-- **Canaux** : email, message du jour dans GVV, ou les deux. Au moins un canal est demandé dès que vous avez coché une case. Sans canal, rien n'est envoyé, mais vos alarmes restent affichées sur la page.
+- **Canaux** : email, message du jour dans GVV, ou les deux. Aucun n'est obligatoire : sans canal, rien n'est envoyé, mais vos alarmes restent affichées sur la page et sur la carte du tableau de bord.
 - **Fréquence** :
   - *Immédiate* : un message à chaque nouvelle alarme ;
   - *Hebdomadaire* : une synthèse chaque lundi ;
@@ -61,6 +61,8 @@ Cliquez sur **Enregistrer** : un message confirme l'enregistrement, ou explique 
 ---
 
 ## 2. Liste des alarmes
+
+La carte **Mes alarmes** du tableau de bord de votre espace personnel affiche dans un badge rouge le nombre de vos alarmes actives, s'il y en a.
 
 Sous la configuration, **Alarmes actives et à venir** liste vos alarmes actives (en rouge) et à venir (en orange) : vos propres alarmes (badge **Moi**) et celles des cases que vous avez cochées. Pour chacune : le document, la personne ou la machine concernée, la section, l'échéance, et un bouton **Ouvrir** vers la page où traiter l'alarme (déposer un nouveau document, par exemple). Vous pouvez filtrer par alarme et par section.
 

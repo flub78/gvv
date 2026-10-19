@@ -134,7 +134,7 @@ Cases autorisées d'un membre pour une alarme : les sections qu'il peut supervis
 | Mes alarmes : configuration (matrice alarme × colonne, canaux, rappel SMS, fréquence) puis occurrences actives et à venir (propres et abonnements) | `mes_alarmes` | Tout membre pour lui-même ; `club-admin` pour n'importe quel membre |
 | Catalogue (activation, délai), abonnements de catégories, alarmes actives que personne ne reçoit | `alarmes_admin` | `club-admin` |
 
-La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré). La matrice n'apparaît que si le membre a au moins une case autorisée.
+La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pour un `club-admin`, elle affiche en plus un sélecteur de membre, positionné par défaut sur lui-même ; choisir un autre membre recharge la même vue pour ce membre, avec les mêmes règles de validation (le contrôle des droits porte sur le membre configuré). La matrice n'apparaît que si le membre a au moins une case autorisée. Aucun canal n'est exigé. La carte « Mes alarmes » de l'espace personnel affiche le nombre d'occurrences actives du membre, calculé comme la liste de la page (`Notification_manager::member_occurrences()`).
 
 `alarmes.php` (expérience récente) est conservé tel quel au Lot 1.
 

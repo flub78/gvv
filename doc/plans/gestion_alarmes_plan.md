@@ -63,10 +63,10 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] Contrôleur `mes_alarmes.php`, une seule page : configuration en haut, liste des alarmes en dessous
 - [x] Matrice alarme × colonne (sections supervisées, plus Club pour les documents sans section) ; une case seulement là où le membre a le droit ; pas de matrice sans droit de supervision, avec un message indiquant que les alarmes propres sont toujours suivies
 - [x] Cases cochées par un administrateur affichées avec leur auteur ; cases obligatoires non décochables ; retrait d'une case d'un abonnement de catégorie (`alarm_subscription_optouts`)
-- [x] Canaux, rappel SMS, fréquence ; au moins un canal exigé dès qu'une case est cochée ; option SMS désactivée et expliquée sans numéro de mobile
+- [x] Canaux (aucun exigé), rappel SMS, fréquence ; option SMS désactivée et expliquée sans numéro de mobile
 - [x] Liste : alarmes propres et occurrences des cases effectives, actives et à venir, filtres par alarme et par section, liens de traitement
 - [x] Pour `club-admin` : sélecteur de membre positionné par défaut sur son propre profil ; configuration et alarmes d'un autre membre avec les mêmes règles, refus explicite hors droits du membre configuré
-- [x] Une seule entrée « Mes alarmes » dans l'espace personnel (menu et tableau de bord), pour tout membre ; message de confirmation après chaque action
+- [x] Une seule entrée « Mes alarmes » dans l'espace personnel (menu et tableau de bord), pour tout membre ; la carte du tableau de bord affiche le nombre d'alarmes actives ; message de confirmation après chaque action
 
 **1.7 — Administration** (2 j)
 - [x] Contrôleur `alarmes_admin.php`, réservé à `club-admin` : catalogue (activation, délai d'anticipation)

@@ -149,6 +149,41 @@ class Notification_manager {
         return $occurrences;
     }
 
+    /**
+     * Occurrences actives et à venir d'un membre (page Mes alarmes, tableau de bord)
+     *
+     * @param string $login
+     * @return array key => AlarmItem
+     */
+    public function member_occurrences($login) {
+        $definitions = array();
+        foreach ($this->CI->alarm_definitions_model->get_all(true) as $def) {
+            $definitions[$def['id']] = $def;
+        }
+        $items_by_def = array();
+        foreach ($this->CI->alarm_aggregator->collect(array_values($definitions)) as $item) {
+            $items_by_def[$item['definition_id']][] = $item;
+        }
+        $cells = $this->CI->alarm_subscriptions_model->effective_for($login);
+        return $this->occurrences_for($login, $cells, $definitions, $items_by_def);
+    }
+
+    /**
+     * Nombre d'occurrences actives d'un membre (carte du tableau de bord)
+     *
+     * @param string $login
+     * @return int
+     */
+    public function active_count_for($login) {
+        $count = 0;
+        foreach ($this->member_occurrences($login) as $item) {
+            if ($item['state'] === 'active') {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
     // ------------------------------------------------------------------
     // Calendrier
     // ------------------------------------------------------------------

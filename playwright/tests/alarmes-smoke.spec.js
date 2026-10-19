@@ -5,8 +5,9 @@
  *   1. A plain member sees his own alarms without any subscription and has no
  *      subscription matrix; saving channels is confirmed
  *   2. A supervisor (CA of the Avion section only) gets a matrix limited to the
- *      Avion column; a ticked cell without channel is refused; once subscribed,
- *      the list shows only pilots active in the Avion section
+ *      Avion column; a cell can be ticked without any channel; once subscribed,
+ *      the list shows only pilots active in the Avion section and the dashboard
+ *      card shows the number of active alarms
  *   3. A club-admin sees the member selector positioned on himself, configures
  *      another member, who then sees the cell ticked with its author
  *   4. A club-admin adds and deletes a category subscription
@@ -123,23 +124,21 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator('#alarm-matrix thead')).not.toContainText('Planeur');
         await expect(page.locator('#alarms-table')).toHaveCount(0);
 
-        // Case cochée sans canal : refus explicite
-        const cell = page.locator(`#cell_${defId}_${avionId}`);
-        await cell.check();
-        await page.click('#configuration button[type="submit"]');
-        await expect(page.locator('.alert-danger')).toBeVisible();
-        await expect(page.locator(`#cell_${defId}_${avionId}`)).not.toBeChecked();
-
-        // Avec un canal : enregistré
+        // Case cochée sans canal : enregistrée
         await page.locator(`#cell_${defId}_${avionId}`).check();
-        await page.check('#channel_email');
         await page.click('#configuration button[type="submit"]');
         await expect(page.locator('.alert-success')).toBeVisible();
         await expect(page.locator(`#cell_${defId}_${avionId}`)).toBeChecked();
+        await expect(page.locator('#channel_email')).not.toBeChecked();
 
         // Seuls les pilotes actifs en section Avion
         await expect(page.locator('#alarms-table')).toContainText(`zz-smoke-${AVION_PILOT}`);
         await expect(page.locator('#alarms-table')).not.toContainText(`zz-smoke-${MEMBER.username}`);
+        const activeRows = await page.locator('#alarms-table tbody tr.table-danger').count();
+
+        // Carte du tableau de bord : nombre d'alarmes actives
+        await page.goto('/index.php/welcome/section/user');
+        await expect(page.locator('#card-mes-alarmes .badge-corner')).toHaveText(String(activeRows));
     });
 
     test('un administrateur configure les alarmes d\'un autre membre', async ({ page }) => {

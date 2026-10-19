@@ -113,8 +113,9 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 
 3. **Page Mes alarmes : configuration (Lot 1)**
    - Chaque membre dispose dans GVV d'une page « Mes alarmes », accessible depuis son espace personnel (menu et tableau de bord). La page présente d'abord la configuration, puis la liste des alarmes (exigence 4).
+   - La carte « Mes alarmes » du tableau de bord affiche le nombre d'alarmes actives du membre (propres et abonnements), s'il y en a.
    - Pour un membre ayant des droits de supervision, la configuration présente une **matrice** : une ligne par alarme qu'il peut superviser, une colonne par section où il a ces droits (plus la colonne Club si l'alarme en a une), une case à cocher par croisement. Une case n'existe que si le membre a le droit correspondant. Un membre sans droit de supervision n'a pas de matrice ; la page lui indique que ses propres alarmes sont toujours suivies.
-   - Le membre y choisit ses canaux : email, message du jour, ou les deux. Ce choix est commun à toutes ses alarmes, propres ou par abonnement. Aucun canal n'est présélectionné.
+   - Le membre y choisit ses canaux : email, message du jour, ou les deux. Ce choix est commun à toutes ses alarmes, propres ou par abonnement. Aucun canal n'est présélectionné ni exigé : sans canal, ses alarmes restent seulement affichées dans GVV.
    - Le membre y active ou désactive le rappel par SMS (cf. exigence 6). Ce choix se fait uniquement sur cette page ; cocher l'option vaut consentement à recevoir ces SMS.
    - Le membre y choisit la fréquence de sa synthèse (cf. exigence 7).
    - La matrice indique aussi les cases cochées pour le membre par un administrateur, individuellement ou via une catégorie, avec leur origine ; celles rendues obligatoires ne peuvent pas être décochées.
@@ -134,7 +135,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
    - Une case n'est prise en compte que si l'abonné a le droit de supervision correspondant (cf. exigence 2) ; un abonnement individuel sans ce droit est refusé avec un message explicite. Les droits sont contrôlés à nouveau à chaque notification, pour qu'un retrait de droit prenne effet immédiatement.
 
 6. **Canaux de notification (Lot 1)**
-   - Le membre choisit lui-même ses canaux sur sa page Mes alarmes ; au moins un des canaux email et message du jour est demandé dès qu'il a un abonnement. Sans abonnement, aucun canal n'est exigé : ses alarmes propres restent affichées dans GVV.
+   - Le membre choisit lui-même ses canaux sur sa page Mes alarmes. Aucun canal n'est exigé, même avec des abonnements : sans canal, ses alarmes restent affichées dans GVV (page Mes alarmes et carte du tableau de bord).
    - **Email** : message contenant la liste des alarmes concernées (quoi, qui, échéance, action attendue), avec un lien vers la page GVV de chacune. Aucun document joint.
    - **Message du jour** : message adressé individuellement à l'abonné, visible à sa prochaine connexion dans GVV, avec les mêmes informations et le même lien.
    - **Rappel par SMS (optionnel)** : envoyé le jour de la synthèse — chaque lundi pour une fréquence immédiate ou hebdomadaire, le premier lundi du mois pour une fréquence mensuelle — si le membre a au moins une alarme active ou à venir. Il est envoyé au numéro de téléphone mobile de la fiche membre, uniquement si le membre a lui-même coché l'option sur sa page Mes alarmes. Il ne contient qu'un message court et le lien vers la page Mes alarmes (ex. « GVV : 3 alarmes vous concernent : <lien> »), jamais le détail des alarmes. Un membre dont la fiche n'a pas de numéro de mobile ne peut pas cocher l'option, et la page le lui explique.

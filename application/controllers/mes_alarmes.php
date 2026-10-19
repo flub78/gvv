@@ -85,11 +85,7 @@ class Mes_alarmes extends MY_Controller
         foreach ($this->alarm_definitions_model->get_all(true) as $def) {
             $definitions[$def['id']] = $def;
         }
-        $items_by_def = array();
-        foreach ($this->alarm_aggregator->collect(array_values($definitions)) as $item) {
-            $items_by_def[$item['definition_id']][] = $item;
-        }
-        $occurrences = $this->notification_manager->occurrences_for($login, $effective, $definitions, $items_by_def);
+        $occurrences = $this->notification_manager->member_occurrences($login);
 
         $filter_def = (int) $this->input->get('alarme');
         $filter_section = (int) $this->input->get('section');
@@ -150,25 +146,6 @@ class Mes_alarmes extends MY_Controller
         $sms = (bool) $this->input->post('sms');
         $frequency = $this->input->post('frequency');
 
-        // Abonnements après enregistrement : cases cochées + obligatoires
-        $will_have_subscriptions = false;
-        foreach ($checked as $cells) {
-            if (!empty($cells)) {
-                $will_have_subscriptions = true;
-            }
-        }
-        foreach ($this->alarm_subscriptions_model->effective_for($login) as $cells) {
-            foreach ($cells as $sub) {
-                if ($sub['mandatory']) {
-                    $will_have_subscriptions = true;
-                }
-            }
-        }
-        if ($will_have_subscriptions && !$email && !$motd) {
-            $this->session->set_flashdata('error', $this->lang->line('alarm_config_channel_required'));
-            redirect($back);
-            return;
-        }
         if ($sms && empty($member['mtelm'])) {
             $this->session->set_flashdata('error', $this->lang->line('alarm_config_sms_no_mobile'));
             redirect($back);

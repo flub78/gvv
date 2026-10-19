@@ -281,6 +281,19 @@ class NotificationManagerTest extends TestCase
         $this->assertStringContainsString(self::PILOT, $this->manager->emails[0]['body']);
     }
 
+    public function test_nombre_d_alarmes_actives_pour_le_tableau_de_bord(): void
+    {
+        $this->assertEquals(0, $this->manager->active_count_for(self::PILOT));
+        $this->addDocument(self::PILOT, 10);    // à venir
+        $this->addDocument(self::PILOT, -3);    // active
+        $this->assertEquals(1, $this->manager->active_count_for(self::PILOT), 'Alarmes propres, sans réglage');
+
+        $this->addDocument(self::SUPERVISOR, -1);
+        $this->assertEquals(1, $this->manager->active_count_for(self::SUPERVISOR), 'Non abonné : les siennes');
+        $this->configure(self::SUPERVISOR, false, false, false, 'weekly', array(''));
+        $this->assertEquals(2, $this->manager->active_count_for(self::SUPERVISOR), 'Abonné à sa section');
+    }
+
     public function test_rappel_sms_le_lundi_avec_lien_seulement(): void
     {
         $this->addDocument(self::PILOT, 10);

@@ -277,7 +277,10 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         <?php if ($this->config->item('gestion_documentaire')): ?>
         <?php $this->lang->load('alarmes'); ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
+            <div class="sub-card text-center" id="card-mes-alarmes">
+                <?php if (!empty($alarm_active_count)): ?>
+                <span class="badge rounded-pill bg-danger badge-corner" title="<?= $this->lang->line('alarm_card_active_count') ?>"><?= (int) $alarm_active_count ?></span>
+                <?php endif; ?>
                 <i class="fas fa-bell text-warning"></i>
                 <div class="card-title"><?= $this->lang->line('alarm_menu_my_alarms') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('alarm_card_my_alarms_desc') ?></div>
