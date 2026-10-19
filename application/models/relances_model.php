@@ -137,4 +137,36 @@ ORDER BY total ASC
 
         return array('sections' => $sections, 'rows' => $rows);
     }
+
+    /**
+     * Comptes pilotes (411) dont le solde d'une section est inférieur à
+     * -$seuil à la date du jour : même calcul que get_debiteurs(), réduit au
+     * solde courant par pilote et par section (alarme de compte débiteur,
+     * calculée à chaque affichage de « Mes alarmes »).
+     *
+     * @param float $seuil Montant positif (relances.seuil_alarme)
+     * @return array Lignes mlogin, mnom, mprenom, section_id, section_nom, solde
+     */
+    public function soldes_debiteurs_par_section($seuil)
+    {
+        $sql = "
+SELECT c.pilote AS mlogin, m.mnom, m.mprenom, c.club AS section_id, s.nom AS section_nom,
+       SUM(x.montant) AS solde
+FROM comptes c
+JOIN membres m ON m.mlogin = c.pilote
+JOIN sections s ON s.id = c.club
+JOIN (
+  SELECT compte1 AS compte, -SUM(montant) AS montant FROM ecritures WHERE date_op <= CURDATE() GROUP BY compte1
+  UNION ALL
+  SELECT compte2, SUM(montant) FROM ecritures WHERE date_op <= CURDATE() GROUP BY compte2
+) x ON x.compte = c.id
+WHERE c.codec = '411'
+  AND c.actif  = 1
+  AND c.masked = 0
+GROUP BY c.pilote, m.mnom, m.mprenom, c.club, s.nom
+HAVING solde < " . (-abs((float) $seuil)) . "
+ORDER BY solde ASC";
+        $result = $this->db->query($sql);
+        return $result ? $result->result_array() : array();
+    }
 }

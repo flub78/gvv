@@ -27,6 +27,8 @@ class AlarmesLot2Test extends TestCase
     private $pla;
     private $avi;
     private $user_ids = array();
+    /** @var array Activation des alarmes testées avant le test (réglage du catalogue), restaurée ensuite */
+    private $saved_active = array();
 
     protected function setUp(): void
     {
@@ -54,6 +56,13 @@ class AlarmesLot2Test extends TestCase
             $this->$property = (int) $row['id'];
         }
 
+        // Les alarmes testées sont actives pendant le test, quel que soit le réglage du catalogue
+        foreach ($this->CI->db->select('code, active')->where_in('code', array('computed_vols_sans_cotisation', 'computed_vols_sans_licence'))
+                     ->get('alarm_definitions')->result_array() as $row) {
+            $this->saved_active[$row['code']] = $row['active'];
+        }
+        $this->CI->db->where_in('code', array_keys($this->saved_active))->update('alarm_definitions', array('active' => 1));
+
         $this->cleanup();
         foreach (array(self::PILOT, self::TREASURER) as $login) {
             $this->CI->db->insert('membres', array('mlogin' => $login, 'mnom' => 'Test', 'mprenom' => $login, 'actif' => 1, 'ext' => 0));
@@ -75,6 +84,10 @@ class AlarmesLot2Test extends TestCase
     protected function tearDown(): void
     {
         $this->cleanup();
+        foreach ($this->saved_active as $code => $active) {
+            $this->CI->db->where('code', $code)->update('alarm_definitions', array('active' => $active));
+        }
+        $this->saved_active = array();
     }
 
     private function cleanup()
@@ -160,12 +173,13 @@ class AlarmesLot2Test extends TestCase
     {
         $prefix = 'computed:vols_sans_licence:' . self::PILOT . ':';
         $items = $this->items('vols_sans_licence');
-        $this->assertEquals(array($this->pla), $items[$prefix . '1:' . self::YEAR]['section_ids'], 'Planeur');
-        $this->assertEquals(array($this->avi), $items[$prefix . '2:' . self::YEAR]['section_ids'], 'Avion');
+        $this->assertEquals(array($this->pla), $items[$prefix . $this->pla . ':' . self::YEAR]['section_ids'], 'Planeur');
+        $this->assertEquals(array($this->avi), $items[$prefix . $this->avi . ':' . self::YEAR]['section_ids'], 'Avion');
 
-        $this->CI->db->insert('licences', array('pilote' => self::PILOT, 'type' => 2, 'year' => self::YEAR,
+        $avion_licence = $this->CI->db->get_where('sections', array('id' => $this->avi))->row_array()['licence_type'];
+        $this->CI->db->insert('licences', array('pilote' => self::PILOT, 'type' => $avion_licence, 'year' => self::YEAR,
             'date' => self::YEAR . '-01-10', 'comment' => 'zz test'));
-        $this->assertEquals(array($prefix . '1:' . self::YEAR), array_keys($this->items('vols_sans_licence')));
+        $this->assertEquals(array($prefix . $this->pla . ':' . self::YEAR), array_keys($this->items('vols_sans_licence')));
     }
 
     public function test_tresorier_de_la_section_et_alarme_propre(): void
@@ -182,7 +196,7 @@ class AlarmesLot2Test extends TestCase
         $this->assertCount(2, $this->visible(self::PILOT, 'vols_sans_licence'));
         $this->assertEquals(array(), $this->visible(self::TREASURER, 'vols_sans_licence'), 'Non abonné');
         $this->assertTrue($model->subscribe($def['id'], self::TREASURER, $this->avi)['ok']);
-        $this->assertEquals(array('computed:vols_sans_licence:' . self::PILOT . ':2:' . self::YEAR),
+        $this->assertEquals(array('computed:vols_sans_licence:' . self::PILOT . ':' . $this->avi . ':' . self::YEAR),
             $this->visible(self::TREASURER, 'vols_sans_licence'));
     }
 
@@ -204,10 +218,21 @@ class AlarmesLot2Test extends TestCase
         if ($this->CI->db->where_in('alarm_definition_id', $ids)->count_all_results('alarm_subscriptions')) {
             $this->markTestSkipped('Des abonnements réels existent : aller-retour down/up non exécuté');
         }
+        // Réglages du catalogue (activation, délai) sauvegardés puis restaurés à l'identique
+        $saved = $this->CI->db->select('code, active, lead_days, updated_at, updated_by')
+            ->where_in('code', $codes)->get('alarm_definitions')->result_array();
         $migration = new Migration_Alarmes_lot2();
-        $this->assertTrue($migration->down());
-        $this->assertEquals(0, $this->CI->db->where_in('code', $codes)->count_all_results('alarm_definitions'));
-        $this->assertTrue($migration->up());
+        try {
+            $this->assertTrue($migration->down());
+            $this->assertEquals(0, $this->CI->db->where_in('code', $codes)->count_all_results('alarm_definitions'));
+        } finally {
+            $migration->up();
+            foreach ($saved as $row) {
+                $this->CI->db->where('code', $row['code'])->update('alarm_definitions', array(
+                    'active' => $row['active'], 'lead_days' => $row['lead_days'],
+                    'updated_at' => $row['updated_at'], 'updated_by' => $row['updated_by']));
+            }
+        }
         $this->assertEquals(2, $this->CI->db->where_in('code', $codes)->count_all_results('alarm_definitions'));
     }
 }

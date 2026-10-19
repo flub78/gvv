@@ -17,6 +17,8 @@
  *   7. A whole row or column, or the whole matrix, is ticked or unticked in one click
  *   8. Lot 2: a supervisor subscribed to "vols sans licence" in the Avion column
  *      sees a pilot who flew in avion this year without licence
+ *   9. Lot 3: the CA sees the recent-experience alarms but not "Compte débiteur",
+ *      which the club-admin sees
  *
  * Prerequisites: test users asterix (member, Planeur/Général), abraracourcix
  * (CA Avion), goudurix (member Avion) and panoramix (club-admin), migration
@@ -34,13 +36,15 @@ const SUPERVISOR = { username: 'abraracourcix', password: 'password' };
 const AVION_PILOT = 'goudurix';
 const ADMIN = { username: 'panoramix', password: 'password' };
 const TYPE_CODE = 'zz_alarm_smoke';
-const FLIGHT_PILOT = 'zzpwlot2';   // pilote fictif : vol avion de l'année sans cotisation ni licence
+const FLIGHT_PILOT = 'zzpwlot2';   // pilote fictif actif en avion : vol avion de l'année sans cotisation ni licence
 
 let avionId;
 let memberMobile;
 let defId;
 let missingDefId;
 let licenceDefId;
+let savedActive = [];   // activation des alarmes testées (réglage du catalogue), restaurée en fin de test
+const TESTED_ALARMS = ['computed_vols_sans_licence', 'computed_emport_passager', 'computed_inactivite', 'computed_remorquages', 'computed_compte_debiteur'];
 
 async function login(page, user) {
     await page.goto('/index.php/auth/login');
@@ -59,6 +63,9 @@ async function cleanup(db) {
     await db.query('DELETE FROM alarm_subscriptions WHERE subscriber_login IS NULL AND created_by IN (?)', [logins]);
     await db.query('DELETE FROM alarm_member_settings WHERE member_login IN (?)', [logins]);
     await db.query('DELETE FROM volsa WHERE vapilid = ?', [FLIGHT_PILOT]);
+    await db.query(`DELETE urps FROM user_roles_per_section urps JOIN users u ON u.id = urps.user_id
+                    WHERE u.username = ?`, [FLIGHT_PILOT]);
+    await db.query('DELETE FROM users WHERE username = ?', [FLIGHT_PILOT]);
     await db.query('DELETE FROM membres WHERE mlogin = ?', [FLIGHT_PILOT]);
 }
 
@@ -89,9 +96,16 @@ test.describe('Alarmes – Lot 1', () => {
             defId = def.insertId;
             const [missing] = await db.query("SELECT id FROM alarm_definitions WHERE code = 'missing_document'");
             missingDefId = missing[0].id;
+            [savedActive] = await db.query('SELECT code, active FROM alarm_definitions WHERE code IN (?)', [TESTED_ALARMS]);
+            await db.query('UPDATE alarm_definitions SET active = 1 WHERE code IN (?)', [TESTED_ALARMS]);
             const [licence] = await db.query("SELECT id FROM alarm_definitions WHERE code = 'computed_vols_sans_licence'");
             licenceDefId = licence[0].id;
             await db.query(`INSERT INTO membres (mlogin, mnom, mprenom, mnumero, ext) VALUES (?, 'Zzlot', 'Pilote', 0, 0)`, [FLIGHT_PILOT]);
+            // Pilote actif en section avion : seuls les pilotes actifs de la section ont des alarmes
+            const [user] = await db.query(`INSERT INTO users (username, password, email, last_ip)
+                VALUES (?, 'x', 'zzpwlot2@example.invalid', '127.0.0.1')`, [FLIGHT_PILOT]);
+            await db.query(`INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id)
+                SELECT ?, id, ? FROM types_roles WHERE nom = 'user'`, [user.insertId, avionId]);
             await db.query(
                 `INSERT INTO volsa (vadate, vapilid, vamacid, vacdeb, vacfin, vaduree, vadc, vacategorie, vahdeb, vahfin, club)
                  VALUES (CURDATE(), ?, 'ZZTEST', 0, 1, 1, 0, 0, 10, 11, ?)`, [FLIGHT_PILOT, avionId]);
@@ -109,6 +123,9 @@ test.describe('Alarmes – Lot 1', () => {
         try {
             await cleanup(db);
             await db.query('UPDATE membres SET mtelm = ? WHERE mlogin = ?', [memberMobile, MEMBER.username]);
+            for (const row of savedActive) {
+                await db.query('UPDATE alarm_definitions SET active = ? WHERE code = ?', [row.active, row.code]);
+            }
         } finally {
             await db.end();
         }
@@ -144,7 +161,7 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator('#alarm-matrix')).toHaveCount(0);
         const row = page.locator('#alarms-table tr', { hasText: `zz-smoke-${MEMBER.username}` });
         await expect(row).toHaveCount(1);
-        await expect(row.locator('.badge.bg-primary')).toBeVisible();
+        await expect(row.locator('.alarm-own')).toBeVisible();
         await expect(page.locator('#alarms-table')).not.toContainText(`zz-smoke-${AVION_PILOT}`);
 
         // Réglages sans abonnement : pas de canal exigé, confirmation
@@ -185,6 +202,11 @@ test.describe('Alarmes – Lot 1', () => {
         await login(page, SUPERVISOR);
         await page.goto('/index.php/mes_alarmes');
         await expect(page.locator('#alarm-matrix')).toContainText('Vols sans licence');
+        // Lot 3 : expérience récente ouverte au CA, compte débiteur réservé au bureau et aux trésoriers
+        await expect(page.locator('#alarm-matrix')).toContainText('120 jours sans voler');
+        await expect(page.locator('#alarm-matrix')).toContainText('Emport passager');
+        await expect(page.locator('#alarm-matrix')).toContainText('Remorquage');
+        await expect(page.locator('#alarm-matrix')).not.toContainText('Compte débiteur');
         await page.locator(`#cell_${licenceDefId}_${avionId}`).check();
         await page.click('#configuration button[type="submit"]');
         await expect(page.locator('.alert-success')).toBeVisible();
@@ -192,6 +214,7 @@ test.describe('Alarmes – Lot 1', () => {
         const row = page.locator('#alarms-table tr', { hasText: 'Zzlot' });
         await expect(row).toHaveCount(1);
         await expect(row).toContainText(String(new Date().getFullYear()));
+        await expect(row.locator('.alarm-category[data-category="adhesion"]')).toBeVisible();
         await expect(row.locator('a.btn')).toHaveAttribute('href', /licences\/per_year/);
     });
 
@@ -203,6 +226,11 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator('#membre')).toHaveValue(ADMIN.username);
         await expect(page.locator('#alarm-matrix thead')).toContainText('Planeur');
         await expect(page.locator('#alarm-matrix thead')).toContainText('Avion');
+        await expect(page.locator('#alarm-matrix')).toContainText('Compte débiteur');
+        // Catégories : une ligne d'en-tête par catégorie, dans l'ordre
+        const categories = await page.locator('#alarm-matrix tr.alarm-category-row').allTextContents();
+        expect(categories.map(t => t.trim())).toEqual(expect.arrayContaining(['Documents', 'Comptes', 'Expérience récente']));
+        expect(categories.map(t => t.trim()).indexOf('Comptes')).toBeLessThan(categories.map(t => t.trim()).indexOf('Expérience récente'));
 
         // Configuration d'un autre membre : sa matrice, ses alarmes
         await page.selectOption('#membre', SUPERVISOR.username);

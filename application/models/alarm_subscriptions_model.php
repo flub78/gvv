@@ -36,8 +36,19 @@ class Alarm_subscriptions_model extends Common_Model {
     private static $supervisor_roles = array('ca', 'bureau');
     /** Rôles qui peuvent en plus superviser une alarme ciblant un rôle (ex. élèves) */
     private static $targeted_supervisor_roles = array('instructeur', 'rp');
-    /** Rôles qui peuvent en plus superviser une alarme calculée (cotisations, licences) */
-    private static $computed_supervisor_roles = array('tresorier');
+    /**
+     * Rôles qui peuvent superviser une alarme calculée, par règle : ils
+     * remplacent ca et bureau (le compte débiteur porte sur des données
+     * financières personnelles, fermées au CA)
+     */
+    private static $rule_supervisor_roles = array(
+        'vols_sans_cotisation' => array('ca', 'bureau', 'tresorier'),
+        'vols_sans_licence'    => array('ca', 'bureau', 'tresorier'),
+        'emport_passager'      => array('ca', 'bureau', 'instructeur', 'rp'),
+        'inactivite'           => array('ca', 'bureau', 'instructeur', 'rp'),
+        'remorquages'          => array('ca', 'bureau', 'instructeur', 'rp'),
+        'compte_debiteur'      => array('bureau', 'tresorier', 'super-tresorier'),
+    );
 
     /** @var array|null login => [role => [section_id => true]] */
     private $roles_cache = null;
@@ -162,8 +173,8 @@ class Alarm_subscriptions_model extends Common_Model {
      * Sections que le membre peut superviser pour une alarme
      *
      * club-admin : toutes ; ca et bureau : leurs sections ; instructeur et
-     * rp en plus pour une alarme ciblant un rôle (ex. élèves) ; tresorier en
-     * plus pour une alarme calculée (cotisations, licences). Types privés :
+     * rp en plus pour une alarme ciblant un rôle (ex. élèves). Alarme
+     * calculée : rôles de sa règle ($rule_supervisor_roles). Types privés :
      * club-admin et bureau seulement.
      *
      * @param string $login
@@ -181,8 +192,9 @@ class Alarm_subscriptions_model extends Common_Model {
             if (!empty($def['target_role_id'])) {
                 $roles = array_merge($roles, self::$targeted_supervisor_roles);
             }
-            if ($def['source'] === Alarm_definitions_model::SOURCE_COMPUTED) {
-                $roles = array_merge($roles, self::$computed_supervisor_roles);
+            if ($def['source'] === Alarm_definitions_model::SOURCE_COMPUTED
+                && isset(self::$rule_supervisor_roles[$def['rule']])) {
+                $roles = self::$rule_supervisor_roles[$def['rule']];
             }
         }
         $sections = $this->role_sections($login, $roles);

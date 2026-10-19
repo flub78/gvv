@@ -9,6 +9,10 @@ if (!defined('BASEPATH'))
  * du catalogue, quelle que soit leur source : documents archivés
  * (Document_alarm_provider), alarmes calculées (Computed_alarm_provider).
  *
+ * Une occurrence qui concerne un pilote n'est retenue que pour les sections
+ * où il est actif (rôle user non révoqué) : elle est supprimée s'il n'y en a
+ * aucune, ou si le pilote est extérieur (membres.ext = 1).
+ *
  * @package libraries
  * @see application/libraries/Document_alarm_provider.php
  * @see application/libraries/Computed_alarm_provider.php
@@ -24,6 +28,7 @@ class Alarm_aggregator {
         $this->CI->load->model('alarm_definitions_model');
         $this->CI->load->library('Document_alarm_provider');
         $this->CI->load->library('Computed_alarm_provider');
+        $this->CI->load->model('alarm_subscriptions_model');
     }
 
     /**
@@ -36,7 +41,45 @@ class Alarm_aggregator {
         if ($definitions === null) {
             $definitions = $this->CI->alarm_definitions_model->get_all(true);
         }
-        return array_merge($this->CI->document_alarm_provider->collect($definitions),
-            $this->CI->computed_alarm_provider->collect($definitions));
+        return $this->active_pilots_only(array_merge($this->CI->document_alarm_provider->collect($definitions),
+            $this->CI->computed_alarm_provider->collect($definitions)));
+    }
+
+    /**
+     * Retire les occurrences des pilotes extérieurs et restreint celles des
+     * autres pilotes aux sections où ils sont actifs
+     *
+     * @param array $items AlarmItem[]
+     * @return array AlarmItem[]
+     */
+    private function active_pilots_only($items) {
+        $external = array();
+        foreach ($this->CI->db->select('mlogin')->where('ext', 1)->get('membres')->result_array() as $row) {
+            $external[$row['mlogin']] = true;
+        }
+        $roles = $this->CI->alarm_subscriptions_model->all_member_roles();
+
+        $kept = array();
+        foreach ($items as $item) {
+            $login = $item['pilot_login'];
+            if (empty($login)) {
+                $kept[] = $item; // machine, section, club
+                continue;
+            }
+            if (isset($external[$login]) || empty($roles[$login]['user'])) {
+                continue;
+            }
+            if ($item['section_ids']) {
+                $active = array_values(array_filter($item['section_ids'], function ($section_id) use ($roles, $login) {
+                    return isset($roles[$login]['user'][(int) $section_id]);
+                }));
+                if (!$active) {
+                    continue;
+                }
+                $item['section_ids'] = $active;
+            }
+            $kept[] = $item;
+        }
+        return $kept;
     }
 }

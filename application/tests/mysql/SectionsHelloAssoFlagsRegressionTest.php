@@ -133,6 +133,7 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
             'bar_account_id'               => $s['bar_account_id'],
             'show_on_member_card'          => $s['show_on_member_card'],
             'reservation_reminders_enabled'=> $s['reservation_reminders_enabled'],
+            'licence_type'                 => $s['licence_type'],
             // has_approvisio_par_cb et has_vd_par_cb intentionnellement absents
         ];
 
@@ -176,5 +177,20 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
             (int) $row['has_vd_par_cb'],
             'has_vd_par_cb ne doit pas être remis à 0 lors de la sauvegarde du formulaire sections'
         );
+    }
+
+    /**
+     * « Licence exigée pour voler » laissée vide dans le formulaire : NULL en
+     * base (colonne entière), pas une chaîne vide refusée par MySQL
+     */
+    public function testEmptyLicenceTypeIsStoredAsNull()
+    {
+        $this->assertNull($this->CI->gvvmetadata->post2database('sections', 'licence_type', ''));
+        $this->assertEquals(2, $this->CI->gvvmetadata->post2database('sections', 'licence_type', '2'));
+
+        $this->CI->db->where('id', $this->section_id)->update('sections',
+            array('licence_type' => $this->CI->gvvmetadata->post2database('sections', 'licence_type', '')));
+        $row = $this->CI->db->select('licence_type')->where('id', $this->section_id)->get('sections')->row_array();
+        $this->assertNull($row['licence_type']);
     }
 }

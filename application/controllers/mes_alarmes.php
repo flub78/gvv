@@ -64,7 +64,8 @@ class Mes_alarmes extends MY_Controller
 
         // Configuration
         $effective = $this->alarm_subscriptions_model->effective_for($login);
-        $proposed = $this->alarm_subscriptions_model->proposed_definitions($login);
+        $proposed = Alarm_definitions_model::sort_by_category(
+            $this->alarm_subscriptions_model->proposed_definitions($login));
         $columns = array();
         foreach ($proposed as $def) {
             $columns += $def['cells'];
@@ -97,6 +98,7 @@ class Mes_alarmes extends MY_Controller
                 continue;
             }
             $item['definition_label'] = $definitions[$item['definition_id']]['display_label'];
+            $item['category'] = $definitions[$item['definition_id']]['category'];
             $item['link'] = Notification_manager::item_link($item, $is_self);
             $item['section_names'] = array_values(array_intersect_key($sections, array_flip($item['section_ids'])));
             $rows[] = $item;

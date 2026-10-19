@@ -891,6 +891,11 @@ class GVVMetadata extends Metadata {
                 $this->field['sections']['show_on_member_card']['Type']    = 'int';
                 $this->field['sections']['show_on_member_card']['Subtype'] = 'boolean';
 
+                $this->field['sections']['licence_type']['Name']    = $CI->lang->line('gvv_sections_field_licence_type');
+                $this->field['sections']['licence_type']['Type']    = 'int';
+                $this->field['sections']['licence_type']['Subtype'] = 'selector';
+                $this->field['sections']['licence_type']['Selector'] = 'licence_type_selector';
+
                 $this->field['sections']['reservation_reminders_enabled']['Name']    = $CI->lang->line('gvv_sections_field_reservation_reminders_enabled');
                 $this->field['sections']['reservation_reminders_enabled']['Type']    = 'int';
                 $this->field['sections']['reservation_reminders_enabled']['Subtype'] = 'boolean';

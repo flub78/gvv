@@ -48,7 +48,9 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
             <tbody>
               <?php foreach ($uncovered as $item): ?>
                 <tr>
-                  <td><?= htmlspecialchars($item['label']) ?>
+                  <td <?= alarm_category_mark($item['category']) ?>>
+                    <?= alarm_category_badge($item['category']) ?>
+                    <div><?= htmlspecialchars($item['label']) ?></div>
                     <div class="small text-muted"><?= htmlspecialchars($item['definition_label']) ?></div></td>
                   <td><?= htmlspecialchars($item['detail']) ?></td>
                   <td class="text-center"><span class="badge <?= $item['state'] === 'active' ? 'bg-danger' : 'bg-warning text-dark' ?>">
@@ -164,10 +166,12 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
               <?php foreach ($definitions as $def): ?>
                 <tr>
                   <td class="text-center"><input class="form-check-input" type="checkbox" name="active[]" value="<?= (int) $def['id'] ?>" <?= $def['active'] ? 'checked' : '' ?>></td>
-                  <td><?= htmlspecialchars($def['display_label']) ?></td>
+                  <td <?= alarm_category_mark($def['category']) ?>>
+                    <?= alarm_category_badge($def['category']) ?> <?= htmlspecialchars($def['display_label']) ?></td>
                   <td><?= htmlspecialchars($def['section_name'] ?: $this->lang->line('alarm_filter_all')) ?></td>
                   <td style="max-width:7rem;">
-                    <?php if ($def['source'] === 'document'): ?>
+                    <?php if ($def['source'] === 'document'
+                              || ($def['source'] === 'computed' && Computed_alarm_provider::has_deadline($def['rule']))): ?>
                       <input type="number" min="0" class="form-control form-control-sm" name="lead_days[<?= (int) $def['id'] ?>]" value="<?= (int) $def['lead_days'] ?>">
                     <?php endif; ?>
                   </td>

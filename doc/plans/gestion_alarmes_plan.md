@@ -8,7 +8,7 @@ Date : 18 octobre 2026 — mis à jour le 19 octobre 2026 (page unique « Mes al
 - Notifications documentaires : PRD [archivage documentaire](../prds/archivage_documentaire_prd.md) §10, réalisées par ce plan (anciennement Lot 5 du [plan d'archivage](archivage_documentaire_plan.md))
 
 ## Objectif
-Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalogue d'alarmes, alarmes propres de chaque membre, abonnements individuels et par catégorie par alarme et par section, page « Mes alarmes » (configuration puis liste), notifications par email, message du jour et SMS, synthèses hebdomadaires et mensuelles, rôle élève et visite médicale obligatoire des élèves.
+Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalogue d'alarmes, alarmes propres de chaque membre, abonnements individuels et par catégorie par alarme et par section, page « Mes alarmes » (liste puis configuration), notifications par email, message du jour et SMS, synthèses hebdomadaires et mensuelles, rôle élève et visite médicale obligatoire des élèves.
 
 ## Hypothèses de réalisation
 - Seuls les membres actifs génèrent des alarmes ; `alarm_disabled = 1` et documents non approuvés sont exclus.
@@ -124,7 +124,34 @@ Vols de l'année civile en cours, pilotes extérieurs exclus ; licence de l'acti
 - Un pilote qui vole sans cotisation de l'année voit l'alarme sur sa page ; elle disparaît quand la cotisation est enregistrée.
 - Le trésorier de la section avion abonné à « vols sans licence » en colonne Avion voit les pilotes ayant volé en avion sans licence avion, et pas les vols planeur.
 
+## Lot 3 — Expérience récente et compte débiteur
+
+Par section ; seuils fixes (3 atterrissages CDB en 90 jours, 10 remorqués en 12 mois, 120 jours, 24 mois), délai d'anticipation réglable dans le catalogue.
+
+**3.1 — Rôle et catalogue** (0,5 j)
+- [x] Migration `179_alarmes_lot3.php` : rôle `emport_passager` (par section, attribué en section planeur aux membres ayant l'événement « Emport passager ») ; alarmes `computed_emport_passager`, `computed_remorquages`, `computed_inactivite` (délai 15 j) et `computed_compte_debiteur` ; `config/migration.php` → 179
+- [x] Libellés du rôle (FR/EN/NL), proposé dans la gestion des rôles par section
+
+**3.2 — Règles** (1,5 j)
+- [x] `Computed_alarm_provider` : `emport_passager` (atterrissages CDB, échéance du 3ᵉ plus récent + 90 j), `remorquages` (rôle `pilote_rem`, remorqués enregistrés sur les vols planeur, échéance du 10ᵉ plus récent + 12 mois), `inactivite` (dernier vol + 120 j, actifs non élèves ayant volé depuis moins de 24 mois), `compte_debiteur` (`Relances_model::soldes_debiteurs_par_section()` : calcul des relances réduit au solde du jour, seuil `relances.seuil_alarme`)
+- [x] Pilotes extérieurs et sections où le pilote n'est pas actif exclus de toutes les alarmes (filtre commun dans `Alarm_aggregator`) ; « Mes alarmes » présente la liste avant la configuration
+- [x] Tests : réglages du catalogue (activation) préservés par les tests, y compris les allers-retours de migration
+- [x] Licence exigée par section : colonne `sections.licence_type` (fiche section, migration 179), utilisée par « vols sans licence » et par la page « Licences par année » ; vols planeur rattachés à la section `gestion_planeurs` ; remorquages couverts par la licence planeur ; plus aucun acronyme de section dans le code
+- [x] Catégories d'alarmes (documents, cotisation et licence, comptes, expérience récente) : regroupement de la matrice, couleur et icône dans la matrice, la liste et l'administration
+- [x] Droits : instructeur et RP en plus pour l'emport passager, le remorquage et l'inactivité ; bureau, trésoriers et admin club seuls pour le compte débiteur
+- [x] Délai d'anticipation réglable dans le catalogue pour les alarmes calculées à échéance
+
+**3.3 — Tests et documentation** (1 j)
+- [x] PHPUnit MySQL : les quatre règles (fenêtres, états à venir et actif, double commande et instructeur, remorqués, élève exclu, 24 mois, seuil), sections, droits, migration 179
+- [x] Playwright : nouvelles alarmes dans la matrice d'un administrateur ; alarme de compte débiteur absente pour un membre du CA
+- [x] Guide utilisateur `19_alarmes.md`
+
+**Validation**
+- Un pilote de la section planeur ayant le rôle emport passager et 2 vols CDB dans les 90 derniers jours voit l'alarme active ; un 3ᵉ vol la fait disparaître.
+- Un membre qui n'a pas volé en avion depuis 125 jours voit l'alarme « 120 jours sans voler » de la section avion ; un vol avec instructeur la fait disparaître.
+- Le trésorier abonné voit les pilotes dont la dette dans sa section dépasse le seuil des relances ; un membre du CA ne peut pas s'y abonner.
+
 ## Lots suivants
-- Alarmes de maintenance, d'expérience récente et d'inactivité (extraction des règles d'`alarmes.php` vers `ComputedAlarmProvider`).
+- Alarmes de maintenance, autres alarmes d'expérience récente (extraction des règles d'`alarmes.php` vers `ComputedAlarmProvider`).
 - Acquittement et suspension des alarmes.
 - Vue consolidée avancée (sévérité, tri, historique).

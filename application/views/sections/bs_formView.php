@@ -55,6 +55,7 @@ $this->lang->load('sections');
 					'ordre_affichage' => $ordre_affichage,
 					'gestion_planeurs' => $gestion_planeurs,
 					'gestion_avions' => $gestion_avions,
+					'licence_type' => isset($licence_type) ? $licence_type : '',
 					'libelle_menu_avions' => $libelle_menu_avions,
 					'show_presences' => $show_presences,
 					'has_bar' => $has_bar,

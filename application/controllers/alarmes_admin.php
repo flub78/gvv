@@ -48,7 +48,7 @@ class Alarmes_admin extends MY_Controller
     public function index()
     {
         $this->alarm_definitions_model->sync_document_types();
-        $definitions = $this->alarm_definitions_model->get_all(false);
+        $definitions = Alarm_definitions_model::sort_by_category($this->alarm_definitions_model->get_all(false));
 
         $roles = array();
         foreach ($this->db->order_by('display_order')->get('types_roles')->result_array() as $role) {
@@ -159,6 +159,7 @@ class Alarmes_admin extends MY_Controller
         foreach ($items as $item) {
             if (!isset($covered[$item['key']]) && !isset($uncovered[$item['key']])) {
                 $item['definition_label'] = $active_defs[$item['definition_id']]['display_label'];
+                $item['category'] = $active_defs[$item['definition_id']]['category'];
                 $uncovered[$item['key']] = $item;
             }
         }

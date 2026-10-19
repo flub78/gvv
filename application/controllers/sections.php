@@ -60,6 +60,27 @@ class Sections extends Gvv_Controller {
     protected function form_static_element($action) {
         parent::form_static_element($action);
         $this->gvvmetadata->set_selector('bar_compte_selector', $this->comptes_model->selector_comptes_700(TRUE));
+        $this->gvvmetadata->set_selector('licence_type_selector', $this->licence_type_selector());
+    }
+
+    /**
+     * Types de licence proposés comme licence exigée pour voler dans la
+     * section (licences.type ; 0 est la cotisation), avec les sections qui
+     * les exigent déjà
+     *
+     * @return array type => libellé ('' = aucune)
+     */
+    private function licence_type_selector() {
+        $users = array();
+        foreach ($this->db->select('nom, licence_type')->where('licence_type >', 0)->get('sections')->result_array() as $row) {
+            $users[(int) $row['licence_type']][] = $row['nom'];
+        }
+        $selector = array('' => $this->lang->line('gvv_sections_licence_none'));
+        for ($type = 1; $type <= 9; $type++) {
+            $selector[$type] = sprintf($this->lang->line('gvv_sections_licence_type'), $type)
+                . (isset($users[$type]) ? ' (' . implode(', ', $users[$type]) . ')' : '');
+        }
+        return $selector;
     }
 
     /**
