@@ -9,8 +9,15 @@ if (!defined('BASEPATH'))
  *   - run($secret) : URL publique, protégée par un secret technique
  *   - cron()       : entrée CLI uniquement (php_sapi_name() === 'cli')
  *
+ * Chaque passage traite aussi les notifications d'alarmes
+ * (Notification_manager::run_scheduled()) quand la gestion documentaire est
+ * active, à partir de l'heure alarm_scheduler_hour : une seule entrée cron
+ * suffit. Les synthèses et rappels SMS d'alarmes ne partent qu'une fois par
+ * période.
+ *
  * Configuration :
- *   application/config/program.php → $config['reservation_scheduler_secret']
+ *   application/config/program.php → $config['reservation_scheduler_secret'],
+ *   $config['alarm_scheduler_hour']
  *
  * Exemple cron (horaire) :
  *   0 * * * * XDEBUG_MODE=off /usr/bin/php7.4 /path/to/gvv/index.php reservation_scheduler cron
@@ -27,7 +34,7 @@ class Reservation_scheduler extends CI_Controller
      * Déclenchement via URL publique.
      * URL : /reservation_scheduler/run/SECRET
      *
-     * Retourne JSON : {"sent": N, "source": "public_url"}
+     * Retourne JSON : {"sent": N, "alarms": {...}|null, "source": "public_url"}
      */
     public function run($secret = '')
     {
@@ -41,7 +48,8 @@ class Reservation_scheduler extends CI_Controller
         }
 
         $sent = $this->_execute('public_url');
-        echo json_encode(array('sent' => $sent, 'source' => 'public_url'));
+        $alarms = $this->_execute_alarms('public_url');
+        echo json_encode(array('sent' => $sent, 'alarms' => $alarms, 'source' => 'public_url'));
     }
 
     /**
@@ -57,6 +65,9 @@ class Reservation_scheduler extends CI_Controller
 
         $sent = $this->_execute('cron');
         echo "reservation_scheduler cron: sent=$sent\n";
+
+        $alarms = $this->_execute_alarms('cron');
+        echo 'alarms: ' . Notification_manager::format_stats($alarms) . "\n";
     }
 
     /**
@@ -75,6 +86,24 @@ class Reservation_scheduler extends CI_Controller
         } catch (Exception $e) {
             gvv_error("REMINDER scheduler exception: " . $e->getMessage());
             return 0;
+        }
+    }
+
+    /**
+     * Notifications d'alarmes (Notification_manager::run_scheduled() : rien
+     * sans gestion documentaire ni avant l'heure alarm_scheduler_hour)
+     *
+     * @param  string $source 'cron' | 'public_url'
+     * @return array|null Envois par canal, null si non traitées
+     */
+    private function _execute_alarms($source)
+    {
+        $this->load->library('Notification_manager');
+        try {
+            return $this->notification_manager->run_scheduled($source);
+        } catch (Exception $e) {
+            gvv_error("ALARM scheduler exception: " . $e->getMessage());
+            return null;
         }
     }
 }

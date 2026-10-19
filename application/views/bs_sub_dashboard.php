@@ -274,6 +274,21 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if ($this->config->item('gestion_documentaire')): ?>
+        <?php $this->lang->load('alarmes'); ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center" id="card-mes-alarmes">
+                <?php if (!empty($alarm_active_count)): ?>
+                <span class="badge rounded-pill bg-danger badge-corner" title="<?= $this->lang->line('alarm_card_active_count') ?>"><?= (int) $alarm_active_count ?></span>
+                <?php endif; ?>
+                <i class="fas fa-bell text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('alarm_menu_my_alarms') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('alarm_card_my_alarms_desc') ?></div>
+                <a href="<?= controller_url('mes_alarmes') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-id-badge text-success"></i>
@@ -1390,6 +1405,18 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('document_types') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
+
+        <?php if (has_role('club-admin')): ?>
+        <?php $this->lang->load('alarmes'); ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-danger">
+                <i class="fas fa-bell text-danger"></i>
+                <div class="card-title"><?= $this->lang->line('alarm_menu_admin') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('alarm_admin_catalogue') ?></div>
+                <a href="<?= controller_url('alarmes_admin') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center border-danger">

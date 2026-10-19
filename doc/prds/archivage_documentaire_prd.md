@@ -90,11 +90,11 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
    Les notifications des documents sont assurées par la gestion générique des alarmes : [gestion_alarmes_generiques_prd.md](gestion_alarmes_generiques_prd.md), Lot 1 du MVP. Ce PRD en fixe seulement les règles propres aux documents :
 
-   - Chaque type de document à date d'expiration donne lieu à deux alarmes du catalogue : une alarme personnelle (les documents du membre lui-même) et une alarme de supervision (les documents des autres membres, des machines, des sections et du club). Les documents obligatoires manquants donnent lieu aux mêmes deux alarmes.
+   - Chaque type de document à date d'expiration donne lieu à une alarme du catalogue (et non une par document). Chaque membre a toujours les alarmes de ses propres documents ; un membre autorisé peut en plus s'y abonner, section par section, pour les documents des autres membres, des machines, des sections et du club. Les documents obligatoires manquants donnent lieu à une alarme du même principe. Les types sans date d'expiration, ou pour lesquels les alarmes ne sont pas possibles (cf. §13), n'ont pas d'alarme.
    - Un document est « à venir » à partir du délai d'alerte de son type (champ `alert_days_before`, 30 jours par défaut) et « actif » une fois expiré ; un document obligatoire manquant est actif.
-   - Les abonnements, les canaux (email, message du jour, SMS), la fréquence des synthèses et l'anti-spam sont ceux de la gestion générique des alarmes. En particulier, un membre ne reçoit des notifications de documents que s'il est abonné, par lui-même ou par un administrateur.
-   - Un membre ne reçoit en supervision que les documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
-   - Pour un document de pilote, la section retenue est celle où le pilote est actif ; pour un document de section ou de machine, celle du document ; un document club n'est rattaché à aucune section.
+   - Les abonnements, les canaux (email, message du jour, SMS), la fréquence des synthèses et l'anti-spam sont ceux de la gestion générique des alarmes. En particulier, un membre n'est notifié (email, message du jour, SMS) que sur les canaux qu'il a choisis, lui-même ou par un administrateur ; sans canal, ses alarmes restent affichées sur sa page « Mes alarmes ».
+   - Hors ses propres documents, un membre ne reçoit que les documents qu'il est autorisé à consulter : toutes les sections pour `club-admin`, les sections où il détient le rôle pour `ca` et `bureau`, les types privés uniquement pour le bureau.
+   - Pour un document de pilote, les sections retenues sont celles où le pilote est actif (un abonnement à la section avion ne couvre que les pilotes actifs en section avion) ; pour un document de section ou de machine, celle du document ; un document club n'est rattaché à aucune section.
    - Un document dont l'alerte est désactivée (§9) n'est jamais notifié.
    - Les notifications ne contiennent que des métadonnées et un lien vers GVV, jamais le fichier.
    - La liste des documents expirés signale les documents qu'aucun abonnement ne couvre.
@@ -104,7 +104,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 12. **Réutilisation des mécanismes existants**
    - Le système doit réutiliser les bibliothèques et mécanismes existants pour le stockage et la compression des fichiers.
 13. **Gestion des types de documents**
-   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, pour tous les pilotes ou pour un rôle, portée pilote/section/club, date d’expiration ou non, unique par entité ou non, délai d’alerte).
+   - Les administrateurs doivent pouvoir définir des types de documents (ex. visite médicale, assurance, brevet) avec des règles associées (obligatoire ou non, pour tous les pilotes ou pour un rôle, portée pilote/section/club, date d’expiration ou non, unique par entité ou non, délai d’alerte, alarmes possibles ou non — possibles par défaut).
    - Ces types définissent des règles applicables aux documents (obligatoire, portée, expiration, délai d'alerte), pas des emplacements uniques. Un pilote peut avoir plusieurs documents du même type simultanément.
 
 
@@ -129,7 +129,7 @@ Ce PRD s’appuie sur l’analyse existante : [doc/design_notes/reuse_pilot_docu
 
 ## Questions ouvertes
 - ~~Quel délai par défaut pour les alertes d'expiration ?~~ → **Résolu** : 30 jours (paramétrable par type de document via `alert_days_before`)
-- ~~Qui peut s'abonner aux alertes ?~~ → **Résolu** : tout membre, aux alarmes qu'il a le droit de consulter, sans abonnement automatique (cf. PRD de gestion des alarmes)
+- ~~Qui peut s'abonner aux alertes ?~~ → **Résolu** : chaque membre a ses propres alarmes ; tout membre autorisé s'abonne, par section, aux alarmes qu'il a le droit de consulter, sans abonnement automatique (cf. PRD de gestion des alarmes)
 - Quelles catégories de documents doivent être disponibles dès la première version ? Visite médicale, assurance, brevet pour les pilotes.
 - Faut-il distinguer des niveaux de confidentialité par type de document ? À évaluer.
 - ~~Faut-il supporter les SMS ?~~ → **Résolu** : SMS court au déclenchement, optionnel, via le fournisseur déjà utilisé par les rappels de réservation (cf. PRD de gestion des alarmes)

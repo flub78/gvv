@@ -32,6 +32,11 @@ $lang['document_types_filter_clear'] = 'Filters wissen';
 
 $lang['document_types_confirm_delete'] = 'Weet u zeker dat u dit documenttype wilt verwijderen?';
 $lang['document_types_no_types'] = 'Geen documenttypes gedefinieerd';
+$lang['document_types_toggle_on'] = "Type \"%s\": %s ingeschakeld.";
+$lang['document_types_toggle_off'] = "Type \"%s\": %s uitgeschakeld.";
+$lang['document_types_toggle_denied'] = "U mag documenttypes niet wijzigen.";
+$lang['document_types_toggle_invalid'] = "Wijzigen onmogelijk: onbekend type of veld.";
+
 
 /* End of file document_types_lang.php */
 /* Location: ./application/language/dutch/document_types_lang.php */

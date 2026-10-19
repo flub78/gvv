@@ -399,6 +399,10 @@ class Archived_documents_model extends Common_Model {
      * (unique_per_entity=0) are all checked: at least one valid instance
      * is sufficient to satisfy the requirement.
      *
+     * A type required for a role only (document_types.required_role_id, e.g.
+     * the medical for students) applies only if the pilot holds that role,
+     * not revoked, in the given section (in any section when none is given).
+     *
      * @param string $pilot_login Pilot login
      * @param int|null $section_id Section ID for section-specific required types
      * @return array Missing document types
@@ -421,7 +425,16 @@ class Archived_documents_model extends Common_Model {
 
         // A required type is missing if no valid instance covers it
         $missing = array();
+        $pilot_roles = null; // chargés une fois, au premier type réservé à un rôle
         foreach ($required_types as $type) {
+            if (!empty($type['required_role_id'])) {
+                if ($pilot_roles === null) {
+                    $pilot_roles = $this->pilot_role_ids($pilot_login, $section_id);
+                }
+                if (!isset($pilot_roles[(int) $type['required_role_id']])) {
+                    continue;
+                }
+            }
             if (!isset($covered_type_ids[$type['id']])) {
                 $type['expiration_status'] = self::STATUS_MISSING;
                 $missing[] = $type;
@@ -429,6 +442,28 @@ class Archived_documents_model extends Common_Model {
         }
 
         return $missing;
+    }
+
+    /**
+     * Roles held by the pilot, not revoked, in the section (any section when null)
+     * @param string $pilot_login
+     * @param int|null $section_id
+     * @return array types_roles.id => true
+     */
+    public function pilot_role_ids($pilot_login, $section_id = null) {
+        $this->db->select('urps.types_roles_id');
+        $this->db->from('user_roles_per_section urps');
+        $this->db->join('users u', 'u.id = urps.user_id');
+        $this->db->where('u.username', $pilot_login);
+        $this->db->where('urps.revoked_at IS NULL', null, false);
+        if ($section_id) {
+            $this->db->where('urps.section_id', (int) $section_id);
+        }
+        $roles = array();
+        foreach ($this->db->get()->result_array() as $row) {
+            $roles[(int) $row['types_roles_id']] = true;
+        }
+        return $roles;
     }
 
     /**

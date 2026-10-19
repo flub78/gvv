@@ -142,6 +142,10 @@ $lang['role_gestion_vd'] = "Discovery flight manager";
 $lang['role_pilote_vd'] = "Discovery flight pilot";
 $lang['role_backup_db'] = "Database backup";
 $lang['role_pilote_rem'] = "Tow pilot";
+$lang['role_eleve'] = "Student";
+$lang['role_eleve_desc'] = "Member with a training in progress";
+$lang['gvv_toggle_error'] = "Communication error with the server.";
+$lang['gvv_toggle_session'] = "Your session has expired: reload the page and log in again.";
 $lang['role_pilote_rem_desc'] = "Pilot authorised to perform aerotow operations";
 
 $lang['role_user_desc'] = "Can login and view own data";

@@ -480,3 +480,69 @@ function togglePassword(inputId, btn) {
         icon.className = 'fas fa-eye';
     }
 }
+
+
+/*
+ * Booléen modifiable en un clic dans une liste (sous-type de métadonnées
+ * « toggle », cf. MetaData::array_field) : la case envoie id, field et value
+ * en POST à data-url ; la réponse JSON (success, message) est affichée dans
+ * une alerte refermable. En cas d'échec, la case reprend son état précédent.
+ * Messages d'erreur traduits : data-error (communication), data-session
+ * (session expirée : le serveur renvoie la page de connexion, pas du JSON).
+ */
+document.addEventListener('change', function (event) {
+	var box = event.target;
+	if (!box.classList || !box.classList.contains('gvv-toggle')) {
+		return;
+	}
+	var previous = !box.checked;
+	var data = new FormData();
+	data.append('id', box.dataset.id);
+	data.append('field', box.dataset.field);
+	data.append('value', box.checked ? '1' : '0');
+	box.disabled = true;
+
+	fetch(box.dataset.url, { method: 'POST', body: data, credentials: 'same-origin' })
+		.then(function (response) {
+			var type = response.headers.get('Content-Type') || '';
+			if (response.redirected || type.indexOf('application/json') === -1) {
+				box.checked = previous;
+				gvvToggleMessage(false, box.dataset.session);
+				return;
+			}
+			return response.json().then(function (result) {
+				if (!result.success) {
+					box.checked = previous;
+				}
+				gvvToggleMessage(result.success, result.message);
+			});
+		})
+		.catch(function () {
+			box.checked = previous;
+			gvvToggleMessage(false, box.dataset.error);
+		})
+		.then(function () {
+			box.disabled = false;
+		});
+});
+
+function gvvToggleMessage(success, message) {
+	var old = document.getElementById('gvv-toggle-message');
+	if (old) {
+		old.remove();
+	}
+	var alert = document.createElement('div');
+	alert.id = 'gvv-toggle-message';
+	alert.setAttribute('role', 'alert');
+	alert.className = 'alert alert-dismissible fade show shadow ' + (success ? 'alert-success' : 'alert-danger');
+	// Fixé en bas de l'écran : visible quelle que soit la ligne cliquée
+	alert.style.cssText = 'position:fixed;bottom:1rem;right:1rem;z-index:1080;max-width:32rem;';
+	alert.textContent = message || '';
+	var close = document.createElement('button');
+	close.type = 'button';
+	close.className = 'btn-close';
+	close.setAttribute('data-bs-dismiss', 'alert');
+	close.setAttribute('aria-label', 'Close');
+	alert.appendChild(close);
+	document.body.appendChild(alert);
+}

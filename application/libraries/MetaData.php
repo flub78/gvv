@@ -426,7 +426,7 @@ abstract class Metadata {
             return $left;
         if ($subtype == 'selector')
             return $left;
-        if ($subtype == 'boolean')
+        if ($subtype == 'boolean' || $subtype == 'toggle')
             return $center;
         if ($subtype == 'currency')
             return $right;
@@ -1259,7 +1259,7 @@ abstract class Metadata {
             if ($value === '' || $value === null) {
                 return '';
             }
-            if ($subtype == 'boolean' || $subtype == 'checkbox') {
+            if ($subtype == 'boolean' || $subtype == 'checkbox' || $subtype == 'toggle') {
                 return (int) $value;
             }
             if ($subtype == 'currency' || $type == 'decimal') {
@@ -1290,6 +1290,23 @@ abstract class Metadata {
             if ($mode == 'csv' || $mode == 'pdf')
                 return $value;
             return ($value) ? '<span class="fw-bold text-success">X</span>' : '';
+        } elseif ($subtype == 'toggle') {
+            // Booléen modifiable en un clic dans une liste : la case appelle
+            // l'URL 'ToggleUrl' (POST id, field, value), cf. assets/javascript/gvv.js
+            if ($mode == 'csv' || $mode == 'pdf')
+                return $value;
+            $key = $this->table_key($table);
+            $url = $this->field_attr($table, $field, 'ToggleUrl');
+            $disabled = ($mode == 'rw' && $url && isset($row[$key])) ? '' : ' disabled';
+            $this->CI->lang->load('gvv');
+            return '<input type="checkbox" class="form-check-input gvv-toggle"'
+                . ($value ? ' checked' : '') . $disabled
+                . ' data-url="' . ($url ? site_url($url) : '') . '"'
+                . ' data-id="' . (isset($row[$key]) ? htmlspecialchars($row[$key]) : '') . '"'
+                . ' data-field="' . htmlspecialchars($field) . '"'
+                . ' data-error="' . htmlspecialchars($this->CI->lang->line('gvv_toggle_error')) . '"'
+                . ' data-session="' . htmlspecialchars($this->CI->lang->line('gvv_toggle_session')) . '"'
+                . ' aria-label="' . htmlspecialchars($this->field_name($table, $field)) . '">';
         } elseif ('currency' == $subtype) {
 
             if ($value === '')

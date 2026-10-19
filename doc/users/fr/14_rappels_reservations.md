@@ -67,7 +67,7 @@ source setenv.sh
 XDEBUG_MODE=off /usr/bin/php7.4 /chemin/vers/gvv/index.php reservation_scheduler cron
 ```
 
-Résultat attendu : `reservation_scheduler cron: sent=N` (N ≥ 0, aucune erreur PHP).
+Résultat attendu : `reservation_scheduler cron: sent=N` (N ≥ 0, aucune erreur PHP), suivi de la ligne `alarms: …` : ce même cron traite aussi les notifications d'alarmes (voir [Alarmes](19_alarmes.md) §5.2).
 
 ### 1.3 Déclenchement via URL (sans cron)
 

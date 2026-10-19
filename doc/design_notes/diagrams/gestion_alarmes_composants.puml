@@ -6,9 +6,8 @@ skinparam defaultFontSize 12
 title Architecture — Gestion Générique des Alarmes GVV (Lot 1)
 
 package "Pages" #lavender {
-  component [alarmes_config\n(configuration)] as CONF
-  component [mes_alarmes\n(consultation)] as MES
-  component [alarmes_admin\n(catalogue, catégories,\nalarmes sans abonné)] as ADM
+  component [mes_alarmes\n(configuration\npuis alarmes)] as MES
+  component [alarmes_admin\n(catalogue, catégories,\nalarmes non reçues)] as ADM
 }
 
 package "Notifications" #mistyrose {
@@ -40,14 +39,13 @@ package "Code existant" {
 
 SCHED --> NOTIF
 NOTIF --> AGG : occurrences
-NOTIF --> SUBS : abonnements effectifs,\nréglages, historique
+NOTIF --> SUBS : cases effectives,\nréglages, historique
 NOTIF --> MAIL
 NOTIF --> MOTD
 NOTIF --> SMS
 
-CONF --> SUBS
 ADM --> SUBS
-ADM --> AGG : alarmes sans abonné
+ADM --> AGG : alarmes non reçues
 MES --> AGG
 MES --> SUBS
 

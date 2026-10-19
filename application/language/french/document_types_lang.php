@@ -32,6 +32,11 @@ $lang['document_types_filter_clear'] = 'Effacer les filtres';
 
 $lang['document_types_confirm_delete'] = 'Êtes-vous sûr de vouloir supprimer ce type de document ?';
 $lang['document_types_no_types'] = 'Aucun type de document défini';
+$lang['document_types_toggle_on'] = "Type « %s » : %s activé.";
+$lang['document_types_toggle_off'] = "Type « %s » : %s désactivé.";
+$lang['document_types_toggle_denied'] = "Vous n'avez pas le droit de modifier les types de documents.";
+$lang['document_types_toggle_invalid'] = "Modification impossible : type ou champ inconnu.";
+
 
 /* End of file document_types_lang.php */
 /* Location: ./application/language/french/document_types_lang.php */

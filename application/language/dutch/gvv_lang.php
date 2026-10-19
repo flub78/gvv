@@ -136,6 +136,10 @@ $lang['role_gestion_vd'] = "Beheerder ontdekkingsvluchten";
 $lang['role_pilote_vd'] = "Piloot ontdekkingsvluchten";
 $lang['role_backup_db'] = "Databaseback-up";
 $lang['role_pilote_rem'] = "Sleepvlieger";
+$lang['role_eleve'] = "Leerling";
+$lang['role_eleve_desc'] = "Lid met een lopende opleiding";
+$lang['gvv_toggle_error'] = "Communicatiefout met de server.";
+$lang['gvv_toggle_session'] = "Uw sessie is verlopen: laad de pagina opnieuw en meld u opnieuw aan.";
 $lang['role_pilote_rem_desc'] = "Piloot gemachtigd om sleepopdrachten uit te voeren";
 
 $lang['role_user_desc'] = "Kan inloggen en eigen gegevens bekijken";

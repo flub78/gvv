@@ -1,0 +1,84 @@
+<?php
+/**
+ * Gestion des alarmes (abonnements, notifications)
+ *
+ * @see doc/prds/gestion_alarmes_generiques_prd.md
+ */
+
+$lang['alarm_label_document_target'] = "%s — %s";
+$lang['alarm_label_missing'] = "Ontbrekende verplichte documenten";
+$lang['alarm_item_missing'] = "%s ontbreekt";
+$lang['alarm_error_unknown'] = "Onbekend alarm.";
+$lang['alarm_error_no_right'] = "Het alarm \"%s\" (kolom %s) is niet toegankelijk voor %s.";
+$lang['alarm_error_save'] = "Fout bij het opslaan van het abonnement.";
+$lang['alarm_error_duplicate'] = "Dit abonnement bestaat al.";
+$lang['alarm_error_mandatory'] = "Het abonnement op \"%s\" (kolom %s) is verplicht en kan niet worden verwijderd.";
+
+$lang['alarm_notification_title'] = "GVV: %d alarm(en) voor u";
+$lang['alarm_notification_hello'] = "Hallo %s,";
+$lang['alarm_notification_digest_intro'] = "Hier zijn uw actieve of komende alarmen: uw eigen documenten en die u volgt.";
+$lang['alarm_notification_trigger_intro'] = "Nieuwe alarmen betreffen u: uw eigen documenten of die u volgt.";
+$lang['alarm_notification_open'] = "Openen";
+$lang['alarm_notification_all'] = "Al mijn alarmen bekijken";
+$lang['alarm_notification_settings'] = "Mijn alarmen instellen";
+$lang['alarm_col_alarm'] = "Alarm";
+$lang['alarm_col_concerns'] = "Betreft";
+$lang['alarm_col_state'] = "Status";
+$lang['alarm_col_due'] = "Vervaldatum";
+$lang['alarm_state_upcoming'] = "Komend";
+$lang['alarm_state_active'] = "Actief";
+$lang['alarm_sms_text'] = "GVV: %d alarm(en) voor u:";
+
+$lang['alarm_config_title'] = "Alarminstellingen";
+$lang['alarm_my_alarms_title'] = "Mijn alarmen";
+$lang['alarm_config_member'] = "Lid";
+$lang['alarm_config_alarms'] = "Alarmen";
+$lang['alarm_config_mandatory'] = "Verplicht";
+$lang['alarm_config_by_category'] = "Geabonneerd via categorie";
+$lang['alarm_config_by_admin'] = "Aangemaakt door %s";
+$lang['alarm_config_delivery'] = "Ontvangst";
+$lang['alarm_config_channels'] = "Kanalen (zonder kanaal worden uw alarmen alleen op deze pagina getoond):";
+$lang['alarm_config_channel_email'] = "E-mail";
+$lang['alarm_config_channel_motd'] = "Bericht van de dag in GVV";
+$lang['alarm_config_frequency'] = "Frequentie";
+$lang['alarm_frequency_immediate'] = "Onmiddellijk (bij elke melding)";
+$lang['alarm_frequency_weekly'] = "Wekelijks (op maandag)";
+$lang['alarm_frequency_monthly'] = "Maandelijks (eerste maandag van de maand)";
+$lang['alarm_config_sms'] = "Herinnering per sms";
+$lang['alarm_config_sms_help'] = "Een korte sms met de link naar uw alarmen, op maandag (eerste maandag van de maand bij maandelijkse frequentie), als er alarmen zijn. Door dit aan te vinken geeft u toestemming.";
+$lang['alarm_config_sms_no_mobile'] = "De herinnering per sms vereist een gsm-nummer in de ledenfiche.";
+$lang['alarm_config_save'] = "Opslaan";
+$lang['alarm_config_unknown_member'] = "Onbekend lid.";
+$lang['alarm_config_saved'] = "Alarminstellingen opgeslagen.";
+$lang['alarm_my_alarms_none'] = "Geen actief of komend alarm voor uw documenten.";
+$lang['alarm_my_alarms_none_followed'] = "Geen actief of komend alarm, noch voor uw documenten noch onder de alarmen die u volgt.";
+$lang['alarm_filter_all'] = "Alle";
+$lang['alarm_filter_apply'] = "Filteren";
+$lang['alarm_col_section'] = "Sectie";
+$lang['alarm_admin_title'] = "Beheer van alarmen";
+$lang['alarm_admin_member_config'] = "Alarmen van een lid instellen";
+$lang['alarm_admin_uncovered'] = "Actieve of komende alarmen die niemand ontvangt";
+$lang['alarm_admin_uncovered_none'] = "Elk alarm wordt door minstens één lid ontvangen.";
+$lang['alarm_admin_categories'] = "Abonnementen van ledencategorieën";
+$lang['alarm_admin_categories_help'] = "Bij elk lid met de rol vinkt het abonnement het vakje van de gekozen sectie aan (al zijn secties voor de rol en de kolom Club als geen sectie gekozen is); het vervalt als het lid de rol verliest. Een verplicht vakje kan het lid niet uitvinken.";
+$lang['alarm_admin_role'] = "Rol";
+$lang['alarm_admin_add'] = "Toevoegen";
+$lang['alarm_admin_categories_none'] = "Geen categorieabonnement.";
+$lang['alarm_admin_delete'] = "Verwijderen";
+$lang['alarm_admin_catalogue'] = "Alarmcatalogus";
+$lang['alarm_admin_active'] = "Actief";
+$lang['alarm_admin_lead_days'] = "Waarschuwingstermijn (dagen)";
+$lang['alarm_admin_catalogue_saved'] = "Alarmcatalogus opgeslagen.";
+$lang['alarm_admin_category_added'] = "Categorieabonnement toegevoegd.";
+$lang['alarm_admin_category_deleted'] = "Categorieabonnement verwijderd.";
+$lang['alarm_menu_my_alarms'] = "Mijn alarmen";
+$lang['alarm_menu_admin'] = "Beheer van alarmen";
+$lang['alarm_card_my_alarms_desc'] = "Mijn alarmen en hun instellingen";
+$lang['alarm_column_club'] = "Club";
+$lang['alarm_config_own_help'] = "Uw eigen alarmen (uw vervallende documenten, uw ontbrekende verplichte documenten) worden altijd gevolgd en kunnen niet worden uitgeschakeld.";
+$lang['alarm_config_no_supervision'] = "U hebt geen toezichtsrecht: er kan geen ander alarm worden gevolgd.";
+$lang['alarm_config_matrix_help'] = "Vink per alarm de secties aan die u wilt volgen: alleen actieve piloten, toestellen en documenten van deze secties worden opgenomen. De kolom Club dekt documenten die aan geen sectie gekoppeld zijn.";
+$lang['alarm_config_origin_legend'] = "Vakje aangevinkt door een beheerder of per categorie (beweeg over het pictogram)";
+$lang['alarm_list_title'] = "Actieve en komende alarmen";
+$lang['alarm_badge_own'] = "Ik";
+$lang['alarm_card_active_count'] = "Actieve alarmen";

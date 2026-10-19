@@ -944,12 +944,17 @@ class GVVMetadata extends Metadata {
                 );
                 $this->field['document_types']['required']['Name'] = 'Obligatoire';
                 $this->field['document_types']['required']['Subtype'] = 'checkbox';
+                $this->field['document_types']['required_role_id']['Name'] = 'Obligatoire seulement pour le rôle';
+                $this->field['document_types']['required_role_id']['Subtype'] = 'selector';
+                $this->field['document_types']['required_role_id']['Selector'] = 'role_selector_with_null';
                 $this->field['document_types']['has_expiration']['Name'] = 'Avec expiration';
                 $this->field['document_types']['has_expiration']['Subtype'] = 'checkbox';
                 $this->field['document_types']['storage_by_year']['Name'] = 'Stockage par annee';
                 $this->field['document_types']['storage_by_year']['Subtype'] = 'checkbox';
                 $this->field['document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
                 $this->field['document_types']['alert_days_before']['Type'] = 'int';
+                $this->field['document_types']['alarm_enabled']['Name'] = 'Alarmes possibles';
+                $this->field['document_types']['alarm_enabled']['Subtype'] = 'checkbox';
                 $this->field['document_types']['active']['Name'] = 'Actif';
                 $this->field['document_types']['active']['Subtype'] = 'checkbox';
                 $this->field['document_types']['is_private']['Name'] = 'Confidentiel';
@@ -967,12 +972,18 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_document_types']['section_name']['Name'] = 'Section';
                 $this->field['vue_document_types']['scope']['Name'] = 'Portee';
                 $this->field['vue_document_types']['required']['Name'] = 'Obligatoire';
-                $this->field['vue_document_types']['required']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['required']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['required']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['has_expiration']['Name'] = 'Expiration';
-                $this->field['vue_document_types']['has_expiration']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['has_expiration']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['has_expiration']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['alert_days_before']['Name'] = 'Alerte (jours)';
+                $this->field['vue_document_types']['alarm_enabled']['Name'] = 'Alarmes';
+                $this->field['vue_document_types']['alarm_enabled']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['alarm_enabled']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['active']['Name'] = 'Actif';
-                $this->field['vue_document_types']['active']['Subtype'] = 'boolean';
+                $this->field['vue_document_types']['active']['Subtype'] = 'toggle';
+                $this->field['vue_document_types']['active']['ToggleUrl'] = 'document_types/ajax_toggle';
                 $this->field['vue_document_types']['display_order']['Name'] = 'Ordre';
 
                 /**

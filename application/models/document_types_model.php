@@ -122,7 +122,7 @@ class Document_types_model extends Common_Model {
     public function select_page($per_page = 0, $premier = 0, $selection = []) {
         $this->db->select('document_types.id, document_types.code, document_types.name,
             document_types.scope, document_types.required, document_types.has_expiration,
-            document_types.alert_days_before,
+            document_types.alert_days_before, document_types.alarm_enabled,
             document_types.active, document_types.display_order,
             sections.nom as section_name');
         $this->db->from($this->table);

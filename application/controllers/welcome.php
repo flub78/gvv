@@ -113,6 +113,12 @@ class Welcome extends Gvv_Controller {
         $data = $this->_prepare_dashboard_data();
         $data['dashboard_section'] = $name;
 
+        // Carte "Mes alarmes" de l'espace personnel : nombre d'alarmes actives
+        if ($name === 'user' && $this->config->item('gestion_documentaire') && $this->db->table_exists('alarm_definitions')) {
+            $this->load->library('Notification_manager');
+            $data['alarm_active_count'] = $this->notification_manager->active_count_for($data['username']);
+        }
+
         $this->load->model('dashboard_shortcuts_model');
         $this->load->helper('dashboard_shortcuts');
         $section_id = (int) $this->session->userdata('section');

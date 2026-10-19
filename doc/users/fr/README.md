@@ -178,6 +178,13 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Informations conservées à l'import (nom, téléphone...) et tri alphabétique des adresses
 - Export (mailto, presse-papier, TXT/Markdown, découpage en lots)
 
+#### [19. Alarmes](19_alarmes.md)
+**Être prévenu des documents qui expirent ou qui manquent**
+- Page « Mes alarmes » : vos alarmes propres, toujours suivies, et la liste des alarmes actives
+- Abonnement aux alarmes des autres par section (matrice), canaux (email, message du jour, rappel SMS) et fréquence
+- Rôle Élève et certificat médical des élèves
+- Administration : abonnements de catégories, catalogue, tâche quotidienne
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -222,7 +229,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
 11. **[☁️ Sauvegarde hors-site](17_sauvegarde_hors_site.md)** - Envoi automatique des backups vers Google Drive
 12. **[📧 Listes de diffusion](18_listes_diffusion.md)** - Constituer et exporter des listes d'adresses email
-13. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+13. **[🚨 Alarmes](19_alarmes.md)** - Être prévenu des documents qui expirent ou manquent
+14. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 
