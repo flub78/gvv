@@ -2,15 +2,14 @@
 
 ## Vue d'ensemble
 
-GVV peut vous prévenir quand un document arrive à expiration ou a expiré, ou quand un document obligatoire manque : votre certificat médical, l'assurance d'une machine, les visites médicales des élèves, etc.
+GVV peut vous prévenir quand un document arrive à expiration ou a expiré, ou quand un document obligatoire manque (votre certificat médical, l'assurance d'une machine, les visites médicales des élèves…), et quand un pilote a volé sans cotisation ou sans licence.
 
 Une seule page, **Mes alarmes**, dans votre espace personnel (menu à votre nom et tableau de bord) : en haut la configuration, en dessous la liste de vos alarmes.
 
-- **Vos propres alarmes** (vos documents qui expirent, vos documents obligatoires manquants) sont toujours suivies, sans rien configurer, et ne peuvent pas être désactivées.
-- Si vous en avez le droit (CA, bureau, instructeur, administrateur…), vous pouvez **suivre en plus les alarmes des autres**, alarme par alarme et section par section.
+- **Vos propres alarmes** (vos documents qui expirent, vos documents obligatoires manquants, vos vols sans cotisation ou sans licence) sont toujours suivies, sans rien configurer, et ne peuvent pas être désactivées.
+- Si vous en avez le droit (CA, bureau, trésorier, instructeur, administrateur…), vous pouvez **suivre en plus les alarmes des autres**, alarme par alarme et section par section.
 - Vous choisissez comment les recevoir (email, message du jour dans GVV, rappel par SMS) et à quelle fréquence. **Sans canal choisi, vos alarmes restent seulement affichées sur la page.**
 
-> Le Lot 1 couvre les documents archivés (voir [Archivage documentaire](README.md)). Les alarmes sur les vols sans licence ou sans cotisation viendront ensuite.
 
 ---
 
@@ -21,6 +20,13 @@ Ouvrez **Mes alarmes**.
 ### 1.1 Les alarmes
 
 Il y a **une alarme par type de document** (certificat médical, attestation d'assurance, manuel d'exploitation s'il a une date de validité…), plus une pour les **documents obligatoires manquants** et une pour les **visites médicales des élèves**. Les types de documents sans date d'expiration, et ceux pour lesquels un administrateur a décoché **Alarmes possibles sur ce type**, n'ont pas d'alarme.
+
+S'y ajoutent deux alarmes sur les vols de l'**année en cours** (pilotes extérieurs non contrôlés) :
+
+- **Vols sans cotisation** : le pilote a volé (planeur, avion ou ULM) sans cotisation enregistrée pour l'année. Le bouton **Ouvrir** mène le pilote au paiement de sa cotisation en ligne, et un responsable à la page « Vols sans cotisation ».
+- **Vols sans licence** : le pilote a volé dans une activité sans la licence de cette activité pour l'année (licence planeur pour un vol planeur, avion pour un vol avion, ULM pour un vol ULM, comme sur la page « Licences par année »). Une ligne par activité. Pour un responsable, **Ouvrir** mène à la page des licences ; le pilote, qui obtient sa licence hors de GVV, n'a pas de bouton.
+
+Ces alarmes sont toujours actives et disparaissent dès que la cotisation ou la licence est enregistrée dans GVV. Un vol planeur relève de la section planeur, un vol avion ou ULM de la section du vol. Si les licences ne sont pas saisies dans GVV, tous les pilotes apparaissent dans « Vols sans licence » : désactivez alors cette alarme dans le catalogue (§4.2).
 
 Un simple membre n'a rien à cocher : la page lui rappelle que ses propres alarmes sont toujours suivies.
 
@@ -38,7 +44,7 @@ Cocher une case, c'est suivre cette alarme **pour cette section seulement**. Exe
 
 - Pour les documents de pilote, une section couvre les pilotes actifs dans cette section ; pour les machines et les documents de section, ceux rattachés à cette section.
 - La colonne **Club** couvre les documents qui ne dépendent d'aucune section (documents du club, machine sans section). Elle n'existe que pour ces alarmes.
-- Une case n'apparaît que si vous avez le droit correspondant : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections ; l'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques.
+- Une case n'apparaît que si vous avez le droit correspondant : administrateurs club pour toutes les sections, membres du CA et du bureau pour leurs sections ; l'alarme des visites médicales des élèves est aussi ouverte aux instructeurs et aux responsables pédagogiques, celles des vols sans cotisation ou sans licence aux trésoriers de leurs sections.
 
 Pour aller plus vite, la case placée **en tête de chaque ligne** (devant le nom de l'alarme) coche ou décoche toute la ligne, celle **sous le nom de chaque colonne** coche ou décoche toute la colonne, et celle **du coin**, à côté de « Alarme », coche ou décoche toute la matrice. Elle apparaît à moitié remplie quand une partie seulement des cases est cochée. Les cases obligatoires ne changent pas. Pensez à **Enregistrer**.
 

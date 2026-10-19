@@ -93,6 +93,10 @@ class Alarm_definitions_model extends Common_Model {
             }
             return $name;
         }
+        if ($def['source'] === self::SOURCE_COMPUTED && $def['rule']
+            && $this->lang->line('alarm_label_rule_' . $def['rule'])) {
+            return $this->lang->line('alarm_label_rule_' . $def['rule']);
+        }
         return $def['label'];
     }
 

@@ -231,11 +231,11 @@ class Notification_manager {
      *
      * @param array $item Occurrence (occurrences_for())
      * @param bool $reader_is_member Le lecteur est le membre dont ce sont les occurrences
-     * @return string
+     * @return string '' s'il n'y a pas de page de traitement pour ce lecteur
      */
     public static function item_link($item, $reader_is_member = true) {
-        if ($reader_is_member && !empty($item['own']) && !empty($item['link_own'])) {
-            return $item['link_own'];
+        if ($reader_is_member && !empty($item['own']) && isset($item['link_own'])) {
+            return $item['link_own']; // '' : rien à ouvrir pour le membre (ex. licence obtenue hors de GVV)
         }
         return $item['link'];
     }
@@ -448,8 +448,9 @@ class Notification_manager {
                 . '<td style="padding:4px 8px">' . htmlspecialchars($item['detail']) . '</td>'
                 . '<td style="padding:4px 8px">' . htmlspecialchars($state) . '</td>'
                 . '<td style="padding:4px 8px">' . $due . '</td>'
-                . '<td style="padding:4px 8px"><a href="' . htmlspecialchars($this->url(self::item_link($item))) . '">'
-                . htmlspecialchars($lang->line('alarm_notification_open')) . '</a></td>'
+                . '<td style="padding:4px 8px">' . (self::item_link($item) === '' ? '' : '<a href="'
+                . htmlspecialchars($this->url(self::item_link($item))) . '">'
+                . htmlspecialchars($lang->line('alarm_notification_open')) . '</a>') . '</td>'
                 . '</tr>';
         }
         return '<p>' . htmlspecialchars(sprintf($lang->line('alarm_notification_hello'), trim($member['mprenom']))) . '</p>'

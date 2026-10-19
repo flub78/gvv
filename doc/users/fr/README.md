@@ -229,7 +229,7 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
 11. **[☁️ Sauvegarde hors-site](17_sauvegarde_hors_site.md)** - Envoi automatique des backups vers Google Drive
 12. **[📧 Listes de diffusion](18_listes_diffusion.md)** - Constituer et exporter des listes d'adresses email
-13. **[🚨 Alarmes](19_alarmes.md)** - Être prévenu des documents qui expirent ou manquent
+13. **[🚨 Alarmes](19_alarmes.md)** - Être prévenu des documents qui expirent ou manquent, et des vols sans cotisation ou sans licence
 14. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---

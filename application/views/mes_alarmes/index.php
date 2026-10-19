@@ -248,7 +248,11 @@ $csrf_value = $this->security->get_csrf_hash();
                 </span>
               </td>
               <td class="text-center"><?= $row['due_date'] ? date_db2ht($row['due_date']) : '' ?></td>
-              <td><a href="<?= site_url($row['link']) ?>" class="btn btn-outline-primary btn-sm"><?= $this->lang->line('alarm_notification_open') ?></a></td>
+              <td>
+                <?php if ($row['link'] !== ''): ?>
+                  <a href="<?= site_url($row['link']) ?>" class="btn btn-outline-primary btn-sm"><?= $this->lang->line('alarm_notification_open') ?></a>
+                <?php endif; ?>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>

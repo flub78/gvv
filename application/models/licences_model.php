@@ -200,35 +200,50 @@ class Licences_model extends Common_Model {
     }
 
     /**
-     * Pilotes ayant volé pendant l'année sans cotisation (type 0) pour cette année.
-     * Les pilotes extérieurs (membres.ext = 1) ne sont pas censés cotiser et sont exclus.
+     * Vols planeur et avion/ULM de l'année, sous forme de sous-requête SQL :
+     * pilote, categorie (planeur | avion | ulm), licence_type (1 | 2 | 3),
+     * date_vol, section_id.
      *
-     * Les vols planeur viennent de volsp. Les vols avion/ULM viennent de volsa :
-     * ils sont classés ULM quand la section du vol a l'acronyme ULM, avion sinon.
+     * Les vols planeur viennent de volsp, qui ne porte pas de section : ils
+     * sont rattachés à la section d'acronyme PLA. Les vols avion/ULM viennent
+     * de volsa : ULM quand la section du vol a l'acronyme ULM, avion sinon.
      *
-     * @param int $year Année contrôlée
-     * @return array Une ligne par pilote : pilote, nom, prenom, planeur, avion, ulm, dernier_vol
+     * @param int $year
+     * @return string
      */
-    public function pilotes_vols_sans_cotisation($year) {
+    private function vols_annee_sql($year) {
         $year = (int) $year;
         $debut = $this->db->escape("$year-01-01");
         $fin = $this->db->escape("$year-12-31");
+        return "SELECT vppilid AS pilote, 'planeur' AS categorie, 1 AS licence_type, vpdate AS date_vol,
+                    (SELECT id FROM sections WHERE acronyme = 'PLA' ORDER BY id LIMIT 1) AS section_id
+                FROM volsp
+                WHERE vpdate BETWEEN $debut AND $fin
+                UNION ALL
+                SELECT volsa.vapilid, IF(sections.acronyme = 'ULM', 'ulm', 'avion'),
+                    IF(sections.acronyme = 'ULM', 3, 2), volsa.vadate, volsa.club
+                FROM volsa
+                LEFT JOIN sections ON sections.id = volsa.club
+                WHERE volsa.vadate BETWEEN $debut AND $fin";
+    }
 
+    /**
+     * Pilotes ayant volé pendant l'année sans cotisation (type 0) pour cette année.
+     * Les pilotes extérieurs (membres.ext = 1) ne sont pas censés cotiser et sont exclus.
+     *
+     * @param int $year Année contrôlée
+     * @return array Une ligne par pilote : pilote, nom, prenom, planeur, avion, ulm,
+     *               dernier_vol, sections (identifiants des sections des vols, séparés par des virgules)
+     */
+    public function pilotes_vols_sans_cotisation($year) {
+        $year = (int) $year;
         $sql = "SELECT v.pilote, m.mnom AS nom, m.mprenom AS prenom,
                     SUM(v.categorie = 'planeur') AS planeur,
                     SUM(v.categorie = 'avion') AS avion,
                     SUM(v.categorie = 'ulm') AS ulm,
-                    MAX(v.date_vol) AS dernier_vol
-                FROM (
-                    SELECT vppilid AS pilote, 'planeur' AS categorie, vpdate AS date_vol
-                    FROM volsp
-                    WHERE vpdate BETWEEN $debut AND $fin
-                    UNION ALL
-                    SELECT volsa.vapilid, IF(sections.acronyme = 'ULM', 'ulm', 'avion'), volsa.vadate
-                    FROM volsa
-                    LEFT JOIN sections ON sections.id = volsa.club
-                    WHERE volsa.vadate BETWEEN $debut AND $fin
-                ) v
+                    MAX(v.date_vol) AS dernier_vol,
+                    GROUP_CONCAT(DISTINCT v.section_id ORDER BY v.section_id) AS sections
+                FROM (" . $this->vols_annee_sql($year) . ") v
                 LEFT JOIN membres m ON m.mlogin = v.pilote
                 WHERE (m.ext IS NULL OR m.ext = 0)
                 AND NOT EXISTS (
@@ -237,6 +252,35 @@ class Licences_model extends Common_Model {
                 )
                 GROUP BY v.pilote, m.mnom, m.mprenom
                 ORDER BY m.mnom, m.mprenom, v.pilote";
+
+        return $this->db->query($sql)->result_array();
+    }
+
+    /**
+     * Pilotes ayant volé pendant l'année dans une activité sans la licence de
+     * cette activité pour l'année : licence planeur (type 1) pour un vol
+     * planeur, avion (2) pour un vol avion, ULM (3) pour un vol ULM. Les
+     * pilotes extérieurs (membres.ext = 1) sont exclus.
+     *
+     * @param int $year Année contrôlée
+     * @return array Une ligne par pilote et par activité : pilote, nom, prenom, categorie,
+     *               licence_type, vols, dernier_vol, sections (identifiants séparés par des virgules)
+     */
+    public function pilotes_vols_sans_licence($year) {
+        $year = (int) $year;
+        $sql = "SELECT v.pilote, m.mnom AS nom, m.mprenom AS prenom, v.categorie, v.licence_type,
+                    COUNT(*) AS vols,
+                    MAX(v.date_vol) AS dernier_vol,
+                    GROUP_CONCAT(DISTINCT v.section_id ORDER BY v.section_id) AS sections
+                FROM (" . $this->vols_annee_sql($year) . ") v
+                LEFT JOIN membres m ON m.mlogin = v.pilote
+                WHERE (m.ext IS NULL OR m.ext = 0)
+                AND NOT EXISTS (
+                    SELECT 1 FROM licences l
+                    WHERE l.pilote = v.pilote AND l.year = $year AND l.type = v.licence_type
+                )
+                GROUP BY v.pilote, m.mnom, m.mprenom, v.categorie, v.licence_type
+                ORDER BY m.mnom, m.mprenom, v.pilote, v.licence_type";
 
         return $this->db->query($sql)->result_array();
     }

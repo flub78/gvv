@@ -102,10 +102,27 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - L'ouverture d'une formation donne le rôle élève, la clôture le retire si aucune autre formation n'est en cours.
 
 ## Lot 2 — Alarmes de conformité calculées
-- [ ] Règle « vols sans licence » dans `licences_model`, sur le modèle de `pilotes_vols_sans_cotisation()`
-- [ ] `ComputedAlarmProvider` (vols sans licence, vols sans cotisation) branché sur `AlarmAggregator`
-- [ ] Migration : alarmes correspondantes dans le catalogue
-- [ ] Tests PHPUnit des deux règles et de leur notification ; libellés FR/EN/NL
+
+Vols de l'année civile en cours, pilotes extérieurs exclus ; licence de l'activité du vol (planeur 1, avion 2, ULM 3) ; supervision ouverte en plus au trésorier de la section.
+
+**2.1 — Règles** (1 j)
+- [x] `licences_model::pilotes_vols_sans_cotisation()` : sections des vols en plus (planeur : section PLA ; avion, ULM : `volsa.club`), sans changer la page « Vols sans cotisation »
+- [x] `licences_model::pilotes_vols_sans_licence($year)` : une ligne par pilote et par activité sans licence de l'activité
+
+**2.2 — Fournisseur et catalogue** (1 j)
+- [x] `Computed_alarm_provider` (règles `vols_sans_cotisation`, `vols_sans_licence`) branché sur `Alarm_aggregator`
+- [x] Migration `178_alarmes_lot2.php` : alarmes `computed_vols_sans_cotisation` et `computed_vols_sans_licence` ; `config/migration.php` → 178
+- [x] Libellés traduits des alarmes calculées ; occurrences sans lien pour le pilote (licence) : pas de bouton « Ouvrir »
+- [x] Droit de supervision du rôle `tresorier` sur les alarmes calculées
+
+**2.3 — Tests et documentation** (1 j)
+- [x] PHPUnit MySQL : les deux règles (vols planeur, avion, ULM ; licence d'une autre activité ; année précédente ; pilote extérieur ; régularisation), occurrences et sections, droits du trésorier, alarme propre du pilote, migration 178
+- [x] Playwright : alarme calculée visible sur « Mes alarmes » d'un superviseur abonné
+- [x] Guide utilisateur `19_alarmes.md`, libellés FR/EN/NL
+
+**Validation**
+- Un pilote qui vole sans cotisation de l'année voit l'alarme sur sa page ; elle disparaît quand la cotisation est enregistrée.
+- Le trésorier de la section avion abonné à « vols sans licence » en colonne Avion voit les pilotes ayant volé en avion sans licence avion, et pas les vols planeur.
 
 ## Lots suivants
 - Alarmes de maintenance, d'expérience récente et d'inactivité (extraction des règles d'`alarmes.php` vers `ComputedAlarmProvider`).

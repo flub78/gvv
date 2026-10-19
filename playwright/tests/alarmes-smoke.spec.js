@@ -15,6 +15,8 @@
  *      403 with a wrong secret
  *   6. The SMS reminder is refused for a member without a mobile number
  *   7. A whole row or column, or the whole matrix, is ticked or unticked in one click
+ *   8. Lot 2: a supervisor subscribed to "vols sans licence" in the Avion column
+ *      sees a pilot who flew in avion this year without licence
  *
  * Prerequisites: test users asterix (member, Planeur/Général), abraracourcix
  * (CA Avion), goudurix (member Avion) and panoramix (club-admin), migration
@@ -32,11 +34,13 @@ const SUPERVISOR = { username: 'abraracourcix', password: 'password' };
 const AVION_PILOT = 'goudurix';
 const ADMIN = { username: 'panoramix', password: 'password' };
 const TYPE_CODE = 'zz_alarm_smoke';
+const FLIGHT_PILOT = 'zzpwlot2';   // pilote fictif : vol avion de l'année sans cotisation ni licence
 
 let avionId;
 let memberMobile;
 let defId;
 let missingDefId;
+let licenceDefId;
 
 async function login(page, user) {
     await page.goto('/index.php/auth/login');
@@ -54,6 +58,8 @@ async function cleanup(db) {
     await db.query('DELETE FROM alarm_subscriptions WHERE subscriber_login IN (?)', [logins]);
     await db.query('DELETE FROM alarm_subscriptions WHERE subscriber_login IS NULL AND created_by IN (?)', [logins]);
     await db.query('DELETE FROM alarm_member_settings WHERE member_login IN (?)', [logins]);
+    await db.query('DELETE FROM volsa WHERE vapilid = ?', [FLIGHT_PILOT]);
+    await db.query('DELETE FROM membres WHERE mlogin = ?', [FLIGHT_PILOT]);
 }
 
 async function addExpiredDocument(db, typeId, pilot) {
@@ -83,6 +89,12 @@ test.describe('Alarmes – Lot 1', () => {
             defId = def.insertId;
             const [missing] = await db.query("SELECT id FROM alarm_definitions WHERE code = 'missing_document'");
             missingDefId = missing[0].id;
+            const [licence] = await db.query("SELECT id FROM alarm_definitions WHERE code = 'computed_vols_sans_licence'");
+            licenceDefId = licence[0].id;
+            await db.query(`INSERT INTO membres (mlogin, mnom, mprenom, mnumero, ext) VALUES (?, 'Zzlot', 'Pilote', 0, 0)`, [FLIGHT_PILOT]);
+            await db.query(
+                `INSERT INTO volsa (vadate, vapilid, vamacid, vacdeb, vacfin, vaduree, vadc, vacategorie, vahdeb, vahfin, club)
+                 VALUES (CURDATE(), ?, 'ZZTEST', 0, 1, 1, 0, 0, 10, 11, ?)`, [FLIGHT_PILOT, avionId]);
             const [member] = await db.query('SELECT mtelm FROM membres WHERE mlogin = ?', [MEMBER.username]);
             memberMobile = member[0].mtelm;
             await addExpiredDocument(db, type.insertId, MEMBER.username);  // actif en Planeur et Général
@@ -167,6 +179,20 @@ test.describe('Alarmes – Lot 1', () => {
         // Carte du tableau de bord : nombre d'alarmes actives
         await page.goto('/index.php/welcome/section/user');
         await expect(page.locator('#card-mes-alarmes .badge-corner')).toHaveText(String(activeRows));
+    });
+
+    test('un superviseur abonné voit les vols sans licence de sa section (Lot 2)', async ({ page }) => {
+        await login(page, SUPERVISOR);
+        await page.goto('/index.php/mes_alarmes');
+        await expect(page.locator('#alarm-matrix')).toContainText('Vols sans licence');
+        await page.locator(`#cell_${licenceDefId}_${avionId}`).check();
+        await page.click('#configuration button[type="submit"]');
+        await expect(page.locator('.alert-success')).toBeVisible();
+
+        const row = page.locator('#alarms-table tr', { hasText: 'Zzlot' });
+        await expect(row).toHaveCount(1);
+        await expect(row).toContainText(String(new Date().getFullYear()));
+        await expect(row.locator('a.btn')).toHaveAttribute('href', /licences\/per_year/);
     });
 
     test('un administrateur configure les alarmes d\'un autre membre', async ({ page }) => {

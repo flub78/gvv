@@ -1,6 +1,6 @@
 # PRD — Gestion Générique des Alarmes
 
-Date : 9 mai 2026 — mis à jour le 30 mai 2026 (portée par section), le 18 octobre 2026 (Lot 1 du MVP : catalogue d'alarmes par type de document, canaux, synthèses ; rôle élève et visite médicale des élèves) et le 19 octobre 2026 (page unique « Mes alarmes », abonnements par section, alarmes propres toujours affichées)
+Date : 9 mai 2026 — mis à jour le 30 mai 2026 (portée par section), le 18 octobre 2026 (Lot 1 du MVP : catalogue d'alarmes par type de document, canaux, synthèses ; rôle élève et visite médicale des élèves) le 19 octobre 2026 (page unique « Mes alarmes », abonnements par section, alarmes propres toujours affichées) et le 19 octobre 2026 (Lot 2 : vols sans cotisation, vols sans licence)
 
 ## Contexte
 
@@ -101,14 +101,18 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
      - une alarme pour les documents obligatoires manquants ;
      - une alarme des visites médicales des élèves, restreinte aux membres ayant le rôle « élève ».
    - Chaque type de document indique si des alarmes sont possibles sur ce type ; c'est le cas par défaut, y compris pour tous les types existants. Un type sans alarmes possibles, ou sans date d'expiration, n'a pas d'alarme dans le catalogue.
-   - Le Lot 2 y ajoute les alarmes de conformité calculées : pilotes ayant volé sans licence valide, pilotes ayant volé sans cotisation à jour (réutilise le contrôle existant).
+   - Le Lot 2 y ajoute deux alarmes de conformité calculées, sur les vols de l'**année civile en cours** :
+     - **vol sans cotisation** : un pilote a volé (planeur, avion ou ULM) sans cotisation enregistrée pour l'année (réutilise le contrôle existant « Vols sans cotisation ») ;
+     - **vol sans licence** : un pilote a volé dans une activité sans la licence de cette activité pour l'année — licence planeur pour un vol planeur, licence avion pour un vol avion, licence ULM pour un vol ULM (mêmes licences que la page « Licences par année »).
+     - Les pilotes extérieurs ne sont pas contrôlés. Une telle alarme est active dès le premier vol concerné et disparaît dès que la cotisation ou la licence est enregistrée.
+     - Un vol relève de la section de son activité (planeur : section planeur ; avion, ULM : section du vol) : un abonnement à la section avion ne couvre que les vols avion.
    - Un administrateur peut activer ou désactiver une alarme du catalogue et régler son délai d'anticipation ; pour une alarme documentaire, ce délai vaut par défaut le délai d'alerte du type de document.
    - Les types d'alarme sont extensibles : documentaire, maintenance, conformité calculée, expérience récente calculée.
 
 2. **Alarmes propres et abonnements (Lot 1)**
    - **Alarmes propres** : tout membre actif a toujours les alarmes qui le concernent personnellement (ex. expiration de son certificat médical, document obligatoire manquant), sans abonnement. Il ne peut pas les désactiver.
    - **Abonnements** : un membre ayant les droits de supervision peut en plus s'abonner aux alarmes des autres — documents des autres membres, des machines, des sections et du club, et catégories de pilotes (ex. visites médicales des élèves). Un abonnement porte sur une alarme du catalogue **et une section** : il ne couvre que les membres actifs dans cette section, ou les machines et documents rattachés à cette section. Les documents qui ne dépendent d'aucune section (documents du club, machine sans section) relèvent d'une colonne **Club**.
-   - Droits de supervision : administrateur club pour toutes les sections ; membres du CA et du bureau pour leurs sections ; instructeurs et responsables pédagogiques en plus pour les alarmes portant sur une catégorie de pilotes (ex. élèves) ; documents privés réservés au bureau et à l'administrateur club. La colonne Club est ouverte à tout membre ayant des droits de supervision dans au moins une section.
+   - Droits de supervision : administrateur club pour toutes les sections ; membres du CA et du bureau pour leurs sections ; instructeurs et responsables pédagogiques en plus pour les alarmes portant sur une catégorie de pilotes (ex. élèves) ; trésoriers en plus, dans leurs sections, pour les alarmes de vols sans cotisation ou sans licence (Lot 2) ; documents privés réservés au bureau et à l'administrateur club. La colonne Club est ouverte à tout membre ayant des droits de supervision dans au moins une section.
    - Aucun abonnement n'existe par défaut. Les alarmes propres ne sont envoyées (email, message du jour, SMS) que sur les canaux que le membre ou un administrateur a choisis : sans canal, elles restent seulement affichées dans GVV.
 
 3. **Page Mes alarmes : configuration (Lot 1)**
@@ -234,6 +238,6 @@ Le mécanisme d'alarmes ne s'appuie pas sur le message du jour pour stocker ni o
 - Qualité perçue : diminution des oublis d'échéance remontés par les responsables.
 
 ## Questions ouvertes
-- Lot 2 : quelles licences comptent pour l'alarme « vol sans licence » (licence fédérale, licence de section) et à partir de quelle date un vol est-il considéré sans licence ?
+- ~~Lot 2 : quelles licences comptent pour l'alarme « vol sans licence » et à partir de quelle date un vol est-il considéré sans licence ?~~ → **Résolu** : la licence de l'activité du vol (planeur, avion, ULM) pour l'année du vol ; vols de l'année civile en cours.
 - Quel niveau de granularité de sévérité est attendu (info, warning, critique) ?
 - Quelles échéances de maintenance et quelles alarmes d'expérience sont prioritaires après le Lot 2 ?
