@@ -9,6 +9,9 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  */
 class Relances_model extends CI_Model
 {
+    /** Seuil d'alarme par défaut (€), tant que relances.seuil_alarme n'est pas réglé */
+    const DEFAULT_SEUIL_ALARME = 300;
+
     public function __construct()
     {
         parent::__construct();

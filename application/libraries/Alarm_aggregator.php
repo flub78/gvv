@@ -9,9 +9,11 @@ if (!defined('BASEPATH'))
  * du catalogue, quelle que soit leur source : documents archivés
  * (Document_alarm_provider), alarmes calculées (Computed_alarm_provider).
  *
- * Une occurrence qui concerne un pilote n'est retenue que pour les sections
- * où il est actif (rôle user non révoqué) : elle est supprimée s'il n'y en a
- * aucune, ou si le pilote est extérieur (membres.ext = 1).
+ * Une occurrence qui concerne un pilote est supprimée si le pilote est
+ * extérieur (membres.ext = 1) ; sauf si elle porte 'any_pilot' (compte
+ * débiteur : un pilote parti doit encore être relancé), elle n'est retenue
+ * que pour les sections où il est actif (rôle user non révoqué) et supprimée
+ * s'il n'y en a aucune.
  *
  * @package libraries
  * @see application/libraries/Document_alarm_provider.php
@@ -66,7 +68,14 @@ class Alarm_aggregator {
                 $kept[] = $item; // machine, section, club
                 continue;
             }
-            if (isset($external[$login]) || empty($roles[$login]['user'])) {
+            if (isset($external[$login])) {
+                continue;
+            }
+            if (!empty($item['any_pilot'])) {
+                $kept[] = $item;
+                continue;
+            }
+            if (empty($roles[$login]['user'])) {
                 continue;
             }
             if ($item['section_ids']) {

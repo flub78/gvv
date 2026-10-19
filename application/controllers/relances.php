@@ -37,7 +37,7 @@ class Relances extends MY_Controller
      */
     public function index()
     {
-        $seuil_alarme   = (float)($this->configuration_model->get_param('relances.seuil_alarme')   ?? 300);
+        $seuil_alarme   = (float)($this->configuration_model->get_param('relances.seuil_alarme')   ?? Relances_model::DEFAULT_SEUIL_ALARME);
         $seuil_critique = (float)($this->configuration_model->get_param('relances.seuil_critique') ?? 500);
 
         $data = $this->relances_model->get_debiteurs();
@@ -151,7 +151,7 @@ class Relances extends MY_Controller
      */
     public function export_pdf()
     {
-        $seuil_alarme   = (float)($this->configuration_model->get_param('relances.seuil_alarme')   ?? 300);
+        $seuil_alarme   = (float)($this->configuration_model->get_param('relances.seuil_alarme')   ?? Relances_model::DEFAULT_SEUIL_ALARME);
         $seuil_critique = (float)($this->configuration_model->get_param('relances.seuil_critique') ?? 500);
 
         $data = $this->relances_model->get_debiteurs();

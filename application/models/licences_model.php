@@ -200,12 +200,30 @@ class Licences_model extends Common_Model {
     }
 
     /**
+     * Section des vols planeur : volsp ne porte pas de section, ses vols
+     * relèvent de la première section qui gère les planeurs
+     * (sections.gestion_planeurs). Règle commune aux contrôles de licence et
+     * de cotisation et aux alarmes d'expérience récente.
+     *
+     * @return int|null
+     */
+    public function glider_section_id() {
+        static $id = false;
+        if ($id === false) {
+            $row = $this->db->select('id')->where('gestion_planeurs', 1)->order_by('id')->limit(1)
+                ->get('sections')->row_array();
+            $id = $row ? (int) $row['id'] : null;
+        }
+        return $id;
+    }
+
+    /**
      * Vols planeur et avion/ULM de l'année, sous forme de sous-requête SQL :
      * pilote, categorie (planeur | avion | ulm), date_vol, section_id,
      * licence_type (licence exigée par la section du vol, sections.licence_type).
      *
      * Les vols planeur viennent de volsp, qui ne porte pas de section : ils
-     * sont rattachés à la section qui gère les planeurs (gestion_planeurs).
+     * sont rattachés à la section des vols planeur (glider_section_id()).
      * Les vols avion/ULM viennent de volsa, dans la section du vol (club) :
      * un remorquage, enregistré dans la section planeur, relève donc de la
      * licence de cette section. Catégorie : ULM quand la section du vol a
@@ -218,10 +236,11 @@ class Licences_model extends Common_Model {
         $year = (int) $year;
         $debut = $this->db->escape("$year-01-01");
         $fin = $this->db->escape("$year-12-31");
+        $glider = (int) $this->glider_section_id();
         return "SELECT vppilid AS pilote, 'planeur' AS categorie, vpdate AS date_vol,
                     gs.id AS section_id, gs.licence_type
                 FROM volsp
-                LEFT JOIN (SELECT id, licence_type FROM sections WHERE gestion_planeurs = 1 ORDER BY id LIMIT 1) gs ON 1 = 1
+                LEFT JOIN sections gs ON gs.id = $glider
                 WHERE vpdate BETWEEN $debut AND $fin
                 UNION ALL
                 SELECT volsa.vapilid, IF(sections.acronyme = 'ULM', 'ulm', 'avion'), volsa.vadate,

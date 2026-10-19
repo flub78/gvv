@@ -15,8 +15,8 @@ if (!defined('BASEPATH'))
  * - vols_sans_licence : vols dans une section sans la licence exigée par
  *   la section (sections.licence_type) pour l'année.
  *
- * Lot 3, par section : vols planeur (volsp) pour la section qui gère les
- * planeurs (sections.gestion_planeurs), vols volsa de la section pour les
+ * Lot 3, par section : vols planeur (volsp) pour la section des vols planeur
+ * (Licences_model::glider_section_id()), vols volsa de la section pour les
  * autres ; une occurrence par pilote et par section :
  * - emport_passager : pilote ayant le rôle emport_passager dans la section,
  *   moins de 3 atterrissages CDB (ou comme instructeur) en 90 jours ;
@@ -52,7 +52,6 @@ class Computed_alarm_provider {
     const TOWS = 10;
     const TOW_MONTHS = 12;
     const INACTIVITY_WINDOW_MONTHS = 24;
-    const DEFAULT_DEBT_THRESHOLD = 300;
 
     /** @var CI_Controller */
     private $CI;
@@ -63,7 +62,7 @@ class Computed_alarm_provider {
     /** @var string Date de référence (Y-m-d), modifiable pour les tests */
     private $today;
 
-    /** @var array|null section_id => ['nom', 'gestion_planeurs'] */
+    /** @var array|null section_id => ['nom'] */
     private $sections = null;
 
     /** @var array|null login => nom affiché */
@@ -86,6 +85,14 @@ class Computed_alarm_provider {
      */
     public function set_today($date) {
         $this->today = $date;
+    }
+
+    /**
+     * Revient à la date et à l'année courantes (fin de test)
+     */
+    public function reset_reference() {
+        $this->today = date('Y-m-d');
+        $this->year = (int) date('Y');
     }
 
     /**
@@ -163,72 +170,85 @@ class Computed_alarm_provider {
     // ------------------------------------------------------------------
 
     private function emport_passager($def) {
-        $holders = array();
-        foreach ($this->CI->alarm_subscriptions_model->all_member_roles() as $login => $roles) {
-            if (!empty($roles['emport_passager'])) {
-                foreach (array_keys($roles['emport_passager']) as $section_id) {
-                    if (isset($this->sections()[(int) $section_id])) {
-                        $holders[(int) $section_id][] = $login;
-                    }
-                }
-            }
-        }
         $items = array();
-        $since = date('Y-m-d', strtotime($this->today . ' -' . self::INACTIVITY_WINDOW_MONTHS . ' months'));
-        foreach ($holders as $section_id => $logins) {
-            $landings = $this->cdb_landings($section_id, $logins, $since);
+        foreach ($this->role_holders('emport_passager', false) as $section_id => $logins) {
+            $landings = $this->cdb_landings($section_id, $logins, $this->history_start());
             foreach ($logins as $login) {
-                $dates = isset($landings[$login]) ? $landings[$login] : array();
-                $third = (count($dates) >= self::PASSENGER_LANDINGS) ? $dates[self::PASSENGER_LANDINGS - 1] : null;
-                $due = $third ? date('Y-m-d', strtotime($third . ' +' . self::PASSENGER_DAYS . ' days')) : null;
-                $state = $this->deadline_state($due, $def);
-                if (!$state) {
-                    continue;
-                }
-                $window_start = date('Y-m-d', strtotime($this->today . ' -' . self::PASSENGER_DAYS . ' days'));
-                $recent = count(array_filter($dates, function ($d) use ($window_start) { return $d >= $window_start; }));
-                $items[] = $this->section_item($def, self::RULE_EMPORT_PASSAGER, $login, $section_id,
-                    sprintf($this->CI->lang->line('alarm_item_emport_passager'), $this->section_name($section_id)),
-                    sprintf($this->CI->lang->line('alarm_item_emport_passager_detail'), $this->member_name($login), $recent),
-                    $state, $due, $this->flights_page($section_id), $this->flights_page($section_id));
+                $items = array_merge($items, $this->window_alarm($def, self::RULE_EMPORT_PASSAGER, $login, $section_id,
+                    isset($landings[$login]) ? $landings[$login] : array(), self::PASSENGER_LANDINGS,
+                    '+' . self::PASSENGER_DAYS . ' days', 'alarm_item_emport_passager', 'alarm_item_emport_passager_detail',
+                    $this->flights_page($section_id)));
             }
         }
         return $items;
     }
 
     private function remorquages($def) {
-        $holders = array();
-        foreach ($this->CI->alarm_subscriptions_model->all_member_roles() as $login => $roles) {
-            if (!empty($roles['pilote_rem'])) {
-                foreach (array_keys($roles['pilote_rem']) as $section_id) {
-                    // Les remorqués sont enregistrés sur les vols planeur
-                    if (isset($this->sections()[(int) $section_id]) && $this->is_glider_section($section_id)) {
-                        $holders[(int) $section_id][] = $login;
-                    }
-                }
-            }
-        }
         $items = array();
-        $since = date('Y-m-d', strtotime($this->today . ' -' . self::INACTIVITY_WINDOW_MONTHS . ' months'));
-        $window_start = date('Y-m-d', strtotime($this->today . ' -' . self::TOW_MONTHS . ' months'));
-        foreach ($holders as $section_id => $logins) {
-            $tows = $this->tow_dates($logins, $since);
+        // Les remorqués sont enregistrés sur les vols planeur
+        foreach ($this->role_holders('pilote_rem', true) as $section_id => $logins) {
+            $tows = $this->tow_dates($logins, $this->history_start());
             foreach ($logins as $login) {
-                $dates = isset($tows[$login]) ? $tows[$login] : array();
-                $tenth = (count($dates) >= self::TOWS) ? $dates[self::TOWS - 1] : null;
-                $due = $tenth ? date('Y-m-d', strtotime($tenth . ' +' . self::TOW_MONTHS . ' months')) : null;
-                $state = $this->deadline_state($due, $def);
-                if (!$state) {
-                    continue;
-                }
-                $recent = count(array_filter($dates, function ($d) use ($window_start) { return $d >= $window_start; }));
-                $items[] = $this->section_item($def, self::RULE_REMORQUAGES, $login, $section_id,
-                    sprintf($this->CI->lang->line('alarm_item_remorquages'), $this->section_name($section_id)),
-                    sprintf($this->CI->lang->line('alarm_item_remorquages_detail'), $this->member_name($login), $recent),
-                    $state, $due, 'vols_planeur/page', 'vols_planeur/page');
+                $items = array_merge($items, $this->window_alarm($def, self::RULE_REMORQUAGES, $login, $section_id,
+                    isset($tows[$login]) ? $tows[$login] : array(), self::TOWS,
+                    '+' . self::TOW_MONTHS . ' months', 'alarm_item_remorquages', 'alarm_item_remorquages_detail',
+                    'vols_planeur/page'));
             }
         }
         return $items;
+    }
+
+    /**
+     * Titulaires non révoqués d'un rôle, par section
+     *
+     * @param string $role
+     * @param bool $glider_only Seulement dans la section des vols planeur
+     * @return array section_id => [login, ...]
+     */
+    private function role_holders($role, $glider_only) {
+        $holders = array();
+        foreach ($this->CI->alarm_subscriptions_model->all_member_roles() as $login => $roles) {
+            if (empty($roles[$role])) {
+                continue;
+            }
+            foreach (array_keys($roles[$role]) as $section_id) {
+                if (isset($this->sections()[(int) $section_id]) && (!$glider_only || $this->is_glider_section($section_id))) {
+                    $holders[(int) $section_id][] = $login;
+                }
+            }
+        }
+        return $holders;
+    }
+
+    /**
+     * Alarme d'expérience « au moins N événements dans une fenêtre glissante » :
+     * échéance = N-ième événement le plus récent + fenêtre ; active sans N
+     * événements ou après l'échéance, à venir dans le délai d'anticipation
+     *
+     * @param array $dates Dates des événements, les plus récentes d'abord
+     * @param int $required N
+     * @param string $window Fenêtre, ex. '+90 days', '+12 months'
+     * @return array 0 ou 1 occurrence
+     */
+    private function window_alarm($def, $rule, $login, $section_id, $dates, $required, $window,
+                                  $label_key, $detail_key, $link) {
+        $nth = (count($dates) >= $required) ? $dates[$required - 1] : null;
+        $due = $nth ? date('Y-m-d', strtotime($nth . ' ' . $window)) : null;
+        $state = $this->deadline_state($due, $def);
+        if (!$state) {
+            return array();
+        }
+        $window_start = date('Y-m-d', strtotime($this->today . ' ' . str_replace('+', '-', $window)));
+        $recent = count(array_filter($dates, function ($d) use ($window_start) { return $d >= $window_start; }));
+        return array($this->section_item($def, $rule, $login, $section_id,
+            sprintf($this->CI->lang->line($label_key), $this->section_name($section_id)),
+            sprintf($this->CI->lang->line($detail_key), $this->member_name($login), $recent),
+            $state, $due, $link, $link));
+    }
+
+    /** Début de l'historique lu pour les alarmes d'expérience (24 mois) */
+    private function history_start() {
+        return date('Y-m-d', strtotime($this->today . ' -' . self::INACTIVITY_WINDOW_MONTHS . ' months'));
     }
 
     private function inactivite($def) {
@@ -245,9 +265,8 @@ class Computed_alarm_provider {
             }
         }
         $items = array();
-        $since = date('Y-m-d', strtotime($this->today . ' -' . self::INACTIVITY_WINDOW_MONTHS . ' months'));
         foreach ($population as $section_id => $logins) {
-            foreach ($this->last_flights($section_id, $logins, $since) as $login => $last) {
+            foreach ($this->last_flights($section_id, $logins, $this->history_start()) as $login => $last) {
                 $due = date('Y-m-d', strtotime($last . ' +' . self::INACTIVITY_DAYS . ' days'));
                 $state = $this->deadline_state($due, $def);
                 if (!$state) {
@@ -267,15 +286,17 @@ class Computed_alarm_provider {
         $this->CI->load->model('relances_model');
         $this->CI->load->model('configuration_model');
         $threshold = $this->CI->configuration_model->get_param('relances.seuil_alarme');
-        $threshold = ($threshold === null || $threshold === '') ? self::DEFAULT_DEBT_THRESHOLD : (float) $threshold;
+        $threshold = ($threshold === null || $threshold === '') ? Relances_model::DEFAULT_SEUIL_ALARME : (float) $threshold;
 
         $items = array();
         foreach ($this->CI->relances_model->soldes_debiteurs_par_section($threshold) as $row) {
-            $items[] = $this->section_item($def, self::RULE_COMPTE_DEBITEUR, $row['mlogin'], (int) $row['section_id'],
+            $item = $this->section_item($def, self::RULE_COMPTE_DEBITEUR, $row['mlogin'], (int) $row['section_id'],
                 sprintf($this->CI->lang->line('alarm_item_compte_debiteur'), $row['section_nom']),
                 sprintf($this->CI->lang->line('alarm_item_compte_debiteur_detail'),
                     trim($row['mprenom'] . ' ' . $row['mnom']), number_format((float) $row['solde'], 2, ',', ' ')),
                 'active', null, 'relances', 'compta/mon_compte/' . (int) $row['section_id']);
+            $item['any_pilot'] = true; // un pilote parti ou inactif doit encore être relancé (cf. Alarm_aggregator)
+            $items[] = $item;
         }
         return $items;
     }
@@ -368,11 +389,11 @@ class Computed_alarm_provider {
         return $result;
     }
 
-    /** Sections : id => ['nom', 'gestion_planeurs'] */
+    /** Sections : id => ['nom'] */
     private function sections() {
         if ($this->sections === null) {
             $this->sections = array();
-            foreach ($this->CI->db->select('id, nom, gestion_planeurs')->get('sections')->result_array() as $row) {
+            foreach ($this->CI->db->select('id, nom')->get('sections')->result_array() as $row) {
                 $this->sections[(int) $row['id']] = $row;
             }
         }
@@ -380,12 +401,13 @@ class Computed_alarm_provider {
     }
 
     /**
-     * Les vols planeur (volsp, sans section) relèvent de la section qui gère
-     * les planeurs ; ses autres vols (remorquages, dans volsa) ne comptent pas
-     * pour l'expérience planeur
+     * Les vols planeur (volsp, sans section) relèvent de la section des vols
+     * planeur (Licences_model::glider_section_id(), règle commune avec les
+     * contrôles de licence et de cotisation) ; ses autres vols (remorquages,
+     * dans volsa) ne comptent pas pour l'expérience planeur
      */
     private function is_glider_section($section_id) {
-        return !empty($this->sections()[(int) $section_id]['gestion_planeurs']);
+        return (int) $section_id === (int) $this->CI->licences_model->glider_section_id();
     }
 
     private function section_name($section_id) {

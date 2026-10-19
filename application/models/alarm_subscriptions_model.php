@@ -175,7 +175,8 @@ class Alarm_subscriptions_model extends Common_Model {
      * club-admin : toutes ; ca et bureau : leurs sections ; instructeur et
      * rp en plus pour une alarme ciblant un rôle (ex. élèves). Alarme
      * calculée : rôles de sa règle ($rule_supervisor_roles). Types privés :
-     * club-admin et bureau seulement.
+     * club-admin et bureau seulement. Un rôle détenu sans section (rôle
+     * global, ex. super-tresorier) vaut pour toutes les sections.
      *
      * @param string $login
      * @param array $def Ligne du catalogue (Alarm_definitions_model::get_all)
@@ -198,6 +199,9 @@ class Alarm_subscriptions_model extends Common_Model {
             }
         }
         $sections = $this->role_sections($login, $roles);
+        if (isset($sections[self::CLUB])) {
+            return 'all'; // rôle global : section 0 = sans section
+        }
         if (!empty($def['section_id'])) {
             $sections = isset($sections[(int) $def['section_id']])
                 ? array((int) $def['section_id'] => true) : array();
