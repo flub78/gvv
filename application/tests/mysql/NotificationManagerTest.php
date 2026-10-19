@@ -17,6 +17,10 @@ class Testable_notification_manager extends Notification_manager {
         return array_intersect_key(parent::members_to_notify(), array_flip($this->logins));
     }
 
+    public function members() {
+        return $this->members_to_notify();
+    }
+
     protected function deliver_email($email, $subject, $body) {
         $this->emails[] = array('to' => $email, 'subject' => $subject, 'body' => $body);
         return true;
@@ -301,6 +305,50 @@ class NotificationManagerTest extends TestCase
         } finally {
             $this->CI->config->set_item('alarm_scheduler_hour', $saved);
         }
+    }
+
+    public function test_cron_sans_gestion_documentaire(): void
+    {
+        $saved = $this->CI->config->item('gestion_documentaire');
+        $this->CI->config->set_item('gestion_documentaire', false);
+        try {
+            $this->addDocument(self::PILOT, -1);
+            $this->configure(self::PILOT, true, false, false, 'immediate');
+            $this->assertNull($this->manager->run_scheduled('test', 12));
+            $this->assertCount(0, $this->manager->emails);
+        } finally {
+            $this->CI->config->set_item('gestion_documentaire', $saved);
+        }
+    }
+
+    public function test_ligne_de_compte_rendu_du_cron(): void
+    {
+        $this->assertEquals('skipped', Notification_manager::format_stats(null));
+        $this->assertEquals('email=2 motd=1 sms=0 failed=3', Notification_manager::format_stats(
+            array('email' => 2, 'motd' => 1, 'sms' => 0, 'failed' => 3)));
+    }
+
+    public function test_membres_sans_canal_ni_sms_non_traites(): void
+    {
+        $this->configure(self::PILOT, false, false, false, 'weekly');
+        $this->configure(self::SUPERVISOR, false, false, true, 'weekly');
+        $members = $this->manager->members();
+        $this->assertArrayNotHasKey(self::PILOT, $members);
+        $this->assertArrayHasKey(self::SUPERVISOR, $members, 'Rappel SMS seul');
+    }
+
+    public function test_lien_selon_le_lecteur(): void
+    {
+        $doc = $this->addDocument(self::PILOT, -1);
+        $missing = array('own' => true, 'link' => 'archived_documents/pilot_documents/' . self::PILOT,
+            'link_own' => 'archived_documents/my_documents');
+        $this->assertEquals('archived_documents/my_documents', Notification_manager::item_link($missing, true));
+        $this->assertEquals('archived_documents/pilot_documents/' . self::PILOT,
+            Notification_manager::item_link($missing, false), 'Administrateur consultant un autre membre');
+
+        $occurrences = $this->manager->member_occurrences(self::PILOT);
+        $this->assertTrue($occurrences['document:' . $doc]['own']);
+        $this->assertEquals('archived_documents/view/' . $doc, $occurrences['document:' . $doc]['link']);
     }
 
     public function test_nombre_d_alarmes_actives_pour_le_tableau_de_bord(): void

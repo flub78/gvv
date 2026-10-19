@@ -10,6 +10,7 @@ const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const ADMIN = { username: 'panoramix', password: 'password' };
+const MEMBER = { username: 'asterix', password: 'password' };
 const TYPE_CODE = 'zz_toggle_test';
 
 let db;
@@ -81,5 +82,28 @@ test.describe('Types de documents – bascule en un clic', () => {
         await expect.poll(() => column('required')).toBe(1);
         await required.click();
         await expect.poll(() => column('required')).toBe(0);
+    });
+
+    test('un champ non modifiable est refusé', async ({ page }) => {
+        await login(page, ADMIN);
+        const response = await page.request.post('/index.php/document_types/ajax_toggle',
+            { form: { id: String(typeId), field: 'name', value: '1' } });
+        const result = await response.json();
+        expect(result.success).toBe(false);
+        expect(result.message).toBeTruthy();
+    });
+
+    test('un simple membre ne peut pas basculer un booléen', async ({ page }) => {
+        await login(page, MEMBER);
+        const response = await page.request.post('/index.php/document_types/ajax_toggle',
+            { form: { id: String(typeId), field: 'active', value: '0' } });
+        const type = response.headers()['content-type'] || '';
+        if (type.includes('application/json')) {
+            expect((await response.json()).success).toBe(false);
+        } else {
+            expect(response.status() === 403 || response.url().includes('auth/login')
+                || !(await response.text()).includes('"success":true')).toBeTruthy();
+        }
+        expect(await column('active')).toBe(1);
     });
 });

@@ -25,23 +25,15 @@ class Alarm_aggregator {
     }
 
     /**
-     * Occurrences des alarmes données, éventuellement restreintes à une section
+     * Occurrences des alarmes données
      *
      * @param array|null $definitions Lignes du catalogue ; null = toutes les alarmes actives
-     * @param int|null $section_id Section ; les occurrences sans section sont toujours retenues
      * @return array AlarmItem[]
      */
-    public function collect($definitions = null, $section_id = null) {
+    public function collect($definitions = null) {
         if ($definitions === null) {
             $definitions = $this->CI->alarm_definitions_model->get_all(true);
         }
-        $items = $this->CI->document_alarm_provider->collect($definitions);
-
-        if ($section_id) {
-            $items = array_values(array_filter($items, function ($item) use ($section_id) {
-                return empty($item['section_ids']) || in_array((int) $section_id, $item['section_ids'], true);
-            }));
-        }
-        return $items;
+        return $this->CI->document_alarm_provider->collect($definitions);
     }
 }

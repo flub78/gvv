@@ -67,11 +67,7 @@ class Reservation_scheduler extends CI_Controller
         echo "reservation_scheduler cron: sent=$sent\n";
 
         $alarms = $this->_execute_alarms('cron');
-        if ($alarms === null) {
-            echo "alarms: skipped\n";
-        } else {
-            echo "alarms: email={$alarms['email']} motd={$alarms['motd']} sms={$alarms['sms']} failed={$alarms['failed']}\n";
-        }
+        echo 'alarms: ' . Notification_manager::format_stats($alarms) . "\n";
     }
 
     /**
@@ -94,19 +90,16 @@ class Reservation_scheduler extends CI_Controller
     }
 
     /**
-     * Notifications d'alarmes, si la gestion documentaire est active et
-     * l'heure alarm_scheduler_hour atteinte.
+     * Notifications d'alarmes (Notification_manager::run_scheduled() : rien
+     * sans gestion documentaire ni avant l'heure alarm_scheduler_hour)
      *
      * @param  string $source 'cron' | 'public_url'
      * @return array|null Envois par canal, null si non traitées
      */
     private function _execute_alarms($source)
     {
-        if (!$this->config->item('gestion_documentaire') || !$this->db->table_exists('alarm_definitions')) {
-            return null;
-        }
+        $this->load->library('Notification_manager');
         try {
-            $this->load->library('Notification_manager');
             return $this->notification_manager->run_scheduled($source);
         } catch (Exception $e) {
             gvv_error("ALARM scheduler exception: " . $e->getMessage());

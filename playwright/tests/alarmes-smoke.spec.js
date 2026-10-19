@@ -13,6 +13,7 @@
  *   4. A club-admin adds and deletes a category subscription
  *   5. A plain member cannot open the administration; the scheduler URL answers
  *      403 with a wrong secret
+ *   6. The SMS reminder is refused for a member without a mobile number
  *
  * Prerequisites: test users asterix (member, Planeur/Général), abraracourcix
  * (CA Avion), goudurix (member Avion) and panoramix (club-admin), migration
@@ -32,6 +33,7 @@ const ADMIN = { username: 'panoramix', password: 'password' };
 const TYPE_CODE = 'zz_alarm_smoke';
 
 let avionId;
+let memberMobile;
 let defId;
 let missingDefId;
 
@@ -80,6 +82,8 @@ test.describe('Alarmes – Lot 1', () => {
             defId = def.insertId;
             const [missing] = await db.query("SELECT id FROM alarm_definitions WHERE code = 'missing_document'");
             missingDefId = missing[0].id;
+            const [member] = await db.query('SELECT mtelm FROM membres WHERE mlogin = ?', [MEMBER.username]);
+            memberMobile = member[0].mtelm;
             await addExpiredDocument(db, type.insertId, MEMBER.username);  // actif en Planeur et Général
             await addExpiredDocument(db, type.insertId, AVION_PILOT);      // actif en Avion
         } finally {
@@ -91,7 +95,30 @@ test.describe('Alarmes – Lot 1', () => {
         const db = await mysql.createConnection(DB_CONFIG);
         try {
             await cleanup(db);
+            await db.query('UPDATE membres SET mtelm = ? WHERE mlogin = ?', [memberMobile, MEMBER.username]);
         } finally {
+            await db.end();
+        }
+    });
+
+    test('le rappel SMS est refusé sans numéro de mobile', async ({ page }) => {
+        const db = await mysql.createConnection(DB_CONFIG);
+        try {
+            await db.query("UPDATE membres SET mtelm = '' WHERE mlogin = ?", [MEMBER.username]);
+            await login(page, MEMBER);
+            await page.goto('/index.php/mes_alarmes');
+            await expect(page.locator('#sms')).toBeDisabled();
+
+            // Envoi forcé de l'option : refus explicite, rien n'est enregistré
+            const response = await page.request.post('/index.php/mes_alarmes/save',
+                { form: { sms: '1', channel_email: '1', frequency: 'weekly' } });
+            const html = await response.text(); // page après redirection, avec le message flash
+            expect(html).toContain('alert-danger');
+            expect(html).toMatch(/mobile/);
+            const [rows] = await db.query('SELECT sms FROM alarm_member_settings WHERE member_login = ?', [MEMBER.username]);
+            expect(rows.length === 0 || rows[0].sms === 0).toBeTruthy();
+        } finally {
+            await db.query('UPDATE membres SET mtelm = ? WHERE mlogin = ?', [memberMobile, MEMBER.username]);
             await db.end();
         }
     });

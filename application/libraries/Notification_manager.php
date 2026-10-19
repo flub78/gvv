@@ -69,14 +69,7 @@ class Notification_manager {
     public function run($source = 'cron') {
         $stats = array('email' => 0, 'motd' => 0, 'sms' => 0, 'failed' => 0);
 
-        $definitions = array();
-        foreach ($this->CI->alarm_definitions_model->get_all(true) as $def) {
-            $definitions[$def['id']] = $def;
-        }
-        $items_by_def = array();
-        foreach ($this->CI->alarm_aggregator->collect(array_values($definitions)) as $item) {
-            $items_by_def[$item['definition_id']][] = $item;
-        }
+        list($definitions, $items_by_def) = $this->collect_items();
 
         $settings = $this->CI->alarm_member_settings_model->get_all_by_login();
         foreach ($this->members_to_notify() as $login => $cells) {
@@ -93,15 +86,19 @@ class Notification_manager {
     }
 
     /**
-     * Traitement planifié, appelé à chaque passage du cron horaire : rien
-     * avant l'heure alarm_scheduler_hour de program.php (7 h par défaut),
+     * Traitement planifié, appelé à chaque passage du cron horaire des
+     * rappels de réservation : rien si la gestion documentaire est inactive
+     * ou avant l'heure alarm_scheduler_hour de program.php (7 h par défaut),
      * pour que les synthèses ne partent pas la nuit.
      *
      * @param string $source
      * @param int|null $hour Heure courante (tests) ; null = maintenant
-     * @return array|null Nombre d'envois par canal, null si pas encore l'heure
+     * @return array|null Nombre d'envois par canal, null si non traité
      */
     public function run_scheduled($source = 'cron', $hour = null) {
+        if (!$this->CI->config->item('gestion_documentaire') || !$this->CI->db->table_exists('alarm_definitions')) {
+            return null;
+        }
         $hour = ($hour === null) ? (int) date('G') : (int) $hour;
         $start = $this->CI->config->item('alarm_scheduler_hour');
         $start = ($start === null || $start === '' || $start === false) ? 7 : (int) $start;
@@ -112,8 +109,38 @@ class Notification_manager {
     }
 
     /**
+     * Ligne de compte rendu d'un traitement (sortie des commandes cron)
+     *
+     * @param array|null $stats Résultat de run() ou run_scheduled()
+     * @return string
+     */
+    public static function format_stats($stats) {
+        if ($stats === null) {
+            return 'skipped';
+        }
+        return "email={$stats['email']} motd={$stats['motd']} sms={$stats['sms']} failed={$stats['failed']}";
+    }
+
+    /**
+     * Alarmes actives du catalogue et leurs occurrences
+     *
+     * @return array [definition_id => ligne du catalogue, definition_id => AlarmItem[]]
+     */
+    public function collect_items() {
+        $definitions = array();
+        foreach ($this->CI->alarm_definitions_model->get_all(true) as $def) {
+            $definitions[$def['id']] = $def;
+        }
+        $items_by_def = array();
+        foreach ($this->CI->alarm_aggregator->collect(array_values($definitions)) as $item) {
+            $items_by_def[$item['definition_id']][] = $item;
+        }
+        return array($definitions, $items_by_def);
+    }
+
+    /**
      * Membres à traiter et leurs cases effectives (restreint dans les tests) :
-     * membres actifs ayant enregistré des réglages
+     * membres actifs ayant choisi au moins un canal ou le rappel SMS
      *
      * @return array login => cases effectives (voir Alarm_subscriptions_model::effective_all())
      */
@@ -122,7 +149,8 @@ class Notification_manager {
         $effective = $this->CI->alarm_subscriptions_model->effective_all();
         $members = array();
         foreach ($this->CI->alarm_subscriptions_model->active_logins() as $login) {
-            if (isset($settings[$login])) {
+            $s = isset($settings[$login]) ? $settings[$login] : null;
+            if ($s && (!empty($s['channel_email']) || !empty($s['channel_motd']) || !empty($s['sms']))) {
                 $members[$login] = isset($effective[$login]) ? $effective[$login] : array();
             }
         }
@@ -131,7 +159,9 @@ class Notification_manager {
 
     /**
      * Occurrences d'un membre, sans doublon : ses occurrences propres (il en
-     * est le pilote), pour toutes les alarmes, et celles de ses cases effectives
+     * est le pilote, 'own' = true), pour toutes les alarmes, et celles de ses
+     * cases effectives. Le lien à utiliser dépend du lecteur : link_own pour
+     * le membre lui-même, link pour un superviseur (cf. item_link()).
      *
      * @param string $login
      * @param array $cells definition_id => [section_id|CLUB => abonnement] cases effectives
@@ -151,9 +181,6 @@ class Notification_manager {
                     continue;
                 }
                 if ($item['pilot_login'] === $login) {
-                    if (!empty($item['link_own'])) {
-                        $item['link'] = $item['link_own'];
-                    }
                     $item['own'] = true;
                     $occurrences[$item['key']] = $item;
                 } elseif ($def_cells && Alarm_subscriptions_model::item_in_cells($item, $def_cells)) {
@@ -178,14 +205,7 @@ class Notification_manager {
      * @return array key => AlarmItem
      */
     public function member_occurrences($login) {
-        $definitions = array();
-        foreach ($this->CI->alarm_definitions_model->get_all(true) as $def) {
-            $definitions[$def['id']] = $def;
-        }
-        $items_by_def = array();
-        foreach ($this->CI->alarm_aggregator->collect(array_values($definitions)) as $item) {
-            $items_by_def[$item['definition_id']][] = $item;
-        }
+        list($definitions, $items_by_def) = $this->collect_items();
         $cells = $this->CI->alarm_subscriptions_model->effective_for($login);
         return $this->occurrences_for($login, $cells, $definitions, $items_by_def);
     }
@@ -204,6 +224,20 @@ class Notification_manager {
             }
         }
         return $count;
+    }
+
+    /**
+     * Lien de traitement d'une occurrence pour son lecteur
+     *
+     * @param array $item Occurrence (occurrences_for())
+     * @param bool $reader_is_member Le lecteur est le membre dont ce sont les occurrences
+     * @return string
+     */
+    public static function item_link($item, $reader_is_member = true) {
+        if ($reader_is_member && !empty($item['own']) && !empty($item['link_own'])) {
+            return $item['link_own'];
+        }
+        return $item['link'];
     }
 
     // ------------------------------------------------------------------
@@ -414,7 +448,7 @@ class Notification_manager {
                 . '<td style="padding:4px 8px">' . htmlspecialchars($item['detail']) . '</td>'
                 . '<td style="padding:4px 8px">' . htmlspecialchars($state) . '</td>'
                 . '<td style="padding:4px 8px">' . $due . '</td>'
-                . '<td style="padding:4px 8px"><a href="' . htmlspecialchars($this->url($item['link'])) . '">'
+                . '<td style="padding:4px 8px"><a href="' . htmlspecialchars($this->url(self::item_link($item))) . '">'
                 . htmlspecialchars($lang->line('alarm_notification_open')) . '</a></td>'
                 . '</tr>';
         }

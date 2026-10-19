@@ -56,7 +56,7 @@ class Alarm_scheduler extends CI_Controller
         }
 
         $stats = $this->_execute('cron');
-        echo "alarm_scheduler cron: email={$stats['email']} motd={$stats['motd']} sms={$stats['sms']} failed={$stats['failed']}\n";
+        echo 'alarm_scheduler cron: ' . Notification_manager::format_stats($stats) . "\n";
     }
 
     /**

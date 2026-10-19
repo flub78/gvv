@@ -487,6 +487,8 @@ function togglePassword(inputId, btn) {
  * « toggle », cf. MetaData::array_field) : la case envoie id, field et value
  * en POST à data-url ; la réponse JSON (success, message) est affichée dans
  * une alerte refermable. En cas d'échec, la case reprend son état précédent.
+ * Messages d'erreur traduits : data-error (communication), data-session
+ * (session expirée : le serveur renvoie la page de connexion, pas du JSON).
  */
 document.addEventListener('change', function (event) {
 	var box = event.target;
@@ -501,16 +503,23 @@ document.addEventListener('change', function (event) {
 	box.disabled = true;
 
 	fetch(box.dataset.url, { method: 'POST', body: data, credentials: 'same-origin' })
-		.then(function (response) { return response.json(); })
-		.then(function (result) {
-			if (!result.success) {
+		.then(function (response) {
+			var type = response.headers.get('Content-Type') || '';
+			if (response.redirected || type.indexOf('application/json') === -1) {
 				box.checked = previous;
+				gvvToggleMessage(false, box.dataset.session);
+				return;
 			}
-			gvvToggleMessage(result.success, result.message);
+			return response.json().then(function (result) {
+				if (!result.success) {
+					box.checked = previous;
+				}
+				gvvToggleMessage(result.success, result.message);
+			});
 		})
 		.catch(function () {
 			box.checked = previous;
-			gvvToggleMessage(false, 'Erreur de communication avec le serveur.');
+			gvvToggleMessage(false, box.dataset.error);
 		})
 		.then(function () {
 			box.disabled = false;

@@ -30,7 +30,6 @@ class Mes_alarmes extends MY_Controller
             show_404();
         }
 
-        $this->load->model('alarm_definitions_model');
         $this->load->model('alarm_subscriptions_model');
         $this->load->model('alarm_member_settings_model');
         $this->load->library('Notification_manager');
@@ -80,12 +79,10 @@ class Mes_alarmes extends MY_Controller
             $matrix_columns[Alarm_subscriptions_model::CLUB] = $this->lang->line('alarm_column_club');
         }
 
-        // Alarmes
-        $definitions = array();
-        foreach ($this->alarm_definitions_model->get_all(true) as $def) {
-            $definitions[$def['id']] = $def;
-        }
-        $occurrences = $this->notification_manager->member_occurrences($login);
+        // Alarmes ; liens de superviseur quand un administrateur consulte un autre membre
+        $is_self = ($login === $this->dx_auth->get_username());
+        list($definitions, $items_by_def) = $this->notification_manager->collect_items();
+        $occurrences = $this->notification_manager->occurrences_for($login, $effective, $definitions, $items_by_def);
 
         $filter_def = (int) $this->input->get('alarme');
         $filter_section = (int) $this->input->get('section');
@@ -100,6 +97,7 @@ class Mes_alarmes extends MY_Controller
                 continue;
             }
             $item['definition_label'] = $definitions[$item['definition_id']]['display_label'];
+            $item['link'] = Notification_manager::item_link($item, $is_self);
             $item['section_names'] = array_values(array_intersect_key($sections, array_flip($item['section_ids'])));
             $rows[] = $item;
         }
@@ -107,7 +105,7 @@ class Mes_alarmes extends MY_Controller
 
         load_last_view('mes_alarmes/index', array(
             'member' => $member,
-            'is_self' => ($login === $this->dx_auth->get_username()),
+            'is_self' => $is_self,
             'is_admin' => $this->_is_admin(),
             'members' => $this->_is_admin() ? $this->_member_selector() : array(),
             'proposed' => $proposed,

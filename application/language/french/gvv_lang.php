@@ -164,6 +164,8 @@ $lang['role_backup_db'] = "Sauvegarde base de données";
 $lang['role_pilote_rem'] = "Pilote remorqueur";
 $lang['role_eleve'] = "Élève";
 $lang['role_eleve_desc'] = "Membre ayant une formation en cours";
+$lang['gvv_toggle_error'] = "Erreur de communication avec le serveur.";
+$lang['gvv_toggle_session'] = "Votre session a expiré : rechargez la page et reconnectez-vous.";
 $lang['role_pilote_rem_desc'] = "Pilote habilité à effectuer des remorquages";
 
 $lang['role_user_desc'] = "Peut se connecter et consulter ses propres données";

@@ -1298,11 +1298,14 @@ abstract class Metadata {
             $key = $this->table_key($table);
             $url = $this->field_attr($table, $field, 'ToggleUrl');
             $disabled = ($mode == 'rw' && $url && isset($row[$key])) ? '' : ' disabled';
+            $this->CI->lang->load('gvv');
             return '<input type="checkbox" class="form-check-input gvv-toggle"'
                 . ($value ? ' checked' : '') . $disabled
                 . ' data-url="' . ($url ? site_url($url) : '') . '"'
                 . ' data-id="' . (isset($row[$key]) ? htmlspecialchars($row[$key]) : '') . '"'
                 . ' data-field="' . htmlspecialchars($field) . '"'
+                . ' data-error="' . htmlspecialchars($this->CI->lang->line('gvv_toggle_error')) . '"'
+                . ' data-session="' . htmlspecialchars($this->CI->lang->line('gvv_toggle_session')) . '"'
                 . ' aria-label="' . htmlspecialchars($this->field_name($table, $field)) . '">';
         } elseif ('currency' == $subtype) {
 

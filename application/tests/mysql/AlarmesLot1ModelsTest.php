@@ -186,6 +186,38 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->assertEquals(1, (int) $this->definition()['active'], 'Réactivée');
     }
 
+    public function test_reactivation_du_type_reactive_l_alarme_des_eleves(): void
+    {
+        $eleve_def = $this->eleveDefinition();
+        foreach (array('alarm_enabled', 'active', 'has_expiration') as $field) {
+            $this->CI->db->where('id', $this->type_id)->update('document_types', array($field => 0));
+            $this->CI->alarm_definitions_model->sync_document_types();
+            $this->assertEquals(0, (int) $this->definition()['active'], "$field = 0");
+            $this->assertEquals(0, (int) $this->definition($eleve_def['code'])['active'], "$field = 0 : alarme des élèves");
+
+            $this->CI->db->where('id', $this->type_id)->update('document_types', array($field => 1));
+            $this->CI->alarm_definitions_model->sync_document_types();
+            $this->assertEquals(1, (int) $this->definition()['active'], "$field = 1");
+            $this->assertEquals(1, (int) $this->definition($eleve_def['code'])['active'], "$field = 1 : alarme des élèves");
+        }
+    }
+
+    public function test_desactivation_dans_le_catalogue_respectee_par_la_synchronisation(): void
+    {
+        $eleve_def = $this->eleveDefinition();
+        $this->CI->alarm_definitions_model->configure($eleve_def['id'], false, 30);
+        $this->CI->alarm_definitions_model->sync_document_types();
+        $this->assertEquals(0, (int) $this->definition($eleve_def['code'])['active'], 'Choix de l\'administrateur');
+
+        // Même après une désactivation puis réactivation du type
+        $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 0));
+        $this->CI->alarm_definitions_model->sync_document_types();
+        $this->CI->db->where('id', $this->type_id)->update('document_types', array('alarm_enabled' => 1));
+        $this->CI->alarm_definitions_model->sync_document_types();
+        $this->assertEquals(0, (int) $this->definition($eleve_def['code'])['active']);
+        $this->assertEquals(1, (int) $this->definition()['active']);
+    }
+
     public function test_aucun_abonnement_par_defaut(): void
     {
         $this->assertEmpty($this->CI->alarm_subscriptions_model->effective_for(self::PILOT));
@@ -367,7 +399,17 @@ class AlarmesLot1ModelsTest extends TestCase
         $this->CI->alarm_subscriptions_model->subscribe($missing_def['id'], self::SUPERVISOR, $this->section_id);
         $this->assertContains($key, $this->visible(self::SUPERVISOR, $missing_def), 'Superviseur abonné');
 
+        $this->CI->load->model('archived_documents_model');
+        $missing_ids = function () {
+            return array_column($this->CI->archived_documents_model->get_missing_documents(self::PILOT), 'id');
+        };
+        $this->assertContains($this->type_id, array_map('intval', $missing_ids()), 'Page du pilote : manquant');
+        $this->assertNotContains($this->type_id, array_map('intval', array_column(
+            $this->CI->archived_documents_model->get_missing_documents(self::PILOT, $this->other_section_id), 'id')),
+            'Pas élève dans l\'autre section');
+
         $this->addDocument(self::PILOT, 100);
         $this->assertEmpty($find(), 'Document valide');
+        $this->assertNotContains($this->type_id, array_map('intval', $missing_ids()));
     }
 }
