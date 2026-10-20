@@ -1,6 +1,6 @@
 # Design Notes — Gestion Générique des Alarmes
 
-Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire) le 19 octobre 2026 (page unique « Mes alarmes », abonnements par alarme et par section, alarmes propres ; Lot 2 : alarmes calculées de vols sans cotisation et sans licence ; Lot 3 : emport passager, inactivité, compte débiteur)
+Date : 30 mai 2026 — mis à jour le 18 octobre 2026 (Lot 1 du MVP : alarmes sur les documents archivés, catalogue, abonnements, canaux, synthèses, rôle élève ; reprend les notifications documentaires prévues au Lot 5 de l'archivage documentaire) le 19 octobre 2026 (page unique « Mes alarmes », abonnements par alarme et par section, alarmes propres ; Lot 2 : alarmes calculées de vols sans cotisation et sans licence ; Lot 3 : emport passager, inactivité, compte débiteur) le 20 octobre 2026 (affichage par section active ; Lot 4 : désactivation des occurrences)
 
 ## Contexte et objectif
 
@@ -170,6 +170,25 @@ La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pou
 
 ---
 
+## Lot 4 — Désactivation des occurrences
+
+![Désactivations](diagrams/desactivations_alarmes.png)
+
+Une désactivation s'accroche à la **clé d'occurrence** (`AlarmItem.key`), déjà stable : `document:{id}` change avec un nouveau document, les clés de cotisation et de licence portent l'année. Les occurrences restent calculées ; seule la désactivation est stockée, et conservée après réactivation pour l'historique.
+
+**En cours** : non réactivée, date de fin non dépassée, état et échéance de l'occurrence égaux aux instantanés pris à la désactivation. Sinon elle est réactivée automatiquement (`reactivated_at` renseigné, `reactivated_by` vide) à la lecture ; celle dont l'occurrence n'existe plus l'est au passage du scheduler. Une occurrence sans échéance (compte débiteur, vols sans cotisation ou licence) ne réapparaît donc qu'à la date de fin ou au changement de clé.
+
+**Filtrage** : `Notification_manager::occurrences_for()`, point de passage unique de la page, de la carte, des synthèses et des SMS, écarte les occurrences désactivées pour tout le monde (propres comprises) et celles désactivées pour le lecteur (jamais une propre) ; il les rend à part pour l'affichage des désactivées. La liste des alarmes que personne ne reçoit écarte les désactivations pour tout le monde.
+
+**Droits** (`alarm_dismissals_model`) : pour soi, sur une occurrence non propre des cases effectives du membre ; pour tout le monde, et toute réactivation, `club-admin`. Un `club-admin` qui consulte un autre membre sur Mes alarmes désactive pour ce membre ou pour tout le monde.
+
+| Action | Page |
+|---|---|
+| Désactiver (pour soi ou pour tout le monde, définitive ou jusqu'à une date, motif), afficher les désactivées, réactiver | `mes_alarmes` |
+| Désactivations en cours, pour tout le monde et par membre, réactivation | `alarmes_admin` |
+
+---
+
 ## Séparation des responsabilités
 
 | Responsabilité | Composant |
@@ -180,6 +199,7 @@ La page Mes alarmes est une seule vue, paramétrée par le membre concerné. Pou
 | Catalogue, abonnements, réglages, cases autorisées et effectives | `alarm_definitions_model`, `alarm_subscriptions_model`, `alarm_member_settings_model` |
 | Destinataires, droits, fréquences, composition, envoi, historique | `Notification_manager` |
 | Déclenchement | `reservation_scheduler` (cron horaire), `alarm_scheduler` (lancement manuel) |
+| Désactivations : enregistrement, droits, état en cours, réactivation | `alarm_dismissals_model` |
 | Pages membre et administration | `mes_alarmes`, `alarmes_admin` |
 | Rôle élève | `formation_inscription_model` (ouverture, clôture, abandon) |
 

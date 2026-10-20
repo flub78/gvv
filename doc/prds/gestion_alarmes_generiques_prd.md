@@ -53,7 +53,8 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 | **Lot 1** | Catalogue d'alarmes, page « Mes alarmes » réunissant la configuration (abonnements par alarme et par section, canaux, rappel par SMS, fréquence) et la liste des alarmes actives, configuration pour un autre membre et abonnement d'une catégorie par un administrateur, canaux email et message du jour, rappel court par SMS le lundi, synthèses hebdomadaires ou mensuelles. Rôle élève par section. Alarmes couvertes : documents archivés — expiration et documents obligatoires manquants (dont visite médicale, obligatoire pour les élèves). |
 | **Lot 2** | Alarmes de conformité calculées : vols sans licence, vols sans cotisation. |
 | **Lot 3** | Alarmes calculées d'expérience récente et de compte : emport passager (3 atterrissages en 90 jours), remorquage (10 remorqués en 12 mois), 120 jours sans voler, compte pilote débiteur. Rôle « emport passager » par section. |
-| Lots suivants | Alarmes de maintenance, autres alarmes d'expérience récente (règles de `alarmes.php`), acquittement et suspension, vue consolidée avancée. |
+| **Lot 4** | Désactivation d'une alarme précise : pour soi par un superviseur, pour tout le monde par un administrateur club, définitive ou jusqu'à une date, avec réactivation automatique et réactivation par un administrateur club. |
+| Lots suivants | Alarmes de maintenance, autres alarmes d'expérience récente (règles de `alarmes.php`), vue consolidée avancée. |
 
 ## Portée
 ### Inclus
@@ -69,7 +70,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 - Alarmes liées aux échéances de maintenance (machine, équipement ou autre entité maintenable).
 - Alarmes calculées à partir des données de vol (expérience récente, inactivité, conditions d'emport).
 - Portée par section : une alarme peut être commune à toutes les sections ou restreinte à une section spécifique.
-- Suivi de l'état des alarmes : à venir, active, acquittée, suspendue, résolue.
+- Suivi de l'état des alarmes : à venir, active, désactivée (pour soi ou pour tout le monde), résolue.
 
 ### Exclu
 - Moteur de règles métier orienté expressions libres : le catalogue ne contient que des alarmes prévues par GVV, paramétrables mais non programmables par l'utilisateur.
@@ -92,6 +93,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 5. À tout moment, le membre ouvre la page **Mes alarmes** qui liste ses propres alarmes et celles de ses abonnements, actives et à venir, avec un lien vers l'objet concerné.
 6. Après traitement (ex. renouvellement du document), l'alarme est résolue et disparaît de la page Mes alarmes et des synthèses suivantes.
 7. Un membre abonné à rien voit seulement ses propres alarmes sur la page Mes alarmes, sans pouvoir les désactiver ; il ne les reçoit par email, message du jour ou SMS que s'il a choisi un canal.
+8. Un trésorier abonné au compte débiteur sait qu'un pilote a un échéancier de paiement : il désactive cette alarme pour lui jusqu'à la fin de l'échéancier. Un administrateur club constate qu'un pilote licencié dans un autre club apparaît dans « vols sans licence » : il désactive cette alarme pour tout le monde, avec un motif.
 
 ## Exigences fonctionnelles
 
@@ -200,9 +202,14 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
     - Cette vue doit agréger les alarmes documentaires et les alarmes calculées.
     - La vue doit être filtrable par section ; un responsable de section ne voit que les alarmes de sa section.
 
-13. **Acquittement et suspension** (lots suivants)
-    - Selon droits, un utilisateur doit pouvoir acquitter une alarme.
-    - Selon droits, un administrateur doit pouvoir suspendre ou réactiver une alarme.
+13. **Désactivation d'une alarme (Lot 4)**
+    - Une désactivation porte sur une alarme précise (ex. le compte débiteur d'un pilote dans une section), pas sur une alarme du catalogue ni sur toute une section.
+    - **Pour soi** : un membre peut désactiver, pour lui seul, une alarme qui lui est affichée par abonnement (CA, bureau, instructeur, trésorier…). Elle disparaît de sa page, de sa carte du tableau de bord, de ses synthèses et de ses SMS ; les autres abonnés et le pilote concerné la voient toujours. Un membre ne peut pas désactiver ses propres alarmes.
+    - **Pour tout le monde** : un administrateur club peut désactiver une alarme pour tous, y compris pour le pilote concerné. Elle disparaît alors de toutes les pages, synthèses et SMS, et de la liste des alarmes que personne ne reçoit. Un motif est obligatoire.
+    - Une désactivation est **définitive** ou **jusqu'à une date** choisie. Le motif est facultatif pour soi.
+    - **Réactivation automatique** : l'alarme réapparaît à la date choisie, ou dès que sa situation change (passage de « à venir » à « active », nouvelle échéance). Une alarme qui a disparu parce que sa condition est résolue n'est plus désactivée si elle se présente de nouveau.
+    - **Réactivation manuelle** : un membre peut réactiver les alarmes qu'il a désactivées pour lui. Un administrateur club peut réactiver toute alarme désactivée, pour tout le monde ou pour un membre.
+    - Rien n'est masqué en silence : la page Mes alarmes indique le nombre d'alarmes désactivées et permet de les afficher, avec l'auteur, le motif et la date de fin. L'administration liste toutes les désactivations en cours.
 
 14. **Anti-spam (Lot 1)**
     - Le système évite les notifications redondantes : une même alarme n'est pas notifiée deux fois au même abonné dans la même période.
@@ -210,7 +217,8 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 
 15. **Traçabilité**
     - Chaque notification envoyée est historisée : abonné, alarme, canal, date.
-    - Chaque alarme à date fixe conserve son historique minimal : changements d'état, notifications, acquittements.
+    - Chaque alarme à date fixe conserve son historique minimal : changements d'état, notifications.
+    - Chaque désactivation est historisée : alarme, portée (pour soi ou pour tout le monde), auteur, motif, date de fin, date et auteur de la réactivation (ou réactivation automatique).
     - Les alarmes calculées ne sont pas historisées en tant qu'état — elles reflètent les données courantes —, mais leurs notifications le sont.
 
 16. **Aucune alarme perdue (Lot 1)**

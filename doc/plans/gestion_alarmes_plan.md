@@ -165,7 +165,35 @@ La page « Mes alarmes » et la carte du tableau de bord suivent la section acti
 **Validation**
 - Section ULM active : un trésorier abonné au compte débiteur en planeur et en ULM ne voit que les débiteurs ULM, un bandeau indique le nombre d'alarmes planeur masquées ; « Toutes » les affiche toutes.
 
+## Lot 4 — Désactivation des occurrences
+
+Désactivation d'une occurrence pour soi (superviseur) ou pour tout le monde (`club-admin`), définitive ou jusqu'à une date ; réactivation automatique et par `club-admin`.
+
+**4.1 — Données** (0,5 j)
+- [ ] Migration : table `alarm_dismissals` (clé d'occurrence, alarme, membre ou tous, date de fin, motif, instantanés d'état et d'échéance, réactivation, champs d'audit) ; `config/migration.php`
+- [ ] `alarm_dismissals_model` : désactiver, réactiver, désactivations en cours d'un lecteur, droits (pour soi : occurrence non propre de ses cases ; pour tout le monde et toute réactivation : `club-admin`), réactivation automatique (date, changement d'état ou d'échéance, occurrence disparue)
+
+**4.2 — Filtrage** (0,5 j)
+- [ ] `Notification_manager::occurrences_for()` : écarte les désactivations pour tout le monde (propres comprises) et pour le lecteur, les rend à part ; page, carte, synthèses et SMS en bénéficient
+- [ ] Alarmes que personne ne reçoit sans les désactivations pour tout le monde ; réactivation des désactivations d'occurrences disparues au passage du scheduler
+
+**4.3 — Pages** (1,5 j)
+- [ ] `mes_alarmes` : bouton « Désactiver » par ligne (pour moi ; pour tout le monde réservé à `club-admin`), boîte de dialogue définitive ou date de fin, motif (obligatoire pour tout le monde), confirmation
+- [ ] `mes_alarmes` : nombre d'alarmes désactivées, affichage à la demande avec auteur, motif et date de fin, bouton « Réactiver » selon droits
+- [ ] `alarmes_admin` : désactivations en cours (pour tout le monde et par membre) avec réactivation
+- [ ] Libellés FR/EN/NL ; guide utilisateur `19_alarmes.md`
+
+**4.4 — Tests** (1 j)
+- [ ] PHPUnit MySQL : droits (propre refusée, hors cases refusée, pour tout le monde réservée à `club-admin`), filtrage pour soi et pour tout le monde (pilote compris), réactivation à la date, au changement d'état ou d'échéance, à la disparition de l'occurrence, réactivation manuelle, synthèses sans les désactivées ; migration up/down avec sauvegarde
+- [ ] Playwright : désactivation pour soi puis réactivation, désactivation pour tout le monde par `club-admin` (invisible pour le pilote et un autre abonné), réactivation depuis l'administration
+
+**Estimation totale Lot 4 : ~3,5 jours.**
+
+**Validation**
+- Un trésorier désactive pour lui le compte débiteur d'un pilote jusqu'au 31/12 : il ne le voit ni ne le reçoit plus, un autre trésorier abonné le voit toujours ; il réapparaît le 1/1.
+- Un administrateur club désactive pour tout le monde « vols sans licence » d'un pilote licencié ailleurs, avec un motif : plus personne ne la voit, pilote compris ; il la réactive depuis l'administration.
+- Une alarme « à venir » désactivée réapparaît quand elle devient active.
+
 ## Lots suivants
 - Alarmes de maintenance, autres alarmes d'expérience récente (extraction des règles d'`alarmes.php` vers `ComputedAlarmProvider`).
-- Acquittement et suspension des alarmes.
 - Vue consolidée avancée (sévérité, tri, historique).

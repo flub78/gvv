@@ -1,0 +1,35 @@
+@startuml desactivations_alarmes
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+hide circle
+hide methods
+
+title Alarmes — désactivation des occurrences (Lot 4)
+
+entity alarm_definitions {
+  * id : int (PK)
+}
+
+entity alarm_dismissals {
+  * id : int (PK)
+  --
+  * alarm_definition_id : int (FK)
+  * alarm_key : varchar (clé d'occurrence)
+  member_login : varchar(25) (FK, null = pour tout le monde)
+  until_date : date (null = définitive)
+  reason : varchar (obligatoire pour tout le monde)
+  * state_snapshot : enum(upcoming, active)
+  due_date_snapshot : date
+  reactivated_at : datetime (null = en cours)
+  reactivated_by : varchar(25) (null = automatique)
+  created_at, updated_at
+  created_by, updated_by
+}
+
+entity membres {
+  * mlogin : varchar(25) (PK)
+}
+
+alarm_definitions ||--o{ alarm_dismissals
+membres |o--o{ alarm_dismissals : pour soi
+@enduml
