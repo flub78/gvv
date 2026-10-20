@@ -114,7 +114,7 @@ Sur **Mes alarmes**, un administrateur club dispose d'un sélecteur **Membre**, 
 
 ### 4.2 Page Administration des alarmes
 
-Accessible depuis le tableau de bord **Administration club** (carte « Administration des alarmes ») :
+Accessible depuis le tableau de bord **Administration système** (carte « Administration des alarmes ») :
 
 - **Alarmes actives ou à venir que personne ne reçoit** : ni le membre concerné (faute de canal choisi), ni un abonné. Aucun abonnement n'est créé automatiquement, il faut donc abonner quelqu'un à chaque alarme utile.
 - **Abonnements de catégories de membres** : abonner tous les membres ayant un rôle (ex. les instructeurs de la section planeur) à une alarme, éventuellement en la rendant obligatoire. Chez chacun, la case de la section du rôle est cochée (toutes les sections où il a le rôle, et la colonne Club, si aucune section n'est choisie). Un membre qui obtient le rôle est abonné ; un membre qui le perd ne l'est plus.

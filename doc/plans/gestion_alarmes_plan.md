@@ -73,7 +73,7 @@ Livrer le Lot 1 du MVP, limité aux alarmes sur les documents archivés : catalo
 - [x] Contrôleur `alarmes_admin.php`, réservé à `club-admin` : catalogue (activation, délai d'anticipation)
 - [x] Abonnements de catégories : création (alarme, rôle, section, obligatoire) et suppression ; chez chaque titulaire, l'abonnement coche la case de la section du rôle
 - [x] Liste des alarmes actives ou à venir que personne ne reçoit (ni le membre concerné avec un canal, ni un abonné)
-- [x] Carte « Administration des alarmes » du tableau de bord Administration club (`club-admin`)
+- [x] Carte « Administration des alarmes » du tableau de bord Administration système (`club-admin`)
 
 **1.8 — Langues** (0,5 j)
 - [x] Libellés FR/EN/NL : catalogue, emails, messages du jour, SMS, page Mes alarmes et page d'administration, scheduler

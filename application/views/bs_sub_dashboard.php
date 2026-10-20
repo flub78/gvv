@@ -1028,61 +1028,17 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     <!-- ================================================================
          Section Administration Club
          ================================================================ -->
+    <?php $club_title = $this->lang->line('db_h5_club'); ?>
+    <?php if (has_role('club-admin') || $show_planeurs || $show_avions || !empty($shortcuts_by_section[$club_title])) : ?>
+    <h5 class="mb-3"><?= $club_title ?></h5>
     <div class="row g-2">
         <?php if (has_role('club-admin')): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-cog text-primary"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_club_config') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_club') ?></div>
-                <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-cogs text-info"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_parameters') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_configuration') ?></div>
-                <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-bullhorn text-warning"></i>
                 <div class="card-title"><?= $this->lang->line('db_card_motd') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_motd') ?></div>
                 <a href="<?= controller_url('motd/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-gift text-info"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_vd_looks') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_vd_looks') ?></div>
-                <a href="<?= controller_url('vols_decouverte_looks') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-thumbtack text-primary"></i>
-                <div class="card-title"><?= $this->lang->line('shortcuts_dashboard_card_title') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('shortcuts_dashboard_card_description') ?></div>
-                <a href="<?= controller_url('shortcuts_admin') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-        <?php endif; ?>
-
-        <?php if (has_role('ca')): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-road text-success"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_airfields') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
-                <a href="<?= controller_url('terrains/page') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
         <?php endif; ?>
@@ -1108,18 +1064,9 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
             </div>
         </div>
         <?php endif; ?>
-
-        <?php if ($show_planeurs): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-certificate text-warning"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_formation_certs') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_certificates') ?></div>
-                <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-        <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $club_title); ?>
     </div>
+    <?php endif; ?>
 
     <h5 class="mt-4 mb-3"><?= $this->lang->line('db_h5_member_management') ?></h5>
     <div class="row g-2">
@@ -1224,6 +1171,73 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
         <?php render_dashboard_shortcut_cards($shortcuts_by_section, $this->lang->line('db_h5_doc_management')); ?>
+    </div>
+    <?php endif; ?>
+
+    <?php $config_title = $this->lang->line('db_h5_configuration'); ?>
+    <?php if (has_role('club-admin') || has_role('ca') || $show_planeurs || !empty($shortcuts_by_section[$config_title])) : ?>
+    <h5 class="mt-4 mb-3"><?= $config_title ?></h5>
+    <div class="row g-2">
+        <?php if (has_role('club-admin')): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-cog text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_club_config') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_club') ?></div>
+                <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-cogs text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_parameters') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_configuration') ?></div>
+                <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-thumbtack text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('shortcuts_dashboard_card_title') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('shortcuts_dashboard_card_description') ?></div>
+                <a href="<?= controller_url('shortcuts_admin') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-gift text-info"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_vd_looks') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_vd_looks') ?></div>
+                <a href="<?= controller_url('vols_decouverte_looks') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (has_role('ca')): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-road text-success"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_airfields') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_management') ?></div>
+                <a href="<?= controller_url('terrains/page') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($show_planeurs): ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-certificate text-warning"></i>
+                <div class="card-title"><?= $this->lang->line('db_card_formation_certs') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('db_desc_certificates') ?></div>
+                <a href="<?= controller_url('event/page') ?>" class="btn btn-warning btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php render_dashboard_shortcut_cards($shortcuts_by_section, $config_title); ?>
     </div>
     <?php endif; ?>
 

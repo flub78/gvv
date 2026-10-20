@@ -51,6 +51,8 @@ $lang['db_sub_db_consistency']   = "Cohérence de la base de données";
 $lang['db_h5_member_management'] = "Gestion des membres";
 $lang['db_h5_doc_management']    = "Gestion documentaire";
 $lang['db_h5_controls']          = "Contrôles et vérifications";
+$lang['db_h5_club']              = "Club";
+$lang['db_h5_configuration']     = "Configuration";
 
 // ─── Titres des cartes ───────────────────────────────────────────────────────
 $lang['db_card_calendar']           = "Calendrier";
