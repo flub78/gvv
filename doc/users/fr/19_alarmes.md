@@ -88,6 +88,17 @@ En haut de la page, **Alarmes actives et à venir** liste vos alarmes actives (e
 
 Une alarme disparaît d'elle-même quand le problème est réglé : nouveau document valide déposé, ou alerte désactivée sur le document par un administrateur.
 
+### 2.1 Désactiver une alarme
+
+Le bouton **cloche barrée** d'une ligne désactive cette alarme précise (par exemple le compte débiteur d'un pilote qui a un échéancier) :
+
+- **Pour moi seulement** : pour une alarme que vous suivez par abonnement. Elle disparaît de votre liste, de votre carte du tableau de bord, de vos emails, messages du jour et SMS ; les autres abonnés et le pilote concerné la voient toujours. Vos propres alarmes (badge **Moi**) ne peuvent pas être désactivées pour vous seul.
+- **Pour tout le monde** (administrateur club seulement) : l'alarme disparaît pour tous, pilote concerné compris, et de la liste des alarmes que personne ne reçoit. Un motif est obligatoire.
+
+La désactivation est **définitive** ou **jusqu'à une date** incluse. L'alarme réapparaît d'elle-même à cette date, ou dès que sa situation change : passage de « à venir » à « active », nouvelle échéance. Une alarme sans échéance (compte débiteur, vols sans cotisation ou sans licence) ne réapparaît qu'à la date choisie, ou l'année suivante pour la cotisation et la licence. Si le problème est réglé, la désactivation prend fin.
+
+Sous la liste, un bandeau indique le nombre d'alarmes désactivées ; **Afficher / masquer** les montre, avec la portée, l'auteur, le motif et la date de fin. **Réactiver** les remet dans la liste : vous pouvez réactiver celles que vous avez désactivées pour vous ; un administrateur club peut tout réactiver.
+
 ---
 
 ## 3. Élèves et visite médicale
@@ -118,6 +129,7 @@ Accessible depuis le tableau de bord **Administration système** (carte « Admin
 
 - **Alarmes actives ou à venir que personne ne reçoit** : ni le membre concerné (faute de canal choisi), ni un abonné. Aucun abonnement n'est créé automatiquement, il faut donc abonner quelqu'un à chaque alarme utile.
 - **Abonnements de catégories de membres** : abonner tous les membres ayant un rôle (ex. les instructeurs de la section planeur) à une alarme, éventuellement en la rendant obligatoire. Chez chacun, la case de la section du rôle est cochée (toutes les sections où il a le rôle, et la colonne Club, si aucune section n'est choisie). Un membre qui obtient le rôle est abonné ; un membre qui le perd ne l'est plus.
+- **Alarmes désactivées** : toutes les désactivations en cours, pour tout le monde ou pour un membre, avec l'auteur, le motif et la date de fin ; **Réactiver** remet l'alarme en place (§2.1).
 - **Catalogue des alarmes** : activer ou désactiver une alarme, régler son délai d'anticipation (nombre de jours avant l'échéance où l'alarme passe « à venir »). Le catalogue suit les types de documents : un nouveau type de document à expiration ajoute son alarme. Pour qu'un type n'ait jamais d'alarme, décochez **Alarmes possibles sur ce type** dans sa fiche, ou directement la case de la colonne **Alarmes** dans la liste des types de documents ; la case est cochée par défaut. Dans cette liste, les colonnes Obligatoire, Expiration, Alarmes et Actif sont des cases à cocher : un clic enregistre le changement, confirmé par un message en bas de l'écran.
 
 ---

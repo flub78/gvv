@@ -7,13 +7,14 @@ if (!defined('BASEPATH'))
  *
  * - catalogue : activation et délai d'anticipation de chaque alarme ;
  * - abonnements de catégories de membres (rôle, section facultative, obligatoire) ;
- * - alarmes actives ou à venir que personne ne reçoit.
+ * - alarmes actives ou à venir que personne ne reçoit ;
+ * - désactivations en cours (pour tout le monde et par membre), réactivation.
  *
  * La configuration des alarmes d'un membre précis se fait sur la page
  * Mes alarmes (mes_alarmes), avec le sélecteur de membre.
  *
  * @package controllers
- * @see doc/prds/gestion_alarmes_generiques_prd.md (exigences 1, 5 et 16)
+ * @see doc/prds/gestion_alarmes_generiques_prd.md (exigences 1, 5, 13 et 16)
  */
 class Alarmes_admin extends MY_Controller
 {
@@ -34,6 +35,7 @@ class Alarmes_admin extends MY_Controller
         $this->load->model('alarm_definitions_model');
         $this->load->model('alarm_subscriptions_model');
         $this->load->model('alarm_member_settings_model');
+        $this->load->model('alarm_dismissals_model');
         $this->load->library('Notification_manager');
         $this->load->helper('validation');
         $this->lang->load('alarmes');
@@ -64,6 +66,7 @@ class Alarmes_admin extends MY_Controller
             'definitions' => $definitions,
             'categories' => $this->alarm_subscriptions_model->get_categories(),
             'uncovered' => $this->_uncovered($definitions),
+            'dismissals' => $this->_dismissals($definitions),
             'roles' => $roles,
             'sections' => $sections,
         ));
@@ -121,8 +124,47 @@ class Alarmes_admin extends MY_Controller
     }
 
     /**
+     * Réactivation d'une désactivation, pour tout le monde ou d'un membre (POST)
+     */
+    public function reactivate()
+    {
+        $row = $this->db->where('id', (int) $this->input->post('dismissal_id'))
+            ->where('reactivated_at IS NULL', null, false)->get('alarm_dismissals')->row_array();
+        if (!$row) {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_unknown'));
+        } else {
+            $this->alarm_dismissals_model->reactivate($row['id'], $this->dx_auth->get_username());
+            $this->session->set_flashdata('success', sprintf($this->lang->line('alarm_reactivate_done'), $row['label']));
+        }
+        redirect('alarmes_admin#dismissals');
+    }
+
+    /**
+     * Désactivations en cours, avec le libellé de leur alarme
+     *
+     * @param array $definitions Catalogue
+     * @return array
+     */
+    private function _dismissals($definitions)
+    {
+        $by_id = array();
+        foreach ($definitions as $def) {
+            $by_id[$def['id']] = $def;
+        }
+        $rows = array();
+        foreach ($this->alarm_dismissals_model->pending_list() as $row) {
+            $def = isset($by_id[$row['alarm_definition_id']]) ? $by_id[$row['alarm_definition_id']] : null;
+            $row['definition_label'] = $def ? $def['display_label'] : $row['definition_label_ref'];
+            $row['category'] = $def ? $def['category'] : '';
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    /**
      * Occurrences actives ou à venir que personne ne reçoit : ni le membre
-     * concerné, ni un abonné, avec un canal choisi (email ou message du jour)
+     * concerné, ni un abonné, avec un canal choisi (email ou message du jour).
+     * Les occurrences désactivées pour tout le monde n'y figurent pas.
      *
      * @param array $definitions
      * @return array AlarmItem[] (une ligne par occurrence)
@@ -156,8 +198,9 @@ class Alarmes_admin extends MY_Controller
             }
         }
         $uncovered = array();
+        $dismissed = $this->alarm_dismissals_model->global_keys($items);
         foreach ($items as $item) {
-            if (!isset($covered[$item['key']]) && !isset($uncovered[$item['key']])) {
+            if (!isset($covered[$item['key']]) && !isset($uncovered[$item['key']]) && !isset($dismissed[$item['key']])) {
                 $item['definition_label'] = $active_defs[$item['definition_id']]['display_label'];
                 $item['category'] = $active_defs[$item['definition_id']]['category'];
                 $uncovered[$item['key']] = $item;

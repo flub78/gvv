@@ -129,9 +129,16 @@ $csrf_value = $this->security->get_csrf_hash();
                 </span>
               </td>
               <td class="text-center"><?= $row['due_date'] ? date_db2ht($row['due_date']) : '' ?></td>
-              <td>
+              <td class="text-nowrap">
                 <?php if ($row['link'] !== ''): ?>
                   <a href="<?= site_url($row['link']) ?>" class="btn btn-outline-primary btn-sm"><?= $this->lang->line('alarm_notification_open') ?></a>
+                <?php endif; ?>
+                <?php if (empty($row['own']) || $is_admin): ?>
+                  <button type="button" class="btn btn-outline-secondary btn-sm alarm-dismiss-btn" data-bs-toggle="modal" data-bs-target="#dismiss-modal"
+                          data-key="<?= htmlspecialchars($row['key']) ?>" data-label="<?= htmlspecialchars($row['label'] . ' — ' . $row['detail']) ?>"
+                          data-own="<?= empty($row['own']) ? '0' : '1' ?>" title="<?= $this->lang->line('alarm_dismiss_title') ?>">
+                    <i class="fas fa-bell-slash" aria-hidden="true"></i><span class="visually-hidden"><?= $this->lang->line('alarm_dismiss_title') ?></span>
+                  </button>
                 <?php endif; ?>
               </td>
             </tr>
@@ -140,6 +147,119 @@ $csrf_value = $this->security->get_csrf_hash();
       </table>
     </div>
   <?php endif; ?>
+
+  <?php if ($dismissed_rows): ?>
+    <!-- Alarmes désactivées -->
+    <div class="alert alert-secondary py-2 d-flex flex-wrap align-items-center gap-2" id="alarm-dismissed-notice">
+      <span><i class="fas fa-bell-slash me-1" aria-hidden="true"></i><?= sprintf($this->lang->line('alarm_dismissed_count'), count($dismissed_rows)) ?></span>
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#alarm-dismissed" id="alarm-dismissed-toggle">
+        <?= $this->lang->line('alarm_dismissed_show') ?>
+      </button>
+    </div>
+    <div class="collapse" id="alarm-dismissed">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped text-muted" id="dismissed-table">
+          <thead class="table-light">
+            <tr>
+              <th><?= $this->lang->line('alarm_col_alarm') ?></th>
+              <th><?= $this->lang->line('alarm_col_concerns') ?></th>
+              <th><?= $this->lang->line('alarm_dismiss_scope') ?></th>
+              <th><?= $this->lang->line('alarm_dismiss_by') ?></th>
+              <th><?= $this->lang->line('alarm_dismiss_reason') ?></th>
+              <th class="text-center"><?= $this->lang->line('alarm_dismiss_until') ?></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($dismissed_rows as $row): ?>
+              <?php $d = $row['dismissal']; $for_all = ($d['member_login'] === null); ?>
+              <tr data-key="<?= htmlspecialchars($row['key']) ?>">
+                <td <?= alarm_category_mark($row['category']) ?>>
+                  <?= alarm_category_badge($row['category']) ?>
+                  <div><?= htmlspecialchars($row['label']) ?></div>
+                  <div class="small"><?= htmlspecialchars($row['definition_label']) ?></div></td>
+                <td><?= htmlspecialchars($row['detail']) ?></td>
+                <td><span class="badge <?= $for_all ? 'bg-dark' : 'bg-secondary' ?>"><?= $this->lang->line($for_all ? 'alarm_dismiss_scope_all' : 'alarm_dismiss_scope_self') ?></span></td>
+                <td><?= htmlspecialchars(isset($authors[$d['created_by']]) ? $authors[$d['created_by']] : (string) $d['created_by']) ?>
+                  <div class="small"><?= date_db2ht(substr($d['created_at'], 0, 10)) ?></div></td>
+                <td><?= htmlspecialchars((string) $d['reason']) ?></td>
+                <td class="text-center"><?= $d['until_date'] ? date_db2ht($d['until_date']) : $this->lang->line('alarm_dismiss_permanent') ?></td>
+                <td>
+                  <?php if (!$for_all || $is_admin): ?>
+                    <form method="post" action="<?= site_url('mes_alarmes/reactivate') ?>" class="d-inline">
+                      <input type="hidden" name="<?= $csrf_name ?>" value="<?= $csrf_value ?>">
+                      <input type="hidden" name="membre" value="<?= htmlspecialchars($member['mlogin']) ?>">
+                      <input type="hidden" name="filter_alarme" value="<?= $filter_def ?: '' ?>">
+                      <input type="hidden" name="filter_section" value="<?= $filter_section ?: '' ?>">
+                      <input type="hidden" name="dismissal_id" value="<?= (int) $d['id'] ?>">
+                      <button type="submit" class="btn btn-outline-success btn-sm alarm-reactivate-btn">
+                        <i class="fas fa-bell me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_reactivate') ?></button>
+                    </form>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <!-- Désactivation d'une alarme -->
+  <div class="modal fade" id="dismiss-modal" tabindex="-1" aria-labelledby="dismiss-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+      <form method="post" action="<?= site_url('mes_alarmes/dismiss') ?>" class="modal-content" id="dismiss-form">
+        <input type="hidden" name="<?= $csrf_name ?>" value="<?= $csrf_value ?>">
+        <input type="hidden" name="membre" value="<?= htmlspecialchars($member['mlogin']) ?>">
+        <input type="hidden" name="filter_alarme" value="<?= $filter_def ?: '' ?>">
+        <input type="hidden" name="filter_section" value="<?= $filter_section ?: '' ?>">
+        <input type="hidden" name="key" id="dismiss-key" value="">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dismiss-modal-title"><i class="fas fa-bell-slash me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_dismiss_title') ?></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $this->lang->line('alarm_dismiss_cancel') ?>"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-bold" id="dismiss-label"></p>
+          <div class="mb-3">
+            <div class="form-label"><?= $this->lang->line('alarm_dismiss_scope') ?></div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="scope" id="dismiss-scope-self" value="self" checked>
+              <label class="form-check-label" for="dismiss-scope-self"><?= $this->lang->line($is_self ? 'alarm_dismiss_for_me' : 'alarm_dismiss_for_member') ?></label>
+            </div>
+            <?php if ($is_admin): ?>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="scope" id="dismiss-scope-all" value="all">
+                <label class="form-check-label" for="dismiss-scope-all"><?= $this->lang->line('alarm_dismiss_for_all') ?></label>
+              </div>
+            <?php endif; ?>
+            <div class="form-text" id="dismiss-own-help" style="display:none;"><?= $this->lang->line('alarm_dismiss_own_help') ?></div>
+          </div>
+          <div class="mb-3">
+            <div class="form-label"><?= $this->lang->line('alarm_dismiss_duration') ?></div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="duration" id="dismiss-permanent" value="permanent" checked>
+              <label class="form-check-label" for="dismiss-permanent"><?= $this->lang->line('alarm_dismiss_permanent') ?></label>
+            </div>
+            <div class="form-check d-flex align-items-center gap-2">
+              <input class="form-check-input" type="radio" name="duration" id="dismiss-until" value="until">
+              <label class="form-check-label" for="dismiss-until"><?= $this->lang->line('alarm_dismiss_until_label') ?></label>
+              <input type="date" class="form-control form-control-sm w-auto" name="until_date" id="dismiss-until-date" min="<?= $today ?>">
+            </div>
+            <div class="form-text"><?= $this->lang->line('alarm_dismiss_auto_help') ?></div>
+          </div>
+          <div class="mb-2">
+            <label for="dismiss-reason" class="form-label"><?= $this->lang->line('alarm_dismiss_reason') ?>
+              <span class="text-muted small" id="dismiss-reason-hint"><?= $this->lang->line('alarm_dismiss_reason_optional') ?></span></label>
+            <input type="text" class="form-control form-control-sm" name="reason" id="dismiss-reason" maxlength="255">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $this->lang->line('alarm_dismiss_cancel') ?></button>
+          <button type="submit" class="btn btn-primary btn-sm" id="dismiss-submit"><i class="fas fa-bell-slash me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_dismiss_submit') ?></button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Configuration -->
   <h4 class="mt-4" id="configuration-title"><i class="fas fa-cog text-secondary me-2" aria-hidden="true"></i><?= $this->lang->line('alarm_config_title') ?></h4>
@@ -331,5 +451,43 @@ $csrf_value = $this->security->get_csrf_hash();
     refresh();
   });
   refresh();
+})();
+
+// Désactivation : la boîte de dialogue reçoit l'alarme du bouton. Une alarme propre ne se désactive que pour tout le monde
+// (administrateur club) ; le motif est alors obligatoire, la date l'est quand « jusqu'au » est choisi.
+(function () {
+  var modal = document.getElementById('dismiss-modal');
+  if (!modal) {
+    return;
+  }
+  var self = document.getElementById('dismiss-scope-self');
+  var all = document.getElementById('dismiss-scope-all');
+  var reason = document.getElementById('dismiss-reason');
+  var until = document.getElementById('dismiss-until');
+  var untilDate = document.getElementById('dismiss-until-date');
+  function refresh() {
+    var forAll = all && all.checked;
+    reason.required = !!forAll;
+    document.getElementById('dismiss-reason-hint').style.display = forAll ? 'none' : '';
+    untilDate.required = until.checked;
+  }
+  modal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var own = button.dataset.own === '1';
+    document.getElementById('dismiss-key').value = button.dataset.key;
+    document.getElementById('dismiss-label').textContent = button.dataset.label;
+    self.disabled = own;
+    self.checked = !own;
+    if (all) {
+      all.checked = own;
+    }
+    document.getElementById('dismiss-own-help').style.display = own ? '' : 'none';
+    refresh();
+  });
+  modal.addEventListener('change', refresh);
+  untilDate.addEventListener('input', function () {
+    until.checked = true;
+    refresh();
+  });
 })();
 </script>

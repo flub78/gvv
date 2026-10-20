@@ -43,6 +43,7 @@ class Notification_manager {
         $this->CI->load->model('alarm_subscriptions_model');
         $this->CI->load->model('alarm_member_settings_model');
         $this->CI->load->model('notification_history_model');
+        $this->CI->load->model('alarm_dismissals_model');
         $this->CI->load->model('motd_model');
         $this->CI->load->library('Alarm_aggregator');
         $this->CI->load->helper('email');
@@ -58,6 +59,7 @@ class Notification_manager {
      */
     public function set_today($date) {
         $this->today = $date;
+        $this->CI->alarm_dismissals_model->set_today($date);
     }
 
     /**
@@ -70,6 +72,15 @@ class Notification_manager {
         $stats = array('email' => 0, 'motd' => 0, 'sms' => 0, 'failed' => 0);
 
         list($definitions, $items_by_def) = $this->collect_items();
+
+        // Désactivations dont l'occurrence a disparu (condition résolue)
+        $keys = array();
+        foreach ($items_by_def as $items) {
+            foreach ($items as $item) {
+                $keys[$item['key']] = true;
+            }
+        }
+        $this->CI->alarm_dismissals_model->reactivate_missing(array_keys($definitions), $keys);
 
         $settings = $this->CI->alarm_member_settings_model->get_all_by_login();
         foreach ($this->members_to_notify() as $login => $cells) {
@@ -162,14 +173,17 @@ class Notification_manager {
      * est le pilote, 'own' = true), pour toutes les alarmes, et celles de ses
      * cases effectives. Le lien à utiliser dépend du lecteur : link_own pour
      * le membre lui-même, link pour un superviseur (cf. item_link()).
+     * Les occurrences désactivées pour tout le monde ou pour le membre en
+     * sont retirées et rendues dans $dismissed.
      *
      * @param string $login
      * @param array $cells definition_id => [section_id|CLUB => abonnement] cases effectives
      * @param array $definitions definition_id => ligne du catalogue
      * @param array $items_by_def definition_id => AlarmItem[]
+     * @param array $dismissed Rempli : key => AlarmItem désactivé (avec 'dismissal')
      * @return array key => AlarmItem
      */
-    public function occurrences_for($login, $cells, $definitions, $items_by_def) {
+    public function occurrences_for($login, $cells, $definitions, $items_by_def, &$dismissed = null) {
         $occurrences = array();
         foreach ($items_by_def as $def_id => $items) {
             if (empty($definitions[$def_id])) {
@@ -195,6 +209,7 @@ class Notification_manager {
             }
             return strcmp((string) $a['due_date'], (string) $b['due_date']);
         });
+        list($occurrences, $dismissed) = $this->CI->alarm_dismissals_model->split($login, $occurrences);
         return $occurrences;
     }
 

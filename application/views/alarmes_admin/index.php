@@ -66,6 +66,64 @@ $csrf = '<input type="hidden" name="' . $csrf_name . '" value="' . $csrf_value .
     </div>
   </div>
 
+  <!-- Désactivations en cours -->
+  <div class="card mb-4" id="dismissals">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong><i class="fas fa-bell-slash me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_admin_dismissals') ?></strong>
+      <span class="badge bg-secondary"><?= count($dismissals) ?></span>
+    </div>
+    <div class="card-body p-0">
+      <?php if (empty($dismissals)): ?>
+        <p class="text-muted p-3 mb-0"><?= $this->lang->line('alarm_admin_dismissals_none') ?></p>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped mb-0" id="dismissals-table">
+            <thead class="table-light">
+              <tr>
+                <th><?= $this->lang->line('alarm_col_alarm') ?></th>
+                <th><?= $this->lang->line('alarm_dismiss_scope') ?></th>
+                <th><?= $this->lang->line('alarm_dismiss_by') ?></th>
+                <th><?= $this->lang->line('alarm_dismiss_reason') ?></th>
+                <th class="text-center"><?= $this->lang->line('alarm_dismiss_until') ?></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($dismissals as $d): ?>
+                <tr data-key="<?= htmlspecialchars($d['alarm_key']) ?>">
+                  <td <?= $d['category'] ? alarm_category_mark($d['category']) : '' ?>>
+                    <?= $d['category'] ? alarm_category_badge($d['category']) : '' ?>
+                    <div><?= htmlspecialchars((string) $d['label']) ?></div>
+                    <div class="small text-muted"><?= htmlspecialchars($d['definition_label']) ?></div></td>
+                  <td>
+                    <?php if ($d['member_login'] === null): ?>
+                      <span class="badge bg-dark"><?= $this->lang->line('alarm_dismiss_scope_all') ?></span>
+                    <?php else: ?>
+                      <span class="badge bg-secondary"><?= $this->lang->line('alarm_dismiss_scope_member') ?></span>
+                      <?= htmlspecialchars(trim($d['mprenom'] . ' ' . $d['mnom']) ?: $d['member_login']) ?>
+                    <?php endif; ?>
+                  </td>
+                  <td><?= htmlspecialchars(trim($d['author_prenom'] . ' ' . $d['author_nom']) ?: (string) $d['created_by']) ?>
+                    <div class="small text-muted"><?= date_db2ht(substr($d['created_at'], 0, 10)) ?></div></td>
+                  <td><?= htmlspecialchars((string) $d['reason']) ?></td>
+                  <td class="text-center"><?= $d['until_date'] ? date_db2ht($d['until_date']) : $this->lang->line('alarm_dismiss_permanent') ?></td>
+                  <td>
+                    <form method="post" action="<?= site_url('alarmes_admin/reactivate') ?>" class="d-inline">
+                      <?= $csrf ?>
+                      <input type="hidden" name="dismissal_id" value="<?= (int) $d['id'] ?>">
+                      <button type="submit" class="btn btn-outline-success btn-sm alarm-reactivate-btn">
+                        <i class="fas fa-bell me-1" aria-hidden="true"></i><?= $this->lang->line('alarm_reactivate') ?></button>
+                    </form>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+
   <!-- Abonnements de catégories -->
   <div class="card mb-4">
     <div class="card-header"><strong><?= $this->lang->line('alarm_admin_categories') ?></strong></div>

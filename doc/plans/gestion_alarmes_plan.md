@@ -170,22 +170,22 @@ La page « Mes alarmes » et la carte du tableau de bord suivent la section acti
 Désactivation d'une occurrence pour soi (superviseur) ou pour tout le monde (`club-admin`), définitive ou jusqu'à une date ; réactivation automatique et par `club-admin`.
 
 **4.1 — Données** (0,5 j)
-- [ ] Migration : table `alarm_dismissals` (clé d'occurrence, alarme, membre ou tous, date de fin, motif, instantanés d'état et d'échéance, réactivation, champs d'audit) ; `config/migration.php`
-- [ ] `alarm_dismissals_model` : désactiver, réactiver, désactivations en cours d'un lecteur, droits (pour soi : occurrence non propre de ses cases ; pour tout le monde et toute réactivation : `club-admin`), réactivation automatique (date, changement d'état ou d'échéance, occurrence disparue)
+- [x] Migration : table `alarm_dismissals` (clé d'occurrence, alarme, membre ou tous, date de fin, motif, instantanés d'état et d'échéance, réactivation, champs d'audit) ; `config/migration.php`
+- [x] `alarm_dismissals_model` : désactiver, réactiver, désactivations en cours d'un lecteur, droits (pour soi : occurrence non propre de ses cases ; pour tout le monde et toute réactivation : `club-admin`), réactivation automatique (date, changement d'état ou d'échéance, occurrence disparue)
 
 **4.2 — Filtrage** (0,5 j)
-- [ ] `Notification_manager::occurrences_for()` : écarte les désactivations pour tout le monde (propres comprises) et pour le lecteur, les rend à part ; page, carte, synthèses et SMS en bénéficient
-- [ ] Alarmes que personne ne reçoit sans les désactivations pour tout le monde ; réactivation des désactivations d'occurrences disparues au passage du scheduler
+- [x] `Notification_manager::occurrences_for()` : écarte les désactivations pour tout le monde (propres comprises) et pour le lecteur, les rend à part ; page, carte, synthèses et SMS en bénéficient
+- [x] Alarmes que personne ne reçoit sans les désactivations pour tout le monde ; réactivation des désactivations d'occurrences disparues au passage du scheduler
 
 **4.3 — Pages** (1,5 j)
-- [ ] `mes_alarmes` : bouton « Désactiver » par ligne (pour moi ; pour tout le monde réservé à `club-admin`), boîte de dialogue définitive ou date de fin, motif (obligatoire pour tout le monde), confirmation
-- [ ] `mes_alarmes` : nombre d'alarmes désactivées, affichage à la demande avec auteur, motif et date de fin, bouton « Réactiver » selon droits
-- [ ] `alarmes_admin` : désactivations en cours (pour tout le monde et par membre) avec réactivation
-- [ ] Libellés FR/EN/NL ; guide utilisateur `19_alarmes.md`
+- [x] `mes_alarmes` : bouton « Désactiver » par ligne (pour moi ; pour tout le monde réservé à `club-admin`), boîte de dialogue définitive ou date de fin, motif (obligatoire pour tout le monde), confirmation
+- [x] `mes_alarmes` : nombre d'alarmes désactivées, affichage à la demande avec auteur, motif et date de fin, bouton « Réactiver » selon droits
+- [x] `alarmes_admin` : désactivations en cours (pour tout le monde et par membre) avec réactivation
+- [x] Libellés FR/EN/NL ; guide utilisateur `19_alarmes.md`
 
 **4.4 — Tests** (1 j)
-- [ ] PHPUnit MySQL : droits (propre refusée, hors cases refusée, pour tout le monde réservée à `club-admin`), filtrage pour soi et pour tout le monde (pilote compris), réactivation à la date, au changement d'état ou d'échéance, à la disparition de l'occurrence, réactivation manuelle, synthèses sans les désactivées ; migration up/down avec sauvegarde
-- [ ] Playwright : désactivation pour soi puis réactivation, désactivation pour tout le monde par `club-admin` (invisible pour le pilote et un autre abonné), réactivation depuis l'administration
+- [x] PHPUnit MySQL `AlarmesLot4Test.php` : alarme propre non désactivable pour soi, motif obligatoire pour tout le monde, date passée refusée, une seule désactivation en cours par portée, filtrage pour soi et pour tout le monde (pilote compris), réactivation à la date, au changement d'état, à la disparition de l'occurrence, réactivation manuelle, synthèses sans les désactivées ; migration up idempotente, aller-retour down/up seulement sans désactivation existante. Les droits liés au lecteur (pour tout le monde réservé à `club-admin`, occurrence hors de la liste du membre) sont vérifiés par le contrôleur
+- [x] Playwright `alarmes-lot4-smoke.spec.js` : désactivation pour soi puis réactivation, désactivation pour tout le monde par `club-admin` sur la page d'un superviseur (invisible pour lui, signalée comme désactivée pour tout le monde, sans bouton de réactivation), réactivation depuis l'administration
 
 **Estimation totale Lot 4 : ~3,5 jours.**
 
