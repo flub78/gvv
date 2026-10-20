@@ -85,16 +85,25 @@ class Mes_alarmes extends MY_Controller
         list($definitions, $items_by_def) = $this->notification_manager->collect_items();
         $occurrences = $this->notification_manager->occurrences_for($login, $effective, $definitions, $items_by_def);
 
+        // Sans paramètre section, la liste suit la section active (« Toutes » = pas de filtre)
         $filter_def = (int) $this->input->get('alarme');
-        $filter_section = (int) $this->input->get('section');
+        $requested_section = $this->input->get('section');
+        $filter_section = ($requested_section === false)
+            ? (int) $this->session->userdata('section')
+            : (int) $requested_section;
+        if (!isset($sections[$filter_section])) {
+            $filter_section = 0;
+        }
         $rows = array();
         $listed_defs = array();
+        $hidden_count = 0;
         foreach ($occurrences as $item) {
             $listed_defs[$item['definition_id']] = $definitions[$item['definition_id']]['display_label'];
             if ($filter_def && $item['definition_id'] !== $filter_def) {
                 continue;
             }
-            if ($filter_section && !empty($item['section_ids']) && !in_array($filter_section, $item['section_ids'], true)) {
+            if (!Notification_manager::item_in_section($item, $filter_section)) {
+                $hidden_count++;
                 continue;
             }
             $item['definition_label'] = $definitions[$item['definition_id']]['display_label'];
@@ -122,6 +131,7 @@ class Mes_alarmes extends MY_Controller
             'sections' => $sections,
             'filter_def' => $filter_def,
             'filter_section' => $filter_section,
+            'hidden_count' => $hidden_count,
         ));
     }
 

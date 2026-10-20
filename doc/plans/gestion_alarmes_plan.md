@@ -152,6 +152,19 @@ Par section ; seuils fixes (3 atterrissages CDB en 90 jours, 10 remorqués en 12
 - Un membre qui n'a pas volé en avion depuis 125 jours voit l'alarme « 120 jours sans voler » de la section avion ; un vol avec instructeur la fait disparaître.
 - Le trésorier abonné voit les pilotes dont la dette dans sa section dépasse le seuil des relances ; un membre du CA ne peut pas s'y abonner.
 
+## Affichage par section active
+
+La page « Mes alarmes » et la carte du tableau de bord suivent la section active ; les notifications ne changent pas.
+
+- [x] `Notification_manager::item_in_section()` (occurrence sans section ou de la section) et `active_counts_for()` (actives de la section et total)
+- [x] `mes_alarmes` : filtre de section par défaut = section active (« Toutes » = aucun filtre), paramètre `section` vide pour toutes les sections ; bandeau du nombre d'alarmes masquées avec lien « toutes les sections »
+- [x] Carte « Mes alarmes » : nombre de la section active, total dans l'infobulle et en badge gris quand la section n'en a aucune
+- [x] Libellés FR/EN/NL ; guide utilisateur `19_alarmes.md`
+- [x] PHPUnit `NotificationManagerTest.php` : `item_in_section()`, `active_counts_for()` ; Playwright `alarmes-smoke.spec.js` : liste filtrée par la section active, bandeau et lien vers toutes les sections
+
+**Validation**
+- Section ULM active : un trésorier abonné au compte débiteur en planeur et en ULM ne voit que les débiteurs ULM, un bandeau indique le nombre d'alarmes planeur masquées ; « Toutes » les affiche toutes.
+
 ## Lots suivants
 - Alarmes de maintenance, autres alarmes d'expérience récente (extraction des règles d'`alarmes.php` vers `ComputedAlarmProvider`).
 - Acquittement et suspension des alarmes.

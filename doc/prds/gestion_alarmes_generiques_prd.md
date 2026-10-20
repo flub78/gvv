@@ -124,7 +124,7 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
 
 3. **Page Mes alarmes : configuration (Lot 1)**
    - Chaque membre dispose dans GVV d'une page « Mes alarmes », accessible depuis son espace personnel (menu et tableau de bord). La page présente d'abord la liste des alarmes (exigence 4), puis la configuration.
-   - La carte « Mes alarmes » du tableau de bord affiche le nombre d'alarmes actives du membre (propres et abonnements), s'il y en a.
+   - La carte « Mes alarmes » du tableau de bord affiche le nombre d'alarmes actives du membre (propres et abonnements), s'il y en a. Quand une section est active dans GVV, ce nombre se limite aux alarmes de cette section et la carte indique aussi le nombre total.
    - Pour un membre ayant des droits de supervision, la configuration présente une **matrice** : une ligne par alarme qu'il peut superviser, une colonne par section où il a ces droits (plus la colonne Club si l'alarme en a une), une case à cocher par croisement. Une case n'existe que si le membre a le droit correspondant. Une ligne, une colonne ou toute la matrice peut être cochée ou décochée en une fois (sauf les cases obligatoires). Un membre sans droit de supervision n'a pas de matrice ; la page lui indique que ses propres alarmes sont toujours suivies.
    - Le membre y choisit ses canaux : email, message du jour, ou les deux. Ce choix est commun à toutes ses alarmes, propres ou par abonnement. Aucun canal n'est présélectionné ni exigé : sans canal, ses alarmes restent seulement affichées dans GVV.
    - Le membre y active ou désactive le rappel par SMS (cf. exigence 6). Ce choix se fait uniquement sur cette page ; cocher l'option vaut consentement à recevoir ces SMS.
@@ -137,6 +137,9 @@ Le MVP est livré par lots. Les exigences de ce document précisent, quand c'est
    - Les alarmes sont classées en quatre catégories, distinguées visuellement (couleur et icône) dans la matrice, la liste et l'administration : documents, cotisation et licence, comptes, expérience récente. La matrice les regroupe par catégorie.
    - Pour chaque alarme, la page indique ce qui est concerné (membre, document, machine), l'échéance ou la date de déclenchement, l'état (à venir, active) et l'action attendue, avec un lien vers la page GVV où la traiter.
    - La liste est filtrable par alarme du catalogue et par section.
+   - Par défaut, la liste suit la section active dans GVV : seules les alarmes de cette section sont affichées, ainsi que celles qui ne dépendent d'aucune section (colonne Club). Quand « Toutes » les sections sont sélectionnées, toutes les alarmes sont affichées. Le membre peut choisir une autre section ou toutes les sections dans le filtre de la page, sans changer la section active.
+   - Quand des alarmes sont masquées par ce filtre, la page l'indique avec leur nombre et un lien pour les afficher toutes.
+   - Ce filtrage ne concerne que l'affichage dans GVV : les synthèses (email, message du jour) et les rappels SMS portent toujours sur toutes les sections.
    - Une alarme résolue n'y figure plus.
 
 5. **Configuration par un administrateur (Lot 1)**

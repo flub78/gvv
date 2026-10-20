@@ -364,6 +364,24 @@ class NotificationManagerTest extends TestCase
         $this->assertEquals(2, $this->manager->active_count_for(self::SUPERVISOR), 'Abonné à sa section');
     }
 
+    public function test_occurrence_de_la_section_active(): void
+    {
+        $this->assertTrue(Notification_manager::item_in_section(array('section_ids' => array(3)), 0), 'Toutes les sections');
+        $this->assertTrue(Notification_manager::item_in_section(array('section_ids' => array()), 3), 'Club : toutes les sections');
+        $this->assertTrue(Notification_manager::item_in_section(array('section_ids' => array('1', '3')), 3));
+        $this->assertFalse(Notification_manager::item_in_section(array('section_ids' => array(1)), 3));
+    }
+
+    public function test_nombre_d_alarmes_actives_de_la_section_active(): void
+    {
+        $this->addDocument(self::PILOT, 10);    // à venir
+        $this->addDocument(self::PILOT, -3);    // active, section du test
+        $this->assertEquals(array(1, 1), $this->manager->active_counts_for(self::PILOT, 0), 'Toutes les sections');
+        $this->assertEquals(array(1, 1), $this->manager->active_counts_for(self::PILOT, $this->section_id));
+        $this->assertEquals(array(0, 1), $this->manager->active_counts_for(self::PILOT, $this->section_id + 100000),
+            'Autre section : masquée, mais comptée dans le total');
+    }
+
     public function test_rappel_sms_le_lundi_avec_lien_seulement(): void
     {
         $this->addDocument(self::PILOT, 10);

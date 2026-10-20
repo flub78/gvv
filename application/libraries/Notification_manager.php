@@ -217,13 +217,44 @@ class Notification_manager {
      * @return int
      */
     public function active_count_for($login) {
-        $count = 0;
+        list(, $total) = $this->active_counts_for($login, 0);
+        return $total;
+    }
+
+    /**
+     * Nombre d'occurrences actives d'un membre dans une section
+     * (item_in_section()) et au total
+     *
+     * @param string $login
+     * @param int $section_id 0 = toutes les sections
+     * @return array array(section, total)
+     */
+    public function active_counts_for($login, $section_id) {
+        $in_section = 0;
+        $total = 0;
         foreach ($this->member_occurrences($login) as $item) {
-            if ($item['state'] === 'active') {
-                $count++;
+            if ($item['state'] !== 'active') {
+                continue;
+            }
+            $total++;
+            if (self::item_in_section($item, $section_id)) {
+                $in_section++;
             }
         }
-        return $count;
+        return array($in_section, $total);
+    }
+
+    /**
+     * Une occurrence relève-t-elle d'une section ? Une occurrence sans
+     * section (colonne Club) relève de toutes.
+     *
+     * @param array $item AlarmItem
+     * @param int $section_id 0 = toutes les sections
+     * @return bool
+     */
+    public static function item_in_section($item, $section_id) {
+        return !$section_id || empty($item['section_ids'])
+            || in_array((int) $section_id, array_map('intval', $item['section_ids']), true);
     }
 
     /**

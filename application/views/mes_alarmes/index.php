@@ -79,10 +79,23 @@ $csrf_value = $this->security->get_csrf_hash();
     </div>
   </form>
 
+  <?php if ($hidden_count > 0): ?>
+    <?php $all_sections_url = site_url('mes_alarmes') . '?section='
+        . ($filter_def ? '&alarme=' . (int) $filter_def : '')
+        . (!$is_self ? '&membre=' . rawurlencode($member['mlogin']) : '') . '#alarm-list'; ?>
+    <div class="alert alert-info py-2" id="alarm-hidden-notice">
+      <i class="fas fa-filter me-1" aria-hidden="true"></i>
+      <?= sprintf($this->lang->line('alarm_filter_hidden'), $hidden_count, htmlspecialchars($sections[$filter_section])) ?>
+      <a href="<?= $all_sections_url ?>" class="alert-link ms-1" id="alarm-show-all"><?= $this->lang->line('alarm_filter_show_all') ?></a>
+    </div>
+  <?php endif; ?>
+
   <?php if (empty($rows)): ?>
+    <?php if ($hidden_count == 0): ?>
     <div class="alert alert-success">
       <i class="fas fa-check-circle me-1" aria-hidden="true"></i><?= $this->lang->line(empty($effective) ? 'alarm_my_alarms_none' : 'alarm_my_alarms_none_followed') ?>
     </div>
+    <?php endif; ?>
   <?php else: ?>
     <div class="table-responsive">
       <table class="table table-sm table-striped table-hover" id="alarms-table">

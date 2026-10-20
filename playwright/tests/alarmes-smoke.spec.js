@@ -6,8 +6,9 @@
  *      subscription matrix; saving channels is confirmed
  *   2. A supervisor (CA of the Avion section only) gets a matrix limited to the
  *      Avion column; a cell can be ticked without any channel; once subscribed,
- *      the list shows only pilots active in the Avion section and the dashboard
- *      card shows the number of active alarms
+ *      the list shows only pilots active in the Avion section; with another
+ *      active section, the Avion alarms are hidden behind a notice and a link
+ *      to all sections, and the dashboard card gives the total in its tooltip
  *   3. A club-admin sees the member selector positioned on himself, configures
  *      another member, who then sees the cell ticked with its author
  *   4. A club-admin adds and deletes a category subscription
@@ -39,6 +40,7 @@ const TYPE_CODE = 'zz_alarm_smoke';
 const FLIGHT_PILOT = 'zzpwlot2';   // pilote fictif actif en avion : vol avion de l'année sans cotisation ni licence
 
 let avionId;
+let otherSectionId;
 let memberMobile;
 let defId;
 let missingDefId;
@@ -87,6 +89,12 @@ test.describe('Alarmes – Lot 1', () => {
             await cleanup(db);
             const [sections] = await db.query("SELECT id FROM sections WHERE nom = 'Avion'");
             avionId = sections[0].id;
+            // Section active de test : une autre section où le superviseur est membre
+            const [other] = await db.query(`SELECT urps.section_id FROM user_roles_per_section urps
+                JOIN users u ON u.id = urps.user_id JOIN types_roles tr ON tr.id = urps.types_roles_id
+                WHERE u.username = ? AND tr.nom = 'user' AND urps.revoked_at IS NULL AND urps.section_id <> ?
+                ORDER BY urps.section_id LIMIT 1`, [SUPERVISOR.username, avionId]);
+            otherSectionId = other[0].section_id;
             const [type] = await db.query(
                 `INSERT INTO document_types (code, name, scope, required, has_expiration, alert_days_before, alarm_enabled, active)
                  VALUES (?, 'Type alarme smoke', 'pilot', 0, 1, 30, 1, 1)`, [TYPE_CODE]);
@@ -188,14 +196,26 @@ test.describe('Alarmes – Lot 1', () => {
         await expect(page.locator(`#cell_${defId}_${avionId}`)).toBeChecked();
         await expect(page.locator('#channel_email')).not.toBeChecked();
 
-        // Seuls les pilotes actifs en section Avion
+        // Section active autre qu'Avion : les alarmes avion sont masquées et signalées
+        await page.evaluate(id => updateSection(id), String(otherSectionId));
+        await page.waitForLoadState('networkidle');
+        await page.goto('/index.php/mes_alarmes');
+        await expect(page.locator('#section')).toHaveValue(String(otherSectionId));
+        await expect(page.locator('#alarm-hidden-notice')).toBeVisible();
+        await expect(page.locator('#alarms-table', { hasText: `zz-smoke-${AVION_PILOT}` })).toHaveCount(0);
+
+        // Toutes les sections : seuls les pilotes actifs en section Avion
+        await page.click('#alarm-show-all');
+        await expect(page.locator('#section')).toHaveValue('');
+        await expect(page.locator('#alarm-hidden-notice')).toHaveCount(0);
         await expect(page.locator('#alarms-table')).toContainText(`zz-smoke-${AVION_PILOT}`);
         await expect(page.locator('#alarms-table')).not.toContainText(`zz-smoke-${MEMBER.username}`);
         const activeRows = await page.locator('#alarms-table tbody tr.table-danger').count();
 
-        // Carte du tableau de bord : nombre d'alarmes actives
+        // Carte du tableau de bord : alarmes de la section active, total dans l'infobulle
         await page.goto('/index.php/welcome/section/user');
-        await expect(page.locator('#card-mes-alarmes .badge-corner')).toHaveText(String(activeRows));
+        await expect(page.locator('#card-mes-alarmes .badge-corner'))
+            .toHaveAttribute('title', new RegExp(`, ${activeRows} au total`));
     });
 
     test('un superviseur abonné voit les vols sans licence de sa section (Lot 2)', async ({ page }) => {
@@ -211,6 +231,7 @@ test.describe('Alarmes – Lot 1', () => {
         await page.click('#configuration button[type="submit"]');
         await expect(page.locator('.alert-success')).toBeVisible();
 
+        await page.goto(`/index.php/mes_alarmes?section=${avionId}`);
         const row = page.locator('#alarms-table tr', { hasText: 'Zzlot' });
         await expect(row).toHaveCount(1);
         await expect(row).toContainText(String(new Date().getFullYear()));

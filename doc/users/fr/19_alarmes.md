@@ -82,9 +82,9 @@ Cliquez sur **Enregistrer** : un message confirme l'enregistrement, ou explique 
 
 ## 2. Liste des alarmes
 
-La carte **Mes alarmes** du tableau de bord de votre espace personnel affiche dans un badge rouge le nombre de vos alarmes actives, s'il y en a.
+La carte **Mes alarmes** du tableau de bord de votre espace personnel affiche dans un badge rouge le nombre de vos alarmes actives, s'il y en a ; quand une section est active, seulement celles de cette section (le total s'affiche au survol, et dans un badge gris si la section n'en a aucune).
 
-En haut de la page, **Alarmes actives et à venir** liste vos alarmes actives (en rouge) et à venir (en orange) : vos propres alarmes (badge **Moi**) et celles des cases que vous avez cochées. Pour chacune : le document, la personne ou la machine concernée, la section, l'échéance, et un bouton **Ouvrir** vers la page où traiter l'alarme (déposer un nouveau document, par exemple). Vous pouvez filtrer par alarme et par section.
+En haut de la page, **Alarmes actives et à venir** liste vos alarmes actives (en rouge) et à venir (en orange) : vos propres alarmes (badge **Moi**) et celles des cases que vous avez cochées. Pour chacune : le document, la personne ou la machine concernée, la section, l'échéance, et un bouton **Ouvrir** vers la page où traiter l'alarme (déposer un nouveau document, par exemple). Vous pouvez filtrer par alarme et par section. Par défaut, la liste suit la **section active** (sélecteur en haut à droite de GVV) : elle n'affiche que les alarmes de cette section et celles du club ; avec « Toutes », elle les affiche toutes. Un bandeau indique combien d'alarmes d'autres sections sont masquées, avec un lien pour les voir. Les emails, messages du jour et SMS portent toujours sur toutes les sections.
 
 Une alarme disparaît d'elle-même quand le problème est réglé : nouveau document valide déposé, ou alerte désactivée sur le document par un administrateur.
 

@@ -116,7 +116,13 @@ class Welcome extends Gvv_Controller {
         // Carte "Mes alarmes" de l'espace personnel : nombre d'alarmes actives
         if ($name === 'user' && $this->config->item('gestion_documentaire') && $this->db->table_exists('alarm_definitions')) {
             $this->load->library('Notification_manager');
-            $data['alarm_active_count'] = $this->notification_manager->active_count_for($data['username']);
+            // Section active ; « Toutes » est enregistrée comme un identifiant sans section
+            $alarm_section = (int) $this->session->userdata('section');
+            if ($alarm_section && $this->db->where('id', $alarm_section)->count_all_results('sections') == 0) {
+                $alarm_section = 0;
+            }
+            list($data['alarm_active_count'], $data['alarm_active_total']) = $this->notification_manager->active_counts_for(
+                $data['username'], $alarm_section);
         }
 
         $this->load->model('dashboard_shortcuts_model');
