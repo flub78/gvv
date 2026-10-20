@@ -62,10 +62,14 @@ class Alarmes_admin extends MY_Controller
             $sections[(int) $row['id']] = $row['nom'];
         }
 
+        // Occurrences des alarmes actives : alarmes non reçues, désactivations caduques closes
+        list($active_defs, $items_by_def) = $this->notification_manager->collect_items();
+        $this->notification_manager->close_obsolete_dismissals($active_defs, $items_by_def);
+
         load_last_view('alarmes_admin/index', array(
             'definitions' => $definitions,
             'categories' => $this->alarm_subscriptions_model->get_categories(),
-            'uncovered' => $this->_uncovered($definitions),
+            'uncovered' => $this->_uncovered($active_defs, $items_by_def),
             'dismissals' => $this->_dismissals($definitions),
             'roles' => $roles,
             'sections' => $sections,
@@ -166,26 +170,17 @@ class Alarmes_admin extends MY_Controller
      * concerné, ni un abonné, avec un canal choisi (email ou message du jour).
      * Les occurrences désactivées pour tout le monde n'y figurent pas.
      *
-     * @param array $definitions
+     * @param array $active_defs definition_id => alarme active du catalogue
+     * @param array $items_by_def definition_id => AlarmItem[]
      * @return array AlarmItem[] (une ligne par occurrence)
      */
-    private function _uncovered($definitions)
+    private function _uncovered($active_defs, $items_by_def)
     {
-        $active_defs = array();
-        foreach ($definitions as $def) {
-            if ($def['active']) {
-                $active_defs[$def['id']] = $def;
-            }
-        }
-        if (!$active_defs) {
+        $items = $items_by_def ? call_user_func_array('array_merge', array_values($items_by_def)) : array();
+        if (!$items) {
             return array();
         }
-        $covered = array();
-        $items_by_def = array();
-        $items = $this->alarm_aggregator->collect(array_values($active_defs));
-        foreach ($items as $item) {
-            $items_by_def[$item['definition_id']][] = $item;
-        }
+        $covered = $this->alarm_dismissals_model->global_keys($items);
         $effective = $this->alarm_subscriptions_model->effective_all();
         $active = array_flip($this->alarm_subscriptions_model->active_logins());
         foreach ($this->alarm_member_settings_model->get_all_by_login() as $login => $settings) {
@@ -198,9 +193,8 @@ class Alarmes_admin extends MY_Controller
             }
         }
         $uncovered = array();
-        $dismissed = $this->alarm_dismissals_model->global_keys($items);
         foreach ($items as $item) {
-            if (!isset($covered[$item['key']]) && !isset($uncovered[$item['key']]) && !isset($dismissed[$item['key']])) {
+            if (!isset($covered[$item['key']]) && !isset($uncovered[$item['key']])) {
                 $item['definition_label'] = $active_defs[$item['definition_id']]['display_label'];
                 $item['category'] = $active_defs[$item['definition_id']]['category'];
                 $uncovered[$item['key']] = $item;

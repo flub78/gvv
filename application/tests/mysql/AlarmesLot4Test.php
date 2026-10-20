@@ -62,8 +62,6 @@ class AlarmesLot4Test extends TestCase
         $this->CI->load->model('alarm_subscriptions_model');
         $this->CI->load->model('alarm_member_settings_model');
         $this->CI->load->model('alarm_dismissals_model');
-        $this->model = $this->CI->alarm_dismissals_model;
-        $this->model->set_today(date('Y-m-d'));
 
         $this->section_id = (int) $this->CI->db->query("SELECT id FROM sections ORDER BY id LIMIT 1")->row_array()['id'];
         $this->cleanup();
@@ -92,6 +90,9 @@ class AlarmesLot4Test extends TestCase
 
         $this->manager = new Lot4_notification_manager();
         $this->manager->logins = array(self::PILOT, self::SUPERVISOR, self::OTHER);
+        // Instance utilisée par le manager (le chargeur des tests la recrée)
+        $this->model = $this->CI->alarm_dismissals_model;
+        $this->model->set_today(date('Y-m-d'));
     }
 
     protected function tearDown(): void
@@ -265,10 +266,65 @@ class AlarmesLot4Test extends TestCase
         $this->assertTrue($this->model->dismiss($item, self::SUPERVISOR, null, 'a')['ok']);
         $this->assertTrue($this->model->dismiss($item, self::SUPERVISOR, $this->daysFromNow(3), 'b')['ok']);
 
-        $pending = $this->CI->db->where('alarm_key', $key)->where('reactivated_at IS NULL', null, false)
-            ->count_all_results('alarm_dismissals');
-        $this->assertEquals(1, $pending);
-        $this->assertEquals('b', $this->dismissal($key)['reason']);
+        $rows = $this->CI->db->where('alarm_key', $key)->get('alarm_dismissals')->result_array();
+        $this->assertCount(1, $rows, 'Remplacée sur place, sans fausse réactivation dans l\'historique');
+        $this->assertNull($rows[0]['reactivated_at']);
+        $this->assertEquals('b', $rows[0]['reason']);
+        $this->assertEquals($this->daysFromNow(3), $rows[0]['until_date']);
+    }
+
+    public function test_le_scheduler_clot_les_desactivations_caduques(): void
+    {
+        // Désactivation pour soi d'un membre qui ne revient pas sur sa page
+        $key = $this->addDocument(self::PILOT, 10);
+        $this->assertTrue($this->model->dismiss($this->occurrences(self::SUPERVISOR)[$key], self::SUPERVISOR, null, '')['ok']);
+
+        // Le document expire : seul le passage du scheduler peut clore la désactivation
+        $this->CI->db->where('id', end($this->doc_ids))->update('archived_documents', array('valid_until' => $this->daysFromNow(-1)));
+        $this->manager->logins = array();
+        $this->manager->run('test');
+        $row = $this->dismissal($key);
+        $this->assertNotNull($row['reactivated_at'], 'État changé : désactivation close');
+        $this->assertNull($row['reactivated_by']);
+    }
+
+    public function test_date_de_fin_close_par_le_scheduler(): void
+    {
+        $key = $this->addDocument(self::PILOT, -3);
+        $this->assertTrue($this->model->dismiss($this->occurrences(self::SUPERVISOR)[$key], self::SUPERVISOR, $this->daysFromNow(1), '')['ok']);
+
+        list($definitions, $items_by_def) = $this->manager->collect_items();
+        $this->assertEquals(0, $this->manager->close_obsolete_dismissals($definitions, $items_by_def), 'Encore valable');
+        $this->model->set_today($this->daysFromNow(2));
+        $this->assertEquals(1, $this->manager->close_obsolete_dismissals($definitions, $items_by_def));
+        $this->assertNotNull($this->dismissal($key)['reactivated_at']);
+    }
+
+    public function test_sans_la_table_rien_n_est_desactive(): void
+    {
+        $key = $this->addDocument(self::PILOT, -3);
+        $item = $this->occurrences(self::SUPERVISOR)[$key];
+        $this->assertTrue($this->model->dismiss($item, self::SUPERVISOR, null, '')['ok']);
+
+        // Code déployé avant la migration 180 : la table est réputée absente
+        $model = new Alarm_dismissals_model();
+        $available = new ReflectionProperty('Alarm_dismissals_model', 'available');
+        $available->setAccessible(true);
+        $available->setValue($model, false);
+        $this->assertSame(array(), $model->pending_by_key());
+        $this->assertSame(array(), $model->pending_list());
+        $this->assertEquals(0, $model->close_obsolete(array($item['definition_id']), array()));
+        $this->assertFalse($model->dismiss($item, null, null, 'x')['ok']);
+        list($visible, $dismissed) = $model->split(self::SUPERVISOR, array($key => $item));
+        $this->assertArrayHasKey($key, $visible);
+        $this->assertEmpty($dismissed);
+    }
+
+    public function test_libelle_d_une_occurrence(): void
+    {
+        $this->assertEquals('Certificat — Dupont', alarm_item_title(array('label' => 'Certificat', 'detail' => 'Dupont')));
+        $this->assertEquals('Certificat', alarm_item_title(array('label' => 'Certificat', 'detail' => ' ')));
+        $this->assertEquals('Certificat', alarm_item_title(array('label' => 'Certificat')));
     }
 
     public function test_synthese_sans_les_desactivees(): void

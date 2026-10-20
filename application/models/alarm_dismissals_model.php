@@ -13,7 +13,8 @@ $CI->load->model('common_model');
  * incluse. Elle est en cours tant qu'elle n'est pas réactivée, que sa date
  * de fin n'est pas dépassée et que l'état et l'échéance de l'occurrence sont
  * ceux de la désactivation ; sinon elle est réactivée automatiquement
- * (reactivated_by NULL). Les lignes réactivées sont conservées.
+ * (reactivated_by NULL), à la lecture des alarmes d'un lecteur ou au passage
+ * du scheduler (close_obsolete()). Les lignes réactivées sont conservées.
  *
  * Droits : pour soi, sur une occurrence non propre ; pour tout le monde et
  * toute réactivation d'un autre, club-admin (vérifié par l'appelant, qui
@@ -29,9 +30,13 @@ class Alarm_dismissals_model extends Common_Model {
     /** @var string Date de référence (Y-m-d), modifiable pour les tests */
     private $today;
 
+    /** @var bool|null Table présente (migration 180 appliquée), null = pas encore vérifié */
+    private $available = null;
+
     function __construct() {
         parent::__construct();
         $this->lang->load('alarmes');
+        $this->load->helper('views'); // alarm_item_title()
         $this->today = date('Y-m-d');
     }
 
@@ -45,12 +50,29 @@ class Alarm_dismissals_model extends Common_Model {
     }
 
     /**
+     * La table existe-t-elle ? Sans elle (code déployé avant la migration
+     * 180), aucune occurrence n'est désactivée et les alarmes fonctionnent
+     * comme avant.
+     *
+     * @return bool
+     */
+    public function available() {
+        if ($this->available === null) {
+            $this->available = (bool) $this->db->table_exists($this->table);
+        }
+        return $this->available;
+    }
+
+    /**
      * Désactivations non réactivées
      *
      * @return array alarm_key => lignes
      */
     public function pending_by_key() {
         $result = array();
+        if (!$this->available()) {
+            return $result;
+        }
         foreach ($this->db->where('reactivated_at IS NULL', null, false)->order_by('id')
                      ->get($this->table)->result_array() as $row) {
             $result[$row['alarm_key']][] = $row;
@@ -78,34 +100,29 @@ class Alarm_dismissals_model extends Common_Model {
      * Sépare les occurrences d'un lecteur en visibles et désactivées.
      * Les désactivations qui ne valent plus sont réactivées.
      *
-     * @param string $login Lecteur
-     * @param array $occurrences key => AlarmItem (avec 'own')
-     * @param array|null $pending Résultat de pending_by_key() (null = lu ici)
+     * @param string|null $login Lecteur ; null = désactivations pour tout le monde seulement
+     * @param array $occurrences key => AlarmItem (avec 'own' pour le lecteur)
      * @return array array(visibles key => AlarmItem, désactivées key => AlarmItem + 'dismissal')
      */
-    public function split($login, $occurrences, $pending = null) {
-        if ($pending === null) {
-            $pending = $this->pending_by_key();
-        }
+    public function split($login, $occurrences) {
+        $pending = $this->pending_by_key();
         $visible = array();
         $dismissed = array();
         foreach ($occurrences as $key => $item) {
             $applies = null;
-            if (isset($pending[$key])) {
-                foreach ($pending[$key] as $row) {
-                    $for_reader = ($row['member_login'] === null)
-                        || ($row['member_login'] === $login && empty($item['own']));
-                    if (!$for_reader) {
-                        continue;
-                    }
-                    if (!self::still_valid($row, $item, $this->today)) {
-                        $this->reactivate($row['id'], null);
-                        continue;
-                    }
-                    // Une désactivation pour tout le monde prime sur celle du membre
-                    if (!$applies || $row['member_login'] === null) {
-                        $applies = $row;
-                    }
+            foreach (isset($pending[$key]) ? $pending[$key] : array() as $row) {
+                $for_reader = ($row['member_login'] === null)
+                    || ($login !== null && $row['member_login'] === $login && empty($item['own']));
+                if (!$for_reader) {
+                    continue;
+                }
+                if (!self::still_valid($row, $item, $this->today)) {
+                    $this->reactivate($row['id'], null);
+                    continue;
+                }
+                // Une désactivation pour tout le monde prime sur celle du membre
+                if (!$applies || $row['member_login'] === null) {
+                    $applies = $row;
                 }
             }
             if ($applies) {
@@ -125,23 +142,17 @@ class Alarm_dismissals_model extends Common_Model {
      * @return array key => true
      */
     public function global_keys($items) {
-        $pending = $this->pending_by_key();
-        $keys = array();
+        $by_key = array();
         foreach ($items as $item) {
-            if (empty($pending[$item['key']])) {
-                continue;
-            }
-            foreach ($pending[$item['key']] as $row) {
-                if ($row['member_login'] === null && self::still_valid($row, $item, $this->today)) {
-                    $keys[$item['key']] = true;
-                }
-            }
+            $by_key[$item['key']] = $item;
         }
-        return $keys;
+        list(, $dismissed) = $this->split(null, $by_key);
+        return array_fill_keys(array_keys($dismissed), true);
     }
 
     /**
-     * Désactive une occurrence
+     * Désactive une occurrence. Une désactivation déjà en cours pour la même
+     * occurrence et la même portée est remplacée (mise à jour).
      *
      * @param array $item AlarmItem (avec 'own' pour le membre)
      * @param string|null $member_login Membre, null = pour tout le monde
@@ -151,6 +162,9 @@ class Alarm_dismissals_model extends Common_Model {
      */
     public function dismiss($item, $member_login, $until_date, $reason) {
         $reason = trim((string) $reason);
+        if (!$this->available()) {
+            return array('ok' => false, 'error' => $this->lang->line('alarm_error_save'));
+        }
         if ($member_login !== null && !empty($item['own'])) {
             return array('ok' => false, 'error' => $this->lang->line('alarm_dismiss_error_own'));
         }
@@ -161,33 +175,36 @@ class Alarm_dismissals_model extends Common_Model {
             return array('ok' => false, 'error' => $this->lang->line('alarm_dismiss_error_date'));
         }
 
-        // Une seule désactivation en cours par occurrence et par portée
-        $this->db->where('alarm_key', $item['key'])->where('reactivated_at IS NULL', null, false);
+        $user = $this->current_username();
+        $now = date('Y-m-d H:i:s');
+        $row = array(
+            'label' => mb_substr(alarm_item_title($item), 0, 255),
+            'until_date' => $until_date,
+            'reason' => ($reason === '') ? null : mb_substr($reason, 0, 255),
+            'state_snapshot' => $item['state'],
+            'due_date_snapshot' => $item['due_date'] ?: null,
+            'updated_at' => $now,
+            'updated_by' => $user,
+        );
+
+        $this->db->select('id')->where('alarm_key', $item['key'])->where('reactivated_at IS NULL', null, false);
         if ($member_login === null) {
             $this->db->where('member_login IS NULL', null, false);
         } else {
             $this->db->where('member_login', $member_login);
         }
-        $user = $this->current_username();
-        $now = date('Y-m-d H:i:s');
-        $this->db->update($this->table, array('reactivated_at' => $now, 'reactivated_by' => $user,
-            'updated_at' => $now, 'updated_by' => $user));
-
-        $label = trim($item['label'] . (isset($item['detail']) && $item['detail'] !== '' ? ' — ' . $item['detail'] : ''));
-        $ok = $this->db->insert($this->table, array(
-            'alarm_definition_id' => (int) $item['definition_id'],
-            'alarm_key' => $item['key'],
-            'label' => mb_substr($label, 0, 255),
-            'member_login' => $member_login,
-            'until_date' => $until_date,
-            'reason' => ($reason === '') ? null : mb_substr($reason, 0, 255),
-            'state_snapshot' => $item['state'],
-            'due_date_snapshot' => $item['due_date'] ?: null,
-            'created_at' => $now,
-            'updated_at' => $now,
-            'created_by' => $user,
-            'updated_by' => $user,
-        ));
+        $existing = $this->db->get($this->table)->row_array();
+        if ($existing) {
+            $ok = $this->db->where('id', $existing['id'])->update($this->table, $row);
+        } else {
+            $ok = $this->db->insert($this->table, $row + array(
+                'alarm_definition_id' => (int) $item['definition_id'],
+                'alarm_key' => $item['key'],
+                'member_login' => $member_login,
+                'created_at' => $now,
+                'created_by' => $user,
+            ));
+        }
         return array('ok' => (bool) $ok, 'error' => $ok ? null : $this->lang->line('alarm_error_save'));
     }
 
@@ -207,23 +224,30 @@ class Alarm_dismissals_model extends Common_Model {
     }
 
     /**
-     * Réactive les désactivations des alarmes listées dont l'occurrence n'existe plus
+     * Réactive les désactivations qui ne valent plus, sans attendre qu'un
+     * lecteur affiche ses alarmes (scheduler, administration) : date de fin
+     * dépassée ; pour les alarmes actives du catalogue, occurrence disparue
+     * (condition résolue) ou dont l'état ou l'échéance a changé.
      *
      * @param array $definition_ids Alarmes actives du catalogue
-     * @param array $keys key => true, occurrences existantes de ces alarmes
+     * @param array $items_by_key key => AlarmItem, occurrences de ces alarmes
      * @return int Nombre de désactivations réactivées
      */
-    public function reactivate_missing($definition_ids, $keys) {
-        if (!$definition_ids) {
-            return 0;
-        }
+    public function close_obsolete($definition_ids, $items_by_key) {
+        $active = array_flip(array_map('intval', $definition_ids));
         $count = 0;
-        $rows = $this->db->select('id, alarm_key')->where('reactivated_at IS NULL', null, false)
-            ->where_in('alarm_definition_id', array_map('intval', $definition_ids))
-            ->get($this->table)->result_array();
-        foreach ($rows as $row) {
-            if (!isset($keys[$row['alarm_key']]) && $this->reactivate($row['id'], null)) {
-                $count++;
+        foreach ($this->pending_by_key() as $key => $rows) {
+            foreach ($rows as $row) {
+                if (!empty($row['until_date']) && $row['until_date'] < $this->today) {
+                    $obsolete = true;
+                } elseif (isset($active[(int) $row['alarm_definition_id']])) {
+                    $obsolete = !isset($items_by_key[$key]) || !self::still_valid($row, $items_by_key[$key], $this->today);
+                } else {
+                    $obsolete = false; // alarme inactive : occurrences non calculées
+                }
+                if ($obsolete && $this->reactivate($row['id'], null)) {
+                    $count++;
+                }
             }
         }
         return $count;
@@ -236,8 +260,9 @@ class Alarm_dismissals_model extends Common_Model {
      * @return array
      */
     public function pending_list() {
-        $this->db->where('reactivated_at IS NULL', null, false)->where('until_date <', $this->today)
-            ->update($this->table, array('reactivated_at' => date('Y-m-d H:i:s')));
+        if (!$this->available()) {
+            return array();
+        }
         return $this->db->select('d.*, a.label AS definition_label_ref, a.code AS definition_code,
                     m.mnom, m.mprenom, c.mnom AS author_nom, c.mprenom AS author_prenom', false)
             ->from($this->table . ' d')

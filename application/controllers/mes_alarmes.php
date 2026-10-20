@@ -131,7 +131,7 @@ class Mes_alarmes extends MY_Controller
             'proposed' => $proposed,
             'matrix_columns' => $matrix_columns,
             'effective' => $effective,
-            'creators' => $this->_creator_names($effective),
+            'creators' => $this->_member_names($this->_creator_logins($effective)),
             'settings' => $this->alarm_member_settings_model->get_for($login),
             'has_mobile' => !empty($member['mtelm']),
             'frequencies' => Alarm_member_settings_model::frequencies(),
@@ -142,7 +142,9 @@ class Mes_alarmes extends MY_Controller
             'filter_section' => $filter_section,
             'hidden_count' => $hidden_count,
             'dismissed_rows' => $dismissed_rows,
-            'authors' => $this->_dismissal_authors($dismissed_rows),
+            'authors' => $this->_member_names(array_map(function ($row) {
+                return $row['dismissal']['created_by'];
+            }, $dismissed_rows)),
             'today' => date('Y-m-d'),
         ));
     }
@@ -179,7 +181,7 @@ class Mes_alarmes extends MY_Controller
             (string) $this->input->post('reason'));
         if ($result['ok']) {
             $this->session->set_flashdata('success', sprintf($this->lang->line($for_all
-                ? 'alarm_dismiss_done_all' : 'alarm_dismiss_done_self'), $item['label'] . ' — ' . $item['detail']));
+                ? 'alarm_dismiss_done_all' : 'alarm_dismiss_done_self'), alarm_item_title($item)));
         } else {
             $this->session->set_flashdata('error', $result['error']);
         }
@@ -234,24 +236,6 @@ class Mes_alarmes extends MY_Controller
             }
         }
         return 'mes_alarmes' . ($query ? '?' . http_build_query($query) : '') . '#alarm-list';
-    }
-
-    /** Nom des auteurs des désactivations affichées */
-    private function _dismissal_authors($rows)
-    {
-        $logins = array();
-        foreach ($rows as $row) {
-            $logins[$row['dismissal']['created_by']] = true;
-        }
-        unset($logins['']);
-        $names = array();
-        if ($logins) {
-            foreach ($this->db->select('mlogin, mnom, mprenom')->where_in('mlogin', array_keys($logins))
-                         ->get('membres')->result_array() as $row) {
-                $names[$row['mlogin']] = trim($row['mprenom'] . ' ' . $row['mnom']);
-            }
-        }
-        return $names;
     }
 
     /**
@@ -325,20 +309,30 @@ class Mes_alarmes extends MY_Controller
         return $selector;
     }
 
-    /** Nom des auteurs des abonnements créés pour le membre */
-    private function _creator_names($effective)
+    /** Auteurs des abonnements créés pour le membre */
+    private function _creator_logins($effective)
     {
         $logins = array();
         foreach ($effective as $cells) {
             foreach ($cells as $sub) {
-                if (!empty($sub['created_by'])) {
-                    $logins[$sub['created_by']] = true;
-                }
+                $logins[] = isset($sub['created_by']) ? $sub['created_by'] : null;
             }
         }
+        return $logins;
+    }
+
+    /**
+     * Prénom et nom de membres
+     *
+     * @param array $logins Logins (vides et doublons ignorés)
+     * @return array login => nom
+     */
+    private function _member_names($logins)
+    {
+        $logins = array_unique(array_filter($logins));
         $names = array();
         if ($logins) {
-            foreach ($this->db->select('mlogin, mnom, mprenom')->where_in('mlogin', array_keys($logins))
+            foreach ($this->db->select('mlogin, mnom, mprenom')->where_in('mlogin', $logins)
                          ->get('membres')->result_array() as $row) {
                 $names[$row['mlogin']] = trim($row['mprenom'] . ' ' . $row['mnom']);
             }

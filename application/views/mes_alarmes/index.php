@@ -135,7 +135,7 @@ $csrf_value = $this->security->get_csrf_hash();
                 <?php endif; ?>
                 <?php if (empty($row['own']) || $is_admin): ?>
                   <button type="button" class="btn btn-outline-secondary btn-sm alarm-dismiss-btn" data-bs-toggle="modal" data-bs-target="#dismiss-modal"
-                          data-key="<?= htmlspecialchars($row['key']) ?>" data-label="<?= htmlspecialchars($row['label'] . ' — ' . $row['detail']) ?>"
+                          data-key="<?= htmlspecialchars($row['key']) ?>" data-label="<?= htmlspecialchars(alarm_item_title($row)) ?>"
                           data-own="<?= empty($row['own']) ? '0' : '1' ?>" title="<?= $this->lang->line('alarm_dismiss_title') ?>">
                     <i class="fas fa-bell-slash" aria-hidden="true"></i><span class="visually-hidden"><?= $this->lang->line('alarm_dismiss_title') ?></span>
                   </button>

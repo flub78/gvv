@@ -175,7 +175,7 @@ Désactivation d'une occurrence pour soi (superviseur) ou pour tout le monde (`c
 
 **4.2 — Filtrage** (0,5 j)
 - [x] `Notification_manager::occurrences_for()` : écarte les désactivations pour tout le monde (propres comprises) et pour le lecteur, les rend à part ; page, carte, synthèses et SMS en bénéficient
-- [x] Alarmes que personne ne reçoit sans les désactivations pour tout le monde ; réactivation des désactivations d'occurrences disparues au passage du scheduler
+- [x] Alarmes que personne ne reçoit sans les désactivations pour tout le monde ; réactivation des désactivations caduques (date de fin, occurrence disparue, état ou échéance changé) au passage du scheduler et à l'ouverture de l'administration ; alarmes inchangées si la table n'existe pas encore (code déployé avant la migration)
 
 **4.3 — Pages** (1,5 j)
 - [x] `mes_alarmes` : bouton « Désactiver » par ligne (pour moi ; pour tout le monde réservé à `club-admin`), boîte de dialogue définitive ou date de fin, motif (obligatoire pour tout le monde), confirmation
@@ -184,8 +184,8 @@ Désactivation d'une occurrence pour soi (superviseur) ou pour tout le monde (`c
 - [x] Libellés FR/EN/NL ; guide utilisateur `19_alarmes.md`
 
 **4.4 — Tests** (1 j)
-- [x] PHPUnit MySQL `AlarmesLot4Test.php` : alarme propre non désactivable pour soi, motif obligatoire pour tout le monde, date passée refusée, une seule désactivation en cours par portée, filtrage pour soi et pour tout le monde (pilote compris), réactivation à la date, au changement d'état, à la disparition de l'occurrence, réactivation manuelle, synthèses sans les désactivées ; migration up idempotente, aller-retour down/up seulement sans désactivation existante. Les droits liés au lecteur (pour tout le monde réservé à `club-admin`, occurrence hors de la liste du membre) sont vérifiés par le contrôleur
-- [x] Playwright `alarmes-lot4-smoke.spec.js` : désactivation pour soi puis réactivation, désactivation pour tout le monde par `club-admin` sur la page d'un superviseur (invisible pour lui, signalée comme désactivée pour tout le monde, sans bouton de réactivation), réactivation depuis l'administration
+- [x] PHPUnit MySQL `AlarmesLot4Test.php` : alarme propre non désactivable pour soi, motif obligatoire pour tout le monde, date passée refusée, une seule désactivation en cours par portée (remplacée sur place), filtrage pour soi et pour tout le monde (pilote compris), réactivation à la date, au changement d'état, à la disparition de l'occurrence, clôture des désactivations caduques par le scheduler, réactivation manuelle, synthèses sans les désactivées, fonctionnement sans la table, libellé d'une occurrence ; migration up idempotente, aller-retour down/up seulement sans désactivation existante. Les droits liés au lecteur (pour tout le monde réservé à `club-admin`, occurrence hors de la liste du membre) sont vérifiés par le contrôleur
+- [x] Playwright `alarmes-smoke.spec.js` (même fichier que les lots précédents, exécuté en série : les tests partagent les abonnements des membres de test) : désactivation pour soi puis réactivation, désactivation pour tout le monde par `club-admin` sur la page d'un superviseur (invisible pour lui, signalée comme désactivée pour tout le monde, sans bouton de réactivation), réactivation depuis l'administration
 
 **Estimation totale Lot 4 : ~3,5 jours.**
 

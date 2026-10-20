@@ -73,14 +73,7 @@ class Notification_manager {
 
         list($definitions, $items_by_def) = $this->collect_items();
 
-        // Désactivations dont l'occurrence a disparu (condition résolue)
-        $keys = array();
-        foreach ($items_by_def as $items) {
-            foreach ($items as $item) {
-                $keys[$item['key']] = true;
-            }
-        }
-        $this->CI->alarm_dismissals_model->reactivate_missing(array_keys($definitions), $keys);
+        $this->close_obsolete_dismissals($definitions, $items_by_def);
 
         $settings = $this->CI->alarm_member_settings_model->get_all_by_login();
         foreach ($this->members_to_notify() as $login => $cells) {
@@ -147,6 +140,25 @@ class Notification_manager {
             $items_by_def[$item['definition_id']][] = $item;
         }
         return array($definitions, $items_by_def);
+    }
+
+    /**
+     * Réactive les désactivations qui ne valent plus (date de fin dépassée,
+     * occurrence disparue, état ou échéance changé), pour que l'administration
+     * ne les montre pas comme en cours
+     *
+     * @param array $definitions definition_id => ligne du catalogue (alarmes actives)
+     * @param array $items_by_def definition_id => AlarmItem[]
+     * @return int Nombre de désactivations réactivées
+     */
+    public function close_obsolete_dismissals($definitions, $items_by_def) {
+        $items_by_key = array();
+        foreach ($items_by_def as $items) {
+            foreach ($items as $item) {
+                $items_by_key[$item['key']] = $item;
+            }
+        }
+        return $this->CI->alarm_dismissals_model->close_obsolete(array_keys($definitions), $items_by_key);
     }
 
     /**
