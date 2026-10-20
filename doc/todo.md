@@ -13,8 +13,6 @@
   renouvellement d'assurance, etc.
 
   A tester en fonction du guide dans doc/users/fr/16_maintenance_aeronefs.md
-
-* [] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
   
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
    
@@ -48,4 +46,4 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
 
 * Accès à un carnet de vol ULM pour les membres
 * Seconde adresse email
-* avoir un bouton pour inverser les comptes dans une écriture comptable
+  

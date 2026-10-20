@@ -168,6 +168,19 @@ if (!function_exists('alarm_category_badge')) {
     }
 }
 
+if (!function_exists('alarm_item_title')) {
+    /**
+     * Libellé complet d'une occurrence d'alarme : « libellé — détail »
+     *
+     * @param array $item AlarmItem
+     * @return string
+     */
+    function alarm_item_title($item) {
+        $detail = isset($item['detail']) ? trim((string) $item['detail']) : '';
+        return $item['label'] . ($detail !== '' ? ' — ' . $detail : '');
+    }
+}
+
 if (!function_exists('has_role')) {
     function has_role($role) {
         $CI = &get_instance();

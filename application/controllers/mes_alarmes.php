@@ -14,8 +14,12 @@ if (!defined('BASEPATH'))
  * Un administrateur club utilise la même page, avec en plus un sélecteur de
  * membre positionné par défaut sur son propre profil.
  *
+ * Désactivation d'une alarme (Lot 4) : pour le membre, sur une alarme qu'il
+ * suit par abonnement ; pour tout le monde, par un administrateur club.
+ * Les alarmes désactivées s'affichent à la demande, avec leur réactivation.
+ *
  * @package controllers
- * @see doc/prds/gestion_alarmes_generiques_prd.md (exigences 2 à 5)
+ * @see doc/prds/gestion_alarmes_generiques_prd.md (exigences 2 à 5, 13)
  */
 class Mes_alarmes extends MY_Controller
 {
@@ -32,6 +36,7 @@ class Mes_alarmes extends MY_Controller
 
         $this->load->model('alarm_subscriptions_model');
         $this->load->model('alarm_member_settings_model');
+        $this->load->model('alarm_dismissals_model');
         $this->load->library('Notification_manager');
         $this->load->helper('validation');
         $this->lang->load('alarmes');
@@ -83,7 +88,8 @@ class Mes_alarmes extends MY_Controller
         // Alarmes ; liens de superviseur quand un administrateur consulte un autre membre
         $is_self = ($login === $this->dx_auth->get_username());
         list($definitions, $items_by_def) = $this->notification_manager->collect_items();
-        $occurrences = $this->notification_manager->occurrences_for($login, $effective, $definitions, $items_by_def);
+        $dismissed = array();
+        $occurrences = $this->notification_manager->occurrences_for($login, $effective, $definitions, $items_by_def, $dismissed);
 
         // Sans paramètre section, la liste suit la section active (« Toutes » = pas de filtre)
         $filter_def = (int) $this->input->get('alarme');
@@ -94,24 +100,27 @@ class Mes_alarmes extends MY_Controller
         if (!isset($sections[$filter_section])) {
             $filter_section = 0;
         }
-        $rows = array();
+        $lists = array('rows' => array(), 'dismissed_rows' => array());
         $listed_defs = array();
         $hidden_count = 0;
-        foreach ($occurrences as $item) {
-            $listed_defs[$item['definition_id']] = $definitions[$item['definition_id']]['display_label'];
-            if ($filter_def && $item['definition_id'] !== $filter_def) {
-                continue;
+        foreach (array('rows' => $occurrences, 'dismissed_rows' => $dismissed) as $list => $items) {
+            foreach ($items as $item) {
+                $listed_defs[$item['definition_id']] = $definitions[$item['definition_id']]['display_label'];
+                if ($filter_def && $item['definition_id'] !== $filter_def) {
+                    continue;
+                }
+                if (!Notification_manager::item_in_section($item, $filter_section)) {
+                    $hidden_count += ($list === 'rows') ? 1 : 0;
+                    continue;
+                }
+                $item['definition_label'] = $definitions[$item['definition_id']]['display_label'];
+                $item['category'] = $definitions[$item['definition_id']]['category'];
+                $item['link'] = Notification_manager::item_link($item, $is_self);
+                $item['section_names'] = array_values(array_intersect_key($sections, array_flip($item['section_ids'])));
+                $lists[$list][] = $item;
             }
-            if (!Notification_manager::item_in_section($item, $filter_section)) {
-                $hidden_count++;
-                continue;
-            }
-            $item['definition_label'] = $definitions[$item['definition_id']]['display_label'];
-            $item['category'] = $definitions[$item['definition_id']]['category'];
-            $item['link'] = Notification_manager::item_link($item, $is_self);
-            $item['section_names'] = array_values(array_intersect_key($sections, array_flip($item['section_ids'])));
-            $rows[] = $item;
         }
+        list($rows, $dismissed_rows) = array($lists['rows'], $lists['dismissed_rows']);
         asort($listed_defs);
 
         load_last_view('mes_alarmes/index', array(
@@ -122,7 +131,7 @@ class Mes_alarmes extends MY_Controller
             'proposed' => $proposed,
             'matrix_columns' => $matrix_columns,
             'effective' => $effective,
-            'creators' => $this->_creator_names($effective),
+            'creators' => $this->_member_names($this->_creator_logins($effective)),
             'settings' => $this->alarm_member_settings_model->get_for($login),
             'has_mobile' => !empty($member['mtelm']),
             'frequencies' => Alarm_member_settings_model::frequencies(),
@@ -132,7 +141,101 @@ class Mes_alarmes extends MY_Controller
             'filter_def' => $filter_def,
             'filter_section' => $filter_section,
             'hidden_count' => $hidden_count,
+            'dismissed_rows' => $dismissed_rows,
+            'authors' => $this->_member_names(array_map(function ($row) {
+                return $row['dismissal']['created_by'];
+            }, $dismissed_rows)),
+            'today' => date('Y-m-d'),
         ));
+    }
+
+    /**
+     * Désactivation d'une alarme (POST) : pour le membre affiché, ou pour
+     * tout le monde (administrateur club)
+     */
+    public function dismiss()
+    {
+        $login = $this->_target_login($this->input->post('membre'));
+        $back = $this->_back_url($login);
+        $for_all = ($this->input->post('scope') === 'all');
+        if ($for_all && !$this->_is_admin()) {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_right'));
+            redirect($back);
+            return;
+        }
+
+        $item = $this->_member_item($login, (string) $this->input->post('key'));
+        if (!$item) {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_unknown'));
+            redirect($back);
+            return;
+        }
+        $until = ($this->input->post('duration') === 'until') ? (string) $this->input->post('until_date') : null;
+        if ($until === '') {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_date'));
+            redirect($back);
+            return;
+        }
+
+        $result = $this->alarm_dismissals_model->dismiss($item, $for_all ? null : $login, $until,
+            (string) $this->input->post('reason'));
+        if ($result['ok']) {
+            $this->session->set_flashdata('success', sprintf($this->lang->line($for_all
+                ? 'alarm_dismiss_done_all' : 'alarm_dismiss_done_self'), alarm_item_title($item)));
+        } else {
+            $this->session->set_flashdata('error', $result['error']);
+        }
+        redirect($back);
+    }
+
+    /**
+     * Réactivation d'une alarme désactivée (POST) : celle du membre affiché,
+     * ou pour tout le monde par un administrateur club
+     */
+    public function reactivate()
+    {
+        $login = $this->_target_login($this->input->post('membre'));
+        $back = $this->_back_url($login);
+        $row = $this->db->where('id', (int) $this->input->post('dismissal_id'))
+            ->where('reactivated_at IS NULL', null, false)->get('alarm_dismissals')->row_array();
+        if (!$row) {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_unknown'));
+        } elseif ($row['member_login'] !== $login && !($row['member_login'] === null && $this->_is_admin())) {
+            $this->session->set_flashdata('error', $this->lang->line('alarm_dismiss_error_right'));
+        } else {
+            $this->alarm_dismissals_model->reactivate($row['id'], $this->dx_auth->get_username());
+            $this->session->set_flashdata('success', sprintf($this->lang->line('alarm_reactivate_done'), $row['label']));
+        }
+        redirect($back);
+    }
+
+    /** Occurrence d'un membre, visible ou désactivée, par sa clé */
+    private function _member_item($login, $key)
+    {
+        list($definitions, $items_by_def) = $this->notification_manager->collect_items();
+        $dismissed = array();
+        $occurrences = $this->notification_manager->occurrences_for($login,
+            $this->alarm_subscriptions_model->effective_for($login), $definitions, $items_by_def, $dismissed);
+        if (isset($occurrences[$key])) {
+            return $occurrences[$key];
+        }
+        return isset($dismissed[$key]) ? $dismissed[$key] : null;
+    }
+
+    /** Retour à la liste, avec le membre et les filtres de la page */
+    private function _back_url($login)
+    {
+        $query = array();
+        if ($login !== $this->dx_auth->get_username()) {
+            $query['membre'] = $login;
+        }
+        foreach (array('alarme', 'section') as $filter) {
+            $value = $this->input->post('filter_' . $filter);
+            if ($value !== false) {
+                $query[$filter] = (string) (int) $value === (string) $value ? $value : '';
+            }
+        }
+        return 'mes_alarmes' . ($query ? '?' . http_build_query($query) : '') . '#alarm-list';
     }
 
     /**
@@ -206,20 +309,30 @@ class Mes_alarmes extends MY_Controller
         return $selector;
     }
 
-    /** Nom des auteurs des abonnements créés pour le membre */
-    private function _creator_names($effective)
+    /** Auteurs des abonnements créés pour le membre */
+    private function _creator_logins($effective)
     {
         $logins = array();
         foreach ($effective as $cells) {
             foreach ($cells as $sub) {
-                if (!empty($sub['created_by'])) {
-                    $logins[$sub['created_by']] = true;
-                }
+                $logins[] = isset($sub['created_by']) ? $sub['created_by'] : null;
             }
         }
+        return $logins;
+    }
+
+    /**
+     * Prénom et nom de membres
+     *
+     * @param array $logins Logins (vides et doublons ignorés)
+     * @return array login => nom
+     */
+    private function _member_names($logins)
+    {
+        $logins = array_unique(array_filter($logins));
         $names = array();
         if ($logins) {
-            foreach ($this->db->select('mlogin, mnom, mprenom')->where_in('mlogin', array_keys($logins))
+            foreach ($this->db->select('mlogin, mnom, mprenom')->where_in('mlogin', $logins)
                          ->get('membres')->result_array() as $row) {
                 $names[$row['mlogin']] = trim($row['mprenom'] . ' ' . $row['mnom']);
             }
