@@ -276,3 +276,6 @@
 * [x] Message d'erreur de validation, les mettre dans un container qu'on peut fermer comme c'est fait dans la gestion des listes d'email. Unifier l'interface utilisateur des messages d'erreur.
 
 * [x] Ajout de vrais export excel en sus des csv.
+* [x] avoir un bouton pour inverser les comptes dans une écriture comptable
+
+* [x] Alarmes par email sur les échéances à venir (visite médicale, licence, etc)
