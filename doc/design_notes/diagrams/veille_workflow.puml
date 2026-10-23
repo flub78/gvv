@@ -1,0 +1,29 @@
+@startuml veille_workflow
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+
+title Cycle de vie d'une newsletter de veille
+
+[*] --> brouillon : Cron mensuel\n→ Agent IA
+
+brouillon --> en_relecture : Brouillon créé\n→ envoi aux relecteurs
+
+en_relecture --> en_relecture : Retours reçus\n→ Agent IA\n(consolidation quotidienne)\n→ nouvelle version\n→ renvoi aux relecteurs
+
+en_relecture --> en_validation : Relecteurs satisfaits\nou délai dépassé\n→ envoi aux validateurs
+
+en_validation --> en_validation : Validateur modifie\net renvoie
+
+en_validation --> approuvée : Approbation\n(email ou GVV)
+
+approuvée --> publiée : Agent IA finalise\n(supprime remarques)\n→ PDF\n→ archive GVV\n→ envoi abonnés
+
+publiée --> [*]
+
+state brouillon : Fichier .md créé\npar l'agent IA
+state en_relecture : Versions successives\nstockées en base
+state en_validation : Dernière version\nde relecture
+state approuvée : Version finale\npropre générée
+state publiée : PDF archivé\nAbonnés notifiés
+
+@enduml

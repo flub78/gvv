@@ -1,0 +1,79 @@
+@startuml veille_schema
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+
+title Schéma de base de données — Veille documentaire
+
+entity newsletters {
+  * id : INT PK
+  --
+  * title : VARCHAR
+  * period_start : DATE
+  * period_end : DATE
+  * status : ENUM(draft, reviewing,\n  validating, approved, published)
+  * review_iteration : INT
+  draft_path : VARCHAR
+  pdf_path : VARCHAR
+  approved_by : VARCHAR
+  approved_at : DATETIME
+  published_at : DATETIME
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+entity newsletter_reviews {
+  * id : INT PK
+  --
+  * newsletter_id : INT FK
+  * iteration : INT
+  * submitted_via : ENUM(email, gvv)
+  * reviewer_email : VARCHAR
+  reviewer_name : VARCHAR
+  * content : TEXT
+  has_attachments : TINYINT
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+entity newsletter_subscribers {
+  * id : INT PK
+  --
+  * email : VARCHAR UNIQUE
+  * first_name : VARCHAR
+  * last_name : VARCHAR
+  * confirmed : TINYINT
+  confirmation_token : VARCHAR
+  * unsubscribe_token : VARCHAR
+  confirmed_at : DATETIME
+  unsubscribed_at : DATETIME
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+entity newsletter_sendings {
+  * id : INT PK
+  --
+  * newsletter_id : INT FK
+  * subscriber_id : INT FK
+  * sent_at : DATETIME
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+newsletters ||--o{ newsletter_reviews : contient
+newsletters ||--o{ newsletter_sendings : envoyée à
+newsletter_subscribers ||--o{ newsletter_sendings : reçoit
+
+@enduml

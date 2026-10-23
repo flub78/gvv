@@ -274,6 +274,18 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if ($this->config->item('veille')): ?>
+        <?php $this->lang->load('newsletter'); ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center">
+                <i class="fas fa-newspaper text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('newsletter_archive_title') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('newsletter_title') ?></div>
+                <a href="<?= controller_url('newsletter') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if ($this->config->item('gestion_documentaire')): ?>
         <?php $this->lang->load('alarmes'); ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1431,6 +1443,18 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= $this->lang->line('alarm_menu_admin') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('alarm_admin_catalogue') ?></div>
                 <a href="<?= controller_url('alarmes_admin') ?>" class="btn btn-danger btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (has_role('club-admin') && $this->config->item('veille')): ?>
+        <?php $this->lang->load('newsletter'); ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center border-danger">
+                <i class="fas fa-newspaper text-info"></i>
+                <div class="card-title"><?= $this->lang->line('newsletter_title') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('newsletter_subscribers') ?></div>
+                <a href="<?= controller_url('newsletter_admin') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
             </div>
         </div>
         <?php endif; ?>

@@ -197,6 +197,10 @@ if ($CI->dx_auth->is_logged_in()) {
                     <?php if (has_role('club-admin') && $this->config->item('gestion_documentaire')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("document_types/page") ?>"><i class="fas fa-file-alt text-info"></i> <?= translation("document_types_title") ?></a></li>
                     <?php endif; ?>
+                    <?php if (has_role('club-admin') && $this->config->item('veille')) : ?>
+                    <?php $this->lang->load('newsletter'); ?>
+                    <li><a class="dropdown-item" href="<?= controller_url("newsletter_admin") ?>"><i class="fas fa-newspaper text-info"></i> <?= $this->lang->line('newsletter_admin_title') ?></a></li>
+                    <?php endif; ?>
                   </ul>
                 </li>
 
@@ -296,6 +300,10 @@ if ($CI->dx_auth->is_logged_in()) {
             <li><a class="dropdown-item" href="<?= controller_url("archived_documents/my_documents") ?>"><i class="fas fa-archive text-info"></i> <?= translation("archived_documents_my_documents") ?></a></li>
             <?php $this->lang->load('alarmes'); ?>
             <li><a class="dropdown-item" href="<?= controller_url("mes_alarmes") ?>"><i class="fas fa-bell text-warning"></i> <?= translation("alarm_menu_my_alarms") ?></a></li>
+            <?php endif; ?>
+            <?php if ($this->config->item('veille')) : ?>
+            <?php $this->lang->load('newsletter'); ?>
+            <li><a class="dropdown-item" href="<?= controller_url("newsletter") ?>"><i class="fas fa-newspaper text-primary"></i> <?= $this->lang->line('newsletter_archive_title') ?></a></li>
             <?php endif; ?>
             <li>
               <a class="dropdown-item" href="<?= controller_url("acceptance") ?>">

@@ -1,0 +1,77 @@
+@startuml veille_composants
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam defaultFontSize 12
+
+title Architecture — Veille documentaire (composants)
+
+package "Déclencheurs" #lavender {
+  component [Cron mensuel\n(systemd)] as CRON_MONTHLY
+  component [Cron quotidien\n(systemd)] as CRON_DAILY
+  component [Cron surveillance\n(sans IA)] as CRON_WATCH
+}
+
+package "Agent IA" #mistyrose {
+  component [claude CLI\n(mode non interactif)] as AGENT
+  file [Fichier de contexte\n(sources, critères,\ndirectives)] as CTX
+}
+
+package "Email" #lightyellow {
+  component [SMTP\n(envoi)] as SMTP
+  component [IMAP\n(lecture)] as IMAP
+  component [Collecteur de retours\n(analyse threads)] as COLLECTOR
+}
+
+package "Application GVV" #lightblue {
+  component [newsletter_controller\n(admin, archive, abonnements)] as CTRL
+  component [newsletter_model] as MODEL
+  component [newsletter_subscribers_model] as SUBS
+  component [newsletter_agent_runner\n(déclenchement)] as RUNNER
+}
+
+package "Stockage" #lightgreen {
+  database "MySQL\n(newsletters,\nreviewers, abonnés)" as DB
+  folder "Fichiers serveur\n(brouillons .md,\narchive .pdf)" as FS
+}
+
+package "Utilisateurs" #white {
+  actor "Relecteurs" as REVIEWERS
+  actor "Validateurs" as VALIDATORS
+  actor "Membres" as MEMBERS
+  actor "Abonnés" as SUBSCRIBERS
+  actor "Administrateur" as ADMIN
+}
+
+CRON_MONTHLY --> RUNNER : déclenche
+CRON_DAILY --> COLLECTOR : déclenche
+CRON_WATCH --> CTRL : alerte si\nbrouillon absent
+
+RUNNER --> AGENT : lance
+AGENT --> CTX : lit
+AGENT --> IMAP : lit sources email
+AGENT --> FS : écrit brouillon
+
+COLLECTOR --> IMAP : lit réponses
+COLLECTOR --> AGENT : lance pour\nnouvelle version
+COLLECTOR --> DB : enregistre retours
+
+CTRL --> MODEL
+CTRL --> SUBS
+CTRL --> SMTP : envoie brouillons\net alertes
+MODEL --> DB
+MODEL --> FS
+SUBS --> DB
+
+SMTP --> REVIEWERS : brouillon
+SMTP --> VALIDATORS : version finale
+SMTP --> SUBSCRIBERS : newsletter publiée
+
+REVIEWERS --> SMTP : retours par email
+REVIEWERS --> CTRL : retours via GVV
+VALIDATORS --> SMTP : approbation par email
+VALIDATORS --> CTRL : approbation via GVV
+MEMBERS --> CTRL : consulte archive
+ADMIN --> CTRL : configure
+ADMIN --> CTX : maintient
+
+@enduml

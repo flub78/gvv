@@ -136,6 +136,15 @@ $config['gestion_of'] = true;
 $config['gestion_rapprochements'] = true;
 
 /*
+ * Newsletter de veille sécurité et réglementaire
+ *
+ * Si TRUE : les contrôleurs newsletter_admin, newsletter et newsletter_public
+ * sont actifs et les entrées de menu associées sont affichées.
+ * Si FALSE ou absent : les contrôleurs retournent 404, les menus sont masqués.
+ */
+$config['veille'] = false;
+
+/*
  * OpenFlyers feature flag
  *
  * NOTE: The runtime feature flag is defined in application/config/gvv_config.php
