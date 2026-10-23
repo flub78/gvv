@@ -36,9 +36,20 @@ $config['newsletter_smtp_from_name'] = 'Veille sécurité — Nom du club';
 $config['newsletter_reviewers']     = '';
 $config['newsletter_validators']    = '';
 
+// ── Template email de relecture ───────────────────────────────────────────
+// Variables : {period} {version} {date} {deadline} {from_name} {draft_name}
+$config['newsletter_review_subject'] = '[Veille ACS] Brouillon {period} (v{version}) — relecture souhaitée';
+$config['newsletter_review_body']    = "Bonjour,\n\nJe vous envoie en pièce jointe le brouillon v{version} de la lettre de veille sécurité et réglementation pour la période : {period}.\n\nMerci de me faire parvenir vos remarques, corrections ou suggestions d'articles en répondant à cet email, avant le {deadline}.\n\nCe brouillon est préparé automatiquement à partir des sources réglementaires et fédérales (EASA, BEA, DSAC, FFA, FFVP, FFPLUM…). Vos retours permettront d'affiner la sélection et la rédaction avant validation par le CPS.\n\nCordialement,\n{from_name}\n\n---\nVeille sécurité et réglementation — {period}\nAéroclub d'Abbeville – Buigny – Baie de Somme";
+
 // ── Chemins des fichiers de l'agent IA ────────────────────────────────────
 $config['newsletter_context_path']  = '/srv/newsletter/context.md';
 $config['newsletter_output_path']   = '/srv/newsletter/output';
+
+// ── Agent IA ──────────────────────────────────────────────────────────────
+// Clé API Anthropic pour les tests et la génération automatique
+$config['newsletter_anthropic_api_key'] = '';
+// Modèle par défaut : claude-opus-4-8 | claude-sonnet-4-6 | claude-haiku-4-5-20251001
+$config['newsletter_anthropic_model']   = 'claude-sonnet-4-6';
 
 // ── Options ───────────────────────────────────────────────────────────────
 $config['newsletter_alerts_enabled'] = false;

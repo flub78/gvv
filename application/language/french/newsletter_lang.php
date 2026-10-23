@@ -75,10 +75,23 @@ $lang['newsletter_config_smtp_from']      = 'Adresse d\'expédition';
 $lang['newsletter_config_smtp_from_name'] = 'Nom affiché';
 $lang['newsletter_config_reviewers']      = 'Relecteurs (emails séparés par des virgules)';
 $lang['newsletter_config_validators']     = 'Validateurs (emails séparés par des virgules)';
+$lang['newsletter_config_review_subject'] = 'Sujet de l\'email de relecture';
+$lang['newsletter_config_review_body']    = 'Corps de l\'email de relecture';
 $lang['newsletter_config_context_path']   = 'Chemin du fichier de contexte IA';
 $lang['newsletter_config_output_path']    = 'Répertoire de sortie IA';
 $lang['newsletter_config_alerts']         = 'Alertes immédiates activées';
 $lang['newsletter_config_save']           = 'Enregistrer';
+
+// Test IA
+$lang['newsletter_test_ai_title']         = 'Test agent IA (Anthropic)';
+$lang['newsletter_test_ai_prompt']        = 'Prompt';
+$lang['newsletter_test_ai_model']         = 'Modèle';
+$lang['newsletter_test_ai_max_tokens']    = 'Tokens max';
+$lang['newsletter_test_ai_send']          = 'Envoyer à Claude';
+$lang['newsletter_test_ai_result']        = 'Réponse';
+$lang['newsletter_test_ai_no_key']        = 'Clé API Anthropic non configurée.';
+$lang['newsletter_config_anthropic_key']  = 'Clé API Anthropic';
+$lang['newsletter_config_anthropic_model'] = 'Modèle par défaut';
 
 // Tests d'infrastructure
 $lang['newsletter_test_email_title']      = 'Test envoi email';

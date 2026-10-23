@@ -118,13 +118,48 @@
            value="<?= htmlspecialchars($cfg['newsletter_validators'] ?? '') ?>"
            placeholder="cps@example.com">
   </div>
+  <hr class="my-3">
+  <p class="form-text text-muted mb-2">
+    Variables disponibles dans le template :
+    <code>{period}</code> <code>{version}</code> <code>{date}</code>
+    <code>{deadline}</code> <code>{from_name}</code> <code>{draft_name}</code>
+  </p>
+  <div class="mb-2">
+    <label class="form-label"><?= $this->lang->line('newsletter_config_review_subject') ?></label>
+    <input type="text" class="form-control form-control-sm" name="newsletter_review_subject"
+           value="<?= htmlspecialchars($cfg['newsletter_review_subject'] ?? '') ?>"
+           placeholder="[Veille ACS] Brouillon {period} (v{version}) — relecture souhaitée">
+  </div>
+  <div class="mb-2">
+    <label class="form-label"><?= $this->lang->line('newsletter_config_review_body') ?></label>
+    <textarea class="form-control form-control-sm" name="newsletter_review_body"
+              rows="10"><?= htmlspecialchars(str_replace('\n', "\n", $cfg['newsletter_review_body'] ?? '')) ?></textarea>
+    <div class="form-text">Les sauts de ligne sont conservés.</div>
+  </div>
 </div>
 </div>
 
-<!-- ── Chemins IA ────────────────────────────────────────────────────────── -->
+<!-- ── Agent IA ──────────────────────────────────────────────────────────── -->
 <div class="card mb-3">
 <div class="card-header"><i class="fas fa-robot text-secondary"></i> <?= $this->lang->line('newsletter_config_paths') ?></div>
 <div class="card-body">
+  <div class="row">
+    <div class="col-md-8 mb-2">
+      <label class="form-label"><?= $this->lang->line('newsletter_config_anthropic_key') ?></label>
+      <input type="password" class="form-control form-control-sm" name="newsletter_anthropic_api_key"
+             placeholder="<?= empty($cfg['newsletter_anthropic_api_key']) ? 'Non défini' : '••••••••' ?>">
+      <div class="form-text">Laisser vide pour conserver la valeur actuelle.</div>
+    </div>
+    <div class="col-md-4 mb-2">
+      <label class="form-label"><?= $this->lang->line('newsletter_config_anthropic_model') ?></label>
+      <select class="form-select form-select-sm" name="newsletter_anthropic_model">
+        <?php $cur_model = $cfg['newsletter_anthropic_model'] ?? 'claude-sonnet-4-6'; ?>
+        <option value="claude-opus-4-8"           <?= $cur_model === 'claude-opus-4-8'           ? 'selected' : '' ?>>claude-opus-4-8</option>
+        <option value="claude-sonnet-4-6"         <?= $cur_model === 'claude-sonnet-4-6'         ? 'selected' : '' ?>>claude-sonnet-4-6</option>
+        <option value="claude-haiku-4-5-20251001" <?= $cur_model === 'claude-haiku-4-5-20251001' ? 'selected' : '' ?>>claude-haiku-4-5</option>
+      </select>
+    </div>
+  </div>
   <div class="mb-2">
     <label class="form-label"><?= $this->lang->line('newsletter_config_context_path') ?></label>
     <input type="text" class="form-control form-control-sm" name="newsletter_context_path"

@@ -285,8 +285,10 @@ class Newsletter_admin extends MY_Controller {
             'newsletter_smtp_user',
             'newsletter_smtp_from', 'newsletter_smtp_from_name',
             'newsletter_reviewers', 'newsletter_validators',
+            'newsletter_review_subject', 'newsletter_review_body',
             'newsletter_context_path', 'newsletter_output_path',
             'newsletter_alerts_enabled',
+            'newsletter_anthropic_model',
         );
         $values = array();
         foreach ($fields as $key) {
@@ -304,6 +306,11 @@ class Newsletter_admin extends MY_Controller {
         $values['newsletter_smtp_password'] = !empty($raw_smtp_pass)
             ? Newsletter_imap::encode_password($raw_smtp_pass)
             : ($cfg['newsletter_smtp_password'] ?? '');
+
+        $raw_api_key = $this->input->post('newsletter_anthropic_api_key');
+        $values['newsletter_anthropic_api_key'] = !empty($raw_api_key)
+            ? Newsletter_imap::encode_password($raw_api_key)
+            : ($cfg['newsletter_anthropic_api_key'] ?? '');
 
         $ok = $this->_save_newsletter_config($values);
         $this->session->set_flashdata('message', $ok
@@ -466,6 +473,105 @@ class Newsletter_admin extends MY_Controller {
     }
 
     /**
+     * Page de test de l'agent IA Anthropic (GET = formulaire, POST = appel API).
+     */
+    public function test_ai() {
+        $result      = null;
+        $ai_response = null;
+        $form        = array();
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $form = array(
+                'prompt'     => $this->input->post('prompt'),
+                'model'      => $this->input->post('model'),
+                'max_tokens' => max(64, (int) $this->input->post('max_tokens') ?: 1024),
+            );
+            $cfg     = $this->_load_newsletter_config();
+            $api_key = Newsletter_imap::decode_password($cfg['newsletter_anthropic_api_key'] ?? '');
+            if (empty($api_key)) {
+                $result = array('ok' => false, 'msg' => $this->lang->line('newsletter_test_ai_no_key'));
+            } elseif (empty(trim($form['prompt']))) {
+                $result = array('ok' => false, 'msg' => 'Le prompt est requis.');
+            } else {
+                $ai_response = $this->_call_anthropic_api(
+                    $api_key,
+                    $form['model'] ?: 'claude-sonnet-4-6',
+                    $form['prompt'],
+                    $form['max_tokens']
+                );
+                $result = array(
+                    'ok'  => $ai_response['ok'],
+                    'msg' => $ai_response['ok']
+                        ? 'Réponse reçue (' . $ai_response['output_tokens'] . ' tokens out / ' . $ai_response['input_tokens'] . ' in).'
+                        : 'Erreur API : ' . $ai_response['error'],
+                );
+            }
+        }
+
+        $cfg  = $this->_load_newsletter_config();
+        $data = array(
+            'title'              => $this->lang->line('newsletter_test_ai_title'),
+            'api_key_configured' => !empty($cfg['newsletter_anthropic_api_key']),
+            'default_model'      => $cfg['newsletter_anthropic_model'] ?? 'claude-sonnet-4-6',
+            'result'             => $result,
+            'form'               => $form,
+            'ai_response'        => $ai_response,
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu');
+        $this->load->view('bs_banner');
+        $this->load->view('newsletter_admin/bs_test_ai', $data);
+        $this->load->view('bs_footer');
+    }
+
+    private function _call_anthropic_api($api_key, $model, $prompt, $max_tokens = 1024) {
+        $payload = json_encode(array(
+            'model'      => $model,
+            'max_tokens' => (int) $max_tokens,
+            'messages'   => array(
+                array('role' => 'user', 'content' => $prompt),
+            ),
+        ));
+
+        $ch = curl_init('https://api.anthropic.com/v1/messages');
+        curl_setopt_array($ch, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => array(
+                'x-api-key: ' . $api_key,
+                'anthropic-version: 2023-06-01',
+                'content-type: application/json',
+            ),
+            CURLOPT_TIMEOUT        => 60,
+        ));
+
+        $response   = curl_exec($ch);
+        $http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+
+        if ($curl_error) {
+            return array('ok' => false, 'error' => 'cURL : ' . $curl_error);
+        }
+
+        $data = json_decode($response, true);
+        if ($http_code !== 200) {
+            $err = isset($data['error']['message']) ? $data['error']['message'] : $response;
+            return array('ok' => false, 'error' => "HTTP {$http_code} : {$err}");
+        }
+
+        return array(
+            'ok'           => true,
+            'text'         => $data['content'][0]['text'] ?? '',
+            'model'        => $data['model']               ?? $model,
+            'input_tokens' => $data['usage']['input_tokens']  ?? 0,
+            'output_tokens'=> $data['usage']['output_tokens'] ?? 0,
+            'stop_reason'  => $data['stop_reason']         ?? '',
+        );
+    }
+
+    /**
      * Page de test IMAP (GET = formulaire, POST = exécution des tests).
      */
     public function test_imap() {
@@ -625,5 +731,462 @@ class Newsletter_admin extends MY_Controller {
         header('Content-Length: ' . strlen($data));
         echo $data;
         exit;
+    }
+
+    // ── Génération newsletter via claude --print stream-json (async) ──────────
+
+    /**
+     * Page de test de génération.
+     * POST → lance claude en arrière-plan, redirige vers GET?job=draft_name.
+     * GET?job= → page de polling JS (pas d'attente côté PHP).
+     */
+    public function test_generate() {
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $model = $this->input->post('model') ?: 'claude-sonnet-4-6';
+            $valid = array('claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001');
+            if (!in_array($model, $valid)) $model = 'claude-sonnet-4-6';
+            $result = $this->_start_generate($model);
+            if ($result['ok']) {
+                redirect('newsletter_admin/test_generate?job=' . rawurlencode($result['draft_name']));
+                return;
+            }
+            // Erreur de démarrage : affiche directement
+            $this->session->set_flashdata('generate_error', $result['error']);
+            redirect('newsletter_admin/test_generate');
+            return;
+        }
+
+        $job = $this->input->get('job');
+        if ($job && !preg_match('/^draft_\d{8}_\d{6}\.md$/', $job)) $job = null;
+
+        $cfg          = $this->_load_newsletter_config();
+        $context_file = APPPATH . '../tmp/veille_agent_contexte.md';
+        $context_info = file_exists($context_file) ? array(
+            'name'  => basename($context_file),
+            'size'  => filesize($context_file),
+            'mtime' => filemtime($context_file),
+        ) : null;
+
+        $drafts     = array();
+        $output_dir = APPPATH . '../tmp/output/';
+        if (is_dir($output_dir)) {
+            foreach (glob($output_dir . 'draft_*.md') as $f) {
+                $drafts[] = array('name' => basename($f), 'size' => filesize($f), 'mtime' => filemtime($f));
+            }
+            usort($drafts, function($a, $b) { return $b['mtime'] - $a['mtime']; });
+        }
+
+        $data = array(
+            'title'              => 'Test génération newsletter',
+            'api_key_configured' => !empty($cfg['newsletter_anthropic_api_key']),
+            'default_model'      => $cfg['newsletter_anthropic_model'] ?? 'claude-sonnet-4-6',
+            'context_info'       => $context_info,
+            'generate_error'     => $this->session->flashdata('generate_error'),
+            'job'                => $job,
+            'drafts'             => $drafts,
+        );
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu');
+        $this->load->view('bs_banner');
+        $this->load->view('newsletter_admin/bs_test_generate', $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Endpoint AJAX : retourne le statut d'un job de génération en JSON.
+     * Statuts : running | done | error
+     */
+    public function generate_status() {
+        $draft_name = $this->input->get('draft') ?: '';
+        if (!preg_match('/^draft_\d{8}_\d{6}\.md$/', $draft_name)) {
+            $this->output->set_content_type('application/json');
+            echo json_encode(array('status' => 'error', 'error' => 'Nom invalide'));
+            return;
+        }
+        $dir   = APPPATH . '../tmp/output/';
+        $draft = $dir . $draft_name;
+        $run   = $draft . '.running';
+        $err   = $draft . '.err';
+
+        $stream = $draft . '.stream';
+
+        $this->output->set_content_type('application/json');
+
+        // Draft final écrit → terminé
+        if (file_exists($draft) && filesize($draft) > 0) {
+            echo json_encode(array('status' => 'done', 'text' => file_get_contents($draft), 'name' => $draft_name));
+            return;
+        }
+
+        // Lire le stream NDJSON pour extraire le texte en cours
+        $parsed = $this->_parse_stream($stream);
+
+        if ($parsed['done']) {
+            // Résultat final disponible dans le stream → écrire draft.md
+            file_put_contents($draft, $parsed['text']);
+            @unlink($run);
+            echo json_encode(array('status' => 'done', 'text' => $parsed['text'], 'name' => $draft_name));
+            return;
+        }
+
+        if ($parsed['error']) {
+            echo json_encode(array('status' => 'error', 'error' => $parsed['error']));
+            return;
+        }
+
+        if (!empty($parsed['text'])) {
+            // Streaming en cours : texte partiel disponible
+            echo json_encode(array('status' => 'streaming', 'text' => $parsed['text']));
+            return;
+        }
+
+        // Rien encore dans le stream
+        if (file_exists($run)) {
+            $started = file_get_contents($run);
+            echo json_encode(array('status' => 'running', 'started' => $started));
+            return;
+        }
+
+        // Fichier err avec contenu → erreur
+        if (file_exists($err) && filesize($err) > 0) {
+            echo json_encode(array('status' => 'error', 'error' => file_get_contents($err)));
+            return;
+        }
+
+        echo json_encode(array('status' => 'error', 'error' => 'Job introuvable.'));
+    }
+
+    /**
+     * Parse le fichier NDJSON produit par bin/newsletter_generate.php.
+     * Format des lignes : {"type":"chunk","text":"..."} | {"type":"done"} | {"type":"error","message":"..."}
+     * Retourne ['done'=>bool, 'text'=>string, 'error'=>string|null].
+     */
+    private function _parse_stream($stream_path) {
+        if (!file_exists($stream_path) || filesize($stream_path) === 0) {
+            return array('done' => false, 'text' => '', 'error' => null);
+        }
+
+        $text  = '';
+        $done  = false;
+        $error = null;
+
+        $handle = @fopen($stream_path, 'r');
+        if (!$handle) return array('done' => false, 'text' => '', 'error' => null);
+
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            if ($line === '') continue;
+            $obj = json_decode($line, true);
+            if (!is_array($obj) || !isset($obj['type'])) continue;
+
+            switch ($obj['type']) {
+                case 'chunk':
+                    $text .= $obj['text'] ?? '';
+                    break;
+                case 'done':
+                    $done = true;
+                    break;
+                case 'error':
+                    $error = $obj['message'] ?? 'Erreur inconnue.';
+                    $done  = true;
+                    break;
+            }
+        }
+        fclose($handle);
+
+        return array('done' => $done, 'text' => $text, 'error' => $error);
+    }
+
+    /**
+     * Télécharge un brouillon généré depuis tmp/output/.
+     */
+    private function _draft_name_from_request() {
+        $name = $this->input->get('draft') ?: '';
+        return preg_match('/^draft_\d{8}_\d{6}\.md$/', $name) ? $name : null;
+    }
+
+    public function delete_draft() {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405);
+            return;
+        }
+        $name = $this->input->post('draft') ?: '';
+        if (!preg_match('/^draft_\d{8}_\d{6}\.md$/', $name)) {
+            show_error('Nom de fichier invalide.', 400);
+            return;
+        }
+        $dir = APPPATH . '../tmp/output/';
+        // Supprime le .md et le .pdf associé s'il existe
+        foreach (array($name, preg_replace('/\.md$/', '.pdf', $name)) as $f) {
+            $path = $dir . $f;
+            if (file_exists($path)) unlink($path);
+        }
+        $this->session->set_flashdata('message',
+            '<div class="alert alert-success alert-dismissible">Brouillon <strong>'
+            . htmlspecialchars($name) . '</strong> supprimé.</div>'
+        );
+        redirect('newsletter_admin/test_generate');
+    }
+
+    /**
+     * Envoie le brouillon en PDF aux relecteurs configurés.
+     */
+    public function send_to_reviewers() {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            show_error('Méthode non autorisée.', 405); return;
+        }
+        $name = $this->input->post('draft') ?: '';
+        if (!preg_match('/^draft_\d{8}_\d{6}\.md$/', $name)) {
+            show_error('Nom de fichier invalide.', 400); return;
+        }
+
+        $cfg = $this->_load_newsletter_config();
+
+        $reviewers_raw = trim($cfg['newsletter_reviewers'] ?? '');
+        if (empty($reviewers_raw)) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Aucun relecteur configuré (<a href="' . site_url('newsletter_admin/configuration') . '">Configuration</a>).</div>');
+            redirect('newsletter_admin/test_generate'); return;
+        }
+
+        $md_path = APPPATH . '../tmp/output/' . $name;
+        if (!file_exists($md_path)) { show_404(); return; }
+
+        // Générer ou réutiliser le PDF
+        $pdf_name = preg_replace('/\.md$/', '.pdf', $name);
+        $pdf_path = APPPATH . '../tmp/output/' . $pdf_name;
+        if (!file_exists($pdf_path) || filemtime($md_path) > filemtime($pdf_path)) {
+            $period = $this->_draft_period($name);
+            $cmd = 'pandoc ' . escapeshellarg($md_path)
+                . ' --pdf-engine=wkhtmltopdf'
+                . ' --metadata title=' . escapeshellarg('Veille sécurité et réglementation — ' . $period)
+                . ' -V margin-top=20mm -V margin-bottom=20mm -V margin-left=20mm -V margin-right=20mm'
+                . ' -o ' . escapeshellarg($pdf_path) . ' 2>&1';
+            shell_exec($cmd);
+            if (!file_exists($pdf_path)) {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger">Échec de la génération PDF.</div>');
+                redirect('newsletter_admin/test_generate'); return;
+            }
+        }
+
+        // Variables du template
+        $period  = $this->_draft_period($name);
+        $version = $this->_draft_version($name);
+        $vars    = array(
+            '{period}'     => $period,
+            '{version}'    => $version,
+            '{date}'       => date('d/m/Y'),
+            '{deadline}'   => date('d/m/Y', strtotime('+7 days')),
+            '{from_name}'  => $cfg['newsletter_smtp_from_name'] ?: ($cfg['newsletter_smtp_from'] ?: ''),
+            '{draft_name}' => $name,
+        );
+
+        $default_subject = '[Veille ACS] Brouillon {period} (v{version}) — relecture souhaitée';
+        $default_body    = "Bonjour,\n\nJe vous envoie en pièce jointe le brouillon v{version} de la lettre de veille sécurité et réglementation pour la période : {period}.\n\nMerci de me faire parvenir vos remarques, corrections ou suggestions d'articles en répondant à cet email, avant le {deadline}.\n\nCe brouillon est préparé automatiquement à partir des sources réglementaires et fédérales (EASA, BEA, DSAC, FFA, FFVP, FFPLUM…). Vos retours permettront d'affiner la sélection et la rédaction avant validation par le CPS.\n\nCordialement,\n{from_name}\n\n---\nVeille sécurité et réglementation — {period}\nAéroclub d'Abbeville – Buigny – Baie de Somme";
+
+        $raw_body = $cfg['newsletter_review_body'] ?? $default_body;
+        $subject  = strtr($cfg['newsletter_review_subject'] ?? $default_subject, $vars);
+        $body     = strtr(str_replace('\n', "\n", $raw_body), $vars);
+
+        // Init SMTP newsletter
+        $smtp = $this->_init_newsletter_smtp($cfg);
+        if (empty($smtp['from'])) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger">Adresse SMTP d\'expédition non configurée.</div>');
+            redirect('newsletter_admin/test_generate'); return;
+        }
+
+        // Copie du PDF avec nom lisible pour la pièce jointe
+        $attach_name = 'Veille_ACS_' . substr($name, 6, 6) . '_brouillon_v' . $version . '.pdf';
+        $attach_tmp  = sys_get_temp_dir() . '/' . $attach_name;
+        copy($pdf_path, $attach_tmp);
+
+        $reviewers = array_filter(array_map('trim', explode(',', $reviewers_raw)));
+        $sent = 0; $errors = array();
+
+        foreach ($reviewers as $email) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) continue;
+            $to = test_intercept_email($email, $subject);
+            $this->email->clear(true);
+            $this->email->set_mailtype('text');
+            $this->email->set_newline("\r\n");
+            $this->email->from($smtp['from'], $smtp['from_name']);
+            $this->email->to($to);
+            $this->email->subject($subject);
+            $this->email->message($body);
+            $this->email->attach($attach_tmp);
+            $this->email->send() ? $sent++ : $errors[] = $email;
+        }
+
+        if (file_exists($attach_tmp)) unlink($attach_tmp);
+
+        if ($sent > 0 && empty($errors)) {
+            $msg = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Brouillon envoyé à <strong>' . $sent . ' relecteur(s)</strong> : ' . htmlspecialchars(implode(', ', $reviewers)) . '</div>';
+        } elseif ($sent > 0) {
+            $msg = '<div class="alert alert-warning">Envoyé à ' . $sent . ' relecteur(s), échec : ' . htmlspecialchars(implode(', ', $errors)) . '</div>';
+        } else {
+            $msg = '<div class="alert alert-danger">Échec de l\'envoi à tous les relecteurs.</div>';
+        }
+        $this->session->set_flashdata('message', $msg);
+        redirect('newsletter_admin/test_generate');
+    }
+
+    private function _draft_period($draft_name) {
+        $months = array('', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre');
+        if (preg_match('/^draft_(\d{4})(\d{2})/', $draft_name, $m)) {
+            return $months[(int) $m[2]] . ' ' . $m[1];
+        }
+        return date('m/Y');
+    }
+
+    private function _draft_version($draft_name) {
+        $dir = APPPATH . '../tmp/output/';
+        if (!preg_match('/^draft_(\d{6})/', $draft_name, $m)) return '1';
+        $prefix  = 'draft_' . $m[1];
+        $version = 1;
+        foreach (glob($dir . $prefix . '*.md') as $f) {
+            $bn = basename($f);
+            if ($bn < $draft_name) $version++;
+        }
+        return (string) $version;
+    }
+
+    public function download_draft() {
+        $name = $this->_draft_name_from_request();
+        if (!$name) { show_error('Nom de fichier invalide.', 400); return; }
+        $path = APPPATH . '../tmp/output/' . $name;
+        if (!file_exists($path)) { show_404(); return; }
+        while (ob_get_level()) ob_end_clean();
+        header('Content-Type: text/markdown; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
+    }
+
+    /**
+     * Affiche le brouillon Markdown dans un nouvel onglet (inline).
+     * Le visualisateur Markdown du navigateur prend le relais.
+     */
+    public function view_draft() {
+        $name = $this->_draft_name_from_request();
+        if (!$name) { show_error('Nom de fichier invalide.', 400); return; }
+        $path = APPPATH . '../tmp/output/' . $name;
+        if (!file_exists($path)) { show_404(); return; }
+        while (ob_get_level()) ob_end_clean();
+        header('Content-Type: text/markdown; charset=utf-8');
+        header('Content-Disposition: inline; filename="' . $name . '"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
+    }
+
+    /**
+     * Convertit le brouillon Markdown en PDF via pandoc+wkhtmltopdf
+     * et l'ouvre dans le navigateur.
+     */
+    public function pdf_draft() {
+        $name = $this->_draft_name_from_request();
+        if (!$name) { show_error('Nom de fichier invalide.', 400); return; }
+        $md_path = APPPATH . '../tmp/output/' . $name;
+        if (!file_exists($md_path)) { show_404(); return; }
+
+        $pdf_name = preg_replace('/\.md$/', '.pdf', $name);
+        $pdf_path = APPPATH . '../tmp/output/' . $pdf_name;
+
+        // Regénérer le PDF si le .md est plus récent
+        if (!file_exists($pdf_path) || filemtime($md_path) > filemtime($pdf_path)) {
+            $title = 'Veille sécurité et réglementation — ' . date('m/Y', filemtime($md_path));
+            $cmd = 'pandoc '
+                . escapeshellarg($md_path)
+                . ' --pdf-engine=wkhtmltopdf'
+                . ' --metadata title=' . escapeshellarg($title)
+                . ' -V margin-top=20mm -V margin-bottom=20mm'
+                . ' -V margin-left=20mm -V margin-right=20mm'
+                . ' -o ' . escapeshellarg($pdf_path)
+                . ' 2>&1';
+            $output = shell_exec($cmd);
+            if (!file_exists($pdf_path)) {
+                show_error('Échec de la conversion PDF : ' . htmlspecialchars($output), 500);
+                return;
+            }
+            chmod($pdf_path, 0644);
+        }
+
+        while (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $pdf_name . '"');
+        header('Content-Length: ' . filesize($pdf_path));
+        readfile($pdf_path);
+        exit;
+    }
+
+    /**
+     * Lance claude --print en arrière-plan via un script shell temporaire.
+     * Retourne immédiatement avec le nom du draft à surveiller.
+     */
+    /**
+     * Lance bin/newsletter_generate.php en arrière-plan via un script shell.
+     * Le script PHP appelle l'API Anthropic en streaming HTTP et écrit
+     * progressivement des lignes NDJSON dans le .stream — pas de buffering CLI.
+     */
+    private function _start_generate($model) {
+        $cfg     = $this->_load_newsletter_config();
+        $api_key = Newsletter_imap::decode_password($cfg['newsletter_anthropic_api_key'] ?? '');
+        if (empty($api_key)) {
+            return array('ok' => false, 'error' => $this->lang->line('newsletter_test_ai_no_key'));
+        }
+
+        $context_file = realpath(APPPATH . '../tmp/veille_agent_contexte.md');
+        if (!$context_file || !file_exists($context_file)) {
+            return array('ok' => false, 'error' => 'Fichier de contexte introuvable.');
+        }
+
+        $generate_script = realpath(APPPATH . '../bin/newsletter_generate.php');
+        if (!$generate_script) {
+            return array('ok' => false, 'error' => 'Script de génération introuvable.');
+        }
+
+        $output_dir = APPPATH . '../tmp/output/';
+        if (!is_dir($output_dir)) mkdir($output_dir, 0777, true);
+
+        $draft_name   = 'draft_' . date('Ymd_His') . '.md';
+        $draft_path   = $output_dir . $draft_name;
+        $prompt_path  = $output_dir . $draft_name . '.prompt';
+        $stream_path  = $output_dir . $draft_name . '.stream';
+        $error_path   = $output_dir . $draft_name . '.err';
+        $running_path = $output_dir . $draft_name . '.running';
+        $script_path  = $output_dir . $draft_name . '.sh';
+
+        $instruction = "Génère le brouillon de la lettre de veille mensuelle pour octobre 2026 (exécution simulée). "
+            . "Respecte les règles du § 8 : 6 rubriques, 12 éléments au plus, chaque élément avec titre + résumé 3-6 lignes + « Ce que ça change pour nous » + public + urgence. "
+            . "Rubrique « Un REX par activité » obligatoire (un REX avion, un REX planeur, un REX ULM). "
+            . "Les éléments peuvent être plausibles mais fictifs. "
+            . "Termine avec la mention obligatoire en pied de lettre. Format markdown.";
+
+        file_put_contents($prompt_path, $instruction);
+        touch($stream_path);
+        touch($error_path);
+
+        // Variables d'environnement : la clé API n'apparaît pas dans argv (ps)
+        $sh  = "#!/bin/bash\n";
+        $sh .= "export NL_API_KEY="      . escapeshellarg($api_key)      . "\n";
+        $sh .= "export NL_MODEL="        . escapeshellarg($model)        . "\n";
+        $sh .= "export NL_CONTEXT_FILE=" . escapeshellarg($context_file) . "\n";
+        $sh .= "export NL_PROMPT_FILE="  . escapeshellarg($prompt_path)  . "\n";
+        $sh .= "export NL_STREAM_FILE="  . escapeshellarg($stream_path)  . "\n";
+        $sh .= "export NL_DRAFT_FILE="   . escapeshellarg($draft_path)   . "\n";
+        $sh .= "export NL_ERROR_FILE="   . escapeshellarg($error_path)   . "\n";
+        $sh .= "/usr/bin/php8.4 " . escapeshellarg($generate_script) . "\n";
+        $sh .= "rm -f " . escapeshellarg($prompt_path)
+            . " " . escapeshellarg($running_path)
+            . " " . escapeshellarg($script_path) . "\n";
+
+        file_put_contents($script_path, $sh);
+        chmod($script_path, 0700);
+        file_put_contents($running_path, date('Y-m-d H:i:s'));
+
+        shell_exec('nohup bash ' . escapeshellarg($script_path) . ' >/dev/null 2>&1 &');
+
+        return array('ok' => true, 'draft_name' => $draft_name);
     }
 }
