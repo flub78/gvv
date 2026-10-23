@@ -530,6 +530,13 @@ if ($CI->dx_auth->is_logged_in()) {
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="<?= controller_url('membres_fusion') ?>"><i class="fas fa-code-branch text-danger"></i> Fusion de membres</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('membre/renommer') ?>"><i class="fas fa-edit text-warning"></i> Renommer un utilisateur</a></li>
+              <?php if ($this->config->item('veille')): ?>
+              <li><hr class="dropdown-divider"></li>
+              <?php $this->lang->load('newsletter'); ?>
+              <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/configuration') ?>"><i class="fas fa-cog text-info"></i> Newsletter — Configuration</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_email') ?>"><i class="fas fa-paper-plane text-primary"></i> Newsletter — Test envoi email</a></li>
+              <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_imap') ?>"><i class="fas fa-inbox text-success"></i> Newsletter — Test IMAP</a></li>
+              <?php endif; ?>
             </ul>
           </li>
         <?php endif; ?>

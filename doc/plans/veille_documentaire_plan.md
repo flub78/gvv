@@ -32,30 +32,30 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 **P0.0 — Feature flag** (0,5 j)
 - [x] Ajouter `$config['veille'] = false;` dans `program.example.php` avec commentaire explicatif
 - [x] Vérification du flag dans le constructeur de chaque contrôleur (`newsletter_admin`, `newsletter`, `newsletter_public`) : `if (!$this->config->item('veille')) show_404();`
-- [ ] Masquage des entrées de menu liées à la veille quand le flag est désactivé
+- [x] Masquage des entrées de menu liées à la veille quand le flag est désactivé (toutes les entrées sont dans des blocs `if (config('veille'))`)
 - [ ] Les scripts CLI `bin/newsletter_*.php` vérifient le flag et s'arrêtent proprement (exit 0 avec message de log) s'il est désactivé
 - [x] Activer `$config['veille'] = true;` dans `program.php` de l'environnement de développement pour la suite du développement
 
 **P0.1 — Page de configuration newsletter** (1 j)
-- [ ] Créer le fichier `application/config/newsletter.php` (copié depuis `newsletter.example.php`) avec les clés : `newsletter_imap_host`, `newsletter_imap_port`, `newsletter_imap_user`, `newsletter_imap_password`, `newsletter_smtp_from`, `newsletter_reviewers` (liste JSON), `newsletter_validators` (liste JSON), `newsletter_context_path`, `newsletter_output_path`, `newsletter_alerts_enabled`
-- [ ] Page `newsletter_admin/configuration` (accès `club-admin`) : formulaire de saisie de tous les paramètres, sauvegarde dans `newsletter.php` via `saveConfig()` (même mécanisme que `config.php` → `club.php`)
-- [ ] Mot de passe IMAP stocké obfusqué (base64 ou chiffrement symétrique avec `encryption_key` CI) ; champ affiché masqué, non réaffiché en clair après la première saisie
-- [ ] Créer la bibliothèque `Newsletter_imap` (lecture seule) : connexion IMAP via fonctions natives PHP `imap_*`, comptage par période, liste de sujets avec filtre de pattern, lecture du corps et des pièces jointes (PDF, images)
-- [ ] `newsletter.example.php` committé dans le dépôt ; `newsletter.php` dans `.gitignore` (contient le mot de passe)
+- [x] Créer `application/config/newsletter.example.php` avec toutes les clés commentées
+- [x] Créer `application/config/newsletter.php` de développement
+- [x] Page `newsletter_admin/configuration` : formulaire de saisie, sauvegarde dans `newsletter.php`
+- [x] Mot de passe IMAP stocké en base64 ; champ masqué, non réaffiché en clair
+- [x] Créer la bibliothèque `Newsletter_imap` via PHP cURL (extension `imap_*` absente du serveur) : connexion, comptage depuis une date, liste sujets avec filtre, corps, structure MIME et pièces jointes
+- [x] `newsletter.example.php` dans le dépôt ; `newsletter.php` dans `.gitignore`
 
-**P0.2 — Page de validation** (2 j)
-- [ ] Contrôleur `newsletter_admin.php`, action `infrastructure_test`, accès `club-admin`
-- [ ] Test 1 — **Envoi email** : envoi d'un email de test depuis `veille@`, confirmation affichée avec le statut de retour SMTP
-- [ ] Test 2 — **Lecture boîte** : compte des emails reçus depuis une date saisie, affichage des sujets avec mise en évidence d'un pattern saisi, lecture du corps et des métadonnées d'un email choisi, liste des pièces jointes avec téléchargement
-- [ ] Test 3 — **API IA** : requête simple à l'agent, réponse affichée ; transmission d'un fichier de contexte (prompt enrichi), résultat affiché ; génération d'un court document Markdown puis conversion en PDF via TCPDF
-- [ ] Résultats affichés avec statut vert/rouge par test ; accès depuis le menu d'administration
+**P0.2 — Pages de test email et IMAP** (2 j)
+- [x] `newsletter_admin/test_email` : envoi d'un email de test depuis l'adresse configurée, résultat affiché
+- [x] `newsletter_admin/test_imap` : connexion, comptage depuis une date, liste sujets avec filtre, corps du message le plus récent, pièces jointes — résultats vert/rouge
+- [x] Pages accessibles depuis le menu Dev (protégées par `dev_users`)
+- [ ] Test 3 — **API IA** : requête simple, fichier de contexte, génération Markdown/PDF (P0 partie IA — à faire)
 
 **P0.3 — Tests et documentation** (0,5 j)
-- [ ] PHPUnit `NewsletterImapTest.php` : connexion bouchonnée, comptage, filtre pattern, lecture corps et pièces jointes
-- [ ] PHPUnit `NewsletterConfigTest.php` : lecture et écriture de `newsletter.php`, obfuscation du mot de passe
-- [ ] Playwright `newsletter-infra-smoke.spec.js` : accès à la page de configuration, saisie et sauvegarde des paramètres, les trois tests d'infrastructure s'exécutent sans erreur en environnement de test
+- [ ] PHPUnit `NewsletterImapTest.php` : curl bouchonné, comptage, filtre pattern, décodage MIME header
+- [ ] PHPUnit `NewsletterConfigTest.php` : lecture et écriture de `newsletter.php`, encodage/décodage du mot de passe
+- [ ] Playwright `newsletter-infra-smoke.spec.js` : accès config, test email, test IMAP (à faire après que les identifiants soient configurés)
 
-**Estimation P0 : ~4,5 jours.**
+**Estimation P0 email : ~3 jours (réalisé). Reste : partie IA (~1,5 j).**
 
 **Validation P0** : un club-admin peut accéder à la page de validation, déclencher les trois tests et constater que chacun réussit sur l'environnement de production.
 
