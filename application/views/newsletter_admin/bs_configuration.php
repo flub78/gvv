@@ -118,6 +118,11 @@
            value="<?= htmlspecialchars($cfg['newsletter_validators'] ?? '') ?>"
            placeholder="cps@example.com">
   </div>
+  <div class="mb-2" style="max-width: 20rem">
+    <label class="form-label"><?= $this->lang->line('nl_config_review_delay') ?></label>
+    <input type="number" min="0" max="60" class="form-control form-control-sm" name="newsletter_review_delay_days"
+           value="<?= htmlspecialchars(($cfg['newsletter_review_delay_days'] ?? '') !== '' ? $cfg['newsletter_review_delay_days'] : '2') ?>">
+  </div>
   <hr class="my-3">
   <p class="form-text text-muted mb-2">
     Variables disponibles dans le template :
@@ -171,6 +176,13 @@
     <input type="text" class="form-control form-control-sm" name="newsletter_output_path"
            value="<?= htmlspecialchars($cfg['newsletter_output_path'] ?? '') ?>"
            placeholder="/srv/newsletter/output">
+  </div>
+  <div class="mb-2">
+    <label class="form-label"><?= $this->lang->line('nl_config_storage_path') ?></label>
+    <input type="text" class="form-control form-control-sm" name="newsletter_storage_path"
+           value="<?= htmlspecialchars($cfg['newsletter_storage_path'] ?? '') ?>"
+           placeholder="<?= htmlspecialchars(APPPATH . 'storage/newsletter/') ?>">
+    <div class="form-text"><?= $this->lang->line('nl_config_storage_help') ?></div>
   </div>
   <div class="form-check">
     <input class="form-check-input" type="checkbox" name="newsletter_alerts_enabled" value="1"

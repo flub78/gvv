@@ -107,9 +107,11 @@ class Newsletter_model extends CI_Model {
         $newsletter = $this->get($id);
         if (!$newsletter) return FALSE;
 
+        // Cycle v1 : draft → reviewing → draft (nouvelle version) … draft → approved.
+        // validating est réservé à l'approbation par un validateur distinct (évolution).
         $allowed = array(
-            self::STATUS_DRAFT      => array(self::STATUS_REVIEWING),
-            self::STATUS_REVIEWING  => array(self::STATUS_REVIEWING, self::STATUS_VALIDATING),
+            self::STATUS_DRAFT      => array(self::STATUS_REVIEWING, self::STATUS_APPROVED),
+            self::STATUS_REVIEWING  => array(self::STATUS_REVIEWING, self::STATUS_VALIDATING, self::STATUS_DRAFT),
             self::STATUS_VALIDATING => array(self::STATUS_APPROVED),
             self::STATUS_APPROVED   => array(self::STATUS_PUBLISHED),
             self::STATUS_PUBLISHED  => array(),

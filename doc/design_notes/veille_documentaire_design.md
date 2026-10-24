@@ -132,9 +132,9 @@ Les états sont stockés dans `newsletters.status`. Chaque action est déclench�
 | De → Vers | Action |
 |---|---|
 | → `draft` | Import d'un brouillon pour une période (manuel à l'étape 1, automatique à l'étape 2) |
-| `draft` → `reviewing` | Transmission du brouillon aux relecteurs, avec une date limite de réponse (automatique après un import automatique) |
+| `draft` → `reviewing` | Transmission du brouillon aux relecteurs, avec une date limite de réponse (automatique après un import automatique) ; `review_iteration` (tour de relecture) incrémenté |
 | `reviewing` → `reviewing` | Récupération des réponses ; tri des suggestions |
-| `reviewing` → `draft` | Demande d'une nouvelle version : le réviseur retourne la version suivante, `review_iteration` incrémenté |
+| `reviewing` → `draft` | Demande d'une nouvelle version : le réviseur retourne la version suivante du brouillon |
 | `draft` → `approved` | Validation (directe s'il n'y a pas de remarques) |
 | `approved` → `published` | Finalisation : notes internes supprimées, PDF, archive, envoi aux abonnés |
 
@@ -148,7 +148,7 @@ Chaque réponse retenue devient une suggestion, de nature `remarque` ou `article
 
 ### Nouvelles versions
 
-Le réviseur ne reçoit que le brouillon courant et les suggestions acceptées ou modifiées. La révision ne porte que sur du texte : elle passe par l'API Anthropic appelée depuis GVV, sans navigation. Chaque version est conservée ; l'administrateur voit les différences avec la version précédente avant de décider d'un nouveau tour ou de la validation.
+Le réviseur ne reçoit que le brouillon courant et les suggestions acceptées ou modifiées du tour de relecture courant ; celles des tours précédents sont déjà dans une version antérieure. La révision ne porte que sur du texte : elle passe par l'API Anthropic appelée depuis GVV, sans navigation. Chaque version est conservée ; l'administrateur voit les différences avec la version précédente avant de décider d'un nouveau tour ou de la validation.
 
 ### Notes internes et validation
 
@@ -162,9 +162,9 @@ Le brouillon contient des notes destinées au CPS et aux relecteurs : une sectio
 
 ### Tables
 
-**`newsletters`** : une ligne par édition. `draft_path` pointe vers le fichier Markdown de travail sur le serveur ; `pdf_path` vers le PDF publié. Le champ `review_iteration` trace la version courante du cycle de relecture.
+**`newsletters`** : une ligne par édition. `draft_path` pointe vers la version courante du brouillon ; les versions précédentes restent dans le stockage de l'édition. `pdf_path` pointe vers le PDF publié, déposé dans l'archive des membres. `review_iteration` compte les tours de relecture ; `review_sent_at` et `review_deadline` datent la dernière transmission et la réponse attendue.
 
-**`newsletter_reviews`** : suggestions issues des réponses des relecteurs. Outre l'expéditeur, l'itération et le contenu, elle porte l'identifiant du message (anti-doublon), la nature (`remarque`, `article`), la décision de l'administrateur et le texte modifié. Une suggestion reportée n'est rattachée à aucune édition jusqu'à son utilisation. Les pièces jointes sont stockées dans un répertoire associé à l'entrée.
+**`newsletter_reviews`** : suggestions issues des réponses des relecteurs. Outre l'expéditeur, l'itération et le contenu, elle porte l'identifiant du message (anti-doublon), la nature (`remarque`, `article`), la décision de l'administrateur et le texte modifié. Une suggestion reportée n'est rattachée à aucune édition jusqu'à son utilisation. Les pièces jointes sont stockées par suggestion, et non par édition, pour la suivre lorsqu'elle est reportée.
 
 **`newsletter_contexts`** : versions successives des consignes de l'agent ; une seule version est active.
 

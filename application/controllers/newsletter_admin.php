@@ -285,7 +285,8 @@ class Newsletter_admin extends MY_Controller {
             'newsletter_smtp_host', 'newsletter_smtp_port', 'newsletter_smtp_crypto',
             'newsletter_smtp_user',
             'newsletter_smtp_from', 'newsletter_smtp_from_name',
-            'newsletter_reviewers', 'newsletter_validators',
+            'newsletter_reviewers', 'newsletter_validators', 'newsletter_review_delay_days',
+            'newsletter_storage_path',
             'newsletter_review_subject', 'newsletter_review_body',
             'newsletter_context_path', 'newsletter_output_path',
             'newsletter_alerts_enabled',
@@ -526,50 +527,8 @@ class Newsletter_admin extends MY_Controller {
     }
 
     private function _call_anthropic_api($api_key, $model, $prompt, $max_tokens = 1024) {
-        $payload = json_encode(array(
-            'model'      => $model,
-            'max_tokens' => (int) $max_tokens,
-            'messages'   => array(
-                array('role' => 'user', 'content' => $prompt),
-            ),
-        ));
-
-        $ch = curl_init('https://api.anthropic.com/v1/messages');
-        curl_setopt_array($ch, array(
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_HTTPHEADER     => array(
-                'x-api-key: ' . $api_key,
-                'anthropic-version: 2023-06-01',
-                'content-type: application/json',
-            ),
-            CURLOPT_TIMEOUT        => 60,
-        ));
-
-        $response   = curl_exec($ch);
-        $http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curl_error = curl_error($ch);
-        curl_close($ch);
-
-        if ($curl_error) {
-            return array('ok' => false, 'error' => 'cURL : ' . $curl_error);
-        }
-
-        $data = json_decode($response, true);
-        if ($http_code !== 200) {
-            $err = isset($data['error']['message']) ? $data['error']['message'] : $response;
-            return array('ok' => false, 'error' => "HTTP {$http_code} : {$err}");
-        }
-
-        return array(
-            'ok'           => true,
-            'text'         => $data['content'][0]['text'] ?? '',
-            'model'        => $data['model']               ?? $model,
-            'input_tokens' => $data['usage']['input_tokens']  ?? 0,
-            'output_tokens'=> $data['usage']['output_tokens'] ?? 0,
-            'stop_reason'  => $data['stop_reason']         ?? '',
-        );
+        $this->load->library('Newsletter_ai');
+        return $this->newsletter_ai->message($api_key, $model, $prompt, '', $max_tokens, 60);
     }
 
     /**
@@ -1189,5 +1148,679 @@ class Newsletter_admin extends MY_Controller {
         shell_exec('nohup bash ' . escapeshellarg($script_path) . ' >/dev/null 2>&1 &');
 
         return array('ok' => true, 'draft_name' => $draft_name);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // Cycle de la version 1 : éditions, consignes, import, relecture,
+    // validation, publication (plan P2)
+    // ══════════════════════════════════════════════════════════════════════
+
+    /** Taille maximale d'un fichier importé (brouillon, rapport, inventaire, consignes) */
+    const NL_MAX_IMPORT = 5242880;
+
+    private function _render($view, $data) {
+        $this->load->view('bs_header', $data);
+        $this->load->view('bs_menu');
+        $this->load->view('bs_banner');
+        $this->load->view($view, $data);
+        $this->load->view('bs_footer');
+    }
+
+    /**
+     * Message de résultat affiché après redirection (alerte Bootstrap refermable).
+     */
+    private function _flash($type, $html) {
+        $this->session->set_flashdata('message',
+            '<div class="alert alert-' . $type . ' alert-dismissible fade show" role="alert">' . $html
+            . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+    }
+
+    private function _require_post($redirect) {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect($redirect);
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    private function _files() {
+        $cfg = $this->_load_newsletter_config();
+        $this->load->library('Newsletter_files', array('base_path' => $cfg['newsletter_storage_path'] ?? ''));
+        return $this->newsletter_files;
+    }
+
+    private function _load_cycle_models() {
+        $this->load->model('newsletter_contexts_model');
+        $this->load->model('newsletter_runs_model');
+        $this->load->model('newsletter_reviews_model');
+    }
+
+    /**
+     * Contenu texte d'un fichier envoyé par formulaire.
+     *
+     * @return string|null|false  contenu, NULL si aucun fichier, FALSE si refusé
+     */
+    private function _uploaded_text($field, array $extensions, &$error) {
+        if (empty($_FILES[$field]['name'])) return NULL;
+        $f = $_FILES[$field];
+        if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+            $error = sprintf($this->lang->line('nl_upload_failed'), $f['name']);
+            return FALSE;
+        }
+        $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $extensions, TRUE)) {
+            $error = sprintf($this->lang->line('nl_upload_bad_type'), $f['name'], implode(', ', $extensions));
+            return FALSE;
+        }
+        if ($f['size'] > self::NL_MAX_IMPORT) {
+            $error = sprintf($this->lang->line('nl_upload_too_big'), $f['name']);
+            return FALSE;
+        }
+        $content = file_get_contents($f['tmp_name']);
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+        }
+        return preg_replace('/^\xEF\xBB\xBF/', '', $content);
+    }
+
+    private function _edition_or_404($id) {
+        $nl = $this->newsletter_model->get((int) $id);
+        if (!$nl) show_404();
+        return $nl;
+    }
+
+    private function _current_draft($nl) {
+        return $nl['draft_path'] ? $this->_files()->read($nl['draft_path']) : FALSE;
+    }
+
+    // ── Éditions ──────────────────────────────────────────────────────────
+
+    public function editions() {
+        $this->_load_cycle_models();
+        $data = array(
+            'title'       => $this->lang->line('nl_editions_title'),
+            'newsletters' => $this->newsletter_model->get_all(),
+            'context'     => $this->newsletter_contexts_model->get_active(),
+            'message'     => $this->session->flashdata('message'),
+        );
+        $this->_render('newsletter_admin/bs_editions', $data);
+    }
+
+    public function edition($id) {
+        $this->_load_cycle_models();
+        $this->load->library('Newsletter_review_cycle');
+        $nl    = $this->_edition_or_404($id);
+        $files = $this->_files();
+        $draft = $this->_current_draft($nl);
+        $cfg   = $this->_load_newsletter_config();
+
+        $data = array(
+            'title'       => $nl['title'],
+            'nl'          => $nl,
+            'version'     => Newsletter_files::version_of($nl['draft_path']),
+            'versions'    => $files->list_versions($nl['id']),
+            'draft_html'  => ($draft !== FALSE) ? $this->_markdown($draft) : NULL,
+            'mentions'    => ($draft !== FALSE) ? Newsletter_files::find_open_mentions($draft) : array(),
+            'run'         => $this->newsletter_runs_model->get_by_newsletter($nl['id']),
+            'suggestions' => $this->newsletter_reviews_model->get_for_newsletter($nl['id']),
+            'postponed'   => $this->newsletter_reviews_model->get_postponed(),
+            'reviewers'   => Newsletter_review_cycle::parse_addresses($cfg['newsletter_reviewers'] ?? ''),
+            'pending'     => $this->newsletter_reviews_model->count_pending($nl['id']),
+            'accepted'    => count($this->newsletter_reviews_model->get_accepted($nl['id'], $nl['review_iteration'])),
+            'attachments' => $this->_reply_attachments($files, $nl['id']),
+            'collect'     => $this->session->flashdata('collect_report'),
+            'message'     => $this->session->flashdata('message'),
+        );
+        $this->_render('newsletter_admin/bs_edition', $data);
+    }
+
+    /**
+     * Pièces jointes conservées des réponses d'une édition, par suggestion.
+     */
+    private function _reply_attachments($files, $newsletter_id) {
+        $out = array();
+        foreach ($this->newsletter_reviews_model->get_for_newsletter($newsletter_id) as $s) {
+            if ($s['has_attachments']) $out[(int) $s['id']] = $files->list_reply_files($s['id']);
+        }
+        return $out;
+    }
+
+    public function attachment($review_id, $name = '') {
+        $this->_load_cycle_models();
+        $s = $this->newsletter_reviews_model->get((int) $review_id);
+        $name = basename(rawurldecode($name));
+        if (!$s || $name === '') show_404();
+        $files = $this->_files();
+        $content = $files->read($files->reply_dir($s['id']) . $name);
+        if ($content === FALSE) show_404();
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $this->_send_file($content, $finfo->buffer($content) ?: 'application/octet-stream', $name);
+    }
+
+    private function _markdown($md) {
+        $this->load->helper('markdown');
+        return markdown($md);
+    }
+
+    /**
+     * Affiche une version du brouillon, avec ses différences par rapport à la précédente.
+     */
+    public function version($id, $n) {
+        $nl    = $this->_edition_or_404($id);
+        $files = $this->_files();
+        $versions = $files->list_versions($nl['id']);
+        $current = $previous = NULL;
+        foreach ($versions as $v) {
+            if ($v['version'] === (int) $n) $current = $v;
+            if ($v['version'] === (int) $n - 1) $previous = $v;
+        }
+        if (!$current) show_404();
+        $text = $files->read($current['path']);
+        $data = array(
+            'title'    => $nl['title'] . ' — v' . (int) $n,
+            'nl'       => $nl,
+            'n'        => (int) $n,
+            'html'     => $this->_markdown($text),
+            'diff'     => $previous ? Newsletter_files::diff_lines($files->read($previous['path']), $text) : NULL,
+        );
+        $this->_render('newsletter_admin/bs_version', $data);
+    }
+
+    /**
+     * Aperçu PDF de la version courante du brouillon (notes internes comprises).
+     */
+    public function edition_pdf($id) {
+        $nl = $this->_edition_or_404($id);
+        $draft = $this->_current_draft($nl);
+        if ($draft === FALSE) show_404();
+        $this->load->library('Newsletter_pdf');
+        $pdf = $this->newsletter_pdf->render($draft, $nl['title']);
+        $this->_send_file($pdf, 'application/pdf', 'brouillon_' . (int) $nl['id'] . '_v'
+            . Newsletter_files::version_of($nl['draft_path']) . '.pdf', 'inline');
+    }
+
+    private function _send_file($content, $type, $name, $disposition = 'attachment') {
+        while (ob_get_level()) ob_end_clean();
+        header('Content-Type: ' . $type);
+        header('Content-Disposition: ' . $disposition . '; filename="' . $name . '"');
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        exit;
+    }
+
+    public function delete_edition($id) {
+        if (!$this->_require_post('newsletter_admin/editions')) return;
+        $nl = $this->_edition_or_404($id);
+        if ($nl['status'] !== Newsletter_model::STATUS_DRAFT) {
+            $this->_flash('warning', $this->lang->line('nl_delete_only_draft'));
+            redirect('newsletter_admin/edition/' . $nl['id']);
+            return;
+        }
+        $this->_files()->delete_edition($nl['id']);
+        $this->newsletter_model->delete($nl['id']);
+        $this->_flash('success', sprintf($this->lang->line('nl_edition_deleted'), htmlspecialchars($nl['title'])));
+        redirect('newsletter_admin/editions');
+    }
+
+    // ── Import du brouillon d'une période ─────────────────────────────────
+
+    public function import() {
+        $this->_load_cycle_models();
+        $form = array();
+        $result = NULL;
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $form = array(
+                'title'        => trim((string) $this->input->post('title')),
+                'period_start' => $this->input->post('period_start'),
+                'period_end'   => $this->input->post('period_end'),
+                'model'        => trim((string) $this->input->post('model')),
+                'cost_usd'     => str_replace(',', '.', trim((string) $this->input->post('cost_usd'))),
+            );
+            $errors = array();
+            $err = '';
+            $draft  = $this->_uploaded_text('draft_file', array('md', 'markdown', 'txt'), $err);  if ($err) { $errors[] = $err; $err = ''; }
+            $report = $this->_uploaded_text('report_file', array('md', 'markdown', 'txt'), $err); if ($err) { $errors[] = $err; $err = ''; }
+            $inv    = $this->_uploaded_text('inventory_file', array('csv', 'txt'), $err);         if ($err) { $errors[] = $err; $err = ''; }
+            if ($form['cost_usd'] !== '' && !is_numeric($form['cost_usd'])) {
+                $errors[] = $this->lang->line('nl_import_bad_cost');
+            }
+
+            if (!$errors) {
+                $this->load->library('Newsletter_importer', array('files' => $this->_files()));
+                $result = $this->newsletter_importer->import(array_merge($form, array(
+                    'draft' => (string) $draft, 'report' => (string) $report, 'inventory' => (string) $inv,
+                    'origin' => Newsletter_runs_model::ORIGIN_DESKTOP,
+                )));
+                if ($result['ok']) {
+                    $html = sprintf($this->lang->line('nl_import_success'), htmlspecialchars($form['title']), htmlspecialchars($result['run_id']));
+                    foreach ($result['warnings'] as $w) {
+                        $html .= '<br><i class="fas fa-exclamation-triangle text-warning"></i> ' . htmlspecialchars($w);
+                    }
+                    $this->_flash($result['warnings'] ? 'warning' : 'success', $html);
+                    redirect('newsletter_admin/edition/' . $result['newsletter_id']);
+                    return;
+                }
+                $errors = $result['errors'];
+            }
+            $result = array('ok' => FALSE, 'errors' => $errors);
+        }
+        $data = array(
+            'title'   => $this->lang->line('nl_import_title'),
+            'form'    => $form,
+            'result'  => $result,
+            'context' => $this->newsletter_contexts_model->get_active(),
+        );
+        $this->_render('newsletter_admin/bs_import', $data);
+    }
+
+    // ── Consignes de l'agent ──────────────────────────────────────────────
+
+    public function context() {
+        $this->_load_cycle_models();
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $err = '';
+            $uploaded = $this->_uploaded_text('context_file', array('md', 'markdown', 'txt'), $err);
+            $content  = ($uploaded !== NULL && $uploaded !== FALSE) ? $uploaded : (string) $this->input->post('content');
+            $comment  = trim((string) $this->input->post('comment'));
+            $active   = $this->newsletter_contexts_model->get_active();
+
+            if ($err) {
+                $this->_flash('danger', htmlspecialchars($err));
+            } elseif (trim($content) === '') {
+                $this->_flash('danger', $this->lang->line('nl_context_empty'));
+            } elseif ($active && $active['content'] === $content) {
+                $this->_flash('info', $this->lang->line('nl_context_unchanged'));
+            } else {
+                $id = $this->newsletter_contexts_model->create_version($content, $comment);
+                if ($id) {
+                    $v = $this->newsletter_contexts_model->get($id);
+                    $this->_flash('success', sprintf($this->lang->line('nl_context_saved'), (int) $v['version']));
+                } else {
+                    $this->_flash('danger', $this->lang->line('nl_context_save_error'));
+                }
+            }
+            redirect('newsletter_admin/context');
+            return;
+        }
+        $data = array(
+            'title'    => $this->lang->line('nl_context_title'),
+            'active'   => $this->newsletter_contexts_model->get_active(),
+            'versions' => $this->newsletter_contexts_model->get_all(),
+            'message'  => $this->session->flashdata('message'),
+        );
+        $this->_render('newsletter_admin/bs_context', $data);
+    }
+
+    public function context_version($id) {
+        $this->_load_cycle_models();
+        $v = $this->newsletter_contexts_model->get((int) $id);
+        if (!$v) show_404();
+        $this->load->library('Newsletter_files');
+        $active = $this->newsletter_contexts_model->get_active();
+        $data = array(
+            'title'   => sprintf($this->lang->line('nl_context_version_title'), (int) $v['version']),
+            'v'       => $v,
+            'active'  => $active,
+            'diff'    => ($active && (int) $active['id'] !== (int) $v['id'])
+                         ? Newsletter_files::diff_lines($v['content'], $active['content']) : NULL,
+        );
+        $this->_render('newsletter_admin/bs_context_version', $data);
+    }
+
+    public function context_restore($id) {
+        if (!$this->_require_post('newsletter_admin/context')) return;
+        $this->_load_cycle_models();
+        $new = $this->newsletter_contexts_model->restore((int) $id);
+        if ($new) {
+            $v = $this->newsletter_contexts_model->get($new);
+            $this->_flash('success', sprintf($this->lang->line('nl_context_saved'), (int) $v['version']));
+        } else {
+            $this->_flash('danger', $this->lang->line('nl_context_save_error'));
+        }
+        redirect('newsletter_admin/context');
+    }
+
+    // ── Kit pour l'agent de bureau ────────────────────────────────────────
+
+    public function kit() {
+        $this->_load_cycle_models();
+        $this->load->library('Newsletter_importer', array('files' => $this->_files()));
+        $data = array(
+            'title'     => $this->lang->line('nl_kit_title'),
+            'context'   => $this->newsletter_contexts_model->get_active(),
+            'inventory' => $this->newsletter_importer->current_inventory(),
+            'postponed' => $this->newsletter_reviews_model->get_postponed(),
+        );
+        $this->_render('newsletter_admin/bs_kit', $data);
+    }
+
+    public function kit_file($what = '') {
+        $this->_load_cycle_models();
+        $date = date('Ymd');
+        switch ($what) {
+            case 'consignes':
+                $c = $this->newsletter_contexts_model->get_active();
+                if (!$c) show_404();
+                $this->_send_file($c['content'], 'text/markdown; charset=UTF-8', 'veille_agent_contexte_v' . (int) $c['version'] . '.md');
+                break;
+            case 'inventaire':
+                $this->load->library('Newsletter_importer', array('files' => $this->_files()));
+                $inv = $this->newsletter_importer->current_inventory();
+                if (!$inv) show_404();
+                $this->_send_file($inv['content'], 'text/csv; charset=UTF-8', 'inventaire_documents_' . $date . '.csv');
+                break;
+            case 'suggestions':
+                $md = "# Suggestions d'articles reportées\n\n";
+                foreach ($this->newsletter_reviews_model->get_postponed() as $s) {
+                    $md .= '## ' . ($s['reviewer_name'] ?: $s['reviewer_email']) . ' — ' . substr($s['created_at'], 0, 10) . "\n\n"
+                        . trim($s['admin_text'] ?: $s['content']) . "\n\n";
+                }
+                $this->_send_file($md, 'text/markdown; charset=UTF-8', 'suggestions_reportees_' . $date . '.md');
+                break;
+            default:
+                show_404();
+        }
+    }
+
+    // ── Exécutions et rapports d'activité ─────────────────────────────────
+
+    public function runs() {
+        $this->_load_cycle_models();
+        $data = array(
+            'title' => $this->lang->line('nl_runs_title'),
+            'runs'  => $this->newsletter_runs_model->get_all(),
+        );
+        $this->_render('newsletter_admin/bs_runs', $data);
+    }
+
+    public function run($id) {
+        $this->_load_cycle_models();
+        $run = $this->newsletter_runs_model->get((int) $id);
+        if (!$run) show_404();
+        $files  = $this->_files();
+        $report = $files->run_file($run['run_id'], Newsletter_files::REPORT_FILE);
+        $context = $run['context_id'] ? $this->newsletter_contexts_model->get($run['context_id']) : NULL;
+        $data = array(
+            'title'       => $run['run_id'],
+            'run'         => $run,
+            'context'     => $context,
+            'newsletter'  => $run['newsletter_id'] ? $this->newsletter_model->get($run['newsletter_id']) : NULL,
+            'report_html' => $report ? $this->_markdown($files->read($report)) : NULL,
+            'has_inventory' => (bool) $files->run_file($run['run_id'], Newsletter_files::INVENTORY_FILE),
+        );
+        $this->_render('newsletter_admin/bs_run', $data);
+    }
+
+    public function run_file($id, $what = '') {
+        $this->_load_cycle_models();
+        $run = $this->newsletter_runs_model->get((int) $id);
+        $files = $this->_files();
+        $names = array('brouillon' => Newsletter_files::DRAFT_FILE, 'rapport' => Newsletter_files::REPORT_FILE,
+                       'inventaire' => Newsletter_files::INVENTORY_FILE);
+        if (!$run || !isset($names[$what])) show_404();
+        $path = $files->run_file($run['run_id'], $names[$what]);
+        if (!$path) show_404();
+        $type = ($what === 'inventaire') ? 'text/csv; charset=UTF-8' : 'text/markdown; charset=UTF-8';
+        $this->_send_file($files->read($path), $type, $run['run_id'] . '_' . $names[$what]);
+    }
+
+    // ── Transmission aux relecteurs ───────────────────────────────────────
+
+    public function send_for_review($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $this->load->library('Newsletter_review_cycle');
+        $nl  = $this->_edition_or_404($id);
+        $res = $this->_send_for_review($nl);
+        $this->_flash($res['ok'] ? 'success' : 'danger', $res['message']);
+        redirect('newsletter_admin/edition/' . $nl['id']);
+    }
+
+    /**
+     * Envoie la version courante aux relecteurs et passe l'édition en relecture.
+     *
+     * @return array ok, message (HTML)
+     */
+    private function _send_for_review($nl) {
+        if ($nl['status'] !== Newsletter_model::STATUS_DRAFT) {
+            return array('ok' => FALSE, 'message' => $this->lang->line('nl_send_not_draft'));
+        }
+        $cfg = $this->_load_newsletter_config();
+        $reviewers = Newsletter_review_cycle::parse_addresses($cfg['newsletter_reviewers'] ?? '');
+        if (!$reviewers) {
+            return array('ok' => FALSE, 'message' => sprintf($this->lang->line('nl_no_reviewers'), site_url('newsletter_admin/configuration')));
+        }
+        $draft = $this->_current_draft($nl);
+        if ($draft === FALSE) {
+            return array('ok' => FALSE, 'message' => $this->lang->line('nl_draft_missing'));
+        }
+
+        $version  = Newsletter_files::version_of($nl['draft_path']);
+        $delay    = ($cfg['newsletter_review_delay_days'] ?? '') !== '' ? (int) $cfg['newsletter_review_delay_days'] : 2;
+        $deadline = Newsletter_review_cycle::deadline($delay);
+        $mail     = Newsletter_review_cycle::build_review_email($cfg, $nl, $version, $deadline);
+
+        $this->load->library('Newsletter_pdf');
+        $pdf_tmp = sys_get_temp_dir() . '/' . 'Veille_brouillon_' . (int) $nl['id'] . '_v' . $version . '_' . uniqid() . '.pdf';
+        file_put_contents($pdf_tmp, $this->newsletter_pdf->render($draft, $nl['title']));
+
+        $smtp = $this->_init_newsletter_smtp($cfg);
+        if (empty($smtp['from'])) {
+            @unlink($pdf_tmp);
+            return array('ok' => FALSE, 'message' => $this->lang->line('nl_no_sender'));
+        }
+
+        $sent = array();
+        $failed = array();
+        foreach ($reviewers as $to) {
+            $this->email->clear(TRUE);
+            $this->email->set_mailtype('text');
+            $this->email->set_newline("\r\n");
+            $this->email->from($smtp['from'], $smtp['from_name']);
+            $this->email->reply_to($smtp['from']);
+            $this->email->to($to);
+            $this->email->subject($mail['subject']);
+            $this->email->message($mail['body']);
+            $this->email->attach($pdf_tmp, 'attachment', 'Veille_brouillon_v' . $version . '.pdf', 'application/pdf');
+            if ($this->email->send()) {
+                $sent[] = $to;
+            } else {
+                $failed[] = $to;
+                log_message('error', 'newsletter_admin: échec envoi relecture #' . $nl['id'] . ' à ' . $to);
+            }
+        }
+        @unlink($pdf_tmp);
+
+        if (!$sent) {
+            return array('ok' => FALSE, 'message' => sprintf($this->lang->line('nl_send_all_failed'), htmlspecialchars(implode(', ', $failed))));
+        }
+        $this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_REVIEWING, array(
+            'review_sent_at'  => date('Y-m-d H:i:s'),
+            'review_deadline' => $deadline,
+        ));
+        $msg = sprintf($this->lang->line('nl_send_success'), $version, htmlspecialchars(implode(', ', $sent)), date('d/m/Y', strtotime($deadline)));
+        if ($failed) {
+            $msg .= '<br>' . sprintf($this->lang->line('nl_send_some_failed'), htmlspecialchars(implode(', ', $failed)));
+        }
+        return array('ok' => TRUE, 'message' => $msg);
+    }
+
+    // ── Récupération des réponses ─────────────────────────────────────────
+
+    public function collect_replies($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $this->_load_cycle_models();
+        $this->load->library('Newsletter_review_cycle');
+        $nl = $this->_edition_or_404($id);
+        if ($nl['status'] !== Newsletter_model::STATUS_REVIEWING) {
+            $this->_flash('warning', $this->lang->line('nl_collect_not_reviewing'));
+            redirect('newsletter_admin/edition/' . $nl['id']);
+            return;
+        }
+        $cfg = $this->_load_newsletter_config();
+        $this->newsletter_imap->init($cfg);
+        $since = date('d-M-Y', strtotime($nl['review_sent_at'] ?: $nl['created_at']));
+        $uids  = $this->newsletter_imap->search_since($since, 200);
+        if ($uids === FALSE) {
+            $this->_flash('danger', sprintf($this->lang->line('nl_collect_imap_error'), htmlspecialchars($this->newsletter_imap->last_error())));
+            redirect('newsletter_admin/edition/' . $nl['id']);
+            return;
+        }
+
+        $reviewers = Newsletter_review_cycle::parse_addresses($cfg['newsletter_reviewers'] ?? '');
+        $files = $this->_files();
+        $report = array('retained' => array(), 'rejected' => array(), 'read' => 0);
+        foreach ($uids as $uid) {
+            $raw = $this->newsletter_imap->fetch_raw($uid);
+            if ($raw === FALSE) continue;
+            $report['read']++;
+            $r = $this->newsletter_review_cycle->process_message($nl, $raw, $reviewers, $files);
+            if ($r['status'] === 'retained') {
+                $report['retained'][] = $r;
+            } elseif ($r['status'] === 'rejected' || $r['reason'] === 'déjà récupérée') {
+                $report['rejected'][] = $r;
+            }
+        }
+        $this->session->set_flashdata('collect_report', $report);
+        redirect('newsletter_admin/edition/' . $nl['id'] . '#suggestions');
+    }
+
+    // ── Tri des suggestions ───────────────────────────────────────────────
+
+    public function decide($review_id) {
+        $this->_load_cycle_models();
+        $s = $this->newsletter_reviews_model->get((int) $review_id);
+        if (!$s) show_404();
+        $back = 'newsletter_admin/edition/' . (int) $s['newsletter_id'] . '#suggestion-' . (int) $s['id'];
+        if (!$this->_require_post($back)) return;
+
+        $res = $this->newsletter_reviews_model->decide($s['id'], $this->input->post('decision'),
+            $this->input->post('admin_text'), $this->input->post('kind'));
+        if ($res === TRUE) {
+            $this->_flash('success', sprintf($this->lang->line('nl_decision_saved'),
+                htmlspecialchars($this->lang->line('nl_decision_' . $this->input->post('decision')))));
+        } else {
+            $this->_flash('danger', $this->lang->line('nl_decision_error_' . $res) ?: $res);
+        }
+        redirect($back);
+    }
+
+    public function attach_postponed($review_id, $newsletter_id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $newsletter_id)) return;
+        $this->_load_cycle_models();
+        $nl = $this->_edition_or_404($newsletter_id);
+        $ok = $this->newsletter_reviews_model->attach((int) $review_id, $nl['id'], $nl['review_iteration']);
+        $this->_flash($ok ? 'success' : 'danger', $this->lang->line($ok ? 'nl_attach_ok' : 'nl_attach_error'));
+        redirect('newsletter_admin/edition/' . $nl['id'] . '#suggestions');
+    }
+
+    // ── Nouvelle version par l'agent IA ───────────────────────────────────
+
+    public function revise($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $this->_load_cycle_models();
+        $this->load->library('Newsletter_review_cycle');
+        $nl   = $this->_edition_or_404($id);
+        $back = 'newsletter_admin/edition/' . $nl['id'];
+
+        if ($nl['status'] !== Newsletter_model::STATUS_REVIEWING) {
+            $this->_flash('warning', $this->lang->line('nl_revise_not_reviewing'));
+            redirect($back);
+            return;
+        }
+        $suggestions = $this->newsletter_reviews_model->get_accepted($nl['id'], $nl['review_iteration']);
+        if (!$suggestions) {
+            $this->_flash('warning', $this->lang->line('nl_revise_nothing'));
+            redirect($back);
+            return;
+        }
+        $draft = $this->_current_draft($nl);
+        $cfg   = $this->_load_newsletter_config();
+        $key   = Newsletter_imap::decode_password($cfg['newsletter_anthropic_api_key'] ?? '');
+        if ($draft === FALSE || $key === '') {
+            $this->_flash('danger', $draft === FALSE ? $this->lang->line('nl_draft_missing') : $this->lang->line('newsletter_test_ai_no_key'));
+            redirect($back);
+            return;
+        }
+
+        $context = $this->newsletter_contexts_model->get_active();
+        $prompt  = Newsletter_review_cycle::build_revision_prompt($draft, $suggestions, $context ? $context['content'] : '');
+        $model   = ($cfg['newsletter_anthropic_model'] ?? '') ?: 'claude-sonnet-4-6';
+        @set_time_limit(360);
+        $this->load->library('Newsletter_ai');
+        $resp = $this->newsletter_ai->message($key, $model, $prompt['user'], $prompt['system'], 32000, 300);
+
+        if (!$resp['ok'] || trim($resp['text']) === '') {
+            $this->_flash('danger', sprintf($this->lang->line('nl_revise_failed'), htmlspecialchars($resp['error'] ?? 'réponse vide')));
+            redirect($back);
+            return;
+        }
+        if ($resp['stop_reason'] === 'max_tokens') {
+            $this->_flash('danger', $this->lang->line('nl_revise_truncated'));
+            redirect($back);
+            return;
+        }
+
+        $saved = $this->_files()->save_version($nl['id'], Newsletter_review_cycle::clean_ai_output($resp['text']));
+        if (!$saved) {
+            $this->_flash('danger', $this->lang->line('nl_revise_save_error'));
+            redirect($back);
+            return;
+        }
+        $this->newsletter_model->update($nl['id'], array('draft_path' => $saved['path']));
+        $this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_DRAFT);
+        $this->_flash('success', sprintf($this->lang->line('nl_revise_success'), $saved['version'], count($suggestions),
+            (int) $resp['input_tokens'], (int) $resp['output_tokens'],
+            site_url('newsletter_admin/version/' . $nl['id'] . '/' . $saved['version'])));
+        redirect($back);
+    }
+
+    // ── Validation et publication ─────────────────────────────────────────
+
+    public function validate_edition($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $nl = $this->_edition_or_404($id);
+        $this->_files();
+        if ($nl['status'] !== Newsletter_model::STATUS_DRAFT) {
+            $this->_flash('warning', $this->lang->line('nl_validate_not_draft'));
+        } elseif ($this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_APPROVED)) {
+            $this->_flash('success', sprintf($this->lang->line('nl_validate_success'), Newsletter_files::version_of($nl['draft_path'])));
+        } else {
+            $this->_flash('danger', $this->lang->line('nl_validate_error'));
+        }
+        redirect('newsletter_admin/edition/' . $nl['id']);
+    }
+
+    public function publish_edition($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $nl   = $this->_edition_or_404($id);
+        $back = 'newsletter_admin/edition/' . $nl['id'];
+        if ($nl['status'] !== Newsletter_model::STATUS_APPROVED) {
+            $this->_flash('warning', $this->lang->line('nl_publish_not_approved'));
+            redirect($back);
+            return;
+        }
+        $draft = $this->_current_draft($nl);
+        if ($draft === FALSE) {
+            $this->_flash('danger', $this->lang->line('nl_draft_missing'));
+            redirect($back);
+            return;
+        }
+
+        // Notes internes retirées de façon déterministe ; PDF dans le répertoire de l'archive membres
+        $this->load->library('Newsletter_pdf');
+        $pdf = $this->newsletter_pdf->render(Newsletter_files::remove_internal_notes($draft), $nl['title']);
+        if (!is_dir(self::$pdf_upload_dir)) {
+            mkdir(self::$pdf_upload_dir, 0775, TRUE);
+        }
+        $pdf_path = self::$pdf_upload_dir . 'veille_' . (int) $nl['id'] . '_' . bin2hex(random_bytes(8)) . '.pdf';
+        if (file_put_contents($pdf_path, $pdf) === FALSE) {
+            $this->_flash('danger', sprintf($this->lang->line('nl_publish_write_error'), self::$pdf_upload_dir));
+            redirect($back);
+            return;
+        }
+        $this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_PUBLISHED, array('pdf_path' => $pdf_path));
+        $sent = $this->_send_to_subscribers($nl['id']);
+        $this->_flash('success', sprintf($this->lang->line('nl_publish_success'), $sent, site_url('newsletter/pdf/' . $nl['id'])));
+        redirect($back);
     }
 }

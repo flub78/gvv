@@ -35,6 +35,8 @@ $config['newsletter_smtp_from_name'] = 'Veille sécurité — Nom du club';
 // Liste d'adresses email séparées par des virgules
 $config['newsletter_reviewers']     = '';
 $config['newsletter_validators']    = '';
+// Délai de réponse des relecteurs, en jours, indiqué dans l'email de transmission
+$config['newsletter_review_delay_days'] = '2';
 
 // ── Template email de relecture ───────────────────────────────────────────
 // Variables : {period} {version} {date} {deadline} {from_name} {draft_name}
@@ -44,6 +46,9 @@ $config['newsletter_review_body']    = "Bonjour,\n\nJe vous envoie en pièce joi
 // ── Chemins des fichiers de l'agent IA ────────────────────────────────────
 $config['newsletter_context_path']  = '/srv/newsletter/context.md';
 $config['newsletter_output_path']   = '/srv/newsletter/output';
+// Stockage des brouillons, versions et paquets d'exécution, hors de l'espace
+// servi directement par le serveur web (vide : application/storage/newsletter/)
+$config['newsletter_storage_path']  = '';
 
 // ── Agent IA ──────────────────────────────────────────────────────────────
 // Clé API Anthropic pour les tests et la génération automatique

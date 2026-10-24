@@ -112,67 +112,69 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 Le cycle est piloté par l'administrateur : import du brouillon d'une période → transmission aux relecteurs → récupération des réponses → tri des suggestions → nouvelle version par l'agent IA → nouveau tour ou validation → finalisation et diffusion.
 
 **P2.1 — Migration et modèles** (1,5 j)
-- [ ] Migration `182_newsletter_runs.php` : tables `newsletter_contexts` et `newsletter_runs` ; colonnes de `newsletter_reviews` pour les suggestions (`message_id`, `kind`, `decision`, `admin_text`, `decided_by`, `decided_at`, `newsletter_id` nullable) ; champs d'audit — cf. conception ; `down()` symétrique
-- [ ] `application/config/migration.php` → 182
-- [ ] `newsletter_contexts_model` : création d'une version, version active, liste, restauration
-- [ ] `newsletter_runs_model` : création, changement de statut, rattachement à une newsletter, liste pour le suivi
-- [ ] `newsletter_reviews_model` : enregistrement d'une suggestion, anti-doublon par `message_id`, décisions, suggestions acceptées d'une version, suggestions reportées en attente
-- [ ] Conservation des versions successives du brouillon d'une newsletter
+- [x] Migration `182_newsletter_runs.php` : tables `newsletter_contexts` et `newsletter_runs` ; colonnes de `newsletter_reviews` pour les suggestions (`message_id`, `kind`, `decision`, `admin_text`, `decided_by`, `decided_at`, `newsletter_id` nullable) ; `newsletters.review_sent_at` et `review_deadline` ; champs d'audit — cf. conception ; `down()` symétrique
+- [x] `application/config/migration.php` → 182
+- [x] `newsletter_contexts_model` : création d'une version, version active, liste, restauration
+- [x] `newsletter_runs_model` : création, changement de statut, rattachement à une newsletter, liste pour le suivi
+- [x] `newsletter_reviews_model` : enregistrement d'une suggestion, anti-doublon par `message_id`, décisions, suggestions acceptées du tour courant, suggestions reportées en attente
+- [x] Conservation des versions successives du brouillon d'une newsletter (`Newsletter_files`, stockage hors de l'espace web, `newsletter_storage_path`)
 
 **P2.2 — Consignes dans GVV** (1,5 j)
-- [ ] Page `newsletter_admin/context` : édition Markdown des consignes, enregistrement en nouvelle version avec commentaire
-- [ ] Historique des versions : consultation, comparaison avec la version active, restauration
-- [ ] Chargement initial à partir du fichier de contexte v0.8 du spike
+- [x] Page `newsletter_admin/context` : édition Markdown des consignes ou remplacement par un fichier, enregistrement en nouvelle version avec commentaire
+- [x] Historique des versions : consultation, comparaison avec la version active, restauration
+- [ ] Chargement initial à partir du fichier de contexte v0.8 du spike (par téléversement sur la page des consignes)
 
 **P2.3 — Kit pour l'agent de bureau** (0,5 j)
-- [ ] Téléchargement en une archive des consignes actives, de l'inventaire courant (celui du dernier paquet importé, ou vide) et des suggestions d'articles reportées
+- [x] Page `newsletter_admin/kit` : téléchargement des consignes actives, de l'inventaire courant (celui de la dernière exécution qui en a fourni un) et des suggestions d'articles reportées
 
 **P2.4 — Import du brouillon d'une période** (1,5 j)
-- [ ] Importeur commun aux deux étapes : brouillon obligatoire ; rapport d'activité et inventaire joints, leur absence signalée ; archivage hors de l'espace servi directement par le serveur web ; création de la newsletter `draft` (période, version 1) et de l'exécution associée (version des consignes, origine, statut)
-- [ ] Formulaire d'import manuel (origine `desktop`) : période, brouillon, rapport, inventaire, modèle et coût ; résultat affiché, erreurs explicites
-- [ ] L'inventaire importé devient l'inventaire courant
+- [x] Importeur commun aux deux étapes (`Newsletter_importer`) : brouillon obligatoire ; rapport d'activité et inventaire joints, leur absence signalée ; archivage hors de l'espace servi directement par le serveur web ; création de la newsletter `draft` (période, version 1) et de l'exécution associée ; rien n'est laissé en cas d'échec
+- [x] Formulaire d'import manuel `newsletter_admin/import` (origine `desktop`) : période, brouillon, rapport, inventaire, modèle et coût ; résultat affiché, erreurs explicites
+- [x] L'inventaire importé devient l'inventaire courant
 
 **P2.5 — Suivi des exécutions et rapport d'activité** (1 j)
-- [ ] Page `newsletter_admin/runs` : liste des exécutions (date, origine, statut, durée, coût, version des consignes, newsletter produite)
-- [ ] Affichage du rapport d'activité d'une exécution, accessible depuis la newsletter ; accès RP, représentant du DTO et `club-admin`
-- [ ] Conservation des paquets 36 mois au moins
+- [x] Page `newsletter_admin/runs` : liste des exécutions (date, origine, statut, coût, version des consignes, newsletter produite)
+- [x] Page `newsletter_admin/run/<id>` : rapport d'activité rendu, téléchargement du paquet ; accessible depuis la newsletter (`club-admin`)
+- [x] Conservation des paquets : aucune suppression automatique
 
 **P2.6 — Transmission aux relecteurs** (1 j)
-- [ ] Action `send_for_review` (`draft` → `reviewing`) : email aux relecteurs configurés avec le brouillon, une référence édition/version dans le sujet et la date limite de réponse (délai configurable, deux jours par défaut)
-- [ ] Délai de réponse et liste des relecteurs dans `newsletter_admin/configuration`
+- [x] Action `send_for_review` (`draft` → `reviewing`) : email aux relecteurs configurés avec le brouillon en PDF, une référence `[NL-<id> v<N>]` dans le sujet et la date limite de réponse
+- [x] Délai de réponse et liste des relecteurs dans `newsletter_admin/configuration`
 - [ ] Option de transmission automatique à l'import (utilisée par P3)
-- [ ] La page de la newsletter affiche la date de transmission et la date limite
+- [x] La page de la newsletter affiche la date de transmission et la date limite
 
 **P2.7 — Récupération des réponses** (1,5 j)
-- [ ] Action « Récupérer les réponses » : lecture de la boîte de veille via `Newsletter_imap`, réponses portant la référence de la version transmise, expéditeur relecteur autorisé, anti-doublon par identifiant de message
-- [ ] Enregistrement de chaque réponse comme suggestion `en_attente`, pièces jointes conservées
-- [ ] Compte rendu affiché : réponses retenues, réponses écartées avec le motif (expéditeur non autorisé, sans référence, déjà récupérée)
+- [x] Action « Récupérer les réponses » : lecture de la boîte de veille via `Newsletter_imap`, réponses portant la référence de l'édition, expéditeur relecteur autorisé, anti-doublon par identifiant de message (`Newsletter_mail_parser`, `Newsletter_review_cycle`)
+- [x] Enregistrement de chaque réponse comme suggestion `en_attente`, citation du message d'origine retirée, pièces jointes conservées et téléchargeables
+- [x] Compte rendu affiché : messages lus, réponses retenues, réponses écartées avec le motif
 
 **P2.8 — Tri des suggestions** (1,5 j)
-- [ ] Liste des suggestions de la version courante et des suggestions reportées des éditions précédentes
-- [ ] Par suggestion : nature (remarque ou article), décision accepter, modifier (texte corrigé), rejeter, reporter (articles seulement)
-- [ ] Une suggestion reportée et reprise est rattachée à l'édition courante
+- [x] Liste des suggestions de l'édition et des suggestions reportées des éditions précédentes
+- [x] Par suggestion : nature (remarque ou article), décision accepter, modifier (texte corrigé), rejeter, reporter (articles seulement) ; refus explicite d'une décision invalide
+- [x] Une suggestion reportée et reprise est rattachée à l'édition courante, en attente de décision
 
 **P2.9 — Nouvelle version par l'agent IA** (1,5 j)
-- [ ] Action « Demander une nouvelle version » : appel à l'API Anthropic avec le brouillon courant et les suggestions acceptées ou modifiées ; consignes de révision dans les consignes de l'agent
-- [ ] Enregistrement de la version N+1, `review_iteration` incrémenté, retour à `draft`
-- [ ] Affichage des différences avec la version précédente
-- [ ] Erreur d'appel (clé absente, quota, réponse vide) affichée, version courante inchangée
+- [x] Action « Demander une nouvelle version » : appel à l'API Anthropic (`Newsletter_ai`) avec le brouillon courant, les suggestions acceptées ou modifiées du tour et les consignes actives
+- [x] Enregistrement de la version N+1, retour à `draft`
+- [x] Affichage des différences avec la version précédente
+- [x] Erreur d'appel, réponse vide ou tronquée affichée, version courante inchangée
 
 **P2.10 — Validation** (0,5 j)
-- [ ] Action « Valider » depuis `draft`, y compris sans tour de relecture : liste des mentions entre crochets restantes, confirmation, transition → `approved`, enregistrement de `approved_by`, `approved_at` et de la version validée
+- [x] Action « Valider » depuis `draft`, y compris sans tour de relecture : mentions entre crochets restantes listées et rappelées à la confirmation, transition → `approved`, enregistrement de `approved_by` et `approved_at`
 
 **P2.11 — Finalisation et publication** (1,5 j)
-- [ ] Retrait déterministe de la section interne du brouillon validé
-- [ ] Conversion Markdown → PDF via TCPDF
-- [ ] Archivage du PDF, mise à jour `pdf_path`, transition `approved` → `published`
-- [ ] Envoi aux abonnés (P1.6)
+- [x] Retrait déterministe de la section interne et de l'avertissement de brouillon (`Newsletter_files::remove_internal_notes`)
+- [x] Conversion Markdown → PDF via TCPDF (`Newsletter_pdf`)
+- [x] PDF déposé dans l'archive membres existante, mise à jour `pdf_path`, transition `approved` → `published`
+- [x] Envoi aux abonnés (P1.6)
 
 **P2.12 — Tests** (2 j)
-- [ ] PHPUnit MySQL `NewsletterContextsRunsTest.php` : versions des consignes, restauration, exécutions ; migration 182 `up()` / `down()` avec restauration
-- [ ] PHPUnit `NewsletterImporterTest.php` : brouillon seul, paquet complet, inventaire courant ; fichiers créés supprimés par le test
-- [ ] PHPUnit MySQL `NewsletterReviewCycleTest.php` : transmission (envoi bouchonné), récupération (IMAP bouchonné, anti-doublon, expéditeur non autorisé), décisions, report à l'édition suivante, nouvelle version (API bouchonnée), validation, retrait de la section interne ; fixtures auto-nettoyées
-- [ ] Playwright `newsletter-review-smoke.spec.js` : édition des consignes, import d'un brouillon, transmission, tri d'une suggestion, validation, publication
+- [x] PHPUnit MySQL `NewsletterMigrationTest.php` : migrations 181 et 182 `down()` / `up()`, avec sauvegarde et restauration des données existantes
+- [x] PHPUnit MySQL `NewsletterContextsRunsTest.php` : versions des consignes, restauration, exécutions, décisions, report et reprise, transitions du cycle v1
+- [x] PHPUnit MySQL `NewsletterImporterTest.php` : stockage, versions, retrait des notes internes, mentions, import complet, import sans rapport ni inventaire, refus sans effet de bord
+- [x] PHPUnit MySQL `NewsletterReviewCycleTest.php` : analyse des emails, tri des réponses (retenue, doublon, expéditeur non autorisé, sans rapport, vide), pièces jointes, email de transmission, demande de révision, différences
+- [x] Playwright `newsletter-review-smoke.spec.js` : consignes, kit, import, rapport d'activité, téléchargements, tri d'une suggestion, validation
+- [ ] Essai réel de bout en bout sur gvv.net : transmission, réponses reçues sur la boîte de veille, nouvelle version par l'API, publication (envoie de vrais emails, non automatisé)
 
 **P2.13 — Documentation** (0,5 j)
 - [ ] Guide admin `doc/users/fr/20_newsletter_veille.md` : consignes, kit, import, transmission, tri des réponses, nouvelle version, validation, publication ; abonnement et archive pour les membres
