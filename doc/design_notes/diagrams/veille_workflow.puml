@@ -2,28 +2,25 @@
 skinparam backgroundColor white
 skinparam defaultFontSize 12
 
-title Cycle de vie d'une newsletter de veille
+title Cycle de vie d'une newsletter de veille (version 1)
 
-[*] --> brouillon : Cron mensuel\n→ Agent IA
+[*] --> brouillon : Import d'un brouillon pour une période\n(manuel : étape 1,\nautomatique : étape 2)
 
-brouillon --> en_relecture : Brouillon créé\n→ envoi aux relecteurs
+brouillon --> en_relecture : Admin transmet aux relecteurs\n(automatique après un import automatique)
 
-en_relecture --> en_relecture : Retours reçus\n→ Agent IA\n(consolidation quotidienne)\n→ nouvelle version\n→ renvoi aux relecteurs
+en_relecture --> en_relecture : Admin récupère les réponses\n(après la date limite)\net trie les suggestions
 
-en_relecture --> en_validation : Relecteurs satisfaits\nou délai dépassé\n→ envoi aux validateurs
+en_relecture --> brouillon : Admin demande une nouvelle version\n→ agent IA\n(brouillon + suggestions acceptées)
 
-en_validation --> en_validation : Validateur modifie\net renvoie
+brouillon --> validée : Admin valide\n(directement s'il n'y a pas de remarques)
 
-en_validation --> approuvée : Approbation\n(email ou GVV)
-
-approuvée --> publiée : Agent IA finalise\n(supprime remarques)\n→ PDF\n→ archive GVV\n→ envoi abonnés
+validée --> publiée : Notes internes supprimées\n→ PDF\n→ archive GVV\n→ envoi aux abonnés
 
 publiée --> [*]
 
-state brouillon : Fichier .md créé\npar l'agent IA
-state en_relecture : Versions successives\nstockées en base
-state en_validation : Dernière version\nde relecture
-state approuvée : Version finale\npropre générée
+state brouillon : Version N du brouillon\n+ rapport d'activité
+state en_relecture : Réponses reçues sur veille@\nSuggestions : acceptée, modifiée,\nrejetée, reportée
+state validée : Version validée\n(qui, quand)
 state publiée : PDF archivé\nAbonnés notifiés
 
 @enduml

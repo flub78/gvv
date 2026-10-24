@@ -222,7 +222,8 @@ class Newsletter_admin extends MY_Controller {
                 continue;
             }
 
-            $to = test_intercept_email($sub['email'], $subject);
+            // Diffusion déclenchée manuellement : envoi aux abonnés réels, pas de redirection test_email
+            $to = $sub['email'];
 
             $body  = 'Cher(e) ' . $sub['first_name'] . ' ' . $sub['last_name'] . ',' . "\n\n";
             $body .= 'Voici la newsletter de veille sécurité et réglementaire de ' . $nom_club . ' pour la période ' . $period . '.' . "\n\n";
@@ -438,12 +439,12 @@ class Newsletter_admin extends MY_Controller {
         $subject = !empty($form['subject'])  ? $form['subject']  : '[GVV Veille] Test d\'envoi — ' . date('d/m/Y H:i');
         $body    = !empty($form['body'])     ? $form['body']     : "Test depuis GVV\nExpéditeur : {$from}";
 
-        $to_intercepted = test_intercept_email($to, $subject);
+        // Envoi déclenché manuellement : destinataires saisis par l'utilisateur, pas de redirection test_email
         $this->email->clear(true);
         $this->email->set_mailtype('text');
         $this->email->set_newline("\r\n");
         $this->email->from($from, $from_name);
-        $this->email->to($to_intercepted);
+        $this->email->to($to);
         $this->email->subject($subject);
         $this->email->message($body);
 
@@ -467,7 +468,7 @@ class Newsletter_admin extends MY_Controller {
             unlink($tmp_copy);
         }
         if ($sent) {
-            return array('ok' => true, 'msg' => "Email envoyé de {$from} vers {$to_intercepted}{$attachment_info}.");
+            return array('ok' => true, 'msg' => "Email envoyé de {$from} vers {$to}{$attachment_info}.");
         }
         return array('ok' => false, 'msg' => "Échec : " . $this->email->print_debugger(array('headers')));
     }

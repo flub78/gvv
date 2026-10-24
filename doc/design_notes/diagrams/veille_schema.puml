@@ -27,12 +27,18 @@ entity newsletters {
 entity newsletter_reviews {
   * id : INT PK
   --
-  * newsletter_id : INT FK
+  newsletter_id : INT FK
   * iteration : INT
   * submitted_via : ENUM(email, gvv)
+  message_id : VARCHAR UNIQUE
   * reviewer_email : VARCHAR
   reviewer_name : VARCHAR
+  * kind : ENUM(remarque, article)
   * content : TEXT
+  * decision : ENUM(en_attente, acceptee,\n  modifiee, rejetee, reportee)
+  admin_text : TEXT
+  decided_by : VARCHAR
+  decided_at : DATETIME
   has_attachments : TINYINT
   --
   * created_at : DATETIME
@@ -72,8 +78,46 @@ entity newsletter_sendings {
   * updated_by : VARCHAR
 }
 
-newsletters ||--o{ newsletter_reviews : contient
+entity newsletter_contexts {
+  * id : INT PK
+  --
+  * version : INT
+  * content : MEDIUMTEXT
+  comment : VARCHAR
+  * is_active : TINYINT
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+entity newsletter_runs {
+  * id : INT PK
+  --
+  * run_id : VARCHAR UNIQUE
+  * origin : ENUM(desktop, schedule,\n  manual)
+  * status : ENUM(requested, running,\n  succeeded, failed)
+  * context_id : INT FK
+  newsletter_id : INT FK
+  started_at : DATETIME
+  finished_at : DATETIME
+  model : VARCHAR
+  cost_usd : DECIMAL
+  package_path : VARCHAR
+  error : TEXT
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+newsletters |o--o{ newsletter_reviews : contient
 newsletters ||--o{ newsletter_sendings : envoyée à
 newsletter_subscribers ||--o{ newsletter_sendings : reçoit
+
+newsletter_contexts ||--o{ newsletter_runs : utilisée par
+newsletter_runs |o--o| newsletters : produit
 
 @enduml
