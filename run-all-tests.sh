@@ -87,13 +87,13 @@ echo ""
 
 # Check PHP is available on the PATH
 if [ -z "$PHP_BIN" ] || [ ! -x "$PHP_BIN" ]; then
-    echo -e "${RED}Error: php not found in PATH. Source setenv-php7.sh or setenv-php8.sh first.${NC}"
+    echo -e "${RED}Error: php not found in PATH. Source setenv-php8.sh first.${NC}"
     exit 1
 fi
 
 # Display configuration
 echo -e "${YELLOW}Configuration:${NC}"
-echo "  PHP: 7.4.33"
+echo "  PHP: $("$PHP_BIN" -r 'echo PHP_VERSION;')"
 echo "  Coverage: $([ "$COVERAGE" = true ] && echo 'ENABLED' || echo 'DISABLED')"
 echo "  Test suites: ALL (5 suites, ~130 tests)"
 echo ""
