@@ -49,7 +49,7 @@ Ce document décrit une stratégie sûre pour migrer une base de données GVV tr
      - lancer les tests rapides.
 5. Valider l’application
    - Se connecter et vérifier les écrans sensibles (rôles/autorisation, membres, vols, facturation, listes email).
-   - Exécuter `./run-all-tests.sh` (unit/integration) et un smoke test Playwright (`run/run-playwright.sh` si configuré).
+   - Exécuter `./run-all-tests.sh` (unit/integration) et un smoke test Playwright (`cd playwright; npx playwright test --reporter=line`).
 6. Basculer vers la prod
    - Après validations, basculer les configs (URL, SSL, club.php, etc.) et planifier la bascule (fenêtre de maintenance courte).
 
