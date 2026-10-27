@@ -232,4 +232,27 @@ class NewsletterImporterTest extends TestCase
         $this->assertSame($before, $this->countNewsletters());
         $this->assertFalse(is_dir($this->dir . '/editions'));
     }
+
+    public function test_import_rejects_oversized_or_crowded_archives(): void
+    {
+        $before = $this->countNewsletters();
+
+        $big_md = $this->importer->import('x.zip', $this->zip(array(
+            'lettre.md' => $this->draft(1) . str_repeat("x", Newsletter_importer::MAX_MARKDOWN_SIZE))));
+        $this->assertFalse($big_md['ok']);
+        $this->assertCount(1, $big_md['errors']);
+
+        $big_img = $this->importer->import('x.zip', $this->zip(array(
+            'lettre.md' => $this->draft(1), 'img/a.png' => str_repeat("\0", Newsletter_importer::MAX_IMAGE_SIZE + 1))));
+        $this->assertFalse($big_img['ok']);
+        $this->assertCount(1, $big_img['errors']);
+
+        $entries = array('lettre.md' => $this->draft(1));
+        for ($i = 0; $i < Newsletter_importer::MAX_ZIP_FILES; $i++) $entries["img/$i.png"] = 'png';
+        $crowded = $this->importer->import('x.zip', $this->zip($entries));
+        $this->assertFalse($crowded['ok']);
+
+        $this->assertSame($before, $this->countNewsletters());
+        $this->assertFalse(is_dir($this->dir . '/editions'));
+    }
 }

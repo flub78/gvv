@@ -46,7 +46,7 @@ Une **édition** correspond à une période. Son cycle commence hors de GVV, par
 | **Brouillon** | Version importée, pas encore transmise (ou nouvelle version après un tour de relecture) | Annoter, transmettre aux relecteurs, télécharger les consignes de modification, importer une version suivante, valider et publier, supprimer ; relever les réponses si une version a déjà été transmise |
 | **En relecture** | Version transmise aux relecteurs | Relever les réponses, trier les remarques, télécharger les consignes de modification, importer la version suivante |
 | **Validée** | Validée, mais la publication n'a pas abouti | Relancer la publication |
-| **Publiée** | Archivée pour les membres et envoyée aux abonnés | Consulter le PDF publié |
+| **Publiée** | Archivée pour les membres et envoyée aux abonnés | Consulter le PDF publié ; renvoyer aux abonnés non atteints |
 
 La page de l'édition affiche toujours, sous **Étape suivante**, ce qu'il reste à faire et les boutons correspondants.
 
@@ -95,7 +95,7 @@ Les **mentions entre crochets** (`[à compléter]`, `[date à confirmer]`…) si
 
 ### 2.2 Import du brouillon
 
-`Administration > Veille réglementaire` > **Importer un brouillon** : choisissez le fichier `.md` ou `.zip` (30 Mo au plus), puis **Importer**.
+`Administration > Veille réglementaire` > **Importer un brouillon** : choisissez le fichier `.md` ou `.zip` (30 Mo au plus), puis **Importer**. Une archive est refusée si elle contient plus de 300 fichiers, si son Markdown dépasse 2 Mo, si une image dépasse 10 Mo ou si son contenu décompressé dépasse 60 Mo.
 
 - Si aucune édition non publiée ne porte la même période, une **nouvelle édition** est créée à l'état Brouillon.
 - Sinon, le brouillon devient la **version suivante** de cette édition (voir §2.7).
@@ -189,7 +189,9 @@ La publication, déclenchée par la validation :
 4. dépose le PDF dans l'**archive des membres** ;
 5. l'**envoie par email** à tous les abonnés confirmés, avec un message personnalisé, une invitation à signaler les informations manquantes et un lien de désabonnement.
 
-Le message de confirmation indique le nombre d'abonnés atteints et donne le lien vers le PDF. Si la publication échoue, l'édition reste **Validée** et le bouton **Relancer la publication** permet de recommencer.
+Le message de confirmation indique le nombre d'abonnés atteints et donne le lien vers le PDF. Si la publication échoue avant l'envoi, l'édition reste **Validée** et le bouton **Relancer la publication** permet de recommencer.
+
+Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse refusée, envoi interrompu), le message liste les adresses non atteintes et la page de l'édition publiée indique leur nombre. Une fois la cause corrigée, **Renvoyer aux abonnés non atteints (n)** envoie la newsletter à ces seuls abonnés : ceux qui l'ont déjà reçue ne la reçoivent pas deux fois, et les abonnés inscrits après la publication ne sont pas concernés.
 
 ### 2.11 Abonnés et archive
 
@@ -239,6 +241,8 @@ Les relecteurs **répondent à l'email reçu** (bouton « Répondre » de leur m
 
 Le texte cité du message d'origine est retiré automatiquement de la remarque.
 
+Une réponse tardive, arrivée après l'import ou la transmission d'une version suivante, est relevée normalement : elle rejoint les remarques du tour en cours, car elle reste en général valable pour la nouvelle version. Les réponses ne sont plus relevées une fois l'édition validée.
+
 ### 3.4 Réponses écartées
 
 Lors du relevé (§2.5), une réponse n'est pas enregistrée dans les cas suivants :
@@ -250,7 +254,7 @@ Lors du relevé (§2.5), une réponse n'est pas enregistrée dans les cas suivan
 | *expéditeur non autorisé* | L'adresse d'envoi ne figure pas dans la liste des relecteurs | Ajouter l'adresse dans la configuration, puis relever à nouveau |
 | *réponse vide* | Ni texte (hors citation) ni pièce jointe | Aucune action |
 
-Les réponses écartées pour un expéditeur non autorisé, une réponse vide ou un doublon sont listées dans le compte rendu du relevé, avec leur motif.
+Toutes les réponses écartées sont listées dans le compte rendu du relevé, avec leur motif, sauf celles sans rapport avec l'édition.
 
 ---
 
@@ -264,4 +268,5 @@ Les réponses écartées pour un expéditeur non autorisé, une réponse vide ou
 | Une réponse attendue n'apparaît pas | Sujet modifié, adresse non autorisée, ou réponse arrivée dans un autre dossier IMAP | Consulter le compte rendu du relevé (§3.4) et le dossier IMAP configuré |
 | « La version N est déjà importée » | L'agent a produit un brouillon sans changer la mention « BROUILLON vN » | Faire produire une version supérieure par l'agent |
 | « L'édition … est déjà validée » | Import d'une version pour une période déjà validée | Une édition validée ne reçoit plus de version ; vérifier la période du brouillon |
-| L'édition reste « Validée » | La publication a échoué (écriture du PDF, envoi) | Corriger la cause indiquée, puis **Relancer la publication** |
+| L'édition reste « Validée » | La publication a échoué (écriture du PDF) | Corriger la cause indiquée, puis **Relancer la publication** |
+| « échec pour n abonné(s) » après la publication | Serveur d'envoi indisponible, adresse refusée, envoi interrompu | Corriger la cause, puis **Renvoyer aux abonnés non atteints** sur la page de l'édition |

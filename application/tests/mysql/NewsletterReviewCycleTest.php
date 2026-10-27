@@ -284,4 +284,67 @@ class NewsletterReviewCycleTest extends TestCase
         $this->assertSame(array(' a', '-b', '+B', ' c', ' d', '+e'), $ops);
         $this->assertSame(array(' x'), array_map(function ($d) { return $d['op'] . $d['line']; }, Newsletter_files::diff_lines('x', 'x')));
     }
+
+    // ── Robustesse de l'analyse des emails ────────────────────────────────
+
+    public function test_strip_quoted_keeps_reviewer_lines_starting_with_de(): void
+    {
+        $text = "De : la DGAC, nouvel arrêté à citer.\nMerci\n\nDe : Veille <veille@example.invalid>\nEnvoyé : lundi 26 octobre 2026\nObjet : brouillon\n\ntexte cité";
+        $this->assertSame("De : la DGAC, nouvel arrêté à citer.\nMerci", Newsletter_mail_parser::strip_quoted($text));
+        $this->assertSame('Avis', Newsletter_mail_parser::strip_quoted("Avis\n---------- Forwarded message ---------\nFrom: x"));
+    }
+
+    public function test_mail_parser_rfc2231_names_text_parts_and_html_styles(): void
+    {
+        $b = 'zzb2231';
+        $raw = "Message-ID: <m2231@example.invalid>\nFrom: x@example.invalid\nSubject: s\n"
+            . "Content-Type: multipart/mixed; boundary=\"$b\"\n\n"
+            . "--$b\nContent-Type: text/plain; charset=UTF-8\n\nPremière partie\n"
+            . "--$b\nContent-Type: image/png\nContent-Disposition: attachment;\n filename*0*=UTF-8''%C3%A9t%C3%A9;\n filename*1*=.png\nContent-Transfer-Encoding: base64\n\n" . base64_encode('PNG') . "\n"
+            . "--$b\nContent-Type: text/plain; charset=UTF-8\n\nSeconde partie\n"
+            . "--$b--\n";
+        $msg = Newsletter_mail_parser::parse($raw);
+        $this->assertSame("Première partie\n\nSeconde partie", $msg['text']);
+        $this->assertSame('été.png', $msg['attachments'][0]['name']);
+
+        $html = "Message-ID: <mhtml@example.invalid>\nFrom: x@example.invalid\nSubject: s\nContent-Type: text/html; charset=UTF-8\n\n"
+              . "<html><head><style>p.MsoNormal { margin: 0 }</style></head><body><p>Ajouter le NOTAM</p></body></html>";
+        $text = Newsletter_mail_parser::parse($html)['text'];
+        $this->assertSame('Ajouter le NOTAM', trim($text));
+    }
+
+    public function test_reply_without_message_id_is_not_recorded_twice(): void
+    {
+        $raw = preg_replace('/^Message-ID: [^\r\n]*\r\n/', '', $this->reply('zztest_n@example.invalid', 'RE: ' . $this->tag(), 'Sans identifiant', '<x>'));
+        $first = $this->cycle->process_message($this->nl, $raw, array('zztest_n@example.invalid'), $this->files);
+        $this->assertSame('retained', $first['status']);
+        $second = $this->cycle->process_message($this->nl, $raw, array('zztest_n@example.invalid'), $this->files);
+        $this->assertSame('déjà récupérée', $second['reason']);
+    }
+
+    public function test_late_reply_to_previous_version_is_kept_for_current_round(): void
+    {
+        // Version 2 transmise (tour 2) ; réponse au brouillon v1, datée d'avant cette transmission
+        $sent = mktime(10, 0, 0, 10, 26, 2026);
+        $this->CI->newsletter_model->update($this->nl['id'], array('review_sent_at' => date('Y-m-d H:i:s', $sent), 'review_iteration' => 2));
+        $nl = $this->CI->newsletter_model->get($this->nl['id']);
+        $late = 'Date: ' . date('r', $sent - 7200) . "\r\n"
+              . $this->reply('zztest_d@example.invalid', 'RE: ' . $this->tag(), 'Toujours valable', '<d1@example.invalid>');
+        $r = $this->cycle->process_message($nl, $late, array('zztest_d@example.invalid'), $this->files);
+        $this->assertSame('retained', $r['status']);
+        $this->assertSame(2, (int) $this->CI->newsletter_reviews_model->get($r['review_id'])['iteration']);
+    }
+
+    public function test_attachments_with_same_name_are_all_kept(): void
+    {
+        $b = 'zzb' . md5('<dup@example.invalid>');
+        $part = "--$b\r\nContent-Type: image/png; name=\"photo.png\"\r\nContent-Disposition: attachment; filename=\"photo.png\"\r\n"
+              . "Content-Transfer-Encoding: base64\r\n\r\n%s\r\n";
+        $raw = $this->reply('zztest_p@example.invalid', 'RE: ' . $this->tag(), 'Deux photos', '<dup@example.invalid>',
+                            sprintf($part, base64_encode('A')) . sprintf($part, base64_encode('B')));
+        $r = $this->cycle->process_message($this->nl, $raw, array('zztest_p@example.invalid'), $this->files);
+        $names = $this->files->list_reply_files($r['review_id']);
+        sort($names);
+        $this->assertSame(array('photo.png', 'photo_2.png'), $names);
+    }
 }

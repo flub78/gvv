@@ -22,7 +22,7 @@
  *   POST annotate/:id, delete_annotation/:id
  *   POST send_for_review/:id, collect_replies/:id, decide/:id, attach_postponed/:id/:nl
  *   GET  directives/:id, postponed       Fichiers pour l'agent de rédaction
- *   POST validate_and_publish/:id, publish_edition/:id
+ *   POST validate_and_publish/:id, publish_edition/:id, resend_to_subscribers/:id
  *   POST delete_edition/:id              Suppression d'une édition (liste, édition, archive)
  */
 
@@ -85,14 +85,20 @@ class Newsletter_admin extends MY_Controller {
 
     /**
      * Envoie la newsletter à tous les abonnés actifs non encore notifiés.
+     * Les envois réussis sont journalisés : un nouvel appel ne reprend que
+     * les abonnés non atteints.
      *
      * @param int $newsletter_id
-     * @return int Nombre d'envois réalisés
+     * @return array  sent (nombre d'envois réalisés), failed (adresses en échec)
      */
     private function _send_to_subscribers($newsletter_id) {
+        $result      = array('sent' => 0, 'failed' => array());
         $newsletter  = $this->newsletter_model->get($newsletter_id);
-        $subscribers = $this->newsletter_subscribers_model->get_active();
-        if (empty($subscribers) || empty($newsletter)) return 0;
+        if (empty($newsletter)) return $result;
+        $subscribers = $this->newsletter_subscribers_model->get_not_sent($newsletter_id, $newsletter['published_at']);
+        if (empty($subscribers)) return $result;
+        // Envoi synchrone : ne pas l'interrompre au milieu de la liste
+        @set_time_limit(0);
 
         $cfg       = $this->_load_newsletter_config();
         $smtp      = $this->_init_newsletter_smtp($cfg);
@@ -105,12 +111,7 @@ class Newsletter_admin extends MY_Controller {
         $subject   = sprintf($this->lang->line('nl_mail_subject'), $nom_club, $start, $end);
         $contact   = ($cfg['newsletter_imap_user'] ?? '') ?: ($cfg['newsletter_smtp_from'] ?? '');
 
-        $sent = 0;
         foreach ($subscribers as $sub) {
-            if ($this->newsletter_subscribers_model->already_sent($newsletter_id, $sub['id'])) {
-                continue;
-            }
-
             // Diffusion déclenchée manuellement : envoi aux abonnés réels, pas de redirection test_email
             $to = $sub['email'];
 
@@ -136,13 +137,27 @@ class Newsletter_admin extends MY_Controller {
 
             if ($this->email->send()) {
                 $this->newsletter_subscribers_model->record_sending($newsletter_id, $sub['id']);
-                $sent++;
+                $result['sent']++;
                 log_message('info', 'newsletter_admin: envoi newsletter #' . $newsletter_id . ' à ' . $sub['email']);
             } else {
+                $result['failed'][] = $sub['email'];
                 log_message('error', 'newsletter_admin: échec envoi #' . $newsletter_id . ' à ' . $sub['email']);
             }
         }
-        return $sent;
+        return $result;
+    }
+
+    /**
+     * Message de résultat d'un envoi aux abonnés : succès, ou avertissement
+     * listant les abonnés non atteints, à reprendre par un nouvel envoi.
+     */
+    private function _flash_sending($intro, $res) {
+        if (!$res['failed']) {
+            $this->_flash('success', $intro . ' ' . sprintf($this->lang->line('nl_sending_ok'), $res['sent']));
+            return;
+        }
+        $this->_flash('warning', $intro . ' ' . sprintf($this->lang->line('nl_sending_partial'),
+            $res['sent'], count($res['failed']), htmlspecialchars(implode(', ', $res['failed']))));
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -177,7 +192,7 @@ class Newsletter_admin extends MY_Controller {
             'newsletter_smtp_host', 'newsletter_smtp_port', 'newsletter_smtp_crypto',
             'newsletter_smtp_user',
             'newsletter_smtp_from', 'newsletter_smtp_from_name',
-            'newsletter_reviewers', 'newsletter_validators', 'newsletter_review_delay_days',
+            'newsletter_reviewers', 'newsletter_review_delay_days',
             'newsletter_storage_path',
             'newsletter_review_subject', 'newsletter_review_body',
             'newsletter_alerts_enabled',
@@ -711,15 +726,15 @@ class Newsletter_admin extends MY_Controller {
     }
 
     /**
-     * Envoie un Markdown, ou une archive zip avec ses images sous img/.
-     */
-    /**
      * Période de l'édition pour les noms de fichiers téléchargés (AAAAMMJJ-AAAAMMJJ).
      */
     private static function _period_slug($nl) {
         return str_replace('-', '', $nl['period_start']) . '-' . str_replace('-', '', $nl['period_end']);
     }
 
+    /**
+     * Envoie un Markdown, ou une archive zip avec ses images sous img/.
+     */
     private function _send_md_or_zip($basename, $markdown, array $images) {
         if (!$images) {
             $this->_send_file($markdown, 'text/markdown; charset=utf-8', $basename . '.md');
@@ -792,6 +807,8 @@ class Newsletter_admin extends MY_Controller {
             'retained'    => count($this->_directive_remarks($nl)),
             'can_collect' => self::_can_collect($nl),
             'approver'    => $nl['approved_by'] ? $this->_member_name($nl['approved_by']) : '',
+            'unsent'      => ($nl['status'] === Newsletter_model::STATUS_PUBLISHED)
+                             ? count($this->newsletter_subscribers_model->get_not_sent($nl['id'], $nl['published_at'])) : 0,
             'attachments' => $this->_reply_attachments($files, $remarks),
             'collect'     => $this->session->flashdata('collect_report'),
             'message'     => $this->session->flashdata('message'),
@@ -1090,7 +1107,9 @@ class Newsletter_admin extends MY_Controller {
         }
         $cfg = $this->_load_newsletter_config();
         $this->newsletter_imap->init($cfg);
-        $since = date('d-M-Y', strtotime($nl['review_sent_at']));
+        // Depuis la création de l'édition : une réponse tardive à une version
+        // précédente reste valable pour la version courante
+        $since = date('d-M-Y', strtotime($nl['created_at'] ?: $nl['review_sent_at']));
         $uids  = $this->newsletter_imap->search_since($since, 200);
         if ($uids === FALSE) {
             $this->_flash('danger', sprintf($this->lang->line('nl_collect_imap_error'), htmlspecialchars($this->newsletter_imap->last_error())));
@@ -1256,9 +1275,30 @@ class Newsletter_admin extends MY_Controller {
             $this->_flash('danger', sprintf($this->lang->line('nl_publish_write_error'), self::$pdf_upload_dir));
             return FALSE;
         }
-        $this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_PUBLISHED, array('pdf_path' => $pdf_path));
-        $sent = $this->_send_to_subscribers($nl['id']);
-        $this->_flash('success', sprintf($this->lang->line('nl_publish_success'), $version, $sent, site_url('newsletter/pdf/' . $nl['id'])));
+        if (!$this->newsletter_model->transition($nl['id'], Newsletter_model::STATUS_PUBLISHED, array('pdf_path' => $pdf_path))) {
+            @unlink($pdf_path);
+            $this->_flash('danger', $this->lang->line('nl_publish_error'));
+            return FALSE;
+        }
+        $res = $this->_send_to_subscribers($nl['id']);
+        $this->_flash_sending(sprintf($this->lang->line('nl_publish_success'), $version, site_url('newsletter/pdf/' . $nl['id'])), $res);
         return TRUE;
+    }
+
+    /**
+     * Envoie une newsletter publiée aux abonnés qui ne l'ont pas encore reçue
+     * (envoi précédent en échec ou interrompu, nouveaux abonnés).
+     */
+    public function resend_to_subscribers($id) {
+        if (!$this->_require_post('newsletter_admin/edition/' . (int) $id)) return;
+        $nl = $this->_edition_or_404($id);
+        if ($nl['status'] !== Newsletter_model::STATUS_PUBLISHED) {
+            $this->_flash('warning', $this->lang->line('nl_resend_not_published'));
+        } elseif (!$this->newsletter_subscribers_model->get_not_sent($nl['id'], $nl['published_at'])) {
+            $this->_flash('info', $this->lang->line('nl_resend_none'));
+        } else {
+            $this->_flash_sending($this->lang->line('nl_resend_done'), $this->_send_to_subscribers($nl['id']));
+        }
+        redirect('newsletter_admin/edition/' . $nl['id']);
     }
 }

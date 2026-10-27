@@ -136,7 +136,7 @@ Le cycle est piloté par l'administrateur : import du brouillon d'une période �
 - [x] Délai de réponse et liste des relecteurs dans `newsletter_admin/configuration`
 
 **P2.6 — Relevé des réponses** (1 j)
-- [x] Bouton « Relever les réponses » sur chaque brouillon transmis (page de l'édition et liste des éditions) : lecture de la boîte de veille, réponses portant la référence de l'édition, expéditeur relecteur autorisé, anti-doublon par identifiant de message
+- [x] Bouton « Relever les réponses » sur chaque brouillon transmis (page de l'édition et liste des éditions) : lecture de la boîte de veille, messages reçus depuis la création de l'édition, réponses portant la référence de l'édition (réponses tardives à une version précédente rattachées au tour en cours), expéditeur relecteur autorisé, anti-doublon par identifiant de message
 - [x] Chaque réponse enregistrée comme remarque `en_attente`, citation du message d'origine retirée, pièces jointes conservées et téléchargeables
 - [x] Compte rendu affiché : messages lus, réponses retenues, réponses écartées avec le motif
 
@@ -157,6 +157,7 @@ Le cycle est piloté par l'administrateur : import du brouillon d'une période �
 - [x] Mention « Validé le jj/mm/aaaa par {prénom et nom du valideur} » en fin de newsletter ; aperçu PDF du texte publié dès la validation
 - [x] PDF mis en page (`Newsletter_pdf`) : bandeau de titre, en-tête et pied de page, rubriques, encadrés, commentaires, images ; chaque rubrique commence sur une nouvelle page sauf si elle tient dans la place restante
 - [x] PDF déposé dans l'archive membres existante, mise à jour `pdf_path`, transition `approved` → `published`, envoi aux abonnés (P1.6)
+- [x] Envoi aux abonnés en échec ou interrompu : abonnés non atteints signalés, renvoi depuis l'édition publiée sans doublon
 
 **P2.11 — Tests** (1,5 j)
 - [x] PHPUnit MySQL `NewsletterMigrationTest.php` : migrations 181 et 182 `down()` / `up()`, avec sauvegarde et restauration des données existantes

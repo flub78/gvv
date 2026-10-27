@@ -31,10 +31,9 @@ $config['newsletter_smtp_password']  = '';      // base64 comme le mot de passe 
 $config['newsletter_smtp_from']      = 'veille@example.com';
 $config['newsletter_smtp_from_name'] = 'Veille sécurité — Nom du club';
 
-// ── Relecteurs et validateurs ──────────────────────────────────────────────
+// ── Relecteurs ─────────────────────────────────────────────────────────────
 // Liste d'adresses email séparées par des virgules
 $config['newsletter_reviewers']     = '';
-$config['newsletter_validators']    = '';
 // Délai de réponse des relecteurs, en jours, indiqué dans l'email de transmission
 $config['newsletter_review_delay_days'] = '2';
 

@@ -20,9 +20,11 @@ if (!defined('BASEPATH'))
  */
 class Newsletter_importer {
 
-    const MAX_ZIP_SIZE   = 31457280;
-    const MAX_ZIP_FILES  = 300;
-    const MAX_IMAGE_SIZE = 10485760;
+    const MAX_ZIP_SIZE      = 31457280;   // archive envoyée
+    const MAX_UNZIPPED_SIZE = 62914560;   // contenu décompressé retenu (Markdown + images)
+    const MAX_ZIP_FILES     = 300;
+    const MAX_MARKDOWN_SIZE = 2097152;
+    const MAX_IMAGE_SIZE    = 10485760;
 
     const MONTHS = array('janvier' => 1, 'février' => 2, 'fevrier' => 2, 'mars' => 3, 'avril' => 4, 'mai' => 5,
                          'juin' => 6, 'juillet' => 7, 'août' => 8, 'aout' => 8, 'septembre' => 9, 'octobre' => 10,
@@ -140,25 +142,55 @@ class Newsletter_importer {
             $out['errors'][] = $this->msg('nl_import_bad_zip', $filename);
             return $out;
         }
+        $count = $zip->numFiles;
+        if ($count > self::MAX_ZIP_FILES) {
+            $zip->close();
+            @unlink($tmp);
+            $out['errors'][] = $this->msg('nl_import_zip_too_many_files', $filename, $count, self::MAX_ZIP_FILES);
+            return $out;
+        }
+        // Tailles décompressées contrôlées avant toute extraction (archive piégée)
         $markdowns = array();
-        for ($i = 0; $i < $zip->numFiles && $i < self::MAX_ZIP_FILES; $i++) {
+        $total = 0;
+        for ($i = 0; $i < $count; $i++) {
             $name = self::normalize_path($zip->getNameIndex($i));
             if ($name === NULL || substr($name, -1) === '/' || strpos($name, '__MACOSX/') === 0
                 || strpos(basename($name), '.') === 0) {
                 continue;
             }
             $e = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-            if ($e === 'md' || $e === 'markdown') {
-                $markdowns[$name] = $zip->getFromIndex($i);
-            } elseif (Newsletter_files::is_image($name)) {
-                $stat = $zip->statIndex($i);
-                if ($stat['size'] <= self::MAX_IMAGE_SIZE) {
-                    $out['entries'][$name] = $zip->getFromIndex($i);
-                }
+            $is_md = ($e === 'md' || $e === 'markdown');
+            if (!$is_md && !Newsletter_files::is_image($name)) continue;
+
+            $size = (int) $zip->statIndex($i)['size'];
+            if ($is_md && $size > self::MAX_MARKDOWN_SIZE) {
+                $out['errors'][] = $this->msg('nl_import_md_too_big', $name, round(self::MAX_MARKDOWN_SIZE / 1048576));
+                continue;
+            }
+            if (!$is_md && $size > self::MAX_IMAGE_SIZE) {
+                $out['errors'][] = $this->msg('nl_import_image_too_big', $name, round(self::MAX_IMAGE_SIZE / 1048576));
+                continue;
+            }
+            $total += $size;
+            if ($total > self::MAX_UNZIPPED_SIZE) {
+                $out['errors'][] = $this->msg('nl_import_zip_unzipped_too_big', $filename, round(self::MAX_UNZIPPED_SIZE / 1048576));
+                break;
+            }
+            $data = $zip->getFromIndex($i, $size + 1);
+            if ($data === FALSE || strlen($data) > $size) {
+                // Taille annoncée par l'archive inexacte : fichier refusé
+                $out['errors'][] = $this->msg('nl_import_bad_zip', $filename);
+                break;
+            }
+            if ($is_md) {
+                $markdowns[$name] = $data;
+            } else {
+                $out['entries'][$name] = $data;
             }
         }
         $zip->close();
         @unlink($tmp);
+        if ($out['errors']) return $out;
 
         if (count($markdowns) !== 1) {
             $out['errors'][] = $this->msg(count($markdowns) ? 'nl_import_zip_many_md' : 'nl_import_zip_no_md',

@@ -111,7 +111,7 @@ test('unsubscribe via token shows success', async ({ page }) => {
 test('member can access newsletter archive', async ({ page }) => {
     await login(page, MEMBER);
     await page.goto('/index.php/newsletter');
-    await expect(page.locator('h3')).toContainText('Archive');
+    await expect(page.locator('h3')).toContainText('Newsletters');
     // Pas d'erreur 500 ni redirection
     await expect(page).toHaveURL(/newsletter/);
 });

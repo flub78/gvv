@@ -192,4 +192,23 @@ class Newsletter_subscribers_model extends CI_Model {
                         ->where('subscriber_id', (int) $subscriber_id)
                         ->count_all_results('newsletter_sendings') > 0;
     }
+
+    /**
+     * Abonnés actifs qui n'ont pas encore reçu une newsletter.
+     *
+     * @param int         $newsletter_id
+     * @param string|null $published_at  Si fourni, seuls les abonnés déjà
+     *                                   confirmés à cette date : une newsletter
+     *                                   n'est pas envoyée aux abonnés ultérieurs
+     */
+    public function get_not_sent($newsletter_id, $published_at = NULL) {
+        $this->db->where('confirmed', 1)
+                 ->where('unsubscribed_at IS NULL')
+                 ->where('id NOT IN (SELECT subscriber_id FROM newsletter_sendings WHERE newsletter_id = '
+                         . (int) $newsletter_id . ')', NULL, FALSE);
+        if ($published_at) {
+            $this->db->where('(confirmed_at IS NULL OR confirmed_at <= ' . $this->db->escape($published_at) . ')', NULL, FALSE);
+        }
+        return $this->db->order_by('last_name', 'ASC')->get($this->table)->result_array();
+    }
 }

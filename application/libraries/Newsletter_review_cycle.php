@@ -154,15 +154,30 @@ class Newsletter_review_cycle {
             return $res;
         }
 
+        $used = array();
         foreach ($msg['attachments'] as $att) {
             if (strlen($att['content']) > self::MAX_ATTACHMENT) continue;
-            $name = preg_replace('/[^\w.\-]+/u', '_', basename($att['name'])) ?: 'piece_jointe';
-            $files->store_reply_file($review_id, $name, $att['content']);
+            $files->store_reply_file($review_id, self::unique_name(Newsletter_files::safe_name($att['name']), $used), $att['content']);
         }
 
         $res['status'] = 'retained';
         $res['review_id'] = $review_id;
         return $res;
+    }
+
+    /**
+     * Nom de fichier rendu unique parmi ceux déjà utilisés (« photo.jpg »,
+     * « photo_2.jpg ») ; $used est mis à jour.
+     */
+    public static function unique_name($name, array &$used) {
+        $base = pathinfo($name, PATHINFO_FILENAME);
+        $ext  = pathinfo($name, PATHINFO_EXTENSION);
+        $candidate = $name;
+        for ($n = 2; isset($used[strtolower($candidate)]); $n++) {
+            $candidate = $base . '_' . $n . ($ext !== '' ? '.' . $ext : '');
+        }
+        $used[strtolower($candidate)] = TRUE;
+        return $candidate;
     }
 
     // ── Consignes pour l'agent de rédaction ───────────────────────────────

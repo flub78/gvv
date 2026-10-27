@@ -69,6 +69,9 @@ $has_directives = $annotations || $retained;
             $nl['approved_at'] ? date('d/m/Y H:i', strtotime($nl['approved_at'])) : '') ?></p>
 <?php elseif ($status === 'published'): ?>
     <p><?= sprintf($this->lang->line('nl_help_published'), $nl['published_at'] ? date('d/m/Y H:i', strtotime($nl['published_at'])) : '') ?></p>
+    <?php if ($unsent): ?>
+        <div class="alert alert-warning small py-2"><?= sprintf($this->lang->line('nl_unsent_count'), (int) $unsent) ?></div>
+    <?php endif; ?>
 <?php else: ?>
     <p class="text-muted"><?= $this->lang->line('nl_help_other') ?></p>
 <?php endif; ?>
@@ -122,6 +125,13 @@ $has_directives = $annotations || $retained;
     <?php elseif ($status === 'published'): ?>
     <a href="<?= site_url('newsletter/pdf/' . $nl['id']) ?>" target="_blank" class="btn btn-outline-primary">
         <i class="fas fa-file-pdf"></i> <?= $this->lang->line('nl_published_pdf') ?></a>
+    <?php if ($unsent): ?>
+    <form method="post" class="nl-inline" action="<?= site_url('newsletter_admin/resend_to_subscribers/' . $nl['id']) ?>"
+          onsubmit="return confirm(<?= htmlspecialchars(json_encode(sprintf($this->lang->line('nl_confirm_resend'), (int) $unsent)), ENT_QUOTES) ?>);">
+        <?= $csrf ?>
+        <button type="submit" class="btn btn-warning"><i class="fas fa-redo"></i> <?= sprintf($this->lang->line('nl_btn_resend'), (int) $unsent) ?></button>
+    </form>
+    <?php endif; ?>
     <?php endif; ?>
 </div>
 

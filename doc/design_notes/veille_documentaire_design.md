@@ -89,6 +89,7 @@ Les états sont stockés dans `newsletters.status`. Chaque action est déclench�
 | `reviewing` → `draft` | Import de la version suivante produite par l'agent |
 | `draft` → `approved` → `published` | « Valider et publier », en une action (directe s'il n'y a pas de remarques) : validation, puis finalisation (notes internes supprimées, mention de validation, PDF, archive, envoi aux abonnés) |
 | `approved` → `published` | Nouvel essai de publication, si la finalisation a échoué |
+| `published` → `published` | Renvoi aux abonnés non atteints (envoi en échec ou interrompu) ; le journal des envois évite les doublons |
 
 L'état `validating` du schéma initial est réservé à une approbation par email d'un validateur distinct (évolution envisagée par le PRD) ; il n'est pas utilisé.
 
@@ -100,9 +101,9 @@ Une annotation ne passe pas d'une version à l'autre : elle est transmise à l'a
 
 ### Réponses et remarques
 
-Chaque email de transmission porte dans son sujet une référence à l'édition et à la version. Le récupérateur ne retient que les réponses portant la référence de l'édition et provenant d'un relecteur autorisé ; il ignore une réponse déjà enregistrée (identifiant de message). Les réponses écartées sont listées à l'administrateur avec le motif.
+Chaque email de transmission porte dans son sujet une référence à l'édition et à la version. Le récupérateur lit les messages reçus depuis la création de l'édition et ne retient que les réponses portant la référence de l'édition et provenant d'un relecteur autorisé ; il ignore une réponse déjà enregistrée (identifiant de message, ou empreinte du message s'il n'en a pas). Les réponses écartées sont listées à l'administrateur avec le motif.
 
-Chaque réponse retenue devient une remarque. L'administrateur lui attribue une décision : `acceptee`, `modifiee` (avec le texte qu'il a corrigé), `rejetee` ou `reportee`. Une remarque reportée reste rattachée à son édition, dont elle rejoint les consignes de modification avec le statut `REPORTER` ; elle est proposée à la reprise dans les autres éditions, et la reprise la rattache à l'édition qui la reprend. Les pièces jointes sont stockées par remarque, et non par édition, pour la suivre lorsqu'elle est reprise.
+Chaque réponse retenue devient une remarque du tour de relecture en cours, y compris une réponse tardive à une version précédente : elle reste en général valable pour la version courante. Les réponses ne sont plus relevées une fois l'édition validée. L'administrateur lui attribue une décision : `acceptee`, `modifiee` (avec le texte qu'il a corrigé), `rejetee` ou `reportee`. Une remarque reportée reste rattachée à son édition, dont elle rejoint les consignes de modification avec le statut `REPORTER` ; elle est proposée à la reprise dans les autres éditions, et la reprise la rattache à l'édition qui la reprend. Les pièces jointes sont stockées par remarque, et non par édition, pour la suivre lorsqu'elle est reprise.
 
 ### Notes internes et validation
 

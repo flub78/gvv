@@ -102,7 +102,7 @@
 </div>
 </div>
 
-<!-- ── Relecteurs / validateurs ─────────────────────────────────────────── -->
+<!-- ── Relecteurs ───────────────────────────────────────────────────────── -->
 <div class="card mb-3">
 <div class="card-header"><i class="fas fa-users text-warning"></i> <?= $this->lang->line('newsletter_config_people') ?></div>
 <div class="card-body">
@@ -111,12 +111,6 @@
     <input type="text" class="form-control form-control-sm" name="newsletter_reviewers"
            value="<?= htmlspecialchars($cfg['newsletter_reviewers'] ?? '') ?>"
            placeholder="alice@example.com, bob@example.com">
-  </div>
-  <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_validators') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_validators"
-           value="<?= htmlspecialchars($cfg['newsletter_validators'] ?? '') ?>"
-           placeholder="cps@example.com">
   </div>
   <div class="mb-2" style="max-width: 20rem">
     <label class="form-label"><?= $this->lang->line('nl_config_review_delay') ?></label>
