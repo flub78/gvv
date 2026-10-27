@@ -107,9 +107,11 @@ class Newsletter_model extends CI_Model {
         $newsletter = $this->get($id);
         if (!$newsletter) return FALSE;
 
+        // Cycle v1 : draft → reviewing → draft (nouvelle version) … draft → approved.
+        // validating est réservé à l'approbation par un validateur distinct (évolution).
         $allowed = array(
-            self::STATUS_DRAFT      => array(self::STATUS_REVIEWING),
-            self::STATUS_REVIEWING  => array(self::STATUS_REVIEWING, self::STATUS_VALIDATING),
+            self::STATUS_DRAFT      => array(self::STATUS_REVIEWING, self::STATUS_APPROVED),
+            self::STATUS_REVIEWING  => array(self::STATUS_REVIEWING, self::STATUS_VALIDATING, self::STATUS_DRAFT),
             self::STATUS_VALIDATING => array(self::STATUS_APPROVED),
             self::STATUS_APPROVED   => array(self::STATUS_PUBLISHED),
             self::STATUS_PUBLISHED  => array(),
@@ -182,11 +184,10 @@ class Newsletter_model extends CI_Model {
     }
 
     /**
-     * Supprime une édition (admin uniquement, statut draft).
+     * Supprime une édition, quel que soit son état ; ses remarques,
+     * commentaires et envois sont supprimés en cascade.
      */
     public function delete($id) {
-        $newsletter = $this->get($id);
-        if (!$newsletter || $newsletter['status'] !== self::STATUS_DRAFT) return FALSE;
         $this->db->where('id', (int) $id)->delete($this->table);
         return $this->db->affected_rows() > 0;
     }

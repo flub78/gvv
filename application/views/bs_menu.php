@@ -199,7 +199,8 @@ if ($CI->dx_auth->is_logged_in()) {
                     <?php endif; ?>
                     <?php if (has_role('club-admin') && $this->config->item('veille')) : ?>
                     <?php $this->lang->load('newsletter'); ?>
-                    <li><a class="dropdown-item" href="<?= controller_url("newsletter_admin") ?>"><i class="fas fa-newspaper text-info"></i> <?= $this->lang->line('newsletter_admin_title') ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("newsletter_admin/editions") ?>"><i class="fas fa-newspaper text-info"></i> <?= $this->lang->line('nl_editions_title') ?></a></li>
+                    <li><a class="dropdown-item" href="<?= controller_url("newsletter_admin") ?>"><i class="fas fa-users text-info"></i> <?= $this->lang->line('newsletter_admin_title') ?></a></li>
                     <?php endif; ?>
                   </ul>
                 </li>
@@ -537,7 +538,6 @@ if ($CI->dx_auth->is_logged_in()) {
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_email') ?>"><i class="fas fa-paper-plane text-primary"></i> Newsletter — Test envoi email</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_imap') ?>"><i class="fas fa-inbox text-success"></i> Newsletter — Test IMAP</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_ai') ?>"><i class="fas fa-robot text-secondary"></i> Newsletter — Test IA (Anthropic)</a></li>
-              <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_generate') ?>"><i class="fas fa-magic text-warning"></i> Newsletter — Test génération</a></li>
               <?php endif; ?>
             </ul>
           </li>

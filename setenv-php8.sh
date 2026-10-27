@@ -5,8 +5,7 @@
 #
 # Ajoute bin/php8-shim/ (qui contient un lien symbolique php -> ../php8,
 # lui-même pointant vers /usr/bin/php8.4) en tête du PATH, afin que la
-# commande `php` utilise la version 8.4 cible de la migration PHP 8,
-# sans modifier bin/php (qui reste pointé sur PHP 7.4 pour setenv.sh).
+# commande `php` utilise PHP 8.4.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

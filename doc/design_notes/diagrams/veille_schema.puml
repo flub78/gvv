@@ -14,6 +14,8 @@ entity newsletters {
   * review_iteration : INT
   draft_path : VARCHAR
   pdf_path : VARCHAR
+  review_sent_at : DATETIME
+  review_deadline : DATE
   approved_by : VARCHAR
   approved_at : DATETIME
   published_at : DATETIME
@@ -27,12 +29,17 @@ entity newsletters {
 entity newsletter_reviews {
   * id : INT PK
   --
-  * newsletter_id : INT FK
+  newsletter_id : INT FK
   * iteration : INT
   * submitted_via : ENUM(email, gvv)
+  message_id : VARCHAR UNIQUE
   * reviewer_email : VARCHAR
   reviewer_name : VARCHAR
   * content : TEXT
+  * decision : ENUM(en_attente, acceptee,\n  modifiee, rejetee, reportee)
+  admin_text : TEXT
+  decided_by : VARCHAR
+  decided_at : DATETIME
   has_attachments : TINYINT
   --
   * created_at : DATETIME
@@ -72,8 +79,26 @@ entity newsletter_sendings {
   * updated_by : VARCHAR
 }
 
-newsletters ||--o{ newsletter_reviews : contient
+entity newsletter_annotations {
+  * id : INT PK
+  --
+  * newsletter_id : INT FK
+  * version : INT
+  * block_index : INT
+  anchor_text : VARCHAR
+  * label : VARCHAR
+  * content : TEXT
+  --
+  * created_at : DATETIME
+  * updated_at : DATETIME
+  * created_by : VARCHAR
+  * updated_by : VARCHAR
+}
+
+newsletters |o--o{ newsletter_reviews : contient
 newsletters ||--o{ newsletter_sendings : envoyée à
 newsletter_subscribers ||--o{ newsletter_sendings : reçoit
+
+newsletters ||--o{ newsletter_annotations : annotée par
 
 @enduml

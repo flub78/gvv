@@ -2,76 +2,42 @@
 skinparam componentStyle rectangle
 skinparam backgroundColor white
 skinparam defaultFontSize 12
+left to right direction
 
 title Architecture — Veille documentaire (composants)
 
-package "Déclencheurs" #lavender {
-  component [Cron mensuel\n(systemd)] as CRON_MONTHLY
-  component [Cron quotidien\n(systemd)] as CRON_DAILY
-  component [Cron surveillance\n(sans IA)] as CRON_WATCH
-}
+actor "Administrateur" as ADMIN
 
-package "Agent IA" #mistyrose {
-  component [claude CLI\n(mode non interactif)] as AGENT
-  file [Fichier de contexte\n(sources, critères,\ndirectives)] as CTX
-}
-
-package "Email" #lightyellow {
-  component [SMTP\n(envoi)] as SMTP
-  component [IMAP\n(lecture)] as IMAP
-  component [Collecteur de retours\n(analyse threads)] as COLLECTOR
+package "Agent de rédaction — Claude Code" #mistyrose {
+  component [Agent IA\n(consignes, registre des sources,\nétat de la veille, journal)] as AGENT
 }
 
 package "Application GVV" #lightblue {
-  component [newsletter_controller\n(admin, archive, abonnements)] as CTRL
-  component [newsletter_model] as MODEL
-  component [newsletter_subscribers_model] as SUBS
-  component [newsletter_agent_runner\n(déclenchement)] as RUNNER
+  component [newsletter_admin\n(import, annotation, transmission,\nrelevé des réponses, tri des remarques,\nconsignes de modification, validation, publication)] as CTRL
+  component [Importeur\n(.md ou .zip)] as IMPORTER
+  component [Récupérateur de réponses] as COLLECT
+  component [Générateur de consignes\nde modification (.md ou .zip)] as DIRECTIVES
+  component [Mise en forme PDF\net publication] as PUBLISH
+  database "MySQL + stockage hors web" as STORE
 }
 
-package "Stockage" #lightgreen {
-  database "MySQL\n(newsletters,\nreviewers, abonnés)" as DB
-  folder "Fichiers serveur\n(brouillons .md,\narchive .pdf)" as FS
-}
+cloud "Sources web, RSS,\ncourriels" as SOURCES
+cloud "Boîte veille@" as MAILBOX
+actor "Relecteurs, abonnés" as PEOPLE
 
-package "Utilisateurs" #white {
-  actor "Relecteurs" as REVIEWERS
-  actor "Validateurs" as VALIDATORS
-  actor "Membres" as MEMBERS
-  actor "Abonnés" as SUBSCRIBERS
-  actor "Administrateur" as ADMIN
-}
-
-CRON_MONTHLY --> RUNNER : déclenche
-CRON_DAILY --> COLLECTOR : déclenche
-CRON_WATCH --> CTRL : alerte si\nbrouillon absent
-
-RUNNER --> AGENT : lance
-AGENT --> CTX : lit
-AGENT --> IMAP : lit sources email
-AGENT --> FS : écrit brouillon
-
-COLLECTOR --> IMAP : lit réponses
-COLLECTOR --> AGENT : lance pour\nnouvelle version
-COLLECTOR --> DB : enregistre retours
-
-CTRL --> MODEL
-CTRL --> SUBS
-CTRL --> SMTP : envoie brouillons\net alertes
-MODEL --> DB
-MODEL --> FS
-SUBS --> DB
-
-SMTP --> REVIEWERS : brouillon
-SMTP --> VALIDATORS : version finale
-SMTP --> SUBSCRIBERS : newsletter publiée
-
-REVIEWERS --> SMTP : retours par email
-REVIEWERS --> CTRL : retours via GVV
-VALIDATORS --> SMTP : approbation par email
-VALIDATORS --> CTRL : approbation via GVV
-MEMBERS --> CTRL : consulte archive
-ADMIN --> CTRL : configure
-ADMIN --> CTX : maintient
+AGENT --> SOURCES : explore
+ADMIN --> AGENT : lance (version initiale,\nou consignes de modification)
+AGENT ..> ADMIN : brouillon vN (.md ou .zip)
+ADMIN --> CTRL : pilote
+CTRL --> IMPORTER
+IMPORTER --> STORE
+CTRL --> PEOPLE : brouillon annoté (PDF)
+PEOPLE --> MAILBOX : réponses
+COLLECT --> MAILBOX : lit
+COLLECT --> STORE : remarques, images
+DIRECTIVES --> STORE : lit
+DIRECTIVES ..> ADMIN : consignes de modification
+PUBLISH --> STORE
+PUBLISH --> PEOPLE : newsletter publiée
 
 @enduml

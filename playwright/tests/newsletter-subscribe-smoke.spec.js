@@ -111,7 +111,7 @@ test('unsubscribe via token shows success', async ({ page }) => {
 test('member can access newsletter archive', async ({ page }) => {
     await login(page, MEMBER);
     await page.goto('/index.php/newsletter');
-    await expect(page.locator('h3')).toContainText('Archive');
+    await expect(page.locator('h3')).toContainText('Newsletters');
     // Pas d'erreur 500 ni redirection
     await expect(page).toHaveURL(/newsletter/);
 });
@@ -120,9 +120,8 @@ test('member can access newsletter archive', async ({ page }) => {
 test('club-admin can access newsletter_admin', async ({ page }) => {
     await login(page, ADMIN);
     await page.goto('/index.php/newsletter_admin');
-    await expect(page.locator('h3')).toContainText('Gestion');
-    await page.goto('/index.php/newsletter_admin/publish');
-    await expect(page.locator('h3')).toContainText('Publier');
+    await expect(page.locator('h3')).toContainText('Abonnement à la newsletter');
+    await expect(page.locator('a:has-text("Publier une newsletter")')).toHaveCount(0);
 });
 
 // ─── Test 7 : accès admin refusé à un simple membre ──────────────────────────
@@ -132,6 +131,6 @@ test('plain member cannot access newsletter_admin', async ({ page }) => {
     // Doit être redirigé ou retourner 403
     const status = response ? response.status() : 0;
     const url = page.url();
-    const isBlocked = status === 403 || !url.includes('newsletter_admin') || await page.locator('h3:has-text("Gestion")').count() === 0;
+    const isBlocked = status === 403 || !url.includes('newsletter_admin') || await page.locator('h3:has-text("Abonnement à la newsletter")').count() === 0;
     expect(isBlocked).toBe(true);
 });

@@ -5,10 +5,13 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3><?= $this->lang->line('newsletter_admin_title') ?></h3>
-    <a href="<?= site_url('newsletter_admin/publish') ?>" class="btn btn-success btn-sm">
-        <i class="fas fa-plus"></i> <?= $this->lang->line('newsletter_publish_title') ?>
+    <div class="d-flex flex-wrap gap-2">
+    <a href="<?= site_url('newsletter_public/subscribe') ?>" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+        <i class="fas fa-external-link-alt"></i> <?= $this->lang->line('newsletter_public_page') ?>
     </a>
+    </div>
 </div>
+<p class="small text-muted"><?= $this->lang->line('newsletter_public_page_help') ?></p>
 
 <?php if (!empty($message)) echo $message; ?>
 

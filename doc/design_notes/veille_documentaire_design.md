@@ -1,6 +1,6 @@
 # Design Notes — Veille documentaire
 
-Date : 23 octobre 2026
+Date : 25 octobre 2026
 
 Document de référence : [PRD_Veille_Securite_Automatisee.md](../prds/PRD_Veille_Securite_Automatisee.md)
 
@@ -8,7 +8,12 @@ Document de référence : [PRD_Veille_Securite_Automatisee.md](../prds/PRD_Veill
 
 ## Contexte et objectif
 
-Le système de veille documentaire génère automatiquement une newsletter périodique à partir d'un ensemble de sources configurées (boîte mail, flux RSS, sites web). L'agent IA rédige un brouillon, des relecteurs humains le corrigent par email ou via GVV, un validateur l'approuve, puis la newsletter est archivée et diffusée aux abonnés.
+Le système de veille documentaire produit une newsletter périodique à partir d'un ensemble de sources (boîte mail, flux RSS, sites web). Il est séparé en deux systèmes qui échangent des fichiers :
+
+- **l'agent de rédaction**, configuré dans Claude Code hors de GVV : il explore les sources, rédige le brouillon d'une période et ses versions successives, et tient l'état de la veille et le journal de ses accès et de ses décisions ;
+- **GVV** : il importe les brouillons, permet à l'administrateur de les annoter, les transmet aux relecteurs, relève et fait trier leurs remarques, produit les consignes de modification destinées à l'agent, puis valide, met en forme et diffuse la newsletter.
+
+GVV ne lance aucun agent IA. La seule utilisation de l'API Anthropic dans GVV est la page de validation de l'infrastructure (`test_ai`).
 
 ---
 
@@ -20,20 +25,52 @@ Le système de veille documentaire génère automatiquement une newsletter péri
 
 | Composant | Rôle |
 |---|---|
-| `newsletter_controller` | Interface GVV : administration, archive membres, abonnements, retours de relecture, approbation |
-| `newsletter_model` | Gestion des newsletters (états, versions, fichiers) |
-| `newsletter_subscribers_model` | Gestion des abonnements externes |
-| `newsletter_agent_runner` | Script CLI qui déclenche l'agent IA et lui passe le fichier de contexte |
-| Agent IA (`claude -p`) | Génère les brouillons, intègre les retours de relecture, nettoie la version finale |
-| Fichier de contexte | Fichier maintenu par l'administrateur : liste des sources, critères de sélection, directives de rédaction, description du club |
-| Collecteur de retours | Script déclenché quotidiennement : lit les réponses email des relecteurs, les enregistre en base, déclenche l'agent IA si des retours sont présents |
-| Cron de surveillance | Vérifie qu'un brouillon a bien été créé après le déclenchement mensuel ; alerte l'administrateur sinon |
+| Agent de rédaction (Claude Code) | Consignes, registre des sources, inventaire, journal ; version initiale du brouillon ; nouvelle version à partir des consignes de modification |
+| `newsletter_admin` | Interface GVV : éditions, import, annotation, transmission, relevé des réponses, tri des remarques, consignes de modification, validation, publication, configuration, abonnés |
+| `newsletter` / `newsletter_public` | Archive membres ; abonnement et désinscription |
+| `newsletter_model`, `newsletter_subscribers_model` | Newsletters (états, versions) ; abonnés |
+| `newsletter_reviews_model` | Remarques des relecteurs et décisions de l'administrateur |
+| `newsletter_annotations_model` | Commentaires insérés par l'administrateur dans une version |
+| Importeur | Lit un brouillon (.md ou .zip), en extrait titre, période et version, le range comme version d'une édition |
+| Récupérateur de réponses | À la demande : lit sur la boîte de veille les réponses à une édition et les enregistre comme remarques, avec leurs pièces jointes |
+| Générateur de consignes de modification | Assemble les commentaires et les remarques retenues en un Markdown, accompagné des images dans une archive zip s'il y en a |
+| Mise en forme PDF | Brouillon annoté → PDF mis en page, pour la relecture et pour la publication |
+| Finaliseur | Après validation : supprime les notes internes, produit le PDF, archive, déclenche l'envoi aux abonnés |
 
 ### Séparation des responsabilités
 
-L'agent IA est un processus externe au serveur web. Il lit les sources, crée des fichiers de brouillon sur le serveur, et ne peut en aucun cas déclencher d'envoi d'email. L'envoi est toujours initié par le code PHP applicatif (contrôleur ou script).
+L'agent ne dépend pas de GVV, et GVV ne dépend pas de l'agent : leur seul contrat est le format des fichiers échangés. L'agent n'envoie aucun email ; tout envoi est initié par l'administrateur depuis GVV. Le contenu des réponses des relecteurs est traité comme une donnée : il n'arrive à l'agent qu'au travers des consignes de modification, après la décision de l'administrateur.
 
-Le fichier de contexte n'est jamais exposé à l'agent au-delà de ce que le script `newsletter_agent_runner` lui transmet explicitement. Les identifiants IMAP et SMTP restent dans la configuration GVV.
+---
+
+## Fichiers échangés
+
+### Brouillon (agent → GVV)
+
+Un fichier Markdown, ou une archive zip contenant un fichier Markdown et le sous-répertoire des images qu'il référence (par exemple `img/planeur.svg`). L'importeur lit dans le Markdown :
+
+| Donnée | Repère |
+|---|---|
+| Titre | Premier titre de niveau 1 |
+| Période | Ligne « Période : du … au … », dates en toutes lettres ou numériques ; l'année du début peut être omise |
+| Version | Mention « BROUILLON vN » |
+
+Une donnée manquante fait échouer l'import avec un message qui indique le repère attendu. Les images référencées absentes de l'archive sont signalées. Seuls les chemins relatifs sans remontée de répertoire et les formats d'image courants sont acceptés.
+
+Le brouillon est rattaché à l'édition non publiée de même période, ou crée une nouvelle édition. Sa version doit être supérieure à la dernière version importée.
+
+### Consignes de modification (GVV → agent)
+
+Un fichier Markdown destiné à l'agent, qui contient, pour la version courante, des éléments portant chacun un statut dans le vocabulaire de l'agent :
+
+| Élément | Statut |
+|---|---|
+| Commentaire de l'administrateur, avec le début du paragraphe sous lequel il est inséré | `APPLIQUER` |
+| Remarque acceptée du tour courant (texte du relecteur) | `APPLIQUER` |
+| Remarque modifiée du tour courant (texte de l'administrateur ; texte du relecteur cité pour mémoire) | `APPLIQUER` |
+| Remarque reportée du tour courant | `REPORTER` |
+
+Chaque remarque est accompagnée de son auteur et de ses images. S'il y a des images, le fichier est livré dans une archive zip avec un sous-répertoire `img/` ; le Markdown y fait référence. Les remarques rejetées n'y figurent pas. L'ensemble des remarques reportées se télécharge aussi séparément, pour la version initiale d'une prochaine édition.
 
 ---
 
@@ -41,20 +78,65 @@ Le fichier de contexte n'est jamais exposé à l'agent au-delà de ce que le scr
 
 ![Workflow](diagrams/veille_workflow.png)
 
-Les états sont stockés dans `newsletters.status`. Les transitions sont :
+Les états sont stockés dans `newsletters.status`. Chaque action est déclenchée par l'administrateur :
 
-| De → Vers | Déclencheur |
+| De → Vers | Action |
 |---|---|
-| → `draft` | Agent IA crée le fichier brouillon ; `newsletter_agent_runner` enregistre l'entrée en base |
-| `draft` → `reviewing` | Envoi du brouillon aux relecteurs par le contrôleur |
-| `reviewing` → `reviewing` | Retours collectés → nouvelle version intégrée par l'agent → `review_iteration` incrémenté → renvoi aux relecteurs |
-| `reviewing` → `validating` | Action manuelle d'un relecteur ou de l'administrateur via GVV |
-| `validating` → `approved` | Approbation du validateur (email ou GVV) |
-| `approved` → `published` | Agent IA génère le PDF final → archivage → envoi aux abonnés |
+| → `draft` | Import de la version initiale d'une période |
+| `draft` → `draft` | Annotation ; import d'une version suivante |
+| `draft` → `reviewing` | Transmission du brouillon annoté aux relecteurs, avec une date limite de réponse ; `review_iteration` (tour de relecture) incrémenté |
+| `reviewing` → `reviewing` | Relevé des réponses ; tri des remarques ; téléchargement des consignes de modification |
+| `reviewing` → `draft` | Import de la version suivante produite par l'agent |
+| `draft` → `approved` → `published` | « Valider et publier », en une action (directe s'il n'y a pas de remarques) : validation, puis finalisation (notes internes supprimées, mention de validation, PDF, archive, envoi aux abonnés) |
+| `approved` → `published` | Nouvel essai de publication, si la finalisation a échoué |
+| `published` → `published` | Renvoi aux abonnés non atteints (envoi en échec ou interrompu) ; le journal des envois évite les doublons |
 
-### Itérations de relecture
+L'état `validating` du schéma initial est réservé à une approbation par email d'un validateur distinct (évolution envisagée par le PRD) ; il n'est pas utilisé.
 
-Chaque retour de relecteur est enregistré dans `newsletter_reviews` avec son numéro d'itération. L'agent IA reçoit tous les retours de l'itération courante lors de la consolidation quotidienne et crée une nouvelle version du fichier brouillon. L'historique des versions est conservé en base.
+### Annotations
+
+Le brouillon est découpé en blocs (paragraphes, listes, titres, citations séparés par une ligne vide). Une annotation est rattachée à une version et à un rang de bloc ; elle garde le début du bloc pour situer le commentaire dans les consignes de modification. Le brouillon annoté est le Markdown de la version dans lequel chaque annotation est insérée, sous son bloc, sous forme d'une citation « **Libellé :** texte ». C'est lui qui est affiché, transmis aux relecteurs et publié.
+
+Une annotation ne passe pas d'une version à l'autre : elle est transmise à l'agent dans les consignes de modification, et la version suivante l'intègre dans son texte.
+
+### Réponses et remarques
+
+Chaque email de transmission porte dans son sujet une référence à l'édition et à la version. Le récupérateur lit les messages reçus depuis la création de l'édition et ne retient que les réponses portant la référence de l'édition et provenant d'un relecteur autorisé ; il ignore une réponse déjà enregistrée (identifiant de message, ou empreinte du message s'il n'en a pas). Les réponses écartées sont listées à l'administrateur avec le motif.
+
+Chaque réponse retenue devient une remarque du tour de relecture en cours, y compris une réponse tardive à une version précédente : elle reste en général valable pour la version courante. Les réponses ne sont plus relevées une fois l'édition validée. L'administrateur lui attribue une décision : `acceptee`, `modifiee` (avec le texte qu'il a corrigé), `rejetee` ou `reportee`. Une remarque reportée reste rattachée à son édition, dont elle rejoint les consignes de modification avec le statut `REPORTER` ; elle est proposée à la reprise dans les autres éditions, et la reprise la rattache à l'édition qui la reprend. Les pièces jointes sont stockées par remarque, et non par édition, pour la suivre lorsqu'elle est reprise.
+
+### Notes internes et validation
+
+Le brouillon contient des notes destinées au CPS et aux relecteurs : une section interne délimitée par un titre conventionnel ou des balises, l'avertissement de brouillon, des notes de rédaction entre doubles accolades et des mentions entre crochets à compléter. Avant la validation, GVV liste les mentions entre crochets qui subsistent hors des notes. À la finalisation, la section interne, l'avertissement et les notes de rédaction sont retirés de façon déterministe, sans appel à l'IA, pour que le texte diffusé soit exactement le texte validé, notes en moins ; la mention « Validé le jj/mm/aaaa par {prénom et nom} » est ajoutée en fin de newsletter à partir de `approved_at` et `approved_by`. Une fois l'édition validée, l'aperçu PDF montre ce texte publié.
+
+---
+
+## Mise en forme PDF
+
+Le PDF est produit avec TCPDF à partir du HTML du brouillon annoté :
+
+- première page avec un bandeau de couleur : nom du club, titre, période ;
+- pages suivantes avec un en-tête discret (titre) et un pied de page (club, pagination) ;
+- rubriques (titres de niveau 2) sur un fond de couleur, articles (niveau 3) en couleur d'accent ;
+- citations en encadrés, et les commentaires de l'administrateur dans un encadré distinct ;
+- images de la version intégrées, à la largeur du texte au plus ;
+- chaque rubrique commence sur une nouvelle page, sauf si elle tient entièrement dans la place restante de la page en cours.
+
+Le même rendu sert au brouillon transmis aux relecteurs et à la version publiée.
+
+---
+
+## Stockage
+
+Les fichiers sont rangés hors de l'espace servi directement par le serveur web, et ne sont accessibles qu'au travers des contrôleurs (`club-admin`) :
+
+```
+editions/<id>/v<N>/brouillon.md
+editions/<id>/v<N>/img/…
+reponses/<id remarque>/<pièces jointes>
+```
+
+Le PDF publié est déposé dans l'archive des membres existante.
 
 ---
 
@@ -64,111 +146,23 @@ Chaque retour de relecteur est enregistré dans `newsletter_reviews` avec son nu
 
 ### Tables
 
-**`newsletters`** : une ligne par édition. `draft_path` pointe vers le fichier Markdown de travail sur le serveur ; `pdf_path` vers le PDF publié. Le champ `review_iteration` trace la version courante du cycle de relecture.
+**`newsletters`** : une ligne par édition. `draft_path` pointe vers le Markdown de la version courante ; les versions précédentes restent dans le stockage de l'édition. `pdf_path` pointe vers le PDF publié. `review_iteration` compte les tours de relecture ; `review_sent_at` et `review_deadline` datent la dernière transmission et la réponse attendue.
 
-**`newsletter_reviews`** : retours des relecteurs et des validateurs. `submitted_via` distingue les retours par email (collectés automatiquement) des retours saisis dans GVV. Les pièces jointes email sont stockées dans un répertoire associé à l'entrée.
+**`newsletter_annotations`** : commentaires de l'administrateur, par édition, version et rang de bloc, avec le libellé et le début du bloc annoté.
+
+**`newsletter_reviews`** : remarques issues des réponses des relecteurs. Outre l'expéditeur, l'itération et le contenu, elle porte l'identifiant du message (anti-doublon), la décision de l'administrateur et le texte modifié. Une remarque reportée reste rattachée à son édition jusqu'à sa reprise par une autre.
 
 **`newsletter_subscribers`** : abonnés extérieurs au club. `unsubscribe_token` est généré à l'inscription et inclus dans chaque email envoyé pour permettre la désinscription en un clic. Le double opt-in est géré par `confirmation_token` et `confirmed`.
 
-**`newsletter_sendings`** : journal des envois par abonné, pour éviter les doublons en cas de re-run et tracer la diffusion.
+**`newsletter_sendings`** : journal des envois par abonné, pour éviter les doublons et tracer la diffusion.
 
 ---
 
 ## Abonnements
 
-Le mécanisme d'abonnement est indépendant du cycle de génération automatique. Il peut servir des newsletters créées manuellement en publiant directement un PDF via l'interface d'administration.
+Le mécanisme d'abonnement est indépendant du cycle de rédaction. Une newsletter n'est publiée que depuis la page de son édition.
 
-La page d'abonnement publique (sans authentification GVV) expose deux actions : `subscribe` (formulaire nom/prénom/email → envoi du lien de confirmation) et `unsubscribe` (via le token de l'email ou formulaire email).
-
----
-
-## Alertes immédiates (optionnelles)
-
-Si l'administrateur active cette option, l'agent IA peut identifier dans les sources une information urgente (consigne de navigabilité urgente, NOTAM local) et la signaler. Le script `newsletter_agent_runner` lit ce signal dans la sortie de l'agent et envoie immédiatement une notification aux validateurs par email ou SMS, selon le canal configuré pour chacun.
-
-Ces alertes sont indépendantes du cycle de newsletter et ne déclenchent pas de brouillon.
-
----
-
-## Intégration de l'agent IA (`claude -p`)
-
-### Contraintes et problèmes de sécurité
-
-**Blocage sur une demande d'autorisation**
-
-Sans précaution, `claude -p` peut bloquer indéfiniment sur stdin si l'agent tente une action nécessitant une confirmation (créer un fichier, exécuter une commande). Pour un script lancé par un timer systemd, ce blocage est fatal : le processus ne se termine jamais.
-
-Solution : lancer claude avec `--permission-mode bypassPermissions` (ou `--dangerously-skip-permissions` en environnement isolé). Ces drapeaux suppriment toute demande interactive. En combinaison avec `--allowedTools` qui limite les outils autorisés, le comportement de l'agent est déterministe et sans surprise. `--bare` est également recommandé pour désactiver les hooks, la découverte de CLAUDE.md, la mémoire automatique et les prefetches en arrière-plan — seul l'API key est utilisé, le contexte étant fourni explicitement.
-
-```bash
-timeout 300 claude \
-  --bare \
-  --print \
-  --permission-mode bypassPermissions \
-  --allowedTools "Write,Read,Bash(ls *)" \
-  --max-budget-usd 3.00 \
-  --system-prompt "$(cat /srv/newsletter/context.md)" \
-  "Génère le brouillon de la newsletter pour la période …"
-```
-
-**Passage du fichier de contexte**
-
-Le fichier de contexte (sources, critères, directives) est passé via `--system-prompt "$(cat …)"`. Cette approche est limitée par la taille maximale d'un argument shell (~2 Mo sur Linux, suffisant pour un fichier de directives). Pour un contenu plus volumineux (sources brutes), le script prépare un fichier temporaire dans le répertoire de travail que l'agent lira avec ses outils (`Read`).
-
-Les identifiants IMAP et SMTP ne sont jamais inclus dans le fichier de contexte. Le script les lit lui-même depuis la configuration GVV et les utilise directement en PHP pour pré-alimenter le répertoire de travail.
-
-**Récupération des fichiers de résultats**
-
-L'agent écrit ses fichiers dans le répertoire courant du processus (`cwd`). Le script positionne ce répertoire sur un chemin dédié avant de lancer claude :
-
-```bash
-mkdir -p /srv/newsletter/output/$(date +%Y-%m)
-cd /srv/newsletter/output/$(date +%Y-%m)
-claude --print --bare … "Écris le brouillon dans draft.md"
-```
-
-Le script PHP lit ensuite `draft.md` depuis ce répertoire. La sortie stdout de claude (résumé de ce que l'agent a fait) est capturée et journalisée, mais n'est pas le résultat principal : c'est le fichier écrit sur disque qui fait foi.
-
-**Isolation et sécurité du processus**
-
-- Le timer systemd exécute les scripts sous un utilisateur dédié (`newsletter-agent`) sans accès au répertoire de l'application web ni à la base de données.
-- `ANTHROPIC_API_KEY` est défini dans le fichier d'environnement du service systemd (`/etc/systemd/system/newsletter-generate.service`, protégé en `0600`), jamais dans un fichier accessible par le serveur web.
-- Le répertoire de travail de l'agent (`/srv/newsletter/`) appartient à `newsletter-agent` ; www-data y a accès en lecture seule pour récupérer les brouillons.
-- `--max-budget-usd` coupe le processus si le coût dépasse le plafond configuré (erreur non-zero exit code, capturée par le script PHP).
-- La commande est enveloppée dans `timeout 300` pour garantir une durée maximale quelle que soit la réponse de l'API.
-
----
-
-## API Anthropic directe vs `claude -p`
-
-Deux approches permettent d'appeler le modèle depuis le script PHP.
-
-| Critère | API Anthropic directe (HTTP/CURL) | `claude -p` (CLI) |
-|---|---|---|
-| Requêtes de permission | Aucune | Bloque sans `--permission-mode bypassPermissions` |
-| Gestion des outils (fichiers, bash) | Implémentation manuelle en PHP | Gérée par Claude Code |
-| Passage du contexte | Tableau `messages[]` JSON, taille illimitée | Argument shell ou fichier lu par l'agent |
-| Récupération du résultat | Réponse JSON dans la même requête HTTP | Stdout + fichiers écrits par l'agent |
-| Version du modèle | Explicite à chaque appel | Contrôlée par la config du compte système |
-| Dépendances | CURL PHP (standard) | CLI `claude` installée sur le serveur |
-| Confidentialité du prompt | Totale (payload HTTP maîtrisé) | Logs possibles dans `~/.claude/` |
-| Coût visible | Par token, dashboard API | Via `--max-budget-usd`, moins granulaire |
-| Prompt caching | Configurable explicitement | Automatique (bêta) |
-| Complexité d'intégration | Élevée (tool_use, boucle de tours) | Faible (shell_exec + lecture de fichier) |
-| Mise à jour du modèle | Contrôlée (modification du code) | Peut changer au upgrade du CLI |
-| Maturité en production | Élevée | Plus récent en mode non-interactif |
-
-**Recommandation pour la V1** : `claude -p` avec `--bare --permission-mode bypassPermissions --max-budget-usd`. La complexité d'intégration est moindre et les outils natifs de l'agent (lecture de fichiers, écriture) évitent d'implémenter ce mécanisme en PHP. La migration vers l'API directe est envisageable en V2 si la robustesse industrielle ou le contrôle fin des tokens le justifient.
-
----
-
-## Configuration de la veille
-
-Les paramètres opérationnels de la veille (compte IMAP, liste des relecteurs et validateurs, périodicité, chemin du fichier de contexte) sont configurables par un `club-admin` depuis la page d'administration de la newsletter dans GVV (`newsletter_admin/configuration`). Cette page écrit un fichier `application/config/newsletter.php` selon le même mécanisme que `config.php` → `club.php`.
-
-Le mot de passe IMAP est stocké obfusqué dans ce fichier (encodage base64 ou chiffrement symétrique avec une clé dérivée du `encryption_key` de CodeIgniter). Il n'est jamais affiché en clair dans l'interface après la première saisie.
-
-La clé API Anthropic (`ANTHROPIC_API_KEY`) n'est pas stockée dans GVV. Elle est définie dans l'environnement du service systemd.
+La page d'abonnement publique (sans authentification GVV) expose deux actions : `subscribe` (formulaire nom/prénom/email → envoi du lien de confirmation) et `unsubscribe` (via le token de l'email). La page des abonnés donne le lien de la page publique.
 
 ---
 
@@ -176,31 +170,22 @@ La clé API Anthropic (`ANTHROPIC_API_KEY`) n'est pas stockée dans GVV. Elle es
 
 ### Feature flag
 
-La fonctionnalité est entièrement protégée par le flag `$config['veille']` défini dans `program.php` (et `program.example.php`) :
+La fonctionnalité est entièrement protégée par le flag `$config['veille']` défini dans `program.php` (et `program.example.php`). Quand il est `false` ou absent, les contrôleurs `newsletter_admin`, `newsletter`, `newsletter_public` retournent une erreur 404 et les entrées de menu sont masquées. Le flag est `false` par défaut dans `program.example.php`.
 
-```php
-$config['veille'] = false;  // Newsletter de veille documentaire
-```
+### Configuration
 
-Comportement quand `veille` est `false` ou absent :
-- Les contrôleurs `newsletter_admin`, `newsletter`, `newsletter_public` retournent une erreur 404.
-- Les entrées de menu correspondantes sont masquées.
-- Les scripts CLI (`bin/newsletter_*.php`) vérifient le flag et s'arrêtent proprement s'il est désactivé.
-
-Le flag est `false` par défaut dans `program.example.php`. Il est activé manuellement par l'administrateur système dans `program.php` pour les clubs qui utilisent la fonctionnalité.
+Les paramètres opérationnels (compte IMAP, compte d'envoi, relecteurs, délai de réponse, modèle d'email de relecture, emplacement du stockage) sont configurables par un `club-admin` depuis `newsletter_admin/configuration`, qui écrit `application/config/newsletter.php`. Les mots de passe y sont stockés obfusqués et ne sont jamais réaffichés en clair.
 
 ### Autres points d'intégration
 
-- Les contrôleurs `newsletter_admin`, `newsletter` et `newsletter_public` vérifient le flag dans leur constructeur, avant toute logique métier.
-- L'accès à l'archive est réservé aux membres actifs connectés (`$this->require_role('user')`).
-- L'administration (configuration, gestion des abonnés, déclenchement manuel) est réservée aux `club-admin`.
-- Les scripts CLI (`newsletter_agent_runner`, collecteur de retours, cron de surveillance) sont placés dans `bin/` et configurés comme timers systemd sur le serveur.
+- L'accès à l'archive est réservé aux membres actifs connectés.
+- La suppression d'une édition, quel que soit son état, est proposée aux seuls `club-admin` dans la liste des éditions, sur la page d'une édition en brouillon et dans l'archive ; elle est traitée par une seule action de `newsletter_admin` (PDF de l'archive, stockage de l'édition, puis remarques, commentaires et envois en cascade).
+- L'administration (éditions, relecture, validation, configuration, abonnés) est réservée aux `club-admin`.
 
 ---
 
 ## Hors périmètre (V1)
 
+- Lancement de l'agent depuis GVV et génération sans intervention humaine.
+- Alertes immédiates hors du cycle newsletter.
 - Synchronisation des abonnés avec les membres GVV.
-- Sources avec authentification (espaces licenciés des fédérations).
-- Isolation réseau stricte de l'agent IA (envisagée en V2 si nécessaire).
-- Archivage du journal de veille pour audit DSAC (log des décisions de l'agent).

@@ -102,7 +102,7 @@
 </div>
 </div>
 
-<!-- ── Relecteurs / validateurs ─────────────────────────────────────────── -->
+<!-- ── Relecteurs ───────────────────────────────────────────────────────── -->
 <div class="card mb-3">
 <div class="card-header"><i class="fas fa-users text-warning"></i> <?= $this->lang->line('newsletter_config_people') ?></div>
 <div class="card-body">
@@ -112,11 +112,10 @@
            value="<?= htmlspecialchars($cfg['newsletter_reviewers'] ?? '') ?>"
            placeholder="alice@example.com, bob@example.com">
   </div>
-  <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_validators') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_validators"
-           value="<?= htmlspecialchars($cfg['newsletter_validators'] ?? '') ?>"
-           placeholder="cps@example.com">
+  <div class="mb-2" style="max-width: 20rem">
+    <label class="form-label"><?= $this->lang->line('nl_config_review_delay') ?></label>
+    <input type="number" min="0" max="60" class="form-control form-control-sm" name="newsletter_review_delay_days"
+           value="<?= htmlspecialchars(($cfg['newsletter_review_delay_days'] ?? '') !== '' ? $cfg['newsletter_review_delay_days'] : '2') ?>">
   </div>
   <hr class="my-3">
   <p class="form-text text-muted mb-2">
@@ -161,16 +160,11 @@
     </div>
   </div>
   <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_context_path') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_context_path"
-           value="<?= htmlspecialchars($cfg['newsletter_context_path'] ?? '') ?>"
-           placeholder="/srv/newsletter/context.md">
-  </div>
-  <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_output_path') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_output_path"
-           value="<?= htmlspecialchars($cfg['newsletter_output_path'] ?? '') ?>"
-           placeholder="/srv/newsletter/output">
+    <label class="form-label"><?= $this->lang->line('nl_config_storage_path') ?></label>
+    <input type="text" class="form-control form-control-sm" name="newsletter_storage_path"
+           value="<?= htmlspecialchars($cfg['newsletter_storage_path'] ?? '') ?>"
+           placeholder="<?= htmlspecialchars(APPPATH . 'storage/newsletter/') ?>">
+    <div class="form-text"><?= $this->lang->line('nl_config_storage_help') ?></div>
   </div>
   <div class="form-check">
     <input class="form-check-input" type="checkbox" name="newsletter_alerts_enabled" value="1"

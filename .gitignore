@@ -73,3 +73,6 @@ backups/*
 
 # Configuration PHP-FPM locale
 .user.ini
+
+# Fichiers de la veille (brouillons, versions, paquets d exécution)
+application/storage/*

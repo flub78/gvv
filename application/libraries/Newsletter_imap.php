@@ -186,6 +186,16 @@ class Newsletter_imap {
     }
 
     /**
+     * Retourne le message complet (en-têtes et corps MIME bruts).
+     *
+     * @param  int $uid
+     * @return string|false
+     */
+    public function fetch_raw($uid) {
+        return $this->curl($this->base_url($uid));
+    }
+
+    /**
      * Retourne la structure MIME d'un message (liste des parties avec nom et taille).
      *
      * @param  int $uid

@@ -182,6 +182,22 @@ class NewsletterModelsTest extends TestCase
         $this->assertNotContains((string) $id2, $ids);
     }
 
+    public function test_delete_any_status_with_cascade(): void
+    {
+        $m = $this->CI->newsletter_model;
+        $draft = $m->create(array('title' => 'ZZTest Delete draft', 'period_start' => '2026-08-01', 'period_end' => '2026-08-31'));
+        $pub = $m->create(array('title' => 'ZZTest Delete published', 'period_start' => '2026-08-01', 'period_end' => '2026-08-31'));
+        $m->transition($pub, 'approved');
+        $m->transition($pub, 'published');
+        $m->add_review($pub, array('reviewer_email' => 'zztest_del@example.invalid', 'content' => 'remarque'));
+
+        $this->assertTrue($m->delete($pub));
+        $this->assertEmpty($m->get($pub));
+        $this->assertSame(array(), $m->get_reviews($pub), 'remarques supprimées en cascade');
+        $this->assertTrue($m->delete($draft));
+        $this->assertFalse($m->delete($draft), 'une édition déjà supprimée');
+    }
+
     // -------------------------------------------------------------------------
     // newsletter_subscribers_model
     // -------------------------------------------------------------------------
@@ -284,5 +300,33 @@ class NewsletterModelsTest extends TestCase
         $this->assertFalse($this->CI->newsletter_subscribers_model->already_sent($nl_id, $sub['id']));
         $this->CI->newsletter_subscribers_model->record_sending($nl_id, $sub['id']);
         $this->assertTrue($this->CI->newsletter_subscribers_model->already_sent($nl_id, $sub['id']));
+    }
+
+    public function test_get_not_sent_skips_reached_and_later_subscribers(): void
+    {
+        $nl_id = $this->CI->newsletter_model->create(array(
+            'title' => 'ZZTest Not sent', 'period_start' => '2026-10-01', 'period_end' => '2026-10-31',
+        ));
+        $subs = array();
+        foreach (array('h', 'i', 'j') as $k) {
+            $r = $this->CI->newsletter_subscribers_model->subscribe(array(
+                'email' => "zztest_newsletter_$k@example.invalid", 'first_name' => 'T', 'last_name' => strtoupper($k),
+            ));
+            $this->CI->newsletter_subscribers_model->confirm($r['confirmation_token']);
+            $subs[$k] = $this->CI->newsletter_subscribers_model->get_by_email("zztest_newsletter_$k@example.invalid");
+        }
+        // h déjà atteint ; j abonné après la publication
+        $this->CI->newsletter_subscribers_model->record_sending($nl_id, $subs['h']['id']);
+        $this->CI->db->where('id', $subs['j']['id'])->update('newsletter_subscribers', array('confirmed_at' => '2026-11-15 10:00:00'));
+        $this->CI->db->where('id', $subs['h']['id'])->update('newsletter_subscribers', array('confirmed_at' => '2026-10-01 10:00:00'));
+        $this->CI->db->where('id', $subs['i']['id'])->update('newsletter_subscribers', array('confirmed_at' => '2026-10-01 10:00:00'));
+
+        $emails = function ($rows) {
+            return array_values(array_filter(array_column($rows, 'email'), function ($e) { return strpos($e, 'zztest_newsletter_') === 0; }));
+        };
+        $this->assertSame(array('zztest_newsletter_i@example.invalid', 'zztest_newsletter_j@example.invalid'),
+            $emails($this->CI->newsletter_subscribers_model->get_not_sent($nl_id)));
+        $this->assertSame(array('zztest_newsletter_i@example.invalid'),
+            $emails($this->CI->newsletter_subscribers_model->get_not_sent($nl_id, '2026-11-01 09:00:00')));
     }
 }

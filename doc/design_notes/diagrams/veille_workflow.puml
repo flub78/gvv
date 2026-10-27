@@ -2,28 +2,30 @@
 skinparam backgroundColor white
 skinparam defaultFontSize 12
 
-title Cycle de vie d'une newsletter de veille
+title Cycle de vie d'une newsletter de veille (version 1)
 
-[*] --> brouillon : Cron mensuel\n→ Agent IA
+[*] --> generation : Nouvelle période
 
-brouillon --> en_relecture : Brouillon créé\n→ envoi aux relecteurs
+generation --> brouillon : Admin importe le brouillon v1\n(.md ou .zip)
 
-en_relecture --> en_relecture : Retours reçus\n→ Agent IA\n(consolidation quotidienne)\n→ nouvelle version\n→ renvoi aux relecteurs
+brouillon --> brouillon : Admin annote le brouillon\n(« Commentaire du DTO : … »)
 
-en_relecture --> en_validation : Relecteurs satisfaits\nou délai dépassé\n→ envoi aux validateurs
+brouillon --> en_relecture : Admin transmet aux relecteurs\n(PDF du brouillon annoté)
 
-en_validation --> en_validation : Validateur modifie\net renvoie
+en_relecture --> en_relecture : Admin relève les réponses\net trie les remarques
 
-en_validation --> approuvée : Approbation\n(email ou GVV)
+en_relecture --> brouillon : Admin télécharge les consignes de modification,\nl'agent IA produit la version N+1,\nadmin l'importe
 
-approuvée --> publiée : Agent IA finalise\n(supprime remarques)\n→ PDF\n→ archive GVV\n→ envoi abonnés
+brouillon --> validée : Admin valide\n(directement s'il n'y a pas de remarques)
+
+validée --> publiée : Notes internes supprimées\n→ PDF\n→ archive GVV\n→ envoi aux abonnés
 
 publiée --> [*]
 
-state brouillon : Fichier .md créé\npar l'agent IA
-state en_relecture : Versions successives\nstockées en base
-state en_validation : Dernière version\nde relecture
-state approuvée : Version finale\npropre générée
+state "génération" as generation : L'agent IA explore les sources\net rédige le brouillon v1\n(+ remarques reportées)
+state brouillon : Version N du brouillon\n+ commentaires de l'admin
+state en_relecture : Réponses reçues sur veille@\nRemarques : acceptée, modifiée,\nrejetée, reportée
+state validée : Version validée\n(qui, quand)
 state publiée : PDF archivé\nAbonnés notifiés
 
 @enduml

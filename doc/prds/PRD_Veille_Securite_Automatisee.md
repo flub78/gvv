@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Version** | 0.5 (brouillon) |
-| **Date** | 22/10/2026 |
+| **Version** | 0.7 (brouillon) |
+| **Date** | 25/10/2026 |
 | **Auteur** | Frédéric Peignot, avec Claude |
 | **Statut** | À valider |
 | **Premier client** | Aéroclub d'Abbeville-Buigny-Baie de Somme (ACS), DTO FR.DTO.0645 |
@@ -21,18 +21,19 @@ Aujourd'hui, cette veille est manuelle et dispersée :
 - **La diffusion aux membres est irrégulière** et peu attractive.
 - **La preuve de veille n'est pas archivée** de façon structurée.
 
-La newsletter répond à ces quatre points : elle centralise la veille, elle est rédigée automatiquement par un agent IA à partir d'un fichier de contexte, puis relue et validée par des humains via email ou interface GVV, et chaque édition constitue une trace datée de la veille.
+La newsletter répond à ces quatre points : elle centralise la veille, elle est rédigée par un agent IA qui suit ses propres consignes, puis annotée, relue par email et validée par un administrateur dans GVV ; chaque édition, avec le journal tenu par l'agent, constitue une trace datée de la veille.
 
 ## 2. Objectifs
 
 | # | Objectif | Indicateur |
 |---|---|---|
 | O1 | Collecter automatiquement les informations sécurité et réglementaires des sources configurées | Au moins 95 % des éléments pertinents retenus, mesuré par un test rétroactif contre une liste de référence établie par le RP |
-| O2 | Produire à chaque période un brouillon de newsletter utile et agréable à lire | Validation en 30 min ou moins ; au moins 80 % des articles proposés jugés pertinents par le validateur |
-| O3 | Ne jamais diffuser d'information fausse ou malveillante | Aucune newsletter envoyée sans validation humaine |
-| O4 | Fournir une preuve de veille présentable en audit | Journal horodaté de chaque information : source, date, décision, édition de diffusion ; conservé au moins 36 mois |
+| O2 | Produire à chaque période un brouillon de newsletter utile et agréable à lire | Validation en 30 min ou moins ; au moins 80 % des articles proposés jugés pertinents par l'administrateur qui valide |
+| O3 | Ne jamais diffuser d'information fausse ou malveillante | Aucune newsletter envoyée sans validation humaine ; chaque article cite une source réelle consultable |
+| O4 | Fournir une preuve de veille présentable en audit | Journal de l'agent pour chaque exécution (sources consultées, résultat, documents détectés, décision et motif), conservé par l'agent, et newsletters publiées dans GVV, conservés au moins 36 mois |
 | O5 | Permettre l'abonnement de personnes extérieures au club | Inscription/désinscription autonome ; envoi automatique à la publication |
 | O6 | Valider les briques technologiques avant tout développement | Page de validation démontrant l'envoi d'email, la lecture de boîte, et l'accès à l'API IA |
+| O7 | Publier une newsletter d'aspect professionnel | PDF mis en page (bandeau de titre, rubriques, encadrés, images), lisible à l'écran et à l'impression |
 
 ### Hors objectifs (version 1)
 
@@ -41,25 +42,28 @@ La newsletter répond à ces quatre points : elle centralise la veille, elle est
 - Modifier automatiquement le manuel de sécurité.
 - Gérer des sources payantes.
 - Publier un article sans validation humaine.
+- Lancer l'agent IA depuis GVV, ou générer automatiquement le brouillon sans intervention humaine (voir § 10).
 
 ## 3. Utilisateurs et acteurs
 
 | Rôle | Besoin |
 |---|---|
-| **Administrateur** | Configurer les sources, désigner les relecteurs et validateurs, gérer les abonnés |
+| **Administrateur** (administrateur de la veille, CPS ou personne désignée) | Lancer l'agent IA, importer ses brouillons dans GVV, les annoter, les transmettre aux relecteurs, relever et trier leurs remarques, fournir à l'agent les consignes de modification, valider la newsletter ; désigner les relecteurs, gérer les abonnés |
 | **Abonnés** (membres et sympathisants) | S'abonner, se désabonner, recevoir la newsletter par email à chaque période |
-| **Agent IA** (acteur automatique) | Analyser périodiquement les sources, filtrer les informations pertinentes, rédiger le brouillon, intégrer les remarques des relecteurs, générer la version finale |
-| **Relecteurs** | Recevoir le brouillon par email, envoyer des remarques, des articles supplémentaires et des images par retour d'email ou via l'interface GVV |
-| **Validateur** (CPS, RP en suppléance) | Recevoir la version finale du cycle de relecture, l'approuver ou la modifier par email ou via l'interface GVV |
-| **RP / représentant du DTO** | Consulter les newsletters archivées pour l'audit |
+| **Agent IA** (configuré dans Claude Code, hors GVV) | Explorer les sources, identifier les documents nouveaux et modifiés, les trier selon ses consignes, rédiger la version initiale du brouillon d'une période ; tenir l'état de la veille et le journal des accès et des décisions ; produire une nouvelle version du brouillon à partir des consignes de modification fournies par l'administrateur |
+| **Relecteurs** | Recevoir le brouillon par email, répondre par email avec des remarques, des suggestions d'articles et des images |
+| **RP / représentant du DTO** | Consulter les newsletters archivées et le journal de l'agent pour l'audit |
 
 ## 4. Principes
 
-1. **L'agent IA s'appuie sur un fichier de contexte** fourni par l'administrateur : liste des sources, critères de sélection, directives de rédaction, description du club.
-2. **Le cycle de relecture est piloté par email** : les relecteurs répondent directement à l'email reçu ; l'agent IA consolide les retours d'une journée avant de créer une nouvelle version.
-3. **Rien n'est diffusé sans validation humaine.** L'approbation est faite par le validateur via email ou l'interface GVV, après signature vérifiée.
-4. **L'agent nettoie la version finale** : il supprime les remarques internes et la section de synthèse éditoriale avant publication.
-5. **Le mécanisme d'abonnement est indépendant** de la génération automatique et peut servir des newsletters générées manuellement.
+1. **Deux systèmes séparés.** L'agent IA rédige ; GVV gère la relecture, l'approbation et la diffusion. Ils échangent des fichiers par l'intermédiaire de l'administrateur : le brouillon dans un sens, les consignes de modification dans l'autre.
+2. **L'agent IA porte ses consignes et son état.** Le registre des sources, les critères de sélection, la description du club et de sa flotte, les directives de rédaction, l'inventaire des documents suivis et le journal des accès et des décisions sont gérés avec l'agent, pas dans GVV.
+3. **Le brouillon se suffit à lui-même.** Le titre, la période et le numéro de version sont lus dans le brouillon ; l'administrateur n'a rien à ressaisir à l'import.
+4. **La relecture se fait par email, le pilotage dans GVV.** Les relecteurs répondent à l'email reçu ; l'administrateur relève les réponses dans GVV et décide du sort de chaque remarque. Aucune nouvelle version n'est produite sans sa décision.
+5. **Rien n'est diffusé sans validation humaine.** La validation est une action explicite de l'administrateur dans GVV.
+6. **Les notes internes ne sortent pas du club** : les remarques destinées au CPS et aux relecteurs sont supprimées avant la mise en forme PDF et la diffusion.
+7. **Le mécanisme d'abonnement est indépendant** de la rédaction : les abonnements se gèrent sans lien avec le cycle des éditions.
+8. **La publication se fait depuis l'édition.** Une newsletter n'est publiée que depuis la page de son édition, par l'action « Valider et publier ».
 
 ## 5. Contenu de la newsletter
 
@@ -76,19 +80,21 @@ Chaque édition comprend, dans cet ordre :
 6. **Articles des contributeurs** : articles proposés par des membres ou relecteurs.
 7. **Pied de page** : mention « Synthèse indicative, préparée avec une assistance automatisée et validée par le club. Seuls les textes officiels font foi. », lien de désinscription en un clic.
 
-Une section vide est omise.
+Une section vide est omise. La newsletter peut aussi contenir des **commentaires de l'administrateur**, insérés sous un paragraphe et présentés comme tels (par exemple « Commentaire du DTO : le plafond à 400 ft de ces zones fait qu'on n'a pas vraiment de raisons d'y pénétrer »).
 
 ## 6. Périmètre fonctionnel
 
 ### 6.1 Sources
 
-Les sources sont configurées par l'administrateur dans un fichier de contexte transmis à l'agent :
+Les sources sont décrites dans le registre des sources des consignes de l'agent, hors GVV :
 
 | Type | Exemples |
 |---|---|
-| Boîte de collecte | `veille@aeroclub-abbeville.fr` |
-| Flux RSS | EASA, BEA, DSAC, fédérations |
-| Sites web publics | veilledoc.dsac.fr, pages d'actualité DSAC, Légifrance |
+| Boîte de collecte | `veille@aeroclub-abbeville.fr` (VEILLEDOC, newsletter BEA, courriels FFA transférés) |
+| Flux RSS et Atom | EASA (règlements, décisions, AMC/GM, actualités), LegiFRSS |
+| Sites web publics | SIA, Prévol DSAC, BEA, pages sécurité et REX des fédérations |
+| Sites nécessitant un navigateur | Sites entièrement générés en JavaScript (FFA, liste des rapports BEA), bibliothèques Calaméo (CNVP, Planeur Info) |
+| Outils de recherche publics | Outil EASA des consignes de navigabilité, interrogé par type d'aéronef de la flotte |
 
 ### 6.2 Fonctionnalités
 
@@ -100,36 +106,48 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F0.2 **Lecture de boîte mail** : connexion à la boîte de réception, comptage des emails reçus depuis une date donnée, lecture des sujets et repérage d'emails par pattern dans le titre, lecture du contenu, accès aux pièces jointes.
 - F0.3 **API IA** : réception d'une réponse à une requête simple, transmission de fichiers de contexte et d'images ou PDF, génération de documents en markdown ou PDF.
 
-**F1. Génération automatique du brouillon**
+**F1. Génération du brouillon (agent IA, hors GVV)**
 
-- F1.1 L'agent est déclenché automatiquement chaque mois par un cron.
-- F1.2 Il reçoit un fichier de contexte contenant la liste des sources, les critères de sélection, les directives de rédaction et la description du club.
-- F1.3 Il analyse les sources pour identifier les nouveaux documents publiés depuis la dernière édition.
-- F1.4 Il rédige un brouillon de newsletter selon la structure du § 5.
-- F1.5 Un cron séparé, sans IA, surveille la création du brouillon et alerte l'administrateur en cas d'absence.
+*Exigences sur le résultat d'une exécution de l'agent :*
 
-**F2. Relecture par email**
+- F1.1 Toutes les sources dues du registre sont explorées : boîte de collecte, sites web, y compris ceux qui nécessitent un navigateur, et flux RSS.
+- F1.2 Les documents nouveaux depuis l'exécution précédente sont identifiés.
+- F1.3 Les documents modifiés depuis l'exécution précédente sont identifiés, y compris quand la source ne change pas la date de publication.
+- F1.4 Chaque document nouveau ou modifié est analysé selon les critères des consignes (activités du club, flotte, impact) et fait l'objet d'une décision : retenu, à vérifier ou écarté, avec un motif.
+- F1.5 Le brouillon suit la structure du § 5 et ne contient que des articles fondés sur des documents réels, avec leur lien. Un document dont la date de publication n'a pas pu être établie n'est pas présenté comme une nouveauté de la période.
+- F1.6 L'agent tient un journal : chaque tentative d'accès à une source et son résultat (succès, partiel, indisponible, non accessible), les documents détectés, et pour chacun la décision et son motif, ainsi qu'un bilan de l'exécution.
+- F1.7 L'agent tient l'état de la veille (inventaire des documents suivis), mis à jour à chaque exécution et servant de référence à l'exécution suivante.
+- F1.8 L'agent génère la version initiale du brouillon d'une période.
+- F1.9 L'agent génère une nouvelle version du brouillon à partir des consignes de modification produites par GVV (F2.9), images comprises.
+- F1.10 Le brouillon indique son titre (premier titre du document), sa période (ligne « Période : du … au … ») et son numéro de version (mention « BROUILLON vN »). Il est livré sous forme d'un fichier Markdown, ou d'une archive zip contenant le Markdown et un sous-répertoire d'images lorsqu'il en référence.
 
-- F2.1 Une fois le brouillon créé, il est envoyé aux relecteurs par email.
-- F2.2 Les relecteurs peuvent répondre à l'email avec des remarques, des articles supplémentaires et des images.
-- F2.3 Ils peuvent également soumettre leurs retours via l'interface GVV.
-- F2.4 Un agent IA consolide l'ensemble des remarques reçues dans la journée et élabore une nouvelle version intégrant ces retours.
-- F2.5 La nouvelle version est renvoyée aux relecteurs pour un nouveau cycle.
-- F2.6 Seules les remarques provenant de relecteurs autorisés sont prises en compte (vérification par adresse email ou authentification GVV).
+**F2. Import, annotation et relecture dans GVV**
+
+- F2.1 L'administrateur importe un brouillon : un fichier Markdown, ou une archive zip contenant un fichier Markdown et un sous-répertoire d'images. GVV lit le titre, la période et la version dans le brouillon et signale explicitement ce qui manque ; il signale aussi les images référencées absentes de l'archive.
+- F2.2 Un brouillon dont la période correspond à une édition en cours en devient la version suivante ; sinon, une nouvelle édition est créée. Une version déjà importée, ou une édition déjà validée ou publiée, est refusée avec un message explicite.
+- F2.3 L'administrateur peut insérer des commentaires sous n'importe quel paragraphe du brouillon, avec un libellé (« Commentaire du DTO » par défaut) et un texte, et les supprimer. Les commentaires apparaissent dans le brouillon affiché, dans le PDF transmis aux relecteurs et dans la newsletter publiée.
+- F2.4 L'administrateur transmet le brouillon annoté aux relecteurs par email, en PDF. L'email indique la date limite de réponse, deux jours après l'envoi par défaut, et demande surtout aux relecteurs de signaler toute information qui aurait dû figurer dans la newsletter et qui n'y est pas, avec sa source s'ils la connaissent.
+- F2.5 Les relecteurs répondent à l'email avec des remarques, des suggestions d'articles et des images, reçues sur l'adresse de veille.
+- F2.6 Un bouton, sur chaque brouillon transmis, relève les réponses reçues sur l'adresse de veille pour cette newsletter. Une réponse déjà relevée ne l'est pas une seconde fois. Seules les réponses provenant de relecteurs autorisés sont retenues ; les autres sont signalées à l'administrateur avec le motif.
+- F2.7 Pour chaque remarque, l'administrateur décide : l'accepter, la modifier (c'est alors le texte modifié qui est retenu), la rejeter (elle n'est pas transmise à l'agent) ou la reporter à une prochaine édition.
+- F2.8 Une remarque reportée est reproposée lors du tri des éditions suivantes ; l'administrateur peut télécharger les remarques reportées pour les fournir à l'agent qui génère la version initiale d'une prochaine édition.
+- F2.9 Un bouton télécharge les consignes de modification destinées à l'agent IA : un fichier Markdown, ou une archive zip contenant ce fichier et un sous-répertoire avec les images à intégrer. Chaque élément y porte un statut dans le vocabulaire de l'agent : **APPLIQUER** pour les commentaires de l'administrateur et les remarques acceptées ou modifiées (pour une remarque modifiée, le texte à appliquer est celui de l'administrateur, le texte du relecteur est cité pour mémoire), **REPORTER** pour les remarques reportées à une prochaine édition. Les remarques rejetées n'y figurent pas.
+- F2.10 À l'import de la nouvelle version (F2.1), l'administrateur peut la retransmettre aux relecteurs pour un nouveau tour, ou la valider. GVV conserve toutes les versions et affiche les différences avec la précédente.
 
 **F3. Validation**
 
-- F3.1 Une fois la phase de relecture terminée, la dernière version est envoyée aux validateurs.
-- F3.2 Les validateurs peuvent encore modifier la newsletter.
-- F3.3 L'un d'entre eux approuve la version finale, par email ou via l'interface GVV.
-- F3.4 L'approbation par email doit provenir d'une adresse autorisée ; l'approbation via GVV nécessite une authentification.
-- F3.5 Aucune newsletter n'est envoyée sans approbation explicite d'un validateur.
+- F3.1 L'administrateur peut valider le brouillon courant à tout moment : après un ou plusieurs tours de relecture, ou directement s'il n'y a pas de remarques. La validation et la publication (F4) forment une seule action, « Valider et publier », confirmée par l'administrateur ; si la publication échoue, l'édition reste validée et la publication peut être relancée.
+- F3.2 Avant la validation, GVV signale les mentions restant à compléter dans le brouillon.
+- F3.3 Aucune newsletter n'est diffusée sans validation.
+- F3.4 La validation enregistre qui a validé, quand, et la version validée.
+- F3.5 La newsletter publiée se termine par la mention « Validé le jj/mm/aaaa par {prénom et nom du valideur} ».
 
 **F4. Finalisation et publication**
 
-- F4.1 Une fois la version approuvée, l'agent IA supprime les remarques internes et la section de synthèse éditoriale, puis génère la version définitive.
-- F4.2 La newsletter définitive est archivée sur le serveur dans un espace accessible aux membres actifs connectés (format PDF).
-- F4.3 La newsletter est envoyée aux abonnés en pièce jointe par email, accompagnée d'un texte d'annonce et du lien de désinscription.
+- F4.1 Une fois le brouillon validé, les notes internes destinées au CPS et aux relecteurs sont supprimées, y compris les notes de rédaction entre doubles accolades ({{ … }}), et la mention de validation (F3.5) est ajoutée.
+- F4.2 La newsletter est mise en forme en PDF, avec une présentation moderne et professionnelle : bandeau de titre avec le nom du club, la période et le numéro, rubriques et articles hiérarchisés visuellement, encadrés pour les avertissements et les commentaires de l'administrateur, images intégrées, pied de page avec la pagination. Chaque section commence sur une nouvelle page, sauf si plusieurs sections tiennent sur la même page.
+- F4.3 La newsletter est archivée dans l'espace accessible aux membres actifs connectés.
+- F4.4 La newsletter est envoyée aux abonnés en pièce jointe par email, accompagnée d'un texte d'annonce, d'une invitation à envoyer remarques et informations manquantes (avec leur source) à l'adresse de veille, et du lien de désinscription.
 
 **F5. Abonnements**
 
@@ -137,67 +155,67 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F5.2 L'inscription demande le nom, le prénom et l'adresse email. Le nom et le prénom sont utilisés pour personnaliser l'email d'envoi.
 - F5.3 Désinscription en un clic depuis la newsletter ou depuis la page d'abonnement.
 - F5.4 Les administrateurs club peuvent accéder à la liste des abonnés et supprimer des abonnements.
-- F5.5 Ce mécanisme est indépendant de la génération automatique et peut servir des newsletters générées manuellement.
+- F5.6 La page d'administration des abonnés donne le lien de la page publique d'abonnement, à diffuser.
 
 **F6. Archive et consultation**
 
 - F6.1 Les newsletters sont stockées sous forme de PDF sur le serveur GVV.
-- F6.2 Les membres actifs connectés peuvent consulter l'archive des newsletters. Cliquer sur une newsletter l'ouvre dans un onglet séparé.
+- F6.2 Les membres actifs connectés peuvent consulter l'archive des newsletters. Cliquer sur une newsletter l'ouvre dans un onglet séparé. Les dates (période, publication) sont affichées au format local.
+- F6.4 Les administrateurs club peuvent supprimer une newsletter de l'archive, après confirmation : le PDF publié et les données de l'édition sont supprimés.
+- F6.3 Le journal de l'agent et l'état de la veille sont conservés par l'agent au moins 36 mois, pour l'audit.
 
-**F7. Alertes immédiates (optionnelles)**
+**F7. Administration**
 
-- F7.1 L'agent peut détecter dans les sources des informations urgentes (consigne de navigabilité urgente, NOTAM local, etc.) nécessitant une diffusion immédiate hors du cycle newsletter.
-- F7.2 Lorsque cette option est activée, une notification immédiate est envoyée aux validateurs par email ou SMS.
-- F7.3 L'administrateur active ou désactive cette option et choisit le canal de notification (email, SMS, ou les deux) pour chaque validateur.
-
-**F8. Administration**
-
-- F8.1 L'administrateur configure le fichier de contexte de l'agent : liste des sources, critères de sélection, directives de rédaction, description du club.
-- F8.2 Il désigne les relecteurs autorisés et les validateurs, avec leur canal de notification préféré (email, SMS) pour les alertes immédiates.
-- F8.3 Il fixe la périodicité de la newsletter.
-- F8.4 Il peut accéder à la liste des abonnés et supprimer des abonnements.
+- F7.1 L'administrateur désigne les relecteurs autorisés et le délai de réponse.
+- F7.2 Il configure la boîte de veille (lecture) et le compte d'envoi.
+- F7.3 Il peut accéder à la liste des abonnés et supprimer des abonnements.
+- F7.4 Il peut supprimer une édition, quel que soit son état, depuis la liste des éditions, après confirmation : ses versions, commentaires, remarques et, si elle est publiée, son PDF sont supprimés.
 
 ## 7. Workflow global
 
 ```
-[Cron mensuel]
+[Agent IA, Claude Code]                        consignes, sources, état, journal
+     │ version initiale v1 d'une période
+     ▼
+[Admin] ── importe le brouillon (.md ou .zip) dans GVV
      │
      ▼
-[Agent IA] ── fichier de contexte (sources, critères, directives)
-     │ analyse des sources, rédaction
-     ▼
-[Brouillon] ── envoyé aux relecteurs par email
+[Brouillon vN] ── admin annote (« Commentaire du DTO : … »)
      │
-     ▼
-[Relecteurs] ── réponses par email ou interface GVV
-     │              (remarques, articles, images)
-     ▼
-[Agent IA] ── consolidation des retours (1 fois/jour)
-     │ nouvelle version
-     ▼
-[Nouvelle version] ── renvoyée aux relecteurs
-     │ (plusieurs cycles possibles)
-     ▼
-[Validateurs] ── reçoivent la dernière version
-     │ modifications possibles
-     │ approbation (email ou GVV)
-     ▼
-[Agent IA] ── supprime remarques internes
-     │ génère version définitive (PDF)
-     ▼
-[Archive GVV] + [Envoi aux abonnés]
+     ├──────────────── pas de remarques ──────────────┐
+     ▼                                                 │
+[Admin] ── transmet aux relecteurs (PDF, email)        │
+     │                                                 │
+     ▼                                                 │
+[Relecteurs] ── répondent par email (veille@)          │
+     │                                                 │
+     ▼                                                 │
+[Admin] ── relève les réponses dans GVV                │
+     │ accepte / modifie / rejette / reporte           │
+     │ télécharge les consignes de modification        │
+     ▼                                                 │
+[Agent IA] ── produit la version vN+1                  │
+     │                                                 │
+     ▼                                                 │
+[Admin] ── importe vN+1 : nouveau tour, ou ────────────┤
+                                                       ▼
+                                    [Admin valide et publie le brouillon]
+                                                       │
+                                                       ▼
+                              suppression des notes internes → PDF mis en page
+                                                       │
+                                                       ▼
+                                     [Archive GVV] + [Envoi aux abonnés]
 ```
 
 ## 8. Architecture technique (indicative)
 
-- **Agent IA** : Claude Code en mode non interactif (`claude -p`) ou Agent SDK, lancé par un timer systemd mensuel.
-- **Fichier de contexte** : fichier Markdown/JSON maintenu par l'administrateur, contenant les sources, critères et directives.
-- **Lecture des sources** : accès direct aux flux RSS et sites web publics ; lecture de la boîte mail IMAP.
-- **Cycle de relecture** : gestion des threads email entrants ; interface GVV pour la soumission de retours.
-- **Surveillance** : cron séparé sans IA pour détecter l'absence de brouillon.
+- **Agent IA** : Claude Code, configuré avec les consignes de la veille, avec accès au disque et navigation web. Il conserve l'état de la veille et le journal.
+- **Échanges avec GVV** : fichiers transmis par l'administrateur (brouillon vers GVV, consignes de modification vers l'agent), au format Markdown ou zip avec images.
+- **Cycle de relecture** : relevé à la demande des réponses reçues sur l'adresse de veille ; tri et décisions dans GVV.
 - **Envoi** : SMTP du domaine, email personnalisé avec pièce jointe PDF et lien de désinscription.
-- **Archive** : fichiers PDF sur le serveur GVV, accessibles via l'interface membres.
-- **Application** : module GVV pour l'administration, la validation, les abonnements et l'archive.
+- **Archive** : fichiers PDF sur le serveur GVV, accessibles via l'interface.
+- **Application** : module GVV pour l'import, l'annotation, la relecture, la validation, les abonnements et l'archive.
 
 ## 9. Plan de livraison
 
@@ -205,16 +223,24 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 |---|---|---|
 | **P0. Validation infrastructure** | Page de validation : envoi email, lecture boîte, API IA | Toutes les briques fonctionnelles démontrées |
 | **P1. Abonnements** | URL publique d'abonnement/désinscription, gestion admin, archive PDF membres | Un abonné peut s'inscrire, recevoir une newsletter envoyée manuellement, se désabonner |
-| **P2. MVP génération automatique** | Cron mensuel, agent IA, cycle de relecture email, validation, finalisation | 2 éditions générées et validées automatiquement |
+| **P2. Cycle de relecture dans GVV** | Import du brouillon (.md ou .zip), annotation, transmission aux relecteurs, relevé et tri des remarques, consignes de modification, validation, PDF mis en page, diffusion | 2 éditions générées par l'agent, relues, révisées, validées et diffusées via GVV |
 | **P3. Ouverture aux membres** | Envoi à tous les abonnés ; ouverture des propositions d'articles | Désabonnements < 5 % ; au moins une contribution publiée par édition |
 
-## 10. RGPD et conformité
+## 10. Évolutions envisagées après la version 1
 
-- **Traitement à inscrire au registre** du club. Finalité : veille sécurité et information. Base légale : intérêt légitime (sécurité des vols, obligation DTO.GEN.210) ; consentement pour l'abonnement. Sous-traitant : Anthropic (API).
+- Génération du brouillon sans intervention humaine : agent installé sur le serveur d'exploitation, déclenché à date fixe, résultats importés et transmis automatiquement aux relecteurs ; échecs signalés à l'administrateur.
+- Alertes immédiates : information urgente détectée par l'agent (consigne de navigabilité urgente, NOTAM local) diffusée hors du cycle newsletter, par email ou SMS.
+- Retours des relecteurs saisis directement dans GVV, en plus de l'email.
+- Approbation par email d'un validateur distinct de l'administrateur, avec relances en l'absence de réponse.
+- Relevé automatique et quotidien des réponses des relecteurs.
+
+## 11. RGPD et conformité
+
+- **Traitement à inscrire au registre** du club. Finalité : veille sécurité et information. Base légale : intérêt légitime (sécurité des vols, obligation DTO.GEN.210) ; consentement pour l'abonnement. Sous-traitant : Anthropic (Claude Code).
 - **Abonnés** : nom, prénom et adresse email, conservés jusqu'à la désinscription.
 - **Anonymisation** des REX.
-- **Droit à l'image** : une photo montrant des personnes identifiables n'est publiée qu'avec leur accord, vérifié par le validateur.
+- **Droit à l'image** : une photo montrant des personnes identifiables n'est publiée qu'avec leur accord, vérifié par l'administrateur avant la validation.
 
-## 11. Questions ouvertes
+## 12. Questions ouvertes
 
-Aucune question ouverte à ce stade.
+Aucune à ce stade.

@@ -7,6 +7,8 @@
  *
  * Routes :
  *   GET newsletter/index   Liste des newsletters publiées
+ *
+ * La suppression (club-admin) est traitée par newsletter_admin/delete_edition.
  */
 
 class Newsletter extends MY_Controller {
@@ -58,6 +60,7 @@ class Newsletter extends MY_Controller {
         $data = array(
             'title'       => $this->lang->line('newsletter_archive_title'),
             'newsletters' => $this->newsletter_model->get_published(),
+            'message'     => $this->session->flashdata('message'),
         );
         $this->load->view('bs_header', $data);
         $this->load->view('bs_menu');
