@@ -4,13 +4,17 @@ skinparam defaultFontSize 12
 
 title Cycle de vie d'une newsletter de veille (version 1)
 
-[*] --> brouillon : Import d'un brouillon pour une période\n(manuel : étape 1,\nautomatique : étape 2)
+[*] --> generation : Nouvelle période
 
-brouillon --> en_relecture : Admin transmet aux relecteurs\n(automatique après un import automatique)
+generation --> brouillon : Admin importe le brouillon v1\n(.md ou .zip)
 
-en_relecture --> en_relecture : Admin récupère les réponses\n(après la date limite)\net trie les suggestions
+brouillon --> brouillon : Admin annote le brouillon\n(« Commentaire du DTO : … »)
 
-en_relecture --> brouillon : Admin demande une nouvelle version\n→ agent IA\n(brouillon + suggestions acceptées)
+brouillon --> en_relecture : Admin transmet aux relecteurs\n(PDF du brouillon annoté)
+
+en_relecture --> en_relecture : Admin relève les réponses\net trie les remarques
+
+en_relecture --> brouillon : Admin télécharge les consignes de modification,\nl'agent IA produit la version N+1,\nadmin l'importe
 
 brouillon --> validée : Admin valide\n(directement s'il n'y a pas de remarques)
 
@@ -18,8 +22,9 @@ validée --> publiée : Notes internes supprimées\n→ PDF\n→ archive GVV\n�
 
 publiée --> [*]
 
-state brouillon : Version N du brouillon\n+ rapport d'activité
-state en_relecture : Réponses reçues sur veille@\nSuggestions : acceptée, modifiée,\nrejetée, reportée
+state "génération" as generation : L'agent IA explore les sources\net rédige le brouillon v1\n(+ remarques reportées)
+state brouillon : Version N du brouillon\n+ commentaires de l'admin
+state en_relecture : Réponses reçues sur veille@\nRemarques : acceptée, modifiée,\nrejetée, reportée
 state validée : Version validée\n(qui, quand)
 state publiée : PDF archivé\nAbonnés notifiés
 

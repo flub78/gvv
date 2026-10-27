@@ -184,11 +184,10 @@ class Newsletter_model extends CI_Model {
     }
 
     /**
-     * Supprime une édition (admin uniquement, statut draft).
+     * Supprime une édition, quel que soit son état ; ses remarques,
+     * commentaires et envois sont supprimés en cascade.
      */
     public function delete($id) {
-        $newsletter = $this->get($id);
-        if (!$newsletter || $newsletter['status'] !== self::STATUS_DRAFT) return FALSE;
         $this->db->where('id', (int) $id)->delete($this->table);
         return $this->db->affected_rows() > 0;
     }

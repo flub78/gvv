@@ -166,18 +166,6 @@
     </div>
   </div>
   <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_context_path') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_context_path"
-           value="<?= htmlspecialchars($cfg['newsletter_context_path'] ?? '') ?>"
-           placeholder="/srv/newsletter/context.md">
-  </div>
-  <div class="mb-2">
-    <label class="form-label"><?= $this->lang->line('newsletter_config_output_path') ?></label>
-    <input type="text" class="form-control form-control-sm" name="newsletter_output_path"
-           value="<?= htmlspecialchars($cfg['newsletter_output_path'] ?? '') ?>"
-           placeholder="/srv/newsletter/output">
-  </div>
-  <div class="mb-2">
     <label class="form-label"><?= $this->lang->line('nl_config_storage_path') ?></label>
     <input type="text" class="form-control form-control-sm" name="newsletter_storage_path"
            value="<?= htmlspecialchars($cfg['newsletter_storage_path'] ?? '') ?>"

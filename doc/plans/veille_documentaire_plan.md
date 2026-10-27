@@ -1,6 +1,6 @@
 # Plan — Veille documentaire (newsletter de veille sécurité)
 
-Date : 24 octobre 2026
+Date : 25 octobre 2026
 
 ## Références
 - PRD : [doc/prds/PRD_Veille_Securite_Automatisee.md](../prds/PRD_Veille_Securite_Automatisee.md)
@@ -8,7 +8,7 @@ Date : 24 octobre 2026
 
 ## Objectif
 
-Livrer en cinq phases le système de newsletter de veille sécurité et réglementaire : validation de l'infrastructure (P0), abonnements et archive (P1), étape 1 avec un brouillon généré sur Claude Desktop puis relu, validé et diffusé via GVV (P2), étape 2 avec un agent autonome sur le serveur d'exploitation piloté depuis GVV (P3), ouverture à tous les abonnés (P4).
+Livrer en quatre phases le système de newsletter de veille sécurité et réglementaire : validation de l'infrastructure (P0), abonnements et archive (P1), cycle de relecture dans GVV des brouillons produits par l'agent de rédaction (P2), ouverture à tous les abonnés (P3). L'agent de rédaction est configuré dans Claude Code, hors de GVV ; il n'est pas couvert par ce plan.
 
 ## Feature flag
 
@@ -16,15 +16,12 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 
 ## Hypothèses de réalisation
 
-- Étape 1 : l'administrateur génère le brouillon avec Claude Desktop sous Windows, à partir du kit téléchargé depuis GVV. Le fichier de contexte mis au point pendant le spike (`tmp/Veille/veille_agent_contexte.md`, v0.8) sert de version initiale des consignes.
-- Étape 2 : l'agent est `claude` CLI en mode non interactif, avec le serveur MCP Playwright, installé pour tout le système sous l'identité `veille-agent`. Il est mis au point sur la machine de développement (gvv.net), puis le serveur d'exploitation (VM Oracle Cloud sous Ubuntu) est configuré par le même script.
-- La révision du brouillon (intégration des suggestions acceptées) appelle l'API Anthropic depuis GVV ; le retrait des notes internes est déterministe.
+- L'agent de rédaction (Claude Code) porte ses consignes, l'état de la veille et son journal. GVV n'échange avec lui que des fichiers : brouillon (.md ou .zip avec `img/`) et consignes de modification (.md ou .zip avec `img/`).
+- Le format du brouillon est celui des lettres produites pendant le spike : titre de niveau 1, ligne « Période : du … au … », mention « BROUILLON vN », section interne.
 - La lecture de la boîte mail utilise `Newsletter_imap` (cURL, l'extension `imap_*` étant absente du serveur).
 - L'envoi email s'appuie sur `MY_Email`, configuré avec le compte `veille@aeroclub-abbeville.fr`.
 - La configuration spécifique à la veille est dans `application/config/newsletter.php` (non versionné), éditée depuis `newsletter_admin/configuration`.
-- La prochaine migration disponible est la 182.
-- Le SMS optionnel (alertes immédiates) réutilise `Brevo_sms_adapter`.
-- La génération PDF des newsletters finalisées utilise TCPDF (déjà présent).
+- La génération PDF utilise TCPDF (déjà présent) ; les archives zip, l'extension PHP `zip`.
 
 ---
 
@@ -34,7 +31,6 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 - [x] Ajouter `$config['veille'] = false;` dans `program.example.php` avec commentaire explicatif
 - [x] Vérification du flag dans le constructeur de chaque contrôleur (`newsletter_admin`, `newsletter`, `newsletter_public`) : `if (!$this->config->item('veille')) show_404();`
 - [x] Masquage des entrées de menu liées à la veille quand le flag est désactivé (toutes les entrées sont dans des blocs `if (config('veille'))`)
-- [ ] Les scripts CLI `bin/newsletter_*.php` vérifient le flag et s'arrêtent proprement (exit 0 avec message de log) s'il est désactivé
 - [x] Activer `$config['veille'] = true;` dans `program.php` de l'environnement de développement pour la suite du développement
 
 **P0.1 — Page de configuration newsletter** (1 j)
@@ -49,7 +45,7 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 - [x] `newsletter_admin/test_email` : envoi d'un email de test depuis l'adresse configurée vers les destinataires saisis (pas de redirection `test_email`), résultat affiché
 - [x] `newsletter_admin/test_imap` : connexion, comptage depuis une date, liste sujets avec filtre, corps du message le plus récent, pièces jointes — résultats vert/rouge
 - [x] `newsletter_admin/test_ai` : requête simple à l'API Anthropic
-- [x] Spike de génération `newsletter_admin/test_generate` (appel API sans outil) : conclusion, il ne satisfait pas les exigences F1.1 à F1.7, il est remplacé par l'agent de P3 (voir conception, « Choix de l'agent IA »)
+- [x] Spike de génération `newsletter_admin/test_generate` (appel API sans outil) : il ne satisfait pas les exigences F1.1 à F1.7 ; la rédaction est confiée à un agent Claude Code hors GVV, le spike est retiré (P2.1)
 - [x] Pages accessibles depuis le menu Dev (protégées par `dev_users`)
 
 **P0.3 — Tests** (0,5 j)
@@ -87,12 +83,13 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 
 **P1.5 — Archive membres** (1 j)
 - [x] Contrôleur `newsletter.php`, action `archive`, accès membres actifs connectés
-- [x] Liste des newsletters publiées (titre, période, date de publication), ouverture du PDF dans un onglet
+- [x] Liste des newsletters publiées (titre, période, date de publication au format local), ouverture du PDF dans un onglet
+- [x] Suppression d'une newsletter publiée par un club-admin depuis l'archive (`newsletter_admin/delete_edition`), avec confirmation
 - [x] Entrée dans la navigation GVV (menu documents ou communication)
-- [x] Upload manuel d'un PDF depuis l'administration (`newsletter_admin/publish`) pour les newsletters créées par un humain
+- [x] Upload manuel d'un PDF depuis l'administration (`newsletter_admin/publish`), retiré en P2.9 : la publication se fait depuis l'édition
 
 **P1.6 — Envoi aux abonnés** (0,5 j)
-- [x] À la publication (manuelle ou automatique) : envoi groupé via `MY_Email` à tous les abonnés confirmés, pièce jointe PDF, texte personnalisé « Cher(e) {prénom} {nom}, … », lien de désinscription dans le corps
+- [x] À la publication (manuelle ou automatique) : envoi groupé via `MY_Email` à tous les abonnés confirmés, pièce jointe PDF, texte personnalisé « Bonjour {prénom} {nom}, … » (fichiers de langue), invitation à écrire à l'adresse de veille de la configuration pour les remarques et les informations manquantes avec leur source, lien de désinscription dans le corps
 - [x] Enregistrement de chaque envoi dans `newsletter_sendings`
 - [x] Diffusion déclenchée par un administrateur : envoi aux adresses réelles des abonnés, sans redirection `test_email` (réservée aux tests automatiques)
 
@@ -107,146 +104,86 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 
 ---
 
-## P2 — Étape 1 : brouillon généré sur Claude Desktop, cycle de relecture, validation et diffusion dans GVV
+## P2 — Cycle de relecture dans GVV des brouillons de l'agent
 
-Le cycle est piloté par l'administrateur : import du brouillon d'une période → transmission aux relecteurs → récupération des réponses → tri des suggestions → nouvelle version par l'agent IA → nouveau tour ou validation → finalisation et diffusion.
+Le cycle est piloté par l'administrateur : import du brouillon d'une période → annotation → transmission aux relecteurs → relevé des réponses → tri des remarques → consignes de modification pour l'agent → import de la version suivante → nouveau tour ou validation → finalisation et diffusion.
 
-**P2.1 — Migration et modèles** (1,5 j)
-- [x] Migration `182_newsletter_runs.php` : tables `newsletter_contexts` et `newsletter_runs` ; colonnes de `newsletter_reviews` pour les suggestions (`message_id`, `kind`, `decision`, `admin_text`, `decided_by`, `decided_at`, `newsletter_id` nullable) ; `newsletters.review_sent_at` et `review_deadline` ; champs d'audit — cf. conception ; `down()` symétrique
+**P2.1 — Retrait de l'agent IA de GVV** (0,5 j)
+- [x] Suppression du spike de génération (`test_generate`, `bin/newsletter_generate.php`, `bin/claude-newsletter.sh`) et de ses paramètres de configuration
+- [x] Suppression des consignes de l'agent, du kit, du suivi des exécutions et du rapport d'activité ; la page `test_ai` est conservée
+
+**P2.2 — Migration et modèles** (1 j)
+- [x] Migration `182_newsletter_review_cycle.php` : table `newsletter_annotations` ; colonnes de `newsletter_reviews` pour les remarques (`message_id`, `decision`, `admin_text`, `decided_by`, `decided_at`, `newsletter_id` nullable) ; `newsletters.review_sent_at` et `review_deadline` ; champs d'audit ; `down()` symétrique
 - [x] `application/config/migration.php` → 182
-- [x] `newsletter_contexts_model` : création d'une version, version active, liste, restauration
-- [x] `newsletter_runs_model` : création, changement de statut, rattachement à une newsletter, liste pour le suivi
-- [x] `newsletter_reviews_model` : enregistrement d'une suggestion, anti-doublon par `message_id`, décisions, suggestions acceptées du tour courant, suggestions reportées en attente
-- [x] Conservation des versions successives du brouillon d'une newsletter (`Newsletter_files`, stockage hors de l'espace web, `newsletter_storage_path`)
+- [x] `newsletter_annotations_model` : ajout, suppression, annotations d'une version
+- [x] `newsletter_reviews_model` : enregistrement d'une remarque, anti-doublon par `message_id`, décisions, remarques retenues du tour courant, remarques reportées
+- [x] Stockage des versions et de leurs images hors de l'espace web (`Newsletter_files`, `newsletter_storage_path`)
 
-**P2.2 — Consignes dans GVV** (1,5 j)
-- [x] Page `newsletter_admin/context` : édition Markdown des consignes ou remplacement par un fichier, enregistrement en nouvelle version avec commentaire
-- [x] Historique des versions : consultation, comparaison avec la version active, restauration
-- [ ] Chargement initial à partir du fichier de contexte v0.8 du spike (par téléversement sur la page des consignes)
+**P2.3 — Import d'un brouillon** (1,5 j)
+- [x] Fichier `.md` ou archive `.zip` (un Markdown et ses images) ; titre, période et version lus dans le Markdown, absence signalée avec le repère attendu
+- [x] Images référencées et absentes signalées ; chemins et formats contrôlés
+- [x] Rattachement à l'édition non publiée de même période (version suivante, retour à `draft`) ou création d'une édition ; version déjà importée ou édition validée refusée
+- [x] Page `newsletter_admin/import` réduite au choix du fichier
+- [x] Suppression d'une édition quel que soit son état depuis la liste des éditions, avec confirmation
 
-**P2.3 — Kit pour l'agent de bureau** (0,5 j)
-- [x] Page `newsletter_admin/kit` : téléchargement des consignes actives, de l'inventaire courant (celui de la dernière exécution qui en a fourni un) et des suggestions d'articles reportées
+**P2.4 — Brouillon annoté** (1,5 j)
+- [x] Affichage du brouillon par blocs, avec ses images ; ajout d'un commentaire sous un bloc (libellé « Commentaire du DTO » par défaut) et suppression
+- [x] Brouillon annoté (annotations insérées en citations) utilisé pour l'affichage, le PDF de relecture et la publication
+- [x] Versions conservées, différences avec la version précédente
 
-**P2.4 — Import du brouillon d'une période** (1,5 j)
-- [x] Importeur commun aux deux étapes (`Newsletter_importer`) : brouillon obligatoire ; rapport d'activité et inventaire joints, leur absence signalée ; archivage hors de l'espace servi directement par le serveur web ; création de la newsletter `draft` (période, version 1) et de l'exécution associée ; rien n'est laissé en cas d'échec
-- [x] Formulaire d'import manuel `newsletter_admin/import` (origine `desktop`) : période, brouillon, rapport, inventaire, modèle et coût ; résultat affiché, erreurs explicites
-- [x] L'inventaire importé devient l'inventaire courant
-
-**P2.5 — Suivi des exécutions et rapport d'activité** (1 j)
-- [x] Page `newsletter_admin/runs` : liste des exécutions (date, origine, statut, coût, version des consignes, newsletter produite)
-- [x] Page `newsletter_admin/run/<id>` : rapport d'activité rendu, téléchargement du paquet ; accessible depuis la newsletter (`club-admin`)
-- [x] Conservation des paquets : aucune suppression automatique
-
-**P2.6 — Transmission aux relecteurs** (1 j)
-- [x] Action `send_for_review` (`draft` → `reviewing`) : email aux relecteurs configurés avec le brouillon en PDF, une référence `[NL-<id> v<N>]` dans le sujet et la date limite de réponse
+**P2.5 — Transmission aux relecteurs** (0,5 j)
+- [x] Action `send_for_review` (`draft` → `reviewing`) : email aux relecteurs configurés avec le brouillon annoté en PDF, une référence `[NL-<id> v<N>]` dans le sujet, la date limite de réponse et la demande de signaler les informations manquantes avec leur source (modèle d'email configurable)
 - [x] Délai de réponse et liste des relecteurs dans `newsletter_admin/configuration`
-- [ ] Option de transmission automatique à l'import (utilisée par P3)
-- [x] La page de la newsletter affiche la date de transmission et la date limite
 
-**P2.7 — Récupération des réponses** (1,5 j)
-- [x] Action « Récupérer les réponses » : lecture de la boîte de veille via `Newsletter_imap`, réponses portant la référence de l'édition, expéditeur relecteur autorisé, anti-doublon par identifiant de message (`Newsletter_mail_parser`, `Newsletter_review_cycle`)
-- [x] Enregistrement de chaque réponse comme suggestion `en_attente`, citation du message d'origine retirée, pièces jointes conservées et téléchargeables
+**P2.6 — Relevé des réponses** (1 j)
+- [x] Bouton « Relever les réponses » sur chaque brouillon transmis (page de l'édition et liste des éditions) : lecture de la boîte de veille, réponses portant la référence de l'édition, expéditeur relecteur autorisé, anti-doublon par identifiant de message
+- [x] Chaque réponse enregistrée comme remarque `en_attente`, citation du message d'origine retirée, pièces jointes conservées et téléchargeables
 - [x] Compte rendu affiché : messages lus, réponses retenues, réponses écartées avec le motif
 
-**P2.8 — Tri des suggestions** (1,5 j)
-- [x] Liste des suggestions de l'édition et des suggestions reportées des éditions précédentes
-- [x] Par suggestion : nature (remarque ou article), décision accepter, modifier (texte corrigé), rejeter, reporter (articles seulement) ; refus explicite d'une décision invalide
-- [x] Une suggestion reportée et reprise est rattachée à l'édition courante, en attente de décision
+**P2.7 — Tri des remarques** (1 j)
+- [x] Par remarque : accepter, modifier (texte corrigé), rejeter, reporter à une prochaine édition ; refus explicite d'une décision invalide
+- [x] Remarque reportée gardée dans son édition, proposée à la reprise dans les autres éditions ; téléchargement des remarques reportées pour l'agent
 
-**P2.9 — Nouvelle version par l'agent IA** (1,5 j)
-- [x] Action « Demander une nouvelle version » : appel à l'API Anthropic (`Newsletter_ai`) avec le brouillon courant, les suggestions acceptées ou modifiées du tour et les consignes actives
-- [x] Enregistrement de la version N+1, retour à `draft`
-- [x] Affichage des différences avec la version précédente
-- [x] Erreur d'appel, réponse vide ou tronquée affichée, version courante inchangée
+**P2.8 — Consignes de modification** (1 j)
+- [x] Bouton de téléchargement : Markdown des commentaires de la version et des remarques du tour, ou zip avec ce Markdown et `img/` (images des remarques)
+- [x] Statuts de l'agent sur chaque élément : `APPLIQUER` (commentaires, remarques acceptées ou modifiées, texte de l'administrateur et texte d'origine pour mémoire), `REPORTER` (remarques reportées) ; remarques rejetées absentes
 
-**P2.10 — Validation** (0,5 j)
-- [x] Action « Valider » depuis `draft`, y compris sans tour de relecture : mentions entre crochets restantes listées et rappelées à la confirmation, transition → `approved`, enregistrement de `approved_by` et `approved_at`
+**P2.9 — Valider et publier** (0,5 j)
+- [x] Action « Valider et publier » depuis `draft`, y compris sans tour de relecture : mentions entre crochets restantes listées et rappelées à la confirmation, transition → `approved` (`approved_by`, `approved_at`) puis publication (P2.10) ; en cas d'échec de la publication, l'édition reste `approved` et la publication peut être relancée
+- [x] Retrait de la publication manuelle d'un PDF (`newsletter_admin/publish`, `send`) et de son bouton sur la page des abonnés
 
-**P2.11 — Finalisation et publication** (1,5 j)
-- [x] Retrait déterministe de la section interne et de l'avertissement de brouillon (`Newsletter_files::remove_internal_notes`)
-- [x] Conversion Markdown → PDF via TCPDF (`Newsletter_pdf`)
-- [x] PDF déposé dans l'archive membres existante, mise à jour `pdf_path`, transition `approved` → `published`
-- [x] Envoi aux abonnés (P1.6)
+**P2.10 — Finalisation, mise en page et publication** (1,5 j)
+- [x] Retrait déterministe de la section interne, de l'avertissement de brouillon et des notes de rédaction `{{ … }}`
+- [x] Mention « Validé le jj/mm/aaaa par {prénom et nom du valideur} » en fin de newsletter ; aperçu PDF du texte publié dès la validation
+- [x] PDF mis en page (`Newsletter_pdf`) : bandeau de titre, en-tête et pied de page, rubriques, encadrés, commentaires, images ; chaque rubrique commence sur une nouvelle page sauf si elle tient dans la place restante
+- [x] PDF déposé dans l'archive membres existante, mise à jour `pdf_path`, transition `approved` → `published`, envoi aux abonnés (P1.6)
 
-**P2.12 — Tests** (2 j)
+**P2.11 — Tests** (1,5 j)
 - [x] PHPUnit MySQL `NewsletterMigrationTest.php` : migrations 181 et 182 `down()` / `up()`, avec sauvegarde et restauration des données existantes
-- [x] PHPUnit MySQL `NewsletterContextsRunsTest.php` : versions des consignes, restauration, exécutions, décisions, report et reprise, transitions du cycle v1
-- [x] PHPUnit MySQL `NewsletterImporterTest.php` : stockage, versions, retrait des notes internes, mentions, import complet, import sans rapport ni inventaire, refus sans effet de bord
-- [x] PHPUnit MySQL `NewsletterReviewCycleTest.php` : analyse des emails, tri des réponses (retenue, doublon, expéditeur non autorisé, sans rapport, vide), pièces jointes, email de transmission, demande de révision, différences
-- [x] Playwright `newsletter-review-smoke.spec.js` : consignes, kit, import, rapport d'activité, téléchargements, tri d'une suggestion, validation
-- [ ] Essai réel de bout en bout sur gvv.net : transmission, réponses reçues sur la boîte de veille, nouvelle version par l'API, publication (envoie de vrais emails, non automatisé)
+- [x] PHPUnit MySQL `NewsletterImporterTest.php` : lecture des métadonnées, import .md et .zip, images, versions, refus sans effet de bord, retrait des notes internes, mentions
+- [x] PHPUnit MySQL `NewsletterReviewCycleTest.php` : analyse des emails, tri des réponses, décisions, report et reprise, annotations, brouillon annoté, consignes de modification, différences
+- [x] Playwright `newsletter-review-smoke.spec.js` : import zip, annotation, tri d'une remarque, consignes de modification, validation
+- [ ] Essai réel de bout en bout sur gvv.net : transmission, réponses reçues sur la boîte de veille, nouvelle version produite par l'agent, publication (envoie de vrais emails, non automatisé)
 
-**P2.13 — Documentation** (0,5 j)
-- [ ] Guide admin `doc/users/fr/20_newsletter_veille.md` : consignes, kit, import, transmission, tri des réponses, nouvelle version, validation, publication ; abonnement et archive pour les membres
+**P2.12 — Documentation** (0,5 j)
+- [x] Guide admin `doc/users/fr/20_newsletter_veille.md` : import, annotation, transmission, relevé et tri des remarques, consignes de modification, validation, publication ; abonnement et archive pour les membres ; relecture par email
+- [ ] Guide admin : commandes acceptées par l'agent de rédaction (§1 du guide)
+- [ ] Format du brouillon et des consignes de modification communiqué à l'agent de rédaction (dans ses consignes, hors GVV)
 
-**Estimation P2 : ~16 jours.**
+**Estimation P2 : ~11 jours.**
 
-**Validation P2** : deux éditions générées avec Claude Desktop à partir du kit GVV, importées, relues par email, révisées par l'agent IA, validées et diffusées via GVV ; le rapport d'activité de chacune est consultable.
-
----
-
-## P3 — Étape 2 : agent autonome sur le serveur, piloté depuis GVV
-
-Prérequis : vérifier la forme de la VM Oracle (Ampere ARM ou AMD micro) et la mémoire disponible pour le navigateur (PRD, question ouverte).
-
-**P3.1 — Script d'installation commun** (1 j)
-- [ ] `bin/veille/install.sh`, idempotent : identité `veille-agent`, dossier d'échange `/srv/veille` (`config/`, `inbox/`, `runs/`) avec droits séparés entre `www-data` et `veille-agent`
-- [ ] Node, `claude` CLI et Chromium pour Playwright installés pour tout le système (pas dans `~/.nvm` ni `~/.cache` d'un utilisateur)
-- [ ] Unités systemd : timer quotidien, surveillance des demandes (unité `.path`), enchaînement extraction → agent → import sous les bonnes identités
-- [ ] Valeurs propres à la machine (URL GVV, clé d'API) dans un fichier non versionné ; exemple versionné
-- [ ] Exécuté et vérifié sur la machine de développement
-
-**P3.2 — Publication de la configuration par GVV** (1 j)
-- [ ] À chaque enregistrement des consignes ou des paramètres : écriture dans `config/` des consignes actives, de l'inventaire courant et des paramètres (date d'exécution, modèle, plafonds)
-- [ ] Paramètres date d'exécution, modèle et plafonds dans `newsletter_admin/configuration`
-- [ ] Bouton « Lancer maintenant » : dépôt d'une demande, exécution `requested` visible dans le suivi
-
-**P3.3 — Extraction des mails** (0,5 j)
-- [ ] Script `bin/newsletter_extract_mail.php` (`www-data`) : nouveaux messages de veille@ en lecture seule vers `inbox/`, depuis la dernière extraction
-
-**P3.4 — Lanceur d'agent** (1 j)
-- [ ] Préparation du répertoire de l'exécution (consignes, inventaire, mails), lancement de `claude` non interactif avec liste fermée d'outils, plafonds de durée et de coût, trace des appels d'outils
-- [ ] Écriture des métadonnées (version des consignes, modèle, durée, coût, statut) ; échec enregistré si le paquet est incomplet
-
-**P3.5 — Import automatique** (0,5 j)
-- [ ] Unité d'import (`www-data`) : réutilise l'importeur de P2.4 (origine `schedule` ou `manual`), puis transmission automatique aux relecteurs (P2.6)
-- [ ] Affichage de la trace à côté du rapport d'activité
-
-**P3.6 — Alertes d'échec** (0,5 j)
-- [ ] Script `bin/newsletter_watchdog.php`, timer quotidien : exécution en échec ou interrompue par un plafond, aucune exécution réussie après la date prévue → email à l'administrateur et à l'administrateur technique
-
-**P3.7 — Consignes pour l'exécution autonome** (0,5 j)
-- [ ] Nouvelle version des consignes : exécution réelle et non simulée, emplacement des fichiers, lecture de `inbox/` et des suggestions reportées, calcul des empreintes, règle « pas de nouveauté sans date établie »
-
-**P3.8 — Retrait du spike** (0,5 j)
-- [ ] Suppression de `newsletter_admin/test_generate` et de `bin/newsletter_generate.php`, remplacés par l'exécution réelle
-
-**P3.9 — Alertes immédiates (optionnel)** (1 j)
-- [ ] Signal d'alerte dans le paquet d'exécution, lu par l'importeur ; notification email ou SMS (via `Brevo_sms_adapter`) aux destinataires désignés selon `newsletter_alert_channel`
-- [ ] Option `newsletter_alerts_enabled` dans la page de configuration
-
-**P3.10 — Tests et exécution pilote** (2 j)
-- [ ] PHPUnit : publication de la configuration, extraction des mails (IMAP bouchonné), import automatique, alertes ; fichiers créés supprimés par les tests
-- [ ] Playwright `newsletter-agent-smoke.spec.js` : modification des consignes, « Lancer maintenant », suivi de l'exécution (lanceur bouchonné)
-- [ ] Exécution pilote réelle sur la machine de développement, sans intervention humaine ; vérification des exigences F1.1 à F1.7 (sources, nouveautés, modifications, analyse, références réelles, rapport) avec la même méthode que l'évaluation du spike
-
-**P3.11 — Mise en production** (0,5 j)
-- [ ] Exécution de `install.sh` sur la VM Oracle, configuration propre à la machine, première exécution lancée depuis GVV
-
-**Estimation P3 : ~9 jours.**
-
-**Validation P3** : deux éditions générées sur le serveur d'exploitation sans intervention humaine, satisfaisant F1.1 à F1.7, importées et transmises automatiquement aux relecteurs.
+**Validation P2** : deux éditions générées par l'agent de rédaction, importées, annotées, relues par email, révisées par l'agent à partir des consignes de modification, validées et diffusées via GVV.
 
 ---
 
-## P4 — Ouverture à tous les abonnés
+## P3 — Ouverture à tous les abonnés
 
-P4 est conditionné par la validation de P3 sur au moins deux éditions réelles.
+P3 est conditionné par la validation de P2 sur au moins deux éditions réelles.
 
 - [ ] Communication aux membres sur le mécanisme d'abonnement
 - [ ] Ouverture de la possibilité pour les membres de proposer des articles (contribution par email, traitement dans le cycle de relecture)
 
-**Estimation P4 : ~2 jours.**
+**Estimation P3 : ~2 jours.**
 
 ---
 
@@ -256,9 +193,7 @@ P4 est conditionné par la validation de P3 sur au moins deux éditions réelles
 |---|---|---|---|
 | P0 | Feature flag, configuration, validation infrastructure | 4 j | réalisé, hors tests |
 | P1 | Abonnements et archive | 7 j | réalisé |
-| P2 | Étape 1 : brouillon Claude Desktop, cycle GVV | 16 j | à faire |
-| P3 | Étape 2 : agent autonome sur le serveur | 9 j | à faire |
-| P4 | Ouverture aux membres | 2 j | à faire |
-| **Total restant** | | **~27 jours** | |
+| P2 | Cycle de relecture dans GVV | 11 j | réalisé, hors essai réel et documentation |
+| P3 | Ouverture aux membres | 2 j | à faire |
 
-P2 dépend de P0 (IMAP/SMTP) et de P1 (tables, modèles, envoi aux abonnés). P3 dépend de P2 (consignes, importeur, cycle de relecture).
+P2 dépend de P0 (IMAP/SMTP) et de P1 (tables, modèles, envoi aux abonnés). La génération sans intervention humaine et les alertes immédiates sont des évolutions envisagées par le PRD (§ 10), hors de ce plan.

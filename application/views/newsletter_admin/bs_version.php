@@ -10,7 +10,7 @@
 </div>
 
 <?php if ($diff !== NULL): ?>
-<h5><?= sprintf($this->lang->line('nl_diff_with'), (int) $n - 1) ?></h5>
+<h5><?= sprintf($this->lang->line('nl_diff_with'), (int) $previous) ?></h5>
 <?php $this->load->view('newsletter_admin/_diff', array('diff' => $diff)); ?>
 <?php endif; ?>
 

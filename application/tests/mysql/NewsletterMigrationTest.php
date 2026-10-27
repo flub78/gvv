@@ -3,8 +3,8 @@
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test des migrations 181 (newsletter) et 182 (consignes, exécutions,
- * suggestions) — up() et down().
+ * Test des migrations 181 (newsletter) et 182 (cycle de relecture :
+ * annotations, remarques) — up() et down().
  *
  * Les tables sont celles de la base partagée : leur contenu est sauvegardé
  * avant le test et restauré à l'identique après, même en cas d'échec.
@@ -14,8 +14,8 @@ use PHPUnit\Framework\TestCase;
 class NewsletterMigrationTest extends TestCase
 {
     private const TABLES = array(
-        'newsletters', 'newsletter_subscribers', 'newsletter_contexts',
-        'newsletter_reviews', 'newsletter_sendings', 'newsletter_runs',
+        'newsletters', 'newsletter_subscribers', 'newsletter_annotations',
+        'newsletter_reviews', 'newsletter_sendings',
     );
 
     private $db;
@@ -33,11 +33,11 @@ class NewsletterMigrationTest extends TestCase
         if (!class_exists('Migration_Newsletter')) {
             require_once APPPATH . 'migrations/181_newsletter.php';
         }
-        if (!class_exists('Migration_Newsletter_runs')) {
-            require_once APPPATH . 'migrations/182_newsletter_runs.php';
+        if (!class_exists('Migration_Newsletter_review_cycle')) {
+            require_once APPPATH . 'migrations/182_newsletter_review_cycle.php';
         }
         $this->m181 = new Migration_Newsletter();
-        $this->m182 = new Migration_Newsletter_runs();
+        $this->m182 = new Migration_Newsletter_review_cycle();
 
         foreach (self::TABLES as $t) {
             if ($this->db->table_exists($t)) {
@@ -52,7 +52,7 @@ class NewsletterMigrationTest extends TestCase
         if (!$this->db->table_exists('newsletters')) {
             $this->m181->up();
         }
-        if (!$this->db->table_exists('newsletter_runs')) {
+        if (!$this->db->table_exists('newsletter_annotations')) {
             $this->m182->up();
         }
 
@@ -74,8 +74,7 @@ class NewsletterMigrationTest extends TestCase
     public function test_down_then_up_recreates_full_schema(): void
     {
         $this->assertTrue($this->m182->down());
-        $this->assertFalse($this->db->table_exists('newsletter_runs'));
-        $this->assertFalse($this->db->table_exists('newsletter_contexts'));
+        $this->assertFalse($this->db->table_exists('newsletter_annotations'));
         $this->assertFalse($this->columnExists('newsletter_reviews', 'decision'));
         $this->assertFalse($this->columnExists('newsletters', 'review_deadline'));
 
@@ -93,12 +92,11 @@ class NewsletterMigrationTest extends TestCase
         $this->assertTrue($this->columnExists('newsletter_sendings', 'sent_at'));
 
         $this->assertTrue($this->m182->up());
-        $this->assertTrue($this->columnExists('newsletter_contexts', 'content'));
-        $this->assertTrue($this->columnExists('newsletter_runs', 'run_id'));
-        $this->assertTrue($this->columnExists('newsletter_runs', 'package_path'));
+        $this->assertTrue($this->columnExists('newsletter_annotations', 'block_index'));
+        $this->assertTrue($this->columnExists('newsletter_annotations', 'label'));
         $this->assertTrue($this->columnExists('newsletters', 'review_sent_at'));
         $this->assertTrue($this->columnExists('newsletters', 'review_deadline'));
-        foreach (array('message_id', 'kind', 'decision', 'admin_text', 'decided_by', 'decided_at') as $c) {
+        foreach (array('message_id', 'decision', 'admin_text', 'decided_by', 'decided_at') as $c) {
             $this->assertTrue($this->columnExists('newsletter_reviews', $c), "newsletter_reviews.$c manquante");
         }
     }

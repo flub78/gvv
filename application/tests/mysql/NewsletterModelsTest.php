@@ -182,6 +182,22 @@ class NewsletterModelsTest extends TestCase
         $this->assertNotContains((string) $id2, $ids);
     }
 
+    public function test_delete_any_status_with_cascade(): void
+    {
+        $m = $this->CI->newsletter_model;
+        $draft = $m->create(array('title' => 'ZZTest Delete draft', 'period_start' => '2026-08-01', 'period_end' => '2026-08-31'));
+        $pub = $m->create(array('title' => 'ZZTest Delete published', 'period_start' => '2026-08-01', 'period_end' => '2026-08-31'));
+        $m->transition($pub, 'approved');
+        $m->transition($pub, 'published');
+        $m->add_review($pub, array('reviewer_email' => 'zztest_del@example.invalid', 'content' => 'remarque'));
+
+        $this->assertTrue($m->delete($pub));
+        $this->assertEmpty($m->get($pub));
+        $this->assertSame(array(), $m->get_reviews($pub), 'remarques supprimées en cascade');
+        $this->assertTrue($m->delete($draft));
+        $this->assertFalse($m->delete($draft), 'une édition déjà supprimée');
+    }
+
     // -------------------------------------------------------------------------
     // newsletter_subscribers_model
     // -------------------------------------------------------------------------

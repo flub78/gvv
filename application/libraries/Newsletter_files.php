@@ -6,26 +6,28 @@ if (!defined('BASEPATH'))
  * Newsletter_files
  *
  * Stockage des fichiers de la veille hors de l'espace servi directement par
- * le serveur web : versions successives des brouillons d'une édition et
- * paquets d'exécution de l'agent (brouillon, rapport d'activité, inventaire).
- * Les fichiers ne sont accessibles qu'au travers des contrôleurs.
+ * le serveur web : versions successives des brouillons d'une édition, avec
+ * leurs images, et pièces jointes des réponses des relecteurs. Les fichiers
+ * ne sont accessibles qu'au travers des contrôleurs.
  *
  * Arborescence (racine : $config['newsletter_storage_path'],
  * par défaut application/storage/newsletter/, protégé par application/.htaccess) :
- *   editions/<id>/brouillon_v<N>.md
- *   reponses/<id suggestion>/<pièces jointes>
- *   runs/<run_id>/{brouillon.md, rapport.md, inventaire.csv}
+ *   editions/<id>/v<N>/brouillon.md
+ *   editions/<id>/v<N>/img/<image>
+ *   reponses/<id remarque>/<pièces jointes>
  *
- * Fournit aussi les traitements déterministes du texte : retrait des notes
- * internes et repérage des mentions entre crochets restant à compléter.
+ * Fournit aussi les traitements déterministes du texte : découpage en blocs,
+ * insertion des commentaires de l'administrateur, retrait des notes
+ * internes, repérage des mentions entre crochets, différences entre versions.
  *
  * @see doc/design_notes/veille_documentaire_design.md
  */
 class Newsletter_files {
 
-    const DRAFT_FILE     = 'brouillon.md';
-    const REPORT_FILE    = 'rapport.md';
-    const INVENTORY_FILE = 'inventaire.csv';
+    const DRAFT_FILE = 'brouillon.md';
+
+    /** Extensions d'images acceptées dans un brouillon ou une réponse */
+    const IMAGE_EXTENSIONS = array('png', 'jpg', 'jpeg', 'gif', 'svg', 'webp');
 
     private $base;
 
@@ -34,8 +36,8 @@ class Newsletter_files {
      *                       vide → application/storage/newsletter/
      */
     public function __construct($params = array()) {
-        // Chemin absolu : il est enregistré en base (paquets d'exécution) et
-        // relu par d'autres processus que le serveur web.
+        // Chemin absolu : il est enregistré en base et ne dépend pas du
+        // répertoire courant du processus.
         $base = !empty($params['base_path']) ? $params['base_path']
                                              : rtrim(realpath(APPPATH) ?: APPPATH, '/') . '/storage/newsletter/';
         $this->base = rtrim($base, '/') . '/';
@@ -62,10 +64,24 @@ class Newsletter_files {
         return TRUE;
     }
 
+    private function write($path, $content) {
+        if (!$this->ensure_dir(dirname($path))) return FALSE;
+        if (file_put_contents($path, $content) === FALSE) {
+            log_message('error', 'Newsletter_files: écriture impossible ' . $path);
+            return FALSE;
+        }
+        @chmod($path, 0664);
+        return TRUE;
+    }
+
     // ── Versions des brouillons d'une édition ─────────────────────────────
 
     public function edition_dir($newsletter_id) {
         return $this->base . 'editions/' . (int) $newsletter_id . '/';
+    }
+
+    public function version_dir($newsletter_id, $version) {
+        return $this->edition_dir($newsletter_id) . 'v' . (int) $version . '/';
     }
 
     /**
@@ -75,10 +91,9 @@ class Newsletter_files {
      */
     public function list_versions($newsletter_id) {
         $versions = array();
-        foreach (glob($this->edition_dir($newsletter_id) . 'brouillon_v*.md') ?: array() as $path) {
-            if (preg_match('/brouillon_v(\d+)\.md$/', $path, $m)) {
-                $versions[] = array('version' => (int) $m[1], 'path' => $path, 'mtime' => filemtime($path));
-            }
+        foreach (glob($this->edition_dir($newsletter_id) . 'v*/' . self::DRAFT_FILE) ?: array() as $path) {
+            $n = self::version_of($path);
+            if ($n) $versions[] = array('version' => $n, 'path' => $path, 'mtime' => filemtime($path));
         }
         usort($versions, function ($a, $b) { return $a['version'] - $b['version']; });
         return $versions;
@@ -88,26 +103,55 @@ class Newsletter_files {
      * Numéro de version d'un chemin de brouillon (0 si inconnu).
      */
     public static function version_of($path) {
-        return ($path && preg_match('/brouillon_v(\d+)\.md$/', $path, $m)) ? (int) $m[1] : 0;
+        return ($path && preg_match('#/v(\d+)/' . preg_quote(self::DRAFT_FILE, '#') . '$#', $path, $m)) ? (int) $m[1] : 0;
     }
 
     /**
-     * Enregistre une nouvelle version du brouillon d'une édition.
+     * Enregistre une version du brouillon d'une édition et ses images.
      *
-     * @return array|false  ['version' => int, 'path' => string]
+     * @param int    $newsletter_id
+     * @param int    $version
+     * @param string $content  Markdown
+     * @param array  $images   [nom de fichier => contenu], rangées sous img/
+     * @return string|false    Chemin du Markdown ; FALSE si la version existe déjà ou en cas d'erreur
      */
-    public function save_version($newsletter_id, $content) {
-        $dir = $this->edition_dir($newsletter_id);
-        if (!$this->ensure_dir($dir)) return FALSE;
-        $versions = $this->list_versions($newsletter_id);
-        $n = $versions ? end($versions)['version'] + 1 : 1;
-        $path = $dir . 'brouillon_v' . $n . '.md';
-        if (file_put_contents($path, $content) === FALSE) {
-            log_message('error', 'Newsletter_files: écriture impossible ' . $path);
+    public function save_version($newsletter_id, $version, $content, array $images = array()) {
+        $dir = $this->version_dir($newsletter_id, $version);
+        if (is_dir($dir)) return FALSE;
+        foreach ($images as $name => $data) {
+            if (!$this->write($dir . 'img/' . self::safe_name($name), $data)) {
+                $this->rrmdir($dir);
+                return FALSE;
+            }
+        }
+        if (!$this->write($dir . self::DRAFT_FILE, $content)) {
+            $this->rrmdir($dir);
             return FALSE;
         }
-        @chmod($path, 0664);
-        return array('version' => $n, 'path' => $path);
+        return $dir . self::DRAFT_FILE;
+    }
+
+    public function delete_version($newsletter_id, $version) {
+        $this->rrmdir($this->version_dir($newsletter_id, $version));
+    }
+
+    /**
+     * Chemin d'une image d'une version, ou NULL si elle n'existe pas.
+     */
+    public function image_path($newsletter_id, $version, $name) {
+        $path = $this->version_dir($newsletter_id, $version) . 'img/' . self::safe_name($name);
+        return is_file($path) ? $path : NULL;
+    }
+
+    /**
+     * Images d'une version : [nom => chemin].
+     */
+    public function list_images($newsletter_id, $version) {
+        $out = array();
+        foreach (glob($this->version_dir($newsletter_id, $version) . 'img/*') ?: array() as $path) {
+            $out[basename($path)] = $path;
+        }
+        return $out;
     }
 
     /**
@@ -130,7 +174,7 @@ class Newsletter_files {
     }
 
     /**
-     * Pièces jointes d'une réponse de relecteur (rangées par suggestion, qui
+     * Pièces jointes d'une réponse de relecteur (rangées par remarque, qui
      * peut changer d'édition lorsqu'elle est reportée).
      */
     public function reply_dir($review_id) {
@@ -138,54 +182,20 @@ class Newsletter_files {
     }
 
     public function store_reply_file($review_id, $name, $content) {
-        $dir = $this->reply_dir($review_id);
-        if (!$this->ensure_dir($dir)) return FALSE;
-        $path = $dir . basename($name);
-        if (file_put_contents($path, $content) === FALSE) return FALSE;
-        @chmod($path, 0664);
-        return $path;
+        $path = $this->reply_dir($review_id) . self::safe_name($name);
+        return $this->write($path, $content) ? $path : FALSE;
     }
 
     public function list_reply_files($review_id) {
         return array_map('basename', glob($this->reply_dir($review_id) . '*') ?: array());
     }
 
-    // ── Paquets d'exécution ───────────────────────────────────────────────
-
-    public function run_dir($run_id) {
-        return $this->base . 'runs/' . preg_replace('/[^A-Za-z0-9_-]/', '', $run_id) . '/';
-    }
-
-    /**
-     * Enregistre un fichier du paquet d'une exécution.
-     *
-     * @param string $run_id
-     * @param string $name     DRAFT_FILE, REPORT_FILE ou INVENTORY_FILE
-     * @param string $content
-     * @return string|false    Chemin écrit
-     */
-    public function store_run_file($run_id, $name, $content) {
-        if (!in_array($name, array(self::DRAFT_FILE, self::REPORT_FILE, self::INVENTORY_FILE), TRUE)) {
-            return FALSE;
-        }
-        $dir = $this->run_dir($run_id);
-        if (!$this->ensure_dir($dir)) return FALSE;
-        $path = $dir . $name;
-        if (file_put_contents($path, $content) === FALSE) return FALSE;
-        @chmod($path, 0664);
-        return $path;
-    }
-
-    public function run_file($run_id, $name) {
-        $path = $this->run_dir($run_id) . $name;
-        return is_file($path) ? $path : NULL;
-    }
-
-    public function delete_run($run_id) {
-        $this->rrmdir($this->run_dir($run_id));
+    public function delete_reply_files($review_id) {
+        $this->rrmdir($this->reply_dir($review_id));
     }
 
     private function rrmdir($dir) {
+        $dir = rtrim($dir, '/');
         if (!is_dir($dir)) return;
         foreach (array_diff(scandir($dir), array('.', '..')) as $f) {
             $p = $dir . '/' . $f;
@@ -194,15 +204,115 @@ class Newsletter_files {
         @rmdir($dir);
     }
 
+    /**
+     * Nom de fichier sans chemin ni caractère spécial.
+     */
+    public static function safe_name($name) {
+        $name = preg_replace('/[^\w.\-]+/u', '_', basename((string) $name));
+        return trim($name, '.') !== '' ? $name : 'fichier';
+    }
+
+    public static function is_image($name) {
+        return in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), self::IMAGE_EXTENSIONS, TRUE);
+    }
+
+    /**
+     * Archive zip en mémoire : un fichier Markdown et des images sous img/.
+     *
+     * @param string $md_name
+     * @param string $markdown
+     * @param array  $images   [nom dans img/ => chemin du fichier]
+     * @return string|false    Contenu de l'archive
+     */
+    public static function make_zip($md_name, $markdown, array $images) {
+        $tmp = tempnam(sys_get_temp_dir(), 'nlzip');
+        $zip = new ZipArchive();
+        if ($zip->open($tmp, ZipArchive::OVERWRITE) !== TRUE) {
+            @unlink($tmp);
+            return FALSE;
+        }
+        $zip->addFromString($md_name, $markdown);
+        foreach ($images as $name => $path) {
+            $zip->addFile($path, 'img/' . $name);
+        }
+        $zip->close();
+        $data = file_get_contents($tmp);
+        @unlink($tmp);
+        return $data;
+    }
+
     // ── Traitements déterministes du texte ────────────────────────────────
 
     /**
+     * Découpe un Markdown en blocs séparés par des lignes vides ; un bloc de
+     * code délimité n'est jamais coupé.
+     *
+     * @return string[]
+     */
+    public static function split_blocks($markdown) {
+        $blocks = array();
+        $current = array();
+        $in_fence = FALSE;
+        foreach (preg_split('/\R/', (string) $markdown) as $line) {
+            if (preg_match('/^\s*(```|~~~)/', $line)) $in_fence = !$in_fence;
+            if (!$in_fence && trim($line) === '') {
+                if ($current) $blocks[] = implode("\n", $current);
+                $current = array();
+                continue;
+            }
+            $current[] = $line;
+        }
+        if ($current) $blocks[] = implode("\n", $current);
+        return $blocks;
+    }
+
+    /**
+     * Citation Markdown d'un commentaire de l'administrateur.
+     */
+    public static function annotation_markdown($label, $content) {
+        $lines = preg_split('/\R/', trim((string) $content));
+        $out = '> **' . trim($label) . ' :** ' . array_shift($lines);
+        foreach ($lines as $l) $out .= "\n> " . $l;
+        return $out;
+    }
+
+    /**
+     * Brouillon annoté : chaque commentaire est inséré sous son bloc.
+     *
+     * @param string $markdown
+     * @param array  $annotations  lignes de newsletter_annotations (block_index, label, content)
+     */
+    public static function annotate($markdown, array $annotations) {
+        if (!$annotations) return $markdown;
+        $by_block = array();
+        foreach ($annotations as $a) $by_block[(int) $a['block_index']][] = $a;
+        $blocks = self::split_blocks($markdown);
+        $out = array();
+        $last = count($blocks) - 1;
+        foreach ($blocks as $i => $block) {
+            $out[] = $block;
+            // Un commentaire au-delà du dernier bloc reste visible, en fin de document
+            $extra = ($i === $last) ? array_filter($by_block, function ($k) use ($last) { return $k > $last; }, ARRAY_FILTER_USE_KEY) : array();
+            foreach (array_merge($by_block[$i] ?? array(), ...array_values($extra)) as $a) {
+                $out[] = self::annotation_markdown($a['label'], $a['content']);
+            }
+        }
+        return implode("\n\n", $out) . "\n";
+    }
+
+    /**
      * Retire les notes internes d'un brouillon validé :
+     * - les zones délimitées par <!-- BROUILLON --> … <!-- /BROUILLON --> et
+     *   <!-- INTERNE --> … <!-- /INTERNE --> ;
      * - la section dont le titre contient « SECTION INTERNE », jusqu'au titre
      *   suivant de même niveau ou supérieur (ou la fin du document) ;
-     * - les citations d'avertissement de brouillon (« > **BROUILLON … »).
+     * - les citations d'avertissement de brouillon (« > **BROUILLON … ») ;
+     * - les notes de rédaction entre doubles accolades ({{ … }}) ;
+     * - les commentaires HTML restants.
      */
     public static function remove_internal_notes($markdown) {
+        $markdown = preg_replace('/<!--\s*(BROUILLON|INTERNE)\s*-->.*?<!--\s*\/\1\s*-->/su', '', $markdown);
+        $markdown = self::strip_editorial_notes($markdown);
         $lines = preg_split('/\R/', $markdown);
         $out = array();
         $skip_level = 0;
@@ -229,10 +339,44 @@ class Newsletter_files {
             }
             $out[] = $line;
         }
-        $text = implode("\n", $out);
+        $text = self::strip_html_comments(implode("\n", $out));
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
         // Séparateurs horizontaux laissés orphelins en fin de document
         $text = preg_replace('/(\s*\n(-{3,}|\*{3,})\s*)+$/', '', $text);
         return rtrim($text) . "\n";
+    }
+
+    /**
+     * Retire les notes de rédaction entre doubles accolades ({{ … }}).
+     */
+    public static function strip_editorial_notes($markdown) {
+        return preg_replace('/\{\{.*?\}\}/su', '', (string) $markdown);
+    }
+
+    /**
+     * Ajoute la mention de validation en fin de newsletter.
+     */
+    public static function append_validation($markdown, $mention) {
+        return rtrim((string) $markdown) . "\n\n*" . trim($mention) . "*\n";
+    }
+
+    public static function strip_html_comments($markdown) {
+        return preg_replace('/<!--.*?-->/s', '', (string) $markdown);
+    }
+
+    /**
+     * Références d'images d'un Markdown (hors URL absolues et données).
+     *
+     * @return string[]  Chemins tels qu'écrits
+     */
+    public static function image_refs($markdown) {
+        $refs = array();
+        if (preg_match_all('/!\[[^\]]*\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/u', (string) $markdown, $m)) {
+            foreach ($m[1] as $ref) {
+                if (!preg_match('#^([a-z][a-z0-9+.-]*:|/)#i', $ref)) $refs[] = $ref;
+            }
+        }
+        return array_values(array_unique($refs));
     }
 
     /**
@@ -276,13 +420,14 @@ class Newsletter_files {
     }
 
     /**
-     * Mentions entre crochets restant à compléter (hors liens et images Markdown).
+     * Mentions entre crochets restant à compléter (hors liens, images,
+     * commentaires HTML et notes de rédaction, retirés à la publication).
      *
      * @return string[]
      */
     public static function find_open_mentions($markdown) {
         $mentions = array();
-        if (preg_match_all('/(!?)\[([^\[\]\n]*)\](\()?/u', $markdown, $all, PREG_SET_ORDER)) {
+        if (preg_match_all('/(!?)\[([^\[\]\n]*)\](\()?/u', self::strip_editorial_notes(self::strip_html_comments($markdown)), $all, PREG_SET_ORDER)) {
             foreach ($all as $m) {
                 $is_link = isset($m[3]) && $m[3] === '(';
                 if ($m[1] === '!' || $is_link) continue;

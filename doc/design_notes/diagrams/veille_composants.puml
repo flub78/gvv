@@ -8,50 +8,36 @@ title Architecture — Veille documentaire (composants)
 
 actor "Administrateur" as ADMIN
 
-package "Étape 1 — poste de l'administrateur" #mistyrose {
-  component [Claude Desktop\n(disque, navigation web)] as DESKTOP
+package "Agent de rédaction — Claude Code" #mistyrose {
+  component [Agent IA\n(consignes, registre des sources,\nétat de la veille, journal)] as AGENT
 }
 
-package "Application GVV — www-data" #lightblue {
-  component [newsletter_admin\n(consignes, paramètres, exécutions, import,\ntransmission, tri des suggestions, validation)] as CTRL
-  component [Extracteur de mails] as EXTRACTOR
-  component [Importeur d'exécution] as IMPORTER
-  component [Récupérateur de réponses, réviseur,\nfinaliseur, surveillance] as JOBS
-  database "MySQL + archive hors web" as STORE
+package "Application GVV" #lightblue {
+  component [newsletter_admin\n(import, annotation, transmission,\nrelevé des réponses, tri des remarques,\nconsignes de modification, validation, publication)] as CTRL
+  component [Importeur\n(.md ou .zip)] as IMPORTER
+  component [Récupérateur de réponses] as COLLECT
+  component [Générateur de consignes\nde modification (.md ou .zip)] as DIRECTIVES
+  component [Mise en forme PDF\net publication] as PUBLISH
+  database "MySQL + stockage hors web" as STORE
 }
 
-package "Dossier d'échange /srv/veille" #lightyellow {
-  folder "config/\n(consignes, inventaire,\nparamètres, demande)" as XCONF
-  folder "inbox/\n(mails extraits)" as XINBOX
-  folder "runs/\n(paquets d'exécution)" as XRUNS
-}
+cloud "Sources web, RSS,\ncourriels" as SOURCES
+cloud "Boîte veille@" as MAILBOX
+actor "Relecteurs, abonnés" as PEOPLE
 
-package "Serveur — veille-agent (étape 2)" #mistyrose {
-  component [Timer systemd\n+ lanceur] as LAUNCHER
-  component [Claude Code\nnon interactif\n+ navigateur] as AGENT
-}
-
-cloud "Sources web, RSS\net boîte veille@" as SOURCES
-actor "Relecteurs, validateurs,\nabonnés" as PEOPLE
-
-ADMIN --> CTRL : pilote
-ADMIN --> DESKTOP : lance (étape 1)
-DESKTOP --> SOURCES : explore
-DESKTOP ..> IMPORTER : paquet importé à la main
-
-CTRL --> XCONF : publie
-EXTRACTOR --> XINBOX : écrit
-LAUNCHER --> AGENT : lance avec plafonds
-AGENT --> XCONF : lit
-AGENT --> XINBOX : lit
 AGENT --> SOURCES : explore
-AGENT --> XRUNS : écrit paquet + trace
-IMPORTER --> XRUNS : lit
-
+ADMIN --> AGENT : lance (version initiale,\nou consignes de modification)
+AGENT ..> ADMIN : brouillon vN (.md ou .zip)
+ADMIN --> CTRL : pilote
+CTRL --> IMPORTER
 IMPORTER --> STORE
-CTRL --> STORE
-JOBS --> STORE
-CTRL --> PEOPLE : emails (SMTP)
-JOBS --> PEOPLE : newsletter publiée, alertes
+CTRL --> PEOPLE : brouillon annoté (PDF)
+PEOPLE --> MAILBOX : réponses
+COLLECT --> MAILBOX : lit
+COLLECT --> STORE : remarques, images
+DIRECTIVES --> STORE : lit
+DIRECTIVES ..> ADMIN : consignes de modification
+PUBLISH --> STORE
+PUBLISH --> PEOPLE : newsletter publiée
 
 @enduml

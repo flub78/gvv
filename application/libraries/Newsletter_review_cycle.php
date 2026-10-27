@@ -11,17 +11,18 @@ require_once(APPPATH . 'libraries/Newsletter_mail_parser.php');
  * - référence d'édition et de version portée par le sujet des emails ;
  * - contenu de l'email de transmission aux relecteurs ;
  * - récupération des réponses sur la boîte de veille (tri, anti-doublon,
- *   pièces jointes) et enregistrement en suggestions ;
- * - préparation de la demande de nouvelle version à l'agent IA.
+ *   pièces jointes) et enregistrement en remarques ;
+ * - consignes de modification destinées à l'agent de rédaction, et
+ *   remarques reportées à fournir pour une prochaine édition.
  *
  * L'envoi des emails et les appels réseau restent à la charge de l'appelant.
  *
- * @see doc/design_notes/veille_documentaire_design.md (Réponses et suggestions)
+ * @see doc/design_notes/veille_documentaire_design.md (Réponses et remarques, Fichiers échangés)
  */
 class Newsletter_review_cycle {
 
     const DEFAULT_SUBJECT = '[Veille] Brouillon {period} (v{version}) — relecture souhaitée';
-    const DEFAULT_BODY    = "Bonjour,\n\nVous trouverez en pièce jointe le brouillon v{version} de la lettre de veille pour la période : {period}.\n\nMerci de répondre à cet email avant le {deadline} avec vos remarques, corrections ou suggestions d'articles. Une réponse par sujet facilite le tri.\n\nCordialement,\n{from_name}";
+    const DEFAULT_BODY    = "Bonjour,\n\nVous trouverez en pièce jointe le brouillon v{version} de la lettre de veille pour la période : {period}.\n\nMerci de répondre à cet email avant le {deadline} avec vos remarques, corrections ou suggestions d'articles. Une réponse par sujet facilite le tri.\n\nSurtout, prévenez-nous si vous avez connaissance d'une information qui aurait logiquement dû figurer dans cette lettre et qui n'y est pas, en indiquant si possible sa source (lien, référence du document, émetteur).\n\nCordialement,\n{from_name}";
 
     /** Taille maximale d'une pièce jointe conservée (octets) */
     const MAX_ATTACHMENT = 10485760;
@@ -102,7 +103,7 @@ class Newsletter_review_cycle {
     // ── Récupération des réponses ─────────────────────────────────────────
 
     /**
-     * Trie un message reçu et l'enregistre en suggestion s'il est retenu.
+     * Trie un message reçu et l'enregistre en remarque s'il est retenu.
      *
      * @param array            $newsletter
      * @param string           $raw        Message brut
@@ -164,49 +165,124 @@ class Newsletter_review_cycle {
         return $res;
     }
 
-    // ── Révision par l'agent IA ───────────────────────────────────────────
+    // ── Consignes pour l'agent de rédaction ───────────────────────────────
 
     /**
-     * Demande de nouvelle version : consignes système et message utilisateur.
-     *
-     * @param string $draft        Brouillon courant (Markdown)
-     * @param array  $suggestions  Suggestions acceptées ou modifiées
-     * @param string $consignes    Consignes actives de l'agent (règles de rédaction)
-     * @return array  system, user
+     * Texte retenu d'une remarque : celui de l'administrateur si elle est modifiée.
      */
-    public static function build_revision_prompt($draft, array $suggestions, $consignes = '') {
-        $system = "Tu es le rédacteur de la lettre de veille sécurité et réglementation du club. "
-            . "On te donne la version courante du brouillon (Markdown) et les modifications retenues par l'administrateur après relecture. "
-            . "Produis la version suivante du brouillon en appliquant ces modifications, et seulement elles. "
-            . "Conserve la structure, les liens, la section interne et les mentions entre crochets qui ne sont pas concernées. "
-            . "N'invente aucune information ni aucune source : si une modification demande un élément que tu ne peux pas vérifier, "
-            . "intègre-le tel que formulé et ajoute la mention [source à vérifier]. "
-            . "Ajoute à la section interne une ligne listant les modifications appliquées. "
-            . "Réponds uniquement avec le Markdown complet de la nouvelle version, sans commentaire ni bloc de code.";
-        if (trim($consignes) !== '') {
-            $system .= "\n\nConsignes de l'agent de veille (règles de rédaction à respecter) :\n\n" . $consignes;
-        }
+    public static function retained_text($remark) {
+        return ($remark['decision'] === Newsletter_reviews_model::DECISION_MODIFIED && $remark['admin_text'] !== NULL)
+            ? $remark['admin_text'] : $remark['content'];
+    }
 
-        $list = '';
-        foreach (array_values($suggestions) as $i => $s) {
-            $text = ($s['decision'] === Newsletter_reviews_model::DECISION_MODIFIED && $s['admin_text'] !== NULL)
-                ? $s['admin_text'] : $s['content'];
-            $label = ($s['kind'] === Newsletter_reviews_model::KIND_ARTICLE) ? 'Article à intégrer' : 'Remarque';
-            $list .= '### ' . ($i + 1) . '. ' . $label . ' (' . ($s['reviewer_name'] ?: $s['reviewer_email']) . ")\n\n" . trim($text) . "\n\n";
-        }
+    /** Statuts transmis à l'agent de rédaction */
+    const STATUS_APPLY    = 'APPLIQUER';
+    const STATUS_POSTPONE = 'REPORTER';
 
-        $user = "## Modifications retenues\n\n" . $list . "## Brouillon courant\n\n" . $draft;
-        return array('system' => $system, 'user' => $user);
+    /**
+     * Statut d'une remarque pour l'agent de rédaction.
+     */
+    public static function agent_status($remark) {
+        return ($remark['decision'] === Newsletter_reviews_model::DECISION_POSTPONED) ? self::STATUS_POSTPONE : self::STATUS_APPLY;
     }
 
     /**
-     * Retire un éventuel bloc de code englobant la réponse du modèle.
+     * Liste Markdown de remarques avec leur statut et leurs images ; les
+     * images sont ajoutées à $images [nom dans img/ => chemin].
      */
-    public static function clean_ai_output($text) {
-        $text = trim($text);
-        if (preg_match('/^```(?:markdown|md)?\s*\n(.*)\n```$/s', $text, $m)) {
-            $text = trim($m[1]);
+    private static function remarks_markdown(array $remarks, $files, array &$images) {
+        $out = '';
+        foreach (array_values($remarks) as $i => $r) {
+            $who = $r['reviewer_name'] ? $r['reviewer_name'] . ' <' . $r['reviewer_email'] . '>' : $r['reviewer_email'];
+            $modified = ($r['decision'] === Newsletter_reviews_model::DECISION_MODIFIED && $r['admin_text'] !== NULL);
+            $out .= '### R' . ($i + 1) . '. ' . self::agent_status($r) . ' — ' . $who . "\n\n"
+                  . '- Statut : **' . self::agent_status($r) . "**\n"
+                  . '- Décision de l\'administrateur : ' . self::decision_label($r['decision']) . "\n\n";
+            if ($modified) {
+                $out .= "Texte à appliquer (rédigé par l'administrateur) :\n\n" . trim($r['admin_text']) . "\n\n"
+                      . "Texte d'origine du relecteur, pour mémoire :\n\n" . self::quote(trim($r['content'])) . "\n\n";
+            } else {
+                $out .= trim($r['content']) . "\n\n";
+            }
+            foreach ($files->list_reply_files($r['id']) as $name) {
+                if (!Newsletter_files::is_image($name)) continue;
+                $img = 'remarque' . (int) $r['id'] . '_' . $name;
+                $images[$img] = $files->reply_dir($r['id']) . $name;
+                $out .= '![' . $name . '](img/' . $img . ")\n\n";
+            }
         }
-        return $text . "\n";
+        return $out;
+    }
+
+    private static function decision_label($decision) {
+        $labels = array(
+            Newsletter_reviews_model::DECISION_ACCEPTED  => 'acceptée',
+            Newsletter_reviews_model::DECISION_MODIFIED  => 'modifiée',
+            Newsletter_reviews_model::DECISION_POSTPONED => 'reportée à une prochaine édition',
+        );
+        return $labels[$decision] ?? $decision;
+    }
+
+    private static function quote($text) {
+        return '> ' . implode("\n> ", preg_split('/\R/', $text));
+    }
+
+    /**
+     * Consignes de modification d'une version, pour l'agent de rédaction :
+     * commentaires de l'administrateur (APPLIQUER), remarques acceptées ou
+     * modifiées (APPLIQUER) et remarques reportées (REPORTER) du tour. Les
+     * remarques rejetées n'y figurent pas.
+     *
+     * @param array            $newsletter
+     * @param int              $version      Version de référence
+     * @param string           $draft        Markdown de la version (pour situer les commentaires)
+     * @param array            $annotations  Commentaires de la version
+     * @param array            $remarks      Remarques acceptées, modifiées ou reportées du tour
+     * @param Newsletter_files $files
+     * @return array  markdown, images [nom dans img/ => chemin]
+     */
+    public static function build_directives($newsletter, $version, $draft, array $annotations, array $remarks, $files) {
+        $images = array();
+        $md = '# Consignes de modification — ' . $newsletter['title'] . "\n\n"
+            . '- Édition : ' . $newsletter['title'] . ' (période ' . self::period_label($newsletter) . ")\n"
+            . '- Version de référence : v' . (int) $version . ' ; version à produire : v' . ((int) $version + 1) . "\n"
+            . '- Préparé le ' . date('d/m/Y H:i') . "\n\n"
+            . "Produis la version suivante du brouillon en traitant chaque élément ci-dessous selon son statut, et seulement ces éléments :\n\n"
+            . "- **" . self::STATUS_APPLY . "** : à intégrer dans la version v" . ((int) $version + 1) . ". Pour un commentaire de l'administrateur, l'insérer à l'endroit indiqué sous la forme demandée ; pour une remarque modifiée, appliquer le texte de l'administrateur ;\n"
+            . "- **" . self::STATUS_POSTPONE . "** : ne pas intégrer dans cette édition ; à conserver pour une prochaine édition.\n\n"
+            . "Les remarques refusées par l'administrateur ne figurent pas dans ce fichier. Les images citées sont dans le répertoire img/. "
+            . "Mets à jour la mention « BROUILLON v" . ((int) $version + 1) . " ».\n\n";
+
+        $md .= "## Commentaires de l'administrateur\n\n";
+        if (!$annotations) {
+            $md .= "Aucun.\n\n";
+        }
+        $blocks = Newsletter_files::split_blocks($draft);
+        foreach (array_values($annotations) as $i => $a) {
+            $anchor = $blocks[(int) $a['block_index']] ?? ($a['anchor_text'] ?? '');
+            $anchor = mb_strimwidth(preg_replace('/\s+/u', ' ', trim($anchor)), 0, 200, '…');
+            $md .= '### C' . ($i + 1) . '. ' . self::STATUS_APPLY . " — après le passage : « " . $anchor . " »\n\n"
+                 . '- Statut : **' . self::STATUS_APPLY . "**\n\n"
+                 . "Insérer :\n\n" . Newsletter_files::annotation_markdown($a['label'], $a['content']) . "\n\n";
+        }
+
+        $md .= "## Remarques des relecteurs\n\n";
+        $md .= $remarks ? self::remarks_markdown($remarks, $files, $images) : "Aucune.\n\n";
+        return array('markdown' => rtrim($md) . "\n", 'images' => $images);
+    }
+
+    /**
+     * Remarques reportées, à fournir à l'agent pour une prochaine édition.
+     *
+     * @return array  markdown, images [nom dans img/ => chemin]
+     */
+    public static function build_postponed(array $remarks, $files) {
+        $images = array();
+        $md = "# Remarques reportées à une prochaine édition\n\n"
+            . '- Préparé le ' . date('d/m/Y H:i') . "\n\n"
+            . "Remarques des relecteurs que l'administrateur a reportées (statut " . self::STATUS_POSTPONE . "). "
+            . "À examiner pour la version initiale de la prochaine édition ; les images citées sont dans le répertoire img/.\n\n";
+        $md .= $remarks ? self::remarks_markdown($remarks, $files, $images) : "Aucune.\n";
+        return array('markdown' => rtrim($md) . "\n", 'images' => $images);
     }
 }

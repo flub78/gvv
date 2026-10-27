@@ -5,10 +5,11 @@ if (!defined('BASEPATH'))
 /**
  * Newsletter_reviews_model
  *
- * Suggestions issues des réponses des relecteurs : remarque ou article,
- * décision de l'administrateur (acceptée, modifiée, rejetée, reportée).
- * Une suggestion d'article reportée n'est rattachée à aucune édition
- * jusqu'à ce qu'elle soit reprise.
+ * Remarques issues des réponses des relecteurs et décision de
+ * l'administrateur (acceptée, modifiée, rejetée, reportée). Une remarque
+ * reportée reste rattachée à son édition d'origine (elle figure dans les
+ * consignes de modification de celle-ci, statut REPORTER) et est proposée
+ * à la reprise dans les autres éditions.
  *
  * @see doc/design_notes/veille_documentaire_design.md
  */
@@ -16,9 +17,6 @@ class Newsletter_reviews_model extends CI_Model {
 
     public $table = 'newsletter_reviews';
     protected $primary_key = 'id';
-
-    const KIND_REMARK  = 'remarque';
-    const KIND_ARTICLE = 'article';
 
     const DECISION_PENDING   = 'en_attente';
     const DECISION_ACCEPTED  = 'acceptee';
@@ -51,10 +49,10 @@ class Newsletter_reviews_model extends CI_Model {
     }
 
     /**
-     * Enregistre une suggestion en attente de décision.
+     * Enregistre une remarque en attente de décision.
      *
      * @param array $data  newsletter_id, iteration, reviewer_email, reviewer_name,
-     *                     content, kind, message_id, submitted_via, has_attachments
+     *                     content, message_id, submitted_via, has_attachments
      * @return int|false   ID créé, FALSE si erreur ou message déjà enregistré
      */
     public function add($data) {
@@ -71,7 +69,6 @@ class Newsletter_reviews_model extends CI_Model {
             'message_id'      => ($message_id !== '') ? $message_id : NULL,
             'reviewer_email'  => $data['reviewer_email'],
             'reviewer_name'   => $data['reviewer_name'] ?? NULL,
-            'kind'            => ($data['kind'] ?? '') === self::KIND_ARTICLE ? self::KIND_ARTICLE : self::KIND_REMARK,
             'content'         => $data['content'],
             'decision'        => self::DECISION_PENDING,
             'has_attachments' => (int) ($data['has_attachments'] ?? 0),
@@ -92,7 +89,7 @@ class Newsletter_reviews_model extends CI_Model {
     }
 
     /**
-     * Suggestions d'une édition, dans l'ordre d'arrivée.
+     * Remarques d'une édition, dans l'ordre d'arrivée.
      *
      * @param int      $newsletter_id
      * @param int|null $iteration  Tour de relecture ; toutes si NULL
@@ -107,17 +104,31 @@ class Newsletter_reviews_model extends CI_Model {
     }
 
     /**
-     * Suggestions d'articles reportées, en attente d'une édition future.
+     * Remarques reportées, en attente d'une édition future.
+     *
+     * @param int|null $except_newsletter_id  Édition à exclure (celle qui les a reportées)
      */
-    public function get_postponed() {
-        return $this->db->where('decision', self::DECISION_POSTPONED)
-                        ->where('newsletter_id IS NULL', NULL, FALSE)
-                        ->order_by('created_at', 'ASC')
+    public function get_postponed($except_newsletter_id = NULL) {
+        $this->db->where('decision', self::DECISION_POSTPONED);
+        if ($except_newsletter_id !== NULL) {
+            $this->db->where('(newsletter_id IS NULL OR newsletter_id != ' . (int) $except_newsletter_id . ')', NULL, FALSE);
+        }
+        return $this->db->order_by('created_at', 'ASC')->get($this->table)->result_array();
+    }
+
+    /**
+     * Remarques reportées pendant un tour de relecture d'une édition.
+     */
+    public function get_postponed_in_round($newsletter_id, $iteration) {
+        return $this->db->where('newsletter_id', (int) $newsletter_id)
+                        ->where('iteration', (int) $iteration)
+                        ->where('decision', self::DECISION_POSTPONED)
+                        ->order_by('id', 'ASC')
                         ->get($this->table)->result_array();
     }
 
     /**
-     * Suggestions à transmettre à l'agent IA pour la révision d'une édition :
+     * Remarques à transmettre à l'agent IA dans les consignes de modification :
      * acceptées ou modifiées pendant le tour de relecture courant (les tours
      * précédents ont déjà été intégrés dans une version antérieure).
      */
@@ -130,7 +141,7 @@ class Newsletter_reviews_model extends CI_Model {
     }
 
     /**
-     * Nombre de suggestions encore sans décision pour une édition.
+     * Nombre de remarques encore sans décision pour une édition.
      */
     public function count_pending($newsletter_id) {
         return $this->db->where('newsletter_id', (int) $newsletter_id)
@@ -141,23 +152,19 @@ class Newsletter_reviews_model extends CI_Model {
     /**
      * Enregistre la décision de l'administrateur.
      *
-     * Une suggestion reportée est détachée de son édition ; seuls les
-     * articles peuvent être reportés ; une modification exige un texte.
+     * Une modification exige un texte.
      *
      * @return string|true  TRUE, ou un code d'erreur
      */
-    public function decide($id, $decision, $admin_text = NULL, $kind = NULL) {
-        $sugg = $this->get($id);
-        if (!$sugg) return 'not_found';
+    public function decide($id, $decision, $admin_text = NULL) {
+        $rem = $this->get($id);
+        if (!$rem) return 'not_found';
         if (!in_array($decision, self::decisions(), TRUE)) return 'invalid_decision';
 
-        $kind = in_array($kind, array(self::KIND_REMARK, self::KIND_ARTICLE), TRUE) ? $kind : $sugg['kind'];
-        if ($decision === self::DECISION_POSTPONED && $kind !== self::KIND_ARTICLE) return 'postpone_article_only';
         $admin_text = ($admin_text !== NULL) ? trim($admin_text) : NULL;
         if ($decision === self::DECISION_MODIFIED && ($admin_text === NULL || $admin_text === '')) return 'modified_text_required';
 
         $data = array(
-            'kind'       => $kind,
             'decision'   => $decision,
             'admin_text' => ($decision === self::DECISION_MODIFIED) ? $admin_text : NULL,
             'decided_by' => ($decision === self::DECISION_PENDING) ? NULL : $this->current_user(),
@@ -165,19 +172,17 @@ class Newsletter_reviews_model extends CI_Model {
             'updated_at' => $this->now(),
             'updated_by' => $this->current_user(),
         );
-        if ($decision === self::DECISION_POSTPONED) {
-            $data['newsletter_id'] = NULL;
-        }
         $this->db->where('id', (int) $id)->update($this->table, $data);
         return TRUE;
     }
 
     /**
-     * Reprend une suggestion reportée dans une édition, en attente de décision.
+     * Reprend une remarque reportée dans une autre édition, en attente de décision.
      */
     public function attach($id, $newsletter_id, $iteration) {
-        $sugg = $this->get($id);
-        if (!$sugg || $sugg['newsletter_id'] !== NULL) return FALSE;
+        $rem = $this->get($id);
+        if (!$rem || $rem['decision'] !== self::DECISION_POSTPONED
+            || (int) $rem['newsletter_id'] === (int) $newsletter_id) return FALSE;
         $this->db->where('id', (int) $id)->update($this->table, array(
             'newsletter_id' => (int) $newsletter_id,
             'iteration'     => (int) $iteration,
