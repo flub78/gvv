@@ -50,6 +50,7 @@ $lang['newsletter_delete_confirm']        = 'Deze abonnee verwijderen?';
 $lang['newsletter_delete_success']        = 'Abonnee verwijderd.';
 
 $lang['newsletter_config_title']          = 'Configuratie regelgevingswacht';
+$lang['newsletter_config_card_desc']      = 'Revisoren, wachtmailbox, verzendaccount';
 $lang['newsletter_config_saved']          = 'Configuratie opgeslagen.';
 $lang['newsletter_config_imap']           = 'Verzamelpostbus (IMAP)';
 $lang['newsletter_config_smtp']           = 'Verzendadres (SMTP)';

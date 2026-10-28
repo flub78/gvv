@@ -137,6 +137,12 @@ test('club-admin can access newsletter_admin', async ({ page }) => {
     await page.goto('/index.php/newsletter_admin');
     await expect(page.locator('h3')).toContainText('Abonnement à la newsletter');
     await expect(page.locator('a:has-text("Publier une newsletter")')).toHaveCount(0);
+
+    // Carte de configuration de la veille dans l'administration du club
+    await page.goto('/index.php/welcome/section/admin_club');
+    const card = page.locator('.sub-card', { hasText: 'Configuration veille réglementaire' });
+    await card.locator('a').click();
+    await expect(page).toHaveURL(/newsletter_admin\/configuration/);
 });
 
 // ─── Test 7 : accès admin refusé à un simple membre ──────────────────────────

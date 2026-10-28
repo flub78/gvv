@@ -16,7 +16,8 @@ Rien n'est envoyé sans une action de l'administrateur : l'agent n'envoie aucun 
 - `Administration > Veille réglementaire` — éditions et cycle de relecture (`/newsletter_admin/editions`)
 - `Administration > Abonnement à la newsletter` — abonnés (`/newsletter_admin`)
 - `Membres > Newsletters` — archive des newsletters publiées (`/newsletter`)
-- `Dev > Newsletter — Configuration` et pages de test (`/newsletter_admin/configuration`)
+- `Accueil > Administration du club > Configuration veille réglementaire` — relecteurs, boîte de veille, compte d'envoi (`/newsletter_admin/configuration`)
+- `Dev > Newsletter — Configuration` et pages de test (`/newsletter_admin/test_email`, `test_imap`, `test_ai`)
 
 > La fonctionnalité est activée par `$config['veille'] = true;` dans `application/config/program.php`. Sans ce réglage, les menus sont masqués et les pages répondent « introuvable ».
 
