@@ -51,6 +51,7 @@ class Newsletter_admin extends MY_Controller {
         $this->load->model('newsletter_model');
         $this->load->model('newsletter_subscribers_model');
         $this->load->library('Newsletter_imap');
+        $this->load->library('Newsletter_mailer');
     }
 
     /**
@@ -100,48 +101,13 @@ class Newsletter_admin extends MY_Controller {
         // Envoi synchrone : ne pas l'interrompre au milieu de la liste
         @set_time_limit(0);
 
-        $cfg       = $this->_load_newsletter_config();
-        $smtp      = $this->_init_newsletter_smtp($cfg);
-        $from      = $smtp['from'];
-        $nom_club  = $smtp['from_name'] ?: $this->config->item('nom_club') ?: 'Le club';
-        $club      = $this->config->item('nom_club') ?: $nom_club;
-        $unsub_url = site_url('newsletter_public/unsubscribe/');
-        $start     = date('d/m/Y', strtotime($newsletter['period_start']));
-        $end       = date('d/m/Y', strtotime($newsletter['period_end']));
-        $subject   = sprintf($this->lang->line('nl_mail_subject'), $nom_club, $start, $end);
-        $contact   = ($cfg['newsletter_imap_user'] ?? '') ?: ($cfg['newsletter_smtp_from'] ?? '');
-
+        $cfg  = $this->_load_newsletter_config();
+        $smtp = $this->_init_newsletter_smtp($cfg);
         foreach ($subscribers as $sub) {
-            // Diffusion déclenchée manuellement : envoi aux abonnés réels, pas de redirection test_email
-            $to = $sub['email'];
-
-            $body  = sprintf($this->lang->line('nl_mail_greeting'), $sub['first_name'], $sub['last_name']) . "\n\n";
-            $body .= sprintf($this->lang->line('nl_mail_intro'), $club, $start, $end) . "\n\n";
-            if ($contact) {
-                $body .= sprintf($this->lang->line('nl_mail_feedback'), $contact) . "\n\n";
-            }
-            $body .= sprintf($this->lang->line('nl_mail_signature'), $nom_club) . "\n\n";
-            $body .= sprintf($this->lang->line('nl_mail_unsubscribe'), $unsub_url . $sub['unsubscribe_token']) . "\n";
-
-            $this->email->clear(TRUE);
-            $this->email->set_mailtype('text');
-            $this->email->set_newline("\r\n");
-            $this->email->from($from, $nom_club);
-            $this->email->to($to);
-            $this->email->subject($subject);
-            $this->email->message($body);
-
-            if (!empty($newsletter['pdf_path']) && file_exists($newsletter['pdf_path'])) {
-                $this->email->attach($newsletter['pdf_path'], 'attachment', $newsletter['title'] . '.pdf', 'application/pdf');
-            }
-
-            if ($this->email->send()) {
-                $this->newsletter_subscribers_model->record_sending($newsletter_id, $sub['id']);
+            if ($this->newsletter_mailer->send($newsletter, $sub, $cfg, $smtp)) {
                 $result['sent']++;
-                log_message('info', 'newsletter_admin: envoi newsletter #' . $newsletter_id . ' à ' . $sub['email']);
             } else {
                 $result['failed'][] = $sub['email'];
-                log_message('error', 'newsletter_admin: échec envoi #' . $newsletter_id . ' à ' . $sub['email']);
             }
         }
         return $result;
@@ -229,24 +195,7 @@ class Newsletter_admin extends MY_Controller {
     }
 
     private function _load_newsletter_config() {
-        $file = APPPATH . 'config/newsletter.php';
-        if (!file_exists($file)) return array();
-        // Utiliser file_get_contents + regex pour éviter que OPcache serve
-        // une version compilée obsolète après une écriture file_put_contents.
-        $content = file_get_contents($file);
-        if (!$content) return array();
-        $result = array();
-        // Extrait les paires $config['clé'] = 'valeur';
-        if (preg_match_all(
-            '/\$config\[\'([^\']+)\'\]\s*=\s*\'((?:[^\'\\\\]|\\\\.)*)\'\s*;/',
-            $content, $m, PREG_SET_ORDER
-        )) {
-            foreach ($m as $match) {
-                // Désescaper les simples quotes escapées (\')
-                $result[$match[1]] = str_replace("\\'", "'", $match[2]);
-            }
-        }
-        return $result;
+        return $this->newsletter_mailer->load_config();
     }
 
     private function _save_newsletter_config($values) {
@@ -310,26 +259,7 @@ class Newsletter_admin extends MY_Controller {
     }
 
     private function _init_newsletter_smtp($cfg) {
-        $this->load->library('email');
-        $this->load->helper('email');
-
-        if (!empty($cfg['newsletter_smtp_host'])) {
-            $this->email->initialize(array(
-                'protocol'     => 'smtp',
-                'smtp_host'    => $cfg['newsletter_smtp_host'],
-                'smtp_port'    => (int) ($cfg['newsletter_smtp_port']   ?: 587),
-                'smtp_crypto'  => $cfg['newsletter_smtp_crypto'] ?: 'tls',
-                'smtp_user'    => $cfg['newsletter_smtp_user']   ?: $cfg['newsletter_smtp_from'],
-                'smtp_pass'    => Newsletter_imap::decode_password($cfg['newsletter_smtp_password'] ?? ''),
-                'smtp_timeout' => 20,
-            ));
-        }
-        // Si smtp_host vide : la config globale email.php (Brevo) reste active
-
-        return array(
-            'from'      => $cfg['newsletter_smtp_from']      ?: $this->config->item('email_club'),
-            'from_name' => $cfg['newsletter_smtp_from_name'] ?: $this->config->item('nom_club'),
-        );
+        return $this->newsletter_mailer->init_smtp($cfg);
     }
 
     private function _run_test_email($form = array()) {

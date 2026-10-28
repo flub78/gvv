@@ -8,7 +8,7 @@ Date : 25 octobre 2026
 
 ## Objectif
 
-Livrer en quatre phases le système de newsletter de veille sécurité et réglementaire : validation de l'infrastructure (P0), abonnements et archive (P1), cycle de relecture dans GVV des brouillons produits par l'agent de rédaction (P2), ouverture à tous les abonnés (P3). L'agent de rédaction est configuré dans Claude Code, hors de GVV ; il n'est pas couvert par ce plan.
+Livrer en quatre phases le système de newsletter de veille sécurité et réglementaire : validation de l'infrastructure (P0), abonnements et archive (P1), cycle de relecture dans GVV des brouillons produits par l'agent de rédaction (P2), ouverture à tous les abonnés (P3). L'agent de rédaction est configuré dans Claude Code, hors de GVV ; ce plan ne couvre de sa configuration que les mesures de protection contre l'injection de consignes (P2.13).
 
 ## Feature flag
 
@@ -92,6 +92,9 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 - [x] À la publication (manuelle ou automatique) : envoi groupé via `MY_Email` à tous les abonnés confirmés, pièce jointe PDF, texte personnalisé « Bonjour {prénom} {nom}, … » (fichiers de langue), invitation à écrire à l'adresse de veille de la configuration pour les remarques et les informations manquantes avec leur source, lien de désinscription dans le corps
 - [x] Enregistrement de chaque envoi dans `newsletter_sendings`
 - [x] Diffusion déclenchée par un administrateur : envoi aux adresses réelles des abonnés, sans redirection `test_email` (réservée aux tests automatiques)
+- [x] Envoi d'une newsletter à un abonné regroupé dans `Newsletter_mailer`, partagé par la diffusion et la confirmation d'abonnement
+- [x] À la confirmation d'un abonnement : envoi du dernier numéro paru avec un texte d'accueil, sauf s'il a déjà été reçu ; résultat affiché sur la page de confirmation (envoyé, aucun numéro, déjà reçu, échec)
+- [x] PHPUnit MySQL `NewsletterMailerTest.php` (texte d'accueil, dernier numéro, déjà reçu, PDF absent) ; Playwright `newsletter-subscribe-smoke.spec.js` (confirmation avec dernier numéro non envoyé)
 
 **P1.7 — Tests** (1,5 j)
 - [x] PHPUnit MySQL `NewsletterModelsTest.php` : CRUD newsletters, états, abonnements (inscription, double opt-in, désinscription, token unique, unicité email, accès admin), historique des envois ; fixtures créées et supprimées par les tests
@@ -146,7 +149,7 @@ Le cycle est piloté par l'administrateur : import du brouillon d'une période �
 
 **P2.8 — Consignes de modification** (1 j)
 - [x] Bouton de téléchargement : Markdown des commentaires de la version et des remarques du tour, ou zip avec ce Markdown et `img/` (images des remarques)
-- [x] Statuts de l'agent sur chaque élément : `APPLIQUER` (commentaires, remarques acceptées ou modifiées, texte de l'administrateur et texte d'origine pour mémoire), `REPORTER` (remarques reportées) ; remarques rejetées absentes
+- [x] Statuts de l'agent sur chaque élément : `APPLIQUER` (commentaires, remarques acceptées ou modifiées), `REPORTER` (remarques reportées) ; remarques rejetées absentes
 
 **P2.9 — Valider et publier** (0,5 j)
 - [x] Action « Valider et publier » depuis `draft`, y compris sans tour de relecture : mentions entre crochets restantes listées et rappelées à la confirmation, transition → `approved` (`approved_by`, `approved_at`) puis publication (P2.10) ; en cas d'échec de la publication, l'édition reste `approved` et la publication peut être relancée
@@ -171,7 +174,24 @@ Le cycle est piloté par l'administrateur : import du brouillon d'une période �
 - [ ] Guide admin : commandes acceptées par l'agent de rédaction (§1 du guide)
 - [ ] Format du brouillon et des consignes de modification communiqué à l'agent de rédaction (dans ses consignes, hors GVV)
 
-**Estimation P2 : ~11 jours.**
+**P2.13 — Protection contre l'injection de consignes** (2,5 j)
+
+*Dans GVV :*
+- [ ] Consignes de modification et remarques reportées : avertissement en tête, texte des relecteurs en citation entre délimiteurs à identifiant propre au fichier ; texte d'origine d'une remarque modifiée retiré
+- [ ] Relevé des réponses : retrait des caractères invisibles, refus des images SVG jointes, résultat SPF/DKIM/DMARC (`Authentication-Results`) enregistré dans `newsletter_reviews.sender_auth` (migration, `config/migration.php`)
+- [ ] Tri : signalement d'un expéditeur non authentifié et des marqueurs suspects, sans bloquer la décision ; vignettes des images jointes
+- [ ] PHPUnit : encadrement du texte des relecteurs, absence du texte d'origine, caractères invisibles, SVG, authentification de l'expéditeur
+- [ ] Guide admin : signalements au tri et points à vérifier avant d'accepter une remarque
+
+*Configuration de l'agent, hors GVV :*
+- [ ] Deux profils d'exécution : révision sans accès web ni shell ; version initiale avec accès web restreint aux domaines du registre si possible
+- [ ] Utilisateur système dédié, sans accès à la configuration de GVV, à la base, aux sauvegardes ni aux secrets
+- [ ] Consignes, registre, inventaire et journal versionnés ; règle permanente sur le traitement des remarques et des liens qu'elles citent
+
+*Vérification :*
+- [ ] Campagne de canaris de la conception sur une édition de test de gvv.net, avant et après les mesures ; résultats consignés, campagne rejouée à chaque changement de modèle, de consignes ou de permissions de l'agent
+
+**Estimation P2 : ~13,5 jours.**
 
 **Validation P2** : deux éditions générées par l'agent de rédaction, importées, annotées, relues par email, révisées par l'agent à partir des consignes de modification, validées et diffusées via GVV.
 
@@ -194,7 +214,7 @@ P3 est conditionné par la validation de P2 sur au moins deux éditions réelles
 |---|---|---|---|
 | P0 | Feature flag, configuration, validation infrastructure | 4 j | réalisé, hors tests |
 | P1 | Abonnements et archive | 7 j | réalisé |
-| P2 | Cycle de relecture dans GVV | 11 j | réalisé, hors essai réel et documentation |
+| P2 | Cycle de relecture dans GVV | 13,5 j | réalisé, hors essai réel, documentation et protection contre l'injection de consignes |
 | P3 | Ouverture aux membres | 2 j | à faire |
 
 P2 dépend de P0 (IMAP/SMTP) et de P1 (tables, modèles, envoi aux abonnés). La génération sans intervention humaine et les alertes immédiates sont des évolutions envisagées par le PRD (§ 10), hors de ce plan.

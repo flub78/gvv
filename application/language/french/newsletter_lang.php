@@ -22,7 +22,10 @@ $lang['newsletter_subscribe_error']       = 'Une erreur est survenue. Veuillez r
 
 // Confirmation d'abonnement
 $lang['newsletter_confirm_title']         = 'Abonnement confirmé';
-$lang['newsletter_confirm_success']       = 'Votre abonnement est confirmé. Vous recevrez les prochaines newsletters par email.';
+$lang['newsletter_confirm_success_sent'] = 'Votre abonnement est confirmé. Le dernier numéro paru vient de vous être envoyé par email ; vous recevrez aussi les prochains.';
+$lang['newsletter_confirm_success_none'] = 'Votre abonnement est confirmé. Vous recevrez les prochaines newsletters par email.';
+$lang['newsletter_confirm_success_already'] = 'Votre abonnement est confirmé. Vous avez déjà reçu le dernier numéro paru ; vous recevrez les prochains par email.';
+$lang['newsletter_confirm_success_failed'] = 'Votre abonnement est confirmé, mais l\'envoi du dernier numéro paru a échoué. Vous recevrez les prochaines newsletters par email.';
 $lang['newsletter_confirm_invalid']       = 'Ce lien de confirmation est invalide ou a déjà été utilisé.';
 
 // Désinscription
@@ -220,6 +223,7 @@ $lang['nl_publish_error']                  = 'La newsletter n\'a pas pu passer �
 $lang['nl_mail_subject'] = "[%s] Newsletter de veille — du %s au %s";
 $lang['nl_mail_greeting'] = "Bonjour %s %s,";
 $lang['nl_mail_intro'] = "Voici la newsletter de veille sécurité et réglementation de %s pour la période du %s au %s. Vous la trouverez en pièce jointe.";
+$lang['nl_mail_welcome_intro'] = "Merci de votre abonnement. Voici le dernier numéro paru de la newsletter de veille sécurité et réglementation de %s, pour la période du %s au %s. Vous le trouverez en pièce jointe.";
 $lang['nl_mail_feedback'] = "Vos retours nous intéressent : remarques, corrections, et surtout toute information qui aurait dû figurer dans cette lettre et qui n'y est pas. Écrivez-nous à %s en précisant, si vous la connaissez, la source de l'information (lien, référence du document, émetteur).";
 $lang['nl_mail_signature'] = "Cordiales salutations aéronautiques,\nL'équipe de %s";
 $lang['nl_mail_unsubscribe'] = "Pour vous désabonner : %s";

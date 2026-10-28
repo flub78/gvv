@@ -19,7 +19,10 @@ $lang['newsletter_already_subscribed']    = 'Dit adres is al geabonneerd.';
 $lang['newsletter_subscribe_error']       = 'Er is een fout opgetreden. Probeer het opnieuw.';
 
 $lang['newsletter_confirm_title']         = 'Abonnement bevestigd';
-$lang['newsletter_confirm_success']       = 'Uw abonnement is bevestigd. U ontvangt toekomstige nieuwsbrieven per e-mail.';
+$lang['newsletter_confirm_success_sent'] = 'Uw abonnement is bevestigd. Het laatst verschenen nummer is u zojuist per e-mail toegestuurd; u ontvangt ook de volgende nummers.';
+$lang['newsletter_confirm_success_none'] = 'Uw abonnement is bevestigd. U ontvangt toekomstige nieuwsbrieven per e-mail.';
+$lang['newsletter_confirm_success_already'] = 'Uw abonnement is bevestigd. U hebt het laatst verschenen nummer al ontvangen; u ontvangt de volgende nummers per e-mail.';
+$lang['newsletter_confirm_success_failed'] = 'Uw abonnement is bevestigd, maar het verzenden van het laatst verschenen nummer is mislukt. U ontvangt toekomstige nieuwsbrieven per e-mail.';
 $lang['newsletter_confirm_invalid']       = 'Deze bevestigingslink is ongeldig of is al gebruikt.';
 
 $lang['newsletter_unsubscribe_title']     = 'Afmelden';
@@ -201,6 +204,7 @@ $lang['nl_publish_error']                  = 'De nieuwsbrief kon niet op gepubli
 $lang['nl_mail_subject'] = "[%s] Nieuwsbrief regelgevingsbewaking — %s tot %s";
 $lang['nl_mail_greeting'] = "Beste %s %s,";
 $lang['nl_mail_intro'] = "Hierbij de nieuwsbrief veiligheid en regelgeving van %s voor de periode van %s tot %s. U vindt hem in de bijlage.";
+$lang['nl_mail_welcome_intro'] = "Bedankt voor uw abonnement. Hierbij het laatst verschenen nummer van de nieuwsbrief veiligheid en regelgeving van %s, voor de periode van %s tot %s. U vindt het in de bijlage.";
 $lang['nl_mail_feedback'] = "Uw reacties zijn welkom: opmerkingen, correcties en vooral alle informatie die in deze nieuwsbrief had moeten staan maar ontbreekt. Schrijf ons op %s en vermeld, als u die kent, de bron van de informatie (link, documentreferentie, uitgever).";
 $lang['nl_mail_signature'] = "Met vriendelijke aeronautische groeten,\nHet team van %s";
 $lang['nl_mail_unsubscribe'] = "Afmelden: %s";

@@ -191,11 +191,11 @@ La publication, déclenchée par la validation :
 
 Le message de confirmation indique le nombre d'abonnés atteints et donne le lien vers le PDF. Si la publication échoue avant l'envoi, l'édition reste **Validée** et le bouton **Relancer la publication** permet de recommencer.
 
-Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse refusée, envoi interrompu), le message liste les adresses non atteintes et la page de l'édition publiée indique leur nombre. Une fois la cause corrigée, **Renvoyer aux abonnés non atteints (n)** envoie la newsletter à ces seuls abonnés : ceux qui l'ont déjà reçue ne la reçoivent pas deux fois, et les abonnés inscrits après la publication ne sont pas concernés.
+Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse refusée, envoi interrompu), le message liste les adresses non atteintes et la page de l'édition publiée indique leur nombre. Une fois la cause corrigée, **Renvoyer aux abonnés non atteints (n)** envoie la newsletter à ces seuls abonnés : ceux qui l'ont déjà reçue ne la reçoivent pas deux fois, et les abonnés inscrits après la publication ne sont pas concernés : s'il s'agit du dernier numéro paru, ils l'ont reçu à la confirmation de leur abonnement.
 
 ### 2.11 Abonnés et archive
 
-**Abonnés** — `Administration > Abonnement à la newsletter` liste les abonnés (nom, email, date, statut) et permet d'en supprimer. Cette page donne aussi le lien de la **page publique d'abonnement** (`/newsletter_public/subscribe`), à diffuser : un visiteur y saisit son nom et son email, puis confirme par le lien reçu. Chaque newsletter envoyée contient un lien personnel de désabonnement.
+**Abonnés** — `Administration > Abonnement à la newsletter` liste les abonnés (nom, email, date, statut) et permet d'en supprimer. Cette page donne aussi le lien de la **page publique d'abonnement** (`/newsletter_public/subscribe`), à diffuser : un visiteur y saisit son nom et son email, puis confirme par le lien reçu. À la confirmation, il reçoit par email le dernier numéro paru ; la page de confirmation lui indique si l'envoi a réussi. Chaque newsletter envoyée contient un lien personnel de désabonnement.
 
 **Archive** — `Membres > Newsletters` liste, pour les membres actifs connectés, les newsletters publiées (titre, période, date de publication) ; **Ouvrir** affiche le PDF.
 

@@ -80,6 +80,17 @@ class Newsletter_subscribers_model extends CI_Model {
     }
 
     /**
+     * Abonné en attente de confirmation pour ce token, ou NULL.
+     */
+    public function get_by_confirmation_token($token) {
+        if ((string) $token === '') return NULL;
+        return $this->db->where('confirmation_token', $token)
+                        ->where('confirmed', 0)
+                        ->where('unsubscribed_at IS NULL')
+                        ->get($this->table)->row_array() ?: NULL;
+    }
+
+    /**
      * Confirme l'abonnement via le token envoyé par email.
      *
      * @param string $token

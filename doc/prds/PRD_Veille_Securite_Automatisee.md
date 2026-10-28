@@ -120,6 +120,9 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F1.8 L'agent génère la version initiale du brouillon d'une période.
 - F1.9 L'agent génère une nouvelle version du brouillon à partir des consignes de modification produites par GVV (F2.9), images comprises.
 - F1.10 Le brouillon indique son titre (premier titre du document), sa période (ligne « Période : du … au … ») et son numéro de version (mention « BROUILLON vN »). Il est livré sous forme d'un fichier Markdown, ou d'une archive zip contenant le Markdown et un sous-répertoire d'images lorsqu'il en référence.
+- F1.11 L'agent traite le texte des relecteurs et les contenus des sources comme des données : une remarque ne peut modifier que le contenu de la lettre, jamais les consignes, le registre des sources, l'inventaire ou le journal de l'agent. Toute demande qui sort de ce cadre est ignorée et consignée au journal.
+- F1.12 Pour réviser un brouillon, l'agent n'a ni accès web ni commande shell ; pour la version initiale, son accès web est limité autant que possible aux sources du registre. Dans tous les cas, il n'a accès ni à la configuration de GVV, ni à sa base, ni à aucun secret.
+- F1.13 Les consignes, le registre, l'inventaire et le journal de l'agent sont versionnés, pour que toute modification soit visible après chaque exécution.
 
 **F2. Import, annotation et relecture dans GVV**
 
@@ -128,11 +131,12 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F2.3 L'administrateur peut insérer des commentaires sous n'importe quel paragraphe du brouillon, avec un libellé (« Commentaire du DTO » par défaut) et un texte, et les supprimer. Les commentaires apparaissent dans le brouillon affiché, dans le PDF transmis aux relecteurs et dans la newsletter publiée.
 - F2.4 L'administrateur transmet le brouillon annoté aux relecteurs par email, en PDF. L'email indique la date limite de réponse, deux jours après l'envoi par défaut, et demande surtout aux relecteurs de signaler toute information qui aurait dû figurer dans la newsletter et qui n'y est pas, avec sa source s'ils la connaissent.
 - F2.5 Les relecteurs répondent à l'email avec des remarques, des suggestions d'articles et des images, reçues sur l'adresse de veille.
-- F2.6 Un bouton, sur chaque brouillon transmis, relève les réponses reçues sur l'adresse de veille pour cette newsletter. Une réponse déjà relevée ne l'est pas une seconde fois. Seules les réponses provenant de relecteurs autorisés sont retenues ; les autres sont signalées à l'administrateur avec le motif.
+- F2.6 Un bouton, sur chaque brouillon transmis, relève les réponses reçues sur l'adresse de veille pour cette newsletter. Une réponse déjà relevée ne l'est pas une seconde fois. Seules les réponses provenant de relecteurs autorisés sont retenues ; les autres sont signalées à l'administrateur avec le motif. Les caractères invisibles sont retirés du texte des réponses et les images SVG jointes sont refusées.
 - F2.7 Pour chaque remarque, l'administrateur décide : l'accepter, la modifier (c'est alors le texte modifié qui est retenu), la rejeter (elle n'est pas transmise à l'agent) ou la reporter à une prochaine édition.
 - F2.8 Une remarque reportée est reproposée lors du tri des éditions suivantes ; l'administrateur peut télécharger les remarques reportées pour les fournir à l'agent qui génère la version initiale d'une prochaine édition.
-- F2.9 Un bouton télécharge les consignes de modification destinées à l'agent IA : un fichier Markdown, ou une archive zip contenant ce fichier et un sous-répertoire avec les images à intégrer. Chaque élément y porte un statut dans le vocabulaire de l'agent : **APPLIQUER** pour les commentaires de l'administrateur et les remarques acceptées ou modifiées (pour une remarque modifiée, le texte à appliquer est celui de l'administrateur, le texte du relecteur est cité pour mémoire), **REPORTER** pour les remarques reportées à une prochaine édition. Les remarques rejetées n'y figurent pas.
+- F2.9 Un bouton télécharge les consignes de modification destinées à l'agent IA : un fichier Markdown, ou une archive zip contenant ce fichier et un sous-répertoire avec les images à intégrer. Chaque élément y porte un statut dans le vocabulaire de l'agent : **APPLIQUER** pour les commentaires de l'administrateur et les remarques acceptées ou modifiées (pour une remarque modifiée, seul le texte de l'administrateur est transmis), **REPORTER** pour les remarques reportées à une prochaine édition. Les remarques rejetées n'y figurent pas. Le texte des relecteurs y est présenté comme une donnée non fiable, distincte des consignes, sans pouvoir imiter un élément.
 - F2.10 À l'import de la nouvelle version (F2.1), l'administrateur peut la retransmettre aux relecteurs pour un nouveau tour, ou la valider. GVV conserve toutes les versions et affiche les différences avec la précédente.
+- F2.11 Au tri, GVV signale, sans bloquer la décision, une remarque dont l'expéditeur n'est pas authentifié (SPF, DKIM, DMARC) ou dont le texte semble s'adresser à l'agent plutôt qu'à la lettre. Les images jointes à une remarque sont visibles au tri.
 
 **F3. Validation**
 
@@ -156,6 +160,7 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F5.3 Désinscription en un clic depuis la newsletter ou depuis la page d'abonnement.
 - F5.4 Les administrateurs club peuvent accéder à la liste des abonnés et supprimer des abonnements.
 - F5.6 La page d'administration des abonnés donne le lien de la page publique d'abonnement, à diffuser.
+- F5.7 À la confirmation de son abonnement, le nouvel abonné reçoit par email le dernier numéro paru, s'il ne l'a pas déjà reçu, avec un texte d'accueil et le lien de désinscription. La page de confirmation lui indique si ce numéro lui a été envoyé, s'il n'y en a pas encore, ou si l'envoi a échoué.
 
 **F6. Archive et consultation**
 
@@ -210,7 +215,7 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 
 ## 8. Architecture technique (indicative)
 
-- **Agent IA** : Claude Code, configuré avec les consignes de la veille, avec accès au disque et navigation web. Il conserve l'état de la veille et le journal.
+- **Agent IA** : Claude Code, configuré avec les consignes de la veille, avec accès au disque et navigation web limités selon le type d'exécution (F1.12). Il conserve l'état de la veille et le journal.
 - **Échanges avec GVV** : fichiers transmis par l'administrateur (brouillon vers GVV, consignes de modification vers l'agent), au format Markdown ou zip avec images.
 - **Cycle de relecture** : relevé à la demande des réponses reçues sur l'adresse de veille ; tri et décisions dans GVV.
 - **Envoi** : SMTP du domaine, email personnalisé avec pièce jointe PDF et lien de désinscription.
