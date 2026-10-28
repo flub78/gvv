@@ -3,7 +3,9 @@
  *
  * Scenarios:
  *   1. Public subscribe form: fills name + email → success message displayed
- *   2. Confirm subscription via the token stored in the DB
+ *   2. Confirm subscription via the token stored in the DB; the latest issue
+ *      (a test edition whose PDF is missing, so no email is sent) is reported
+ *      as not delivered
  *   3. Public unsubscribe via the unsubscribe token
  *   4. A logged-in member can access the newsletter archive
  *   5. A club-admin can access the admin page and the publish form
@@ -74,13 +76,26 @@ test('subscribe form shows success message', async ({ page }) => {
     expect(confirmToken).toBeTruthy();
 });
 
-// ─── Test 2 : confirmation de l'abonnement ────────────────────────────────────
-test('confirm subscription via token', async ({ page }) => {
-    await page.goto('/index.php/newsletter_public/confirm/' + confirmToken);
-    await expect(page.locator('.alert-success')).toBeVisible();
+// ─── Test 2 : confirmation de l'abonnement et envoi du dernier numéro ────────
+test('confirm subscription via token reports the latest issue sending', async ({ page }) => {
+    // Dernier numéro paru : édition de test publiée dans le futur, PDF absent
+    const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const [ins] = await db.query(
+        `INSERT INTO newsletters (title, period_start, period_end, status, review_iteration, pdf_path, published_at,
+                                  created_at, updated_at, created_by, updated_by)
+         VALUES ('ZZTest Playwright dernier numéro', '2099-01-01', '2099-01-31', 'published', 0,
+                 './uploads/newsletters/zztest_playwright_absent.pdf', '2099-02-01 10:00:00', ?, ?, 'playwright', 'playwright')`,
+        [now, now]);
 
-    const [rows] = await db.query('SELECT confirmed FROM newsletter_subscribers WHERE email = ?', [TEST_EMAIL]);
+    await page.goto('/index.php/newsletter_public/confirm/' + confirmToken);
+    await expect(page.locator('.alert-warning')).toContainText("l'envoi du dernier numéro paru a échoué ; il vous sera renvoyé");
+
+    const [rows] = await db.query('SELECT id, confirmed FROM newsletter_subscribers WHERE email = ?', [TEST_EMAIL]);
     expect(Number(rows[0].confirmed)).toBe(1);
+    const [sent] = await db.query('SELECT COUNT(*) AS n FROM newsletter_sendings WHERE newsletter_id = ? AND subscriber_id = ?',
+                                  [ins.insertId, rows[0].id]);
+    expect(Number(sent[0].n)).toBe(0);
+    await db.query('DELETE FROM newsletters WHERE id = ?', [ins.insertId]);
 });
 
 // ─── Test 3 : soumission du formulaire d'abonnement pour un email déjà abonné ─

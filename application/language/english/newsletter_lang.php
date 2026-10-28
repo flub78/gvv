@@ -19,7 +19,10 @@ $lang['newsletter_already_subscribed']    = 'This address is already subscribed.
 $lang['newsletter_subscribe_error']       = 'An error occurred. Please try again.';
 
 $lang['newsletter_confirm_title']         = 'Subscription confirmed';
-$lang['newsletter_confirm_success']       = 'Your subscription is confirmed. You will receive future newsletters by email.';
+$lang['newsletter_confirm_success_sent'] = 'Your subscription is confirmed. The latest issue has just been sent to you by email; you will also receive future issues.';
+$lang['newsletter_confirm_success_none'] = 'Your subscription is confirmed. You will receive future newsletters by email.';
+$lang['newsletter_confirm_success_already'] = 'Your subscription is confirmed. You have already received the latest issue; you will receive future issues by email.';
+$lang['newsletter_confirm_success_failed'] = 'Your subscription is confirmed, but sending the latest issue failed; it will be sent to you again. You will also receive future newsletters by email.';
 $lang['newsletter_confirm_invalid']       = 'This confirmation link is invalid or has already been used.';
 
 $lang['newsletter_unsubscribe_title']     = 'Unsubscribe';
@@ -201,6 +204,7 @@ $lang['nl_publish_error']                  = 'The newsletter could not be set to
 $lang['nl_mail_subject'] = "[%s] Watch newsletter — %s to %s";
 $lang['nl_mail_greeting'] = "Dear %s %s,";
 $lang['nl_mail_intro'] = "Here is the safety and regulatory watch newsletter of %s for the period from %s to %s. You will find it attached.";
+$lang['nl_mail_welcome_intro'] = "Thank you for subscribing. Here is the latest issue of the safety and regulatory watch newsletter of %s, for the period from %s to %s. You will find it attached.";
 $lang['nl_mail_feedback'] = "We welcome your feedback: remarks, corrections, and above all any information that should have appeared in this newsletter but does not. Write to us at %s, giving the source of the information if you know it (link, document reference, issuer).";
 $lang['nl_mail_signature'] = "Kind aeronautical regards,\nThe %s team";
 $lang['nl_mail_unsubscribe'] = "To unsubscribe: %s";

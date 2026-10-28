@@ -8,7 +8,7 @@
  *
  * Routes :
  *   GET/POST newsletter_public/subscribe      Formulaire d'abonnement
- *   GET      newsletter_public/confirm/:token Confirmation double opt-in
+ *   GET      newsletter_public/confirm/:token Confirmation double opt-in, envoi du dernier numéro paru
  *   GET      newsletter_public/unsubscribe/:token Désinscription
  */
 
@@ -118,13 +118,22 @@ class Newsletter_public extends MY_Controller {
      * Confirmation d'abonnement via le token envoyé par email.
      */
     public function confirm($token = '') {
-        $ok = $this->newsletter_subscribers_model->confirm($token);
+        $sub = $this->newsletter_subscribers_model->get_by_confirmation_token($token);
+        $ok  = $sub && $this->newsletter_subscribers_model->confirm($token);
+        $level   = $ok ? 'success' : 'warning';
+        $message = $this->lang->line('newsletter_confirm_invalid');
+        if ($ok) {
+            // Accueil : le dernier numéro paru est envoyé au nouvel abonné
+            $this->load->library('Newsletter_mailer');
+            $latest  = $this->newsletter_mailer->send_latest($sub);
+            $message = $this->lang->line('newsletter_confirm_success_' . $latest);
+            if ($latest === Newsletter_mailer::LATEST_FAILED) $level = 'warning';
+        }
         $data = array(
             'title'   => $this->lang->line('newsletter_confirm_title'),
             'success' => $ok,
-            'message' => $ok
-                ? $this->lang->line('newsletter_confirm_success')
-                : $this->lang->line('newsletter_confirm_invalid'),
+            'level'   => $level,
+            'message' => $message,
         );
         $this->load->view('bs_header', $data);
         $this->load->view('bs_banner');

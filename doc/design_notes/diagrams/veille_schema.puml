@@ -41,6 +41,7 @@ entity newsletter_reviews {
   decided_by : VARCHAR
   decided_at : DATETIME
   has_attachments : TINYINT
+  sender_auth : VARCHAR
   --
   * created_at : DATETIME
   * updated_at : DATETIME

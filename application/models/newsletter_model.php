@@ -76,6 +76,13 @@ class Newsletter_model extends CI_Model {
     /**
      * Retourne les éditions publiées (archive membres).
      */
+    public function get_latest_published() {
+        return $this->db->where('status', self::STATUS_PUBLISHED)
+                        ->order_by('published_at', 'DESC')
+                        ->limit(1)
+                        ->get($this->table)->row_array() ?: NULL;
+    }
+
     public function get_published() {
         return $this->db->where('status', self::STATUS_PUBLISHED)
                         ->order_by('published_at', 'DESC')

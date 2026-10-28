@@ -7,8 +7,8 @@
 
 <h3><?= $this->lang->line('newsletter_confirm_title') ?></h3>
 
-<div class="alert alert-<?= $success ? 'success' : 'warning' ?>">
-    <i class="fas fa-<?= $success ? 'check-circle' : 'exclamation-triangle' ?>"></i>
+<div class="alert alert-<?= $level ?>">
+    <i class="fas fa-<?= $level === 'success' ? 'check-circle' : 'exclamation-triangle' ?>"></i>
     <?= htmlspecialchars($message) ?>
 </div>
 
