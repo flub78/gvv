@@ -25,7 +25,7 @@ $lang['newsletter_confirm_title']         = 'Abonnement confirmé';
 $lang['newsletter_confirm_success_sent'] = 'Votre abonnement est confirmé. Le dernier numéro paru vient de vous être envoyé par email ; vous recevrez aussi les prochains.';
 $lang['newsletter_confirm_success_none'] = 'Votre abonnement est confirmé. Vous recevrez les prochaines newsletters par email.';
 $lang['newsletter_confirm_success_already'] = 'Votre abonnement est confirmé. Vous avez déjà reçu le dernier numéro paru ; vous recevrez les prochains par email.';
-$lang['newsletter_confirm_success_failed'] = 'Votre abonnement est confirmé, mais l\'envoi du dernier numéro paru a échoué. Vous recevrez les prochaines newsletters par email.';
+$lang['newsletter_confirm_success_failed'] = 'Votre abonnement est confirmé, mais l\'envoi du dernier numéro paru a échoué ; il vous sera renvoyé. Vous recevrez aussi les prochaines newsletters par email.';
 $lang['newsletter_confirm_invalid']       = 'Ce lien de confirmation est invalide ou a déjà été utilisé.';
 
 // Désinscription

@@ -22,7 +22,7 @@ $lang['newsletter_confirm_title']         = 'Subscription confirmed';
 $lang['newsletter_confirm_success_sent'] = 'Your subscription is confirmed. The latest issue has just been sent to you by email; you will also receive future issues.';
 $lang['newsletter_confirm_success_none'] = 'Your subscription is confirmed. You will receive future newsletters by email.';
 $lang['newsletter_confirm_success_already'] = 'Your subscription is confirmed. You have already received the latest issue; you will receive future issues by email.';
-$lang['newsletter_confirm_success_failed'] = 'Your subscription is confirmed, but sending the latest issue failed. You will receive future newsletters by email.';
+$lang['newsletter_confirm_success_failed'] = 'Your subscription is confirmed, but sending the latest issue failed; it will be sent to you again. You will also receive future newsletters by email.';
 $lang['newsletter_confirm_invalid']       = 'This confirmation link is invalid or has already been used.';
 
 $lang['newsletter_unsubscribe_title']     = 'Unsubscribe';

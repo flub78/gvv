@@ -94,7 +94,8 @@ Toute la fonctionnalité est protégée par `$config['veille']` dans `program.ph
 - [x] Diffusion déclenchée par un administrateur : envoi aux adresses réelles des abonnés, sans redirection `test_email` (réservée aux tests automatiques)
 - [x] Envoi d'une newsletter à un abonné regroupé dans `Newsletter_mailer`, partagé par la diffusion et la confirmation d'abonnement
 - [x] À la confirmation d'un abonnement : envoi du dernier numéro paru avec un texte d'accueil, sauf s'il a déjà été reçu ; résultat affiché sur la page de confirmation (envoyé, aucun numéro, déjà reçu, échec)
-- [x] PHPUnit MySQL `NewsletterMailerTest.php` (texte d'accueil, dernier numéro, déjà reçu, PDF absent) ; Playwright `newsletter-subscribe-smoke.spec.js` (confirmation avec dernier numéro non envoyé)
+- [x] Accueil en échec repris par le renvoi aux abonnés non atteints : pour le dernier numéro paru, les abonnés confirmés après la publication en font partie ; aucun envoi sans PDF
+- [x] PHPUnit MySQL `NewsletterMailerTest.php` (texte d'accueil, dernier numéro, déjà reçu, PDF absent, abonnés non atteints ; transaction annulée, éditions de test jamais visibles) ; Playwright `newsletter-subscribe-smoke.spec.js` (confirmation avec dernier numéro non envoyé)
 
 **P1.7 — Tests** (1,5 j)
 - [x] PHPUnit MySQL `NewsletterModelsTest.php` : CRUD newsletters, états, abonnements (inscription, double opt-in, désinscription, token unique, unicité email, accès admin), historique des envois ; fixtures créées et supprimées par les tests
@@ -149,7 +150,7 @@ Le cycle est piloté par l'administrateur : import du brouillon d'une période �
 
 **P2.8 — Consignes de modification** (1 j)
 - [x] Bouton de téléchargement : Markdown des commentaires de la version et des remarques du tour, ou zip avec ce Markdown et `img/` (images des remarques)
-- [x] Statuts de l'agent sur chaque élément : `APPLIQUER` (commentaires, remarques acceptées ou modifiées), `REPORTER` (remarques reportées) ; remarques rejetées absentes
+- [x] Statuts de l'agent sur chaque élément : `APPLIQUER` (commentaires, remarques acceptées ou modifiées, texte de l'administrateur et texte d'origine pour mémoire, retiré en P2.13), `REPORTER` (remarques reportées) ; remarques rejetées absentes
 
 **P2.9 — Valider et publier** (0,5 j)
 - [x] Action « Valider et publier » depuis `draft`, y compris sans tour de relecture : mentions entre crochets restantes listées et rappelées à la confirmation, transition → `approved` (`approved_by`, `approved_at`) puis publication (P2.10) ; en cas d'échec de la publication, l'édition reste `approved` et la publication peut être relancée

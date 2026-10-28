@@ -10,7 +10,8 @@ require_once(APPPATH . 'libraries/Newsletter_imap.php');
  * Envoi d'une newsletter publiée à un abonné, partagé par la diffusion
  * (newsletter_admin) et l'accueil d'un nouvel abonné (newsletter_public),
  * qui reçoit à la confirmation de son abonnement le dernier numéro paru.
- * Chaque envoi réussi est journalisé dans newsletter_sendings.
+ * Chaque envoi réussi est journalisé dans newsletter_sendings ; un envoi
+ * d'accueil en échec est repris par le renvoi aux abonnés non atteints.
  *
  * @see doc/design_notes/veille_documentaire_design.md (Abonnements)
  */
@@ -119,7 +120,8 @@ class Newsletter_mailer {
 
     /**
      * Envoie une newsletter publiée à un abonné, PDF en pièce jointe, et
-     * journalise l'envoi réussi. init_smtp() doit avoir été appelé.
+     * journalise l'envoi réussi. init_smtp() doit avoir été appelé. Sans
+     * PDF, rien n'est envoyé : la newsletter est la pièce jointe.
      *
      * @param array $newsletter
      * @param array $sub
@@ -129,6 +131,7 @@ class Newsletter_mailer {
      * @return bool
      */
     public function send($newsletter, $sub, $cfg, $smtp, $welcome = FALSE) {
+        if (!$this->has_pdf($newsletter, $sub)) return FALSE;
         $nom_club = $smtp['from_name'] ?: $this->CI->config->item('nom_club') ?: 'Le club';
         $msg      = $this->message($newsletter, $sub, $cfg, $nom_club, $welcome);
         $subject  = $msg['subject'];
@@ -143,9 +146,7 @@ class Newsletter_mailer {
         $this->CI->email->to($to);
         $this->CI->email->subject($subject);
         $this->CI->email->message($msg['body']);
-        if (!empty($newsletter['pdf_path']) && file_exists($newsletter['pdf_path'])) {
-            $this->CI->email->attach($newsletter['pdf_path'], 'attachment', $newsletter['title'] . '.pdf', 'application/pdf');
-        }
+        $this->CI->email->attach($newsletter['pdf_path'], 'attachment', $newsletter['title'] . '.pdf', 'application/pdf');
 
         if ($this->CI->email->send()) {
             $this->CI->newsletter_subscribers_model->record_sending($newsletter['id'], $sub['id']);
@@ -157,11 +158,35 @@ class Newsletter_mailer {
     }
 
     /**
+     * Le PDF de la newsletter existe ; sinon l'absence est journalisée.
+     */
+    private function has_pdf($newsletter, $sub) {
+        if (!empty($newsletter['pdf_path']) && file_exists($newsletter['pdf_path'])) return TRUE;
+        log_message('error', 'newsletter_mailer: PDF absent pour le numéro #' . $newsletter['id'] . ', pas d\'envoi à ' . $sub['email']);
+        return FALSE;
+    }
+
+    /**
      * Dernier numéro publié, ou NULL s'il n'y en a pas.
      */
     public function latest_published() {
-        $published = $this->CI->newsletter_model->get_published();
-        return $published ? $published[0] : NULL;
+        return $this->CI->newsletter_model->get_latest_published();
+    }
+
+    /**
+     * Abonnés actifs qui n'ont pas reçu une newsletter publiée. Une
+     * newsletter n'est pas envoyée aux abonnés confirmés après sa
+     * publication, sauf la dernière parue : ils la reçoivent à la
+     * confirmation, et ceux dont cet envoi a échoué restent à atteindre.
+     *
+     * @param array $newsletter
+     * @return array
+     */
+    public function not_sent($newsletter) {
+        $latest = $this->latest_published();
+        $is_latest = $latest && (int) $latest['id'] === (int) $newsletter['id'];
+        return $this->CI->newsletter_subscribers_model->get_not_sent(
+            $newsletter['id'], $is_latest ? NULL : $newsletter['published_at']);
     }
 
     /**
@@ -178,10 +203,7 @@ class Newsletter_mailer {
         if ($this->CI->newsletter_subscribers_model->already_sent($newsletter['id'], $sub['id'])) {
             return self::LATEST_ALREADY;
         }
-        if (empty($newsletter['pdf_path']) || !file_exists($newsletter['pdf_path'])) {
-            log_message('error', 'newsletter_mailer: PDF absent pour le numéro #' . $newsletter['id']);
-            return self::LATEST_FAILED;
-        }
+        if (!$this->has_pdf($newsletter, $sub)) return self::LATEST_FAILED;
         $cfg  = $this->load_config();
         $smtp = $this->init_smtp($cfg);
         return $this->send($newsletter, $sub, $cfg, $smtp, TRUE) ? self::LATEST_SENT : self::LATEST_FAILED;

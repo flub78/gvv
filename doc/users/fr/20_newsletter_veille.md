@@ -191,7 +191,7 @@ La publication, déclenchée par la validation :
 
 Le message de confirmation indique le nombre d'abonnés atteints et donne le lien vers le PDF. Si la publication échoue avant l'envoi, l'édition reste **Validée** et le bouton **Relancer la publication** permet de recommencer.
 
-Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse refusée, envoi interrompu), le message liste les adresses non atteintes et la page de l'édition publiée indique leur nombre. Une fois la cause corrigée, **Renvoyer aux abonnés non atteints (n)** envoie la newsletter à ces seuls abonnés : ceux qui l'ont déjà reçue ne la reçoivent pas deux fois, et les abonnés inscrits après la publication ne sont pas concernés : s'il s'agit du dernier numéro paru, ils l'ont reçu à la confirmation de leur abonnement.
+Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse refusée, envoi interrompu), le message liste les adresses non atteintes et la page de l'édition publiée indique leur nombre. Une fois la cause corrigée, **Renvoyer aux abonnés non atteints (n)** envoie la newsletter à ces seuls abonnés : ceux qui l'ont déjà reçue ne la reçoivent pas deux fois, et les abonnés inscrits après la publication ne sont pas concernés, sauf pour le dernier numéro paru : ils le reçoivent à la confirmation de leur abonnement, et ceux pour qui cet envoi a échoué font partie des abonnés non atteints.
 
 ### 2.11 Abonnés et archive
 

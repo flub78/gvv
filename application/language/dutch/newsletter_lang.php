@@ -22,7 +22,7 @@ $lang['newsletter_confirm_title']         = 'Abonnement bevestigd';
 $lang['newsletter_confirm_success_sent'] = 'Uw abonnement is bevestigd. Het laatst verschenen nummer is u zojuist per e-mail toegestuurd; u ontvangt ook de volgende nummers.';
 $lang['newsletter_confirm_success_none'] = 'Uw abonnement is bevestigd. U ontvangt toekomstige nieuwsbrieven per e-mail.';
 $lang['newsletter_confirm_success_already'] = 'Uw abonnement is bevestigd. U hebt het laatst verschenen nummer al ontvangen; u ontvangt de volgende nummers per e-mail.';
-$lang['newsletter_confirm_success_failed'] = 'Uw abonnement is bevestigd, maar het verzenden van het laatst verschenen nummer is mislukt. U ontvangt toekomstige nieuwsbrieven per e-mail.';
+$lang['newsletter_confirm_success_failed'] = 'Uw abonnement is bevestigd, maar het verzenden van het laatst verschenen nummer is mislukt; het wordt u opnieuw toegestuurd. U ontvangt ook toekomstige nieuwsbrieven per e-mail.';
 $lang['newsletter_confirm_invalid']       = 'Deze bevestigingslink is ongeldig of is al gebruikt.';
 
 $lang['newsletter_unsubscribe_title']     = 'Afmelden';

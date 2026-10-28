@@ -88,7 +88,7 @@ test('confirm subscription via token reports the latest issue sending', async ({
         [now, now]);
 
     await page.goto('/index.php/newsletter_public/confirm/' + confirmToken);
-    await expect(page.locator('.alert-warning')).toContainText("l'envoi du dernier numéro paru a échoué");
+    await expect(page.locator('.alert-warning')).toContainText("l'envoi du dernier numéro paru a échoué ; il vous sera renvoyé");
 
     const [rows] = await db.query('SELECT id, confirmed FROM newsletter_subscribers WHERE email = ?', [TEST_EMAIL]);
     expect(Number(rows[0].confirmed)).toBe(1);

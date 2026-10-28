@@ -160,7 +160,7 @@ Avant tout développement fonctionnel, une page de validation démontre que les 
 - F5.3 Désinscription en un clic depuis la newsletter ou depuis la page d'abonnement.
 - F5.4 Les administrateurs club peuvent accéder à la liste des abonnés et supprimer des abonnements.
 - F5.6 La page d'administration des abonnés donne le lien de la page publique d'abonnement, à diffuser.
-- F5.7 À la confirmation de son abonnement, le nouvel abonné reçoit par email le dernier numéro paru, s'il ne l'a pas déjà reçu, avec un texte d'accueil et le lien de désinscription. La page de confirmation lui indique si ce numéro lui a été envoyé, s'il n'y en a pas encore, ou si l'envoi a échoué.
+- F5.7 À la confirmation de son abonnement, le nouvel abonné reçoit par email le dernier numéro paru, s'il ne l'a pas déjà reçu, avec un texte d'accueil et le lien de désinscription. La page de confirmation lui indique si ce numéro lui a été envoyé, s'il n'y en a pas encore, ou si l'envoi a échoué ; un envoi en échec est repris par le renvoi aux abonnés non atteints.
 
 **F6. Archive et consultation**
 

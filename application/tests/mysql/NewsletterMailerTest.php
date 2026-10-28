@@ -6,9 +6,11 @@ use PHPUnit\Framework\TestCase;
  * Tests de Newsletter_mailer : texte de l'email d'accueil, choix du dernier
  * numéro paru et envoi d'accueil à la confirmation d'un abonnement (cas
  * sans envoi SMTP : déjà reçu, PDF absent), recherche d'un abonné par token
- * de confirmation.
+ * de confirmation, abonnés non atteints (reprise d'un accueil en échec).
  *
- * Les éditions, abonnés et envois créés sont supprimés.
+ * Chaque test s'exécute dans une transaction annulée à la fin : les
+ * éditions de test, publiées en 2099 donc « dernier numéro », ne sont
+ * jamais visibles de gvv.net.
  */
 class NewsletterMailerTest extends TestCase
 {
@@ -26,6 +28,7 @@ class NewsletterMailerTest extends TestCase
         $this->CI->load->helper('url');
         require_once APPPATH . 'libraries/Newsletter_mailer.php';
         $this->mailer = new Newsletter_mailer();
+        $this->CI->db->trans_begin();
         // Le banc de test ne traduit pas : textes réels du fichier français
         $lang = array();
         include APPPATH . 'language/french/newsletter_lang.php';
@@ -42,6 +45,7 @@ class NewsletterMailerTest extends TestCase
     protected function tearDown(): void
     {
         $this->CI->lang = $this->lang;
+        $this->CI->db->trans_rollback();
         $this->cleanup();
     }
 
@@ -63,14 +67,14 @@ class NewsletterMailerTest extends TestCase
         return $this->CI->newsletter_subscribers_model->get($res['subscriber_id']);
     }
 
-    /** Édition publiée dans le futur, donc la plus récente */
-    private function published($pdf_path): array
+    /** Édition publiée dans le futur, donc la plus récente par défaut */
+    private function published($pdf_path, $published_at = '2099-02-01 10:00:00'): array
     {
         $id = $this->CI->newsletter_model->create(array(
             'title' => 'ZZTest mailer', 'period_start' => '2099-01-01', 'period_end' => '2099-01-31',
         ));
         $this->CI->newsletter_model->update($id, array(
-            'status' => 'published', 'published_at' => '2099-02-01 10:00:00', 'pdf_path' => $pdf_path,
+            'status' => 'published', 'published_at' => $published_at, 'pdf_path' => $pdf_path,
         ));
         return $this->CI->newsletter_model->get($id);
     }
@@ -115,6 +119,30 @@ class NewsletterMailerTest extends TestCase
         $nl  = $this->published('/nonexistent/zztest_mailer.pdf');
         $this->assertSame(Newsletter_mailer::LATEST_FAILED, $this->mailer->send_latest($sub));
         $this->assertFalse($this->CI->newsletter_subscribers_model->already_sent($nl['id'], $sub['id']));
+    }
+
+    public function test_send_refuses_newsletter_without_pdf(): void
+    {
+        $sub = $this->subscriber();
+        $nl  = $this->published(NULL);
+        $this->assertFalse($this->mailer->send($nl, $sub, array(), array('from' => 'veille@example.invalid', 'from_name' => 'Club test')));
+        $this->assertFalse($this->CI->newsletter_subscribers_model->already_sent($nl['id'], $sub['id']));
+    }
+
+    public function test_not_sent_includes_later_subscribers_for_latest_issue_only(): void
+    {
+        // Numéro antérieur, puis dernier numéro, tous deux publiés avant la confirmation de l'abonné
+        $older  = $this->published(NULL, '2099-01-15 10:00:00');
+        $latest = $this->published(NULL, '2099-02-01 10:00:00');
+        $sub    = $this->subscriber();
+        $this->CI->db->where('id', $sub['id'])->update('newsletter_subscribers', array('confirmed_at' => '2099-03-01 10:00:00'));
+
+        $ids = function ($rows) { return array_map('intval', array_column($rows, 'id')); };
+        $this->assertContains((int) $sub['id'], $ids($this->mailer->not_sent($latest)), 'accueil en échec à reprendre');
+        $this->assertNotContains((int) $sub['id'], $ids($this->mailer->not_sent($older)), 'numéro antérieur : pas d\'envoi rétroactif');
+
+        $this->CI->newsletter_subscribers_model->record_sending($latest['id'], $sub['id']);
+        $this->assertNotContains((int) $sub['id'], $ids($this->mailer->not_sent($latest)), 'déjà reçu');
     }
 
     public function test_get_by_confirmation_token(): void

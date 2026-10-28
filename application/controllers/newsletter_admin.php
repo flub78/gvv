@@ -96,7 +96,7 @@ class Newsletter_admin extends MY_Controller {
         $result      = array('sent' => 0, 'failed' => array());
         $newsletter  = $this->newsletter_model->get($newsletter_id);
         if (empty($newsletter)) return $result;
-        $subscribers = $this->newsletter_subscribers_model->get_not_sent($newsletter_id, $newsletter['published_at']);
+        $subscribers = $this->newsletter_mailer->not_sent($newsletter);
         if (empty($subscribers)) return $result;
         // Envoi synchrone : ne pas l'interrompre au milieu de la liste
         @set_time_limit(0);
@@ -246,11 +246,6 @@ class Newsletter_admin extends MY_Controller {
         $this->load->view('bs_footer');
     }
 
-    /**
-     * Initialise la bibliothèque email avec le SMTP de la newsletter.
-     * Si newsletter_smtp_host est vide, utilise la config globale (Brevo).
-     * Retourne un tableau ['from'=>..., 'from_name'=>...].
-     */
     private function _current_user_email() {
         $login = $this->dx_auth->get_username();
         if (empty($login)) return '';
@@ -258,6 +253,10 @@ class Newsletter_admin extends MY_Controller {
         return $row['memail'] ?? '';
     }
 
+    /**
+     * Initialise la bibliothèque email avec le SMTP de la newsletter.
+     * @see Newsletter_mailer::init_smtp()
+     */
     private function _init_newsletter_smtp($cfg) {
         return $this->newsletter_mailer->init_smtp($cfg);
     }
@@ -738,7 +737,7 @@ class Newsletter_admin extends MY_Controller {
             'can_collect' => self::_can_collect($nl),
             'approver'    => $nl['approved_by'] ? $this->_member_name($nl['approved_by']) : '',
             'unsent'      => ($nl['status'] === Newsletter_model::STATUS_PUBLISHED)
-                             ? count($this->newsletter_subscribers_model->get_not_sent($nl['id'], $nl['published_at'])) : 0,
+                             ? count($this->newsletter_mailer->not_sent($nl)) : 0,
             'attachments' => $this->_reply_attachments($files, $remarks),
             'collect'     => $this->session->flashdata('collect_report'),
             'message'     => $this->session->flashdata('message'),
@@ -1224,7 +1223,7 @@ class Newsletter_admin extends MY_Controller {
         $nl = $this->_edition_or_404($id);
         if ($nl['status'] !== Newsletter_model::STATUS_PUBLISHED) {
             $this->_flash('warning', $this->lang->line('nl_resend_not_published'));
-        } elseif (!$this->newsletter_subscribers_model->get_not_sent($nl['id'], $nl['published_at'])) {
+        } elseif (!$this->newsletter_mailer->not_sent($nl)) {
             $this->_flash('info', $this->lang->line('nl_resend_none'));
         } else {
             $this->_flash_sending($this->lang->line('nl_resend_done'), $this->_send_to_subscribers($nl['id']));
