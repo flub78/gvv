@@ -5,6 +5,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * MySQL integration tests for Acceptance_items_model
  *
+ * @feature Acceptation de documents
  * @package tests
  * @see application/models/acceptance_items_model.php
  */
@@ -191,12 +192,24 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== CRUD tests ====================
 
+    /**
+     * Scénario: Un élément à accepter peut être créé
+     *   Étant donné un administrateur qui prépare un élément à accepter
+     *   Quand il l'enregistre
+     *   Alors l'élément existe et peut être retrouvé
+     */
     public function testCreate_ReturnsId()
     {
         $id = $this->createTestItem();
         $this->assertGreaterThan(0, $id);
     }
 
+    /**
+     * Scénario: Un élément créé garde son titre et sa catégorie
+     *   Étant donné un élément à accepter enregistré avec un titre et une catégorie
+     *   Quand on le consulte
+     *   Alors son titre et sa catégorie sont ceux saisis
+     */
     public function testGetById_ReturnsCorrectItem()
     {
         $id = $this->createTestItem(array('title' => 'Test GetById'));
@@ -207,6 +220,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertEquals('document', $item['category']);
     }
 
+    /**
+     * Scénario: Le titre d'un élément peut être modifié
+     *   Étant donné un élément à accepter existant
+     *   Quand son titre est modifié
+     *   Alors le nouveau titre est conservé
+     */
     public function testUpdate_ModifiesItem()
     {
         $id = $this->createTestItem();
@@ -220,6 +239,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertEquals('Updated Title', $item['title']);
     }
 
+    /**
+     * Scénario: Un élément supprimé n'existe plus
+     *   Étant donné un élément à accepter existant
+     *   Quand il est supprimé
+     *   Alors il ne peut plus être retrouvé
+     */
     public function testDelete_RemovesItem()
     {
         $id = $this->createTestItem();
@@ -234,6 +259,12 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== select_page tests ====================
 
+    /**
+     * Scénario: La liste d'administration présente les éléments
+     *   Étant donné au moins un élément à accepter
+     *   Quand l'administrateur consulte la liste des éléments
+     *   Alors la liste n'est pas vide
+     */
     public function testSelectPage_ReturnsArray()
     {
         $this->createTestItem();
@@ -243,6 +274,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertGreaterThan(0, count($results));
     }
 
+    /**
+     * Scénario: La liste indique qui a créé chaque élément
+     *   Étant donné un élément à accepter
+     *   Quand l'administrateur consulte la liste des éléments
+     *   Alors l'élément y figure avec le nom de son créateur
+     */
     public function testSelectPage_ContainsCreatorName()
     {
         $id = $this->createTestItem();
@@ -259,6 +296,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'Test item should appear in select_page results');
     }
 
+    /**
+     * Scénario: La liste peut être filtrée par catégorie
+     *   Étant donné un élément à accepter de catégorie briefing
+     *   Quand l'administrateur filtre la liste sur cette catégorie
+     *   Alors l'élément figure dans le résultat
+     */
     public function testSelectPage_WithFilter()
     {
         $id = $this->createTestItem(array('category' => 'briefing'));
@@ -277,6 +320,12 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== get_active_items tests ====================
 
+    /**
+     * Scénario: Un élément désactivé n'est plus proposé
+     *   Étant donné un élément actif et un élément désactivé
+     *   Quand on demande les éléments en cours
+     *   Alors seul l'élément actif est présent
+     */
     public function testGetActiveItems_ReturnsOnlyActive()
     {
         $active_id = $this->createTestItem(array('active' => 1));
@@ -295,6 +344,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertFalse($inactive_found, 'Inactive item should not be returned');
     }
 
+    /**
+     * Scénario: Les éléments en cours peuvent être limités à une catégorie
+     *   Étant donné un élément de catégorie document et un élément de catégorie formation
+     *   Quand on demande les éléments en cours de la catégorie formation
+     *   Alors seul l'élément de formation est présent
+     */
     public function testGetActiveItems_FilterByCategory()
     {
         $doc_id = $this->createTestItem(array('category' => 'document'));
@@ -315,6 +370,13 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== get_overdue_items tests ====================
 
+    /**
+     * Scénario: Seuls les éléments dont l'échéance est dépassée sont en retard
+     *   Étant donné un élément dont l'échéance est passée
+     *   Et un élément dont l'échéance est à venir
+     *   Quand on demande les éléments en retard
+     *   Alors seul le premier est présent
+     */
     public function testGetOverdueItems_ReturnsExpiredDeadlines()
     {
         $overdue_id = $this->createTestItem(array(
@@ -341,17 +403,36 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== image & selector tests ====================
 
+    /**
+     * Scénario: Un élément est désigné par son titre
+     *   Étant donné un élément à accepter portant un titre
+     *   Quand il est cité dans une page
+     *   Alors il apparaît sous ce titre
+     */
     public function testImage_ReturnsTitle()
     {
         $id = $this->createTestItem(array('title' => 'My Test Document'));
         $this->assertEquals('My Test Document', $this->model->image($id));
     }
 
+    /**
+     * Scénario: Aucun élément désigné n'affiche aucun titre
+     *   Étant donné qu'aucun élément n'est désigné
+     *   Quand son titre est demandé
+     *   Alors le titre affiché est vide
+     */
     public function testImage_EmptyKey()
     {
         $this->assertEquals('', $this->model->image(''));
     }
 
+    /**
+     * Scénario: Le choix d'un élément propose tous les titres et une option vide
+     *   Étant donné un élément à accepter portant un titre
+     *   Quand une liste de choix d'éléments est affichée
+     *   Alors elle propose cet élément sous son titre
+     *   Et elle propose une option vide
+     */
     public function testSelector_ReturnsArray()
     {
         $id = $this->createTestItem(array('title' => 'Selector Test'));
@@ -365,6 +446,12 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== Category enum tests ====================
 
+    /**
+     * Scénario: Toutes les catégories d'élément sont acceptées
+     *   Étant donné les catégories document, formation, contrôle, briefing et autorisation
+     *   Quand un élément est créé dans chacune d'elles
+     *   Alors chaque élément conserve sa catégorie
+     */
     public function testCreate_AllCategories()
     {
         $categories = array('document', 'formation', 'controle', 'briefing', 'autorisation');
@@ -375,6 +462,12 @@ class AcceptanceItemsModelTest extends TestCase
         }
     }
 
+    /**
+     * Scénario: Un élément peut viser des personnes internes ou externes
+     *   Étant donné un élément destiné à des internes et un élément destiné à des externes
+     *   Quand ils sont enregistrés
+     *   Alors chacun conserve son type de destinataires
+     */
     public function testCreate_BothTargetTypes()
     {
         $internal_id = $this->createTestItem(array('target_type' => 'internal'));
@@ -389,6 +482,12 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== target_user_login tests (Lot 3c) ====================
 
+    /**
+     * Scénario: Un élément peut être destiné à une seule personne
+     *   Étant donné un membre
+     *   Quand un élément lui est destiné nommément
+     *   Alors l'élément conserve ce destinataire
+     */
     public function testCreate_WithTargetUserLogin()
     {
         $login = $this->getTestLogin();
@@ -398,6 +497,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertEquals($login, $item['target_user_login']);
     }
 
+    /**
+     * Scénario: Un élément sans ciblage s'adresse à tous les membres éligibles
+     *   Étant donné un élément sans ciblage
+     *   Et un membre actif à jour de cotisation
+     *   Quand ce membre consulte ses éléments
+     *   Alors l'élément en fait partie
+     */
     public function testGetItemsForUser_IncludesUntargetedItem()
     {
         list($login_a, $login_b) = $this->getTwoTestLogins();
@@ -412,6 +518,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'An item with no targeting restriction should be returned for any user');
     }
 
+    /**
+     * Scénario: Un membre voit l'élément qui lui est destiné nommément
+     *   Étant donné un élément destiné nommément à un membre
+     *   Quand ce membre consulte ses éléments
+     *   Alors l'élément en fait partie
+     */
     public function testGetItemsForUser_IncludesIndividuallyTargetedItem()
     {
         list($login_a, $login_b) = $this->getTwoTestLogins();
@@ -429,6 +541,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'An item individually targeting this user should be returned');
     }
 
+    /**
+     * Scénario: Un membre ne voit pas l'élément destiné nommément à un autre
+     *   Étant donné un élément destiné nommément à un autre membre
+     *   Quand un membre consulte ses éléments
+     *   Alors l'élément n'en fait pas partie
+     */
     public function testGetItemsForUser_ExcludesItemTargetedAtAnotherUser()
     {
         list($login_a, $login_b) = $this->getTwoTestLogins();
@@ -492,6 +610,13 @@ class AcceptanceItemsModelTest extends TestCase
         ));
     }
 
+    /**
+     * Scénario: Un membre voit l'élément destiné à son rôle dans sa section
+     *   Étant donné un élément destiné à un rôle dans une section
+     *   Et un membre éligible ayant ce rôle dans cette section
+     *   Quand ce membre consulte ses éléments
+     *   Alors l'élément en fait partie
+     */
     public function testGetItemsForUser_IncludesItemTargetedByHeldRoleAndSection()
     {
         $role = $this->getUserWithRole();
@@ -507,6 +632,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'An item targeting a role/section held by the user should be returned');
     }
 
+    /**
+     * Scénario: Un élément destiné à un rôle dans toutes les sections atteint ce rôle partout
+     *   Étant donné un élément destiné à un rôle dans toutes les sections
+     *   Et un membre éligible ayant ce rôle dans une section quelconque
+     *   Quand ce membre consulte ses éléments
+     *   Alors l'élément en fait partie
+     */
     public function testGetItemsForUser_IncludesItemTargetedByRoleAllSections()
     {
         $role = $this->getUserWithRole();
@@ -523,6 +655,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'An item targeting a role in all sections should be returned for a user holding it in any section');
     }
 
+    /**
+     * Scénario: Un membre ne voit pas l'élément destiné à un rôle qu'il n'a pas
+     *   Étant donné un élément destiné à un rôle dans une section
+     *   Et un membre éligible n'ayant pas ce rôle dans cette section
+     *   Quand ce membre consulte ses éléments
+     *   Alors l'élément n'en fait pas partie
+     */
     public function testGetItemsForUser_ExcludesItemTargetedByRoleUserDoesNotHold()
     {
         $role = $this->getUserWithRole();
@@ -545,6 +684,14 @@ class AcceptanceItemsModelTest extends TestCase
 
     // ==================== Subscription criterion ====================
 
+    /**
+     * Scénario: Un membre dont la cotisation est trop ancienne n'est plus sollicité
+     *   Étant donné un membre actif dans une section
+     *   Et dont la dernière cotisation date d'il y a deux ans
+     *   Quand un élément à accepter est publié pour tous les membres
+     *   Alors ce membre ne fait pas partie des personnes attendues
+     *   Et l'élément ne lui est pas présenté
+     */
     public function testResolveTargets_ExcludesMemberWithoutRecentCotisation()
     {
         $login = $this->getActiveLoginWithoutCotisation();
@@ -557,6 +704,14 @@ class AcceptanceItemsModelTest extends TestCase
             'A member outside the expected count must not get the item (a mandatory one would block them)');
     }
 
+    /**
+     * Scénario: La cotisation de l'année précédente suffit
+     *   Étant donné un membre actif dans une section
+     *   Et dont la dernière cotisation date de l'année précédente
+     *   Quand un élément à accepter est publié pour tous les membres
+     *   Alors ce membre fait partie des personnes attendues
+     *   Et l'élément lui est présenté
+     */
     public function testResolveTargets_IncludesMemberWithPreviousYearCotisation()
     {
         $login = $this->getActiveLoginWithoutCotisation();
@@ -568,6 +723,14 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertContains($id, array_column($this->model->get_items_for_user($login), 'id'));
     }
 
+    /**
+     * Scénario: Le ciblage par rôle exige aussi une cotisation à jour
+     *   Étant donné un élément destiné à un rôle
+     *   Et un membre actif ayant ce rôle mais sans cotisation à jour
+     *   Quand les personnes attendues sont déterminées
+     *   Alors ce membre n'en fait pas partie
+     *   Mais il en fait partie dès que sa cotisation de l'année est enregistrée
+     */
     public function testResolveTargets_RoleTargetAppliesSubscriptionCriterion()
     {
         $login = $this->getActiveLoginWithoutCotisation();
@@ -582,6 +745,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertContains($login, $this->model->resolve_targets($item));
     }
 
+    /**
+     * Scénario: Une personne désignée nommément reçoit l'élément sans condition de cotisation
+     *   Étant donné un membre actif sans cotisation à jour
+     *   Quand un élément lui est destiné nommément
+     *   Alors il est la seule personne attendue
+     *   Et l'élément lui est présenté
+     */
     public function testResolveTargets_IndividualTargetIgnoresSubscription()
     {
         $login = $this->getActiveLoginWithoutCotisation();
@@ -592,6 +762,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertContains($id, array_column($this->model->get_items_for_user($login), 'id'));
     }
 
+    /**
+     * Scénario: Un élément déjà accepté ne reste pas à traiter
+     *   Étant donné un membre ayant accepté un élément
+     *   Quand il consulte ce qu'il lui reste à traiter
+     *   Alors l'élément n'y figure pas
+     */
     public function testGetPendingItemsForUser_ExcludesAcceptedItem()
     {
         $login = $this->getTestLogin();
@@ -616,6 +792,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->db->where('id', $record_id)->delete('acceptance_records');
     }
 
+    /**
+     * Scénario: Un élément sans réponse reste à traiter
+     *   Étant donné un élément auquel un membre n'a pas encore répondu
+     *   Quand il consulte ce qu'il lui reste à traiter
+     *   Alors l'élément y figure
+     */
     public function testGetPendingItemsForUser_IncludesUnhandledItem()
     {
         $login = $this->getTestLogin();
@@ -638,6 +820,14 @@ class AcceptanceItemsModelTest extends TestCase
         return $this->db->get('motd_messages')->result_array();
     }
 
+    /**
+     * Scénario: Un élément obligatoire bloquant notifie son destinataire de façon urgente
+     *   Étant donné un élément obligatoire bloquant destiné nommément à un membre
+     *   Quand les notifications sont générées
+     *   Alors ce membre seul reçoit un message du jour urgent
+     *   Et il ne peut pas le masquer
+     *   Et le message a un contenu
+     */
     public function testSyncTargetMotd_IndividualTarget()
     {
         list($login_a, $login_b) = $this->getTwoTestLogins();
@@ -661,6 +851,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertNotEmpty($messages[0]['content']);
     }
 
+    /**
+     * Scénario: Le message d'un élément facultatif peut être masqué
+     *   Étant donné un élément facultatif destiné nommément à un membre
+     *   Quand les notifications sont générées
+     *   Alors ce membre reçoit un message du jour qu'il peut masquer
+     */
     public function testSyncTargetMotd_OptionalIsDismissible()
     {
         $login = $this->getTestLogin();
@@ -677,6 +873,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertEquals(1, (int) $messages[0]['dismissible']);
     }
 
+    /**
+     * Scénario: Chaque personne ciblée par rôle reçoit son propre message
+     *   Étant donné un élément destiné à un rôle dans une section
+     *   Quand les notifications sont générées
+     *   Alors chaque personne ayant ce rôle reçoit un message personnel
+     *   Et aucun message commun n'est diffusé à tous
+     */
     public function testSyncTargetMotd_RoleAndSectionTarget()
     {
         $role = $this->getUserWithRole();
@@ -694,6 +897,13 @@ class AcceptanceItemsModelTest extends TestCase
         }
     }
 
+    /**
+     * Scénario: Un élément sans ciblage notifie les membres éligibles
+     *   Étant donné un élément sans ciblage
+     *   Et un membre actif à jour de cotisation
+     *   Quand les notifications sont générées
+     *   Alors ce membre reçoit un message du jour
+     */
     public function testSyncTargetMotd_UnrestrictedTargetsEveryActiveMember()
     {
         $login = $this->getTestLogin();
@@ -708,6 +918,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertContains($login, $logins, 'An unrestricted item must reach every active member, including this one');
     }
 
+    /**
+     * Scénario: Un membre ayant déjà répondu n'est plus notifié
+     *   Étant donné un élément sans ciblage déjà accepté par un membre
+     *   Quand les notifications sont générées
+     *   Alors ce membre ne reçoit pas de message
+     */
     public function testSyncTargetMotd_SkipsAlreadyHandledUser()
     {
         $login_a = $this->getTestLogin();
@@ -732,6 +948,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->db->where('item_id', $id)->where('user_login', $login_a)->delete('acceptance_records');
     }
 
+    /**
+     * Scénario: Régénérer les notifications ne crée pas de doublon
+     *   Étant donné un élément dont le destinataire a déjà été notifié
+     *   Quand les notifications sont générées une seconde fois
+     *   Alors il n'a toujours qu'un seul message
+     */
     public function testSyncTargetMotd_ClearsOnResync()
     {
         $login = $this->getTestLogin();
@@ -747,6 +969,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertCount(1, $this->motdMessagesForItem($id), 'Re-syncing must not duplicate the message');
     }
 
+    /**
+     * Scénario: Un élément désactivé ne notifie personne
+     *   Étant donné un élément désactivé destiné nommément à un membre
+     *   Quand les notifications sont générées
+     *   Alors aucun message n'est créé
+     */
     public function testSyncTargetMotd_InactiveItemHasNoMessage()
     {
         $login = $this->getTestLogin();
@@ -761,6 +989,12 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertCount(0, $this->motdMessagesForItem($id));
     }
 
+    /**
+     * Scénario: Les notifications d'un élément peuvent être retirées
+     *   Étant donné un élément dont le destinataire a été notifié
+     *   Quand les notifications de cet élément sont retirées
+     *   Alors il ne reste aucun message pour cet élément
+     */
     public function testClearTargetMotd_RemovesAllMessages()
     {
         $login = $this->getTestLogin();
@@ -776,6 +1010,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertCount(0, $this->motdMessagesForItem($id));
     }
 
+    /**
+     * Scénario: Retirer la notification d'une personne ne touche pas les autres
+     *   Étant donné un élément ayant notifié plusieurs personnes
+     *   Quand la notification d'une personne est retirée
+     *   Alors elle n'a plus de message
+     *   Et les autres conservent le leur
+     */
     public function testClearTargetMotdForUser_RemovesOnlyThatUsersMessage()
     {
         $role = $this->getUserWithRole();
@@ -839,6 +1080,13 @@ class AcceptanceItemsModelTest extends TestCase
         return array('types_roles_id' => $types_roles_id, 'section_id' => $section_id, 'urps_id' => $urps_id);
     }
 
+    /**
+     * Scénario: Perdre son rôle retire la notification de l'élément concerné
+     *   Étant donné un membre notifié d'un élément grâce à son rôle
+     *   Quand ce rôle lui est retiré
+     *   Et que ses notifications sont vérifiées
+     *   Alors il n'a plus de message pour cet élément
+     */
     public function testClearDanglingMotdForUser_RemovesNotificationForLostRole()
     {
         $role_row = $this->db->limit(1)->get('types_roles')->row_array();
@@ -866,6 +1114,12 @@ class AcceptanceItemsModelTest extends TestCase
             'A notification for an item the user is no longer eligible for must not keep linking to it');
     }
 
+    /**
+     * Scénario: Un membre toujours concerné garde sa notification
+     *   Étant donné un membre notifié d'un élément et qui reste concerné par celui-ci
+     *   Quand ses notifications sont vérifiées
+     *   Alors son message est conservé
+     */
     public function testClearDanglingMotdForUser_KeepsNotificationForStillEligibleItem()
     {
         $role = $this->getUserWithRole();
@@ -890,6 +1144,13 @@ class AcceptanceItemsModelTest extends TestCase
     // decides what a member sees on their dashboard. The two below close
     // that gap.
 
+    /**
+     * Scénario: Le membre ciblé voit réellement sa notification
+     *   Étant donné un élément destiné à un rôle dans une section
+     *   Et un membre ayant ce rôle
+     *   Quand les notifications sont générées
+     *   Alors ce membre voit le message parmi ses messages du jour
+     */
     public function testActiveMessagesForUser_DisplaysNotificationToRoleHolder()
     {
         $role = $this->getUserWithRole();
@@ -913,6 +1174,13 @@ class AcceptanceItemsModelTest extends TestCase
         $this->assertTrue($found, 'The role holder must actually see the generated notification, not just have a row created for them');
     }
 
+    /**
+     * Scénario: Un membre non ciblé ne voit pas la notification
+     *   Étant donné un élément destiné à un rôle dans une section
+     *   Et un membre n'ayant pas ce rôle
+     *   Quand les notifications sont générées
+     *   Alors ce membre ne voit pas le message parmi ses messages du jour
+     */
     public function testActiveMessagesForUser_HidesNotificationFromUserWithoutTheRole()
     {
         $role = $this->getUserWithRole();
@@ -943,6 +1211,17 @@ class AcceptanceItemsModelTest extends TestCase
     // accepted limitation); once revoked, both the dashboard and any
     // leftover motd link must go away (the dead-link fix under test above).
 
+    /**
+     * Scénario: L'accès à un élément suit l'attribution et le retrait du rôle
+     *   Étant donné un élément destiné à un rôle qu'un membre n'a pas
+     *   Alors l'élément et sa notification lui sont invisibles
+     *   Quand le rôle lui est attribué
+     *   Alors l'élément apparaît aussitôt dans ce qu'il doit traiter
+     *   Mais il ne reçoit pas de notification rétroactive
+     *   Quand le rôle lui est retiré
+     *   Alors l'élément disparaît aussitôt
+     *   Et aucune notification ne subsiste
+     */
     public function testRoleLifecycle_ItemVisibilityAndNotificationTrackGrantAndRevoke()
     {
         $role_row = $this->db->limit(1)->get('types_roles')->row_array();
