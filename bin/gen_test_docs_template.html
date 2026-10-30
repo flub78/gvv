@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation des tests GVV</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #fff; --border: #d9dde3; --text: #1f2933; --muted: #66707c;
+    --accent: #1f5fbf; --accent-soft: #e6eefb; --keyword: #1f5fbf;
+    --unit: #2f7d4f; --integration: #8a5a00; --e2e: #7a3fa8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15191e; --surface: #1e242b; --border: #36404a; --text: #e6e9ed; --muted: #9aa5b1;
+      --accent: #7fb0f5; --accent-soft: #24344a; --keyword: #7fb0f5;
+      --unit: #74c69d; --integration: #e3b34c; --e2e: #c79bea;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 1; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; }
+  h1 { margin: 0; font-size: 20px; }
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  .group { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+  input[type=search] { flex: 1 1 220px; min-width: 0; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+  button { padding: 4px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button[aria-pressed=true] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  details { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); margin: 6px 0; }
+  details details { margin: 6px 10px; background: var(--bg); }
+  details details details { background: var(--surface); }
+  summary { cursor: pointer; padding: 7px 10px; display: flex; gap: 8px; align-items: baseline; }
+  summary::before { content: "▸"; color: var(--muted); }
+  details[open] > summary::before { content: "▾"; }
+  summary::-webkit-details-marker { display: none; }
+  .level1 > summary { font-weight: 600; font-size: 16px; }
+  .level2 > summary { font-weight: 600; }
+  .count { margin-left: auto; color: var(--muted); font-size: 13px; font-weight: 400; white-space: nowrap; }
+  .undescribed > summary .name { color: var(--muted); }
+  .badge { font-size: 12px; font-weight: 600; }
+  .badge.Unitaire { color: var(--unit); }
+  .badge.Intégration { color: var(--integration); }
+  .badge.E2E { color: var(--e2e); }
+  .body { padding: 0 12px 10px 28px; }
+  .step { margin: 0; }
+  .step.indent { padding-left: 18px; }
+  .keyword { color: var(--keyword); font-weight: 600; }
+  .missing { color: var(--muted); font-style: italic; margin: 0; }
+  .source { margin: 6px 0 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .empty { color: var(--muted); text-align: center; padding: 32px 0; }
+  @media (max-width: 600px) { .count { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Documentation des tests GVV</h1>
+  <div class="meta">Générée depuis les sources des tests · <span id="totals"></span></div>
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="Rechercher un test, une feature, un fichier…" aria-label="Rechercher">
+    <div class="group">Vue
+      <button data-view="feature">Feature → Type</button>
+      <button data-view="type">Type → Feature</button>
+    </div>
+    <div class="group"><span id="level1-label"></span>
+      <button data-level="level1" data-open="1">Ouvrir</button><button data-level="level1" data-open="0">Fermer</button>
+    </div>
+    <div class="group"><span id="level2-label"></span>
+      <button data-level="level2" data-open="1">Ouvrir</button><button data-level="level2" data-open="0">Fermer</button>
+    </div>
+    <div class="group">Tests
+      <button data-level="level3" data-open="1">Ouvrir</button><button data-level="level3" data-open="0">Fermer</button>
+    </div>
+    <div class="group"><label><input type="checkbox" id="described"> Avec scénario seulement</label></div>
+  </div>
+</header>
+<main id="content"></main>
+<script id="test-data" type="application/json">{{DATA}}</script>
+<script>
+  var data = JSON.parse(document.getElementById('test-data').textContent);
+  var content = document.getElementById('content');
+  var searchInput = document.getElementById('search');
+  var describedInput = document.getElementById('described');
+  var view = 'feature';
+  try { view = localStorage.getItem('gvv-test-docs-view') || view; } catch (e) {}
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function countLabel(tests) {
+    var described = tests.filter(function (t) { return t.scenario; }).length;
+    return tests.length + (tests.length > 1 ? ' tests' : ' test') + ' · ' + described + ' avec scénario';
+  }
+
+  function section(level, title, tests) {
+    var details = el('details', level);
+    var summary = el('summary');
+    summary.appendChild(el('span', '', title));
+    summary.appendChild(el('span', 'count', countLabel(tests)));
+    details.appendChild(summary);
+    return details;
+  }
+
+  function appendScenario(body, scenario) {
+    scenario.split('\n').forEach(function (line, index) {
+      var match = line.match(/^(\S+(?: donné)?(?:e|s|es)?\s*:?)(\s.*)?$/);
+      var step = el('p', 'step' + (index ? ' indent' : ''));
+      if (match) {
+        step.appendChild(el('span', 'keyword', match[1]));
+        step.appendChild(document.createTextNode(match[2] || ''));
+      } else {
+        step.textContent = line;
+      }
+      body.appendChild(step);
+    });
+  }
+
+  function testNode(test) {
+    var details = el('details', 'level3' + (test.scenario ? '' : ' undescribed'));
+    var summary = el('summary');
+    var heading = test.scenario ? test.scenario.split('\n')[0].replace(/^[^:]*:\s*/, '') : test.title;
+    summary.appendChild(el('span', 'name', heading));
+    summary.appendChild(el('span', 'count badge ' + test.type, test.suite));
+    details.appendChild(summary);
+
+    var body = el('div', 'body');
+    if (test.scenario) {
+      appendScenario(body, test.scenario);
+    } else {
+      body.appendChild(el('p', 'missing', 'Scénario à rédiger'));
+    }
+    body.appendChild(el('p', 'source', test.file + ':' + test.line + ' — ' + test.name));
+    details.appendChild(body);
+    return details;
+  }
+
+  function matches(test, words) {
+    if (describedInput.checked && !test.scenario) return false;
+    var haystack = [test.feature, test.type, test.suite, test.name, test.title, test.file, test.scenario || '']
+      .join(' ').toLowerCase();
+    return words.every(function (word) { return haystack.indexOf(word) !== -1; });
+  }
+
+  function render() {
+    var query = searchInput.value.trim().toLowerCase();
+    var words = query ? query.split(/\s+/) : [];
+    var tests = data.tests.filter(function (t) { return matches(t, words); });
+    var outer = view === 'feature' ? data.features : data.types;
+    var inner = view === 'feature' ? data.types : data.features;
+    var outerKey = view === 'feature' ? 'feature' : 'type';
+    var innerKey = view === 'feature' ? 'type' : 'feature';
+
+    document.getElementById('level1-label').textContent = view === 'feature' ? 'Features' : 'Types';
+    document.getElementById('level2-label').textContent = view === 'feature' ? 'Types' : 'Features';
+    document.querySelectorAll('[data-view]').forEach(function (button) {
+      button.setAttribute('aria-pressed', button.dataset.view === view);
+    });
+    document.getElementById('totals').textContent = words.length || describedInput.checked
+      ? countLabel(tests) + ' sur ' + data.tests.length
+      : countLabel(tests);
+
+    content.textContent = '';
+    outer.forEach(function (outerName) {
+      var outerTests = tests.filter(function (t) { return t[outerKey] === outerName; });
+      if (!outerTests.length) return;
+      var outerNode = section('level1', outerName, outerTests);
+      outerNode.open = words.length > 0;
+      inner.forEach(function (innerName) {
+        var innerTests = outerTests.filter(function (t) { return t[innerKey] === innerName; });
+        if (!innerTests.length) return;
+        var innerNode = section('level2', innerName, innerTests);
+        innerNode.open = words.length > 0;
+        innerTests.forEach(function (test) { innerNode.appendChild(testNode(test)); });
+        outerNode.appendChild(innerNode);
+      });
+      content.appendChild(outerNode);
+    });
+    if (!tests.length) content.appendChild(el('p', 'empty', 'Aucun test ne correspond à cette recherche.'));
+  }
+
+  function openLevel(level, open) {
+    content.querySelectorAll('details.' + level).forEach(function (node) {
+      node.open = open;
+      for (var parent = node.parentElement; open && parent && parent !== content; parent = parent.parentElement) {
+        if (parent.tagName === 'DETAILS') parent.open = true;
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-view]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      view = button.dataset.view;
+      try { localStorage.setItem('gvv-test-docs-view', view); } catch (e) {}
+      render();
+    });
+  });
+  document.querySelectorAll('[data-level]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      openLevel(button.dataset.level, button.dataset.open === '1');
+    });
+  });
+  searchInput.addEventListener('input', render);
+  describedInput.addEventListener('change', render);
+  render();
+</script>
+</body>
+</html>

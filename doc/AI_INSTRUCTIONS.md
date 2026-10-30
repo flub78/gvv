@@ -265,6 +265,76 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 - **Database state**: Tests that touch the real database (integration/enhanced/mysql suites, Playwright) must leave it exactly as they found it — create their own fixtures and delete/deactivate everything they created, including on failure (teardown/afterAll), rather than relying on manual cleanup afterwards. They must not depend on the database's pre-existing state (row counts, specific members/sections/roles already present) to pass, since that state is shared and changes over time; query for what they need or create it themselves instead of assuming it exists. A test that must alter or drop shared rows/tables/columns (e.g. a migration reversibility test) must snapshot the affected data first and restore it identically afterwards (teardown/`finally`), preserving pre-existing rows untouched — never leave the table wiped or a shared flag (`is_default`, associations…) changed.
 - **No credentials in tracked files**: Never hard-code database passwords or other secrets in tests, scripts or documentation committed to git (secret scanners such as GitGuardian flag them on pull requests). Playwright tests get the MySQL connection settings with `const { DB_CONFIG } = require('./helpers/gvv-config');`, which reads them from the untracked `application/config/database.php`; PHPUnit tests use the CodeIgniter database connection. When modifying a test that still hard-codes credentials, switch it to `DB_CONFIG`.
 - **Filesystem state**: The same rule applies to files. Tests that write files (generated PDFs under `uploads/`, uploaded fixtures, exports…) must delete every file they created, including on failure, and must never modify or delete pre-existing files. When the web server writes the file as another user and the test runner cannot unlink it, treat that as a bug to fix (e.g. generate into a temp path the runner owns, or make the directory group-writable), not an acceptable leak.
+- **Behavior description (Gherkin)**: Every new PHPUnit or Playwright test must carry, directly above the test, a description naming its feature and one scenario in Gherkin, written in French (`Scénario`, `Étant donné`, `Quand`, `Alors`, `Et`, `Mais`). When a test is modified and has no description yet, add one.
+
+  **The description states the expected behavior, never the code.** The test itself depends on the code; its description must not. It is written from the point of view of a user or of a business rule, so that it stays true when the code is refactored: if the implementation changes but the behavior does not, the test may need adapting, but its description must remain valid as it stands. The description changes only when the expected behavior changes. It must therefore contain no class, method, table, column, route, CSS selector, role id or technical value. Test: could a club member or administrator who has never seen the code understand it and confirm it is the right rule?
+
+  ```php
+  /**
+   * @feature Acceptation de documents
+   * Scénario: Un membre dont la cotisation est trop ancienne n'est plus sollicité
+   *   Étant donné un membre actif dans une section
+   *   Et dont la dernière cotisation date d'il y a deux ans
+   *   Quand un document à accepter est publié pour tous les membres
+   *   Alors ce membre ne fait pas partie des personnes attendues
+   *   Et le document ne lui est pas présenté
+   */
+  public function testResolveTargets_ExcludesMemberWithoutRecentCotisation()
+  ```
+
+  ```js
+  /**
+   * @feature Acceptation de documents
+   * Scénario: Le membre voit le document qui lui est destiné
+   *   Étant donné un document à accepter destiné à un membre
+   *   Quand ce membre se connecte
+   *   Alors le document apparaît dans ceux qu'il doit traiter
+   */
+  test('member sees the item on their dashboard', async ({ page }) => {
+  ```
+
+  Avoid, for instance: `Quand resolve_targets() est appelé`, `Alors la table licences contient une ligne`, `Quand je clique sur #target_mode_user`. The description documents the test on its own: it never mentions the test's result, and it does not depend on a run.
+- **Test documentation**: `php bin/gen_test_docs.php` generates `doc/testing/test_docs.html` from the test sources, without running them and without showing their results. `./run-all-tests.sh` runs it at the end; a test added to Playwright alone therefore appears at the next run. The page is committed with the tests it documents. Do not edit it by hand: on a merge conflict, regenerate it. `.gitattributes` keeps the current version during a merge once `git config merge.ours.driver true` is set in the clone.
+- **Test features**: Every test belongs to exactly one feature of the table below. Use a name from this table for `@feature`, either on the test or once for a whole file (in a comment attached to no test). Without `@feature`, the test goes to the first row, from top to bottom, with a keyword (case-insensitive regular expression, no `|` character) matching its file path. **Keep this table up to date**: when adding a feature or tests the table does not classify correctly, add or adjust a row, keeping specific rows above generic ones. `Socle technique` is the fallback for what belongs to no club feature.
+
+<!-- test-features:start -->
+| Feature | Mots-clés des fichiers |
+|---|---|
+| Documentation des tests | `gen_?test_?docs` |
+| Paiements en ligne | `paiement` `helloasso` `FlagsCbParUsage` |
+| Réservations | `reservation` `timeline` |
+| Vols de découverte | `decouverte` `\bvd-` `VdBon` |
+| Briefing passager | `briefing` |
+| Acceptation de documents | `acceptance` |
+| Documents archivés | `archived-?documents` `document-types` `AuditDocumentsEmail` |
+| Alarmes et notifications | `alarm` `NotificationManager` |
+| Listes de diffusion | `email.?list` `EmailExtract` `EmailHelper` |
+| Newsletter | `newsletter` |
+| Messages du jour | `motd` |
+| Formulaires | `forms` `FormSubmission` |
+| Formation | `formation` `suivi` `categorie-seance` |
+| Maintenance des aéronefs | `maintenance` |
+| Carnets de route | `carnet` |
+| Facturation et tarifs | `facturation` `tarif` `produit` `ticket` `billing` `payeur` `achats` |
+| Cotisations et licences | `licence` `cotisation` |
+| Relances | `relance` |
+| Comptabilité | `compt` `ecriture` `balance` `journal` `resultat` `bilan` `rapprochement` `reports` `adjustor` `CategorieModel` `AuditFinances` |
+| Cartes de membre | `cartes-?member` |
+| Membres | `membre` `mnumero` `adherent` `actif-par-section` |
+| Calendrier et présences | `calendar` `presences` `deadlines` |
+| Saisie des vols | `vols` `plane_flight` `glider-flights` `planeur` `horametre` `preparation` |
+| Événements et qualifications | `event` |
+| Terrains | `terrain` |
+| Procédures | `procedure` |
+| Tableau de bord | `dashboard` `shortcut` |
+| Sections | `section` |
+| Pièces jointes | `attachment` `upload` |
+| Exports | `export` |
+| Authentification et autorisations | `authoriz` `access-control` `auth-login` `login` `navigation-policy` `abraracourcix` `asterix` `goudurix` `obelix` `panoramix` `gaulois` `legacy-users` `roles` `DXAuth` |
+| Configuration | `config` |
+| Sauvegarde et migrations | `DatabaseRestore` `FileRotator` `migration` |
+| Socle technique | `.` |
+<!-- test-features:end -->
 
 ---
 

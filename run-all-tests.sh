@@ -303,6 +303,10 @@ echo "────────────────────────�
 printf "${CYAN}%-30s${NC} | %6d | %6d | %6d | %6d | %8d\n" "TOTAL" "$total_tests" "$total_passed" "$total_failed" "$total_risky" "$total_skipped"
 echo ""
 
+# Test documentation (PHPUnit and Playwright sources), independent from the results above
+$PHP_BIN bin/gen_test_docs.php
+echo ""
+
 if [ $FAILED_SUITES -eq 0 ]; then
     echo -e "${GREEN}✓ All test suites passed!${NC}"
 
