@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
  *  - au moins un compte 467 dans club=4
  *
  * @see application/models/paiements_en_ligne_model.php
+ * @feature Paiements en ligne
  */
 class PaiementsEnLigneWebhookTest extends TestCase
 {
@@ -216,6 +217,14 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Tests provisionnement ─────────────────────────────────────────────────
 
+    /**
+     * Scénario: Un provisionnement payé crédite le compte du pilote
+     *   Étant donné un provisionnement de 20 euros en attente
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée et datée
+     *   Et une écriture débite le compte de passage et crédite le compte du pilote de 20 euros
+     *   Et cette écriture porte la référence HelloAsso
+     */
     public function testProvisionnementCreatesEcritureAndCompletesTransaction()
     {
         $txid = $this->createPendingTransaction('provisionnement');
@@ -243,6 +252,12 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertStringStartsWith('HelloAsso:', $ecriture['num_cheque']);
     }
 
+    /**
+     * Scénario: Le club d'une notification est retrouvé par la référence de la transaction
+     *   Étant donné une transaction en attente dans un club
+     *   Quand une notification cite la référence de cette transaction
+     *   Alors le club est identifié
+     */
     public function testResolveClubIdFromOrderDataByTransactionId()
     {
         $txid = $this->createPendingTransaction('provisionnement');
@@ -253,6 +268,12 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertEquals(self::$club_id, $club_id);
     }
 
+    /**
+     * Scénario: Le club d'une notification est retrouvé par la référence de paiement HelloAsso
+     *   Étant donné une transaction en attente rattachée à une session de paiement HelloAsso
+     *   Quand une notification cite seulement la référence de cette session
+     *   Alors le club est identifié
+     */
     public function testResolveClubIdFromOrderDataByCheckoutIntentId()
     {
         $txid = $this->createPendingTransaction('provisionnement');
@@ -277,6 +298,13 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Tests bar ─────────────────────────────────────────────────────────────
 
+    /**
+     * Scénario: Une consommation de bar payée débite le pilote et crédite le bar
+     *   Étant donné une consommation de bar de 20 euros en attente pour un pilote
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée
+     *   Et une écriture de 20 euros débite le compte du pilote et crédite le compte du bar
+     */
     public function testBarDebitePiloteCreditBar()
     {
         $txid = $this->createPendingTransaction('bar');
@@ -298,6 +326,14 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Tests bar_externe ─────────────────────────────────────────────────────
 
+    /**
+     * Scénario: Une consommation de bar d'un visiteur crédite le bar sans compte pilote
+     *   Étant donné une consommation de bar en attente pour un visiteur
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée
+     *   Et une écriture débite le compte de passage et crédite le compte du bar
+     *   Et son libellé cite le nom du visiteur
+     */
     public function testBarExterneDebitPassageCreditBar()
     {
         // bar_externe : pas de user_id pilote, mais la transaction peut avoir user_id=0
@@ -339,6 +375,13 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Tests decouverte ─────────────────────────────────────────────────────
 
+    /**
+     * Scénario: Un bon de vol de découverte payé crédite le compte prévu
+     *   Étant donné un bon de vol de découverte en attente avec son compte de destination
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée
+     *   Et une écriture débite le compte de passage et crédite le compte de destination
+     */
     public function testDecouverteDebitPassageCreditDestination()
     {
         $txid = 'test-wh-decouverte-' . uniqid();
@@ -381,6 +424,13 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Tests état de paiement non autorisé ──────────────────────────────────
 
+    /**
+     * Scénario: Un paiement non autorisé ne crée aucune écriture
+     *   Étant donné un provisionnement en attente
+     *   Quand HelloAsso notifie un paiement qui n'est pas autorisé
+     *   Alors la transaction est en échec
+     *   Et aucune écriture n'est créée
+     */
     public function testPaymentStateNotAuthorizedMarksTransactionFailed()
     {
         $txid = $this->createPendingTransaction('provisionnement');
@@ -402,6 +452,12 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertEquals('failed', $tx['statut']);
     }
 
+    /**
+     * Scénario: Un paiement annulé met la transaction en échec
+     *   Étant donné une consommation de bar en attente
+     *   Quand HelloAsso notifie un paiement annulé
+     *   Alors la transaction est en échec
+     */
     public function testPaymentStateCancelledMarksTransactionFailed()
     {
         $txid = $this->createPendingTransaction('bar');
@@ -417,6 +473,13 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Test idempotence ──────────────────────────────────────────────────────
 
+    /**
+     * Scénario: Une notification reçue deux fois ne compte qu'une fois
+     *   Étant donné un provisionnement en attente
+     *   Quand HelloAsso envoie deux fois la même notification de paiement
+     *   Alors la seconde est reconnue comme déjà traitée
+     *   Et une seule écriture existe
+     */
     public function testIdempotenceSecondCallSkipsProcessing()
     {
         $txid = $this->createPendingTransaction('provisionnement');
@@ -440,6 +503,14 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Test cotisation_tresorier (double écriture atomique) ──────────────────
 
+    /**
+     * Scénario: Une cotisation encaissée laisse le solde du pilote inchangé
+     *   Étant donné une cotisation en attente pour un pilote
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée
+     *   Et deux écritures sont créées
+     *   Et le solde du pilote ne change pas
+     */
     public function testCotisationTresorierCreatesTwoEcrituresAtomically()
     {
         // Utiliser bar_account_id (763) comme compte de destination cotisation
@@ -497,6 +568,12 @@ class PaiementsEnLigneWebhookTest extends TestCase
 
     // ── Test transaction introuvable ──────────────────────────────────────────
 
+    /**
+     * Scénario: Une notification sur une transaction inconnue est en erreur
+     *   Étant donné une référence ne correspondant à aucune transaction
+     *   Quand HelloAsso notifie un paiement avec cette référence
+     *   Alors le traitement est en erreur
+     */
     public function testUnknownTransactionIdReturnsError()
     {
         $payload = $this->buildOrderPayload('txid-inexistant-' . uniqid(), 'provisionnement');
@@ -507,6 +584,12 @@ class PaiementsEnLigneWebhookTest extends TestCase
         $this->assertEquals('error', $result['status']);
     }
 
+    /**
+     * Scénario: Une notification sans référence de transaction est en erreur
+     *   Étant donné une notification de paiement sans référence de transaction
+     *   Quand elle est traitée
+     *   Alors le traitement est en erreur
+     */
     public function testMissingGvvTransactionIdReturnsError()
     {
         // Payload sans gvv_transaction_id dans les metadata

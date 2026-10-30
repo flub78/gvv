@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @see application/controllers/paiements_en_ligne.php  paiement_generique()
  * @see application/models/paiements_en_ligne_model.php _ecriture_paiement_generique()
+ * @feature Paiements en ligne
  */
 class PaiementGeneriqueTest extends TestCase
 {
@@ -138,6 +139,11 @@ class PaiementGeneriqueTest extends TestCase
 
     /**
      * Une transaction pending doit être insérée avec les bonnes métadonnées.
+     * Scénario: Un paiement par QR code conserve ses informations
+     *   Étant donné un paiement par QR code avec un montant, un motif et un compte de destination
+     *   Quand il est enregistré
+     *   Alors il est en attente, dans son club
+     *   Et son montant, son motif, son compte de destination et sa référence sont conservés
      */
     public function testCreatePendingTransactionStoresMetadata()
     {
@@ -159,6 +165,12 @@ class PaiementGeneriqueTest extends TestCase
 
     /**
      * Webhook avec état Authorized → écriture débit 467 / crédit compte destination.
+     * Scénario: Un paiement par QR code autorisé crée l'écriture attendue
+     *   Étant donné un paiement par QR code en attente
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors la transaction est terminée
+     *   Et une écriture du montant débite le compte de passage et crédite le compte de destination
+     *   Et elle porte la référence HelloAsso et le motif saisi
      */
     public function testWebhookCreatesEcritureDebitPassageCreditDestination()
     {
@@ -190,6 +202,10 @@ class PaiementGeneriqueTest extends TestCase
 
     /**
      * La description saisie doit apparaître dans le libellé de l'écriture.
+     * Scénario: Le motif saisi figure dans le libellé de l'écriture
+     *   Étant donné un paiement par QR code avec un motif
+     *   Quand HelloAsso notifie le paiement autorisé
+     *   Alors le libellé de l'écriture contient ce motif
      */
     public function testWebhookEcritureLibelleMatchesDescription()
     {
@@ -210,6 +226,11 @@ class PaiementGeneriqueTest extends TestCase
 
     /**
      * Webhook envoyé deux fois → une seule écriture (idempotence).
+     * Scénario: Une notification de paiement par QR code reçue deux fois ne compte qu'une fois
+     *   Étant donné un paiement par QR code en attente
+     *   Quand HelloAsso envoie deux fois la même notification
+     *   Alors la seconde est reconnue comme déjà traitée
+     *   Et une seule écriture existe
      */
     public function testWebhookIdempotent()
     {
@@ -236,6 +257,11 @@ class PaiementGeneriqueTest extends TestCase
 
     /**
      * Webhook avec état non Authorized → transaction failed, aucune écriture.
+     * Scénario: Un paiement par QR code non autorisé ne crée aucune écriture
+     *   Étant donné un paiement par QR code en attente
+     *   Quand HelloAsso notifie un paiement qui n'est pas autorisé
+     *   Alors la transaction est en échec
+     *   Et aucune écriture n'est créée
      */
     public function testWebhookNonAuthorizedMarksTransactionFailed()
     {
@@ -258,6 +284,10 @@ class PaiementGeneriqueTest extends TestCase
     /**
      * Filtre type=paiement_generique dans get_transactions_with_user() ne retourne
      * que les transactions de ce type.
+     * Scénario: La liste des paiements peut être limitée aux paiements par QR code
+     *   Étant donné un paiement par QR code et une consommation de bar d'un visiteur
+     *   Quand on demande la liste des paiements par QR code
+     *   Alors seul le paiement par QR code est présent
      */
     public function testListeFilterByType()
     {

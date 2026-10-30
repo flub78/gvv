@@ -11,6 +11,8 @@
  *
  * @see application/controllers/paiements_en_ligne.php
  * @see application/models/paiements_en_ligne_model.php
+ *
+ * @feature Paiements en ligne
  */
 
 use PHPUnit\Framework\TestCase;
@@ -49,6 +51,12 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     // Validation montant via le modèle
     // -------------------------------------------------------------------------
 
+    /**
+     * Scénario: Tout montant compris dans les limites est accepté
+     *   Étant donné un minimum et un plafond de provisionnement
+     *   Quand un pilote demande un montant compris entre les deux
+     *   Alors aucune erreur n'est signalée
+     */
     public function testMontantLibreValideEstAccepte() {
         foreach (array(10, 15, 50, 75, 150, 200, 499) as $montant) {
             $errors = $this->model->validate_demande_montant($montant, 500, 10);
@@ -56,26 +64,56 @@ class PaiementsEnLigneProvisionTest extends TestCase {
         }
     }
 
+    /**
+     * Scénario: Un montant inférieur au minimum est refusé
+     *   Étant donné un minimum de provisionnement
+     *   Quand un pilote demande un montant inférieur
+     *   Alors une erreur est signalée
+     */
     public function testMontantEnDessousMinimumEstRefuse() {
         $errors = $this->model->validate_demande_montant(100, 500, 200);
         $this->assertNotEmpty($errors, '100 € < minimum 200 € : doit être refusé');
     }
 
+    /**
+     * Scénario: Le montant minimum exact est accepté
+     *   Étant donné un minimum de provisionnement
+     *   Quand un pilote demande exactement ce minimum
+     *   Alors aucune erreur n'est signalée
+     */
     public function testMontantEgalMinimumEstAccepte() {
         $errors = $this->model->validate_demande_montant(200, 500, 200);
         $this->assertEmpty($errors, '200 € = minimum 200 € : doit être accepté');
     }
 
+    /**
+     * Scénario: Un montant supérieur au plafond est refusé
+     *   Étant donné un plafond de provisionnement
+     *   Quand un pilote demande un montant supérieur
+     *   Alors une erreur est signalée
+     */
     public function testMontantAuDessusMaximumEstRefuse() {
         $errors = $this->model->validate_demande_montant(600, 500);
         $this->assertNotEmpty($errors, '600 € > plafond 500 € : doit être refusé');
     }
 
+    /**
+     * Scénario: Un montant nul est refusé
+     *   Étant donné un pilote qui demande un provisionnement
+     *   Quand le montant est de zéro euro
+     *   Alors une erreur est signalée
+     */
     public function testMontantZeroEstRefuse() {
         $errors = $this->model->validate_demande_montant(0, 500);
         $this->assertNotEmpty($errors, '0 € doit être refusé');
     }
 
+    /**
+     * Scénario: Un montant négatif est refusé
+     *   Étant donné un pilote qui demande un provisionnement
+     *   Quand le montant est négatif
+     *   Alors une erreur est signalée
+     */
     public function testMontantNegatifEstRefuse() {
         $errors = $this->model->validate_demande_montant(-100, 500);
         $this->assertNotEmpty($errors, 'Un montant négatif doit être refusé');
@@ -85,6 +123,12 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     // Garde section "Toutes"
     // -------------------------------------------------------------------------
 
+    /**
+     * Scénario: Aucun paiement n'est rattaché à la section Toutes
+     *   Étant donné la section Toutes, qui n'est pas une vraie section
+     *   Quand on cherche les paiements enregistrés
+     *   Alors aucun n'y est rattaché
+     */
     public function testSectionToutesEstRefusee() {
         $section_toutes = array('id' => 0, 'nom' => 'Toutes');
         $guard_passes   = isset($section_toutes['id']) && $section_toutes['id'] != 0;
@@ -99,11 +143,23 @@ class PaiementsEnLigneProvisionTest extends TestCase {
     // count_pending_today()
     // -------------------------------------------------------------------------
 
+    /**
+     * Scénario: Un pilote sans transaction n'a aucune demande en attente
+     *   Étant donné un pilote sans transaction
+     *   Quand on compte ses demandes en attente du jour
+     *   Alors le compte est nul
+     */
     public function testCountPendingTodayRetourneZeroSansTransaction() {
         $count = $this->model->count_pending_today(999999, 1);
         $this->assertEquals(0, $count);
     }
 
+    /**
+     * Scénario: Les demandes en attente du jour sont comptées
+     *   Étant donné un pilote ayant trois demandes en attente aujourd'hui
+     *   Quand on compte ses demandes en attente du jour
+     *   Alors le compte est de trois
+     */
     public function testCountPendingTodayCompteTransactionsDuJour() {
         $user_id = 999888;
         $club_id = 999;
@@ -116,6 +172,12 @@ class PaiementsEnLigneProvisionTest extends TestCase {
         $this->assertEquals(3, $this->model->count_pending_today($user_id, $club_id));
     }
 
+    /**
+     * Scénario: Une demande terminée n'est pas comptée en attente
+     *   Étant donné un pilote ayant une demande terminée aujourd'hui
+     *   Quand on compte ses demandes en attente du jour
+     *   Alors le compte est nul
+     */
     public function testCountPendingTodayNeComptesPasLesCompleted() {
         $user_id = 999777;
         $club_id = 998;
@@ -126,6 +188,12 @@ class PaiementsEnLigneProvisionTest extends TestCase {
         $this->assertEquals(0, $this->model->count_pending_today($user_id, $club_id));
     }
 
+    /**
+     * Scénario: Une demande de la veille n'est pas comptée
+     *   Étant donné un pilote ayant une demande en attente depuis hier
+     *   Quand on compte ses demandes en attente du jour
+     *   Alors le compte est nul
+     */
     public function testCountPendingTodayNeComptesPasHier() {
         $user_id = 999666;
         $club_id = 997;
@@ -137,6 +205,12 @@ class PaiementsEnLigneProvisionTest extends TestCase {
         $this->assertEquals(0, $this->model->count_pending_today($user_id, $club_id));
     }
 
+    /**
+     * Scénario: Cinq demandes en attente atteignent la limite journalière
+     *   Étant donné un pilote ayant cinq demandes en attente aujourd'hui
+     *   Quand on compte ses demandes en attente du jour
+     *   Alors le compte atteint la limite de cinq
+     */
     public function testLimite5PendingParJourEstBloquante() {
         $user_id = 999555;
         $club_id = 996;

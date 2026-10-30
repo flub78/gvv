@@ -10,6 +10,8 @@
  * Usage :
  *   cd playwright
  *   npx playwright test tests/paiement-generique-smoke.spec.js --reporter=line
+ *
+ * @feature Paiements en ligne
  */
 
 const { test, expect } = require('@playwright/test');
@@ -26,6 +28,12 @@ test.describe('Paiement générique — smoke tests', () => {
 
     // ── 1. Accès refusé pour un pilote simple ─────────────────────────────
 
+    /**
+     * Scénario: Un pilote ne peut pas ouvrir le formulaire de paiement par QR code
+     *   Étant donné un pilote sans fonction de trésorier
+     *   Quand il ouvre le formulaire de paiement par QR code
+     *   Alors l'accès lui est refusé
+     */
     test('Pilote ordinaire ne peut pas accéder au formulaire', async ({ page }) => {
         const lp = new LoginPage(page);
         await lp.open();
@@ -43,6 +51,13 @@ test.describe('Paiement générique — smoke tests', () => {
 
     // ── 2. Trésorier voit le formulaire ───────────────────────────────────
 
+    /**
+     * Scénario: Le trésorier accède au formulaire de paiement par QR code
+     *   Étant donné un trésorier connecté
+     *   Quand il ouvre le formulaire de paiement par QR code
+     *   Alors l'accès lui est accordé
+     *   Et, si HelloAsso est configuré, le montant, le motif et le compte de destination sont demandés
+     */
     test('Trésorier accède au formulaire de paiement générique', async ({ page }) => {
         test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
@@ -68,6 +83,13 @@ test.describe('Paiement générique — smoke tests', () => {
 
     // ── 3. Validation : champs invalides → erreur ─────────────────────────
 
+    /**
+     * Scénario: Un paiement par QR code sans montant est refusé
+     *   Étant donné un trésorier sur le formulaire de paiement par QR code
+     *   Quand il le valide sans montant ni motif
+     *   Alors aucun paiement n'est lancé
+     *   Et une erreur est visible
+     */
     test('Soumission avec montant vide → erreur visible', async ({ page }) => {
         test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
         const lp = new LoginPage(page);
@@ -97,6 +119,12 @@ test.describe('Paiement générique — smoke tests', () => {
 
     // ── 4. [SKIP SI SANDBOX] Flux complet → page QR ───────────────────────
 
+    /**
+     * Scénario: Un paiement valide affiche son QR code ou une erreur
+     *   Étant donné un trésorier et un environnement d'essai HelloAsso disponible
+     *   Quand il valide un paiement complet
+     *   Alors la page affiche le QR code, le lien de paiement ou une erreur
+     */
     test('[SKIP SI SANDBOX] Soumission valide → page QR affichée', async ({ page }) => {
         test.skip(USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON);
 

@@ -44,6 +44,7 @@ class HelloassoTestable extends Helloasso
  *   - log() : format, mots-clés, masquage des secrets
  *   - sandbox_available() : avec et sans crédentiels
  *   - create_checkout() : succès, échec OAuth, slug manquant
+ * @feature Paiements en ligne
  */
 class HelloassoLibraryTest extends TestCase
 {
@@ -59,6 +60,12 @@ class HelloassoLibraryTest extends TestCase
     // get_oauth_token
     // -----------------------------------------------------------------------
 
+    /**
+     * Scénario: La connexion à HelloAsso réussit avec des identifiants valides
+     *   Étant donné un club dont les identifiants HelloAsso sont configurés
+     *   Quand HelloAsso accepte la demande de connexion
+     *   Alors le club obtient un droit d'accès
+     */
     public function testGetOauthTokenReturnsTokenOnSuccess()
     {
         $this->lib->set_config(array(
@@ -76,6 +83,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertSame('tok_abc123', $token);
     }
 
+    /**
+     * Scénario: Un refus de HelloAsso fait échouer la connexion
+     *   Étant donné un club dont les identifiants HelloAsso sont configurés
+     *   Quand HelloAsso refuse la demande de connexion
+     *   Alors aucun droit d'accès n'est obtenu
+     */
     public function testGetOauthTokenReturnsFalseOnHttpError()
     {
         $this->lib->set_config(array(
@@ -93,6 +106,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertFalse($token);
     }
 
+    /**
+     * Scénario: Sans identifiants, la connexion à HelloAsso échoue
+     *   Étant donné un club sans identifiants HelloAsso
+     *   Quand une connexion est demandée
+     *   Alors aucun droit d'accès n'est obtenu
+     */
     public function testGetOauthTokenReturnsFalseWhenMissingCredentials()
     {
         $this->lib->set_config(array());
@@ -102,6 +121,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertFalse($token);
     }
 
+    /**
+     * Scénario: Une réponse incomplète de HelloAsso fait échouer la connexion
+     *   Étant donné un club dont les identifiants HelloAsso sont configurés
+     *   Quand HelloAsso répond sans fournir de droit d'accès
+     *   Alors la connexion est considérée comme échouée
+     */
     public function testGetOauthTokenReturnsFalseWhenResponseLacksAccessToken()
     {
         $this->lib->set_config(array(
@@ -120,6 +145,12 @@ class HelloassoLibraryTest extends TestCase
     // verify_webhook_signature
     // -----------------------------------------------------------------------
 
+    /**
+     * Scénario: Une notification de paiement correctement signée est acceptée
+     *   Étant donné un club disposant d'un secret partagé avec HelloAsso
+     *   Quand une notification arrive signée avec ce secret
+     *   Alors sa signature est reconnue
+     */
     public function testVerifyWebhookSignatureAcceptsValidSignature()
     {
         $secret  = 'my_webhook_secret';
@@ -132,6 +163,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertTrue($this->lib->verify_webhook_signature($payload, $valid_sig, 1));
     }
 
+    /**
+     * Scénario: La signature est reconnue quelle que soit sa présentation
+     *   Étant donné un club disposant d'un secret partagé avec HelloAsso
+     *   Quand une notification arrive avec une signature précédée du nom de son algorithme
+     *   Alors sa signature est reconnue
+     */
     public function testVerifyWebhookSignatureAcceptsPrefixedSignature()
     {
         $secret  = 'my_webhook_secret';
@@ -144,6 +181,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertTrue($this->lib->verify_webhook_signature($payload, $sig, 1));
     }
 
+    /**
+     * Scénario: Une notification mal signée est refusée
+     *   Étant donné un club disposant d'un secret partagé avec HelloAsso
+     *   Quand une notification arrive signée avec un autre secret
+     *   Alors sa signature est refusée
+     */
     public function testVerifyWebhookSignatureRejectsInvalidSignature()
     {
         $this->lib->set_config(array('webhook_secret' => 'correct_secret'));
@@ -154,6 +197,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertFalse($this->lib->verify_webhook_signature($payload, $bad_sig, 1));
     }
 
+    /**
+     * Scénario: Sans secret configuré, aucune notification n'est reconnue
+     *   Étant donné un club sans secret partagé avec HelloAsso
+     *   Quand une notification arrive
+     *   Alors sa signature est refusée
+     */
     public function testVerifyWebhookSignatureReturnsFalseWhenSecretMissing()
     {
         $this->lib->set_config(array());
@@ -167,6 +216,12 @@ class HelloassoLibraryTest extends TestCase
     // log
     // -----------------------------------------------------------------------
 
+    /**
+     * Scénario: Le journal HelloAsso identifie chaque événement
+     *   Étant donné un événement de paiement à tracer
+     *   Quand il est enregistré dans le journal
+     *   Alors la ligne indique son origine, sa transaction, son statut et son type
+     */
     public function testLogProducesFileWithRequiredKeywords()
     {
         $this->lib->log('INFO', 'txid-001', 'checkout', 'STATUS=PENDING amount=10.00');
@@ -179,6 +234,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertStringContainsString('type=checkout', $contents);
     }
 
+    /**
+     * Scénario: Un événement tracé est écrit dans le journal
+     *   Étant donné un événement de paiement à tracer
+     *   Quand il est enregistré dans le journal
+     *   Alors le journal n'est pas vide
+     */
     public function testLogFilenameContainsDate()
     {
         // get_log_file() est surchargé, mais on vérifie que la méthode
@@ -190,6 +251,13 @@ class HelloassoLibraryTest extends TestCase
         $this->assertNotEmpty($contents, 'Le fichier de log doit avoir été créé et contenir du texte');
     }
 
+    /**
+     * Scénario: Les secrets n'apparaissent jamais dans le journal
+     *   Étant donné un club dont les identifiants HelloAsso sont configurés
+     *   Quand une connexion à HelloAsso est tracée
+     *   Alors le secret est masqué
+     *   Et l'identifiant non secret reste lisible
+     */
     public function testLogDoesNotContainSecret()
     {
         // Simuler un appel get_oauth_token qui log le client_secret masqué
@@ -215,6 +283,12 @@ class HelloassoLibraryTest extends TestCase
             'Le client_id (non-secret) peut figurer dans les logs');
     }
 
+    /**
+     * Scénario: Chaque événement occupe sa propre ligne du journal
+     *   Étant donné deux événements de paiement
+     *   Quand ils sont enregistrés dans le journal
+     *   Alors le journal contient deux lignes
+     */
     public function testLogAppendsMultipleEntries()
     {
         $this->lib->log('INFO',  'tx1', 'oauth',    'STATUS=SUCCESS');
@@ -230,6 +304,12 @@ class HelloassoLibraryTest extends TestCase
     // sandbox_available
     // -----------------------------------------------------------------------
 
+    /**
+     * Scénario: L'environnement d'essai est disponible avec des identifiants complets
+     *   Étant donné un club ayant ses deux identifiants HelloAsso
+     *   Quand on vérifie la disponibilité de l'environnement d'essai
+     *   Alors il est disponible
+     */
     public function testSandboxAvailableReturnsTrueWhenCredentialsPresent()
     {
         $this->lib->set_config(array(
@@ -240,6 +320,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertTrue($this->lib->sandbox_available(1));
     }
 
+    /**
+     * Scénario: L'environnement d'essai est indisponible avec un identifiant manquant
+     *   Étant donné un club n'ayant que le secret HelloAsso
+     *   Quand on vérifie la disponibilité de l'environnement d'essai
+     *   Alors il est indisponible
+     */
     public function testSandboxAvailableReturnsFalseWhenClientIdMissing()
     {
         $this->lib->set_config(array('client_secret' => 'csec'));
@@ -247,6 +333,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertFalse($this->lib->sandbox_available(1));
     }
 
+    /**
+     * Scénario: L'environnement d'essai est indisponible sans configuration
+     *   Étant donné un club sans configuration HelloAsso
+     *   Quand on vérifie la disponibilité de l'environnement d'essai
+     *   Alors il est indisponible
+     */
     public function testSandboxAvailableReturnsFalseWhenNoConfig()
     {
         $this->lib->set_config(array());
@@ -258,6 +350,13 @@ class HelloassoLibraryTest extends TestCase
     // create_checkout
     // -----------------------------------------------------------------------
 
+    /**
+     * Scénario: Un paiement préparé renvoie vers la page de paiement HelloAsso
+     *   Étant donné un club entièrement configuré pour HelloAsso
+     *   Quand un paiement est préparé
+     *   Alors la préparation réussit
+     *   Et l'adresse de paiement et la référence de session sont fournies
+     */
     public function testCreateCheckoutReturnsRedirectUrlOnSuccess()
     {
         $this->lib->set_config(array(
@@ -292,6 +391,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertSame('sess_xyz', $result['session_id']);
     }
 
+    /**
+     * Scénario: Un paiement ne peut pas être préparé si la connexion à HelloAsso échoue
+     *   Étant donné un club dont la connexion à HelloAsso est refusée
+     *   Quand un paiement est préparé
+     *   Alors la préparation échoue avec un message expliquant le problème de connexion
+     */
     public function testCreateCheckoutFailsWhenOauthFails()
     {
         $this->lib->set_config(array(
@@ -317,6 +422,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertStringContainsString('OAuth', $result['error_message']);
     }
 
+    /**
+     * Scénario: Un paiement ne peut pas être préparé sans le nom du compte HelloAsso
+     *   Étant donné un club dont le nom de compte HelloAsso n'est pas renseigné
+     *   Quand un paiement est préparé
+     *   Alors la préparation échoue avec un message indiquant ce manque
+     */
     public function testCreateCheckoutFailsWhenSlugMissing()
     {
         $this->lib->set_config(array(
@@ -342,6 +453,12 @@ class HelloassoLibraryTest extends TestCase
         $this->assertStringContainsString('slug', $result['error_message']);
     }
 
+    /**
+     * Scénario: La préparation d'un paiement est tracée
+     *   Étant donné un club entièrement configuré pour HelloAsso
+     *   Quand un paiement est préparé avec succès
+     *   Alors le journal indique sa transaction, son passage en attente et sa réussite
+     */
     public function testCreateCheckoutLogsStatusPending()
     {
         $this->lib->set_config(array(

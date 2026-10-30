@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
  *  1. Que fields_list('sections') inclut bien les flags (racine du bug).
  *  2. Que sans le correctif, post2database() produirait 0 pour ces flags.
  *  3. Que l'UPDATE réel n'écrase pas les flags (comportement corrigé).
+ * @feature Paiements en ligne
  */
 class SectionsHelloAssoFlagsRegressionTest extends TestCase
 {
@@ -60,6 +61,10 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
     /**
      * Confirme la racine du bug : fields_list() inclut les flags HelloAsso,
      * donc le parent les aurait inclus dans l'UPDATE avec la valeur POST (vide = 0).
+     * Scénario: Les options de paiement font partie des réglages d'une section
+     *   Étant donné les réglages d'une section
+     *   Quand on en établit la liste
+     *   Alors les options d'approvisionnement et de vol de découverte par carte en font partie
      */
     public function testFieldsListIncludesHelloAssoFlags()
     {
@@ -80,6 +85,10 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
     /**
      * Confirme que sans le correctif, post2database() produirait 0 pour ces flags
      * quand ils sont absents du POST (checkbox non cochée / absente du formulaire).
+     * Scénario: Une option absente d'un formulaire vaut désactivée par défaut
+     *   Étant donné un formulaire de section envoyé sans les options de paiement
+     *   Quand ses valeurs sont préparées de façon générale
+     *   Alors ces options valent désactivées
      */
     public function testParentBehaviorWouldOverwriteFlagsWithZero()
     {
@@ -112,6 +121,10 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
      * Le POST est rempli avec les vraies valeurs de la section pour tous les champs
      * du formulaire, mais has_approvisio_par_cb et has_vd_par_cb en sont absents
      * (ils ne figurent pas dans bs_formView.php).
+     * Scénario: Enregistrer une section conserve ses options de paiement
+     *   Étant donné une section dont les options de paiement sont activées
+     *   Quand son formulaire, qui ne contient pas ces options, est enregistré
+     *   Alors elles restent activées
      */
     public function testSectionsFormSubmissionPreservesHelloAssoFlags()
     {
@@ -182,6 +195,12 @@ class SectionsHelloAssoFlagsRegressionTest extends TestCase
     /**
      * « Licence exigée pour voler » laissée vide dans le formulaire : NULL en
      * base (colonne entière), pas une chaîne vide refusée par MySQL
+     * @feature Sections
+     * Scénario: Laisser vide la licence exigée pour voler signifie aucune licence
+     *   Étant donné le réglage de licence exigée d'une section
+     *   Quand il est laissé vide
+     *   Alors la section n'exige aucune licence
+     *   Mais une licence choisie est conservée
      */
     public function testEmptyLicenceTypeIsStoredAsNull()
     {

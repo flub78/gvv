@@ -40,7 +40,7 @@ Une case se coche quand :
 
 Priorité aux fonctions où une régression coûte le plus cher.
 
-- [ ] **1.1 Paiements en ligne, cœur** (86) : `HelloassoLibraryTest`, `PaiementsEnLigneModelTest`, `PaiementsEnLigneWebhookTest`, `paiements-en-ligne-webhook`, `PaiementsEnLigneProvisionTest`, `PaiementGeneriqueTest`, `paiement-generique-smoke`, `SectionsHelloAssoFlagsRegressionTest`
+- [x] **1.1 Paiements en ligne, cœur** (86) : `HelloassoLibraryTest`, `PaiementsEnLigneModelTest`, `PaiementsEnLigneWebhookTest`, `paiements-en-ligne-webhook`, `PaiementsEnLigneProvisionTest`, `PaiementGeneriqueTest`, `paiement-generique-smoke`, `SectionsHelloAssoFlagsRegressionTest`
 - [ ] **1.2 Paiements en ligne, parcours** (79) : `PaiementsEnLignePublicVdTest`, `PaiementsEnLigneBarTest`, `PaiementsEnLigneBarExterneTest`, `PaiementsEnLigneCotisationPiloteTest`, `PaiementsEnLigneHistoriqueTest`, `PaiementsEnLigneListeTest`, `paiements-en-ligne-base`, `paiements-en-ligne-admin-config`, `paiements-en-ligne-ef1-demande`, `paiements-en-ligne-ef3-mon-compte`, `paiements-en-ligne-ef4-liste`, `paiements-en-ligne-uc2-bar-externe`, `paiements-en-ligne-uc3-cotisation-pilote`, `paiements-en-ligne-uc4-decouverte`
 - [ ] **1.3 Facturation et tarifs** (78) : tous les fichiers de la feature, sauf `TarifsIsCotisationMigrationTest`
 - [ ] **1.4 Cotisations, licences et relances** (67) : features « Cotisations et licences » et « Relances »
@@ -108,3 +108,13 @@ Tests sans comportement vérifiable, noms trompeurs ou défauts révélés penda
 | 0.3 | `testSelectPage_WithFilter` | Vérifie que l'élément filtré est présent, mais pas que les autres catégories sont exclues : le filtrage n'est pas prouvé. | Ajouter l'élément d'une autre catégorie et vérifier son absence. |
 | 0.3 | `testSyncTargetMotd_UnrestrictedTargetsEveryActiveMember` | Le nom annonce tous les membres, le test n'en contrôle qu'un. Le scénario décrit ce qui est vérifié. | Renommer le test, ou comparer à toutes les personnes attendues. |
 | 0.3 | `testCreate_AllCategories`, `testCreate_BothTargetTypes` | Couvrent la catégorie « autorisation » et les destinataires externes, sortis du périmètre lors de la révision du plan d'acceptation, mais toujours présents dans le code. | Décider de les garder tant que le code existe, ou de les retirer avec lui. |
+| 1.1 | `testSectionsFormSubmissionPreservesHelloAssoFlags` | Le test retire lui-même les options avant l'enregistrement au lieu d'appeler le code corrigé : il passerait même si le correctif disparaissait. | Passer par le vrai traitement du formulaire de section. |
+| 1.1 | `testFieldsListIncludesHelloAssoFlags`, `testParentBehaviorWouldOverwriteFlagsWithZero` | Vérifient la cause technique du bug, pas un comportement. | Les retirer une fois le test ci-dessus corrigé. |
+| 1.1 | `testSectionToutesEstRefusee` | Calcule sa propre condition dans le test : le refus de la section Toutes n'est pas vérifié. Seule l'absence de paiement rattaché est contrôlée. | Tester la demande de paiement réelle sur la section Toutes. |
+| 1.1 | `testLimite5PendingParJourEstBloquante` | Vérifie le comptage, pas le blocage de la sixième demande. | Tester le refus de la demande au-delà de la limite. |
+| 1.1 | `testGetPendingTransactionsReturnsOnlyOldOnes` | Ne vérifie pas que la transaction récente est exclue, malgré son nom. | Contrôler l'absence de cette transaction. |
+| 1.1 | `testGetTransactionsFiltersByStatut` | Vérifie la présence de la transaction, pas l'exclusion des autres statuts. | Ajouter une transaction d'un autre statut. |
+| 1.1 | `testLogFilenameContainsDate` | Ne vérifie pas le nom du fichier : le journal est simulé et le test contrôle seulement qu'il n'est pas vide. | Renommer le test, ou tester le vrai nom de fichier. |
+| 1.1 | `[SKIP SI SANDBOX] Soumission valide → page QR affichée` | Passe aussi quand la page affiche une erreur HelloAsso. | Séparer le cas nominal du cas d'erreur. |
+| 1.1 | `PaiementGeneriqueTest` | Le réglage du compte de passage est modifié dans la préparation et n'est pas restauré, contrairement à `PaiementsEnLigneWebhookTest`. | Restaurer le réglage en fin de test (règle « Database state »). |
+| 1.1 | `PaiementsEnLigneWebhookTest` | Dépend d'identifiants fixes présents en base et s'ignore s'ils manquent. | Créer ses propres données (règle « Database state »). |
