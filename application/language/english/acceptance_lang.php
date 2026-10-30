@@ -135,7 +135,7 @@ $lang['acceptance_dual_validation_help'] = 'Requires validation by two persons (
 $lang['acceptance_role_1_placeholder'] = 'e.g. instructor';
 $lang['acceptance_role_2_placeholder'] = 'e.g. student';
 $lang['acceptance_target_roles_placeholder'] = 'e.g. pilots, instructors, board';
-$lang['acceptance_target_roles_help'] = 'Check one or more roles, in a specific section or all sections. Empty = all members.';
+$lang['acceptance_target_roles_help'] = 'Check one or more roles, in a specific section or all sections. Empty = all active members with an up-to-date subscription. In all cases, only members active in a section and with an up-to-date subscription (current or previous year) are selected.';
 $lang['acceptance_target_user_help'] = 'An item targets either an individual user or one or more categories, never both.';
 $lang['acceptance_select_document_help'] = 'A new item to accept must reference an already archived document. All sections combined.';
 $lang['acceptance_version_date_archived_help'] = 'Archived document deposit date, not editable from this form.';

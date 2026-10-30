@@ -185,6 +185,22 @@ class Licences_model extends Common_Model {
     }
 
     /**
+     * Fragment SQL (EXISTS) : le membre est à jour de cotisation, c'est-à-dire
+     * qu'il a une cotisation pour l'année en cours ou l'année précédente. La
+     * tolérance d'un an garde les membres en début d'année, tant qu'ils n'ont
+     * pas encore repris leur cotisation.
+     * @param string $login_sql Expression SQL du login (colonne ou valeur échappée)
+     * @return string Condition à passer à where($sql, NULL, FALSE)
+     */
+    public function cotisation_a_jour_sql($login_sql) {
+        $year = (int) date('Y');
+        $previous_year = $year - 1;
+        return "EXISTS (SELECT 1 FROM licences cotis
+            WHERE cotis.pilote = $login_sql AND cotis.type = 0
+            AND cotis.year IN ($previous_year, $year))";
+    }
+
+    /**
      * Vérifie si une cotisation existe déjà pour un pilote et une année donnée
      * @param string $pilote Login du pilote
      * @param int $year Année de cotisation

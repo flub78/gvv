@@ -152,7 +152,7 @@ Pour garantir que l'utilisateur a bien pris connaissance du document :
 - Date de version : pour un document déjà archivé, verrouillée sur sa date de dépôt (non modifiable depuis ce formulaire) ; sinon saisie libre
 - Niveau d'obligation : facultatif / obligatoire non bloquant / obligatoire bloquant
 - **Date limite d'acceptation** (optionnelle)
-- Ciblage : un utilisateur individuel (ex: un pilote précis), ou un ou plusieurs rôles — chacun pouvant être limité à une section précise ou étendu à toutes les sections (même sélecteur que le ciblage par rôle des listes de diffusion email)
+- Ciblage : un utilisateur individuel (ex: un pilote précis), ou un ou plusieurs rôles — chacun pouvant être limité à une section précise ou étendu à toutes les sections (même sélecteur que le ciblage par rôle des listes de diffusion email). Sauf cible individuelle, seuls les membres actifs dans une section et à jour de cotisation (année en cours ou année précédente) sont retenus
 - Type de cible (interne/externe) et double validation (rôles instructeur/élève) : prévus dans le modèle de données mais non exposés dans ce formulaire pour cette première livraison
 
 **Suivi des acceptations**

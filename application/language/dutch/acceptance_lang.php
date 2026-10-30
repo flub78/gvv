@@ -135,7 +135,7 @@ $lang['acceptance_dual_validation_help'] = 'Vereist validatie door twee personen
 $lang['acceptance_role_1_placeholder'] = 'bijv. instructeur';
 $lang['acceptance_role_2_placeholder'] = 'bijv. leerling';
 $lang['acceptance_target_roles_placeholder'] = 'bijv. piloten, instructeurs, bestuur';
-$lang['acceptance_target_roles_help'] = 'Vink een of meer rollen aan, in een specifieke sectie of alle secties. Leeg = alle leden.';
+$lang['acceptance_target_roles_help'] = 'Vink een of meer rollen aan, in een specifieke sectie of alle secties. Leeg = alle actieve leden met een actueel lidmaatschap. In alle gevallen worden alleen leden geselecteerd die actief zijn in een sectie en een actueel lidmaatschap hebben (huidig of vorig jaar).';
 $lang['acceptance_target_user_help'] = 'Een item richt zich op een individuele gebruiker of op een of meer categorieën, nooit op beide.';
 $lang['acceptance_select_document_help'] = 'Een nieuw te accepteren element moet verwijzen naar een reeds gearchiveerd document. Alle secties samen.';
 $lang['acceptance_version_date_archived_help'] = 'Depotdatum van het gearchiveerde document, niet bewerkbaar vanuit dit formulier.';

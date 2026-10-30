@@ -755,8 +755,9 @@ class EmailListsModelTest extends TestCase
     public function testRequireCotisation_FiltersRoleMembersCorrectly()
     {
         $year = (int) date('Y');
+        $previous_year = $year - 1;
 
-        // Trouver un membre avec un rôle mais SANS cotisation pour l'année en cours
+        // Trouver un membre avec un rôle mais SANS cotisation à jour
         $result = $this->CI->db->query(
             "SELECT m.mlogin, m.memail, urps.types_roles_id, urps.section_id
              FROM membres m
@@ -772,14 +773,14 @@ class EmailListsModelTest extends TestCase
                )
                AND NOT EXISTS (
                    SELECT 1 FROM licences l
-                   WHERE l.pilote = m.mlogin AND l.type = 0 AND l.year = $year
+                   WHERE l.pilote = m.mlogin AND l.type = 0 AND l.year IN ($previous_year, $year)
                )
              LIMIT 1"
         );
         $member_no_cotisation = $result->row_array();
 
         if (empty($member_no_cotisation)) {
-            $this->markTestSkipped('No active role-member without current-year subscription found');
+            $this->markTestSkipped('No active role-member without up-to-date subscription found');
         }
 
         $role_id    = $member_no_cotisation['types_roles_id'];
@@ -868,6 +869,56 @@ class EmailListsModelTest extends TestCase
 
         // Nettoyage
         $this->CI->db->query("DELETE FROM email_lists WHERE name LIKE 'TEST_RequireCotisation%'");
+    }
+
+    /**
+     * La cotisation de l'année précédente suffit (membres pas encore réinscrits
+     * en début d'année), mais pas celle d'il y a deux ans. Une cotisation sur
+     * les deux années ne doit pas dupliquer le membre.
+     */
+    public function testRequireCotisation_AcceptsCurrentOrPreviousYearOnly()
+    {
+        $this->CI->load->model('licences_model');
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
+        $member = $this->CI->db->query(
+            "SELECT m.mlogin, urps.types_roles_id, urps.section_id
+             FROM membres m
+             INNER JOIN users u ON u.username = m.mlogin
+             INNER JOIN user_roles_per_section urps ON urps.user_id = u.id
+             WHERE urps.revoked_at IS NULL AND NOT $cotisation
+             LIMIT 1"
+        )->row_array();
+
+        if (empty($member)) {
+            $this->markTestSkipped('No role-member without up-to-date subscription found');
+        }
+
+        $year = (int) date('Y');
+        $count_member = function () use ($member) {
+            $users = $this->model->get_users_by_role_and_section(
+                $member['types_roles_id'], $member['section_id'], 'all', true
+            );
+            return count(array_keys(array_column($users, 'mlogin'), $member['mlogin']));
+        };
+
+        $licence_ids = array();
+        try {
+            foreach (array($year - 2 => 0, $year - 1 => 1, $year => 1) as $licence_year => $expected) {
+                $this->CI->db->insert('licences', array(
+                    'pilote'  => $member['mlogin'],
+                    'type'    => 0,
+                    'year'    => $licence_year,
+                    'date'    => $licence_year . '-01-01',
+                    'comment' => 'EmailListsModelTest',
+                ));
+                $licence_ids[] = $this->CI->db->insert_id();
+                $this->assertEquals($expected, $count_member(), "After subscription for $licence_year");
+            }
+        } finally {
+            foreach ($licence_ids as $id) {
+                $this->CI->db->delete('licences', array('id' => $id));
+            }
+        }
     }
 
     public function testParentEmail_IncludedInDetailedList()

@@ -15,6 +15,7 @@ class AcceptanceItemsModelTest extends TestCase
     protected $model;
     protected $test_ids = array();
     protected $temp_role_ids = array();
+    protected $temp_licence_ids = array();
 
     protected function setUp(): void
     {
@@ -23,6 +24,7 @@ class AcceptanceItemsModelTest extends TestCase
 
         $this->CI->load->model('acceptance_items_model');
         $this->model = $this->CI->acceptance_items_model;
+        $this->CI->load->model('licences_model');
     }
 
     protected function tearDown(): void
@@ -41,22 +43,28 @@ class AcceptanceItemsModelTest extends TestCase
         foreach ($this->temp_role_ids as $id) {
             $this->db->delete('user_roles_per_section', array('id' => $id));
         }
+        foreach ($this->temp_licence_ids as $id) {
+            $this->db->delete('licences', array('id' => $id));
+        }
     }
 
     /**
      * Helper to get a valid, currently active member login from the
      * database (holds the 'user' role, unrevoked, in some section — cf.
-     * Membres_model::actif_dans_au_moins_une_section()). Targeting
-     * resolution now requires this, so an arbitrary/inactive membres row
-     * would silently fail to be picked up by resolve_targets().
+     * Membres_model::actif_dans_au_moins_une_section() — and is up to date
+     * with their subscription). Targeting resolution requires both, so an
+     * arbitrary membres row would silently fail to be picked up by
+     * resolve_targets().
      */
     protected function getTestLogin()
     {
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
         $query = $this->db->query(
             "SELECT m.mlogin FROM membres m
              JOIN users u ON u.username = m.mlogin
              JOIN user_roles_per_section urps ON urps.user_id = u.id
              WHERE urps.types_roles_id = 1 AND urps.revoked_at IS NULL
+               AND $cotisation
              LIMIT 1"
         );
         $row = $query->row_array();
@@ -69,11 +77,13 @@ class AcceptanceItemsModelTest extends TestCase
      */
     protected function getTwoTestLogins()
     {
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
         $query = $this->db->query(
             "SELECT DISTINCT m.mlogin FROM membres m
              JOIN users u ON u.username = m.mlogin
              JOIN user_roles_per_section urps ON urps.user_id = u.id
              WHERE urps.types_roles_id = 1 AND urps.revoked_at IS NULL
+               AND $cotisation
              LIMIT 2"
         );
         $rows = $query->result_array();
@@ -92,12 +102,14 @@ class AcceptanceItemsModelTest extends TestCase
      */
     protected function getTestLoginWithoutRole($types_roles_id, $section_id)
     {
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
         $row = $this->db->query(
             "SELECT m.mlogin FROM membres m
              JOIN users u ON u.username = m.mlogin
              JOIN user_roles_per_section urps_active ON urps_active.user_id = u.id
                  AND urps_active.types_roles_id = 1 AND urps_active.revoked_at IS NULL
-             WHERE NOT EXISTS (
+             WHERE $cotisation
+               AND NOT EXISTS (
                  SELECT 1 FROM user_roles_per_section urps_target
                  WHERE urps_target.user_id = u.id
                    AND urps_target.types_roles_id = ?
@@ -111,6 +123,43 @@ class AcceptanceItemsModelTest extends TestCase
             $this->markTestSkipped('No active member without the sampled role/section available for this test');
         }
         return $row['mlogin'];
+    }
+
+    /**
+     * Helper: a member active in a section, with no subscription for the
+     * current or previous year, to drive the subscription criterion with
+     * fixtures from addCotisation().
+     */
+    protected function getActiveLoginWithoutCotisation()
+    {
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
+        $row = $this->db->query(
+            "SELECT m.mlogin FROM membres m
+             JOIN users u ON u.username = m.mlogin
+             JOIN user_roles_per_section urps ON urps.user_id = u.id
+             WHERE urps.types_roles_id = 1 AND urps.revoked_at IS NULL
+               AND NOT $cotisation
+             LIMIT 1"
+        )->row_array();
+        if (!$row) {
+            $this->markTestSkipped('No active member without an up-to-date subscription available for this test');
+        }
+        return $row['mlogin'];
+    }
+
+    /**
+     * Helper: temporary subscription row, tracked for teardown.
+     */
+    protected function addCotisation($login, $year)
+    {
+        $this->db->insert('licences', array(
+            'pilote' => $login,
+            'type' => 0,
+            'year' => $year,
+            'date' => $year . '-01-01',
+            'comment' => 'AcceptanceItemsModelTest',
+        ));
+        $this->temp_licence_ids[] = $this->db->insert_id();
     }
 
     /**
@@ -403,12 +452,14 @@ class AcceptanceItemsModelTest extends TestCase
      * Helper: an active (non-revoked) user_roles_per_section row, joined to
      * its membre login, so tests exercise the real role-resolution join.
      * The holder must also independently hold the base 'user' role
-     * somewhere (cf. Membres_model::actif_dans_au_moins_une_section()),
-     * otherwise resolve_targets() would silently drop them regardless of
-     * the specific role/section under test.
+     * somewhere (cf. Membres_model::actif_dans_au_moins_une_section()) and
+     * be up to date with their subscription, otherwise resolve_targets()
+     * would silently drop them regardless of the specific role/section
+     * under test.
      */
     protected function getUserWithRole()
     {
+        $cotisation = $this->CI->licences_model->cotisation_a_jour_sql('m.mlogin');
         $row = $this->db->query(
             "SELECT m.mlogin, urps.types_roles_id, urps.section_id
              FROM user_roles_per_section urps
@@ -421,6 +472,7 @@ class AcceptanceItemsModelTest extends TestCase
                      AND urps_active.types_roles_id = 1
                      AND urps_active.revoked_at IS NULL
                )
+               AND $cotisation
              LIMIT 1"
         )->row_array();
         if (!$row) {
@@ -473,12 +525,9 @@ class AcceptanceItemsModelTest extends TestCase
 
     public function testGetItemsForUser_ExcludesItemTargetedByRoleUserDoesNotHold()
     {
-        list($login_a, $login_b) = $this->getTwoTestLogins();
         $role = $this->getUserWithRole();
         // Make sure the user under test truly does not hold this role/section.
-        if ($role['mlogin'] === $login_a) {
-            $this->markTestSkipped('Test login already holds the sampled role, cannot build a negative case');
-        }
+        $login_a = $this->getTestLoginWithoutRole($role['types_roles_id'], $role['section_id']);
 
         $id = $this->createTestItem(array('title' => 'Role not held ' . uniqid()));
         $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $role['mlogin']);
@@ -493,6 +542,55 @@ class AcceptanceItemsModelTest extends TestCase
     }
 
     // ==================== get_pending_items_for_user (Lot 4) ====================
+
+    // ==================== Subscription criterion ====================
+
+    public function testResolveTargets_ExcludesMemberWithoutRecentCotisation()
+    {
+        $login = $this->getActiveLoginWithoutCotisation();
+        $this->addCotisation($login, (int) date('Y') - 2);
+        $id = $this->createTestItem(array('title' => 'Subscription criterion ' . uniqid()));
+        $item = $this->model->get_by_id('id', $id);
+
+        $this->assertNotContains($login, $this->model->resolve_targets($item));
+        $this->assertNotContains($id, array_column($this->model->get_items_for_user($login), 'id'),
+            'A member outside the expected count must not get the item (a mandatory one would block them)');
+    }
+
+    public function testResolveTargets_IncludesMemberWithPreviousYearCotisation()
+    {
+        $login = $this->getActiveLoginWithoutCotisation();
+        $this->addCotisation($login, (int) date('Y') - 1);
+        $id = $this->createTestItem(array('title' => 'Subscription criterion ' . uniqid()));
+        $item = $this->model->get_by_id('id', $id);
+
+        $this->assertContains($login, $this->model->resolve_targets($item));
+        $this->assertContains($id, array_column($this->model->get_items_for_user($login), 'id'));
+    }
+
+    public function testResolveTargets_RoleTargetAppliesSubscriptionCriterion()
+    {
+        $login = $this->getActiveLoginWithoutCotisation();
+        $temp_role = $this->grantTempRole($login);
+        $id = $this->createTestItem(array('title' => 'Subscription criterion ' . uniqid()));
+        $this->addItemRole($id, $temp_role['types_roles_id'], $temp_role['section_id'], $login);
+        $item = $this->model->get_by_id('id', $id);
+
+        $this->assertNotContains($login, $this->model->resolve_targets($item));
+
+        $this->addCotisation($login, (int) date('Y'));
+        $this->assertContains($login, $this->model->resolve_targets($item));
+    }
+
+    public function testResolveTargets_IndividualTargetIgnoresSubscription()
+    {
+        $login = $this->getActiveLoginWithoutCotisation();
+        $id = $this->createTestItem(array('target_user_login' => $login));
+        $item = $this->model->get_by_id('id', $id);
+
+        $this->assertEquals(array($login), $this->model->resolve_targets($item));
+        $this->assertContains($id, array_column($this->model->get_items_for_user($login), 'id'));
+    }
 
     public function testGetPendingItemsForUser_ExcludesAcceptedItem()
     {
@@ -817,11 +915,8 @@ class AcceptanceItemsModelTest extends TestCase
 
     public function testActiveMessagesForUser_HidesNotificationFromUserWithoutTheRole()
     {
-        list($login_a, ) = $this->getTwoTestLogins();
         $role = $this->getUserWithRole();
-        if ($role['mlogin'] === $login_a) {
-            $this->markTestSkipped('Test login already holds the sampled role, cannot build a negative case');
-        }
+        $login_a = $this->getTestLoginWithoutRole($role['types_roles_id'], $role['section_id']);
 
         $id = $this->createTestItem(array('title' => 'Not displayed without role ' . uniqid()));
         $this->addItemRole($id, $role['types_roles_id'], $role['section_id'], $role['mlogin']);

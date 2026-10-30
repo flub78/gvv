@@ -394,11 +394,13 @@ class Email_lists_model extends CI_Model
      * @param int $types_roles_id Role ID
      * @param int $section_id Section ID
      * @param string $active_member Filter: 'active', 'inactive', 'all'
-     * @param bool $require_cotisation When true, only members with a subscription for the current year are included
+     * @param bool $require_cotisation When true, only members with a subscription for the current or previous year are included
      * @return array Array of users with email addresses
      */
     public function get_users_by_role_and_section($types_roles_id, $section_id, $active_member = 'active', $require_cotisation = true)
     {
+        $this->load->model('licences_model');
+
         $this->db->select('m.memail as email, m.memailparent, m.mnom, m.mprenom, m.mlogin, m.actif');
         $this->db->from('user_roles_per_section urps');
         $this->db->join('users u', 'urps.user_id = u.id', 'inner');
@@ -430,8 +432,7 @@ class Email_lists_model extends CI_Model
         // 'all' - no filter
 
         if ($require_cotisation) {
-            $year = (int) date('Y');
-            $this->db->join('licences lic', "lic.pilote = m.mlogin AND lic.type = 0 AND lic.year = $year", 'inner');
+            $this->db->where($this->licences_model->cotisation_a_jour_sql('m.mlogin'), NULL, FALSE);
         }
 
         $query = $this->db->get();

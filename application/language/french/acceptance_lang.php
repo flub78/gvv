@@ -135,7 +135,7 @@ $lang['acceptance_dual_validation_help'] = 'Nécessite la validation par deux pe
 $lang['acceptance_role_1_placeholder'] = 'ex: instructeur';
 $lang['acceptance_role_2_placeholder'] = 'ex: élève';
 $lang['acceptance_target_roles_placeholder'] = 'ex: pilotes, instructeurs, bureau';
-$lang['acceptance_target_roles_help'] = 'Cochez un ou plusieurs rôles, dans une section précise ou toutes sections. Vide = tous les membres.';
+$lang['acceptance_target_roles_help'] = 'Cochez un ou plusieurs rôles, dans une section précise ou toutes sections. Vide = tous les membres actifs à jour de cotisation. Dans tous les cas, seuls les membres actifs dans une section et à jour de cotisation (année en cours ou précédente) sont retenus.';
 $lang['acceptance_target_user_help'] = 'Un élément cible soit un utilisateur individuel, soit une ou plusieurs catégories, jamais les deux.';
 $lang['acceptance_select_document_help'] = 'Un nouvel élément à accepter doit référencer un document déjà archivé. Toutes sections confondues.';
 $lang['acceptance_version_date_archived_help'] = 'Date de dépôt du document archivé, non modifiable depuis ce formulaire.';

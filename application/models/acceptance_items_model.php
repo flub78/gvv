@@ -83,12 +83,17 @@ class Acceptance_items_model extends Common_Model {
      * section (acceptance_item_roles, section_id NULL = all sections) — the
      * two are exclusive per item (cf. formulaire admin). Items with no
      * targeting restriction at all (target_user_login NULL and no
-     * acceptance_item_roles rows) apply to everyone.
+     * acceptance_item_roles rows) apply to everyone. Except for an individual
+     * target, the user must also be active in a section and up to date with
+     * their subscription, like resolve_targets() (a member excluded from the
+     * expected count must not be blocked by a mandatory item).
      * @param string $user_login User login
      * @return array Active items eligible for this user
      */
     public function get_items_for_user($user_login) {
+        $this->load->model('licences_model');
         $login = $this->db->escape($user_login);
+        $cotisation_a_jour = $this->licences_model->cotisation_a_jour_sql($login);
         $sql = "SELECT DISTINCT acceptance_items.*
             FROM acceptance_items
             WHERE acceptance_items.active = 1
@@ -96,6 +101,14 @@ class Acceptance_items_model extends Common_Model {
                 acceptance_items.target_user_login = $login
                 OR (
                     (acceptance_items.target_user_login IS NULL OR acceptance_items.target_user_login = '')
+                    AND $cotisation_a_jour
+                    AND EXISTS (
+                        SELECT 1 FROM user_roles_per_section urps_actif
+                        JOIN users u_actif ON u_actif.id = urps_actif.user_id
+                        WHERE u_actif.username = $login
+                        AND urps_actif.types_roles_id = 1
+                        AND urps_actif.revoked_at IS NULL
+                    )
                     AND (
                         NOT EXISTS (
                             SELECT 1 FROM acceptance_item_roles air
@@ -282,13 +295,14 @@ class Acceptance_items_model extends Common_Model {
      * individual target_user_login, or every member reached by its
      * acceptance_item_roles rows (role x section, mirroring
      * get_items_for_user()'s targeting rules), or — when neither is set —
-     * every active member club-wide (an unrestricted item applies to
+     * every eligible member club-wide (an unrestricted item applies to
      * everyone).
      *
-     * Activity is checked with Membres_model::actif_dans_au_moins_une_section()
-     * (the legacy membres.actif flag is being phased out) for every case
-     * except an individually targeted user, who is always included regardless
-     * of their activity status.
+     * Eligibility, for every case except an individually targeted user (who
+     * is always included): active per
+     * Membres_model::actif_dans_au_moins_une_section() (the legacy
+     * membres.actif flag is being phased out) and up to date with their
+     * subscription per Licences_model::cotisation_a_jour_sql().
      * @param array $item acceptance_items row
      * @return string[] Unique mlogin values
      */
@@ -298,13 +312,16 @@ class Acceptance_items_model extends Common_Model {
         }
 
         $this->load->model('membres_model');
+        $this->load->model('licences_model');
         $this->load->model('acceptance_item_roles_model');
         $roles = $this->acceptance_item_roles_model->get_for_item($item['id']);
 
         $logins = array();
 
         if (empty($roles)) {
-            $rows = $this->db->select('mlogin')->get('membres')->result_array();
+            $this->db->select('mlogin');
+            $this->db->where($this->licences_model->cotisation_a_jour_sql('membres.mlogin'), NULL, FALSE);
+            $rows = $this->db->get('membres')->result_array();
             foreach ($rows as $row) {
                 if ($this->membres_model->actif_dans_au_moins_une_section($row['mlogin'])) {
                     $logins[$row['mlogin']] = true;
@@ -316,7 +333,7 @@ class Acceptance_items_model extends Common_Model {
         $this->load->model('email_lists_model');
         foreach ($roles as $role) {
             $members = $this->email_lists_model->get_users_by_role_and_section(
-                $role['types_roles_id'], $role['section_id'], 'all', false
+                $role['types_roles_id'], $role['section_id'], 'all', true
             );
             foreach ($members as $member) {
                 if (!empty($member['mlogin'])
