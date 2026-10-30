@@ -306,6 +306,18 @@ function td_unknown_features($tests, $features) {
 }
 
 /**
+ * Fragments of a scenario that look like code rather than behavior: function
+ * calls, variables, snake_case or camelCase names, selectors, file names.
+ * @param string|null $scenario
+ * @return string[]
+ */
+function td_code_traces($scenario) {
+    $pattern = '/\b\w+\(\)|\$\w+|\b[a-z]+_[a-z_]+\b|\b[a-z]+[A-Z]\w*|(?<!\S)#[a-zA-Z][\w-]*|\b[\w-]+\.(?:php|js|ts)\b/';
+    preg_match_all($pattern, (string) $scenario, $traces);
+    return array_values(array_unique($traces[0]));
+}
+
+/**
  * @param array[] $tests
  * @param array[] $features
  * @return string Self-contained HTML page
@@ -341,6 +353,12 @@ function td_main() {
     echo count($tests) . " tests, $described avec scénario, " . count($features) . " features\n";
     foreach (td_unknown_features($tests, $features) as $feature) {
         echo "Attention : feature inconnue, à ajouter à la liste : $feature\n";
+    }
+    foreach ($tests as $test) {
+        $traces = td_code_traces($test['scenario']);
+        if ($traces) {
+            echo "Attention : scénario à revoir, {$test['file']}:{$test['line']} : " . implode(', ', $traces) . "\n";
+        }
     }
     return 0;
 }

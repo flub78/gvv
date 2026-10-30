@@ -165,6 +165,23 @@ PHP;
     }
 
     /**
+     * Scénario: Un scénario qui parle du code est signalé
+     *   Étant donné un scénario mentionnant des éléments de code
+     *   Quand la documentation est générée
+     *   Alors ces éléments sont signalés pour relecture
+     *   Mais un scénario décrivant un comportement n'est pas signalé
+     */
+    public function testCodeTraces_FlagsCodeNotBehavior()
+    {
+        $this->assertEquals(
+            array('resolve_targets()', '$login', 'acceptance_items', 'getItems', '#target_mode', 'membre.php'),
+            td_code_traces('Quand resolve_targets() reçoit $login, acceptance_items et getItems via #target_mode dans membre.php')
+        );
+        $this->assertEquals(array(), td_code_traces("Scénario: L'élève n°12 voit 2 séances\nAlors l'écran affiche « Payé »"));
+        $this->assertEquals(array(), td_code_traces(null));
+    }
+
+    /**
      * Scénario: La page reste une page valide quel que soit le texte des tests
      *   Étant donné un test dont le texte contient du balisage
      *   Quand la documentation est générée
