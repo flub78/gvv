@@ -26,7 +26,6 @@ if (!defined('BASEPATH'))
  * @see doc/design_notes/gestion_emails_design.md
  *
  * Playwright tests:
- *   - npx playwright test tests/email-lists-create-debug.spec.js
  *   - npx playwright test tests/email-lists-simple-creation.spec.js
  *   - npx playwright test tests/email-lists-validation-simple.spec.js
  *   - npx playwright test tests/email-lists-validation.spec.js

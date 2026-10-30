@@ -27,7 +27,6 @@
  * Playwright tests:
  *   - npx playwright test tests/compta_frozen_entry_buttons.spec.js
  *   - npx playwright test tests/compta_journal_search.spec.js
- *   - npx playwright test tests/diagnostic-remote.spec.js
  *   - npx playwright test tests/gaulois-users-accounts.spec.js
  *   - npx playwright test tests/saisie-cotisation.spec.js
  */

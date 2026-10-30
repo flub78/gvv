@@ -6,9 +6,6 @@
  *   - npx playwright test tests/balance-search-debug.spec.js
  *   - npx playwright test tests/compta_frozen_entry_buttons.spec.js
  *   - npx playwright test tests/compta_journal_serverside.spec.js
- *   - npx playwright test tests/debug-balance-page.spec.js
- *   - npx playwright test tests/diagnostic-remote.spec.js
- *   - npx playwright test tests/email-lists-create-debug.spec.js
  *   - npx playwright test tests/email-lists-simple-creation.spec.js
  *   - npx playwright test tests/email-lists-validation-simple.spec.js
  *   - npx playwright test tests/email-lists-validation.spec.js

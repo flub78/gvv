@@ -25,8 +25,6 @@
  * Playwright tests:
  *   - npx playwright test tests/balance-search-debug.spec.js
  *   - npx playwright test tests/compta_journal_serverside.spec.js
- *   - npx playwright test tests/debug-balance-page.spec.js
- *   - npx playwright test tests/diagnostic-remote.spec.js
  *   - npx playwright test tests/resultat-par-sections.spec.js
  *   - npx playwright test tests/resultat_par_sections_detail_links.spec.js
  *   - npx playwright test tests/section-unique.spec.js
