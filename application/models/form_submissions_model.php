@@ -474,12 +474,13 @@ class Form_submissions_model extends CI_Model {
         }
 
         $now = date('Y-m-d H:i:s');
+        $all_saved = true;
         foreach ($files as $file) {
             if (empty($file['widget_name']) || empty($file['storage_path']) || empty($file['stored_name'])) {
                 continue;
             }
 
-            $this->db->insert($this->files_table, array(
+            $inserted = $this->db->insert($this->files_table, array(
                 'submission_id' => (int) $submission_id,
                 'widget_name'   => (string) $file['widget_name'],
                 'original_name' => isset($file['original_name']) ? $file['original_name'] : '',
@@ -492,6 +493,10 @@ class Form_submissions_model extends CI_Model {
                 'created_by'    => $updated_by,
                 'updated_by'    => $updated_by,
             ));
+            if (!$inserted) {
+                $this->record_db_error('save_submission_files');
+                $all_saved = false;
+            }
         }
 
         $this->db
@@ -501,7 +506,7 @@ class Form_submissions_model extends CI_Model {
                 'updated_by' => $updated_by,
             ));
 
-        return true;
+        return $all_saved;
     }
 
     /**
@@ -593,6 +598,39 @@ class Form_submissions_model extends CI_Model {
             $by_submission[(int) $row['submission_id']] = $row;
         }
         return $by_submission;
+    }
+
+    /**
+     * Deletes a submission still under retention, keeping who removed it and why.
+     * Nothing is deleted when the trace cannot be written.
+     *
+     * @param array  $submission      Submission row.
+     * @param string $protected_until Y-m-d end of retention.
+     * @param string $reason          Reason given by the administrator.
+     * @param string $deleted_by      Login of the administrator.
+     * @return bool
+     */
+    public function delete_protected_submission(array $submission, $protected_until, $reason, $deleted_by) {
+        $now = date('Y-m-d H:i:s');
+        $traced = $this->db->insert('form_submission_deletions', array(
+            'form_id'         => (int) $submission['form_id'],
+            'submission_id'   => (int) $submission['id'],
+            'subject_type'    => $submission['subject_type'],
+            'subject_id'      => $submission['subject_id'],
+            'submitted_at'    => $submission['submitted_at'],
+            'protected_until' => $protected_until,
+            'reason'          => $this->strip_4byte_chars($reason),
+            'created_at'      => $now,
+            'updated_at'      => $now,
+            'created_by'      => $deleted_by,
+            'updated_by'      => $deleted_by,
+        ));
+        if (!$traced) {
+            $this->record_db_error('delete_protected_submission');
+            return false;
+        }
+
+        return $this->delete_submission((int) $submission['id']);
     }
 
     public function delete_submission($submission_id) {

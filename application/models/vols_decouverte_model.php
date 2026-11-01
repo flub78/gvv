@@ -20,6 +20,26 @@ class Vols_decouverte_model extends Common_Model {
     protected $primary_key = 'id';
 
     /**
+     * Flight dates of several discovery flights.
+     *
+     * @param array $ids Flight ids.
+     * @return array Y-m-d flight date keyed by flight id, flights with a date only.
+     */
+    public function dates_vol(array $ids) {
+        if (empty($ids)) {
+            return array();
+        }
+        $rows = $this->db->where_in('id', array_values(array_unique($ids)))->get($this->table)->result_array();
+        $dates = array();
+        foreach ($rows as $row) {
+            if (!empty($row['date_vol']) && $row['date_vol'] !== '0000-00-00') {
+                $dates[(int) $row['id']] = substr($row['date_vol'], 0, 10);
+            }
+        }
+        return $dates;
+    }
+
+    /**
      *	Retourne le tableau tableau utilisé pour l'affichage par page
      *	@return objet		  La liste
      */

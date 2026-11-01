@@ -63,12 +63,13 @@ class VolsDecouverteBriefingSubmissionLinkTest extends TestCase
         $this->vld_id = (int) $this->CI->db->insert_id();
     }
 
-    private function createSubmission()
+    private function createSubmission($method = 'online')
     {
         $this->CI->db->insert('form_submissions', array(
             'form_id'         => $this->briefing_form_id,
             'submission_uuid' => uniqid('phpunit_', true),
             'status'          => 'submitted',
+            'submission_method' => $method,
             'subject_type'    => 'vols_decouverte',
             'subject_id'      => $this->vld_id,
             'created_at'      => date('Y-m-d H:i:s'),
@@ -96,6 +97,25 @@ class VolsDecouverteBriefingSubmissionLinkTest extends TestCase
         $this->assertEquals(1, (int) $row['has_briefing']);
         $this->assertEquals($this->submission_id, (int) $row['briefing_submission_id']);
         $this->assertEquals($this->briefing_form_id, (int) $row['briefing_form_id']);
+    }
+
+    /**
+     * @feature Briefing passager
+     * Scénario: Un briefing papier déposé compte comme briefing du vol
+     *   Étant donné un vol de découverte
+     *   Quand le scan de son briefing signé sur papier est déposé
+     *   Alors le vol apparaît comme ayant son briefing
+     *   Et ce briefing est accessible depuis la liste des vols
+     */
+    public function testSelectPageCountsDepositedPaperBriefing()
+    {
+        $this->createVld();
+        $this->createSubmission('upload');
+
+        $row = $this->findRow();
+        $this->assertNotNull($row, 'Le VLD doit être présent dans select_page().');
+        $this->assertEquals(1, (int) $row['has_briefing']);
+        $this->assertEquals($this->submission_id, (int) $row['briefing_submission_id']);
     }
 
     public function testSelectPageLeavesBriefingSubmissionIdNullWithoutSubmission()

@@ -57,8 +57,8 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 3. Le pilote présente le document au passager, lui explique les consignes et répond à ses questions.
 4. Le passager signe le document papier.
 5. Le pilote scanne ou photographie le document.
-6. Le pilote télécharge le fichier (PDF ou image) dans le système via le formulaire de briefing.
-7. Le briefing est archivé dans le système documentaire et associé au vol.
+6. Le pilote dépose le fichier (PDF ou image) depuis la page de briefing du vol.
+7. Le briefing est archivé et associé au vol, qui apparaît comme ayant son briefing.
 
 ### UC2 — Signature numérique (mode dématérialisé)
 
@@ -114,9 +114,14 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 
 ### F5 — Mode upload (UC1)
 
-- Le formulaire permet de télécharger un fichier (PDF, JPEG, PNG).
-- La date de signature peut être saisie manuellement (par défaut : date du jour).
-- Le fichier est archivé dans le système documentaire avec le type de document « briefing passager ».
+- La page de briefing du vol permet de déposer un fichier (PDF, JPEG, PNG, GIF, WEBP, 10 Mo maximum).
+- Le dépôt est réservé aux utilisateurs autorisés à gérer les briefings ; il n'est pas ouvert au public.
+- La date du vol et les autres informations affichées sur la page sont enregistrées avec le dépôt.
+- Un fichier sélectionné est déposé quel que soit le bouton utilisé : il n'est jamais ignoré.
+- Un dépôt impossible (fichier absent, format refusé, trop volumineux, enregistrement en échec) est signalé et n'enregistre aucun briefing.
+- Le fichier est archivé comme réponse au formulaire de briefing, rattachée au vol, et consultable depuis la liste des vols comme depuis la liste des briefings.
+- Les utilisateurs autorisés à gérer les briefings peuvent redresser un scan mal orienté.
+- La suppression d'un briefing n'est proposée qu'aux administrateurs.
 
 ### F6 — Mode signature numérique (UC2)
 
@@ -138,7 +143,7 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 - Les briefings sont des documents archivés au sens du module d'archivage documentaire existant.
 - Deux origines possibles pour un document de type « briefing passager » : fichier uploadé (UC1) ou PDF généré par le système (UC2).
 - Les briefings sont associés au vol de découverte comme entité de rattachement.
-- La durée de conservation minimale est de trois mois. Un briefing ne peut pas être supprimé avant l'échéance.
+- La durée de conservation minimale est de trois mois. Un briefing ne peut pas être supprimé avant l'échéance, sauf pour corriger une erreur (voir règle 4).
 
 ### F8 — Consultation et export administrateur
 
@@ -154,7 +159,7 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 1. **Un briefing par vol** : un seul briefing peut être associé à un vol de découverte. Un briefing existant peut être remplacé (avec confirmation).
 2. **Lien de signature à usage unique** : le lien est invalidé après soumission réussie.
 3. **Consignes par section** : les consignes présentées sont celles de la section associée au vol de découverte.
-4. **Conservation minimale** : un briefing ne peut pas être supprimé avant trois mois à compter de la date du vol.
+4. **Conservation minimale** : un briefing ne peut pas être supprimé avant trois mois à compter de la date du vol, ou de la date de dépôt s'il n'a pas de vol ou que le vol n'a pas de date. Par exception, un administrateur peut supprimer un briefing déposé par erreur, en indiquant un motif ; le motif et son auteur sont conservés. Le formulaire de briefing ne peut pas être supprimé tant qu'il contient un briefing à conserver.
 5. **Indépendance de l'archivage** : la suppression ou l'annulation d'un VLD ne supprime pas le briefing associé.
 6. **Synchronisation des champs passager** : le formulaire de signature numérique (UC2) est pré-rempli avec les données du VLD (`beneficiaire`, `urgence`, etc.). Le passager peut accepter ou corriger ces informations. À la soumission, si les valeurs diffèrent de celles du VLD, le VLD est mis à jour en conséquence.
 
@@ -171,5 +176,5 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 7. L'administrateur accède à la liste des briefings des trois derniers mois et peut visualiser chaque document.
 8. L'export PDF de la liste des briefings fonctionne.
 9. Les consignes de sécurité d'une section peuvent être mises à jour par upload d'un nouveau PDF.
-10. Un briefing de moins de trois mois ne peut pas être supprimé.
+10. Un briefing de moins de trois mois ne peut pas être supprimé sans motif, et seul un administrateur peut donner ce motif.
 11. La suppression d'un VLD ne supprime pas le briefing associé.

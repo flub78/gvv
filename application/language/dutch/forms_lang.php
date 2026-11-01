@@ -183,6 +183,10 @@ $lang['forms_confirm_delete_field']       = 'Dit veld verwijderen?';
 $lang['forms_modal_title_delete']         = 'Reactie verwijderen';
 $lang['forms_modal_confirm_delete']       = 'Verwijdering van reactie bevestigen';
 $lang['forms_modal_help_delete']          = 'Deze actie is onomkeerbaar en verwijdert ook de bijbehorende bestanden.';
+$lang['forms_retention_warning']          = 'Deze briefing moet worden bewaard tot %s. Verwijder deze alleen om een fout te herstellen, bijvoorbeeld een scan bij de verkeerde vlucht.';
+$lang['forms_retention_reason_label']     = 'Reden van verwijdering (verplicht)';
+$lang['forms_retention_reason_required']  = 'Deze briefing moet worden bewaard tot %s. Geef een reden op om deze te verwijderen.';
+$lang['forms_retention_form_protected']   = 'Dit formulier bevat briefings die bewaard moeten worden: het kan niet worden verwijderd.';
 
 // Field types
 $lang['forms_type_text']                  = 'Tekst';

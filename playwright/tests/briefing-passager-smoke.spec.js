@@ -1,8 +1,8 @@
 /**
  * Playwright smoke tests for Briefing Passager feature
  *
- * Tests UC1 (upload) and UC3 (admin list). UC2 (digital signature via
- * briefing_sign/briefing_tokens) was retired in Lot 6, étape 6.6.
+ * Tests UC1 (paper briefing deposit) and UC3 (admin list). The former UC2 digital
+ * signature (briefing_sign/briefing_tokens) was retired in Lot 6, étape 6.6.
  *
  * Usage:
  *   cd playwright
@@ -12,7 +12,9 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const LOGIN_URL        = '/index.php/auth/login';
 const VLD_LIST_URL     = '/index.php/vols_decouverte';
@@ -23,13 +25,6 @@ const ADMIN_LIST_URL   = '/index.php/forms_admin/submissions/briefing_passager_u
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const BRIEFING_USER = { username: 'agecanonix',  password: 'password' };
-
-const DB_CONFIG = {
-    host: 'localhost',
-    user: 'gvv_user',
-    password: 'lfoyfgbj',
-    database: 'gvv2',
-};
 
 async function login(page, user, section = null) {
     await page.goto(LOGIN_URL);
@@ -44,6 +39,20 @@ async function login(page, user, section = null) {
     }
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
+}
+
+// Un briefing récent est protégé : les nettoyages donnent un motif, dont la trace est
+// retirée par purgeDeletionTraces().
+const TEST_REASON = 'PW nettoyage de test';
+
+function deleteBriefing(page, formId, submissionId) {
+    return page.request.post(`/index.php/forms_admin/submission_delete/${formId}/${submissionId}`, {
+        form: { retention_override_reason: TEST_REASON },
+    });
+}
+
+async function purgeDeletionTraces(connection) {
+    await connection.execute('DELETE FROM form_submission_deletions WHERE reason = ?', [TEST_REASON]);
 }
 
 async function selectFirstNonEmptyOption(page, selector) {
@@ -90,6 +99,14 @@ test('UC1: VLD list shows briefing icon column', async ({ page }) => {
 
 // --- UC1: Clicking briefing icon opens upload form ---
 
+/**
+ * @feature Briefing passager
+ * Scénario: Le pilote choisit comment enregistrer le briefing d'un vol
+ *   Étant donné la liste des vols de découverte
+ *   Quand le pilote ouvre le briefing d'un vol qui n'en a pas encore
+ *   Alors il peut faire signer le passager en ligne
+ *   Et il peut déposer un briefing papier déjà signé
+ */
 test('UC1: briefing icon opens upload form for that VLD', async ({ page }) => {
     await login(page, ADMIN_USER);
     await page.goto(VLD_LIST_URL);
@@ -104,11 +121,8 @@ test('UC1: briefing icon opens upload form for that VLD', async ({ page }) => {
     await page.waitForLoadState('load');
 
     await expect(page).not.toHaveURL(/error|403|404/);
-    // Legacy upload mechanism (drop zone, file input, "Déposer un document signé" button)
-    // has been removed — only the forms-based "Formulaire en ligne" path remains.
-    await expect(page.locator('#drop-zone')).toHaveCount(0);
-    await expect(page.locator('input[name="userfile"]')).toHaveCount(0);
-    await expect(page.locator('button[name="action"][value="upload"]')).toHaveCount(0);
+    await expect(page.locator('#drop-zone')).toBeVisible();
+    await expect(page.locator('button[name="action"][value="upload"]')).toBeVisible();
     await expect(page.locator('button[name="action"][value="link2"]')).toBeVisible();
 });
 
@@ -288,7 +302,7 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         await expect(briefingLinkAfter).toHaveAttribute('href', /forms_admin\/submission_pdf\/2\//);
 
         // --- Delete the submission via forms_admin (real endpoint, already logged in as club-admin) ---
-        const del = await page.request.post(`/index.php/forms_admin/submission_delete/2/${submissionId}`);
+        const del = await deleteBriefing(page, 2, submissionId);
         expect(del.ok()).toBeTruthy();
         submissionId = null; // already deleted, skip cleanup
 
@@ -318,6 +332,442 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
                 await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [row.id]);
                 await connection.execute('DELETE FROM form_submissions WHERE id = ?', [row.id]);
             }
+            await purgeDeletionTraces(connection);
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        await connection.end();
+    }
+});
+
+// --- UC1: dépôt d'un briefing papier signé, rattaché au vol ---
+
+// PNG valide de 2x1 pixels : assez pour exercer le dépôt, et une rotation s'y voit à ses
+// dimensions, sans fichier versionné.
+const TINY_PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAD0lEQVQImWNgYGBgYGAAAAAHAAHV3tbYAAAAAElFTkSuQmCC',
+    'base64'
+);
+const pngSize = (buffer) => ({ width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) });
+const BRIEFING_FORM_ID = 2;
+
+async function fillBriefingPage(page, vdId) {
+    await page.goto(`/index.php/briefing_passager/upload/${vdId}`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.fill('input[name="date_vol"]', '2026-06-15');
+    await selectFirstNonEmptyOption(page, 'select[name="aerodrome"]');
+    await selectFirstNonEmptyOption(page, 'select[name="airplane_immat"]');
+    await selectFirstNonEmptyOption(page, 'select[name="pilote"]');
+}
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un briefing signé sur papier est enregistré sur son vol
+ *   Étant donné un vol de découverte sans briefing
+ *   Et un briefing papier signé par le passager puis scanné
+ *   Quand le gestionnaire dépose le scan depuis le briefing du vol
+ *   Alors il est averti que le briefing est enregistré
+ *   Et le vol apparaît comme ayant son briefing
+ *   Et les informations du vol saisies avec le dépôt sont conservées
+ *   Et le scan est consultable depuis la liste des vols
+ *   Et un pilote de vols de découverte peut le consulter aussi
+ *   Et il peut le redresser s'il est mal orienté
+ */
+test('UC1: a signed paper briefing is filed on its flight', async ({ page, browser }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const scanPath = path.join(os.tmpdir(), `briefing-papier-${Date.now()}.png`);
+    const uploadDir = path.resolve(__dirname, `../../uploads/reponses/${BRIEFING_FORM_ID}`);
+    const uploadDirExisted = fs.existsSync(uploadDir);
+    const benef = `PW BRIEFING PAPIER ${Date.now()}`;
+    let vdId;
+
+    try {
+        fs.writeFileSync(scanPath, TINY_PNG);
+        const [result] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), 2, 'PW_BRIEFING_PAPIER', ?, 'playwright', 0)",
+            [benef]
+        );
+        vdId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await fillBriefingPage(page, vdId);
+        await page.setInputFiles('input[name="userfile"]', scanPath);
+        await expect(page.locator('#filename-userfile')).toHaveText(path.basename(scanPath));
+        await page.click('button[name="action"][value="upload"]');
+        await page.waitForLoadState('domcontentloaded');
+
+        await expect(page).toHaveURL(/vols_decouverte\/page/);
+        const successAlert = page.locator('.alert-success.alert-dismissible');
+        await expect(successAlert).toBeVisible();
+
+        const [rows] = await connection.execute(
+            "SELECT id, submission_method, upload_comment FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+            [BRIEFING_FORM_ID, vdId]
+        );
+        expect(rows.length).toBe(1);
+        expect(rows[0].submission_method).toBe('upload');
+        expect(rows[0].upload_comment).toContain(benef);
+
+        const [vldRows] = await connection.execute(
+            "SELECT DATE_FORMAT(date_vol, '%Y-%m-%d') AS date_vol, aerodrome FROM vols_decouverte WHERE id = ?",
+            [vdId]
+        );
+        expect(vldRows[0].date_vol).toBe('2026-06-15');
+        expect(vldRows[0].aerodrome).toBeTruthy();
+
+        // Le vol tombe sur l'année du vol et non de la vente : on retrouve l'icône dans la liste de l'année courante.
+        const row = page.locator('table tr', { has: page.locator(`a[href*="/vols_decouverte/edit/${vdId}"]`) }).first();
+        await expect(row).toBeVisible({ timeout: 10000 });
+        const icon = row.locator('a[title="Briefing passager"]');
+        await expect(icon).toHaveClass(/btn-success/);
+        const href = await icon.getAttribute('href');
+
+        const adminFile = await page.request.get(href);
+        expect(adminFile.status()).toBe(200);
+        expect(adminFile.headers()['content-type']).toContain('image/png');
+
+        const pilotContext = await browser.newContext();
+        try {
+            const pilotPage = await pilotContext.newPage();
+            await login(pilotPage, BRIEFING_USER, 1);
+            const pilotFile = await pilotPage.request.get(href);
+            expect(pilotFile.status()).toBe(200);
+            expect(pilotFile.headers()['content-type']).toContain('image/png');
+            expect(pngSize(await pilotFile.body())).toEqual({ width: 2, height: 1 });
+
+            const rotate = await pilotPage.request.get(
+                `/index.php/forms_admin/submission_rotate/${BRIEFING_FORM_ID}/${rows[0].id}/cw`,
+                { maxRedirects: 0 }
+            );
+            expect(rotate.status()).toBe(302);
+            const rotated = await pilotPage.request.get(href);
+            expect(pngSize(await rotated.body())).toEqual({ width: 1, height: 2 });
+        } finally {
+            await pilotContext.close();
+        }
+
+        const del = await deleteBriefing(page, BRIEFING_FORM_ID, rows[0].id);
+        expect(del.ok()).toBeTruthy();
+    } finally {
+        if (vdId) {
+            const [leftovers] = await connection.execute(
+                "SELECT id FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+                [BRIEFING_FORM_ID, vdId]
+            );
+            for (const leftover of leftovers) {
+                await deleteBriefing(page, BRIEFING_FORM_ID, leftover.id);
+            }
+            await purgeDeletionTraces(connection);
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        fs.rmSync(scanPath, { force: true });
+        if (!uploadDirExisted && fs.existsSync(uploadDir) && fs.readdirSync(uploadDir).length === 0) {
+            fs.rmdirSync(uploadDir);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un dépôt incorrect est signalé et n'enregistre aucun briefing
+ *   Étant donné un vol de découverte sans briefing
+ *   Quand le gestionnaire demande le dépôt sans avoir choisi de fichier
+ *   Alors il est averti qu'un fichier est nécessaire
+ *   Quand il dépose un fichier dont le format n'est pas accepté
+ *   Alors il est averti que le fichier est refusé
+ *   Et le vol reste sans briefing
+ */
+test('UC1: an invalid paper briefing deposit is reported and files nothing', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const badPath = path.join(os.tmpdir(), `briefing-papier-${Date.now()}.txt`);
+    const uploadDir = path.resolve(__dirname, `../../uploads/reponses/${BRIEFING_FORM_ID}`);
+    const uploadDirExisted = fs.existsSync(uploadDir);
+    let vdId;
+
+    try {
+        fs.writeFileSync(badPath, 'ceci n\'est pas un scan');
+        const [result] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING REFUS', 'playwright', 0)"
+        );
+        vdId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await fillBriefingPage(page, vdId);
+        await page.click('button[name="action"][value="upload"]');
+        await page.waitForLoadState('domcontentloaded');
+        await expect(page.locator('.alert-danger.alert-dismissible')).toContainText('sélectionner un fichier');
+
+        await page.setInputFiles('input[name="userfile"]', badPath);
+        await page.click('button[name="action"][value="upload"]');
+        await page.waitForLoadState('domcontentloaded');
+        await expect(page.locator('.alert-danger.alert-dismissible')).toContainText('Fichier refusé');
+
+        const [rows] = await connection.execute(
+            "SELECT id FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+            [BRIEFING_FORM_ID, vdId]
+        );
+        expect(rows.length).toBe(0);
+    } finally {
+        if (vdId) {
+            await connection.execute(
+                "DELETE FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+                [BRIEFING_FORM_ID, vdId]
+            );
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        fs.rmSync(badPath, { force: true });
+        if (!uploadDirExisted && fs.existsSync(uploadDir) && fs.readdirSync(uploadDir).length === 0) {
+            fs.rmdirSync(uploadDir);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un scan choisi n'est jamais perdu, quel que soit le bouton utilisé
+ *   Étant donné un vol de découverte sans briefing
+ *   Et un scan de briefing choisi par le gestionnaire
+ *   Quand il enregistre la page au lieu de demander le dépôt
+ *   Alors le scan est tout de même déposé sur le vol
+ *   Et il est averti que le briefing est enregistré
+ */
+test('UC1: a selected scan is deposited even with the save button', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const scanPath = path.join(os.tmpdir(), `briefing-papier-enregistrer-${Date.now()}.png`);
+    const uploadDir = path.resolve(__dirname, `../../uploads/reponses/${BRIEFING_FORM_ID}`);
+    const uploadDirExisted = fs.existsSync(uploadDir);
+    let vdId;
+
+    try {
+        fs.writeFileSync(scanPath, TINY_PNG);
+        const [result] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING ENREGISTRER', 'playwright', 0)"
+        );
+        vdId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await fillBriefingPage(page, vdId);
+        await page.setInputFiles('input[name="userfile"]', scanPath);
+        await page.click('button[name="action"][value="save"]');
+        await page.waitForLoadState('domcontentloaded');
+
+        await expect(page.locator('.alert-success.alert-dismissible')).toBeVisible();
+        const [rows] = await connection.execute(
+            "SELECT id, submission_method FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+            [BRIEFING_FORM_ID, vdId]
+        );
+        expect(rows.length).toBe(1);
+        expect(rows[0].submission_method).toBe('upload');
+    } finally {
+        if (vdId) {
+            const [leftovers] = await connection.execute(
+                "SELECT id FROM form_submissions WHERE form_id = ? AND subject_type = 'vols_decouverte' AND subject_id = ?",
+                [BRIEFING_FORM_ID, vdId]
+            );
+            for (const leftover of leftovers) {
+                await deleteBriefing(page, BRIEFING_FORM_ID, leftover.id);
+            }
+            await purgeDeletionTraces(connection);
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        fs.rmSync(scanPath, { force: true });
+        if (!uploadDirExisted && fs.existsSync(uploadDir) && fs.readdirSync(uploadDir).length === 0) {
+            fs.rmdirSync(uploadDir);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Seuls les administrateurs peuvent supprimer un briefing
+ *   Étant donné un briefing enregistré
+ *   Et un pilote de vols de découverte de la section du formulaire de briefing
+ *   Quand ce pilote consulte la liste des briefings
+ *   Alors il voit le briefing
+ *   Mais aucune suppression ne lui est proposée
+ *   Et une demande de suppression de sa part est refusée
+ *   Quand un administrateur consulte la même liste
+ *   Alors la suppression lui est proposée
+ */
+test('only administrators are offered briefing deletion', async ({ page, browser }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const roleRowIds = [];
+    let submissionId;
+
+    try {
+        const [result] = await connection.execute(
+            "INSERT INTO form_submissions (form_id, submission_uuid, status, submission_method, created_at, submitted_at) VALUES (?, ?, 'submitted', 'online', NOW(), NOW())",
+            [BRIEFING_FORM_ID, `pw-suppression-${Date.now()}`]
+        );
+        submissionId = result.insertId;
+
+        for (const roleName of ['user', 'pilote_vd']) {
+            const [grant] = await connection.execute(
+                `INSERT INTO user_roles_per_section (user_id, types_roles_id, section_id)
+                 SELECT u.id, r.id, 2 FROM users u JOIN types_roles r ON r.nom = ? WHERE u.username = ?`,
+                [roleName, BRIEFING_USER.username]
+            );
+            roleRowIds.push(grant.insertId);
+        }
+
+        const pilotContext = await browser.newContext();
+        try {
+            const pilotPage = await pilotContext.newPage();
+            await login(pilotPage, BRIEFING_USER, 2);
+            await pilotPage.goto(ADMIN_LIST_URL);
+            await pilotPage.waitForLoadState('load');
+            await expect(pilotPage.locator('#dt-submissions')).toBeVisible();
+            await expect(pilotPage.locator('.btn-delete-submission')).toHaveCount(0);
+
+            const refused = await pilotPage.request.post(
+                `/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${submissionId}`,
+                { maxRedirects: 0 }
+            );
+            expect(refused.status()).toBe(403);
+        } finally {
+            await pilotContext.close();
+        }
+
+        const [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(1);
+
+        await login(page, ADMIN_USER, 2);
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await expect(page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`)).toHaveCount(1);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        for (const id of roleRowIds) {
+            await connection.execute('DELETE FROM user_roles_per_section WHERE id = ?', [id]);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un briefing à conserver ne se supprime qu'avec un motif
+ *   Étant donné un vol de découverte effectué aujourd'hui
+ *   Et son briefing enregistré
+ *   Quand un administrateur demande sa suppression
+ *   Alors il est averti de la date de fin de conservation
+ *   Quand il confirme sans donner de motif
+ *   Alors le briefing est conservé
+ *   Quand il donne un motif et confirme
+ *   Alors le briefing est supprimé
+ *   Et le motif et son auteur restent enregistrés
+ */
+test('a briefing under retention is deleted only with a reason', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const reason = `PW scan sur le mauvais vol ${Date.now()}`;
+    let vdId;
+    let submissionId;
+
+    try {
+        const [flight] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, date_vol, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), CURDATE(), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING CONSERVATION', 'playwright', 0)"
+        );
+        vdId = flight.insertId;
+        const [result] = await connection.execute(
+            "INSERT INTO form_submissions (form_id, submission_uuid, status, submission_method, subject_type, subject_id, created_at, submitted_at) VALUES (?, ?, 'submitted', 'online', 'vols_decouverte', ?, NOW(), NOW())",
+            [BRIEFING_FORM_ID, `pw-conservation-${Date.now()}`, vdId]
+        );
+        submissionId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await expect(page.locator('#deleteRetention')).toBeVisible();
+        await expect(page.locator('#deleteRetentionUntil')).not.toBeEmpty();
+
+        const confirm = page.locator('#deleteSubmissionForm button[type="submit"]');
+        await confirm.click();
+        await expect(page.locator('#deleteRetention')).toBeVisible();
+        let [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(1);
+
+        const refused = await page.request.post(
+            `/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${submissionId}`
+        );
+        expect(refused.ok()).toBeTruthy();
+        [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(1);
+
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await page.fill('#deleteRetentionReason', reason);
+        await confirm.click();
+        await page.waitForLoadState('load');
+
+        await expect(page.locator('.alert-success')).toBeVisible();
+        [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(0);
+        const [traces] = await connection.execute(
+            'SELECT reason, created_by FROM form_submission_deletions WHERE submission_id = ?',
+            [submissionId]
+        );
+        expect(traces.length).toBe(1);
+        expect(traces[0].reason).toBe(reason);
+        expect(traces[0].created_by).toBe(ADMIN_USER.username);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submission_deletions WHERE submission_id = ?', [submissionId]);
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        if (vdId) {
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un briefing dont la conservation est échue se supprime normalement
+ *   Étant donné un vol de découverte effectué il y a un an
+ *   Et son briefing enregistré
+ *   Quand un administrateur demande sa suppression
+ *   Alors aucun motif ne lui est demandé
+ *   Et le briefing est supprimé après confirmation
+ */
+test('a briefing past its retention is deleted without a reason', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    let vdId;
+    let submissionId;
+
+    try {
+        const [flight] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, date_vol, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), DATE_SUB(CURDATE(), INTERVAL 1 YEAR), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING ECHU', 'playwright', 0)"
+        );
+        vdId = flight.insertId;
+        const [result] = await connection.execute(
+            "INSERT INTO form_submissions (form_id, submission_uuid, status, submission_method, subject_type, subject_id, created_at, submitted_at) VALUES (?, ?, 'submitted', 'online', 'vols_decouverte', ?, NOW(), NOW())",
+            [BRIEFING_FORM_ID, `pw-echu-${Date.now()}`, vdId]
+        );
+        submissionId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await expect(page.locator('#deleteRetention')).toBeHidden();
+        await page.locator('#deleteSubmissionForm button[type="submit"]').click();
+        await page.waitForLoadState('load');
+
+        await expect(page.locator('.alert-success')).toBeVisible();
+        const [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(0);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        if (vdId) {
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         await connection.end();

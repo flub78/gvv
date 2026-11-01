@@ -9,6 +9,10 @@ $lang['briefing_passager_new']                = 'Nouveau briefing';
 $lang['briefing_passager_upload']             = 'Briefing passager';
 $lang['briefing_passager_generate_link']      = 'Générer un lien de signature numérique';
 $lang['briefing_passager_sign_online']        = 'Signer en ligne';
+$lang['briefing_passager_upload_paper']       = 'Déposer le briefing papier signé';
+$lang['briefing_passager_paper_file']         = 'Briefing papier signé';
+$lang['briefing_passager_paper_help']         = 'Scan ou photo du document signé par le passager : PDF, JPG, PNG, GIF ou WEBP, 10 Mo maximum.';
+$lang['briefing_passager_paper_comment']      = 'Vol de découverte n°%d — %s';
 $lang['briefing_passager_view']               = 'Voir le briefing';
 $lang['briefing_passager_replace']            = 'Remplacer le briefing';
 $lang['briefing_passager_delete']             = 'Supprimer';
@@ -38,7 +42,6 @@ $lang['briefing_passager_no_vld_found']       = 'Aucun vol de découverte trouv�
 $lang['briefing_passager_select_vld']         = 'Sélectionner un vol de découverte';
 
 $lang['briefing_passager_upload_success']     = 'Briefing enregistré avec succès.';
-$lang['briefing_passager_upload_error']       = 'Erreur lors de l\'enregistrement du briefing.';
 $lang['briefing_passager_subject_missing']    = 'Le briefing a été enregistré (réponse n°%d) mais n\'a pas pu être rattaché au vol de découverte : la référence du vol est absente ou invalide. Signalez le n° de réponse à un gestionnaire.';
 $lang['briefing_passager_saved_without_vld']  = 'Briefing enregistré avec succès (réponse n°%d). Il n\'est rattaché à aucun vol de découverte.';
 $lang['briefing_passager_vld_missing']        = 'Le briefing a été enregistré (réponse n°%d) mais le vol de découverte n°%d est introuvable. Signalez le n° de réponse à un gestionnaire.';
@@ -47,8 +50,6 @@ $lang['briefing_passager_already_exists']     = 'Un briefing existe déjà pour 
 $lang['briefing_passager_confirm_delete']     = 'Êtes-vous sûr de vouloir supprimer ce briefing ?';
 $lang['briefing_passager_delete_protected']   = 'Ce briefing ne peut pas être supprimé avant 3 mois.';
 $lang['briefing_passager_not_found']          = 'Briefing introuvable.';
-$lang['briefing_passager_dir_error']          = 'Impossible de créer le répertoire de stockage.';
-$lang['briefing_passager_type_error']         = 'Type de document briefing_passager introuvable.';
 $lang['briefing_passager_form_unavailable']   = 'Le formulaire « %s » n\'existe pas ou n\'est pas publié, la fonctionnalité n\'est pas disponible.';
 
 $lang['briefing_passager_sign_draw']          = 'Signez ici';

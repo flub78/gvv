@@ -48,6 +48,7 @@ class Forms_admin extends MY_Controller {
         $this->load->library('forms_renderer');
         $this->load->library('forms_file_storage');
         $this->load->library('forms_field_parser');
+        $this->load->library('briefing_retention');
         $this->lang->load('gvv');
         $this->lang->load('forms');
 
@@ -71,13 +72,17 @@ class Forms_admin extends MY_Controller {
      * to workflow forms (see $workflow_form_slugs):
      * - submission_pdf: the "briefing_vd" icon on vols_decouverte (see MetaData::action())
      *   links straight there.
+     * - submission_file, submission_file_thumbnail: submission_pdf redirects to the
+     *   deposited file for a paper briefing, and the list shows its thumbnail.
+     * - submission_rotate: a paper briefing photographed with a phone may need
+     *   straightening by the pilot who deposited it.
      * - submissions: the passenger-briefing menu entry (visible to the same
      *   roles via has_briefing_admin_role()) links to forms_admin/submissions/briefing_passager_ulm.
      * Restricted to these methods/form list, not a general relaxation.
      */
     private function _can_access_workflow_form() {
         $method = $this->router->fetch_method();
-        if (!in_array($method, array('submission_pdf', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
+        if (!in_array($method, array('submission_pdf', 'submission_file', 'submission_file_thumbnail', 'submission_rotate', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
@@ -410,6 +415,12 @@ class Forms_admin extends MY_Controller {
         }
         $id = (int) $id;
         $current = $id > 0 ? $this->forms_model->get_by_id($id) : null;
+        // Deleting a form cascades to its responses.
+        if ($current && $this->briefing_retention->form_has_protected_submissions($current)) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_retention_form_protected'));
+            redirect('forms_admin');
+            return;
+        }
         if (!$current || !$this->forms_model->delete_form($id)) {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce formulaire.');
             redirect('forms_admin');
@@ -658,6 +669,9 @@ class Forms_admin extends MY_Controller {
             'identifier_values' => $identifier_values,
             'upload_files'      => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
             'export_urls'       => $export_urls,
+            // Same rule as the constructor guard: the workflow bypass does not cover deletion.
+            'can_delete_submissions' => $this->user_has_role('ca') || $this->user_has_role('club-admin'),
+            'retention_until'   => $this->briefing_retention->protected_until($form, $submissions),
             'date_from'         => $date_from ?: '',
             'date_to'           => $date_to ?: '',
             'success'           => $this->session->flashdata('forms_success') ?: '',
@@ -1569,7 +1583,24 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        if ($this->form_submissions_model->delete_submission((int) $submission_id)) {
+        $retention = $this->briefing_retention->protected_until($form, array($submission));
+        $protected_until = $retention[(int) $submission['id']] ?? null;
+        $reason = trim((string) $this->input->post('retention_override_reason'));
+
+        if ($protected_until !== null && $reason === '') {
+            $this->session->set_flashdata('forms_error', sprintf(
+                $this->lang->line('forms_retention_reason_required'),
+                date('d/m/Y', strtotime($protected_until))
+            ));
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $deleted = $protected_until !== null
+            ? $this->form_submissions_model->delete_protected_submission($submission, $protected_until, $reason, $this->dx_auth->get_username())
+            : $this->form_submissions_model->delete_submission((int) $submission_id);
+
+        if ($deleted) {
             $this->session->set_flashdata('forms_success', 'Réponse #' . (int) $submission_id . ' supprimée.');
         } else {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer cette réponse.');
@@ -1984,7 +2015,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submission_rotate($form_id = 0, $submission_id = 0, $direction = '') {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }
@@ -2057,7 +2088,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submission_file($form_id = 0, $submission_id = 0, $file_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }
@@ -2117,7 +2148,7 @@ class Forms_admin extends MY_Controller {
      * so this action is the only way for <img> tags to reach the thumbnail file.
      */
     public function submission_file_thumbnail($form_id = 0, $submission_id = 0, $file_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }

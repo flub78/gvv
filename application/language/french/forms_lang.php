@@ -182,6 +182,10 @@ $lang['forms_confirm_delete_field']       = 'Supprimer ce champ ?';
 $lang['forms_modal_title_delete']         = 'Supprimer la réponse';
 $lang['forms_modal_confirm_delete']       = 'Confirmer la suppression de la réponse';
 $lang['forms_modal_help_delete']          = 'Cette action est irréversible et supprime également les fichiers associés.';
+$lang['forms_retention_warning']          = 'Ce briefing doit être conservé jusqu\'au %s. Ne le supprimez que pour corriger une erreur, par exemple un scan déposé sur le mauvais vol.';
+$lang['forms_retention_reason_label']     = 'Motif de la suppression (obligatoire)';
+$lang['forms_retention_reason_required']  = 'Ce briefing doit être conservé jusqu\'au %s. Indiquez un motif pour le supprimer.';
+$lang['forms_retention_form_protected']   = 'Ce formulaire contient des briefings à conserver : il ne peut pas être supprimé.';
 
 // Field types
 $lang['forms_type_text']                  = 'Texte';

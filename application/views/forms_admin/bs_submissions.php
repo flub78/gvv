@@ -190,13 +190,16 @@
                                                    href="<?= $export_urls[(int) $submission['id']] ?>"><?= html_escape($target_label) ?></a>
                                             <?php endif; ?>
                                         <?php endif; ?>
-                                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
-                                            data-submission-id="<?= (int) $submission['id'] ?>"
-                                            data-form-id="<?= (int) $form['id'] ?>"
-                                            data-identifier="<?= html_escape($ident) ?>"
-                                            data-bs-toggle="modal" data-bs-target="#deleteSubmissionModal">
-                                            <?= $this->lang->line('forms_button_delete') ?>
-                                        </button>
+                                        <?php if (!empty($can_delete_submissions)): ?>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
+                                                data-submission-id="<?= (int) $submission['id'] ?>"
+                                                data-form-id="<?= (int) $form['id'] ?>"
+                                                data-identifier="<?= html_escape($ident) ?>"
+                                                data-protected-until="<?= !empty($retention_until[$sid]) ? date('d/m/Y', strtotime($retention_until[$sid])) : '' ?>"
+                                                data-bs-toggle="modal" data-bs-target="#deleteSubmissionModal">
+                                                <?= $this->lang->line('forms_button_delete') ?>
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -310,6 +313,12 @@
             <div class="modal-body">
                 <?= $this->lang->line('forms_modal_confirm_delete') ?> <strong><span id="deleteSubmissionId"></span></strong> ?
                 <?= $this->lang->line('forms_modal_help_delete') ?>
+                <div id="deleteRetention" class="alert alert-warning mt-3 mb-0 d-none">
+                    <p><?= sprintf($this->lang->line('forms_retention_warning'), '<strong id="deleteRetentionUntil"></strong>') ?></p>
+                    <label for="deleteRetentionReason" class="form-label"><?= $this->lang->line('forms_retention_reason_label') ?></label>
+                    <textarea class="form-control" id="deleteRetentionReason" name="retention_override_reason"
+                              form="deleteSubmissionForm" rows="2"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('forms_button_cancel') ?></button>
@@ -327,6 +336,12 @@ document.querySelectorAll('.btn-delete-submission').forEach(function(btn) {
         var submissionId = this.dataset.submissionId;
         var formId = this.dataset.formId;
         var identifier = this.dataset.identifier;
+        var protectedUntil = this.dataset.protectedUntil;
+        var reason = document.getElementById('deleteRetentionReason');
+        document.getElementById('deleteRetention').classList.toggle('d-none', !protectedUntil);
+        document.getElementById('deleteRetentionUntil').textContent = protectedUntil;
+        reason.value = '';
+        reason.required = !!protectedUntil;
         document.getElementById('deleteSubmissionId').textContent = identifier ? identifier : '#' + submissionId;
         document.getElementById('deleteSubmissionForm').action =
             '<?= site_url('forms_admin/submission_delete') ?>/' + formId + '/' + submissionId;
