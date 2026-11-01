@@ -8,10 +8,10 @@ include('./application/libraries/Gvv_Controller.php');
  * Passenger Briefing controller
  *
  * Manages risk acceptance declarations for discovery flights (vols de découverte).
- * Supports two modes:
- *  - UC1: Upload of a scanned signed document
- *  - UC2: Digital signature via unique link / QR code
- *  - UC3: Admin list and PDF export
+ * A briefing is a response to the briefing-passager-ulm form attached to the flight:
+ *  - UC1: deposit of the scan or photo of a paper document signed by the passenger
+ *  - UC2: digital signature on the online form
+ *  - UC3: admin list and PDF export (forms_admin/submissions)
  */
 class Briefing_passager extends Gvv_Controller {
 
@@ -20,10 +20,11 @@ class Briefing_passager extends Gvv_Controller {
     protected $model             = 'archived_documents_model';
     protected $modification_level = 'gestion_vd';
 
+    const BRIEFING_FORM_SLUG = 'briefing-passager-ulm';
+
     function __construct() {
         parent::__construct();
         $this->load->model('archived_documents_model');
-        $this->load->model('document_types_model');
         $this->load->model('vols_decouverte_model');
         $this->load->model('terrains_model');
         $this->load->model('membres_model');
@@ -33,7 +34,6 @@ class Briefing_passager extends Gvv_Controller {
         $this->load->model('form_submissions_model');
         $this->lang->load('briefing_passager');
         $this->lang->load('vols_decouverte');
-        $this->load->library('upload');
     }
 
     /**
@@ -91,7 +91,7 @@ class Briefing_passager extends Gvv_Controller {
 
         $existing = $this->archived_documents_model->get_briefing_by_vld($vld_id);
 
-        $target_form = $this->forms_model->get_by_public_slug('briefing-passager-ulm');
+        $target_form = $this->forms_model->get_by_public_slug(self::BRIEFING_FORM_SLUG);
         $form_submission = $target_form
             ? $this->form_submissions_model->get_current_for_subject('vols_decouverte', $vld_id, (int) $target_form['id'])
             : null;
@@ -141,8 +141,8 @@ class Briefing_passager extends Gvv_Controller {
     /**
      * Unified form handler: saves VLD fields, then dispatches based on action button.
      * action=save   → save fields and return to upload form
-     * action=link   → save fields and generate digital signature link
-     * action=upload → save fields and process file upload (default)
+     * action=link2  → save fields and open the online form, prefilled for this flight
+     * action=upload → save fields and deposit the signed paper document
      * @param int $vld_id Discovery flight ID
      */
     function upload_submit($vld_id = 0) {
@@ -182,14 +182,7 @@ class Briefing_passager extends Gvv_Controller {
             $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
                 . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
                 . '</div>';
-            $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
-            $this->data['title']           = $this->lang->line('briefing_passager_upload');
-            $this->data['vld']             = $vld;
-            $this->data['vld_id']          = $vld_id;
-            $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-            $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
-            $this->_load_upload_selectors();
-            load_last_view('briefing_passager/uploadView', $this->data);
+            $this->_render_upload_form($vld, $vld_id);
             return;
         }
 
@@ -197,14 +190,9 @@ class Briefing_passager extends Gvv_Controller {
         $this->_save_vld_fields($vld_id);
 
         $action = $this->input->post('action');
-
-        if ($action === 'save') {
-            redirect('briefing_passager/upload/' . $vld_id);
-            return;
-        }
+        $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
 
         if ($action === 'link2') {
-            $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
             $errors2 = array();
             if (empty($vld['date_vol']))       $errors2[] = $this->lang->line('briefing_passager_field_date_vol');
             if (empty($vld['aerodrome']))       $errors2[] = $this->lang->line('briefing_passager_field_aerodrome');
@@ -217,31 +205,12 @@ class Briefing_passager extends Gvv_Controller {
                 $this->data['message'] = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> '
                     . sprintf($this->lang->line('briefing_passager_fields_required'), $fields)
                     . '</div>';
-                $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
-                $this->data['title']           = $this->lang->line('briefing_passager_upload');
-                $this->data['vld']             = $vld;
-                $this->data['vld_id']          = $vld_id;
-                $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-                $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
-                $this->_load_upload_selectors();
-                load_last_view('briefing_passager/uploadView', $this->data);
+                $this->_render_upload_form($vld, $vld_id);
                 return;
             }
 
-            $form_slug = 'briefing-passager-ulm';
-            $target_form = $this->forms_model->get_by_public_slug($form_slug);
-            if (!$target_form || $target_form['status'] !== 'published') {
-                $this->data['message'] = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> '
-                    . sprintf($this->lang->line('briefing_passager_form_unavailable'), $form_slug)
-                    . '</div>';
-                $dev_users = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
-                $this->data['title']           = $this->lang->line('briefing_passager_upload');
-                $this->data['vld']             = $vld;
-                $this->data['vld_id']          = $vld_id;
-                $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-                $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
-                $this->_load_upload_selectors();
-                load_last_view('briefing_passager/uploadView', $this->data);
+            $target_form = $this->_published_briefing_form($vld, $vld_id);
+            if (!$target_form) {
                 return;
             }
 
@@ -254,91 +223,16 @@ class Briefing_passager extends Gvv_Controller {
                 'subject_type'       => 'vols_decouverte',
                 'subject_id'         => $vld_id,
             ));
-            redirect('forms/' . $form_slug . '?' . $params);
+            redirect('forms/' . $target_form['public_slug'] . '?' . $params);
             return;
         }
 
-        // Get briefing_passager document type
-        $doc_type = $this->document_types_model->get_by_code('briefing_passager');
-        if (!$doc_type) {
-            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_type_error') . '</div>';
-            $this->data['vld'] = $vld;
-            $this->data['vld_id'] = $vld_id;
-            $this->data['briefing'] = null;
-            $this->data['title'] = $this->lang->line('briefing_passager_upload');
-            $this->_load_upload_selectors();
-            load_last_view('briefing_passager/uploadView', $this->data);
+        if ($action === 'upload') {
+            $this->_deposit_paper_briefing($vld, $vld_id);
             return;
         }
 
-        $section_id = $vld['club'];
-        $dirname = './uploads/documents/sections/' . $section_id . '/briefing_passager/';
-
-        if (!$this->_ensure_directory($dirname)) {
-            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_dir_error') . ' (' . $dirname . ')</div>';
-            $this->data['vld'] = $vld;
-            $this->data['vld_id'] = $vld_id;
-            $this->data['briefing'] = null;
-            $this->data['title'] = $this->lang->line('briefing_passager_upload');
-            $this->_load_upload_selectors();
-            load_last_view('briefing_passager/uploadView', $this->data);
-            return;
-        }
-
-        $storage_file = time() . '_' . rand(1000, 9999) . '_' . $this->_sanitize_filename($_FILES['userfile']['name']);
-
-        $config = array(
-            'upload_path'   => $dirname,
-            'allowed_types' => 'jpg|jpeg|png|pdf',
-            'max_size'      => 10000,
-            'file_name'     => $storage_file,
-        );
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('userfile')) {
-            $this->data['message'] = '<div class="alert alert-danger">' . $this->upload->display_errors() . '</div>';
-            $this->data['vld'] = $vld;
-            $this->data['vld_id'] = $vld_id;
-            $this->data['briefing'] = null;
-            $this->data['title'] = $this->lang->line('briefing_passager_upload');
-            $this->_load_upload_selectors();
-            load_last_view('briefing_passager/uploadView', $this->data);
-            return;
-        }
-
-        $upload_data = $this->upload->data();
-        $file_path   = $this->_to_relative_path($upload_data['full_path']);
-
-        // Mark any existing current briefing as non-current
-        $existing = $this->archived_documents_model->get_briefing_by_vld($vld_id);
-        if ($existing) {
-            $this->archived_documents_model->update_document($existing['id'], array('is_current_version' => 0));
-        }
-
-        $doc_data = array(
-            'document_type_id'  => $doc_type['id'],
-            'vld_id'            => $vld_id,
-            'section_id'        => $section_id,
-            'file_path'         => $file_path,
-            'original_filename' => $upload_data['orig_name'],
-            'description'       => 'Briefing passager VLD #' . $vld_id . ' — ' . ($vld['beneficiaire'] ?? ''),
-            'uploaded_by'       => $this->dx_auth->get_username(),
-            'validation_status' => 'approved',
-        );
-
-        $doc_id = $this->archived_documents_model->create_briefing_and_update_date_vol($doc_data);
-
-        if ($doc_id) {
-            redirect('briefing_passager/view/' . $doc_id);
-        } else {
-            $this->data['message'] = '<div class="alert alert-danger">' . $this->lang->line('briefing_passager_upload_error') . '</div>';
-            $this->data['vld'] = $vld;
-            $this->data['vld_id'] = $vld_id;
-            $this->data['briefing'] = null;
-            $this->data['title'] = $this->lang->line('briefing_passager_upload');
-            $this->_load_upload_selectors();
-            load_last_view('briefing_passager/uploadView', $this->data);
-        }
+        redirect('briefing_passager/upload/' . $vld_id);
     }
 
     // -----------------------------------------------------------------------
@@ -514,35 +408,79 @@ class Briefing_passager extends Gvv_Controller {
         $this->data['pilote_selector'] = $pilote_selector;
     }
 
-    private function _ensure_directory($dirname) {
-        $abs = realpath($dirname) ?: (FCPATH . ltrim($dirname, './'));
-        if (!file_exists($abs)) {
-            $old_umask = umask(0);
-            $created = @mkdir($abs, 0777, true);
-            umask($old_umask);
-            if (!$created) {
-                gvv_log('error', "_ensure_directory: mkdir failed for '$abs', cwd=" . getcwd() . ", www-data groups=" . shell_exec('id www-data'));
-            }
-            return $created;
-        }
-        $writable = is_writable($abs);
-        if (!$writable) {
-            gvv_log('error', "_ensure_directory: not writable '$abs', perms=" . decoct(fileperms($abs)) . ", owner=" . posix_getpwuid(fileowner($abs))['name']);
-        }
-        return $writable;
+    /**
+     * Displays the briefing form of a flight, with $this->data['message'] if any.
+     */
+    private function _render_upload_form($vld, $vld_id) {
+        $dev_users   = array_map('trim', explode(',', $this->config->item('dev_users') ?: ''));
+        $target_form = $this->forms_model->get_by_public_slug(self::BRIEFING_FORM_SLUG);
+
+        $this->data['title']           = $this->lang->line('briefing_passager_upload');
+        $this->data['vld']             = $vld;
+        $this->data['vld_id']          = $vld_id;
+        $this->data['briefing']        = $this->archived_documents_model->get_briefing_by_vld($vld_id);
+        $this->data['form_submission'] = $target_form
+            ? $this->form_submissions_model->get_current_for_subject('vols_decouverte', $vld_id, (int) $target_form['id'])
+            : null;
+        $this->data['is_dev_user']     = in_array($this->session->userdata('DX_username'), $dev_users);
+        $this->_load_upload_selectors();
+        load_last_view('briefing_passager/uploadView', $this->data);
     }
 
-    private function _sanitize_filename($filename) {
-        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-        return substr($filename, 0, 200);
+    /**
+     * Returns the published briefing form. When it is unavailable, explains why
+     * on the briefing page of the flight and returns null.
+     */
+    private function _published_briefing_form($vld, $vld_id) {
+        $target_form = $this->forms_model->get_by_public_slug(self::BRIEFING_FORM_SLUG);
+        if ($target_form && $target_form['status'] === 'published') {
+            return $target_form;
+        }
+
+        $this->data['message'] = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> '
+            . sprintf($this->lang->line('briefing_passager_form_unavailable'), self::BRIEFING_FORM_SLUG)
+            . '</div>';
+        $this->_render_upload_form($vld, $vld_id);
+        return null;
     }
 
-    private function _to_relative_path($abs_path) {
-        $base = realpath('./') . '/';
-        if (strpos($abs_path, $base) === 0) {
-            return substr($abs_path, strlen($base));
+    /**
+     * Files the scan or photo of a paper briefing as a response of the briefing
+     * form attached to the flight, so it counts as the briefing of that flight.
+     * Independent from forms.allow_upload_response: that option opens the deposit
+     * on the public page, whereas this one is reserved to users managing briefings.
+     */
+    private function _deposit_paper_briefing($vld, $vld_id) {
+        $target_form = $this->_published_briefing_form($vld, $vld_id);
+        if (!$target_form) {
+            return;
         }
-        return $abs_path;
+
+        $this->load->library('forms_response_upload');
+        $username = $this->dx_auth->get_username();
+        $result = $this->forms_response_upload->store($target_form, 'userfile', array(
+            'upload_comment' => sprintf($this->lang->line('briefing_passager_paper_comment'), $vld_id, $vld['beneficiaire'] ?? ''),
+            'subject_type'   => 'vols_decouverte',
+            'subject_id'     => $vld_id,
+            'submitter_name' => $username,
+            'created_by'     => $username,
+        ));
+
+        if ($result['error'] !== null) {
+            $this->data['message'] = $this->_alert('danger', $result['error']);
+            $this->_render_upload_form($vld, $vld_id);
+            return;
+        }
+
+        $this->session->set_flashdata('message', $this->_alert('success', $this->lang->line('briefing_passager_upload_success')));
+        redirect('vols_decouverte/page');
+    }
+
+    private function _alert($type, $message) {
+        return '<div class="alert alert-' . $type . ' alert-dismissible fade show" role="alert">'
+             . htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+             . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+             . '</div>';
     }
 
 }

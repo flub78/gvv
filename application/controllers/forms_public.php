@@ -650,91 +650,24 @@ class Forms_public extends CI_Controller {
             return;
         }
 
-        if (!isset($_FILES['upload_response_file']) || empty($_FILES['upload_response_file']['name'])) {
-            $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_no_file'));
-            redirect('forms/' . rawurlencode($slug) . '?page=1');
-            return;
-        }
-
         $comment = trim((string) $this->input->post('upload_comment'));
 
-        $relative_dir = 'uploads/reponses/' . (int) $form['id'];
-        $absolute_dir = FCPATH . $relative_dir;
-        if (!is_dir($absolute_dir)) {
-            $old_umask = umask(0);
-            $created = @mkdir($absolute_dir, 0775, true);
-            umask($old_umask);
-            if (!$created) {
-                $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_storage'));
-                redirect('forms/' . rawurlencode($slug) . '?page=1');
-                return;
-            }
-        }
-
-        $submission_id = $this->form_submissions_model->create_submission(array(
-            'form_id'           => (int) $form['id'],
-            'status'            => 'submitted',
-            'submission_method' => 'upload',
-            'upload_comment'    => $comment !== '' ? $comment : null,
-            'source_ip'         => $this->input->ip_address(),
-            'user_agent'        => isset($_SERVER['HTTP_USER_AGENT']) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : null,
+        $this->load->library('forms_response_upload');
+        $result = $this->forms_response_upload->store($form, 'upload_response_file', array(
+            'upload_comment' => $comment !== '' ? $comment : null,
         ));
 
-        if (!$submission_id) {
-            $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_generic'));
+        if ($result['error'] !== null) {
+            $this->session->set_flashdata('forms_public_error', $result['error']);
             redirect('forms/' . rawurlencode($slug) . '?page=1');
             return;
         }
 
-        $original_name = (string) $_FILES['upload_response_file']['name'];
-        $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
-        $config = array(
-            'upload_path'   => $absolute_dir,
-            'allowed_types' => 'pdf|jpg|jpeg|png|gif|webp',
-            'max_size'      => 10240,
-            'file_name'     => 'reponse_' . $submission_id . ($ext !== '' ? '.' . $ext : ''),
-            'overwrite'     => true,
-        );
-        $this->load->library('upload', $config);
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('upload_response_file')) {
-            $error = strip_tags($this->upload->display_errors('', ''));
-            $this->form_submissions_model->delete_submission($submission_id);
-            $this->session->set_flashdata('forms_public_error', $this->lang->line('forms_upload_error_file_type') . ' ' . $error);
-            redirect('forms/' . rawurlencode($slug) . '?page=1');
-            return;
-        }
-
-        $upload_data = $this->upload->data();
-        $file_path = $upload_data['full_path'];
-
-        $this->load->library('file_compressor');
-        $compression_result = $this->file_compressor->compress($file_path);
-        if ($compression_result['success']) {
-            $file_path = $compression_result['compressed_path'];
-        }
-
-        $mime = mime_content_type($file_path);
-        if ($mime === 'application/pdf') {
-            $this->load->library('pdf_thumbnail');
-            $this->pdf_thumbnail->generate($file_path);
-        }
-
-        $this->form_submissions_model->save_submission_files($submission_id, array(array(
-            'widget_name'   => 'uploaded_response',
-            'original_name' => isset($upload_data['client_name']) ? $upload_data['client_name'] : $upload_data['orig_name'],
-            'stored_name'   => $upload_data['file_name'],
-            'mime_type'     => $mime,
-            'size_bytes'    => isset($upload_data['file_size']) ? (int) round($upload_data['file_size'] * 1024) : null,
-            'storage_path'  => $relative_dir . '/' . $upload_data['file_name'],
-        )));
-
-        $submission = $this->form_submissions_model->get_by_id($submission_id);
+        $submission = $this->form_submissions_model->get_by_id($result['submission_id']);
         $data = array(
             'form'                 => $form,
             'submission'           => $submission,
-            'uploaded_file_names'  => array(isset($upload_data['client_name']) ? $upload_data['client_name'] : $upload_data['orig_name']),
+            'uploaded_file_names'  => array($result['original_name']),
             'uploaded_files_count' => 1,
         );
 

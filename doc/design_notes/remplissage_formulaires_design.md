@@ -785,6 +785,8 @@ Un seul fichier par réponse.
 
 Colonne `forms.allow_upload_response` (booléen, défaut faux). Le bouton "Télécharger un formulaire prérempli" n'apparaît sur la page publique et dans la liste admin que si cette option est activée. Choix délibéré d'un opt-in plutôt qu'une disponibilité systématique : un formulaire de catégorie 3 qui met à jour une entité GVV à la soumission (ex. `briefing_passager_ulm`) n'a pas nécessairement de sens à accepter un simple scan opaque.
 
+Exception : le dépôt rattaché à une entité. Une réponse par scan peut porter `subject_type`/`subject_id` quand le dépôt part d'un workflow authentifié, jamais du point d'entrée public. C'est le cas du briefing papier (`briefing_passager::upload_submit`, `action=upload`), réservé aux gestionnaires de briefings et indépendant de `allow_upload_response`, qui reste désactivée sur `briefing_passager_ulm`. Le stockage est commun aux deux chemins (`Forms_response_upload`) ; le contrôle d'accès et le choix du rattachement restent aux appelants. Le handler n'est pas appelé : un scan ne porte aucune valeur de champ, et les informations du vol sont saisies sur la page de dépôt.
+
 #### Modèle de données
 
 Pas de nouvelle table. Réutilisation de `form_submissions` et `form_submission_files` :

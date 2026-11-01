@@ -71,13 +71,15 @@ class Forms_admin extends MY_Controller {
      * to workflow forms (see $workflow_form_slugs):
      * - submission_pdf: the "briefing_vd" icon on vols_decouverte (see MetaData::action())
      *   links straight there.
+     * - submission_file, submission_file_thumbnail: submission_pdf redirects to the
+     *   deposited file for a paper briefing, and the list shows its thumbnail.
      * - submissions: the passenger-briefing menu entry (visible to the same
      *   roles via has_briefing_admin_role()) links to forms_admin/submissions/briefing_passager_ulm.
      * Restricted to these methods/form list, not a general relaxation.
      */
     private function _can_access_workflow_form() {
         $method = $this->router->fetch_method();
-        if (!in_array($method, array('submission_pdf', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
+        if (!in_array($method, array('submission_pdf', 'submission_file', 'submission_file_thumbnail', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
@@ -2057,7 +2059,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submission_file($form_id = 0, $submission_id = 0, $file_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }
@@ -2117,7 +2119,7 @@ class Forms_admin extends MY_Controller {
      * so this action is the only way for <img> tags to reach the thumbnail file.
      */
     public function submission_file_thumbnail($form_id = 0, $submission_id = 0, $file_id = 0) {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }

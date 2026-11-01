@@ -16,7 +16,7 @@ $this->lang->load('vols_decouverte');
 <?php if ($vld): ?>
 
 <!-- Single unified form: VLD fields + action buttons -->
-<form method="post" action="<?= site_url('briefing_passager/upload_submit/' . $vld_id) ?>">
+<form method="post" enctype="multipart/form-data" action="<?= site_url('briefing_passager/upload_submit/' . $vld_id) ?>">
 
 <div class="card mb-3">
     <div class="card-header"><i class="fas fa-plane"></i> <?= $this->lang->line('briefing_passager_field_vld') ?> #<?= htmlspecialchars($vld['id']) ?></div>
@@ -103,14 +103,38 @@ $this->lang->load('vols_decouverte');
             <?= !empty($form_submission['created_at']) ? '— ' . date('d/m/Y H:i', strtotime($form_submission['created_at'])) : '' ?>
         </div>
     </div>
+    <div>
+        <a href="<?= site_url('forms_admin/submission_pdf/' . (int) $form_submission['form_id'] . '/' . (int) $form_submission['id']) ?>"
+           class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-eye"></i> <?= $this->lang->line('briefing_passager_view') ?>
+        </a>
+    </div>
 </div>
 <?php endif; ?>
 
 <div class="card">
     <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label" for="userfile"><?= $this->lang->line('briefing_passager_paper_file') ?></label>
+            <div class="drop-zone" id="drop-zone">
+                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                <p class="mb-1"><?= $this->lang->line('gvv_drop_file_here') ?></p>
+                <p class="text-muted small"><?= $this->lang->line('gvv_or') ?></p>
+                <span class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-folder-open"></i> <?= $this->lang->line('gvv_choose_file') ?>
+                </span>
+                <input type="file" name="userfile" id="userfile" class="d-none"
+                       accept=".pdf,.jpg,.jpeg,.png,.gif,.webp">
+                <p class="mt-2 small text-muted" id="filename-userfile"><?= $this->lang->line('gvv_no_file_selected') ?></p>
+            </div>
+            <div class="form-text"><?= $this->lang->line('briefing_passager_paper_help') ?></div>
+        </div>
         <div class="d-flex gap-2 flex-wrap">
             <button type="submit" name="action" value="link2" class="btn btn-outline-secondary">
                 <i class="fas fa-signature"></i> <?= $this->lang->line('briefing_passager_sign_online') ?>
+            </button>
+            <button type="submit" name="action" value="upload" class="btn btn-primary">
+                <i class="fas fa-upload"></i> <?= $this->lang->line('briefing_passager_upload_paper') ?>
             </button>
             <button type="submit" name="action" value="save" class="btn btn-outline-primary">
                 <i class="fas fa-save"></i> <?= $this->lang->line('gvv_button_save') ?>
@@ -123,6 +147,46 @@ $this->lang->load('vols_decouverte');
 </div>
 
 </form>
+
+<style>
+.drop-zone { border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; background: #fafafa; }
+.drop-zone.drag-over { border-color: #0d6efd; background-color: #e8f0fe; }
+.drop-zone.has-file { border-color: #198754; background-color: #f0fff4; }
+</style>
+<script src="<?= base_url() ?>assets/javascript/gvv_drop_file.js?v=<?= filemtime(FCPATH . 'assets/javascript/gvv_drop_file.js') ?>"></script>
+<script>
+(function () {
+    var input = document.getElementById('userfile');
+    var zone  = document.getElementById('drop-zone');
+    var label = document.getElementById('filename-userfile');
+
+    function updateFilename(files) {
+        if (files && files.length > 0) {
+            label.textContent = files[0].name;
+            zone.classList.add('has-file');
+        }
+    }
+
+    zone.addEventListener('click', function (e) {
+        if (e.target !== input) {
+            input.click();
+        }
+    });
+    input.addEventListener('change', function () { updateFilename(this.files); });
+    zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', function () { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        var file = e.dataTransfer.files[0];
+        if (file) {
+            gvvDropFile(file, input, zone, <?= json_encode($this->lang->line('gvv_drop_file_unreadable')) ?>).then(function (copy) {
+                if (copy) updateFilename(input.files);
+            });
+        }
+    });
+})();
+</script>
 
 <?php if (isset($briefing) && $briefing && $is_dev_user): ?>
 <form id="form-delete-briefing" method="post"

@@ -9,6 +9,10 @@ $lang['briefing_passager_new']                = 'New briefing';
 $lang['briefing_passager_upload']             = 'Upload signed document';
 $lang['briefing_passager_generate_link']      = 'Generate digital signature link';
 $lang['briefing_passager_sign_online']        = 'Sign online';
+$lang['briefing_passager_upload_paper']       = 'Upload the signed paper briefing';
+$lang['briefing_passager_paper_file']         = 'Signed paper briefing';
+$lang['briefing_passager_paper_help']         = 'Scan or photo of the document signed by the passenger: PDF, JPG, PNG, GIF or WEBP, 10 MB maximum.';
+$lang['briefing_passager_paper_comment']      = 'Discovery flight #%d — %s';
 $lang['briefing_passager_view']               = 'View briefing';
 $lang['briefing_passager_replace']            = 'Replace briefing';
 $lang['briefing_passager_delete']             = 'Delete';
@@ -38,7 +42,6 @@ $lang['briefing_passager_no_vld_found']       = 'No discovery flight found';
 $lang['briefing_passager_select_vld']         = 'Select a discovery flight';
 
 $lang['briefing_passager_upload_success']     = 'Briefing saved successfully.';
-$lang['briefing_passager_upload_error']       = 'Error saving the briefing.';
 $lang['briefing_passager_subject_missing']    = 'The briefing was saved (response #%d) but could not be linked to the discovery flight: the flight reference is missing or invalid. Report the response number to a manager.';
 $lang['briefing_passager_saved_without_vld']  = 'Briefing saved successfully (response #%d). It is not linked to any discovery flight.';
 $lang['briefing_passager_vld_missing']        = 'The briefing was saved (response #%d) but discovery flight #%d could not be found. Report the response number to a manager.';
@@ -47,8 +50,6 @@ $lang['briefing_passager_already_exists']     = 'A briefing already exists for t
 $lang['briefing_passager_confirm_delete']     = 'Are you sure you want to delete this briefing?';
 $lang['briefing_passager_delete_protected']   = 'This briefing cannot be deleted before 3 months.';
 $lang['briefing_passager_not_found']          = 'Briefing not found.';
-$lang['briefing_passager_dir_error']          = 'Unable to create storage directory.';
-$lang['briefing_passager_type_error']         = 'Document type briefing_passager not found.';
 $lang['briefing_passager_form_unavailable']   = 'The form "%s" does not exist or is not published, this feature is not available.';
 
 $lang['briefing_passager_sign_draw']          = 'Sign here';

@@ -9,6 +9,10 @@ $lang['briefing_passager_new']                = 'Nieuwe briefing';
 $lang['briefing_passager_upload']             = 'Ondertekend document uploaden';
 $lang['briefing_passager_generate_link']      = 'Digitale handtekeninglink genereren';
 $lang['briefing_passager_sign_online']        = 'Online ondertekenen';
+$lang['briefing_passager_upload_paper']       = 'Ondertekende papieren briefing uploaden';
+$lang['briefing_passager_paper_file']         = 'Ondertekende papieren briefing';
+$lang['briefing_passager_paper_help']         = 'Scan of foto van het door de passagier ondertekende document: PDF, JPG, PNG, GIF of WEBP, maximaal 10 MB.';
+$lang['briefing_passager_paper_comment']      = 'Ontdekkingsvlucht nr. %d — %s';
 $lang['briefing_passager_view']               = 'Briefing bekijken';
 $lang['briefing_passager_replace']            = 'Briefing vervangen';
 $lang['briefing_passager_delete']             = 'Verwijderen';
@@ -38,7 +42,6 @@ $lang['briefing_passager_no_vld_found']       = 'Geen ontdekkingsvlucht gevonden
 $lang['briefing_passager_select_vld']         = 'Selecteer een ontdekkingsvlucht';
 
 $lang['briefing_passager_upload_success']     = 'Briefing succesvol opgeslagen.';
-$lang['briefing_passager_upload_error']       = 'Fout bij opslaan van de briefing.';
 $lang['briefing_passager_subject_missing']    = 'De briefing is opgeslagen (reactie nr. %d) maar kon niet aan de ontdekkingsvlucht worden gekoppeld: de vluchtreferentie ontbreekt of is ongeldig. Meld het reactienummer aan een beheerder.';
 $lang['briefing_passager_saved_without_vld']  = 'Briefing succesvol opgeslagen (reactie nr. %d). Hij is aan geen enkele ontdekkingsvlucht gekoppeld.';
 $lang['briefing_passager_vld_missing']        = 'De briefing is opgeslagen (reactie nr. %d) maar ontdekkingsvlucht nr. %d werd niet gevonden. Meld het reactienummer aan een beheerder.';
@@ -47,8 +50,6 @@ $lang['briefing_passager_already_exists']     = 'Er bestaat al een briefing voor
 $lang['briefing_passager_confirm_delete']     = 'Weet u zeker dat u deze briefing wilt verwijderen?';
 $lang['briefing_passager_delete_protected']   = 'Deze briefing kan niet worden verwijderd vóór 3 maanden.';
 $lang['briefing_passager_not_found']          = 'Briefing niet gevonden.';
-$lang['briefing_passager_dir_error']          = 'Kan de opslagmap niet aanmaken.';
-$lang['briefing_passager_type_error']         = 'Documenttype briefing_passager niet gevonden.';
 $lang['briefing_passager_form_unavailable']   = 'Het formulier "%s" bestaat niet of is niet gepubliceerd, deze functie is niet beschikbaar.';
 
 $lang['briefing_passager_sign_draw']          = 'Teken hier';

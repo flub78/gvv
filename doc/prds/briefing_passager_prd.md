@@ -57,8 +57,8 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 3. Le pilote présente le document au passager, lui explique les consignes et répond à ses questions.
 4. Le passager signe le document papier.
 5. Le pilote scanne ou photographie le document.
-6. Le pilote télécharge le fichier (PDF ou image) dans le système via le formulaire de briefing.
-7. Le briefing est archivé dans le système documentaire et associé au vol.
+6. Le pilote dépose le fichier (PDF ou image) depuis la page de briefing du vol.
+7. Le briefing est archivé et associé au vol, qui apparaît comme ayant son briefing.
 
 ### UC2 — Signature numérique (mode dématérialisé)
 
@@ -114,9 +114,11 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 
 ### F5 — Mode upload (UC1)
 
-- Le formulaire permet de télécharger un fichier (PDF, JPEG, PNG).
-- La date de signature peut être saisie manuellement (par défaut : date du jour).
-- Le fichier est archivé dans le système documentaire avec le type de document « briefing passager ».
+- La page de briefing du vol permet de déposer un fichier (PDF, JPEG, PNG, GIF, WEBP, 10 Mo maximum).
+- Le dépôt est réservé aux utilisateurs autorisés à gérer les briefings ; il n'est pas ouvert au public.
+- La date du vol et les autres informations affichées sur la page sont enregistrées avec le dépôt.
+- Un dépôt impossible (fichier absent, format refusé, trop volumineux) est signalé et n'enregistre aucun briefing.
+- Le fichier est archivé comme réponse au formulaire de briefing, rattachée au vol, et consultable depuis la liste des vols comme depuis la liste des briefings.
 
 ### F6 — Mode signature numérique (UC2)
 
