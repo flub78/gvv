@@ -474,12 +474,13 @@ class Form_submissions_model extends CI_Model {
         }
 
         $now = date('Y-m-d H:i:s');
+        $all_saved = true;
         foreach ($files as $file) {
             if (empty($file['widget_name']) || empty($file['storage_path']) || empty($file['stored_name'])) {
                 continue;
             }
 
-            $this->db->insert($this->files_table, array(
+            $inserted = $this->db->insert($this->files_table, array(
                 'submission_id' => (int) $submission_id,
                 'widget_name'   => (string) $file['widget_name'],
                 'original_name' => isset($file['original_name']) ? $file['original_name'] : '',
@@ -492,6 +493,10 @@ class Form_submissions_model extends CI_Model {
                 'created_by'    => $updated_by,
                 'updated_by'    => $updated_by,
             ));
+            if (!$inserted) {
+                $this->record_db_error('save_submission_files');
+                $all_saved = false;
+            }
         }
 
         $this->db
@@ -501,7 +506,7 @@ class Form_submissions_model extends CI_Model {
                 'updated_by' => $updated_by,
             ));
 
-        return true;
+        return $all_saved;
     }
 
     /**

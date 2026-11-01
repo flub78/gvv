@@ -164,6 +164,33 @@ class FormsUploadSubmitTest extends TestCase
         $this->assertFileExists($expected_path, 'Le fichier téléversé doit être nommé reponse_{submission_id}.pdf');
     }
 
+    /**
+     * @feature Formulaires
+     * Scénario: Un fichier impossible à enregistrer ne laisse pas de réponse sans document
+     *   Étant donné un formulaire acceptant les réponses par dépôt de fichier
+     *   Quand une personne dépose un fichier valide que le système ne parvient pas à enregistrer
+     *   Alors aucune réponse n'est créée
+     *   Et aucun fichier ne reste sur le serveur
+     */
+    public function testUnrecordableFileDoesNotLeaveSubmissionOrFile()
+    {
+        $this->http_post_multipart(
+            $this->base_url() . 'forms/upload/' . $this->enabled_slug,
+            array('upload_comment' => 'Nom de fichier trop long'),
+            array('upload_response_file' => array(
+                'filename' => str_repeat('a', 300) . '.pdf',
+                'type'     => 'application/pdf',
+                'path'     => APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf',
+            ))
+        );
+
+        $count = (int) $this->db->where('form_id', $this->enabled_form_id)->count_all_results('form_submissions');
+        $this->assertSame(0, $count, 'Aucune réponse ne doit subsister.');
+
+        $files = glob(FCPATH . 'uploads/reponses/' . $this->enabled_form_id . '/*') ?: array();
+        $this->assertSame(array(), $files, 'Aucun fichier ne doit subsister.');
+    }
+
     public function testRejectedFileTypeDoesNotLeaveOrphanSubmission()
     {
         $before = (int) $this->db->where('form_id', $this->enabled_form_id)->count_all_results('form_submissions');

@@ -143,6 +143,8 @@ class Briefing_passager extends Gvv_Controller {
      * action=save   → save fields and return to upload form
      * action=link2  → save fields and open the online form, prefilled for this flight
      * action=upload → save fields and deposit the signed paper document
+     * A selected file is deposited whatever the button (Enter submits with link2),
+     * otherwise it would be dropped without the user noticing.
      * @param int $vld_id Discovery flight ID
      */
     function upload_submit($vld_id = 0) {
@@ -192,6 +194,11 @@ class Briefing_passager extends Gvv_Controller {
         $action = $this->input->post('action');
         $vld = $this->vols_decouverte_model->get_by_id('id', $vld_id);
 
+        if ($action === 'upload' || !empty($_FILES['userfile']['name'])) {
+            $this->_deposit_paper_briefing($vld, $vld_id);
+            return;
+        }
+
         if ($action === 'link2') {
             $errors2 = array();
             if (empty($vld['date_vol']))       $errors2[] = $this->lang->line('briefing_passager_field_date_vol');
@@ -224,11 +231,6 @@ class Briefing_passager extends Gvv_Controller {
                 'subject_id'         => $vld_id,
             ));
             redirect('forms/' . $target_form['public_slug'] . '?' . $params);
-            return;
-        }
-
-        if ($action === 'upload') {
-            $this->_deposit_paper_briefing($vld, $vld_id);
             return;
         }
 

@@ -190,13 +190,15 @@
                                                    href="<?= $export_urls[(int) $submission['id']] ?>"><?= html_escape($target_label) ?></a>
                                             <?php endif; ?>
                                         <?php endif; ?>
-                                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
-                                            data-submission-id="<?= (int) $submission['id'] ?>"
-                                            data-form-id="<?= (int) $form['id'] ?>"
-                                            data-identifier="<?= html_escape($ident) ?>"
-                                            data-bs-toggle="modal" data-bs-target="#deleteSubmissionModal">
-                                            <?= $this->lang->line('forms_button_delete') ?>
-                                        </button>
+                                        <?php if (!empty($can_delete_submissions)): ?>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete-submission"
+                                                data-submission-id="<?= (int) $submission['id'] ?>"
+                                                data-form-id="<?= (int) $form['id'] ?>"
+                                                data-identifier="<?= html_escape($ident) ?>"
+                                                data-bs-toggle="modal" data-bs-target="#deleteSubmissionModal">
+                                                <?= $this->lang->line('forms_button_delete') ?>
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

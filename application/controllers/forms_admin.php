@@ -73,13 +73,15 @@ class Forms_admin extends MY_Controller {
      *   links straight there.
      * - submission_file, submission_file_thumbnail: submission_pdf redirects to the
      *   deposited file for a paper briefing, and the list shows its thumbnail.
+     * - submission_rotate: a paper briefing photographed with a phone may need
+     *   straightening by the pilot who deposited it.
      * - submissions: the passenger-briefing menu entry (visible to the same
      *   roles via has_briefing_admin_role()) links to forms_admin/submissions/briefing_passager_ulm.
      * Restricted to these methods/form list, not a general relaxation.
      */
     private function _can_access_workflow_form() {
         $method = $this->router->fetch_method();
-        if (!in_array($method, array('submission_pdf', 'submission_file', 'submission_file_thumbnail', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
+        if (!in_array($method, array('submission_pdf', 'submission_file', 'submission_file_thumbnail', 'submission_rotate', 'submissions', 'submissions_csv', 'submissions_xlsx', 'submissions_pdf'), true)) {
             return false;
         }
         if (!$this->user_has_role('instructeur') && !$this->user_has_role('pilote_vd')) {
@@ -660,6 +662,8 @@ class Forms_admin extends MY_Controller {
             'identifier_values' => $identifier_values,
             'upload_files'      => $this->form_submissions_model->get_uploaded_response_files_for_submissions($upload_submission_ids),
             'export_urls'       => $export_urls,
+            // Same rule as the constructor guard: the workflow bypass does not cover deletion.
+            'can_delete_submissions' => $this->user_has_role('ca') || $this->user_has_role('club-admin'),
             'date_from'         => $date_from ?: '',
             'date_to'           => $date_to ?: '',
             'success'           => $this->session->flashdata('forms_success') ?: '',
@@ -1986,7 +1990,7 @@ class Forms_admin extends MY_Controller {
     }
 
     public function submission_rotate($form_id = 0, $submission_id = 0, $direction = '') {
-        $form = $this->load_form_or_redirect($form_id);
+        $form = $this->load_form_or_redirect($form_id, true);
         if (!$form) {
             return;
         }

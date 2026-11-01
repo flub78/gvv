@@ -94,7 +94,7 @@ class Forms_response_upload {
         }
 
         $client_name = isset($upload_data['client_name']) ? $upload_data['client_name'] : $upload_data['orig_name'];
-        $this->CI->form_submissions_model->save_submission_files($submission_id, array(array(
+        $saved = $this->CI->form_submissions_model->save_submission_files($submission_id, array(array(
             'widget_name'   => 'uploaded_response',
             'original_name' => $client_name,
             'stored_name'   => $upload_data['file_name'],
@@ -102,6 +102,16 @@ class Forms_response_upload {
             'size_bytes'    => isset($upload_data['file_size']) ? (int) round($upload_data['file_size'] * 1024) : null,
             'storage_path'  => $relative_dir . '/' . $upload_data['file_name'],
         )));
+
+        if (!$saved) {
+            // The file is not recorded, so delete_submission() cannot find it.
+            if ($mime === 'application/pdf') {
+                $this->CI->pdf_thumbnail->delete_thumbnail($file_path);
+            }
+            @unlink($file_path);
+            $this->CI->form_submissions_model->delete_submission($submission_id);
+            return $this->_failure('forms_upload_error_generic');
+        }
 
         return array('submission_id' => (int) $submission_id, 'original_name' => $client_name, 'error' => null);
     }

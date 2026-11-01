@@ -117,8 +117,11 @@ Les consignes de sécurité sont propres à chaque type d'appareil (planeur, avi
 - La page de briefing du vol permet de déposer un fichier (PDF, JPEG, PNG, GIF, WEBP, 10 Mo maximum).
 - Le dépôt est réservé aux utilisateurs autorisés à gérer les briefings ; il n'est pas ouvert au public.
 - La date du vol et les autres informations affichées sur la page sont enregistrées avec le dépôt.
-- Un dépôt impossible (fichier absent, format refusé, trop volumineux) est signalé et n'enregistre aucun briefing.
+- Un fichier sélectionné est déposé quel que soit le bouton utilisé : il n'est jamais ignoré.
+- Un dépôt impossible (fichier absent, format refusé, trop volumineux, enregistrement en échec) est signalé et n'enregistre aucun briefing.
 - Le fichier est archivé comme réponse au formulaire de briefing, rattachée au vol, et consultable depuis la liste des vols comme depuis la liste des briefings.
+- Les utilisateurs autorisés à gérer les briefings peuvent redresser un scan mal orienté.
+- La suppression d'un briefing n'est proposée qu'aux administrateurs.
 
 ### F6 — Mode signature numérique (UC2)
 
