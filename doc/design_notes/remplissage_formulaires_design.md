@@ -787,6 +787,8 @@ Colonne `forms.allow_upload_response` (booléen, défaut faux). Le bouton "Tél�
 
 Exception : le dépôt rattaché à une entité. Une réponse par scan peut porter `subject_type`/`subject_id` quand le dépôt part d'un workflow authentifié, jamais du point d'entrée public. C'est le cas du briefing papier (`briefing_passager::upload_submit`, `action=upload`), réservé aux gestionnaires de briefings et indépendant de `allow_upload_response`, qui reste désactivée sur `briefing_passager_ulm`. Le stockage est commun aux deux chemins (`Forms_response_upload`) ; le contrôle d'accès et le choix du rattachement restent aux appelants. Le handler n'est pas appelé : un scan ne porte aucune valeur de champ, et les informations du vol sont saisies sur la page de dépôt.
 
+La conservation des briefings est portée par `Briefing_retention`, qui seule connaît le formulaire concerné et le délai ; `forms_admin` l'applique aux deux chemins de suppression, réponse et formulaire entier. Une suppression avant l'échéance exige un motif, écrit dans `form_submission_deletions` avant la suppression. Cette table n'a pas de clé étrangère vers les réponses, car elle doit leur survivre.
+
 #### Modèle de données
 
 Pas de nouvelle table. Réutilisation de `form_submissions` et `form_submission_files` :

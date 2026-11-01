@@ -338,7 +338,7 @@ Réalisée en mode transitoire (juillet 2026) : l'étape 6.5 n'étant pas encore
 - [x] **Playwright non-régression globale** : `briefing-passager-smoke.spec.js` — les 3 tests UC2 (génération de lien, accès anonyme par token, token invalide) supprimés avec le mécanisme qu'ils testaient. `login()` étendu pour sélectionner une section explicite (bug latent révélé à cette occasion : `forms_admin::submission_delete` refuse l'accès si la section active de l'admin ne correspond pas au club du formulaire ; le test ne sélectionnait aucune section, dépendant implicitement d'un cookie `gvv_remembered_section` absent en contexte de navigateur Playwright frais — corrigé en sélectionnant explicitement la section 2/ULM avant les opérations admin). 9 tests du fichier verts. `BriefingSignatureTest.php` (testait uniquement la table `briefing_tokens` en isolation) supprimé — mécanisme retiré, plus rien ne peuple cette table. `inscription-club` et `attestation-de-formation-ulm` non touchés par cette étape.
 - [x] **PHPUnit non-régression** : `./run-all-tests.sh` — 1571 tests, 1525 passés, 0 échec, 46 skips (préexistants, identiques à avant). **Note environnement** : les tests de migration (`FormsHandlerClassMigrationTest`) font un aller-retour `down()`/`up()` réel sur la colonne `forms.handler_class` en base de dev, ce qui réinitialise à `NULL` la valeur positionnée manuellement sur `briefing-passager-ulm` (id=2) — déjà observé aux étapes 6.4/6.5. À restaurer en base après toute exécution de la suite complète, avant de rejouer les tests Playwright qui en dépendent (comme déjà noté aux étapes précédentes).
 
-#### Étape 6.7 — Dépôt d'un briefing papier signé
+#### Étape 6.7 — Dépôt d'un briefing papier signé ✅
 
 Le retrait du champ fichier (juillet 2026) laissait le cas UC1 du PRD sans chemin dans l'application. Il est rétabli sur le modèle `forms`, sans revenir à `archived_documents`.
 
@@ -347,9 +347,9 @@ Le retrait du champ fichier (juillet 2026) laissait le cas UC1 du PRD sans chemi
 - [x] `bs_uploadView.php` : zone de dépôt, bouton « Déposer le briefing papier signé », lien vers le briefing existant.
 - [x] `forms_admin` : `submission_file`, `submission_file_thumbnail` et `submission_rotate` ajoutés au contournement des formulaires de workflow, pour que les pilotes VD et instructeurs ouvrent le scan depuis l'icône du vol et le redressent.
 - [x] `bs_submissions.php` : bouton de suppression affiché aux seuls `ca`/`club-admin`, seuls autorisés à supprimer (`can_delete_submissions`). Le contournement de workflow ne couvre pas `submission_delete`.
-- [ ] Conservation de 3 mois (PRD, règle 4) : aucune protection dans `submission_delete`, à traiter séparément.
+- [x] Conservation de 3 mois (PRD, règle 4) : `Briefing_retention` calcule l'échéance ; `submission_delete` exige un motif avant l'échéance et `forms_admin::delete` refuse de supprimer un formulaire contenant un briefing à conserver. Migration 183 : table `form_submission_deletions`, consultable en base, sans écran.
 - [x] `save_submission_files()` signale un enregistrement en échec ; `Forms_response_upload` retire alors la réponse et le fichier.
-- [x] Tests : `briefing-passager-smoke.spec.js` (dépôt, refus, accès et rotation pilote, fichier conservé quel que soit le bouton, suppression réservée aux administrateurs), `VolsDecouverteBriefingSubmissionLinkTest`, `FormsUploadSubmitTest` (fichier impossible à enregistrer).
+- [x] Tests : `briefing-passager-smoke.spec.js` (dépôt, refus, accès et rotation pilote, fichier conservé quel que soit le bouton, suppression réservée aux administrateurs, conservation), `BriefingRetentionTest`, `VolsDecouverteBriefingSubmissionLinkTest`, `FormsUploadSubmitTest` (fichier impossible à enregistrer).
 
 ### Lot 7 — Cartes dynamiques dans les dashboards
 

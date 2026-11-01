@@ -41,6 +41,20 @@ async function login(page, user, section = null) {
     await page.waitForLoadState('networkidle');
 }
 
+// Un briefing récent est protégé : les nettoyages donnent un motif, dont la trace est
+// retirée par purgeDeletionTraces().
+const TEST_REASON = 'PW nettoyage de test';
+
+function deleteBriefing(page, formId, submissionId) {
+    return page.request.post(`/index.php/forms_admin/submission_delete/${formId}/${submissionId}`, {
+        form: { retention_override_reason: TEST_REASON },
+    });
+}
+
+async function purgeDeletionTraces(connection) {
+    await connection.execute('DELETE FROM form_submission_deletions WHERE reason = ?', [TEST_REASON]);
+}
+
 async function selectFirstNonEmptyOption(page, selector) {
     const options = page.locator(`${selector} option`);
     const count = await options.count();
@@ -288,7 +302,7 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
         await expect(briefingLinkAfter).toHaveAttribute('href', /forms_admin\/submission_pdf\/2\//);
 
         // --- Delete the submission via forms_admin (real endpoint, already logged in as club-admin) ---
-        const del = await page.request.post(`/index.php/forms_admin/submission_delete/2/${submissionId}`);
+        const del = await deleteBriefing(page, 2, submissionId);
         expect(del.ok()).toBeTruthy();
         submissionId = null; // already deleted, skip cleanup
 
@@ -318,6 +332,7 @@ test('briefing_vd icon turns green after briefing-passager-ulm submission, grey 
                 await connection.execute('DELETE FROM form_submission_values WHERE submission_id = ?', [row.id]);
                 await connection.execute('DELETE FROM form_submissions WHERE id = ?', [row.id]);
             }
+            await purgeDeletionTraces(connection);
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         await connection.end();
@@ -430,7 +445,7 @@ test('UC1: a signed paper briefing is filed on its flight', async ({ page, brows
             await pilotContext.close();
         }
 
-        const del = await page.request.post(`/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${rows[0].id}`);
+        const del = await deleteBriefing(page, BRIEFING_FORM_ID, rows[0].id);
         expect(del.ok()).toBeTruthy();
     } finally {
         if (vdId) {
@@ -439,8 +454,9 @@ test('UC1: a signed paper briefing is filed on its flight', async ({ page, brows
                 [BRIEFING_FORM_ID, vdId]
             );
             for (const leftover of leftovers) {
-                await page.request.post(`/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${leftover.id}`);
+                await deleteBriefing(page, BRIEFING_FORM_ID, leftover.id);
             }
+            await purgeDeletionTraces(connection);
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         fs.rmSync(scanPath, { force: true });
@@ -550,8 +566,9 @@ test('UC1: a selected scan is deposited even with the save button', async ({ pag
                 [BRIEFING_FORM_ID, vdId]
             );
             for (const leftover of leftovers) {
-                await page.request.post(`/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${leftover.id}`);
+                await deleteBriefing(page, BRIEFING_FORM_ID, leftover.id);
             }
+            await purgeDeletionTraces(connection);
             await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         fs.rmSync(scanPath, { force: true });
@@ -626,6 +643,132 @@ test('only administrators are offered briefing deletion', async ({ page, browser
         }
         for (const id of roleRowIds) {
             await connection.execute('DELETE FROM user_roles_per_section WHERE id = ?', [id]);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un briefing à conserver ne se supprime qu'avec un motif
+ *   Étant donné un vol de découverte effectué aujourd'hui
+ *   Et son briefing enregistré
+ *   Quand un administrateur demande sa suppression
+ *   Alors il est averti de la date de fin de conservation
+ *   Quand il confirme sans donner de motif
+ *   Alors le briefing est conservé
+ *   Quand il donne un motif et confirme
+ *   Alors le briefing est supprimé
+ *   Et le motif et son auteur restent enregistrés
+ */
+test('a briefing under retention is deleted only with a reason', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    const reason = `PW scan sur le mauvais vol ${Date.now()}`;
+    let vdId;
+    let submissionId;
+
+    try {
+        const [flight] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, date_vol, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), CURDATE(), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING CONSERVATION', 'playwright', 0)"
+        );
+        vdId = flight.insertId;
+        const [result] = await connection.execute(
+            "INSERT INTO form_submissions (form_id, submission_uuid, status, submission_method, subject_type, subject_id, created_at, submitted_at) VALUES (?, ?, 'submitted', 'online', 'vols_decouverte', ?, NOW(), NOW())",
+            [BRIEFING_FORM_ID, `pw-conservation-${Date.now()}`, vdId]
+        );
+        submissionId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await expect(page.locator('#deleteRetention')).toBeVisible();
+        await expect(page.locator('#deleteRetentionUntil')).not.toBeEmpty();
+
+        const confirm = page.locator('#deleteSubmissionForm button[type="submit"]');
+        await confirm.click();
+        await expect(page.locator('#deleteRetention')).toBeVisible();
+        let [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(1);
+
+        const refused = await page.request.post(
+            `/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${submissionId}`
+        );
+        expect(refused.ok()).toBeTruthy();
+        [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(1);
+
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await page.fill('#deleteRetentionReason', reason);
+        await confirm.click();
+        await page.waitForLoadState('load');
+
+        await expect(page.locator('.alert-success')).toBeVisible();
+        [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(0);
+        const [traces] = await connection.execute(
+            'SELECT reason, created_by FROM form_submission_deletions WHERE submission_id = ?',
+            [submissionId]
+        );
+        expect(traces.length).toBe(1);
+        expect(traces[0].reason).toBe(reason);
+        expect(traces[0].created_by).toBe(ADMIN_USER.username);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submission_deletions WHERE submission_id = ?', [submissionId]);
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        if (vdId) {
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
+        }
+        await connection.end();
+    }
+});
+
+/**
+ * @feature Briefing passager
+ * Scénario: Un briefing dont la conservation est échue se supprime normalement
+ *   Étant donné un vol de découverte effectué il y a un an
+ *   Et son briefing enregistré
+ *   Quand un administrateur demande sa suppression
+ *   Alors aucun motif ne lui est demandé
+ *   Et le briefing est supprimé après confirmation
+ */
+test('a briefing past its retention is deleted without a reason', async ({ page }) => {
+    const connection = await mysql.createConnection(DB_CONFIG);
+    let vdId;
+    let submissionId;
+
+    try {
+        const [flight] = await connection.execute(
+            "INSERT INTO vols_decouverte (date_vente, date_vol, club, product, beneficiaire, saisie_par, cancelled) VALUES (CURDATE(), DATE_SUB(CURDATE(), INTERVAL 1 YEAR), 2, 'PW_BRIEFING_PAPIER', 'PW BRIEFING ECHU', 'playwright', 0)"
+        );
+        vdId = flight.insertId;
+        const [result] = await connection.execute(
+            "INSERT INTO form_submissions (form_id, submission_uuid, status, submission_method, subject_type, subject_id, created_at, submitted_at) VALUES (?, ?, 'submitted', 'online', 'vols_decouverte', ?, NOW(), NOW())",
+            [BRIEFING_FORM_ID, `pw-echu-${Date.now()}`, vdId]
+        );
+        submissionId = result.insertId;
+
+        await login(page, ADMIN_USER, 2);
+        await page.goto(ADMIN_LIST_URL);
+        await page.waitForLoadState('load');
+        await page.locator(`.btn-delete-submission[data-submission-id="${submissionId}"]`).click();
+        await expect(page.locator('#deleteRetention')).toBeHidden();
+        await page.locator('#deleteSubmissionForm button[type="submit"]').click();
+        await page.waitForLoadState('load');
+
+        await expect(page.locator('.alert-success')).toBeVisible();
+        const [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
+        expect(kept.length).toBe(0);
+    } finally {
+        if (submissionId) {
+            await connection.execute('DELETE FROM form_submissions WHERE id = ?', [submissionId]);
+        }
+        if (vdId) {
+            await connection.execute('DELETE FROM vols_decouverte WHERE id = ?', [vdId]);
         }
         await connection.end();
     }

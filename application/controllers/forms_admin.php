@@ -48,6 +48,7 @@ class Forms_admin extends MY_Controller {
         $this->load->library('forms_renderer');
         $this->load->library('forms_file_storage');
         $this->load->library('forms_field_parser');
+        $this->load->library('briefing_retention');
         $this->lang->load('gvv');
         $this->lang->load('forms');
 
@@ -414,6 +415,12 @@ class Forms_admin extends MY_Controller {
         }
         $id = (int) $id;
         $current = $id > 0 ? $this->forms_model->get_by_id($id) : null;
+        // Deleting a form cascades to its responses.
+        if ($current && $this->briefing_retention->form_has_protected_submissions($current)) {
+            $this->session->set_flashdata('forms_error', $this->lang->line('forms_retention_form_protected'));
+            redirect('forms_admin');
+            return;
+        }
         if (!$current || !$this->forms_model->delete_form($id)) {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer ce formulaire.');
             redirect('forms_admin');
@@ -664,6 +671,7 @@ class Forms_admin extends MY_Controller {
             'export_urls'       => $export_urls,
             // Same rule as the constructor guard: the workflow bypass does not cover deletion.
             'can_delete_submissions' => $this->user_has_role('ca') || $this->user_has_role('club-admin'),
+            'retention_until'   => $this->briefing_retention->protected_until($form, $submissions),
             'date_from'         => $date_from ?: '',
             'date_to'           => $date_to ?: '',
             'success'           => $this->session->flashdata('forms_success') ?: '',
@@ -1575,7 +1583,24 @@ class Forms_admin extends MY_Controller {
             return;
         }
 
-        if ($this->form_submissions_model->delete_submission((int) $submission_id)) {
+        $retention = $this->briefing_retention->protected_until($form, array($submission));
+        $protected_until = $retention[(int) $submission['id']] ?? null;
+        $reason = trim((string) $this->input->post('retention_override_reason'));
+
+        if ($protected_until !== null && $reason === '') {
+            $this->session->set_flashdata('forms_error', sprintf(
+                $this->lang->line('forms_retention_reason_required'),
+                date('d/m/Y', strtotime($protected_until))
+            ));
+            redirect('forms_admin/submissions/' . (int) $form['id']);
+            return;
+        }
+
+        $deleted = $protected_until !== null
+            ? $this->form_submissions_model->delete_protected_submission($submission, $protected_until, $reason, $this->dx_auth->get_username())
+            : $this->form_submissions_model->delete_submission((int) $submission_id);
+
+        if ($deleted) {
             $this->session->set_flashdata('forms_success', 'Réponse #' . (int) $submission_id . ' supprimée.');
         } else {
             $this->session->set_flashdata('forms_error', 'Impossible de supprimer cette réponse.');

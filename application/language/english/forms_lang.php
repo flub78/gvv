@@ -183,6 +183,10 @@ $lang['forms_confirm_delete_field']       = 'Delete this field?';
 $lang['forms_modal_title_delete']         = 'Delete response';
 $lang['forms_modal_confirm_delete']       = 'Confirm deletion of response';
 $lang['forms_modal_help_delete']          = 'This action is irreversible and also deletes associated files.';
+$lang['forms_retention_warning']          = 'This briefing must be kept until %s. Only delete it to correct a mistake, such as a scan filed on the wrong flight.';
+$lang['forms_retention_reason_label']     = 'Reason for deletion (required)';
+$lang['forms_retention_reason_required']  = 'This briefing must be kept until %s. Give a reason to delete it.';
+$lang['forms_retention_form_protected']   = 'This form holds briefings that must be kept: it cannot be deleted.';
 
 // Field types
 $lang['forms_type_text']                  = 'Text';
