@@ -88,6 +88,7 @@ $shown = function ($p, $lang) use ($posted) {
 <?php endif; ?>
 
 <form method="post" action="<?= site_url('parametres/save/' . $tab) ?>" id="parametres-form">
+<input type="hidden" name="parametres_token" value="<?= htmlspecialchars($token) ?>">
 
 <?php foreach ($params as $key => $p):
     $def = $p['def'];
@@ -98,16 +99,7 @@ $shown = function ($p, $lang) use ($posted) {
     <div class="card-header d-flex flex-wrap align-items-center gap-2">
         <strong><?= $this->lang->line($def['label']) ?></strong>
         <?php if (isset($public_pages[$key])): ?>
-        <span class="ms-auto small">
-            <?= $this->lang->line('parametres_public_url') ?> :
-            <a href="<?= $public_pages[$key] ?>" target="_blank" class="public-url"><?= $public_pages[$key] ?></a>
-            <button type="button" class="btn btn-outline-secondary btn-sm ms-1 copy-url" data-url="<?= $public_pages[$key] ?>">
-                <i class="fas fa-copy"></i> <?= $this->lang->line('parametres_copy') ?>
-            </button>
-            <a href="<?= $public_pages[$key] ?>" target="_blank" class="btn btn-outline-primary btn-sm ms-1">
-                <i class="fas fa-eye"></i> <?= $this->lang->line('parametres_preview') ?>
-            </a>
-        </span>
+        <?php $this->load->view('parametres/bs_public_url', array('url' => $public_pages[$key], 'preview' => TRUE)); ?>
         <?php endif; ?>
     </div>
     <div class="card-body">
@@ -182,13 +174,7 @@ $shown = function ($p, $lang) use ($posted) {
 <div class="card mb-3" data-param="newsletter">
     <div class="card-header d-flex flex-wrap align-items-center gap-2">
         <strong><?= $this->lang->line('parametres_newsletter_page') ?></strong>
-        <span class="ms-auto small">
-            <?= $this->lang->line('parametres_public_url') ?> :
-            <a href="<?= $newsletter_url ?>" target="_blank" class="public-url"><?= $newsletter_url ?></a>
-            <button type="button" class="btn btn-outline-secondary btn-sm ms-1 copy-url" data-url="<?= $newsletter_url ?>">
-                <i class="fas fa-copy"></i> <?= $this->lang->line('parametres_copy') ?>
-            </button>
-        </span>
+        <?php $this->load->view('parametres/bs_public_url', array('url' => $newsletter_url, 'preview' => FALSE)); ?>
     </div>
 </div>
 <?php endif; ?>

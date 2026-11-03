@@ -28,6 +28,9 @@ class Parametres_store {
     /** Rang forcé (tests) ; NULL = calculé d'après l'utilisateur connecté. */
     protected $forced_rank = NULL;
 
+    /** Rang calculé, mémorisé pour la durée de la requête. */
+    protected $cached_rank = NULL;
+
     public function __construct($params = array()) {
         $this->CI = &get_instance();
         $this->CI->config->load('parametres_registry', TRUE);
@@ -82,6 +85,16 @@ class Parametres_store {
         if ($this->forced_rank !== NULL) {
             return $this->forced_rank;
         }
+        if ($this->cached_rank === NULL) {
+            $this->cached_rank = $this->_compute_rank();
+        }
+        return $this->cached_rank;
+    }
+
+    /**
+     * Calcul du rang (requêtes d'autorisation) ; fait une seule fois par requête.
+     */
+    private function _compute_rank() {
         if (!$this->CI->dx_auth->is_logged_in()) {
             return 0;
         }

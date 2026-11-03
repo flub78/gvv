@@ -52,3 +52,5 @@ $lang['parametres_err_file_not_writable'] = 'file %s cannot be modified by the w
 $lang['parametres_err_file_syntax_error'] = 'the change would make file %s invalid, it was not applied';
 $lang['parametres_err_file_write_failed'] = 'writing file %s failed';
 $lang['parametres_err_file_invalid_key']  = 'invalid setting name';
+$lang['parametres_err_token']            = "The page has expired or the request did not come from the Configuration page: nothing was saved.";
+$lang['parametres_reload']               = "Reload the page";

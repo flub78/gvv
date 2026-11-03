@@ -127,6 +127,60 @@ test.describe('Pages publiques', () => {
   });
 
   /**
+   * Scénario: Un membre qui doit accepter un document peut lire les règles de confidentialité
+   *   Étant donné un membre connecté qui doit obligatoirement accepter un document avant d'utiliser le site
+   *   Quand il ouvre les règles de confidentialité
+   *   Alors il les lit, sans être renvoyé vers la page d'acceptation
+   */
+  test('member with a pending mandatory acceptance can read the privacy policy', async ({ page }) => {
+    const title = 'Legal pages smoke ' + Date.now();
+    const db = await mysql.createConnection(DB_CONFIG);
+    try {
+      await db.execute(
+        `INSERT INTO acceptance_items (title, category, target_type, mandatory_level, target_user_login, active, created_by, created_at)
+         VALUES (?, 'document', 'internal', 'mandatory_hard', ?, 1, 'testadmin', NOW())`,
+        [title, MEMBER_USER.username]);
+
+      await login(page, MEMBER_USER);
+      // Le blocage est bien actif pour le reste du site.
+      await page.goto('/welcome');
+      await expect(page).toHaveURL(/acceptance/);
+
+      await page.goto('/legal/confidentialite');
+      await expect(page).toHaveURL(/legal\/confidentialite/);
+      await checkNoPhpErrors(page);
+      await expect(page.locator('article.legal-page h1')).toBeVisible();
+    } finally {
+      await db.execute(
+        "DELETE FROM motd_messages WHERE source_type = 'acceptance_item' AND source_ref IN (SELECT id FROM acceptance_items WHERE title = ?)",
+        [title]);
+      await db.execute('DELETE FROM acceptance_items WHERE title = ?', [title]);
+      await db.end();
+    }
+  });
+
+  /**
+   * Scénario: Un enregistrement qui ne vient pas de la page Configuration est refusé
+   *   Étant donné un administrateur du club connecté
+   *   Quand une demande d'enregistrement arrive sans provenir du formulaire de la page Configuration
+   *   Alors rien n'est enregistré
+   *   Et un message explique que la page a expiré et propose de la recharger
+   */
+  test('a save request not coming from the configuration form is refused', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    const response = await page.request.post('/parametres/save/pages_publiques', {
+      form: { 'p[legal__confidentialite][french]': `# ${MARKER} forgé` },
+    });
+    const body = await response.text();
+    expect(body).toContain('id="parametres-message"');
+    expect(body).toContain('parametres/index/pages_publiques');
+
+    await page.goto('/auth/logout');
+    await page.goto('/legal/confidentialite');
+    await expect(page.locator('article.legal-page')).not.toContainText(`${MARKER} forgé`);
+  });
+
+  /**
    * Scénario: Un simple membre n'a pas accès à la configuration
    *   Étant donné un membre sans responsabilité au club
    *   Quand il ouvre directement l'onglet des pages publiques de la configuration

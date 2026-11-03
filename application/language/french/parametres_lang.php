@@ -56,3 +56,5 @@ $lang['parametres_err_file_not_writable'] = 'le fichier %s n\'est pas modifiable
 $lang['parametres_err_file_syntax_error'] = 'la modification rendrait le fichier %s invalide, elle n\'a pas été faite';
 $lang['parametres_err_file_write_failed'] = 'l\'écriture du fichier %s a échoué';
 $lang['parametres_err_file_invalid_key']  = 'nom de paramètre invalide';
+$lang['parametres_err_token']            = "La page a expiré ou la demande ne provient pas de la page Configuration : rien n'a été enregistré.";
+$lang['parametres_reload']               = "Recharger la page";

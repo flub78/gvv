@@ -2,9 +2,10 @@
 /**
  * Registre des paramètres de la page Configuration.
  *
- * Tableau PHP pur, sans dépendance à CodeIgniter, pour pouvoir être lu par
- * d'autres outils (installeur). Chaque onglet n'est affiché que s'il contient
- * au moins un paramètre lisible par l'utilisateur.
+ * Tableau PHP pur, sans appel à CodeIgniter : un autre outil (installeur) peut
+ * l'inclure, à condition de définir au préalable la constante BASEPATH exigée par
+ * la garde ci-dessus. Chaque onglet n'est affiché que s'il contient au moins un
+ * paramètre lisible par l'utilisateur.
  *
  * Profils, du plus restreint au plus large : 'ca', 'club-admin', 'dev'.
  * Un club-admin a les droits du CA ; un dev_user a tous les droits.

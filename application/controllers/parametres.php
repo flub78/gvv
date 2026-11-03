@@ -70,6 +70,11 @@ class Parametres extends MY_Controller {
         if (!$this->_check_tab($tab, $visible)) {
             return;
         }
+        if (!$this->_valid_token($this->input->post('parametres_token'))) {
+            $this->_message($this->lang->line('parametres_err_token')
+                . ' ' . anchor('parametres/index/' . $tab, $this->lang->line('parametres_reload')));
+            return;
+        }
 
         $posted = $this->input->post('p');
         $posted = is_array($posted) ? $posted : array();
@@ -117,6 +122,24 @@ class Parametres extends MY_Controller {
     }
 
     // ------------------------------------------------------------------
+
+    /**
+     * Jeton anti-falsification de requête (CSRF) propre à la page, conservé en
+     * session : la protection CSRF globale de CodeIgniter n'est pas activée dans GVV.
+     */
+    private function _token() {
+        $token = $this->session->userdata('parametres_token');
+        if (!is_string($token) || strlen($token) !== 64) {
+            $token = bin2hex(random_bytes(32));
+            $this->session->set_userdata('parametres_token', $token);
+        }
+        return $token;
+    }
+
+    private function _valid_token($posted) {
+        $token = $this->session->userdata('parametres_token');
+        return is_string($token) && strlen($token) === 64 && is_string($posted) && hash_equals($token, $posted);
+    }
 
     /**
      * Vérifie que l'onglet existe et est accessible ; sinon affiche un refus explicite.
@@ -216,6 +239,7 @@ class Parametres extends MY_Controller {
             'errors'     => isset($result['errors']) ? $result['errors'] : array(),
             'posted'     => isset($result['posted']) ? $result['posted'] : NULL,
             'languages'  => Parametres_store::LANGUAGES,
+            'token'      => $this->_token(),
         );
 
         if ($tab === 'pages_publiques') {

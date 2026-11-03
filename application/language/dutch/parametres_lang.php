@@ -52,3 +52,5 @@ $lang['parametres_err_file_not_writable'] = 'bestand %s kan niet door de webserv
 $lang['parametres_err_file_syntax_error'] = 'de wijziging zou bestand %s ongeldig maken, ze werd niet doorgevoerd';
 $lang['parametres_err_file_write_failed'] = 'schrijven van bestand %s is mislukt';
 $lang['parametres_err_file_invalid_key']  = 'ongeldige naam van instelling';
+$lang['parametres_err_token']            = "De pagina is verlopen of het verzoek kwam niet van de configuratiepagina: er is niets opgeslagen.";
+$lang['parametres_reload']               = "Pagina opnieuw laden";
