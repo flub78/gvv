@@ -49,7 +49,6 @@ $config_fields = array(
 	array($this->lang->line("gvv_config_field_tel"), input_field('tel_club', $tel_club, array('type'  => 'text'))),
 	array($this->lang->line("gvv_config_field_email"), input_field('email_club', $email_club, array('type'  => 'text', 'size' => 50))),
 	array($this->lang->line("gvv_config_field_web"), input_field('url_club', $url_club, array('type'  => 'text', 'size' => 50))),
-	array($this->lang->line("gvv_config_field_contact_rgpd"), input_field('contact_rgpd', $contact_rgpd, array('type'  => 'text', 'size' => 50))),
 	array($this->lang->line("gvv_config_field_gcalendar"), input_field('calendar_id', $calendar_id, array('type'  => 'text', 'size' => 50))),
 	array($this->lang->line("gvv_config_field_facturation"), input_field('club', $club, array('type'  => 'text', 'size' => 32))),
 	array($this->lang->line("gvv_config_field_gcalendar_url"), input_field('url_gcalendar', $url_gcalendar, array('type'  => 'text', 'size' => '100'))),

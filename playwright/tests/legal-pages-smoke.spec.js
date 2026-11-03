@@ -36,12 +36,15 @@ test.describe('Pages publiques', () => {
   // Un seul processus : la sauvegarde et la restauration des textes ne doivent pas se croiser.
   test.describe.configure({ mode: 'serial' });
   let snapshot = [];
+  let historyMaxId = 0;
 
   test.beforeAll(async () => {
     const db = await mysql.createConnection(DB_CONFIG);
     try {
       const [rows] = await db.execute("SELECT * FROM configuration WHERE cle LIKE 'legal.%'");
       snapshot = rows;
+      const [[h]] = await db.execute('SELECT COALESCE(MAX(id), 0) AS max_id FROM parametres_history');
+      historyMaxId = h.max_id;
     } finally {
       await db.end();
     }
@@ -52,6 +55,7 @@ test.describe('Pages publiques', () => {
     const db = await mysql.createConnection(DB_CONFIG);
     try {
       await db.execute("DELETE FROM configuration WHERE cle LIKE 'legal.%'");
+      await db.execute("DELETE FROM parametres_history WHERE cle LIKE 'legal.%' AND id > ?", [historyMaxId]);
       for (const row of snapshot) {
         const cols = Object.keys(row);
         await db.execute(
@@ -115,6 +119,7 @@ test.describe('Pages publiques', () => {
     await page.click('#card-parametres a');
     await expect(page).toHaveURL(/parametres/);
     await checkNoPhpErrors(page);
+    await page.click('#parametres-tabs a[data-tab="pages_publiques"]');
 
     await page.fill('#f-legal__confidentialite-french', `# ${MARKER}\n\nClub : {nom_club}`);
     await page.click('#parametres-save');

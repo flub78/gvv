@@ -68,13 +68,6 @@ class Config extends MY_Controller {
                     'rules' => 'trim'
             ),
 
-            // Affiché sur la page publique des règles de confidentialité ;
-            // vide = « le président de l'association ».
-            'contact_rgpd' => array (
-                    'label' => 'Contact RGPD',
-                    'rules' => 'trim'
-            ),
-
             'calendar_id' => array (
                     'label' => 'Calendrier Google',
                     'rules' => 'trim'
@@ -228,41 +221,26 @@ class Config extends MY_Controller {
     }
 
     /**
-     * Sauvegarde les nouvelles valeurs de configuration
+     * Sauvegarde les nouvelles valeurs de configuration.
+     *
+     * Seules les clés de ce formulaire sont réécrites, une à une : les autres clés
+     * du fichier (contact RGPD, thème, clés écrites par l'installeur ou par la page
+     * Configuration) sont conservées.
      */
     private function saveConfig($filename, $data, $fields) {
-        // store the form content into configuration and rewrite the file
-        $content = "<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-
-/*
-|--------------------------------------------------------------------------
-| Fichier de configuration club
-|--------------------------------------------------------------------------
-*/\n";
-
+        $this->load->library('Config_file_writer');
         foreach ( $fields as $key => $value ) {
-            if (isset($data [$key])) {
-                $val = $data [$key];
-
-                $val = str_replace('"', '\"', $val); // escape double quotes
-
-                $this->config->set_item($key, $val);
-                $content .= "\$config['$key'] = \"$val\";\n";
+            if (!isset($data [$key])) {
+                continue;
             }
-        }
-
-        $content .= '
-/* End of file club.php */
-/* Location: .application/config/club.php */';
-
-        // Store the configuration into file
-        $filename = "./application/config/club.php";
-        if (! $info = get_file_info($filename)) {
-            echo "$filename non trouvé" . br();
-        }
-
-        if (! write_file($filename, $content)) {
-            echo "error writing $filename, check that it is writable by your WEB server";
+            // Case non cochée : input->post() rend FALSE, enregistré comme chaîne vide.
+            $val = is_array($data [$key]) ? join(",", $data [$key]) : (string) $data [$key];
+            if (! $this->config_file_writer->write($filename, $key, $val)) {
+                echo "error writing $filename ($key: " . $this->config_file_writer->error
+                    . "), check that it is writable by your WEB server" . br();
+                return;
+            }
+            $this->config->set_item($key, $val);
         }
     }
 }

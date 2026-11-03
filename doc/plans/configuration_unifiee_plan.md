@@ -2,7 +2,7 @@
 
 **PRD :** `doc/prds/configuration_unifiee_prd.md`
 **Dernière mise à jour :** 2026-11-03
-**Statut :** lot 1 réalisé (branche `feature/configuration_unifiee_lot1`), lots 2 et 3 à faire
+**Statut :** lots 1 et 2 réalisés (branches `feature/configuration_unifiee_lot1` et `feature/configuration_unifiee_lot2`), lot 3 à faire
 
 Ce plan ne reprend pas les exigences : il les cite par leur identifiant (EX-…) du PRD.
 
@@ -15,6 +15,7 @@ Ce plan ne reprend pas les exigences : il les cite par leur identifiant (EX-…)
 | `controllers/config.php::saveConfig()` | Réécrit **tout** `club.php` à partir de sa propre liste de champs : les clés écrites par l'installeur et absentes de cette liste (`copie_a`, `mod`) sont perdues. Les valeurs sont écrites entre guillemets doubles, sans échapper `$` (interpolation PHP possible). | Ne pas réutiliser. Un nouvel écrivain de fichiers de configuration modifie une clé sans toucher aux autres. |
 | `install/index.php` (`cfg_read`, `cfg_write`, `cfg_write_bool`, `cfg_write_int`) | Modification ciblée d'une clé par expression régulière, guillemets simples, échappement correct, le reste du fichier préservé. | Sert de modèle à l'écrivain de fichiers (porté dans une bibliothèque CodeIgniter). |
 | Table `configuration` | `valeur` est un `varchar(255)`, trop court pour les textes des pages publiques. Pas de champs d'audit. Variantes par langue (`lang`) et par section (`club`) déjà gérées par `get_param()`. | Une migration passe `valeur` en `TEXT` et ajoute les champs d'audit. |
+| `controllers/config.php::saveConfig()` (suite) | Reste en service pour les réglages pas encore repris (calendrier Google, FFVV…). | Au lot 2, il écrit clé par clé avec l'écrivain de fichiers, pour ne plus effacer les clés qu'il ne connaît pas. |
 | Contrôle `dev_users` | Dupliqué dans une dizaine de contrôleurs (`explode` + `in_array`). | Le nouveau code passe par un helper unique `is_dev_user()`. Les contrôleurs existants ne sont pas modifiés (hors périmètre). |
 | Section « Administration du club » du tableau de bord (`welcome/section/admin_club`) | Affichée seulement aux membres du CA (`is_ca_any_section`). | Ajouter la tuile Configuration, et afficher la section aussi aux dev_users (EX-TRA-01). |
 | `newsletter.php` | Redirige vers la connexion dans son constructeur. | Lever cette redirection pour `index` et `pdf` (EX-PUB-05). |
@@ -77,17 +78,17 @@ Les lots suivent l'ordre de livraison de EX-TRA-04. Chaque lot est livré sur sa
 
 **Contenu à saisir après déploiement (hors code)** : texte de confidentialité d'Abbeville (Google Drive, BIA Amiens, durées de conservation), saisi sur le serveur de production dans l'onglet Pages publiques. Suivi de la mise en place Google : URL de la page d'accueil = page de connexion, URL des règles = `legal/confidentialite`, domaine de production dans « Domaines autorisés », puis publication de l'application OAuth et `rclone config reconnect gdrive:`.
 
-### Lot 2 — Socle complet, Club, Modules, Messagerie (≈ 6 j)
+### Lot 2 — Socle complet, Club, Modules, Messagerie (≈ 6 j) ✅
 
 | # | Tâche | Exigences | Estimation |
 | :--- | :--- | :--- | :--- |
-| L2-T1 | Migration 185 : table `parametres_history` (paramètre, onglet, section, langue, ancienne et nouvelle valeur — secrets non conservés —, action, champs d'audit). Métadonnées dans `Gvvmetadata.php` | EX-HIS-01 | 0,5 j |
-| L2-T2 | Historique par onglet et retour à la valeur précédente (revalidé, tracé, interdit pour les secrets) ; traçage des écritures du lot 1 | EX-HIS-01 à 03 | 1,5 j |
-| L2-T3 | Mode lecture seule (CA) ; secrets masqués avec effacement explicite | EX-PRO-05, EX-PRO-06, EX-SEC-01 à 03 | 0,5 j |
-| L2-T4 | Onglet **Club** (identité, logo, contact RGPD) ; retrait du champ provisoire de L1-T5 | EX-PRO-06 | 1 j |
-| L2-T5 | Onglet **Modules** (drapeaux de `program.php`) avec avertissement si un module est activé alors que des paramètres obligatoires manquent | EX-ENR-06, §8 (la page Configuration n'est jamais masquée) | 1 j |
-| L2-T6 | Onglet **Messagerie** (SMTP, e-mail et téléphone de test) et test d'envoi | EX-TST-01, EX-TST-02 | 1 j |
-| L2-T7 | Traductions | §8 | 0,5 j |
+| L2-T1 ✅ | Migration 185 : table `parametres_history` (paramètre, onglet, section, langue, ancienne et nouvelle valeur — secrets non conservés —, action, champs d'audit). Métadonnées dans `Gvvmetadata.php` | EX-HIS-01 | 0,5 j |
+| L2-T2 ✅ | Historique par onglet et retour à la valeur précédente (revalidé, tracé, interdit pour les secrets) ; traçage des écritures du lot 1 | EX-HIS-01 à 03 | 1,5 j |
+| L2-T3 ✅ | Mode lecture seule (CA : valeurs affichées sans champ) ; secrets masqués avec effacement explicite ; formulaire sans validation du navigateur, pour que le motif d'un refus s'affiche toujours à côté du champ | EX-PRO-05, EX-PRO-06, EX-SEC-01 à 03 | 0,5 j |
+| L2-T4 ✅ | Onglet **Club** (identité, logo, contact RGPD) ; retrait du champ provisoire de L1-T5 ; écriture clé par clé dans l'ancien écran `config`, qui reste en service pour ses autres réglages | EX-PRO-06 | 1 j |
+| L2-T5 ✅ | Onglet **Modules** (drapeaux de `program.php`) avec avertissement si un module est activé alors que des paramètres obligatoires manquent (déclarés par `requires` ; au lot 2 : serveur SMTP pour les vols de découverte et la newsletter) | EX-ENR-06, §8 (la page Configuration n'est jamais masquée) | 1 j |
+| L2-T6 ✅ | Onglet **Messagerie** (SMTP, e-mail et téléphone de test) et test d'envoi | EX-TST-01, EX-TST-02 | 1 j |
+| L2-T7 ✅ | Traductions | §8 | 0,5 j |
 
 ### Lot 3 — Autres onglets et fin de transition (≈ 7 j)
 
@@ -95,9 +96,9 @@ Les lots suivent l'ordre de livraison de EX-TRA-04. Chaque lot est livré sur sa
 | :--- | :--- | :--- | :--- |
 | L3-T1 | Onglets **Apparence**, **Communication** (CA), **Vols de découverte** (CA) : reprise des clés `vd.*` de la table `configuration` | §6 | 1,5 j |
 | L3-T2 | Onglet **Finances** (CA en lecture seule) : comptes de cotisation, seuils de relance, `facturation.php`, contrôle de solde à la réservation | §6, EX-VAR-01 | 1 j |
-| L3-T3 | Onglet **Paiements en ligne** : intégration du formulaire de `paiements_en_ligne/admin_config` par section, ouvert au club-admin. Le contrôleur HelloAsso garde sa logique sans métadonnées (exception CLAUDE.md) : seul son écran de réglages est déplacé | §6, EX-VAR-01 | 1 j |
+| L3-T3 | Onglet **Paiements en ligne** : intégration du formulaire de `paiements_en_ligne/admin_config` par section, ouvert au club-admin ; déclarer les paramètres requis par le module `gestion_paiements` (`requires`). Le contrôleur HelloAsso garde sa logique sans métadonnées (exception CLAUDE.md) : seul son écran de réglages est déplacé | §6, EX-VAR-01 | 1 j |
 | L3-T4 | Onglets **Documents et cartes** et **Référentiels** : réglages des cartes et des formulaires, liens vers les écrans de listes existants | §3.1 | 1 j |
-| L3-T5 | Onglet **Système** (dev_users) : newsletter (IMAP, IA, relecteurs, tests existants), SMS, ordonnanceurs, Google, `dev_users` ; lecture seule pour la base de données, l'URL, la version et la migration ; liste clé/valeur brute de la table `configuration` pour les clés non déclarées dans le registre. Entrée de menu accessible à un dev_user non membre du CA, hors du sous-menu « Club » qui contient des écrans réservés au CA | §3.2, EX-TST-01 | 1,5 j |
+| L3-T5 | Onglet **Système** (dev_users) : newsletter (déclarée requise par le module `veille`) (IMAP, IA, relecteurs, tests existants), SMS, ordonnanceurs, Google, `dev_users` ; lecture seule pour la base de données, l'URL, la version et la migration ; liste clé/valeur brute de la table `configuration` pour les clés non déclarées dans le registre. Entrée de menu accessible à un dev_user non membre du CA, hors du sous-menu « Club » qui contient des écrans réservés au CA | §3.2, EX-TST-01 | 1,5 j |
 | L3-T6 | Redirection des anciens écrans (`config`, `configuration`, `cartes_membre/config`, `forms_admin/config`, `newsletter_admin/configuration`, `paiements_en_ligne/admin_config`) vers leur onglet ; nettoyage du menu | EX-TRA-01 à 03 | 0,5 j |
 | L3-T7 | Passage de la tâche « Unifier la configuration » de `doc/todo.md` à `doc/done.md` | EX-TRA-05 | — |
 
@@ -116,7 +117,7 @@ Toutes les descriptions de tests suivent la règle Gherkin en français de CLAUD
 | unit | Pages publiques : insertion des informations du club, repli sur le texte générique, repli sur le français, mention HelloAsso selon le module | 1 |
 | unit | Profils : onglets visibles et modifiables selon CA / club-admin / dev_user, cumul des profils | 1-2 |
 | integration | `Parametres_store` en base : lecture, écriture, variantes par langue et par section, valeur par défaut signalée. Tests de migration 184/185 seulement s'ils ne sont pas déjà couverts par ces tests | 1-2 |
-| integration | Historique : trace de chaque écriture, secrets non conservés, retour arrière revalidé et tracé | 2 |
+| integration | Historique : trace de chaque écriture, secrets non conservés, retour arrière revalidé et tracé ; obligation conditionnelle ; avertissement de module ; page indépendante des modules | 2 |
 
 Règles d'état (CLAUDE.md) : chaque test crée ses propres clés de configuration (préfixe dédié) et les supprime en teardown. Un test qui touche un fichier de configuration réel le sauvegarde d'abord et le restaure à l'identique dans un `finally`.
 
@@ -128,10 +129,12 @@ Règles d'état (CLAUDE.md) : chaque test crée ses propres clés de configurati
 | Un visiteur non connecté consulte la liste des newsletters et ouvre un PDF | 1 |
 | Un club-admin modifie le texte de confidentialité, voit le message de succès, puis le nouveau texte sur la page publique. Le texte d'origine est restauré en `afterAll` | 1 |
 | Un membre simple ne voit pas la tuile Configuration ; un accès direct à la page affiche un refus explicite | 1 |
-| Un membre du CA voit Club, Modules et Finances en lecture seule, et ne voit pas l'onglet Système | 2 |
-| Un dev_user non membre du CA accède à la page par le tableau de bord et voit l'onglet Système | 2 |
-| Une valeur invalide est refusée à côté du champ, sans perte des autres saisies | 2 |
-| Retour à la valeur précédente depuis l'historique | 2 |
+| Un membre du CA voit Club et Modules en lecture seule, et ne voit ni Messagerie ni Pages publiques ✅ | 2 |
+| Une valeur invalide est refusée à côté du champ, sans perte des autres saisies ✅ | 2 |
+| Retour à la valeur précédente depuis l'historique ✅ | 2 |
+| Le mot de passe SMTP n'est jamais réaffiché ✅ | 2 |
+| Un membre du CA voit aussi Finances en lecture seule | 3 |
+| Un dev_user non membre du CA accède à la page par le tableau de bord et voit l'onglet Système | 3 |
 | Les anciennes adresses mènent au bon onglet | 3 |
 
 Utilisateurs de test : ceux de `bin/create_test_users.sql`. Les scénarios multi-utilisateurs se déconnectent entre deux comptes.

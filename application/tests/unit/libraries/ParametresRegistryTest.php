@@ -38,7 +38,7 @@ class ParametresRegistryTest extends TestCase
     public function testEveryParameterIsConsistent()
     {
         $ranks = array('ca' => 1, 'club-admin' => 2, 'dev' => 3);
-        $types = array('text', 'email', 'url', 'textarea', 'markdown', 'bool', 'int', 'password');
+        $types = array('text', 'email', 'url', 'textarea', 'markdown', 'bool', 'int', 'password', 'select', 'image');
         foreach ($this->registry as $key => $def) {
             $this->assertArrayHasKey($def['tab'], $this->tabs, "$key : onglet inconnu");
             $this->assertArrayHasKey($def['read'], $ranks, "$key : profil de lecture inconnu");
@@ -71,6 +71,43 @@ class ParametresRegistryTest extends TestCase
                 $this->assertArrayHasKey($k, $lang, "$l : libellé $k manquant");
             }
             $this->assertSame(array_keys($this->langs['french']), array_keys($lang), "$l : clés différentes du français");
+        }
+    }
+
+    /**
+     * Scénario: Les secrets ne sont jamais présentés au conseil d'administration
+     *   Étant donné les mots de passe et clés déclarés dans la page Configuration
+     *   Quand un membre du CA consulte les onglets qui lui sont ouverts
+     *   Alors aucun secret n'y figure, même masqué
+     */
+    public function testSecretsAreNotReadableByBoard()
+    {
+        foreach ($this->registry as $key => $def) {
+            if (!empty($def['secret'])) {
+                $this->assertNotSame('ca', $def['read'], "$key : secret lisible par le CA");
+            }
+        }
+    }
+
+    /**
+     * Scénario: Les listes de choix et les dépendances désignent des paramètres existants
+     *   Étant donné un paramètre à choisir dans une liste, obligatoire selon un autre paramètre, ou un module qui a besoin d'autres paramètres
+     *   Quand on examine sa déclaration
+     *   Alors la liste propose au moins un choix
+     *   Et les paramètres dont il dépend existent
+     */
+    public function testOptionsAndDependenciesAreConsistent()
+    {
+        foreach ($this->registry as $key => $def) {
+            if ($def['type'] === 'select') {
+                $this->assertNotEmpty($def['options'] ?? array(), "$key : liste de choix vide");
+            }
+            foreach (array_keys($def['required_if'] ?? array()) as $other) {
+                $this->assertArrayHasKey($other, $this->registry, "$key : dépend de $other inconnu");
+            }
+            foreach ($def['requires'] ?? array() as $other) {
+                $this->assertArrayHasKey($other, $this->registry, "$key : module dépendant de $other inconnu");
+            }
         }
     }
 }

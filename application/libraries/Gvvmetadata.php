@@ -992,6 +992,18 @@ class GVVMetadata extends Metadata {
                 $this->field['vue_document_types']['display_order']['Name'] = 'Ordre';
 
                 /**
+                 * Historique des modifications de la page Configuration (parametres_history).
+                 * Les lignes sont préparées par le contrôleur parametres : valeurs déjà
+                 * échappées, bouton de retour arrière en HTML. Libellés traduits par
+                 * gvv_vue_parametres_history_short_field_* (parametres_lang.php).
+                 */
+                $this->field['vue_parametres_history']['id']['Type'] = 'int';
+                $this->field['vue_parametres_history']['id']['Subtype'] = 'key';
+                foreach (array('date', 'auteur', 'parametre', 'action', 'ancienne', 'nouvelle', 'retour') as $f) {
+                        $this->field['vue_parametres_history'][$f]['Type'] = 'varchar';
+                }
+
+                /**
                  * Archived documents (archivage documentaire)
                  */
                 $this->field['archived_documents']['id']['Type'] = 'int';
