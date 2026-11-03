@@ -3,34 +3,42 @@ skinparam sequenceMessageAlign center
 skinparam maxMessageSize 160
 
 actor "Cron\n(quotidien)" as Cron
-participant "Envoi hors-site\n(entrée(s) cron + rclone)" as Script
+participant "Envoi hors-site\n(rclone_offsite_upload.sh,\nrclone_safe_retention.sh)" as Script
 database "backups (local)" as Local
 participant "rclone" as Rclone
 participant "Google Drive\ndu club" as Drive
-participant "Supervision externe\n(optionnel)" as Smtp
-actor "Club\n(email)" as Club
+participant "Supervision externe\n(Healthchecks.io)" as Smtp
+actor "Club\n(email, SMS…)" as Club
 database "logfile.txt\n(local)" as Log
 
-Cron -> Script : déclenche l'exécution
-Script -> Local : repère la dernière sauvegarde DB (*.zip)\net la dernière sauvegarde média (*.tar.gz)
-Script -> Rclone : copy sauvegarde DB
-Rclone -> Drive : upload
-Rclone --> Script : code retour
-
-Script -> Rclone : copy sauvegarde média
-Rclone -> Drive : upload
-Rclone --> Script : code retour
-
-Script -> Rclone : rclone_safe_retention.sh\n(purge fichiers > 3 jours,\nsi une copie distante < 3 j subsiste)
-Rclone -> Drive : purge rétention (ou annulation + alerte au log)
-
-alt optionnel : supervision externe activée (Apps Script ou Healthchecks.io)
-    Smtp -> Smtp : détecte l'absence d'envoi récent
-    Smtp -> Club : email d'alerte
-else supervision non activée / succès
-    note right of Script : pas d'alerte automatique ;\nvérification manuelle possible sur le Drive
+Cron -> Script : déclenche l'envoi de chaque type\n(base de données, médias)
+Script -> Local : repère la dernière sauvegarde du type\net vérifie qu'elle a moins de 36 h
+alt sauvegarde absente ou trop ancienne
+    Script -> Log : ALERTE (sauvegarde locale arrêtée ?)
+    Script -> Smtp : signal d'échec + fin du log
+else sauvegarde récente
+    Script -> Rclone : copy
+    Rclone -> Drive : upload
+    Rclone --> Script : code retour
+    alt erreur rclone (jeton expiré, quota…)
+        Script -> Log : ALERTE (erreur rclone)
+        Script -> Smtp : signal d'échec + fin du log
+    else succès
+        Script -> Log : envoi OK
+        Script -> Smtp : signal de succès
+    end
 end
 
-Script -> Log : trace le résultat (succès/échec, partagé\navec autobackup.py / autobackup_media.py)
+Cron -> Script : rclone_safe_retention.sh, par type
+Script -> Rclone : liste les copies distantes de moins de 3 jours
+alt erreur rclone ou aucune copie récente
+    Script -> Log : ALERTE, purge annulée (cause précisée)
+else copie récente présente
+    Script -> Rclone : purge des fichiers > 3 jours
+    Rclone -> Drive : suppression
+    Script -> Log : purge OK
+end
+
+Smtp -> Club : alerte sur signal d'échec,\nou en l'absence de signal\n(serveur éteint, cron disparu)
 
 @enduml

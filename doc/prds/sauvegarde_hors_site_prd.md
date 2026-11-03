@@ -33,7 +33,7 @@ Ce PRD pourra donner lieu à une implémentation, ou à un guide de mise en plac
 * Restauration automatisée depuis le stockage distant.
 * Support d'un autre fournisseur de stockage distant que Google Drive.
 * Intégration à l'API Google native de GVV (`application/libraries/GoogleCal.php`) : le mécanisme hors-site reste découplé de l'application PHP.
-* Alerte ou notification autre qu'email (SMS, tableau de bord, etc.).
+* Tableau de bord ou notification dans GVV. Les canaux d'alerte autres que l'email (SMS, messagerie) ne sont pas développés : ils sont ceux que propose le service de supervision externe retenu.
 
 ## 4. Parties Prenantes
 
