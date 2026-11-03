@@ -64,10 +64,28 @@ class Reservation_scheduler extends CI_Controller
         }
 
         $sent = $this->_execute('cron');
-        echo "reservation_scheduler cron: sent=$sent\n";
+        echo self::log_line("reservation_scheduler cron: sent=$sent");
 
         $alarms = $this->_execute_alarms('cron');
-        echo 'alarms: ' . Notification_manager::format_stats($alarms) . "\n";
+        echo self::log_line('alarms: ' . Notification_manager::format_stats($alarms));
+    }
+
+    /**
+     * Ligne de compte rendu horodatée, pour le fichier où la crontab redirige
+     * la sortie (même format que les scripts de sauvegarde : « AAAA-MM-JJ HH:MM:SS - … »).
+     * L'heure est celle de Paris, comme les autres journaux de GVV, même si le
+     * php.ini de la ligne de commande fixe un autre fuseau (index.php ne règle
+     * le fuseau que si php.ini n'en définit aucun).
+     *
+     * @param  string   $text
+     * @param  int|null $time horodatage Unix, l'heure courante par défaut
+     * @return string   ligne terminée par un saut de ligne
+     */
+    public static function log_line($text, $time = NULL)
+    {
+        $date = new DateTime('@' . ($time === NULL ? time() : (int) $time));
+        $date->setTimezone(new DateTimeZone('Europe/Paris'));
+        return $date->format('Y-m-d H:i:s') . ' - ' . $text . "\n";
     }
 
     /**
