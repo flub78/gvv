@@ -10,6 +10,7 @@ package "Page Configuration" {
   [parametres_registry\n(config : onglets, paramètres,\nprofils, stockage, règles)] as registry
   [Parametres_store\n(droits, lecture, validation,\nécriture, compte rendu)] as store
   [Config_file_writer\n(écriture ciblée d'une clé)] as writer
+  [Parametres_history_model\n(trace, retour arrière)] as history
 }
 
 package "Pages publiques" {
@@ -19,6 +20,7 @@ package "Pages publiques" {
 }
 
 database "table configuration" as db
+database "table parametres_history" as hdb
 file "application/config/*.php" as files
 
 admin --> ctrl
@@ -27,6 +29,8 @@ store --> registry
 store --> db : paramètres « db »
 store --> writer
 writer --> files : paramètres « file:<nom> »
+store --> history : chaque écriture
+history --> hdb
 
 visitor --> legal
 legal --> pages

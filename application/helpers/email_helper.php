@@ -555,6 +555,30 @@ if (!function_exists('parse_csv_emails')) {
  * @param string &$subject  Email subject (modified in place when redirected)
  * @return string           Effective recipient address
  */
+if (!function_exists('default_email_sender')) {
+    /**
+     * Expéditeur par défaut des e-mails envoyés par GVV : e-mail du club, à défaut
+     * identifiant SMTP, à défaut noreply@gvv.net ; nom du club, à défaut « GVV ».
+     *
+     * @return array (adresse, nom)
+     */
+    function default_email_sender() {
+        $CI = &get_instance();
+        $from = $CI->config->item('email_club');
+        if (empty($from)) {
+            $from = $CI->config->item('smtp_user');
+            if (empty($from) && isset($CI->email) && !empty($CI->email->smtp_user)) {
+                $from = $CI->email->smtp_user;
+            }
+        }
+        if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            $from = 'noreply@gvv.net';
+        }
+        $name = $CI->config->item('nom_club');
+        return array($from, empty($name) ? 'GVV' : $name);
+    }
+}
+
 if (!function_exists('test_intercept_email')) {
     function test_intercept_email($to_email, &$subject) {
         $CI =& get_instance();

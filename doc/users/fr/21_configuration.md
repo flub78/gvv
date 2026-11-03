@@ -10,7 +10,14 @@ La page **Configuration** regroupe les paramètres du club et de l'application d
 | Administrateur du club (club-admin) | Onglets du CA et onglets d'administration du club |
 | Développeur (utilisateur listé dans `dev_users`) | Tous les onglets |
 
-> La page est livrée progressivement. Pour l'instant, elle contient l'onglet **Pages publiques**, réservé à l'administrateur du club. Les autres réglages restent dans leurs écrans habituels (Admin > Club).
+| Onglet | Membre du CA | Administrateur du club |
+| :--- | :--- | :--- |
+| **Club** | lecture seule | modification |
+| **Modules** | lecture seule | modification |
+| **Messagerie** | — | modification |
+| **Pages publiques** | — | modification |
+
+> La page est livrée progressivement. Les réglages qui n'y figurent pas encore restent dans leurs écrans habituels (Admin > Club > Configuration club, Paiements en ligne > Configuration…).
 
 ## Accès
 
@@ -30,6 +37,56 @@ Si vous n'avez accès à aucun onglet, la carte et l'entrée de menu n'apparaiss
 - Une valeur refusée est signalée à côté du champ, avec le motif. Les autres saisies sont conservées et rien n'est perdu.
 - Si vous changez d'onglet alors que des modifications ne sont pas enregistrées, une confirmation vous est demandée.
 - L'adresse de la page désigne l'onglet affiché : on peut la copier pour envoyer un lien direct.
+- Un onglet en **lecture seule** affiche les valeurs, sans champ ni bouton d'enregistrement, avec la mention « Cet onglet est en lecture seule pour vous ».
+- Un champ marqué d'une étoile rouge est obligatoire.
+
+### Mots de passe et clés
+
+Un mot de passe enregistré n'est jamais réaffiché : le champ est vide, et une pastille indique **Valeur définie** ou **Aucune valeur**.
+- Laisser le champ vide et enregistrer **conserve** le mot de passe actuel.
+- Pour le remplacer, saisissez le nouveau puis enregistrez.
+- Pour l'effacer, cochez **Effacer la valeur enregistrée** puis enregistrez.
+
+### Historique et retour arrière
+
+Le bouton **Historique**, en haut de chaque onglet que vous pouvez modifier, liste les modifications de l'onglet, les plus récentes d'abord : date, auteur, paramètre, ancienne et nouvelle valeur.
+
+Le bouton **Revenir** d'une ligne remet la valeur d'avant cette modification. Ce retour :
+- est vérifié comme une saisie : une valeur devenue invalide est refusée, avec le motif ;
+- apparaît à son tour dans l'historique ;
+- n'est pas possible pour un mot de passe, dont la valeur n'est jamais conservée.
+
+## Onglet Club
+
+Identité du club : sigle, nom, code d'identification, adresse, téléphone, e-mail, site web, logo et **contact RGPD**. Ces informations sont reprises dans les documents, les e-mails et les pages publiques.
+
+- Le membre du CA les consulte ; seul l'administrateur du club les modifie.
+- **Logo** : choisissez une image PNG, JPEG ou GIF de 500 Ko au plus, puis enregistrez. L'ancien logo reste sur le serveur : on peut y revenir depuis l'historique.
+
+L'identité du club ne se modifie plus que dans cet onglet. Les autres réglages de l'ancien écran (calendrier Google, FFVV, message de maintenance…) restent dans **Admin > Club > Configuration club**, qui renvoie vers cet onglet.
+
+## Onglet Modules
+
+Active ou désactive les fonctionnalités du club : vols de découverte, réservations, formations, gestion documentaire, paiements HelloAsso, ULM, tickets, pompes, rapprochements bancaires, offres de formation, newsletter de veille, saisie des vols par les pilotes.
+
+- Le menu est mis à jour dès la page suivante.
+- La page Configuration, elle, ne dépend d'aucun module : elle reste accessible pour réactiver un module.
+- Si un module actif a besoin d'un réglage qui manque, un avertissement jaune désigne l'onglet à compléter. Par exemple, les vols de découverte et la newsletter envoient des e-mails : en mode SMTP, il leur faut un serveur SMTP.
+
+## Onglet Messagerie
+
+Réglages d'envoi des e-mails :
+
+| Paramètre | Usage |
+| :--- | :--- |
+| Mode d'envoi | « mail (PHP) », valeur par défaut, sur un hébergement mutualisé ; « SMTP » pour passer par un serveur d'envoi (Brevo…) |
+| Serveur, port, chiffrement | En mode SMTP : par exemple `smtp-relay.brevo.com`, `587`, TLS |
+| Identifiant et mot de passe SMTP | Pour Brevo : tableau de bord Brevo → SMTP & API |
+| Redirection des e-mails / des SMS (essais) | Si renseignée, tout ce que GVV envoie part vers cette adresse ou ce numéro. **À laisser vide en production.** |
+
+**Envoi d'un e-mail de test** : en bas de l'onglet, saisissez un destinataire (votre adresse est proposée) et cliquez sur **Envoyer**. Le résultat s'affiche en haut de l'onglet ; en cas d'échec, « Détails techniques » donne le dialogue avec le serveur.
+- Le test utilise les réglages **enregistrés** : enregistrez vos modifications avant de tester.
+- La redirection des e-mails d'essai ne s'applique pas à ce test.
 
 ## Onglet Pages publiques
 
@@ -47,7 +104,7 @@ L'onglet affiche l'adresse de chaque page, avec deux boutons :
 
 ### Texte générique ou texte du club
 
-Tant que rien n'est saisi, GVV publie un **texte générique** en français, anglais ou néerlandais selon la langue du site. Ce texte reprend automatiquement l'identité du club, saisie dans **Admin > Club > Configuration club** :
+Tant que rien n'est saisi, GVV publie un **texte générique** en français, anglais ou néerlandais selon la langue du site. Ce texte reprend automatiquement l'identité du club, saisie dans l'onglet **Club** :
 - nom, adresse, e-mail, téléphone et site ;
 - **Contact RGPD** : nom ou fonction de la personne à qui adresser les demandes. S'il est vide, la page renvoie vers « le président de l'association ».
 

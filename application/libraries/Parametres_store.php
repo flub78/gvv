@@ -31,6 +31,12 @@ class Parametres_store {
     /** Rang calculé, mémorisé pour la durée de la requête. */
     protected $cached_rank = NULL;
 
+    /** Valeurs lues (clé|langue => résultat de get()), vidé à chaque écriture. */
+    protected $values = array();
+
+    /** Contenu des fichiers de configuration lus, vidé à chaque écriture. */
+    protected $files = array();
+
     public function __construct($params = array()) {
         $this->CI = &get_instance();
         $this->CI->config->load('parametres_registry', TRUE);
@@ -39,6 +45,7 @@ class Parametres_store {
         $this->tabs = isset($params['tabs'])
             ? $params['tabs'] : $this->CI->config->item('parametres_tabs', 'parametres_registry');
         $this->CI->load->library('Config_file_writer');
+        $this->CI->load->model('parametres_history_model');
     }
 
     // ------------------------------------------------------------------
@@ -159,6 +166,17 @@ class Parametres_store {
      * @return array value, is_default (rien n'est défini), updated_at, updated_by
      */
     public function get($key, $lang = NULL) {
+        $cache_key = $key . '|' . $lang;
+        if (!array_key_exists($cache_key, $this->values)) {
+            $this->values[$cache_key] = $this->_read($key, $lang);
+        }
+        return $this->values[$cache_key];
+    }
+
+    /**
+     * Lecture effective d'une valeur (voir get()).
+     */
+    private function _read($key, $lang) {
         $def = $this->definition($key);
         $default = ($def && isset($def['default'])) ? $def['default'] : '';
         $result = array('value' => $default, 'is_default' => TRUE, 'updated_at' => NULL, 'updated_by' => NULL);
@@ -180,7 +198,11 @@ class Parametres_store {
         }
 
         $file = $this->_file_path($def['store']);
-        $value = $this->CI->config_file_writer->read($file, $key, NULL);
+        if (!array_key_exists($file, $this->files)) {
+            $this->files[$file] = is_file($file) ? file_get_contents($file) : NULL;
+        }
+        $value = ($this->files[$file] === NULL) ? NULL
+            : $this->CI->config_file_writer->read_content($this->files[$file], $key, NULL);
         if ($value !== NULL) {
             $result['value'] = $value;
             $result['is_default'] = FALSE;
@@ -217,12 +239,74 @@ class Parametres_store {
                     break;
                 }
             }
-            if (!empty($def['required']) && !$defined) {
+            if (!$defined && $this->is_missing($key)) {
                 return 'incomplete';
             }
             $any_defined = $any_defined || $defined;
         }
         return $any_defined ? 'complete' : 'optional';
+    }
+
+    /**
+     * TRUE si le paramètre est obligatoire : toujours (required), ou parce que
+     * d'autres paramètres ont la valeur indiquée (required_if).
+     */
+    public function is_required($key) {
+        $def = $this->definition($key);
+        if (!$def) {
+            return FALSE;
+        }
+        if (!empty($def['required'])) {
+            return TRUE;
+        }
+        if (empty($def['required_if'])) {
+            return FALSE;
+        }
+        foreach ($def['required_if'] as $other => $expected) {
+            if ((string) $this->get($other)['value'] !== (string) $expected) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
+
+    /**
+     * TRUE si le paramètre est obligatoire et vide.
+     */
+    public function is_missing($key) {
+        $def = $this->definition($key);
+        if (!$def || !$this->is_required($key)) {
+            return FALSE;
+        }
+        $langs = empty($def['per_lang']) ? array(NULL) : self::LANGUAGES;
+        foreach ($langs as $lang) {
+            $value = $this->get($key, $lang)['value'];
+            if ($value !== '' && $value !== NULL && $value !== FALSE) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+    }
+
+    /**
+     * Onglets à compléter pour un module actif dont des paramètres manquent
+     * (EX-ENR-06). Rend un tableau vide si le module est inactif ou complet.
+     *
+     * @return array onglet => liste des clés manquantes
+     */
+    public function missing_requirements($key) {
+        $def = $this->definition($key);
+        if (!$def || empty($def['requires']) || !$this->get($key)['value']) {
+            return array();
+        }
+        $missing = array();
+        foreach ($def['requires'] as $required) {
+            $rdef = $this->definition($required);
+            if ($rdef && $this->is_missing($required)) {
+                $missing[$rdef['tab']][] = $required;
+            }
+        }
+        return $missing;
     }
 
     // ------------------------------------------------------------------
@@ -234,10 +318,14 @@ class Parametres_store {
      *
      * Pour un paramètre en base, une valeur vide supprime la valeur saisie :
      * le paramètre revient à sa valeur par défaut.
+     * Pour un secret, une valeur vide conserve la valeur existante ; l'effacer
+     * demande l'option 'clear' (EX-SEC-02).
+     * Chaque enregistrement est tracé dans l'historique (EX-HIS-01).
      *
+     * @param array $options clear (effacer un secret), action ('retour' depuis l'historique)
      * @return array status ('saved', 'unchanged', 'error'), error (clé de langue), detail
      */
-    public function save($key, $value, $lang = NULL) {
+    public function save($key, $value, $lang = NULL, $options = array()) {
         $def = $this->definition($key);
         if (!$def) {
             return $this->_error('parametres_err_unknown');
@@ -256,31 +344,72 @@ class Parametres_store {
         $value = $this->_normalize($def, $value);
 
         $current = $this->get($key, $lang);
-        if (!empty($def['secret']) && $value === '') {
+        $clear = !empty($def['secret']) && !empty($options['clear']);
+        if ($clear) {
+            if ($current['is_default'] || $current['value'] === '') {
+                return array('status' => 'unchanged', 'error' => '', 'detail' => '');
+            }
+            $value = '';
+        } elseif (!empty($def['secret']) && $value === '') {
             return array('status' => 'unchanged', 'error' => '', 'detail' => '');
         }
-        if ((string) $current['value'] === (string) $value && !($current['is_default'] && $value !== '')) {
+        if ((string) $current['value'] === (string) $value && !($current['is_default'] && (string) $value !== '')) {
             return array('status' => 'unchanged', 'error' => '', 'detail' => '');
         }
 
-        $error = $this->validate($def, $value);
+        $error = $clear ? '' : $this->validate($def, $value, $key);
         if ($error !== '') {
             return $this->_error($error);
         }
 
+        // Toute écriture peut changer d'autres lectures (obligations conditionnelles).
+        $this->values = array();
+        $this->files = array();
         if ($def['store'] === 'db') {
-            $ok = $this->_db_write($key, $lang, $value);
-            return $ok ? array('status' => 'saved', 'error' => '', 'detail' => '')
-                       : $this->_error('parametres_err_db');
+            if (!$this->_db_write($key, $lang, $value)) {
+                return $this->_error('parametres_err_db');
+            }
+        } else {
+            $file = $this->_file_path($def['store']);
+            $writer = $this->CI->config_file_writer;
+            if (!$writer->create($file) || !$writer->write($file, $key, $value)) {
+                return $this->_error('parametres_err_file_' . $writer->error,
+                    str_replace(FCPATH, '', $file));
+            }
+            $this->CI->config->set_item($key, $value);
         }
 
-        $file = $this->_file_path($def['store']);
-        if (!$this->CI->config_file_writer->write($file, $key, $value)) {
-            return $this->_error('parametres_err_file_' . $this->CI->config_file_writer->error,
-                str_replace(FCPATH, '', $file));
-        }
-        $this->CI->config->set_item($key, $value);
+        $action = isset($options['action']) ? $options['action'] : ($clear ? 'effacement' : 'modification');
+        $this->_trace($key, $def, $lang, $current, $value, $action);
         return array('status' => 'saved', 'error' => '', 'detail' => '');
+    }
+
+    /**
+     * Revient à la valeur précédant une modification de l'historique (EX-HIS-03).
+     * La valeur est revalidée comme une saisie, et ce retour est lui-même tracé.
+     * Un secret ne peut pas être restauré.
+     *
+     * @param int $history_id
+     * @return array comme save()
+     */
+    public function restore($history_id) {
+        $row = $this->CI->parametres_history_model->get_by_id($history_id);
+        if (!$row) {
+            return $this->_error('parametres_err_history_unknown');
+        }
+        $def = $this->definition($row['cle']);
+        if (!$def) {
+            return $this->_error('parametres_err_unknown');
+        }
+        if (!empty($def['secret']) || !empty($row['secret'])) {
+            return $this->_error('parametres_err_restore_secret');
+        }
+        $value = $row['ancienne_valeur'];
+        if ($value === NULL) {
+            // Le paramètre n'était pas défini : retour à la valeur par défaut.
+            $value = ($def['store'] === 'db') ? '' : (isset($def['default']) ? $def['default'] : '');
+        }
+        return $this->save($row['cle'], $value, $row['lang'], array('action' => 'retour'));
     }
 
     /**
@@ -288,10 +417,14 @@ class Parametres_store {
      *
      * @return string clé de langue du message d'erreur, ou chaîne vide si la valeur est valide
      */
-    public function validate($def, $value) {
+    public function validate($def, $value, $key = NULL) {
         $rules = isset($def['rules']) && $def['rules'] !== '' ? explode('|', $def['rules']) : array();
-        if (!empty($def['required'])) {
+        if (!empty($def['required']) || ($key !== NULL && $this->is_required($key))) {
             $rules[] = 'required';
+        }
+        if ($def['type'] === 'select' && isset($def['options'])
+            && !array_key_exists((string) $value, $def['options'])) {
+            return 'parametres_err_option';
         }
         if ($def['type'] === 'email') {
             $rules[] = 'valid_email';
@@ -324,6 +457,12 @@ class Parametres_store {
                 case 'integer':
                     if ($str !== '' && !preg_match('/^-?\d+$/', $str)) return 'parametres_err_integer';
                     break;
+                case 'range':
+                    list($min, $max) = array_map('intval', explode(',', $arg));
+                    if ($str !== '' && (!preg_match('/^-?\d+$/', $str) || (int) $str < $min || (int) $str > $max)) {
+                        return 'parametres_err_range';
+                    }
+                    break;
             }
         }
         return '';
@@ -332,6 +471,34 @@ class Parametres_store {
     // ------------------------------------------------------------------
     // Interne
     // ------------------------------------------------------------------
+
+    /**
+     * Trace une modification. Pour un secret, seules l'existence et la nature de
+     * la modification sont conservées, jamais la valeur.
+     */
+    private function _trace($key, $def, $lang, $current, $value, $action) {
+        if (!$this->CI->parametres_history_model->available()) {
+            return;
+        }
+        $secret = !empty($def['secret']);
+        $this->CI->parametres_history_model->trace(array(
+            'cle'             => $key,
+            'onglet'          => $def['tab'],
+            'lang'            => $lang,
+            'ancienne_valeur' => ($secret || $current['is_default']) ? NULL : $this->_to_text($current['value']),
+            'nouvelle_valeur' => $secret ? NULL : $this->_to_text($value),
+            'secret'          => $secret ? 1 : 0,
+            'action'          => $action,
+        ));
+    }
+
+    /** Représentation texte d'une valeur pour l'historique. */
+    private function _to_text($value) {
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+        return (string) $value;
+    }
 
     private function _error($error, $detail = '') {
         return array('status' => 'error', 'error' => $error, 'detail' => $detail);

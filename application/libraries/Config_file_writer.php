@@ -40,7 +40,20 @@ class Config_file_writer {
         if (!is_file($file)) {
             return $default;
         }
-        if (!preg_match($this->_pattern($key), file_get_contents($file), $m)) {
+        return $this->read_content(file_get_contents($file), $key, $default);
+    }
+
+    /**
+     * Comme read(), sur le contenu d'un fichier déjà lu (lecture de plusieurs clés
+     * sans relire le fichier).
+     *
+     * @param string $content
+     * @param string $key
+     * @param mixed  $default
+     * @return mixed
+     */
+    public function read_content($content, $key, $default = NULL) {
+        if (!preg_match($this->_pattern($key), (string) $content, $m)) {
             return $default;
         }
         $raw = trim($m[1]);
@@ -74,6 +87,33 @@ class Config_file_writer {
             return (string) $value;
         }
         return "'" . str_replace(array("\\", "'"), array("\\\\", "\\'"), (string) $value) . "'";
+    }
+
+    /**
+     * Crée un fichier de configuration vide (en-tête CodeIgniter seul) s'il n'existe
+     * pas, pour qu'une première clé puisse y être écrite. Le fichier n'est pas
+     * copié depuis son modèle *.example.php, dont les valeurs d'exemple
+     * changeraient le comportement de GVV (par exemple le mode d'envoi des e-mails).
+     *
+     * @return bool TRUE si le fichier existe ou a été créé, FALSE avec le motif dans $this->error
+     */
+    public function create($file) {
+        $this->error = '';
+        if (is_file($file)) {
+            return TRUE;
+        }
+        if (!is_writable(dirname($file))) {
+            $this->error = "missing_file";
+            return FALSE;
+        }
+        $content = "<?php if (!defined('BASEPATH')) exit('No direct script access allowed');\n"
+            . "/* Créé par la page Configuration de GVV. */\n";
+        if (file_put_contents($file, $content, LOCK_EX) === FALSE) {
+            $this->error = "write_failed";
+            return FALSE;
+        }
+        @chmod($file, 0664);
+        return TRUE;
     }
 
     /**

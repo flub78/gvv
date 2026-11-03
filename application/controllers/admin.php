@@ -3234,18 +3234,7 @@ SQL;
             } else {
                 $this->load->library('email');
 
-                $from = $this->config->item('email_club');
-                if (empty($from)) {
-                    $from = $this->config->item('smtp_user');
-                }
-                if (empty($from)) {
-                    $from = 'noreply@gvv.net';
-                }
-
-                $from_name = $this->config->item('nom_club');
-                if (empty($from_name)) {
-                    $from_name = 'GVV';
-                }
+                list($from, $from_name) = default_email_sender();
 
                 $this->email->clear(true);
                 $this->email->from($from, $from_name);

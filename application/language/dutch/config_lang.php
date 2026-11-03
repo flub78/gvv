@@ -5,24 +5,15 @@
 
 # $this->lang->line("") . 
 $lang['gvv_config_title'] = "Configutatie club";
+$lang['gvv_config_identity_moved'] = "De identiteit van de club (afkorting, naam, adres, telefoon, e-mail, website, logo, AVG-contactpersoon) wordt voortaan gewijzigd in %s, waar elke wijziging wordt vastgelegd.";
+$lang['gvv_config_identity_moved_link'] = "het tabblad Club van de configuratiepagina";
 
-$lang['gvv_config_field_acronym'] = "Afkorting";
-$lang['gvv_config_field_name'] = "Naam";
-$lang['gvv_config_field_id'] = "Afkorting LVZC";
-$lang['gvv_config_field_adresse'] = "Adres";
-$lang['gvv_config_field_zip'] = "Postcode";
-$lang['gvv_config_field_city'] = "Stad";
-$lang['gvv_config_field_tel'] = "Telefoon";
-$lang['gvv_config_field_email'] = "E-mailadres";
-$lang['gvv_config_field_web'] = "Website";
-$lang['gvv_config_field_contact_rgpd'] = "Contactpersoon gegevensbescherming (naam of functie)";
 $lang['gvv_config_field_gcalendar'] = "Gebruiker kalender Google";
 $lang['gvv_config_field_theme_graphic'] = "Thema";
 $lang['gvv_config_field_palette'] = "Kleuren";
 $lang['gvv_config_field_facturation'] = "Facturatiemodel";
 $lang['gvv_config_field_gcalendar_url'] = "URL Google calendar";
 $lang['gvv_config_field_planche_auto'] = "URL automatische plank";
-$lang['gvv_config_field_logo'] = "Logo";
 $lang['gvv_config_maintenance_message'] = "Onderhoudsbericht";
 
 

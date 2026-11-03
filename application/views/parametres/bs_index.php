@@ -11,6 +11,8 @@
  * @var array  $saved     libellés des paramètres enregistrés
  * @var array  $errors    champ(.langue) => name, message
  * @var array  $posted    saisies à réafficher après une erreur
+ * @var array  $warnings  modules actifs auxquels il manque des paramètres : module, tab, label
+ * @var array  $test_email   résultat du dernier e-mail de test (onglet Messagerie)
  */
 $status_badges = array(
     'complete'   => array('bg-success', 'fa-check'),
@@ -76,10 +78,40 @@ $shown = function ($p, $lang) use ($posted) {
 </ul>
 
 <?php $info = $tabs[$tab]; ?>
-<p class="text-muted">
+<div class="d-flex flex-wrap align-items-start gap-2 mb-3">
+<p class="text-muted mb-0 flex-grow-1">
     <?= $this->lang->line($info['help']) ?>
     <span class="ms-2 small">(<?= $this->lang->line('parametres_status_' . $statuses[$tab]) ?>)</span>
 </p>
+<?php if ($writable): /* Historique réservé à qui peut modifier l'onglet (EX-HIS-02). */ ?>
+<a href="<?= site_url('parametres/historique/' . $tab) ?>" class="btn btn-outline-secondary btn-sm" id="parametres-history-link">
+    <i class="fas fa-history me-1"></i><?= $this->lang->line('parametres_history') ?>
+</a>
+<?php endif; ?>
+</div>
+
+<?php if (!empty($warnings)): ?>
+<div class="alert alert-warning" role="alert" id="parametres-warnings">
+    <i class="fas fa-exclamation-triangle me-1"></i>
+    <?php foreach ($warnings as $w): ?>
+    <div><?= sprintf($this->lang->line('parametres_module_incomplete'), htmlspecialchars($w['module']),
+        anchor('parametres/index/' . $w['tab'], htmlspecialchars($w['label']))) ?></div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<?php if (!empty($test_email)): ?>
+<div class="alert alert-<?= $test_email['ok'] ? 'success' : 'danger' ?> alert-dismissible fade show" role="alert" id="parametres-test-result">
+    <i class="fas <?= $test_email['ok'] ? 'fa-check-circle' : 'fa-times-circle' ?> me-1"></i>
+    <?= htmlspecialchars($test_email['text']) ?>
+    <?php if (!empty($test_email['debug'])): ?>
+    <details class="mt-2"><summary class="small"><?= $this->lang->line('parametres_test_email_debug') ?></summary>
+        <pre class="small bg-dark text-light p-2 mt-1" style="white-space: pre-wrap; word-break: break-all;"><?= htmlspecialchars(strip_tags(str_replace(array('<br />', '<br>'), "\n", $test_email['debug']))) ?></pre>
+    </details>
+    <?php endif; ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<?php endif; ?>
 
 <?php if (!$writable): ?>
 <div class="alert alert-secondary" id="parametres-read-only">
@@ -87,23 +119,23 @@ $shown = function ($p, $lang) use ($posted) {
 </div>
 <?php endif; ?>
 
-<form method="post" action="<?= site_url('parametres/save/' . $tab) ?>" id="parametres-form">
+<form method="post" action="<?= site_url('parametres/save/' . $tab) ?>" id="parametres-form" enctype="multipart/form-data" novalidate>
 <input type="hidden" name="parametres_token" value="<?= htmlspecialchars($token) ?>">
 
 <?php foreach ($params as $key => $p):
     $def = $p['def'];
-    $disabled = $p['writable'] ? '' : ' disabled';
     $langs = empty($def['per_lang']) ? array('') : $languages;
 ?>
 <div class="card mb-3" data-param="<?= htmlspecialchars($key) ?>">
     <div class="card-header d-flex flex-wrap align-items-center gap-2">
         <strong><?= $this->lang->line($def['label']) ?></strong>
+        <?php if (!empty($def['required'])): ?><span class="text-danger" title="<?= $this->lang->line('parametres_required') ?>">*</span><?php endif; ?>
         <?php if (isset($public_pages[$key])): ?>
         <?php $this->load->view('parametres/bs_public_url', array('url' => $public_pages[$key], 'preview' => TRUE)); ?>
         <?php endif; ?>
     </div>
     <div class="card-body">
-        <?php if (!empty($def['help'])): ?>
+        <?php if (!empty($def['help']) && $this->lang->line($def['help']) !== ''): ?>
         <p class="form-text mt-0"><?= htmlspecialchars($this->lang->line($def['help'])) ?></p>
         <?php endif; ?>
 
@@ -128,19 +160,57 @@ $shown = function ($p, $lang) use ($posted) {
             $invalid = isset($errors[$error_key]) ? ' is-invalid' : '';
         ?>
             <div class="tab-pane<?= ($i === 0) ? ' show active' : '' ?>" id="pane-<?= $p['field'] ?>-<?= $lang ?>">
-            <?php if ($def['type'] === 'markdown' || $def['type'] === 'textarea'): ?>
+            <?php if (!$p['writable']): /* Lecture seule : valeur affichée, jamais un champ (EX-PRO-05). */ ?>
+                <div class="parametres-ro" id="<?= $id ?>">
+                <?php if (!empty($def['secret'])): ?>
+                    <?php $this->load->view('parametres/bs_secret_status', array('defined' => !$current['is_default'] && $current['value'] !== '')); ?>
+                <?php elseif ($def['type'] === 'bool'): ?>
+                    <span class="badge <?= $value ? 'bg-success' : 'bg-secondary' ?>"><?= $this->lang->line($value ? 'parametres_yes' : 'parametres_no') ?></span>
+                <?php elseif ($def['type'] === 'image'): ?>
+                    <?= $value ? img(array('src' => $value, 'style' => 'max-height:80px', 'alt' => '')) : '—' ?>
+                <?php elseif ($def['type'] === 'markdown' || $def['type'] === 'textarea'): ?>
+                    <pre class="small bg-light p-2 border mb-0" style="white-space: pre-wrap;"><?= htmlspecialchars((string) $value) ?></pre>
+                <?php elseif ($def['type'] === 'select'): ?>
+                    <?= htmlspecialchars(isset($def['options'][(string) $value]) ? $def['options'][(string) $value] : (string) $value) ?>
+                <?php else: ?>
+                    <?= ((string) $value !== '') ? htmlspecialchars((string) $value) : '—' ?>
+                <?php endif; ?>
+                </div>
+            <?php elseif ($def['type'] === 'markdown' || $def['type'] === 'textarea'): ?>
                 <textarea class="form-control font-monospace<?= $invalid ?>" rows="14" id="<?= $id ?>"
-                          name="<?= $name ?>"<?= $disabled ?>><?= htmlspecialchars((string) $value) ?></textarea>
+                          name="<?= $name ?>"><?= htmlspecialchars((string) $value) ?></textarea>
             <?php elseif ($def['type'] === 'bool'): ?>
                 <input type="hidden" name="<?= $name ?>" value="0">
                 <div class="form-check form-switch">
                     <input class="form-check-input<?= $invalid ?>" type="checkbox" id="<?= $id ?>" name="<?= $name ?>"
-                           value="1"<?= $value ? ' checked' : '' ?><?= $disabled ?>>
+                           value="1"<?= $value ? ' checked' : '' ?>>
                 </div>
+            <?php elseif ($def['type'] === 'select'): ?>
+                <select class="form-select<?= $invalid ?>" id="<?= $id ?>" name="<?= $name ?>">
+                <?php foreach ($def['options'] as $opt => $opt_label): ?>
+                    <option value="<?= htmlspecialchars((string) $opt) ?>"<?= (string) $opt === (string) $value ? ' selected' : '' ?>><?= htmlspecialchars($opt_label) ?></option>
+                <?php endforeach; ?>
+                </select>
+            <?php elseif ($def['type'] === 'image'): ?>
+                <?php if ($current['value']): ?>
+                <div class="mb-2"><?= img(array('src' => $current['value'], 'style' => 'max-height:80px', 'alt' => '')) ?></div>
+                <?php endif; ?>
+                <input class="form-control<?= $invalid ?>" type="file" accept="image/png,image/jpeg,image/gif"
+                       id="<?= $id ?>" name="img_<?= $p['field'] ?>">
+            <?php elseif (!empty($def['secret'])): ?>
+                <?php $this->load->view('parametres/bs_secret_status', array('defined' => !$current['is_default'] && $current['value'] !== '')); ?>
+                <input class="form-control mt-1<?= $invalid ?>" id="<?= $id ?>" name="<?= $name ?>" type="password"
+                       autocomplete="new-password" value="" placeholder="<?= htmlspecialchars($this->lang->line('parametres_secret_placeholder')) ?>">
+                <?php if (!$current['is_default'] && $current['value'] !== ''): ?>
+                <div class="form-check mt-1">
+                    <input class="form-check-input" type="checkbox" id="clear-<?= $p['field'] ?>" name="clear[<?= $p['field'] ?>]" value="1">
+                    <label class="form-check-label small" for="clear-<?= $p['field'] ?>"><?= $this->lang->line('parametres_secret_clear') ?></label>
+                </div>
+                <?php endif; ?>
             <?php else: ?>
                 <input class="form-control<?= $invalid ?>" id="<?= $id ?>" name="<?= $name ?>"
-                       type="<?= in_array($def['type'], array('email', 'url', 'password')) ? $def['type'] : 'text' ?>"
-                       value="<?= empty($def['secret']) ? htmlspecialchars((string) $value) : '' ?>"<?= $disabled ?>>
+                       type="<?= in_array($def['type'], array('email', 'url')) ? $def['type'] : ($def['type'] === 'int' ? 'number' : 'text') ?>"
+                       value="<?= htmlspecialchars((string) $value) ?>">
             <?php endif; ?>
 
             <?php if ($invalid): ?>
@@ -148,7 +218,8 @@ $shown = function ($p, $lang) use ($posted) {
             <?php endif; ?>
 
             <div class="form-text">
-            <?php if ($current['is_default']): ?>
+            <?php if ($current['is_default'] && !empty($def['secret'])): ?>
+            <?php elseif ($current['is_default']): ?>
                 <i class="fas fa-info-circle"></i> <?= $this->lang->line('parametres_default_value') ?>
             <?php elseif (!empty($current['updated_at'])): ?>
                 <?= sprintf($this->lang->line('parametres_last_update'),
@@ -185,6 +256,28 @@ $shown = function ($p, $lang) use ($posted) {
 </button>
 <?php endif; ?>
 </form>
+
+<?php if ($tab === 'messagerie' && $writable): ?>
+<div class="card mt-4" id="parametres-test-email">
+    <div class="card-header"><i class="fas fa-paper-plane me-1"></i><strong><?= $this->lang->line('parametres_test_email_title') ?></strong></div>
+    <div class="card-body">
+        <p class="form-text mt-0"><?= $this->lang->line('parametres_test_email_card_help') ?></p>
+        <form method="post" action="<?= site_url('parametres/test_email') ?>" class="row g-2 align-items-end">
+            <input type="hidden" name="parametres_token" value="<?= htmlspecialchars($token) ?>">
+            <div class="col-sm-8 col-md-6">
+                <label class="form-label" for="test-email-to"><?= $this->lang->line('parametres_test_email_to') ?></label>
+                <input type="email" class="form-control" id="test-email-to" name="to" required
+                       value="<?= htmlspecialchars(!empty($test_email['to']) ? $test_email['to'] : (string) $test_email_to) ?>">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary" id="parametres-test-email-send">
+                    <i class="fas fa-paper-plane me-1"></i><?= $this->lang->line('parametres_test_email_send') ?>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
 </div>
 
 <script>
@@ -197,7 +290,7 @@ $shown = function ($p, $lang) use ($posted) {
         form.addEventListener('submit', function () { dirty = false; });
     }
     // Changer d'onglet avec des saisies non enregistrées demande confirmation.
-    document.querySelectorAll('#parametres-tabs a.nav-link').forEach(function (link) {
+    document.querySelectorAll('#parametres-tabs a.nav-link, #parametres-history-link').forEach(function (link) {
         link.addEventListener('click', function (e) {
             if (dirty && !window.confirm(<?= json_encode($this->lang->line('parametres_unsaved_confirm')) ?>)) {
                 e.preventDefault();

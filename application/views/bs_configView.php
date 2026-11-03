@@ -35,26 +35,19 @@ if (isset($message)) {
 echo checkalert($this->session, isset($popup) ? $popup : "");
 echo heading("gvv_config_title", 3);
 
-echo form_hidden('logo_club', $logo_club);
+// L'identité du club se modifie dans l'onglet Club de la page Configuration.
+echo '<div class="alert alert-info" id="config-identity-moved"><i class="fas fa-info-circle me-1"></i>'
+	. sprintf($this->lang->line('gvv_config_identity_moved'),
+		anchor('parametres/index/club', $this->lang->line('gvv_config_identity_moved_link')))
+	. '</div>';
 
-echo form_open_multipart(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
+echo form_open(controller_url($controller) . "/formValidation/" . $action, array('name' => 'saisie'));
 
 $config_fields = array(
-	array($this->lang->line("gvv_config_field_acronym"), input_field('sigle_club', $sigle_club, array('type'  => 'text', 'size' => '40'))),
-	array($this->lang->line("gvv_config_field_name"), input_field('nom_club', $nom_club, array('type'  => 'text', 'size' => '100'))),
-	array($this->lang->line("gvv_config_field_id"), input_field('code_club', $code_club, array('type'  => 'text', 'size' => '20'))),
-	array($this->lang->line("gvv_config_field_adresse"), input_field('adresse_club', $adresse_club, array('type'  => 'text', 'size' => '100'))),
-	array($this->lang->line("gvv_config_field_zip"), input_field('cp_club', $cp_club, array('type'  => 'text', 'size' => '10'))),
-	array($this->lang->line("gvv_config_field_city"), input_field('ville_club', $ville_club, array('type'  => 'text', 'size' => '100'))),
-	array($this->lang->line("gvv_config_field_tel"), input_field('tel_club', $tel_club, array('type'  => 'text'))),
-	array($this->lang->line("gvv_config_field_email"), input_field('email_club', $email_club, array('type'  => 'text', 'size' => 50))),
-	array($this->lang->line("gvv_config_field_web"), input_field('url_club', $url_club, array('type'  => 'text', 'size' => 50))),
-	array($this->lang->line("gvv_config_field_contact_rgpd"), input_field('contact_rgpd', $contact_rgpd, array('type'  => 'text', 'size' => 50))),
 	array($this->lang->line("gvv_config_field_gcalendar"), input_field('calendar_id', $calendar_id, array('type'  => 'text', 'size' => 50))),
 	array($this->lang->line("gvv_config_field_facturation"), input_field('club', $club, array('type'  => 'text', 'size' => 32))),
 	array($this->lang->line("gvv_config_field_gcalendar_url"), input_field('url_gcalendar', $url_gcalendar, array('type'  => 'text', 'size' => '100'))),
 	array($this->lang->line("gvv_config_field_planche_auto"), input_field('url_planche_auto', $url_planche_auto, array('type'  => 'text', 'size' => '100'))),
-	array($this->lang->line("gvv_config_field_logo"), img($logo_club) . '<br><input type="file" name="userfile" size="20" />'),
 	array($this->lang->line("gvv_config_maintenance_message"), form_textarea(array(
 		'name' => 'maintenance_message',
 		'value' => isset($maintenance_message) ? $maintenance_message : '',
