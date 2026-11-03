@@ -1399,6 +1399,8 @@ class GVVMetadata extends Metadata {
                         "vd.ulm.contact_name" => "Nom du contact ULM",
                         "vd.ulm.contact_tel" => "Téléphone du contact ULM",
                         "vd.background_image" => "Image de fond des bons vols de découverte",
+                        "legal.confidentialite" => "Règles de confidentialité (page publique)",
+                        "legal.conditions" => "Conditions d'utilisation (page publique)",
 
                         // Configuration club fields from config controller
                         "sigle_club" => "Logo du club",

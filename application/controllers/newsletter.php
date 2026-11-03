@@ -3,7 +3,8 @@
 /**
  * Newsletter
  *
- * Archive des newsletters publiées, accessible aux membres actifs connectés.
+ * Archive des newsletters publiées, accessible sans connexion (page publique) :
+ * la liste des numéros parus et leurs PDF.
  *
  * Routes :
  *   GET newsletter/index   Liste des newsletters publiées
@@ -20,17 +21,12 @@ class Newsletter extends MY_Controller {
             show_404();
         }
 
-        if (!$this->dx_auth->is_logged_in()) {
-            redirect('auth/login');
-            return;
-        }
-
         $this->lang->load('newsletter');
         $this->load->model('newsletter_model');
     }
 
     /**
-     * Sert un PDF à un membre connecté.
+     * Sert le PDF d'un numéro publié.
      */
     public function pdf($id) {
         $newsletter = $this->newsletter_model->get((int) $id);

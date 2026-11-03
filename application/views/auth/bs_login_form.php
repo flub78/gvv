@@ -132,3 +132,9 @@ echo br(2);
 echo form_close()
 ?>
 </div>
+<?php $this->lang->load('legal'); ?>
+<div class="text-center small pb-4" id="legal-links">
+	<a href="<?= site_url('legal/confidentialite') ?>"><?= $this->lang->line('legal_confidentialite') ?></a>
+	&middot;
+	<a href="<?= site_url('legal/conditions') ?>"><?= $this->lang->line('legal_conditions') ?></a>
+</div>

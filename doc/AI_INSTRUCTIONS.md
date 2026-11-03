@@ -331,7 +331,8 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 | Pièces jointes | `attachment` `upload` |
 | Exports | `export` |
 | Authentification et autorisations | `authoriz` `access-control` `auth-login` `login` `navigation-policy` `abraracourcix` `asterix` `goudurix` `obelix` `panoramix` `gaulois` `legacy-users` `roles` `DXAuth` |
-| Configuration | `config` |
+| Pages publiques | `legal` |
+| Configuration | `config` `parametres` |
 | Sauvegarde et migrations | `DatabaseRestore` `FileRotator` `migration` |
 | Socle technique | `.` |
 <!-- test-features:end -->

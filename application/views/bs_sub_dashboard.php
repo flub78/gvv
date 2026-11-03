@@ -1041,9 +1041,22 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
          Section Administration Club
          ================================================================ -->
     <?php $club_title = $this->lang->line('db_h5_club'); ?>
-    <?php if (has_role('club-admin') || $show_planeurs || $show_avions || !empty($shortcuts_by_section[$club_title])) : ?>
+    <?php $show_parametres = parametres_accessible(); ?>
+    <?php if (has_role('club-admin') || $show_parametres || $show_planeurs || $show_avions || !empty($shortcuts_by_section[$club_title])) : ?>
     <h5 class="mb-3"><?= $club_title ?></h5>
     <div class="row g-2">
+        <?php if ($show_parametres): ?>
+        <?php $this->lang->load('parametres'); ?>
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+            <div class="sub-card text-center" id="card-parametres">
+                <i class="fas fa-sliders-h text-primary"></i>
+                <div class="card-title"><?= $this->lang->line('parametres_title') ?></div>
+                <div class="card-text text-muted"><?= $this->lang->line('parametres_card_desc') ?></div>
+                <a href="<?= controller_url('parametres') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if (has_role('club-admin')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">

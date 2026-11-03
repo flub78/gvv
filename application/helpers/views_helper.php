@@ -221,6 +221,34 @@ if (!function_exists('has_role')) {
     }
 }
 
+if (!function_exists('is_dev_user')) {
+    /**
+     * TRUE si l'utilisateur connecté figure dans la liste dev_users (program.php).
+     */
+    function is_dev_user() {
+        $CI = &get_instance();
+        if (!$CI->dx_auth->is_logged_in()) {
+            return false;
+        }
+        $dev_users = array_filter(array_map('trim', explode(',', (string) $CI->config->item('dev_users'))));
+        return in_array($CI->dx_auth->get_username(), $dev_users, true);
+    }
+}
+
+if (!function_exists('parametres_accessible')) {
+    /**
+     * TRUE si l'utilisateur connecté peut voir au moins un onglet de la page Configuration.
+     */
+    function parametres_accessible() {
+        $CI = &get_instance();
+        if (!$CI->dx_auth->is_logged_in()) {
+            return false;
+        }
+        $CI->load->library('Parametres_store');
+        return count($CI->parametres_store->visible_tabs()) > 0;
+    }
+}
+
 if (!function_exists('has_global_role')) {
     /**
      * Check if the current user has a role in ANY section (global check).

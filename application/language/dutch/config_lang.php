@@ -15,6 +15,7 @@ $lang['gvv_config_field_city'] = "Stad";
 $lang['gvv_config_field_tel'] = "Telefoon";
 $lang['gvv_config_field_email'] = "E-mailadres";
 $lang['gvv_config_field_web'] = "Website";
+$lang['gvv_config_field_contact_rgpd'] = "Contactpersoon gegevensbescherming (naam of functie)";
 $lang['gvv_config_field_gcalendar'] = "Gebruiker kalender Google";
 $lang['gvv_config_field_theme_graphic'] = "Thema";
 $lang['gvv_config_field_palette'] = "Kleuren";
