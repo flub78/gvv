@@ -17,10 +17,10 @@ Cette séparation découle directement du PRD (ENF-001, et l'exclusion explicite
 | Composant | Rôle | Nouveau ? |
 | :--- | :--- | :--- |
 | `tools/autobackup.py`, `tools/autobackup_media.py` | Produisent les sauvegardes locales (déjà existant, hors périmètre de ce PRD) | Non |
-| **Envoi hors-site** | Repère la dernière sauvegarde locale de chaque type et invoque `rclone` pour l'upload, puis lance la purge de rétention distante via le garde-fou ci-dessous | Oui (cœur du besoin) |
+| `tools/rclone_offsite_upload.sh` | Envoi hors-site d'un type de sauvegarde : repère la dernière sauvegarde locale, vérifie qu'elle est récente, l'envoie par `rclone copy`, journalise le résultat et signale succès ou échec au service de supervision. Aucun secret ni chemin en dur (tout en paramètre) | Oui (cœur du besoin) |
 | **rclone** | Client CLI qui gère l'upload vers Google Drive et la suppression des fichiers distants trop anciens (`--min-age`) ; sa configuration (client OAuth **dédié au club** — cf. §4 — et jeton du compte `info@planeur-abbeville.fr`) est stockée sur le serveur, hors du dépôt (ENF-002) | Outil externe existant |
-| `tools/rclone_safe_retention.sh` | Encapsule la purge `rclone delete --min-age` d'un garde-fou : n'efface les fichiers distants anciens que s'il subsiste déjà une sauvegarde distante de moins de trois jours, sinon annule la purge et journalise une alerte. Aucun secret ni chemin en dur (tout en paramètre) | Oui |
-| **Alerte en cas d'échec** *(optionnel, voir §5)* | Signale qu'un envoi quotidien n'a pas eu lieu | Oui, mais report possible à un outil de supervision externe |
+| `tools/rclone_safe_retention.sh` | Encapsule la purge `rclone delete --min-age` d'un garde-fou : n'efface les fichiers distants anciens que s'il subsiste déjà une sauvegarde distante de moins de trois jours, sinon annule la purge et journalise une alerte qui distingue une erreur rclone d'une absence de copie récente. Aucun secret ni chemin en dur (tout en paramètre) | Oui |
+| **Supervision externe** (Healthchecks.io, voir §5) | Reçoit un signal de succès ou d'échec par type de sauvegarde ; alerte (email, SMS…) sur échec signalé ou en l'absence de signal | Service externe, configuration seulement |
 | `backups/logfile.txt` | Journal partagé, déjà utilisé par les deux scripts existants ; l'envoi hors-site peut y ajouter ses propres lignes selon la même convention | Existant, réutilisé |
 
 ## 3. Flux d'exécution quotidien
@@ -29,9 +29,9 @@ Cette séparation découle directement du PRD (ENF-001, et l'exclusion explicite
 
 Points à noter :
 
-* L'upload ne régénère jamais de sauvegarde (EF-004) : le script se contente de désigner le fichier le plus récent de chaque type dans `backups/`.
+* L'upload ne régénère jamais de sauvegarde (EF-004) : le script se contente de désigner le fichier le plus récent de chaque type dans `backups/`. Il refuse un fichier trop ancien (36 h par défaut) : sinon, une panne de la sauvegarde locale ferait re-copier sans erreur un fichier inchangé et passerait inaperçue.
 * La rétention distante (EF-006/EF-007, 3 jours) s'appuie sur `rclone delete --min-age`, appliqué indépendamment aux deux types de sauvegarde, mais **encapsulé** dans `tools/rclone_safe_retention.sh`. Une purge aveugle par âge est dangereuse : si les sauvegardes locales cessent d'être produites, l'upload re-copie sans erreur un fichier inchangé pendant que la purge continue de tourner et finit par effacer la dernière copie distante valide. Le garde-fou vérifie qu'une sauvegarde distante récente subsiste avant de purger — seule logique à maintenir, une dizaine de lignes shell.
-* L'échec d'un seul des deux envois (CL-002) doit être détecté indépendamment de l'autre, pour que l'alerte identifie précisément le type concerné (EF-009) — *si l'alerte est mise en place, voir §5*.
+* L'échec d'un seul des deux envois (CL-002) est détecté indépendamment de l'autre : un check de supervision par type de sauvegarde, pour que l'alerte identifie précisément le type concerné (EF-009).
 * Aucune notification n'est envoyée en cas de succès complet (EF-010) — le seul signal de bonne santé est l'absence d'email, complété par la trace dans `logfile.txt` et par la présence des fichiers sur le Google Drive pour qui veut vérifier activement.
 
 ## 4. Sécurité des identifiants
@@ -40,13 +40,13 @@ Points à noter :
 
 Google ayant annoncé (préavis de 90 jours, courant 2026) la facturation des appels API passant par le client OAuth partagé par défaut de `rclone`, la configuration utilise un **client OAuth propre au club**, créé dans Google Cloud Console sur le compte cible avec le seul scope `drive.file`. Cela n'introduit pas de secret sensible supplémentaire : le `client_secret` d'une application OAuth « installée » n'est pas un secret fort (il est volontairement visible dans de nombreux projets open source), il est simplement gardé hors du dépôt par principe.
 
-La liste des adresses email d'alerte (QO-001) suit le même principe que la config `rclone` : un fichier de configuration local au serveur, non versionné — pas besoin de passer par la table `email_lists` de GVV, ce qui préserverait le découplage vis-à-vis de la base de données applicative.
+La liste des destinataires d'alerte (QO-001) se règle dans le service de supervision (intégrations du compte Healthchecks.io), hors du serveur et hors du dépôt. Les URL de ping, passées en paramètre dans la crontab, ne permettent que de signaler un état ; aucune table de GVV n'est sollicitée, ce qui préserve le découplage vis-à-vis de la base de données applicative.
 
-## 5. Alerte en cas d'échec : étape optionnelle
+## 5. Alerte en cas d'échec
 
-Contrairement à l'hypothèse initiale du PRD, l'alerte automatique par email n'est pas indispensable pour rendre le mécanisme fiable : la présence des sauvegardes locales se vérifie déjà facilement par leur présence sur disque (comme le fait implicitement la politique de rétention des scripts existants), et il en va de même côté distant — la présence des fichiers récents sur le Google Drive du club se vérifie tout aussi facilement, manuellement ou via un outil de supervision généraliste. Rien n'empêche de mettre en place l'upload et la rétention (§3) sans détection d'échec dédiée, et d'ajouter la surveillance plus tard si le besoin s'en fait sentir.
+Une version antérieure de ce document classait l'alerte comme optionnelle, la présence des fichiers récents pouvant se vérifier à la main. L'exploitation l'a démenti : en septembre 2026, le jeton Google a expiré et l'envoi s'est arrêté ; malgré une ligne `ALERTE` chaque nuit dans `logfile.txt`, la panne n'a été découverte que deux mois plus tard. Une vérification qui dépend de quelqu'un qui pense à regarder ne protège pas. L'alerte (EF-008 à EF-010, CL-002, CL-005) est donc **obligatoire**, et doit venir de l'extérieur du serveur pour couvrir aussi un serveur éteint ou un cron disparu.
 
-Cette étape (EF-008 à EF-010, CL-002, CL-005) est donc reclassée **optionnelle** pour une première mise en place. Si elle est retenue, deux familles d'outils externes évitent d'avoir à écrire la logique de détection/notification :
+Deux familles d'outils externes évitent d'avoir à écrire la logique de notification :
 
 ### Outils associés à Google Drive
 
@@ -58,7 +58,7 @@ Cette étape (EF-008 à EF-010, CL-002, CL-005) est donc reclassée **optionnell
 
 Indépendamment de Google Drive, **Healthchecks.io** (et équivalents : Cronitor, cron-job.org) est un service de supervision de tâches planifiées : le job envoie un simple ping HTTP (`curl`) à la fin de son exécution ; si le ping n'arrive pas dans la fenêtre attendue, le service alerte automatiquement par email (et d'autres canaux). Offre gratuite jusqu'à 20 jobs surveillés, auto-hébergeable si besoin.
 
-Appliqué ici : deux jobs de supervision distincts (un pour la sauvegarde base de données, un pour les médias), chacun pingé séparément après le `rclone copy` correspondant. Cette approche couvre EF-009 (distinguer le type en échec) sans qu'aucune logique de détection ou de composition d'email ne soit à écrire — le ping conditionnel est une ligne de plus ajoutée à la commande déjà présente en cron, pas un script séparé.
+Appliqué ici, c'est la solution retenue : deux checks distincts (base de données, médias), chacun signalé par `tools/rclone_offsite_upload.sh` à la fin de l'envoi correspondant, en succès ou en échec (`/fail`, avec la fin du log en pièce jointe). Le script porte la détection (sauvegarde absente ou trop ancienne, erreur rclone) ; le service porte la notification (email, SMS selon l'offre, Telegram, Signal, ntfy, ou webhook vers une passerelle SMS) et l'alerte en l'absence de signal. Cette approche couvre EF-009 (distinguer le type en échec). Le Google Apps Script reste un complément possible, qui contrôle ce qui est réellement présent sur le Drive.
 
 ## 6. Analyse : implémentation GVV ou outils externes ?
 
@@ -69,29 +69,18 @@ Appliqué ici : deux jobs de supervision distincts (un pour la sauvegarde base d
 
 Pour ces points, un simple appel `rclone` en ligne de commande suffit : aucune ligne de code à écrire ni à maintenir dans le dépôt GVV. C'est cohérent avec le périmètre du PRD, qui nomme `rclone` comme l'outil imposé plutôt que de demander une intégration API Google sur mesure.
 
-### Ce qui demande un mince script d'exploitation
+### Ce qui demande de minces scripts d'exploitation
 
-* La rétention distante par âge (`rclone delete --min-age`) ne peut **pas** être laissée en cron brut (§3) : elle est encapsulée dans `tools/rclone_safe_retention.sh`, un script d'exploitation d'une dizaine de lignes, au même niveau que `tools/autobackup.py` et sans lien avec l'application GVV. C'est la seule logique à maintenir dans le dépôt.
+Deux scripts shell, au même niveau que `tools/autobackup.py` et sans lien avec l'application GVV :
 
-### Désigner le dernier fichier local
+* `tools/rclone_offsite_upload.sh` : désigner le fichier le plus récent (EF-001/EF-002), refuser un fichier trop ancien, envoyer, journaliser et signaler le résultat à la supervision. Une première version se contentait d'une ligne shell dans la crontab (`ls -t … | head -1 && rclone copy …`) ; elle ne détectait ni une sauvegarde locale arrêtée, ni ne prévenait personne d'un échec rclone.
+* `tools/rclone_safe_retention.sh` : la rétention distante par âge (`rclone delete --min-age`) ne peut **pas** être laissée en cron brut (§3).
 
-Repérer le fichier le plus récent de chaque type dans `backups/` (EF-001/EF-002) tient en une ligne shell (`ls -t backups/*.zip | head -1`) — pas une logique à proprement parler, exprimable directement dans l'entrée crontab.
-
-### L'alerte, si elle est retenue
-
-Avec l'étape reclassée optionnelle (§5), les deux pistes externes identifiées (Google Apps Script, ou un ping Healthchecks.io par type de sauvegarde) couvrent le besoin sans qu'aucun code de détection/notification ne soit à écrire ni à maintenir côté GVV.
+Les deux scripts sont testés par PHPUnit avec de faux exécutables `rclone` et `curl`, pour couvrir les cas d'échec sans accès réseau.
 
 ### Conclusion
 
-En retirant l'obligation d'une alerte sur mesure, le mécanisme hors-site ne nécessite **aucun développement applicatif GVV** (contrôleur, vue, modèle, migration). Il se réduit à des entrées cron appelant directement `rclone` pour l'upload, plus un unique script d'exploitation `tools/rclone_safe_retention.sh` pour sécuriser la rétention (§3) — au même niveau que `autobackup.py`, sans lien avec l'application. La supervision reste optionnelle, éventuellement un simple `curl` vers un service externe.
-
-**Recommandation** :
-
-1. Première mise en place : entrées crontab appelant `rclone copy` pour l'upload et `tools/rclone_safe_retention.sh` pour la rétention, sans alerte — couvre l'objectif principal (copie hors-site + rétention sûre) avec un risque d'implémentation quasi nul.
-2. Si la supervision est souhaitée par la suite : ajouter un ping vers un service de type Healthchecks.io (ou, plus intégré à l'écosystème déjà en place, un Google Apps Script côté compte `info@planeur-abbeville.fr`) — dans les deux cas, un ajout de configuration externe, pas un développement dans le dépôt GVV.
-3. Un script `tools/offsite_backup.py`, au même niveau que les scripts existants, ne se justifierait que si une logique plus élaborée devenait nécessaire (ex. alerte composée avec plus de détail que ce que permet une supervision générique) — à réévaluer seulement si ce besoin apparaît concrètement.
-
-Cette conclusion diffère d'une version antérieure de ce document, qui recommandait un script d'orchestration pour porter la logique d'alerte (EF-008/009/010 alors supposés fermes). L'alerte est désormais optionnelle et déléguée à un outil externe ; le seul script conservé, `tools/rclone_safe_retention.sh`, ne fait pas d'orchestration mais protège la rétention d'un effacement accidentel — un besoin de sûreté identifié lors du déroulé réel de la procédure en production.
+Le mécanisme hors-site ne nécessite **aucun développement applicatif GVV** (contrôleur, vue, modèle, migration). Il se réduit à quatre entrées cron appelant les deux scripts d'exploitation, plus une configuration chez un service de supervision externe (deux checks Healthchecks.io), qui porte la notification. Aucune logique d'envoi d'email n'est écrite dans le dépôt.
 
 ## 7. Points restant à trancher
 

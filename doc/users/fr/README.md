@@ -168,9 +168,9 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 #### [17. Sauvegarde Hors-Site des Backups](17_sauvegarde_hors_site.md)
 **Envoi automatique des sauvegardes vers Google Drive (Administrateur Système)**
 - Installation et configuration de rclone vers Google Drive
-- Test du transfert et mise en place des envois hebdomadaires (cron)
-- Politique de rétention automatique côté stockage distant
-- Monitoring et alertes en cas d'échec (optionnel : Healthchecks.io, Google Apps Script)
+- Test du transfert et mise en place des envois quotidiens (cron, script `rclone_offsite_upload.sh`)
+- Politique de rétention automatique côté stockage distant, avec garde-fou
+- Alertes en cas de panne par un service de supervision externe (Healthchecks.io : email, SMS, Telegram…), Google Apps Script en complément
 
 #### [18. Listes de Diffusion Email](18_listes_diffusion.md)
 **Constituer et exporter des listes d'adresses email réutilisables**

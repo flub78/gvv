@@ -4,7 +4,7 @@
 
 GVV dispose déjà de sauvegardes automatiques **locales** de la base de données et des fichiers média (voir la documentation technique `doc/features/Backup.md`), produites par les scripts `tools/autobackup.py` et `tools/autobackup_media.py`. Ces sauvegardes restent cependant stockées sur la même machine que l'application : en cas de perte totale du serveur, elles disparaissent avec lui.
 
-Ce guide décrit la mise en place d'un envoi **quotidien** de ces sauvegardes déjà produites vers le Google Drive du club, à l'aide de l'outil **rclone**, avec suppression automatique des copies distantes de plus de trois jours.
+Ce guide décrit la mise en place d'un envoi **quotidien** de ces sauvegardes déjà produites vers le Google Drive du club, à l'aide de l'outil **rclone**, avec suppression automatique des copies distantes de plus de trois jours et une alerte en cas de panne (§3).
 
 > **Prérequis** : cette mise en place s'adresse à la personne qui administre le serveur GVV (accès SSH, droits pour éditer la crontab). Elle ne touche à aucune configuration de l'application GVV elle-même — voir la note de conception `doc/design_notes/sauvegarde_hors_site_design.md` pour le détail de ce choix architectural.
 
@@ -26,6 +26,8 @@ sudo -v ; curl https://rclone.org/install.sh | sudo bash
 sudo apt update
 sudo apt install rclone
 ```
+
+> **Version trop ancienne** : si, lors de l'autorisation (§1.3), rclone affiche une adresse `https://accounts.google.com/...` contenant `redirect_uri=urn:ietf:wg:oauth:2.0:oob` au lieu d'une commande `rclone authorize`, sa version est trop ancienne : Google refuse cette méthode (« Accès bloqué : la demande n'est pas valide »). Mettez rclone à jour avec la méthode recommandée ci-dessus ; la configuration existante est conservée.
 
 **Vérifier l'installation :**
 
@@ -120,9 +122,9 @@ Le prompt `y/n> y` ci-dessus ouvre automatiquement une page Google. Connectez-vo
    ```
    rclone authorize "drive" "eyJjbGllbnRfaWQiOi..."
    ```
-3. Copiez cette commande, exécutez-la sur **votre poste local** (où rclone doit aussi être installé, et où un navigateur est disponible).
-4. La même autorisation Google s'affiche dans le navigateur local ; après avoir cliqué sur **Autoriser**, un jeton JSON s'affiche dans le terminal local.
-5. Copiez ce jeton et collez-le dans le prompt `config_token>` resté ouvert sur le serveur distant.
+3. Copiez cette commande **telle quelle** (elle contient l'identifiant de votre client OAuth) et exécutez-la sur **votre poste local** (où rclone doit aussi être installé, et où un navigateur est disponible).
+4. Si le navigateur s'ouvre sur un autre compte Google que le compte cible, fermez cet onglet : copiez l'adresse `http://127.0.0.1:53682/auth?state=…` affichée dans le terminal local et ouvrez-la dans une **fenêtre de navigation privée**, puis connectez-vous avec le compte cible. À l'avertissement « Google n'a pas validé cette application », cliquez sur **Paramètres avancés > Accéder à … (non sécurisé)**, puis **Autoriser**.
+5. Le terminal local affiche un jeton entre `Paste the following into your remote machine --->` et `<---End paste` : copiez-le et collez-le dans le prompt `config_token>` resté ouvert sur le serveur distant.
 
 ### 1.4 Vérifier la configuration
 
@@ -192,37 +194,48 @@ Vérifiez le répertoire de sauvegarde locale existant (déjà utilisé par `too
 ls -la /home/frederic/git/gvv/backups/
 ```
 
-### 2.3 Commandes d'envoi (à tester manuellement avant de les placer en cron)
+### 2.3 Script d'envoi
 
-Envoi de la dernière sauvegarde de base de données :
+L'envoi est fait par le script versionné `tools/rclone_offsite_upload.sh`. Il ne contient **aucun secret ni chemin en dur** (tout est passé en paramètre) :
 
 ```bash
-LATEST_DB=$(ls -t /home/frederic/git/gvv/backups/*_backup_*_migration_*.zip 2>/dev/null | head -1)
-/usr/bin/rclone copy "$LATEST_DB" gdrive:GVV_backups/database/
+tools/rclone_offsite_upload.sh "<motif des sauvegardes locales>" <remote:chemin/> <fichier_log> [url_ping]
 ```
 
-Envoi de la dernière sauvegarde média :
+Pour chaque type de sauvegarde, il :
+1. sélectionne la sauvegarde locale la plus récente correspondant au motif (à mettre **entre guillemets**) ;
+2. vérifie qu'elle date de moins de 36 heures. Sinon, c'est que la sauvegarde locale ne tourne plus : sans ce contrôle, rclone renverrait sans erreur l'ancien fichier et la panne passerait inaperçue ;
+3. l'envoie avec `rclone copy` ;
+4. écrit le résultat dans le log (`envoi OK` ou `ALERTE : envoi hors-site ECHOUE …` avec la cause) ;
+5. si une URL de supervision est fournie (§3), la prévient du succès ou de l'échec. En cas d'échec, la fin du log est jointe à l'alerte.
+
+Il rend le code `0` en cas de succès, `1` sinon. Le seuil de 36 heures se change avec la variable `MAX_AGE_HOURS`.
+
+Testez-le manuellement avant la mise en cron :
 
 ```bash
-LATEST_MEDIA=$(ls -t /home/frederic/git/gvv/backups/media_backup_*.tar.gz 2>/dev/null | head -1)
-/usr/bin/rclone copy "$LATEST_MEDIA" gdrive:GVV_backups/media/
+/home/frederic/git/gvv/tools/rclone_offsite_upload.sh "/home/frederic/git/gvv/backups/*_backup_*_migration_*.zip" gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt
+echo "code retour: $?"
+tail -n 3 /home/frederic/git/gvv/backups/logfile.txt
 ```
 
 ### 2.4 Rétention distante (suppression après trois jours)
 
-**Ne lancez pas `rclone --min-age 3d delete` directement en cron.** Si `tools/autobackup.py` / `tools/autobackup_media.py` échouent plusieurs jours de suite (aucune nouvelle sauvegarde locale), l'envoi du §2.3 re-sélectionne silencieusement l'ancien fichier, `rclone copy` le considère identique et ne fait rien (sans erreur), pendant que la suppression `--min-age 3d` continue de tourner aveuglément : au bout de trois jours, elle efface la **dernière copie distante valide**, sans qu'aucune erreur n'apparaisse dans les logs.
+**Ne lancez pas `rclone --min-age 3d delete` directement en cron.** Si les envois s'arrêtent (sauvegarde locale en panne, jeton expiré…), la suppression `--min-age 3d` continuerait de tourner aveuglément : au bout de trois jours, elle effacerait la **dernière copie distante valide**.
 
-Le script versionné `tools/rclone_safe_retention.sh` (déjà présent dans le dépôt, au même titre que `autobackup.py`) évite ce piège : il ne purge que s'il reste déjà au moins un fichier distant de moins de trois jours dans le dossier concerné ; sinon il annule la purge et journalise une alerte.
+Le script versionné `tools/rclone_safe_retention.sh` évite ce piège : il ne purge que s'il reste au moins un fichier distant de moins de trois jours dans le dossier concerné. Sinon, il annule la purge et journalise une alerte, qui distingue deux causes :
+- `erreur rclone` : le dossier distant n'a pas pu être lu (jeton expiré, réseau…) ;
+- `aucune sauvegarde distante de moins de 3 jours` : les envois ne se font plus.
 
 ```bash
 tools/rclone_safe_retention.sh <remote:chemin/> <fichier_log>
 ```
 
-Le script ne contient **aucun secret ni chemin en dur** (tout est passé en paramètre), il bénéficie donc à tous les déploiements GVV suivant ce guide. Testez-le manuellement avant la mise en cron :
+Testez-le manuellement avant la mise en cron :
 
 ```bash
 /home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt
-tail -2 /home/frederic/git/gvv/backups/logfile.txt
+tail -n 2 /home/frederic/git/gvv/backups/logfile.txt
 ```
 
 > **⚠️ Fenêtre de rétention courte** : avec un envoi quotidien et une rétention de trois jours, seules 3 à 4 sauvegardes distantes coexistent à tout moment. Si un problème (corruption de données, suppression accidentelle) n'est détecté qu'après ce délai, il n'y a plus de copie distante saine disponible. Gardez aussi à l'esprit que dans les durées rclone `M` (majuscule) signifie *mois* et `m` (minuscule) *minutes* — une confusion de casse peut vider le dossier distant en une seule exécution.
@@ -233,21 +246,21 @@ tail -2 /home/frederic/git/gvv/backups/logfile.txt
 crontab -e
 ```
 
-Ajoutez (exemple : tous les jours à 3h du matin, après les sauvegardes locales) :
+Ajoutez (exemple : tous les jours à 3h du matin, après les sauvegardes locales). Remplacez `<uuid-db>` et `<uuid-media>` par les identifiants de vos checks de supervision (§3), ou supprimez le dernier paramètre si vous n'en utilisez pas :
 
 ```
 # Sauvegarde hors-site quotidienne (base de données)
-0 3 * * * LATEST=$(ls -t /home/frederic/git/gvv/backups/*_backup_*_migration_*.zip 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/database/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1
+0 3 * * * /home/frederic/git/gvv/tools/rclone_offsite_upload.sh "/home/frederic/git/gvv/backups/*_backup_*_migration_*.zip" gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt https://hc-ping.com/<uuid-db>
 
 # Sauvegarde hors-site quotidienne (médias)
-5 3 * * * LATEST=$(ls -t /home/frederic/git/gvv/backups/media_backup_*.tar.gz 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/media/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1
+5 3 * * * /home/frederic/git/gvv/tools/rclone_offsite_upload.sh "/home/frederic/git/gvv/backups/media_backup_*.tar.gz" gdrive:GVV_backups/media/ /home/frederic/git/gvv/backups/logfile.txt https://hc-ping.com/<uuid-media>
 
 # Rétention distante (suppression > 3 jours, avec garde-fou), après les deux envois
 15 3 * * * /home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/database/ /home/frederic/git/gvv/backups/logfile.txt
 16 3 * * * /home/frederic/git/gvv/tools/rclone_safe_retention.sh gdrive:GVV_backups/media/ /home/frederic/git/gvv/backups/logfile.txt
 ```
 
-Adaptez `/home/frederic/git/gvv/` au chemin réel d'installation sur votre serveur.
+Adaptez `/home/frederic/git/gvv/` au chemin réel d'installation sur votre serveur. Le cinquième champ de l'heure doit rester `*` (tous les jours de la semaine) : `0` limiterait l'envoi au dimanche.
 
 **Vérifier que les entrées sont bien enregistrées :**
 
@@ -255,51 +268,45 @@ Adaptez `/home/frederic/git/gvv/` au chemin réel d'installation sur votre serve
 crontab -l | grep -E 'rclone|GVV_backups'
 ```
 
-**Tester manuellement une des lignes** (copiez-collez la partie après l'heure) :
+**Tester manuellement une des lignes** (copiez-collez la partie après l'heure), puis :
 
 ```bash
-LATEST=$(ls -t /home/frederic/git/gvv/backups/*_backup_*_migration_*.zip 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/database/
 echo "code retour: $?"
+tail -n 3 /home/frederic/git/gvv/backups/logfile.txt
 ```
 
-Un code retour `0` confirme le succès. En cas d'échec, rclone affiche généralement une erreur explicite (jeton expiré, quota dépassé, fichier introuvable...) — voir §5 Dépannage.
+Un code retour `0` et une ligne `envoi OK` confirment le succès. En cas d'échec, la ligne `ALERTE` indique la cause et rclone affiche généralement une erreur explicite juste au-dessus (jeton expiré, quota dépassé…) — voir §5 Dépannage.
 
 ---
 
-## 3. Monitoring et Alertes (optionnel)
+## 3. Supervision et alertes
 
-### 3.1 Pourquoi cette étape est optionnelle
+### 3.1 Pourquoi une alerte est nécessaire
 
-Vérifier que les envois fonctionnent est déjà simple sans rien ajouter :
+Les scripts du §2 écrivent leurs alertes dans le log, mais personne ne lit ce log au quotidien. En septembre 2026, l'envoi s'est arrêté (jeton Google expiré) et la panne n'a été découverte que deux mois plus tard, malgré une ligne `ALERTE` chaque nuit. Une alerte active, envoyée par un service **extérieur au serveur**, est donc indispensable : elle doit aussi se déclencher si le serveur est éteint ou si le cron ne tourne plus, cas où le serveur ne peut rien signaler lui-même.
 
-* **Localement**, la présence des fichiers de sauvegarde récents dans `backups/` se vérifie d'un coup d'œil (`ls -lt backups/ | head`), comme c'est déjà fait implicitement par la politique de rétention des scripts existants.
-* **À distance**, il suffit d'ouvrir `GVV_backups/database/` et `GVV_backups/media/` sur drive.google.com pour voir si un fichier récent est présent.
+### 3.2 Option A (recommandée) — Healthchecks.io
 
-Une alerte automatique n'est donc pas indispensable pour un premier déploiement — elle devient utile si vous préférez être prévenu activement plutôt que de devoir penser à vérifier. Les deux options ci-dessous permettent de l'ajouter sans écrire de code : tout le travail de détection et de notification est délégué à un outil externe.
-
-### 3.2 Option A — Healthchecks.io (généraliste, indépendant de Google Drive)
-
-Un service de supervision de tâches planifiées : votre commande cron « ping » ce service quand elle réussit ; si le ping n'arrive pas à l'heure attendue, le service envoie automatiquement un email. Offre gratuite : 20 tâches surveillées.
+Un service de supervision de tâches planifiées : le script d'envoi le prévient de chaque succès et de chaque échec ; si rien n'arrive à l'heure attendue, le service alerte de lui-même. Offre gratuite : 20 checks.
 
 **Mise en place :**
 
 1. Créez un compte sur [healthchecks.io](https://healthchecks.io/) (email + mot de passe, ou connexion via un compte existant — à faire vous-même, aucun identifiant ne doit être saisi par un tiers).
 2. Créez deux **checks** (bouton **Add Check**) : un nommé « GVV backup hors-site — base de données », un autre « GVV backup hors-site — médias ».
-3. Pour chacun, réglez la **période** (**Period**) sur `1 day` et la **marge de tolérance** (**Grace Time**) sur quelques heures (ex. `4 hours`), pour laisser le temps à une exécution un peu tardive sans déclencher une fausse alerte.
-4. Chaque check affiche une **URL de ping** unique du type `https://hc-ping.com/<identifiant-unique>`. Notez les deux URL.
-5. Dans **Integrations** de votre compte Healthchecks.io, ajoutez le canal **Email** avec l'adresse (ou la liste de diffusion) du club qui doit recevoir les alertes, et associez-le aux deux checks créés.
+3. Pour chacun, réglez la **période** (**Period**) sur `1 day` et la **marge de tolérance** (**Grace Time**) sur `4 hours`, pour laisser le temps à une exécution un peu tardive sans déclencher une fausse alerte.
+4. Chaque check affiche une **URL de ping** unique du type `https://hc-ping.com/<identifiant-unique>`. Notez les deux URL et placez-les en dernier paramètre des lignes d'envoi de la crontab (§2.5).
+5. Dans **Integrations**, ajoutez le ou les canaux d'alerte et associez-les aux deux checks :
+   * **Email** : l'adresse (ou la liste de diffusion) du club qui doit recevoir les alertes ;
+   * **SMS** ou **appel** : selon les crédits inclus dans votre offre Healthchecks.io ;
+   * notifications sur téléphone sans frais : **Telegram**, **Signal** ou **ntfy** ;
+   * **SMS gratuit pour un abonné Free Mobile** : activez « Notifications par SMS » dans l'espace abonné Free Mobile, puis ajoutez une intégration **Webhook** dont l'URL est `https://smsapi.free-mobile.fr/sendmsg?user=<identifiant>&pass=<clé>&msg=GVV%20sauvegarde%20hors-site%20$NAME%20$STATUS` (identifiant et clé fournis par Free Mobile).
 
-**Adapter les entrées crontab** pour signaler succès/échec (remplacez `<uuid-db>`/`<uuid-media>` par vos URL réelles) :
+Le check passe en alerte dans trois cas :
+* le script signale un échec (envoi rclone refusé, sauvegarde locale absente ou trop ancienne) : alerte immédiate, avec la fin du log jointe ;
+* aucun signal n'arrive dans la période plus la tolérance (serveur éteint, cron supprimé, script introuvable) ;
+* le serveur n'a plus accès à internet.
 
-```
-0 3 * * 0 LATEST=$(ls -t /home/frederic/git/gvv/backups/*_backup_*_migration_*.zip 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/database/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1 && curl -fsS -m 10 https://hc-ping.com/<uuid-db> || curl -fsS -m 10 https://hc-ping.com/<uuid-db>/fail
-
-5 3 * * 0 LATEST=$(ls -t /home/frederic/git/gvv/backups/media_backup_*.tar.gz 2>/dev/null | head -1) && /usr/bin/rclone copy "$LATEST" gdrive:GVV_backups/media/ >> /home/frederic/git/gvv/backups/logfile.txt 2>&1 && curl -fsS -m 10 https://hc-ping.com/<uuid-media> || curl -fsS -m 10 https://hc-ping.com/<uuid-media>/fail
-```
-
-Le `&& curl .../uuid || curl .../uuid/fail` envoie un ping de succès si `rclone copy` a réussi, un ping de « fail » explicite sinon — dans les deux cas Healthchecks.io est informé, et n'alerte que si même *aucun* des deux pings n'arrive (panne du serveur, cron non exécuté, script planté avant le `curl`).
-
-**Tester** : déclenchez manuellement une des lignes ci-dessus, puis rafraîchissez la page du check sur healthchecks.io — son statut doit passer à « Up » (dernier ping reçu à l'instant).
+**Tester** : lancez manuellement une ligne d'envoi de la crontab, puis rafraîchissez la page du check : son statut doit passer à « Up ». Pour tester l'alerte, lancez le script avec un dossier distant inexistant (par exemple `gdrive_inexistant:x/`) : le check doit passer à « Down » et l'alerte arriver. Relancez ensuite la vraie ligne pour revenir à « Up ».
 
 ### 3.3 Option B — Google Apps Script (lié directement au compte Drive cible)
 
@@ -364,7 +371,7 @@ function checkAllBackups() {
 
 * Le jeton d'authentification Google créé par `rclone config` est stocké dans `~/.config/rclone/rclone.conf` sur le serveur — **jamais dans le dépôt Git**. Vérifiez qu'aucune copie de ce fichier n'est committée par erreur.
 * Le scope `drive.file` recommandé (§1.2) limite l'accès de rclone aux seuls fichiers qu'il a lui-même créés, même si le jeton était compromis.
-* Les URL de ping Healthchecks.io (§3.2) ne donnent accès à rien d'autre qu'à signaler un statut « up/down » — elles ne nécessitent pas de protection particulière, mais évitez de les publier publiquement pour ne pas recevoir de faux positifs générés par un tiers.
+* Les URL de ping Healthchecks.io (§3.2) ne donnent accès à rien d'autre qu'à signaler un statut « up/down » — elles ne nécessitent pas de protection particulière, mais évitez de les publier publiquement pour ne pas recevoir de faux positifs générés par un tiers. En cas d'échec, le script joint au ping les 30 dernières lignes du log : elles contiennent des noms de fichiers et des messages d'erreur rclone, jamais le jeton Google.
 * Le compte Google Apps Script (§3.3) hérite des permissions du compte Google qui l'exécute — utilisez bien le compte cible (`info@planeur-abbeville.fr`), pas un compte personnel.
 
 ---
@@ -378,10 +385,13 @@ function checkAllBackups() {
 | `Failed to copy: googleapi: Error 401` | Jeton d'authentification expiré ou révoqué | Relancer `rclone config reconnect gdrive:` |
 | `couldn't fetch token ... oauth2: cannot fetch token: 400 Bad Request` / `"error": "invalid_grant"`, environ une semaine après la mise en place | L'application OAuth est restée en mode « Test » : Google invalide ses jetons au bout de 7 jours | Passer l'application en **Production** (§1.2, étape 7), **puis** relancer `rclone config reconnect gdrive:` sous le compte du cron (§1.3). Sans le passage en Production, la panne revient 7 jours plus tard |
 | `Failed to copy: googleapi: Error 403: The user's Drive storage quota has been exceeded` | Quota Google Drive dépassé | Vérifier `rclone about gdrive:`, libérer de l'espace ou vérifier la politique de rétention (§2.4) |
-| Aucun fichier n'apparaît sur le Drive après l'exécution cron | La variable `$LATEST` est vide (aucune sauvegarde locale ne correspond au motif) | Vérifier que `tools/autobackup.py`/`tools/autobackup_media.py` tournent bien et que le motif de nom de fichier (§2.3) correspond aux fichiers réellement présents dans `backups/` |
+| `ALERTE : envoi hors-site ECHOUE … aucune sauvegarde locale ne correspond` | Le motif ne correspond à aucun fichier de `backups/` | Vérifier que le motif est **entre guillemets** dans la crontab et qu'il correspond aux fichiers réellement présents (`ls backups/`) |
+| `ALERTE : envoi hors-site ECHOUE … la sauvegarde locale ne tourne plus ?` | `tools/autobackup.py`/`tools/autobackup_media.py` ne produisent plus de sauvegarde | Vérifier leur cron et leurs logs (`gvv-backup.log` / `gvv-media-backup.log`) |
+| Lors de l'autorisation, Google affiche « Accès bloqué : la demande n'est pas valide » et l'adresse contient `urn:ietf:wg:oauth:2.0:oob` | Version de rclone trop ancienne sur le serveur | Mettre rclone à jour (§1.1), puis relancer `rclone config reconnect gdrive:` |
 | Le check Healthchecks.io reste « Late »/« Down » alors que le cron semble tourner | Le `curl` de ping échoue silencieusement (pas de sortie internet, coupe-feu) | Tester `curl -v https://hc-ping.com/<uuid>` manuellement depuis le serveur |
 | L'email d'alerte Apps Script n'arrive jamais | Le déclencheur temporel n'est pas actif, ou le script n'a pas été autorisé | Vérifier l'onglet **Déclencheurs** et les **Exécutions** dans script.google.com |
-| Le dossier distant `GVV_backups/database/` ou `media/` est vide sans raison apparente | La rétention à 3 jours a supprimé la dernière sauvegarde car aucune nouvelle sauvegarde locale n'a été produite depuis plus de 3 jours (échec silencieux de `autobackup.py`/`autobackup_media.py`) | Vérifier `gvv-backup.log` / `gvv-media-backup.log`. Si le script `rclone_safe_retention.sh` du §2.4 est utilisé, ce cas est normalement évité — vérifier qu'il est bien en place dans la crontab |
+| Le dossier distant `GVV_backups/database/` ou `media/` est vide sans raison apparente | Une purge `rclone --min-age 3d delete` lancée sans garde-fou a supprimé la dernière sauvegarde | Vérifier que la crontab utilise bien `tools/rclone_safe_retention.sh` (§2.4) et non `rclone delete` directement |
+| `ALERTE : purge ANNULEE … erreur rclone` | Le dossier distant n'a pas pu être lu (jeton expiré, réseau) | Voir les lignes précédentes du log ; jeton expiré : `rclone config reconnect gdrive:` |
 | `rclone lsd gdrive:` renvoie une liste vide alors que le Drive contient des fichiers | Comportement normal du scope `drive.file` (voir §1.4) | Aucune action requise, ce n'est pas un dysfonctionnement |
 
 ---
