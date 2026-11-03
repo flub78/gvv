@@ -15,6 +15,7 @@ $lang['gvv_config_field_city'] = "Ville";
 $lang['gvv_config_field_tel'] = "Téléphone";
 $lang['gvv_config_field_email'] = "Courriel";
 $lang['gvv_config_field_web'] = "Site WEB";
+$lang['gvv_config_field_contact_rgpd'] = "Contact RGPD (nom ou fonction)";
 $lang['gvv_config_field_gcalendar'] = "Utilisateur calendrier Google";
 $lang['gvv_config_field_theme_graphic'] = "Thème graphique";
 $lang['gvv_config_field_palette'] = "Palette de couleurs";

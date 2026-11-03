@@ -170,6 +170,10 @@ if ($CI->dx_auth->is_logged_in()) {
               <?php if (has_role('ca')) : ?>
                 <li><a class="dropdown-item" href="#"><i class="fas fa-cogs text-primary"></i> <?= translation("gvv_menu_admin_club") ?> &raquo;</a>
                   <ul class="submenu dropdown-menu">
+                    <?php if (parametres_accessible()) : ?>
+                    <?php $this->lang->load('parametres'); ?>
+                    <li><a class="dropdown-item" href="<?= controller_url("parametres") ?>"><i class="fas fa-sliders-h text-primary"></i> <?= $this->lang->line('parametres_title') ?></a></li>
+                    <?php endif; ?>
                     <?php if (has_role('club-admin')) : ?>
                     <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
                     <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>

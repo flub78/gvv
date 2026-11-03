@@ -14,6 +14,7 @@ $config['ville_club'] = "Trifouillis les oies";
 $config['tel_club'] = "0123456789";
 $config['email_club'] = "gvv.abbeville@gmail.fr";
 $config['url_club'] = "https://github.com/flub78/gvv/blob/main/README.md";
+$config['contact_rgpd'] = "";
 $config['calendar_id'] = "gvv.abbeville@gmail.com";
 $config['theme'] = "binary-news";
 $config['palette'] = "base";

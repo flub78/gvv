@@ -14,6 +14,7 @@ $lang['gvv_config_field_city'] = "City";
 $lang['gvv_config_field_tel'] = "Phone number";
 $lang['gvv_config_field_email'] = "Email";
 $lang['gvv_config_field_web'] = "WEB site";
+$lang['gvv_config_field_contact_rgpd'] = "Data protection contact (name or role)";
 $lang['gvv_config_field_gcalendar'] = "Google calendar user";
 $lang['gvv_config_field_theme_graphic'] = "Graphical theme";
 $lang['gvv_config_field_palette'] = "Color palette";

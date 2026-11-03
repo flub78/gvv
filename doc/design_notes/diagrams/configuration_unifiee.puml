@@ -1,0 +1,36 @@
+@startuml configuration_unifiee
+skinparam componentStyle rectangle
+title Configuration unifiée — composants
+
+actor "CA / club-admin / dev_user" as admin
+actor "Visiteur" as visitor
+
+package "Page Configuration" {
+  [parametres\n(contrôleur)] as ctrl
+  [parametres_registry\n(config : onglets, paramètres,\nprofils, stockage, règles)] as registry
+  [Parametres_store\n(droits, lecture, validation,\nécriture, compte rendu)] as store
+  [Config_file_writer\n(écriture ciblée d'une clé)] as writer
+}
+
+package "Pages publiques" {
+  [legal\n(contrôleur)] as legal
+  [Legal_pages\n(texte du club ou gabarit,\ninformations du club)] as pages
+  [gabarits Markdown\nviews/legal/<langue>/] as templates
+}
+
+database "table configuration" as db
+file "application/config/*.php" as files
+
+admin --> ctrl
+ctrl --> store
+store --> registry
+store --> db : paramètres « db »
+store --> writer
+writer --> files : paramètres « file:<nom> »
+
+visitor --> legal
+legal --> pages
+pages --> store : texte propre au club
+pages --> templates : à défaut
+pages --> files : identité du club (club.php)
+@enduml

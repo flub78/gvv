@@ -68,6 +68,13 @@ class Config extends MY_Controller {
                     'rules' => 'trim'
             ),
 
+            // Affiché sur la page publique des règles de confidentialité ;
+            // vide = « le président de l'association ».
+            'contact_rgpd' => array (
+                    'label' => 'Contact RGPD',
+                    'rules' => 'trim'
+            ),
+
             'calendar_id' => array (
                     'label' => 'Calendrier Google',
                     'rules' => 'trim'

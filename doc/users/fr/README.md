@@ -191,6 +191,12 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Cycle d'une édition : import du brouillon, annotation, relecture, consignes de modification, validation, archivage et envoi aux abonnés
 - Relecture par email : configuration, réponses des relecteurs, réponses écartées
 
+#### [21. Configuration](21_configuration.md)
+**Paramètres du club et de l'application dans une page à onglets (CA, administrateur du club, développeurs)**
+- Accès par le tableau de bord Administration du club
+- Pages publiques : règles de confidentialité et conditions d'utilisation, texte générique ou propre au club
+- Adresses à déclarer auprès de Google pour la sauvegarde hors-site
+
 ---
 
 ### 🔗 Guides d'Intégration
@@ -237,7 +243,8 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 12. **[📧 Listes de diffusion](18_listes_diffusion.md)** - Constituer et exporter des listes d'adresses email
 13. **[🚨 Alarmes](19_alarmes.md)** - Être prévenu des documents qui expirent ou manquent, des vols sans cotisation ou sans licence, de l'expérience récente et des comptes débiteurs
 14. **[📰 Newsletter de veille](20_newsletter_veille.md)** - Produire, faire relire et diffuser la newsletter de veille sécurité
-14. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
+15. **[⚙️ Configuration](21_configuration.md)** - Page de configuration unique, pages publiques (confidentialité, conditions d'utilisation)
+16. **[🔗 Intégrations](../openflyers_user.md)** - Systèmes externes
 
 ---
 

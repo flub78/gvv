@@ -178,7 +178,9 @@ class MY_Controller extends CI_Controller
     private function _check_mandatory_acceptance()
     {
         $class = strtolower($this->router->fetch_class());
-        if (in_array($class, array('acceptance', 'auth'), true)) {
+        // Pages publiques : lisibles même avec une acceptation en attente
+        // (les règles de confidentialité éclairent justement le document RGPD à accepter).
+        if (in_array($class, array('acceptance', 'auth', 'legal', 'newsletter', 'newsletter_public'), true)) {
             return;
         }
 
