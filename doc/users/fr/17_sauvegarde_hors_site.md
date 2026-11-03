@@ -203,13 +203,15 @@ tools/rclone_offsite_upload.sh "<motif des sauvegardes locales>" <remote:chemin/
 ```
 
 Pour chaque type de sauvegarde, il :
-1. sélectionne la sauvegarde locale la plus récente correspondant au motif (à mettre **entre guillemets**) ;
+1. sélectionne la sauvegarde locale la plus récente correspondant au motif (à mettre **entre guillemets**). Le chemin du dossier peut contenir des espaces ; le motif ne porte que sur le nom des fichiers ;
 2. vérifie qu'elle date de moins de 36 heures. Sinon, c'est que la sauvegarde locale ne tourne plus : sans ce contrôle, rclone renverrait sans erreur l'ancien fichier et la panne passerait inaperçue ;
 3. l'envoie avec `rclone copy` ;
 4. écrit le résultat dans le log (`envoi OK` ou `ALERTE : envoi hors-site ECHOUE …` avec la cause) ;
 5. si une URL de supervision est fournie (§3), la prévient du succès ou de l'échec. En cas d'échec, la fin du log est jointe à l'alerte.
 
-Il rend le code `0` en cas de succès, `1` sinon. Le seuil de 36 heures se change avec la variable `MAX_AGE_HOURS`.
+Il rend le code `0` en cas de succès, `1` sinon. Le seuil de 36 heures se change avec la variable `MAX_AGE_HOURS`, en heures entières ; une valeur invalide déclenche une alerte au lieu de désactiver le contrôle.
+
+Les deux scripts du §2.3 et du §2.4 chargent des fonctions communes depuis `tools/rclone_common.sh` : les trois fichiers doivent rester ensemble dans le dossier `tools/`.
 
 Testez-le manuellement avant la mise en cron :
 
@@ -372,6 +374,7 @@ function checkAllBackups() {
 * Le jeton d'authentification Google créé par `rclone config` est stocké dans `~/.config/rclone/rclone.conf` sur le serveur — **jamais dans le dépôt Git**. Vérifiez qu'aucune copie de ce fichier n'est committée par erreur.
 * Le scope `drive.file` recommandé (§1.2) limite l'accès de rclone aux seuls fichiers qu'il a lui-même créés, même si le jeton était compromis.
 * Les URL de ping Healthchecks.io (§3.2) ne donnent accès à rien d'autre qu'à signaler un statut « up/down » — elles ne nécessitent pas de protection particulière, mais évitez de les publier publiquement pour ne pas recevoir de faux positifs générés par un tiers. En cas d'échec, le script joint au ping les 30 dernières lignes du log : elles contiennent des noms de fichiers et des messages d'erreur rclone, jamais le jeton Google.
+* Le SMS Free Mobile (§3.2) place votre identifiant et votre clé Free Mobile dans l'URL du webhook, donc chez Healthchecks.io. Cette clé ne permet que d'envoyer des SMS à votre propre numéro, mais elle est confiée à un tiers : en cas de doute, régénérez-la dans l'espace abonné Free Mobile (l'ancienne cesse alors de fonctionner) et mettez à jour l'intégration.
 * Le compte Google Apps Script (§3.3) hérite des permissions du compte Google qui l'exécute — utilisez bien le compte cible (`info@planeur-abbeville.fr`), pas un compte personnel.
 
 ---

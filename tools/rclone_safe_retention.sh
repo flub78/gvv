@@ -19,11 +19,10 @@ REMOTE_DIR="${1:?dossier distant manquant}"
 LOG="${2:?fichier de log manquant}"
 RCLONE="${RCLONE:-/usr/bin/rclone}"
 
-log() {
-    echo "$(date '+%F %T') - $*" >> "$LOG"
-}
+. "$(dirname "$0")/rclone_common.sh"
 
-RECENT=$("$RCLONE" lsf --max-age 3d "$REMOTE_DIR" 2>>"$LOG")
+# --files-only : un sous-dossier récent ne doit pas compter comme une sauvegarde.
+RECENT=$("$RCLONE" lsf --files-only --max-age 3d "$REMOTE_DIR" 2>>"$LOG")
 RC=$?
 if [ "$RC" -ne 0 ]; then
     log "ALERTE : purge ANNULEE sur $REMOTE_DIR - erreur rclone (code $RC) en lisant le dossier distant, voir les lignes précédentes du log (jeton expiré : rclone config reconnect)"

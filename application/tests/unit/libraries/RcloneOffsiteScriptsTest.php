@@ -55,17 +55,21 @@ class RcloneOffsiteScriptsTest extends TestCase
             . "exit $rc\n");
     }
 
-    private function backup($name, $age_hours = 1)
+    private function backup($name, $age_hours = 1, $subdir = 'backups')
     {
-        $path = $this->dir . '/backups/' . $name;
+        if (!is_dir($this->dir . '/' . $subdir)) {
+            mkdir($this->dir . '/' . $subdir, 0777, TRUE);
+        }
+        $path = $this->dir . '/' . $subdir . '/' . $name;
         file_put_contents($path, 'x');
         touch($path, time() - $age_hours * 3600);
         return $path;
     }
 
-    private function run_script($script, array $args)
+    private function run_script($script, array $args, $extra_env = '')
     {
-        $env = 'RCLONE=' . escapeshellarg($this->dir . '/rclone') . ' CURL=' . escapeshellarg($this->dir . '/curl');
+        $env = 'RCLONE=' . escapeshellarg($this->dir . '/rclone') . ' CURL=' . escapeshellarg($this->dir . '/curl')
+            . ($extra_env !== '' ? ' ' . $extra_env : '');
         exec($env . ' ' . escapeshellarg($script) . ' ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1', $out, $rc);
         return $rc;
     }
@@ -169,6 +173,58 @@ class RcloneOffsiteScriptsTest extends TestCase
     }
 
     /**
+     * Scénario: Un seuil d'ancienneté mal saisi déclenche une alerte au lieu de désactiver le contrôle
+     *   Étant donné une sauvegarde locale vieille de cinq jours
+     *   Et un seuil d'ancienneté qui n'est pas un nombre d'heures
+     *   Quand l'envoi hors-site s'exécute
+     *   Alors rien n'est envoyé
+     *   Et une alerte signale le seuil invalide
+     *   Et le service de supervision reçoit un signal d'échec
+     */
+    public function testUpload_InvalidMaxAgeIsAnAlert()
+    {
+        $this->backup('media_backup_old.tar.gz', 120);
+
+        $this->assertSame(1, $this->run_script($this->upload, $this->upload_args(), 'MAX_AGE_HOURS=abc'));
+        $this->assertSame('', $this->read('rclone.calls'));
+        $this->assertStringContainsString("MAX_AGE_HOURS='abc'", $this->read('log.txt'));
+        $this->assertSame("https://hc-ping.com/uuid-test/fail\n", $this->read('curl.calls'));
+    }
+
+    /**
+     * Scénario: Les sauvegardes d'un dossier dont le chemin contient des espaces sont trouvées
+     *   Étant donné un dossier de sauvegardes dont le chemin contient des espaces
+     *   Et une sauvegarde de cette nuit dans ce dossier
+     *   Quand l'envoi hors-site s'exécute
+     *   Alors cette sauvegarde est envoyée
+     */
+    public function testUpload_DirectoryWithSpaces()
+    {
+        $latest = $this->backup('media_backup_new.tar.gz', 1, 'mes sauvegardes');
+        $args = $this->upload_args();
+        $args[0] = $this->dir . '/mes sauvegardes/media_backup_*.tar.gz';
+
+        $this->assertSame(0, $this->run_script($this->upload, $args));
+        $this->assertStringContainsString('copy ' . $latest . ' gdrive:', $this->read('rclone.calls'));
+    }
+
+    /**
+     * Scénario: Une adresse de supervision terminée par une barre oblique fonctionne
+     *   Étant donné une adresse de supervision saisie avec une barre oblique finale
+     *   Et aucune sauvegarde locale
+     *   Quand l'envoi hors-site s'exécute
+     *   Alors le signal d'échec part vers l'adresse d'échec correcte du service
+     */
+    public function testUpload_PingUrlWithTrailingSlash()
+    {
+        $args = $this->upload_args();
+        $args[3] = 'https://hc-ping.com/uuid-test/';
+
+        $this->assertSame(1, $this->run_script($this->upload, $args));
+        $this->assertSame("https://hc-ping.com/uuid-test/fail\n", $this->read('curl.calls'));
+    }
+
+    /**
      * Scénario: Les anciennes copies distantes sont purgées quand une copie récente existe
      *   Étant donné une copie distante de moins de trois jours
      *   Quand la purge quotidienne s'exécute
@@ -179,6 +235,8 @@ class RcloneOffsiteScriptsTest extends TestCase
         $this->fake_rclone(0, "media_backup_new.tar.gz\n");
 
         $this->assertSame(0, $this->run_script($this->retention, array('gdrive:GVV_backups/media/', $this->dir . '/log.txt')));
+        // Seuls les fichiers comptent comme copies récentes, pas les sous-dossiers.
+        $this->assertStringContainsString('lsf --files-only --max-age 3d gdrive:GVV_backups/media/', $this->read('rclone.calls'));
         $this->assertStringContainsString('--min-age 3d delete gdrive:GVV_backups/media/', $this->read('rclone.calls'));
         $this->assertStringContainsString('purge OK', $this->read('log.txt'));
     }

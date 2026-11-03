@@ -5,10 +5,13 @@
 # Usage: rclone_offsite_upload.sh <motif_fichiers> <remote:chemin/> <fichier_log> [url_ping]
 #
 #   motif_fichiers  motif shell des sauvegardes locales, entre guillemets
-#                   (ex. "/home/aeroclub/gvv/backups/media_backup_*.tar.gz")
+#                   (ex. "/home/aeroclub/gvv/backups/media_backup_*.tar.gz").
+#                   Le dossier peut contenir des espaces ; le motif (après le
+#                   dernier « / ») ne porte que sur le nom des fichiers.
 #   remote:chemin/  dossier distant rclone (ex. gdrive:GVV_backups/media/)
 #   fichier_log     journal où ajouter le compte rendu
-#   url_ping        facultatif : URL de ping du check (ex. https://hc-ping.com/<uuid>).
+#   url_ping        facultatif : URL de ping du check (ex. https://hc-ping.com/<uuid>),
+#                   avec ou sans « / » final.
 #                   Succès : ping de l'URL ; échec : ping de <url>/fail avec la fin du
 #                   journal, que le service joint à son alerte.
 #
@@ -21,7 +24,8 @@
 # de supervision qui alerte, à l'expiration du délai configuré.
 #
 # Variables d'environnement facultatives :
-#   MAX_AGE_HOURS  âge maximal de la sauvegarde locale, en heures (défaut : 36)
+#   MAX_AGE_HOURS  âge maximal de la sauvegarde locale, en heures entières (défaut : 36).
+#                  Une valeur invalide est une erreur (alerte), jamais un contrôle désactivé.
 #   RCLONE, CURL   chemins des exécutables (défaut : /usr/bin/rclone, /usr/bin/curl)
 
 set -u
@@ -30,13 +34,12 @@ PATTERN="${1:?motif des fichiers manquant}"
 REMOTE_DIR="${2:?dossier distant manquant}"
 LOG="${3:?fichier de log manquant}"
 PING_URL="${4:-}"
+PING_URL="${PING_URL%/}"
 MAX_AGE_HOURS="${MAX_AGE_HOURS:-36}"
 RCLONE="${RCLONE:-/usr/bin/rclone}"
 CURL="${CURL:-/usr/bin/curl}"
 
-log() {
-    echo "$(date '+%F %T') - $*" >> "$LOG"
-}
+. "$(dirname "$0")/rclone_common.sh"
 
 # Ping du service de supervision ; un échec du ping est journalisé sans masquer le résultat.
 ping_monitor() {
@@ -53,9 +56,16 @@ fail() {
     exit 1
 }
 
-# Sauvegarde locale la plus récente correspondant au motif (le motif est développé ici).
+case "$MAX_AGE_HOURS" in
+    ''|*[!0-9]*) fail "MAX_AGE_HOURS='$MAX_AGE_HOURS' n'est pas un nombre entier d'heures" ;;
+esac
+
+# Sauvegarde locale la plus récente correspondant au motif. Le dossier est protégé
+# (espaces possibles) ; seul le nom de fichier est développé comme motif.
+PATTERN_DIR=$(dirname "$PATTERN")
+PATTERN_NAME=$(basename "$PATTERN")
 LATEST=""
-for f in $PATTERN; do
+for f in "$PATTERN_DIR"/$PATTERN_NAME; do
     [ -f "$f" ] || continue
     if [ -z "$LATEST" ] || [ "$f" -nt "$LATEST" ]; then
         LATEST="$f"

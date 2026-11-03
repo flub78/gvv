@@ -76,7 +76,7 @@ Deux scripts shell, au même niveau que `tools/autobackup.py` et sans lien avec 
 * `tools/rclone_offsite_upload.sh` : désigner le fichier le plus récent (EF-001/EF-002), refuser un fichier trop ancien, envoyer, journaliser et signaler le résultat à la supervision. Une première version se contentait d'une ligne shell dans la crontab (`ls -t … | head -1 && rclone copy …`) ; elle ne détectait ni une sauvegarde locale arrêtée, ni ne prévenait personne d'un échec rclone.
 * `tools/rclone_safe_retention.sh` : la rétention distante par âge (`rclone delete --min-age`) ne peut **pas** être laissée en cron brut (§3).
 
-Les deux scripts sont testés par PHPUnit avec de faux exécutables `rclone` et `curl`, pour couvrir les cas d'échec sans accès réseau.
+Ils partagent une fonction de journalisation dans `tools/rclone_common.sh`. Les deux scripts sont testés par PHPUnit avec de faux exécutables `rclone` et `curl`, pour couvrir les cas d'échec sans accès réseau.
 
 ### Conclusion
 
