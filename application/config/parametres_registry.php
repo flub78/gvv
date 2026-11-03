@@ -310,7 +310,7 @@ $config['parametres_registry'] = array(
         'help'     => 'parametres_protocol_help',
         'read'     => 'club-admin',
         'write'    => 'club-admin',
-        'required' => TRUE,
+        // Pas obligatoire : la valeur par défaut « mail » fonctionne sans email.php.
         'default'  => 'mail',
     ),
     'smtp_host' => array(

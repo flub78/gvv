@@ -12,6 +12,9 @@ class Parametres_history_model extends CI_Model {
 
     public $table = 'parametres_history';
 
+    /** Existence de la table, mémorisée pour la durée de la requête. */
+    private $available = NULL;
+
     /**
      * Enregistre une modification.
      *
@@ -51,7 +54,10 @@ class Parametres_history_model extends CI_Model {
      * TRUE si la table existe (migration 185 appliquée).
      */
     public function available() {
-        return $this->db->table_exists($this->table);
+        if ($this->available === NULL) {
+            $this->available = $this->db->table_exists($this->table);
+        }
+        return $this->available;
     }
 }
 

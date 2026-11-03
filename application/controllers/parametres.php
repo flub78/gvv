@@ -65,17 +65,8 @@ class Parametres extends MY_Controller {
      * réaffiché avec toutes les saisies et le motif à côté de chaque champ refusé.
      */
     public function save($tab = NULL) {
-        $visible = $this->parametres_store->visible_tabs();
-        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
-            redirect('parametres/index/' . $tab);
-            return;
-        }
-        if (!$this->_check_tab($tab, $visible)) {
-            return;
-        }
-        if (!$this->_valid_token($this->input->post('parametres_token'))) {
-            $this->_message($this->lang->line('parametres_err_token')
-                . ' ' . anchor('parametres/index/' . $tab, $this->lang->line('parametres_reload')));
+        $visible = $this->_guard_post($tab, 'parametres/index/' . $tab);
+        if ($visible === FALSE) {
             return;
         }
 
@@ -91,7 +82,6 @@ class Parametres extends MY_Controller {
                 continue;
             }
             $def = $this->parametres_store->definition($key);
-            $label = $this->lang->line($def['label']);
             $field = $this->_field_name($key);
 
             $langs = empty($def['per_lang']) ? array(NULL) : Parametres_store::LANGUAGES;
@@ -101,7 +91,7 @@ class Parametres extends MY_Controller {
                     // Seul un fichier déposé change une image ; jamais un champ texte.
                     $value = $this->_uploaded_image($field, $upload_error);
                     if ($upload_error !== '') {
-                        $errors[$field] = array('name' => $label, 'message' => $upload_error);
+                        $errors[$field] = array('name' => $this->_param_label($key), 'message' => $upload_error);
                         continue;
                     }
                 } else {
@@ -115,7 +105,7 @@ class Parametres extends MY_Controller {
                     continue;
                 }
                 $res = $this->parametres_store->save($key, $value, $lang, $options);
-                $name = $lang ? $label . ' (' . $this->lang->line('parametres_lang_' . $lang) . ')' : $label;
+                $name = $this->_param_label($key, $lang);
                 if ($res['status'] === 'saved') {
                     $saved[] = $name;
                 } elseif ($res['status'] === 'error') {
@@ -164,15 +154,11 @@ class Parametres extends MY_Controller {
         $rows = array();
         foreach ($this->parametres_history_model->by_tab($tab) as $h) {
             $def = $this->parametres_store->definition($h['cle']);
-            $label = $def ? $this->lang->line($def['label']) : $h['cle'];
-            if ($h['lang']) {
-                $label .= ' (' . $this->lang->line('parametres_lang_' . $h['lang']) . ')';
-            }
             $rows[] = array(
                 'id'        => $h['id'],
                 'date'      => date_db2ht(substr($h['created_at'], 0, 10)) . ' ' . substr($h['created_at'], 11, 5),
                 'auteur'    => htmlspecialchars((string) $h['created_by']),
-                'parametre' => htmlspecialchars($label),
+                'parametre' => htmlspecialchars($this->_param_label($h['cle'], $h['lang'])),
                 'action'    => $this->lang->line('parametres_history_action_' . $h['action']),
                 'ancienne'  => $this->_history_value($h, 'ancienne_valeur', $def),
                 'nouvelle'  => $this->_history_value($h, 'nouvelle_valeur', $def),
@@ -201,26 +187,17 @@ class Parametres extends MY_Controller {
         $this->load->model('parametres_history_model');
         $row = $this->parametres_history_model->available()
             ? $this->parametres_history_model->get_by_id($id) : NULL;
-        if ($this->input->server('REQUEST_METHOD') !== 'POST' || !$row) {
+        if (!$row) {
             $this->_message($this->lang->line('parametres_err_history_unknown'));
             return;
         }
         $tab = $row['onglet'];
-        if (!$this->_check_tab($tab, $this->parametres_store->visible_tabs())) {
-            return;
-        }
-        if (!$this->_valid_token($this->input->post('parametres_token'))) {
-            $this->_message($this->lang->line('parametres_err_token')
-                . ' ' . anchor('parametres/historique/' . $tab, $this->lang->line('parametres_reload')));
+        if ($this->_guard_post($tab, 'parametres/historique/' . $tab) === FALSE) {
             return;
         }
 
         $res = $this->parametres_store->restore($id);
-        $def = $this->parametres_store->definition($row['cle']);
-        $name = $def ? $this->lang->line($def['label']) : $row['cle'];
-        if ($row['lang']) {
-            $name .= ' (' . $this->lang->line('parametres_lang_' . $row['lang']) . ')';
-        }
+        $name = $this->_param_label($row['cle'], $row['lang']);
         if ($res['status'] === 'saved') {
             $result = array('type' => 'success', 'text' => sprintf($this->lang->line('parametres_restored'), $name));
         } elseif ($res['status'] === 'unchanged') {
@@ -239,22 +216,7 @@ class Parametres extends MY_Controller {
      */
     public function test_email() {
         $tab = 'messagerie';
-        $visible = $this->parametres_store->visible_tabs();
-        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
-            redirect('parametres/index/' . $tab);
-            return;
-        }
-        if (!$this->_check_tab($tab, $visible)) {
-            return;
-        }
-        if (!$this->parametres_store->can_write_tab($tab)) {
-            $this->_message(sprintf($this->lang->line('parametres_forbidden_tab'),
-                $this->lang->line($visible[$tab]['label'])));
-            return;
-        }
-        if (!$this->_valid_token($this->input->post('parametres_token'))) {
-            $this->_message($this->lang->line('parametres_err_token')
-                . ' ' . anchor('parametres/index/' . $tab, $this->lang->line('parametres_reload')));
+        if ($this->_guard_post($tab, 'parametres/index/' . $tab, TRUE) === FALSE) {
             return;
         }
 
@@ -272,19 +234,55 @@ class Parametres extends MY_Controller {
     // ------------------------------------------------------------------
 
     /**
+     * Contrôles communs aux actions qui modifient quelque chose (POST) : méthode,
+     * onglet accessible, droit de modification si demandé, jeton de la page.
+     * En cas de refus, affiche un message explicite ou renvoie vers $back.
+     *
+     * @param string $tab
+     * @param string $back        adresse de retour (rechargement, requête non POST)
+     * @param bool   $need_write  exiger un paramètre modifiable dans l'onglet
+     * @return array|false onglets visibles, ou FALSE si la demande est refusée
+     */
+    private function _guard_post($tab, $back, $need_write = FALSE) {
+        $visible = $this->parametres_store->visible_tabs();
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect($back);
+            return FALSE;
+        }
+        if (!$this->_check_tab($tab, $visible)) {
+            return FALSE;
+        }
+        if ($need_write && !$this->parametres_store->can_write_tab($tab)) {
+            $this->_message(sprintf($this->lang->line('parametres_forbidden_tab'),
+                $this->lang->line($visible[$tab]['label'])));
+            return FALSE;
+        }
+        if (!$this->_valid_token($this->input->post('parametres_token'))) {
+            $this->_message($this->lang->line('parametres_err_token')
+                . ' ' . anchor($back, $this->lang->line('parametres_reload')));
+            return FALSE;
+        }
+        return $visible;
+    }
+
+    /**
+     * Libellé d'un paramètre, suivi de la langue pour une valeur saisie par langue.
+     * La clé brute est rendue pour un paramètre qui n'est plus déclaré.
+     */
+    private function _param_label($key, $lang = NULL) {
+        $def = $this->parametres_store->definition($key);
+        $label = $def ? $this->lang->line($def['label']) : $key;
+        return $lang ? $label . ' (' . $this->lang->line('parametres_lang_' . $lang) . ')' : $label;
+    }
+
+    /**
      * Envoi effectif de l'e-mail de test. La bibliothèque e-mail lit
      * application/config/email.php : ce sont donc les valeurs enregistrées.
      */
     private function _send_test_email($to) {
         $this->load->library('email');
-        $from = $this->config->item('email_club');
-        if (empty($from)) {
-            $from = $this->config->item('smtp_user');
-        }
-        if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            $from = 'noreply@gvv.net';
-        }
-        $from_name = $this->config->item('nom_club') ?: 'GVV';
+        $this->load->helper('email');
+        list($from, $from_name) = default_email_sender();
 
         $this->email->clear(TRUE);
         $this->email->from($from, $from_name);
@@ -497,7 +495,6 @@ class Parametres extends MY_Controller {
             }
         }
         $data['warnings'] = $warnings;
-        $data['can_history'] = $data['writable'];
 
         if ($tab === 'messagerie') {
             $data['test_email'] = $this->session->flashdata('parametres_test_email');

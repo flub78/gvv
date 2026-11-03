@@ -26,6 +26,8 @@ class ParametresStoreTest extends TransactionalTestCase
             'options' => array('mail' => 'mail', 'smtp' => 'SMTP'), 'read' => 'ca', 'write' => 'club-admin'),
         'phpunit.serveur' => array('tab' => 'essai', 'store' => 'db', 'type' => 'text', 'label' => 'l',
             'read' => 'ca', 'write' => 'club-admin', 'required_if' => array('phpunit.mode' => 'smtp')),
+        'phpunit.defaut' => array('tab' => 'defaut', 'store' => 'db', 'type' => 'text', 'label' => 'l',
+            'read' => 'ca', 'write' => 'club-admin', 'required' => TRUE, 'default' => 'mail'),
         'phpunit.module' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'text', 'label' => 'l',
             'read' => 'ca', 'write' => 'club-admin', 'requires' => array('phpunit.serveur')),
     );
@@ -33,6 +35,7 @@ class ParametresStoreTest extends TransactionalTestCase
     private $tabs = array(
         'essai'   => array('icon' => '', 'label' => 'essai'),
         'systeme' => array('icon' => '', 'label' => 'systeme'),
+        'defaut'  => array('icon' => '', 'label' => 'defaut'),
     );
 
     protected function setUp(): void
@@ -60,16 +63,16 @@ class ParametresStoreTest extends TransactionalTestCase
     public function testVisibleTabs_DependOnProfile()
     {
         $this->store->set_rank(1);
-        $this->assertSame(array('essai', 'systeme'), array_keys($this->store->visible_tabs()));
+        $this->assertSame(array('essai', 'systeme', 'defaut'), array_keys($this->store->visible_tabs()));
         $this->assertFalse($this->store->can_write_tab('essai'));
 
         $this->store->set_rank(2);
-        $this->assertSame(array('essai', 'systeme'), array_keys($this->store->visible_tabs()));
+        $this->assertSame(array('essai', 'systeme', 'defaut'), array_keys($this->store->visible_tabs()));
         $this->assertTrue($this->store->can_write_tab('essai'));
         $this->assertFalse($this->store->can_read('phpunit.systeme'));
 
         $this->store->set_rank(3);
-        $this->assertSame(array('essai', 'systeme'), array_keys($this->store->visible_tabs()));
+        $this->assertSame(array('essai', 'systeme', 'defaut'), array_keys($this->store->visible_tabs()));
         $this->assertTrue($this->store->can_read('phpunit.systeme'));
 
         $this->store->set_rank(0);
@@ -399,5 +402,18 @@ class ParametresStoreTest extends TransactionalTestCase
         $this->assertTrue($club['is_club_text']);
         $this->assertNotEmpty($club['updated_at']);
         $this->assertStringContainsString('<h1>Règles de Club PHPUnit</h1>', $club['html']);
+    }
+
+    /**
+     * Scénario: Un réglage obligatoire satisfait par la valeur par défaut de GVV ne rend pas l'onglet incomplet
+     *   Étant donné un réglage obligatoire dont GVV fournit une valeur par défaut
+     *   Et que le club n'a rien saisi
+     *   Quand l'administrateur consulte l'état de l'onglet
+     *   Alors l'onglet n'est pas signalé incomplet
+     */
+    public function testRequiredWithDefault_IsNotIncomplete()
+    {
+        $this->assertFalse($this->store->is_missing('phpunit.defaut'));
+        $this->assertNotSame('incomplete', $this->store->tab_status('defaut'));
     }
 }

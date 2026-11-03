@@ -166,6 +166,40 @@ class ConfigFileWriterTest extends TestCase
         $this->assertSame('missing_file', $this->writer->error);
         $this->assertSame('defaut', $this->writer->read($file, 'a', 'defaut'));
     }
+
+    /**
+     * Scénario: Un premier réglage enregistré crée le fichier de configuration absent
+     *   Étant donné un serveur où le fichier de configuration de la messagerie n'existe pas
+     *   Quand l'administrateur enregistre le mode d'envoi des e-mails
+     *   Alors le fichier est créé avec ce seul réglage
+     *   Et aucune valeur d'exemple n'y est ajoutée
+     */
+    public function testCreate_MissingFileThenWrite()
+    {
+        $file = sys_get_temp_dir() . '/gvv_cfg_create_' . uniqid() . '.php';
+        $this->tmp_files[] = $file;
+        $this->assertTrue($this->writer->create($file));
+        $this->assertTrue($this->writer->write($file, 'protocol', 'mail'));
+        $this->assertSame('mail', $this->writer->read($file, 'protocol'));
+        $this->assertSame(1, preg_match_all('/^\$config\[/m', file_get_contents($file)));
+
+        // Un fichier existant n'est pas recréé.
+        $this->assertTrue($this->writer->create($file));
+        $this->assertSame('mail', $this->writer->read($file, 'protocol'));
+    }
+
+    /**
+     * Scénario: Plusieurs réglages se lisent dans un fichier déjà ouvert
+     *   Étant donné le contenu d'un fichier de configuration du club
+     *   Quand on y lit l'adresse e-mail et un réglage absent
+     *   Alors l'adresse est rendue
+     *   Et le réglage absent prend la valeur par défaut
+     */
+    public function testReadContent()
+    {
+        $this->assertSame('club@example.org', $this->writer->read_content($this->sample(), 'email_club'));
+        $this->assertSame('defaut', $this->writer->read_content($this->sample(), 'absent', 'defaut'));
+    }
 }
 
 if (!function_exists('define_basepath_if_needed')) {

@@ -21,53 +21,11 @@
  */
 class Config extends MY_Controller {
 
-    // Définition des caractéristiques des champs à afficher
+    // Définition des caractéristiques des champs à afficher.
+    // L'identité du club (sigle, nom, adresse, e-mail, site, logo, contact RGPD)
+    // se modifie dans l'onglet Club de la page Configuration (parametres/index/club),
+    // où chaque modification est tracée : elle n'est plus modifiable ici.
     private $fields = array (
-            'sigle_club' => array (
-                    'label' => 'Sigle',
-                    'rules' => 'trim|required'
-            ),
-
-            'nom_club' => array (
-                    'label' => 'Nom',
-                    'rules' => 'trim|required'
-            ),
-
-            'code_club' => array (
-                    'label' => "Code d'identification",
-                    'rules' => 'trim'
-            ),
-
-            'adresse_club' => array (
-                    'label' => 'Rue',
-                    'rules' => 'trim|required'
-            ),
-
-            'cp_club' => array (
-                    'label' => 'Code postal',
-                    'rules' => 'trim|required'
-            ),
-
-            'ville_club' => array (
-                    'label' => 'Ville',
-                    'rules' => 'trim|required'
-            ),
-
-            'tel_club' => array (
-                    'label' => 'Téléphone',
-                    'rules' => 'trim|required'
-            ),
-
-            'email_club' => array (
-                    'label' => 'E-mail',
-                    'rules' => 'trim|required'
-            ),
-
-            'url_club' => array (
-                    'label' => 'Site WEB',
-                    'rules' => 'trim'
-            ),
-
             'calendar_id' => array (
                     'label' => 'Calendrier Google',
                     'rules' => 'trim'
@@ -85,11 +43,6 @@ class Config extends MY_Controller {
             'url_planche_auto' => array (
                     'label' => 'URL Planche Automatique',
                     'rules' => 'trim'
-            ),
-
-            'logo_club' => array (
-                    'label' => 'Logo',
-                    'rules' => ''
             ),
 
             'ffvv_id' => array (
@@ -156,7 +109,7 @@ class Config extends MY_Controller {
         $data ['fields'] = $this->fields;
         $data ['controller'] = 'config';
         $data ['action'] = "modification";
-        
+
         $this->load->model('produits_model');
 
         $data['product_selector'] = $this->produits_model->selector();
@@ -180,30 +133,6 @@ class Config extends MY_Controller {
 
         if ($this->form_validation->run()) {
             gvv_debug("config validée");
-            $config ['upload_path'] = './uploads/';
-            $config ['allowed_types'] = 'jpg|gif|png';
-            $config ['max_size'] = '100';
-            // $config['filename']= 'logo.png';
-            $config ['encrypt_name'] = TRUE;
-
-            $this->load->library('upload', $config);
-            if ($this->upload->do_upload()) {
-                $uploaded = $this->upload->data();
-                // print_r($uploaded);
-                // echo "file=" . $uploaded['file_name'] . "<br>";
-                $logo_club = $this->config->item('logo_club');
-                if (isset($logo_club) && file_exists($logo_club)) {
-                    unlink($logo_club);
-                }
-                $data ['logo_club'] = './uploads/' . $uploaded ['file_name'];
-            } else {
-                gvv_debug("upload problem: " . getcwd() . " " . $this->upload->display_errors());
-            }
-
-            if (! $data ['logo_club']) {
-                // unset($data['logo_club']);
-                $data ['logo_club'] = $this->config->item('logo_club');
-            }
             $this->saveConfig("./application/config/club.php", $data, $this->fields);
 
             $data ['title'] = 'Configuration club';

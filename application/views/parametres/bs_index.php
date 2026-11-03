@@ -12,7 +12,6 @@
  * @var array  $errors    champ(.langue) => name, message
  * @var array  $posted    saisies à réafficher après une erreur
  * @var array  $warnings  modules actifs auxquels il manque des paramètres : module, tab, label
- * @var bool   $can_history  lien vers l'historique de l'onglet
  * @var array  $test_email   résultat du dernier e-mail de test (onglet Messagerie)
  */
 $status_badges = array(
@@ -84,7 +83,7 @@ $shown = function ($p, $lang) use ($posted) {
     <?= $this->lang->line($info['help']) ?>
     <span class="ms-2 small">(<?= $this->lang->line('parametres_status_' . $statuses[$tab]) ?>)</span>
 </p>
-<?php if (!empty($can_history)): ?>
+<?php if ($writable): /* Historique réservé à qui peut modifier l'onglet (EX-HIS-02). */ ?>
 <a href="<?= site_url('parametres/historique/' . $tab) ?>" class="btn btn-outline-secondary btn-sm" id="parametres-history-link">
     <i class="fas fa-history me-1"></i><?= $this->lang->line('parametres_history') ?>
 </a>

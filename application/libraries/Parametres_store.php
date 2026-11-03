@@ -31,6 +31,12 @@ class Parametres_store {
     /** Rang calculé, mémorisé pour la durée de la requête. */
     protected $cached_rank = NULL;
 
+    /** Valeurs lues (clé|langue => résultat de get()), vidé à chaque écriture. */
+    protected $values = array();
+
+    /** Contenu des fichiers de configuration lus, vidé à chaque écriture. */
+    protected $files = array();
+
     public function __construct($params = array()) {
         $this->CI = &get_instance();
         $this->CI->config->load('parametres_registry', TRUE);
@@ -160,6 +166,17 @@ class Parametres_store {
      * @return array value, is_default (rien n'est défini), updated_at, updated_by
      */
     public function get($key, $lang = NULL) {
+        $cache_key = $key . '|' . $lang;
+        if (!array_key_exists($cache_key, $this->values)) {
+            $this->values[$cache_key] = $this->_read($key, $lang);
+        }
+        return $this->values[$cache_key];
+    }
+
+    /**
+     * Lecture effective d'une valeur (voir get()).
+     */
+    private function _read($key, $lang) {
         $def = $this->definition($key);
         $default = ($def && isset($def['default'])) ? $def['default'] : '';
         $result = array('value' => $default, 'is_default' => TRUE, 'updated_at' => NULL, 'updated_by' => NULL);
@@ -181,7 +198,11 @@ class Parametres_store {
         }
 
         $file = $this->_file_path($def['store']);
-        $value = $this->CI->config_file_writer->read($file, $key, NULL);
+        if (!array_key_exists($file, $this->files)) {
+            $this->files[$file] = is_file($file) ? file_get_contents($file) : NULL;
+        }
+        $value = ($this->files[$file] === NULL) ? NULL
+            : $this->CI->config_file_writer->read_content($this->files[$file], $key, NULL);
         if ($value !== NULL) {
             $result['value'] = $value;
             $result['is_default'] = FALSE;
@@ -218,7 +239,7 @@ class Parametres_store {
                     break;
                 }
             }
-            if (!$defined && $this->is_required($key)) {
+            if (!$defined && $this->is_missing($key)) {
                 return 'incomplete';
             }
             $any_defined = $any_defined || $defined;
@@ -341,14 +362,18 @@ class Parametres_store {
             return $this->_error($error);
         }
 
+        // Toute écriture peut changer d'autres lectures (obligations conditionnelles).
+        $this->values = array();
+        $this->files = array();
         if ($def['store'] === 'db') {
             if (!$this->_db_write($key, $lang, $value)) {
                 return $this->_error('parametres_err_db');
             }
         } else {
             $file = $this->_file_path($def['store']);
-            if (!$this->CI->config_file_writer->write($file, $key, $value)) {
-                return $this->_error('parametres_err_file_' . $this->CI->config_file_writer->error,
+            $writer = $this->CI->config_file_writer;
+            if (!$writer->create($file) || !$writer->write($file, $key, $value)) {
+                return $this->_error('parametres_err_file_' . $writer->error,
                     str_replace(FCPATH, '', $file));
             }
             $this->CI->config->set_item($key, $value);
@@ -365,7 +390,7 @@ class Parametres_store {
      * Un secret ne peut pas être restauré.
      *
      * @param int $history_id
-     * @return array comme save(), plus 'key' et 'lang' en cas de succès ou d'échec
+     * @return array comme save()
      */
     public function restore($history_id) {
         $row = $this->CI->parametres_history_model->get_by_id($history_id);
@@ -384,10 +409,7 @@ class Parametres_store {
             // Le paramètre n'était pas défini : retour à la valeur par défaut.
             $value = ($def['store'] === 'db') ? '' : (isset($def['default']) ? $def['default'] : '');
         }
-        $res = $this->save($row['cle'], $value, $row['lang'], array('action' => 'retour'));
-        $res['key'] = $row['cle'];
-        $res['lang'] = $row['lang'];
-        return $res;
+        return $this->save($row['cle'], $value, $row['lang'], array('action' => 'retour'));
     }
 
     /**

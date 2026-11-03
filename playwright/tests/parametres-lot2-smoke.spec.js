@@ -145,6 +145,24 @@ test.describe('Configuration : Club, Modules, Messagerie', () => {
   });
 
   /**
+   * Scénario: L'identité du club ne se modifie plus dans l'ancien écran de configuration du club
+   *   Étant donné un administrateur du club
+   *   Quand il ouvre l'ancien écran de configuration du club
+   *   Alors il n'y trouve plus le nom ni l'adresse du club
+   *   Et un lien le conduit à l'onglet Club de la page Configuration
+   */
+  test('legacy club screen points to the Club tab', async ({ page }) => {
+    await login(page, ADMIN_USER);
+    await page.goto('/config');
+    await checkNoPhpErrors(page);
+    await expect(page.locator('input[name="nom_club"]')).toHaveCount(0);
+    await expect(page.locator('input[name="adresse_club"]')).toHaveCount(0);
+    await page.click('#config-identity-moved a');
+    await expect(page).toHaveURL(/parametres\/index\/club/);
+    await expect(page.locator('#f-nom_club')).toBeVisible();
+  });
+
+  /**
    * Scénario: Le mot de passe du serveur d'envoi n'est jamais réaffiché
    *   Étant donné un administrateur du club
    *   Quand il ouvre l'onglet Messagerie
@@ -156,11 +174,20 @@ test.describe('Configuration : Club, Modules, Messagerie', () => {
     await page.goto('/parametres/index/messagerie');
     await checkNoPhpErrors(page);
     await expect(page.locator('#f-smtp_pass')).toHaveValue('');
-    await expect(page.locator('[data-param="smtp_pass"] .secret-status')).toBeVisible();
-    const smtpPass = (fs.readFileSync(path.resolve(__dirname, '../../application/config/email.php'), 'utf8')
-      .match(/^\$config\['smtp_pass'\]\s*=\s*'([^']+)'/m) || [])[1];
+    const status = page.locator('[data-param="smtp_pass"] .secret-status');
+    await expect(status).toBeVisible();
+
+    // Mot de passe enregistré, entre guillemets simples ou doubles.
+    const emailFile = path.resolve(__dirname, '../../application/config/email.php');
+    const content = fs.existsSync(emailFile) ? fs.readFileSync(emailFile, 'utf8') : '';
+    const match = content.match(/^\$config\['smtp_pass'\]\s*=\s*(?:'([^']*)'|"([^"]*)")\s*;/m);
+    const smtpPass = match ? (match[1] !== undefined ? match[1] : match[2]) : '';
     if (smtpPass) {
+      await expect(status).toHaveClass(/bg-success/);
       expect(await page.content()).not.toContain(smtpPass);
+    } else {
+      // Aucun mot de passe : la page l'indique, sans rien à masquer.
+      await expect(status).toHaveClass(/bg-secondary/);
     }
     await expect(page.locator('#parametres-test-email-send')).toBeVisible();
   });

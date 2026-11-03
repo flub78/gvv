@@ -63,7 +63,7 @@ Identité du club : sigle, nom, code d'identification, adresse, téléphone, e-m
 - Le membre du CA les consulte ; seul l'administrateur du club les modifie.
 - **Logo** : choisissez une image PNG, JPEG ou GIF de 500 Ko au plus, puis enregistrez. L'ancien logo reste sur le serveur : on peut y revenir depuis l'historique.
 
-Les autres réglages de l'ancien écran (calendrier Google, FFVV, message de maintenance…) restent dans **Admin > Club > Configuration club**.
+L'identité du club ne se modifie plus que dans cet onglet. Les autres réglages de l'ancien écran (calendrier Google, FFVV, message de maintenance…) restent dans **Admin > Club > Configuration club**, qui renvoie vers cet onglet.
 
 ## Onglet Modules
 
@@ -79,7 +79,7 @@ Réglages d'envoi des e-mails :
 
 | Paramètre | Usage |
 | :--- | :--- |
-| Mode d'envoi | « mail (PHP) » sur un hébergement mutualisé ; « SMTP » pour passer par un serveur d'envoi (Brevo…) |
+| Mode d'envoi | « mail (PHP) », valeur par défaut, sur un hébergement mutualisé ; « SMTP » pour passer par un serveur d'envoi (Brevo…) |
 | Serveur, port, chiffrement | En mode SMTP : par exemple `smtp-relay.brevo.com`, `587`, TLS |
 | Identifiant et mot de passe SMTP | Pour Brevo : tableau de bord Brevo → SMTP & API |
 | Redirection des e-mails / des SMS (essais) | Si renseignée, tout ce que GVV envoie part vers cette adresse ou ce numéro. **À laisser vide en production.** |
