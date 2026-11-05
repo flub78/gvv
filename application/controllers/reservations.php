@@ -102,7 +102,7 @@ class Reservations extends MY_Controller {
             'confirm_delete' => $this->lang->line('reservations_confirm_delete')
         );
 
-        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano, $is_club_admin) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano, $can_edit_past) = $this->_reservation_permissions();
 
         $data = array(
             'timeline_increment' => $this->config->item('timeline_increment'),
@@ -117,7 +117,7 @@ class Reservations extends MY_Controller {
             'is_auto_planchiste' => $is_auto_planchiste,
             'can_book' => $can_book,
             'is_mecano' => $is_mecano,
-            'is_club_admin' => $is_club_admin
+            'can_edit_past' => $can_edit_past
         );
         load_last_view('reservations/reservations_v6', $data);
     }
@@ -194,7 +194,7 @@ class Reservations extends MY_Controller {
         $instructors_options = $this->membres_model->inst_selector(0, true);
 
         // User context for access control
-        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano, $is_club_admin) = $this->_reservation_permissions();
+        list($current_username, $can_edit_others, $is_auto_planchiste, , $can_book, $is_mecano, $can_edit_past) = $this->_reservation_permissions();
 
         // Format date for display
         $date_obj = DateTime::createFromFormat('Y-m-d', $date);
@@ -251,7 +251,7 @@ class Reservations extends MY_Controller {
             'is_auto_planchiste' => $is_auto_planchiste,
             'can_book' => $can_book,
             'is_mecano' => $is_mecano,
-            'is_club_admin' => $is_club_admin
+            'can_edit_past' => $can_edit_past
         );
 
         load_last_view('reservations/timeline', $data);
@@ -395,7 +395,7 @@ class Reservations extends MY_Controller {
             }
 
             // Access control
-            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt, $drop_can_book, $drop_is_mecano, $drop_is_club_admin) = $this->_reservation_permissions();
+            list($drop_username, $drop_can_edit_others, $drop_is_auto_planchiste, $drop_balance_exempt, $drop_can_book, $drop_is_mecano, $drop_can_edit_past) = $this->_reservation_permissions();
 
             // Read-only members cannot create or modify reservations
             if (!$drop_can_book) {
@@ -403,14 +403,16 @@ class Reservations extends MY_Controller {
                 throw new Exception($this->lang->line('reservations_error_not_authorized'));
             }
 
-            // Past reservations locked for non-admin users, and non-admins
-            // cannot drag/resize a reservation to make it start in the past.
-            if (!$drop_is_club_admin) {
-                if ($this->_is_past_reservation($reservation['start_datetime'])) {
+            // Finished reservations are locked unless the user may edit past
+            // reservations. A reservation in progress stays editable, but its
+            // start cannot be moved into the past.
+            if (!$drop_can_edit_past) {
+                if ($this->_is_finished_reservation($reservation['end_datetime'])) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }
-                if ($this->_is_past_reservation($start_datetime)) {
+                if ($this->_is_past_datetime($start_datetime)
+                    && strtotime($start_datetime) !== strtotime($reservation['start_datetime'])) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }
@@ -664,7 +666,7 @@ class Reservations extends MY_Controller {
                 $end_datetime = $this->_snap_to_increment($end_datetime, $increment);
             }
 
-            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $is_club_admin) = $this->_reservation_permissions();
+            list($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $can_edit_past) = $this->_reservation_permissions();
 
             // Read-only members cannot create or modify reservations
             if (!$can_book) {
@@ -675,19 +677,20 @@ class Reservations extends MY_Controller {
             // Determine if this is a create or update
             $is_create = empty($reservation_id);
 
-            // Past reservations are locked for non-admin users (create and edit),
-            // and non-admins cannot edit a reservation to make it start in the past.
-            if (!$is_club_admin) {
-                if ($this->_is_past_reservation($start_datetime)) {
+            // Unless the user may edit past reservations: no creation in the
+            // past, finished reservations are locked, and a reservation in
+            // progress stays editable but its start cannot be moved into the past.
+            if (!$can_edit_past) {
+                $existing = $is_create ? null
+                    : $this->db->select('start_datetime, end_datetime')->get_where('reservations', array('id' => $reservation_id))->row_array();
+                if ($existing && $this->_is_finished_reservation($existing['end_datetime'])) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }
-                if (!$is_create) {
-                    $existing = $this->db->select('start_datetime')->get_where('reservations', array('id' => $reservation_id))->row_array();
-                    if ($existing && $this->_is_past_reservation($existing['start_datetime'])) {
-                        $this->lang->load('reservations');
-                        throw new Exception($this->lang->line('reservations_error_past_reservation'));
-                    }
+                $start_unchanged = $existing && strtotime($start_datetime) === strtotime($existing['start_datetime']);
+                if ($this->_is_past_datetime($start_datetime) && !$start_unchanged) {
+                    $this->lang->load('reservations');
+                    throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }
             }
 
@@ -864,7 +867,7 @@ class Reservations extends MY_Controller {
             $this->load->model('reservations_model');
 
             // Access control
-            list($del_username, $del_can_edit_others, $del_is_auto_planchiste, , $del_can_book, $del_is_mecano, $del_is_club_admin) = $this->_reservation_permissions();
+            list($del_username, $del_can_edit_others, $del_is_auto_planchiste, , $del_can_book, $del_is_mecano, $del_can_edit_past) = $this->_reservation_permissions();
 
             // Read-only members cannot delete reservations
             if (!$del_can_book) {
@@ -872,10 +875,10 @@ class Reservations extends MY_Controller {
                 throw new Exception($this->lang->line('reservations_error_not_authorized'));
             }
 
-            // Past reservations are locked for non-admin users
-            if (!$del_is_club_admin) {
-                $del_past_check = $this->db->select('start_datetime')->get_where('reservations', array('id' => $reservation_id))->row_array();
-                if ($del_past_check && $this->_is_past_reservation($del_past_check['start_datetime'])) {
+            // Finished reservations are locked unless the user may edit past reservations
+            if (!$del_can_edit_past) {
+                $del_past_check = $this->db->select('end_datetime')->get_where('reservations', array('id' => $reservation_id))->row_array();
+                if ($del_past_check && $this->_is_finished_reservation($del_past_check['end_datetime'])) {
                     $this->lang->load('reservations');
                     throw new Exception($this->lang->line('reservations_error_past_reservation'));
                 }
@@ -1186,13 +1189,13 @@ class Reservations extends MY_Controller {
 
     /**
      * Return reservation permission context for the current user.
-     * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $is_club_admin)
+     * Returns array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $can_edit_past)
      *
      * $can_edit_others  — may create/edit/delete reservations for other pilots (club-admin, instructeur, gestion_vd)
      * $balance_exempt   — exempt from balance check: club-admin, instructeur, gestion_vd, pilote_vd
      * $can_book         — may create/modify/delete any reservation (auto_planchiste, pilote_vd, instructeur, gestion_vd, club-admin)
      *                     Members without any of these roles are read-only: they can view but not act.
-     * $is_club_admin    — club-admin only: may edit/delete past reservations
+     * $can_edit_past    — same as $can_edit_others: may create in the past and edit/delete finished reservations
      */
     private function _reservation_permissions() {
         $username   = $this->dx_auth->get_username();
@@ -1206,14 +1209,23 @@ class Reservations extends MY_Controller {
                             || $this->gvv_authorization->has_role($this->user_id, 'gestion_vd',     $section_id);
         $balance_exempt     = $can_edit_others || $is_pilote_vd || $is_mecano;
         $can_book           = $can_edit_others || $is_auto_planchiste || $is_pilote_vd || $is_mecano;
-        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $is_club_admin);
+        $can_edit_past      = $can_edit_others;
+        return array($username, $can_edit_others, $is_auto_planchiste, $balance_exempt, $can_book, $is_mecano, $can_edit_past);
     }
 
     /**
      * Return true if the given datetime (YYYY-MM-DD HH:MM:SS) is strictly in the past.
      */
-    private function _is_past_reservation($start_datetime) {
-        return !empty($start_datetime) && strtotime($start_datetime) < time();
+    private function _is_past_datetime($datetime) {
+        return !empty($datetime) && strtotime($datetime) < time();
+    }
+
+    /**
+     * Return true if a reservation ending at $end_datetime is finished.
+     * A reservation in progress (started but not yet ended) is not finished.
+     */
+    private function _is_finished_reservation($end_datetime) {
+        return $this->_is_past_datetime($end_datetime);
     }
 
 }
