@@ -5,8 +5,8 @@
  * pourquoi). Conformément à la règle GUI du projet ("Never reject an action
  * silently"), un message d'erreur doit être affiché.
  *
- * Utilisateur de test : abraracourcix (instructeur, section Avion=3, non
- * club-admin — les club-admins peuvent créer des réservations dans le passé).
+ * Utilisateur de test : goudurix (auto_planchiste, section Avion=3, non
+ * instructeur ni club-admin — ceux-ci peuvent créer des réservations dans le passé).
  *
  * Usage :
  *   cd playwright && npx playwright test tests/reservations-past-click-feedback.spec.js --reporter=line
@@ -23,7 +23,7 @@ test.describe('Réservations - vue mensuelle - retour utilisateur sur clic pass�
     test.beforeEach(async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.open();
-        await loginPage.login('abraracourcix', 'password', AVION_SECTION);
+        await loginPage.login('goudurix', 'password', AVION_SECTION);
         await loginPage.verifyLoggedIn();
     });
 

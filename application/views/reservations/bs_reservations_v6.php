@@ -140,7 +140,6 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
     const BASE_URL = '<?php echo site_url(); ?>';
     const CONFIG = {
         currentUser:       '<?php echo htmlspecialchars($current_username, ENT_QUOTES); ?>',
-        isClubAdmin:       <?php echo $is_club_admin       ? 'true' : 'false'; ?>,
         canEditOthers:     <?php echo $can_edit_others     ? 'true' : 'false'; ?>,
         isAutoPlanchiste:  <?php echo $is_auto_planchiste  ? 'true' : 'false'; ?>,
         isMecano:          <?php echo $is_mecano           ? 'true' : 'false'; ?>,
@@ -177,10 +176,11 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
             cancelBtn.textContent = TRANSLATIONS.btn_cancel;
 
             // Members without booking rights are always read-only
-            // Past reservations are also read-only for non-admin users
-            const eventStart = (event && event.start) ? new Date(event.start) : null;
-            const isPast = eventStart && eventStart < new Date();
-            const readOnly = !CONFIG.canBook || (!isCreate && isPast && !CONFIG.isClubAdmin);
+            // Finished reservations are also read-only unless the user may edit
+            // past reservations (a reservation in progress stays editable)
+            const eventEnd = (event && (event.end || event.start)) ? new Date(event.end || event.start) : null;
+            const isFinished = eventEnd && eventEnd < new Date();
+            const readOnly = !CONFIG.canBook || (!isCreate && isFinished && !CONFIG.canEditOthers);
 
             // Show/hide save/delete buttons based on booking rights
             if (readOnly) {
@@ -610,7 +610,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 // Month view selections are allDay (midnight-to-midnight) and carry
                 // no meaningful time of day, so compare by day only to avoid
                 // blocking the current day once midnight has passed.
-                if (!CONFIG.isClubAdmin && isPastForCreation(info.start, info.allDay)) {
+                if (!CONFIG.canEditOthers && isPastForCreation(info.start, info.allDay)) {
                     alert(TRANSLATIONS.error_past_reservation || 'Past reservations cannot be created');
                     calendar.unselect();
                     return;
@@ -644,7 +644,7 @@ $fullcalendar_locale = isset($locale_map[$ci_language]) ? $locale_map[$ci_langua
                 // Month view clicks are allDay with a fixed 09:00 default time,
                 // so compare by day only to avoid blocking the current day once
                 // 09:00 has passed.
-                if (!CONFIG.isClubAdmin && isPastForCreation(startDate, info.allDay)) {
+                if (!CONFIG.canEditOthers && isPastForCreation(startDate, info.allDay)) {
                     alert(TRANSLATIONS.error_past_reservation || 'Past reservations cannot be created');
                     return;
                 }
