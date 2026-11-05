@@ -10,8 +10,10 @@
  *    commencer dans le passé.
  * Les club-admins, instructeurs et gestionnaires VD ne sont pas soumis au verrou.
  *
- * Utilisateurs de test (section Avion=3) :
+ * Utilisateurs de test (section Avion=3, sauf mention contraire) :
  *  - goudurix      : auto_planchiste, soumis au verrou
+ *  - obelix        : section ULM=2, auto_planchiste + mecano, soumis au verrou
+ *                    mais exempté du contrôle de solde (tests de prolongation)
  *  - abraracourcix : instructeur, exempté
  *  - panoramix     : club-admin, crée et nettoie les fixtures (exempté du
  *                    contrôle de solde et du verrou)
@@ -21,11 +23,15 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
+const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const AVION_SECTION = '3';
+const ULM_SECTION = '2';
 const TIMELINE_URL = '/index.php/reservations/timeline';
 const PILOT = 'goudurix';
+const ULM_PILOT = 'obelix';
 const INSTRUCTOR = 'abraracourcix';
 const ADMIN = 'panoramix';
 
@@ -45,11 +51,11 @@ function isoDate(offsetDays) {
     return d.toISOString().slice(0, 10);
 }
 
-async function openSession(browser, username) {
+async function openSession(browser, username, section = AVION_SECTION) {
     const page = await browser.newPage();
     const lp = new LoginPage(page);
     await lp.open();
-    await lp.login(username, 'password', AVION_SECTION);
+    await lp.login(username, 'password', section);
     await lp.verifyLoggedIn();
     await page.goto(TIMELINE_URL);
     await page.waitForLoadState('networkidle');
@@ -65,14 +71,14 @@ async function post(session, path, form) {
     return JSON.parse(await resp.text());
 }
 
-// Creates a reservation for PILOT as admin, trying each aircraft until one is
+// Creates a reservation for pilot as admin, trying each aircraft until one is
 // free on the requested slot (the test database holds real reservations).
-async function createAsAdmin(admin, start, end, notes) {
+async function createAsAdmin(admin, start, end, notes, pilot = PILOT) {
     for (const aircraftId of admin.aircraftIds) {
         const data = await post(admin, '/reservations/update_reservation', {
             reservation_id: '',
             aircraft_id: aircraftId,
-            pilot_member_id: PILOT,
+            pilot_member_id: pilot,
             start_datetime: start,
             end_datetime: end,
             instructor_member_id: '',
@@ -168,18 +174,20 @@ test.describe('Réservations - verrou des réservations passées', () => {
 
     /**
      * @feature Réservations
-     * Scénario: La prolongation d'une réservation en cours n'est pas bloquée comme réservation passée
+     * Scénario: Un pilote peut prolonger sa réservation en cours
      *   Étant donné une réservation commencée il y a une heure et pas encore terminée
-     *   Quand le pilote repousse l'heure de fin
-     *   Alors la modification n'est pas refusée au motif que la réservation est passée
+     *   Et un pilote sans droit de gestion des réservations d'autrui
+     *   Quand ce pilote repousse l'heure de fin
+     *   Alors la modification est acceptée
      */
-    test('une réservation en cours n\'est pas verrouillée pour la prolongation', async ({ browser }) => {
-        test.skip(!admin.aircraftIds.length, 'Aucun aéronef trouvé en section Avion');
+    test('une réservation en cours peut être prolongée par le pilote', async ({ browser }) => {
+        const ulmAdmin = await openSession(browser, ADMIN, ULM_SECTION);
+        const pilot = await openSession(browser, ULM_PILOT, ULM_SECTION);
         let created = null;
-        const pilot = await openSession(browser, PILOT);
         try {
+            test.skip(!ulmAdmin.aircraftIds.length, 'Aucun aéronef trouvé en section ULM');
             const start = localDatetime(-60);
-            created = await createAsAdmin(admin, start, localDatetime(120), 'PW test in progress extend');
+            created = await createAsAdmin(ulmAdmin, start, localDatetime(120), 'PW test in progress extend', ULM_PILOT);
             const data = await post(pilot, '/reservations/on_event_drop', {
                 event_id: String(created.id),
                 start_datetime: start,
@@ -187,14 +195,50 @@ test.describe('Réservations - verrou des réservations passées', () => {
                 resource_id: created.aircraftId,
                 action: 'resize',
             });
-            // Only the past lock is under test: the pilot's balance may still
-            // refuse the change, which is checked after the lock.
-            if (!data.success) {
-                expect(data.error || '').not.toMatch(/pass[ée]e?s?/i);
-            }
+            expect(data.success, data.error).toBe(true);
         } finally {
             await pilot.page.close();
-            await deleteAsAdmin(admin, created && created.id);
+            await deleteAsAdmin(ulmAdmin, created && created.id);
+            await ulmAdmin.page.close();
+        }
+    });
+
+    /**
+     * @feature Réservations
+     * Scénario: Une réservation en cours dont l'heure de début ne tombe pas sur un pas de la grille reste prolongeable
+     *   Étant donné une réservation commencée il y a moins d'une heure à une minute qui ne tombe pas sur un pas de la grille horaire
+     *   Et un pilote sans droit de gestion des réservations d'autrui
+     *   Quand ce pilote repousse l'heure de fin sans toucher à l'heure de début
+     *   Alors la modification est acceptée
+     */
+    test('une réservation en cours hors pas de grille peut être prolongée', async ({ browser }) => {
+        const ulmAdmin = await openSession(browser, ADMIN, ULM_SECTION);
+        const pilot = await openSession(browser, ULM_PILOT, ULM_SECTION);
+        let created = null;
+        let conn = null;
+        try {
+            test.skip(!ulmAdmin.aircraftIds.length, 'Aucun aéronef trouvé en section ULM');
+            const alignedStart = localDatetime(-60);
+            created = await createAsAdmin(ulmAdmin, alignedStart, localDatetime(120), 'PW test in progress off-grid', ULM_PILOT);
+            // A start recorded off the timeline grid cannot be produced through
+            // the UI (it snaps), so it is set directly in the database.
+            const offGridStart = alignedStart.slice(0, 14) + pad(Number(alignedStart.slice(14, 16)) + 7) + ':00';
+            conn = await mysql.createConnection(DB_CONFIG);
+            await conn.execute('UPDATE reservations SET start_datetime = ? WHERE id = ?', [offGridStart, created.id]);
+
+            const data = await post(pilot, '/reservations/on_event_drop', {
+                event_id: String(created.id),
+                start_datetime: offGridStart,
+                end_datetime: localDatetime(180),
+                resource_id: created.aircraftId,
+                action: 'resize',
+            });
+            expect(data.success, data.error).toBe(true);
+        } finally {
+            if (conn) await conn.end();
+            await pilot.page.close();
+            await deleteAsAdmin(ulmAdmin, created && created.id);
+            await ulmAdmin.page.close();
         }
     });
 
