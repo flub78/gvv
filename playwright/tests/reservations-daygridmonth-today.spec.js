@@ -11,7 +11,7 @@
  * La vue timeline n'est pas affectée car elle utilise l'heure réellement
  * cliquée sur la grille, pas une heure par défaut.
  *
- * Utilisateur de test : abraracourcix (instructeur, section Avion=3, non club-admin)
+ * Utilisateur de test : goudurix (auto_planchiste, section Avion=3, non instructeur ni club-admin)
  *
  * Usage :
  *   cd playwright && npx playwright test tests/reservations-daygridmonth-today.spec.js --reporter=line
@@ -28,7 +28,7 @@ test.describe('Réservations - vue mensuelle - création le jour même', () => {
     test.beforeEach(async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.open();
-        await loginPage.login('abraracourcix', 'password', AVION_SECTION);
+        await loginPage.login('goudurix', 'password', AVION_SECTION);
         await loginPage.verifyLoggedIn();
     });
 

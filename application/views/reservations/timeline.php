@@ -522,8 +522,7 @@ $this->load->view('bs_banner');
             canEditOthers: <?php echo $can_edit_others ? 'true' : 'false'; ?>,
             isAutoPlanchiste: <?php echo $is_auto_planchiste ? 'true' : 'false'; ?>,
             isMecano: <?php echo $is_mecano ? 'true' : 'false'; ?>,
-            canBook: <?php echo $can_book ? 'true' : 'false'; ?>,
-            isClubAdmin: <?php echo $is_club_admin ? 'true' : 'false'; ?>
+            canBook: <?php echo $can_book ? 'true' : 'false'; ?>
         };
         
         // State
@@ -776,8 +775,8 @@ $this->load->view('bs_banner');
             
             // Determine if current user can edit this event
             const pilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-            const eventIsPast = event.start instanceof Date ? event.start < new Date() : (new Date(event.start) < new Date());
-            const canEditEvent = !eventIsPast || CONFIG.isClubAdmin
+            const eventIsFinished = new Date(event.end || event.start) < new Date();
+            const canEditEvent = !eventIsFinished || CONFIG.canEditOthers
                 ? CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (pilotId === CONFIG.currentUser) || (CONFIG.isMecano && !pilotId))
                 : false;
 
@@ -1208,7 +1207,7 @@ $this->load->view('bs_banner');
             const startHourCheck = parseInt(startTime.split(':')[0]);
             const startMinCheck = parseInt(startTime.split(':')[1]) || 0;
             const slotDate = new Date(state.currentDate + 'T' + String(startHourCheck).padStart(2, '0') + ':' + String(startMinCheck).padStart(2, '0') + ':00');
-            if (!CONFIG.isClubAdmin && slotDate < new Date()) return;
+            if (!CONFIG.canEditOthers && slotDate < new Date()) return;
 
             // Parse start time
             const startTimeParts = startTime.split(':');
@@ -1301,8 +1300,8 @@ $this->load->view('bs_banner');
 
                 // Determine edit permissions for this event
                 const eventPilotId = event.extendedProps ? event.extendedProps.pilot_member_id : null;
-                const isPastEvent = event.start instanceof Date ? event.start < new Date() : (new Date(event.start) < new Date());
-                const isLockedByPast = isPastEvent && !CONFIG.isClubAdmin;
+                const isFinishedEvent = new Date(event.end || event.start) < new Date();
+                const isLockedByPast = isFinishedEvent && !CONFIG.canEditOthers;
                 const isEventOwner = !isLockedByPast && CONFIG.canBook && (CONFIG.canEditOthers || !CONFIG.isAutoPlanchiste || (eventPilotId === CONFIG.currentUser) || (CONFIG.isMecano && !eventPilotId));
                 const lockPilotToSelf = CONFIG.isAutoPlanchiste && !CONFIG.canEditOthers;
                 
