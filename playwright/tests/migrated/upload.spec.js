@@ -163,6 +163,16 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
     await loginPage.logout();
   });
 
+  /**
+   * @feature Membres
+   * Scénario: Le responsable dépose puis supprime la photo d'un membre
+   *   Étant donné un membre sans photo
+   *   Quand le responsable dépose une photo sur sa fiche
+   *   Alors la photo est rattachée au membre
+   *   Quand il supprime la photo en confirmant
+   *   Alors la fiche n'a plus de photo
+   *   Et le fichier de la photo n'est plus conservé
+   */
   test('should upload and delete the test member photo', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const testImagePath = resolveTestImagePath();
@@ -230,7 +240,12 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
       expect(afterUpload).toBe(baselineCount + 1);
 
       // ===== DELETE =====
-      await page.locator('#delete_photo').click();
+      // The delete button asks for confirmation (browser dialog): accept it.
+      page.once('dialog', dialog => dialog.accept());
+      await Promise.all([
+        page.waitForURL(/membre\/edit\//),
+        page.locator('#delete_photo').click(),
+      ]);
       await page.waitForLoadState('domcontentloaded');
 
       await openMemberEditPage(loginPage, page);
