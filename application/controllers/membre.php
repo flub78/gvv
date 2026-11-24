@@ -61,8 +61,10 @@ class Membre extends Gvv_Controller {
         $method = $this->router->fetch_method();
         if ($method === 'delete') {
             $this->require_roles(['club-admin']);
-        } elseif (in_array($method, ['create', 'formValidation', 'delete_photo'])) {
-            // delete_photo : mêmes droits que le dépôt de la photo (formValidation)
+        } elseif (in_array($method, ['create', 'formValidation'])) {
+            $this->require_roles(['ca', 'bureau', 'tresorier']);
+        } elseif ($method === 'delete_photo') {
+            // Mêmes droits que le dépôt de la photo (formValidation)
             $this->require_roles(['ca', 'bureau', 'tresorier']);
         } else {
             $this->require_roles(['user']);
