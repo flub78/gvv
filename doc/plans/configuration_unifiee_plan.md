@@ -2,7 +2,7 @@
 
 **PRD :** `doc/prds/configuration_unifiee_prd.md`
 **Dernière mise à jour :** 2026-11-03
-**Statut :** lots 1 et 2 réalisés (branches `feature/configuration_unifiee_lot1` et `feature/configuration_unifiee_lot2`), lot 3 à faire
+**Statut :** lots 1, 2 et 3 réalisés (branches `feature/configuration_unifiee_lot1` à `lot3`)
 
 Ce plan ne reprend pas les exigences : il les cite par leur identifiant (EX-…) du PRD.
 
@@ -90,17 +90,19 @@ Les lots suivent l'ordre de livraison de EX-TRA-04. Chaque lot est livré sur sa
 | L2-T6 ✅ | Onglet **Messagerie** (SMTP, e-mail et téléphone de test) et test d'envoi ; `email.php` absent créé à la première écriture ; expéditeur par défaut partagé avec `admin/test_email` | EX-TST-01, EX-TST-02 | 1 j |
 | L2-T7 ✅ | Traductions | §8 | 0,5 j |
 
-### Lot 3 — Autres onglets et fin de transition (≈ 7 j)
+### Lot 3 — Autres onglets et fin de transition (≈ 7 j) ✅
+
+Décisions prises au démarrage du lot (PRD §10) : écrans spécialisés présentés par des liens, onglet Communication abandonné, `facturation.php` en lecture seule, variantes par section reportées.
 
 | # | Tâche | Exigences | Estimation |
 | :--- | :--- | :--- | :--- |
-| L3-T1 | Onglets **Apparence**, **Communication** (CA), **Vols de découverte** (CA) : reprise des clés `vd.*` de la table `configuration` | §6 | 1,5 j |
-| L3-T2 | Onglet **Finances** (CA en lecture seule) : comptes de cotisation, seuils de relance, `facturation.php`, contrôle de solde à la réservation | §6, EX-VAR-01 | 1 j |
-| L3-T3 | Onglet **Paiements en ligne** : intégration du formulaire de `paiements_en_ligne/admin_config` par section, ouvert au club-admin ; déclarer les paramètres requis par le module `gestion_paiements` (`requires`). Le contrôleur HelloAsso garde sa logique sans métadonnées (exception CLAUDE.md) : seul son écran de réglages est déplacé | §6, EX-VAR-01 | 1 j |
-| L3-T4 | Onglets **Documents et cartes** et **Référentiels** : réglages des cartes et des formulaires, liens vers les écrans de listes existants | §3.1 | 1 j |
-| L3-T5 | Onglet **Système** (dev_users) : newsletter (déclarée requise par le module `veille`) (IMAP, IA, relecteurs, tests existants), SMS, ordonnanceurs, Google, `dev_users` ; lecture seule pour la base de données, l'URL, la version et la migration ; liste clé/valeur brute de la table `configuration` pour les clés non déclarées dans le registre. Entrée de menu accessible à un dev_user non membre du CA, hors du sous-menu « Club » qui contient des écrans réservés au CA | §3.2, EX-TST-01 | 1,5 j |
-| L3-T6 | Redirection des anciens écrans (`config`, `configuration`, `cartes_membre/config`, `forms_admin/config`, `newsletter_admin/configuration`, `paiements_en_ligne/admin_config`) vers leur onglet ; nettoyage du menu | EX-TRA-01 à 03 | 0,5 j |
-| L3-T7 | Passage de la tâche « Unifier la configuration » de `doc/todo.md` à `doc/done.md` | EX-TRA-05 | — |
+| L3-T1 ✅ | Onglets **Apparence** (titre, couleur de bannière ; le thème des anciens écrans n'y figure pas) et **Vols de découverte** (CA en modification : expéditeur, signature, contacts par type d'appareil, nouveau moteur PDF ; lien vers l'apparence des bons). Onglet Communication abandonné | §6 | 1,5 j |
+| L3-T2 ✅ | Onglet **Finances** (CA en lecture seule) : compte de cotisation, licences fédérales, seuils de relance, module de facturation, contrôle de solde à la réservation ; règles de `facturation.php` en lecture seule | §6 | 1 j |
+| L3-T3 ✅ | Onglet **Paiements en ligne** : lien vers `paiements_en_ligne/admin_config`, inchangé (exception CLAUDE.md), ouvert au club-admin | §6, EX-PRO-07 | 0,25 j |
+| L3-T4 ✅ | Onglets **Documents et cartes** (liens : cartes de membre, types de documents, formulaires et leurs réglages globaux) et **Référentiels** (aérodrome par défaut ; liens vers les listes existantes). Socle : liens d'onglet filtrés par profil et par module, listes de choix calculées (thèmes, modules de facturation, comptes, produits), intertitres | §3.1, EX-PRO-07 | 1 j |
+| L3-T5 ✅ | Onglet **Newsletter** (club-admin) : IMAP, SMTP, relecture, stockage et alertes, IA (secrets encodés, valeurs écrites comme texte), liens vers les tests d'envoi, IMAP et IA. Onglet **Système** (dev_users) : accès réservé et message de maintenance, `dev_users` (on ne peut pas s'en retirer), SMS, ordonnanceurs, Google, lien vers le test SMS ; lecture seule pour l'URL, la base de données, la version et la migration ; liste des clés non déclarées de la table `configuration`. Entrée « Configuration — Système » dans le menu Dev | §3.2, EX-TST-01 | 1,5 j |
+| L3-T6 ✅ | Redirection de `config` (Club), de la liste `configuration` (Système) et de `newsletter_admin/configuration` (Newsletter) ; retrait de leurs entrées de menu et cartes du tableau de bord. Les écrans spécialisés (`cartes_membre/config`, `forms_admin/config`, `paiements_en_ligne/admin_config`) gardent leur adresse (EX-PRO-07) | EX-TRA-01 à 03 | 0,5 j |
+| L3-T7 ✅ | Passage de la tâche « Unifier la configuration » de `doc/todo.md` à `doc/done.md` | EX-TRA-05 | — |
 
 **Total estimé : ≈ 19 jours**, tests et documentation compris (§4, §5).
 
@@ -118,6 +120,7 @@ Toutes les descriptions de tests suivent la règle Gherkin en français de CLAUD
 | unit | Profils : onglets visibles et modifiables selon CA / club-admin / dev_user, cumul des profils | 1-2 |
 | integration | `Parametres_store` en base : lecture, écriture, variantes par langue et par section, valeur par défaut signalée. Tests de migration 184/185 seulement s'ils ne sont pas déjà couverts par ces tests | 1-2 |
 | integration | Historique : trace de chaque écriture, secrets non conservés, retour arrière revalidé et tracé ; obligation conditionnelle ; avertissement de module ; page indépendante des modules | 2 |
+| integration | Liens d'onglet selon le profil et le module, secret encodé, liste des développeurs, informations d'installation en lecture seule, listes de choix calculées, valeurs écrites comme texte, onglets du CA | 3 |
 
 Règles d'état (CLAUDE.md) : chaque test crée ses propres clés de configuration (préfixe dédié) et les supprime en teardown. Un test qui touche un fichier de configuration réel le sauvegarde d'abord et le restaure à l'identique dans un `finally`.
 
@@ -133,9 +136,10 @@ Règles d'état (CLAUDE.md) : chaque test crée ses propres clés de configurati
 | Une valeur invalide est refusée à côté du champ, sans perte des autres saisies ✅ | 2 |
 | Retour à la valeur précédente depuis l'historique ✅ | 2 |
 | Le mot de passe SMTP n'est jamais réaffiché ✅ | 2 |
-| Un membre du CA voit aussi Finances en lecture seule | 3 |
-| Un dev_user non membre du CA accède à la page par le tableau de bord et voit l'onglet Système | 3 |
-| Les anciennes adresses mènent au bon onglet | 3 |
+| Un membre du CA modifie les contacts des vols de découverte et voit Finances en lecture seule ✅ | 3 |
+| Un dev_user non membre du CA accède à la page par le tableau de bord et voit l'onglet Système ✅ | 3 |
+| Les anciennes adresses mènent au bon onglet ✅ | 3 |
+| Les écrans spécialisés s'ouvrent depuis leur onglet ✅ | 3 |
 
 Utilisateurs de test : ceux de `bin/create_test_users.sql`. Les scénarios multi-utilisateurs se déconnectent entre deux comptes.
 
@@ -149,7 +153,7 @@ Utilisateurs de test : ceux de `bin/create_test_users.sql`. Les scénarios multi
 **Documentation utilisateur :**
 - Nouveau chapitre `doc/users/fr/21_configuration.md` : accès, onglets par profil, historique, pages publiques. Enrichi à chaque lot.
 - Mise à jour de `doc/users/fr/17_sauvegarde_hors_site.md` §1.2 : publication de l'application OAuth, avec l'URL de la page d'accueil et celle des règles de confidentialité de GVV (lot 1) ✅.
-- Mise à jour de `doc/installation.md` : après installation, les paramètres se modifient dans la page Configuration (lot 3).
+- Mise à jour de `doc/installation.md` : après installation, les paramètres se modifient dans la page Configuration (lot 3) ✅.
 
 ## 6. Risques
 

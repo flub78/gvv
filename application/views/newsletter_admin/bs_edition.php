@@ -55,7 +55,7 @@ $has_directives = $annotations || $retained;
 <?php if ($status === 'draft'): ?>
     <p><?= $this->lang->line('nl_help_draft') ?></p>
     <?php if (!$reviewers): ?>
-        <div class="alert alert-warning small"><?= sprintf($this->lang->line('nl_no_reviewers'), site_url('newsletter_admin/configuration')) ?></div>
+        <div class="alert alert-warning small"><?= sprintf($this->lang->line('nl_no_reviewers'), site_url('parametres/index/newsletter')) ?></div>
     <?php endif; ?>
 <?php elseif ($status === 'reviewing'): ?>
     <p><?= sprintf($this->lang->line('nl_help_reviewing'),

@@ -16,8 +16,8 @@ Rien n'est envoyé sans une action de l'administrateur : l'agent n'envoie aucun 
 - `Administration > Veille réglementaire` — éditions et cycle de relecture (`/newsletter_admin/editions`)
 - `Administration > Abonnement à la newsletter` — abonnés (`/newsletter_admin`)
 - `Membres > Newsletters` — archive des newsletters publiées (`/newsletter`)
-- `Accueil > Administration du club > Configuration veille réglementaire` — relecteurs, boîte de veille, compte d'envoi (`/newsletter_admin/configuration`)
-- `Dev > Newsletter — Configuration` et pages de test (`/newsletter_admin/test_email`, `test_imap`, `test_ai`)
+- `Administration du club > Configuration`, onglet **Newsletter** — relecteurs, boîte de veille, compte d'envoi, IA (voir [21. Configuration](21_configuration.md)) ; l'ancienne adresse `/newsletter_admin/configuration` y mène
+- pages de test (`/newsletter_admin/test_email`, `test_imap`, `test_ai`), accessibles depuis l'onglet Newsletter et le menu Dev
 
 > La fonctionnalité est activée par `$config['veille'] = true;` dans `application/config/program.php`. Sans ce réglage, les menus sont masqués et les pages répondent « introuvable ».
 
@@ -208,7 +208,7 @@ Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse
 
 ### 3.1 Configuration
 
-`Dev > Newsletter — Configuration` :
+Page Configuration, onglet **Newsletter** :
 
 | Réglage | Rôle |
 |---------|------|
@@ -220,7 +220,7 @@ Si l'envoi échoue pour certains abonnés (serveur d'envoi indisponible, adresse
 
 Variables utilisables dans le sujet et le corps : `{period}` (période), `{version}`, `{date}` (date d'envoi), `{deadline}` (date limite), `{from_name}` (nom affiché de l'expéditeur), `{draft_name}` (titre de l'édition).
 
-Les pages `Newsletter — Test envoi email` et `Newsletter — Test IMAP` du menu Dev vérifient que l'envoi et la lecture de la boîte fonctionnent.
+Les pages `Newsletter — Test envoi email` et `Newsletter — Test IMAP`, ouvertes depuis l'onglet Newsletter ou le menu Dev, vérifient que l'envoi et la lecture de la boîte fonctionnent.
 
 ### 3.2 L'email de transmission
 

@@ -13,7 +13,7 @@
 
 <?php if (empty($cfg['newsletter_imap_host'])): ?>
 <div class="alert alert-warning">
-  IMAP non configuré. <a href="<?= site_url('newsletter_admin/configuration') ?>">Configurer →</a>
+  IMAP non configuré. <a href="<?= site_url('parametres/index/newsletter') ?>">Configurer →</a>
 </div>
 <?php else: ?>
 
@@ -104,6 +104,6 @@
 
 <?php endif; ?>
 
-<a href="<?= site_url('newsletter_admin/configuration') ?>" class="btn btn-outline-secondary btn-sm">Configuration</a>
+<a href="<?= site_url('parametres/index/newsletter') ?>" class="btn btn-outline-secondary btn-sm">Configuration</a>
 
 </div>

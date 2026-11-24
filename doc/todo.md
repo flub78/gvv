@@ -8,6 +8,8 @@
 
 ## Reste à faire
 
+* AJouter une liste des machines sur laquelle les pilotes sont lachés.
+  
 * [~] Support de la gestion de la maintenance,  
   visite périodique, équipements à potentiel, 
   renouvellement d'assurance, etc.
@@ -16,18 +18,7 @@
   
 * [] Blocage des réservations si la licence est expirée, ou si le certificat médical est expiré. Si le pilote n'a pas volé depuis 120 jours, il doit indiquer un instructeur (qui recevra un rappel de réservation). Prévoir de pouvoir dispenser certain membres qui volent ailleurs de ce contrôle
    
-* [] Unifier la configuration globale de l'application avec des onglets ou des pages, un peu comme la procédure d'installation.
-Suivant les cas, la procédure éditera des fichiers de configuration ou des enregistrements dans la base de données. 
-  * [] Gestion des emails (smtp, etc)
-  * [] Gestion des documents (chemin, etc)
-  * [] Gestion des vols de découverte
-  * [] Gestion des tarifs et produits
-  * [] Gestion des types de vol
-  * [] Gestion des types d'écriture comptable
-  * [] Gestion des types de qualification
-  * [] Gestion des types de documents
-  * [] Gestion des types d'alerte
-  * [] Gestion des types de maintenance.
+* [] Écrans de gestion des listes qui n'en ont pas encore (reliquat de « Unifier la configuration ») : types de vol (tableaux de `program.php`), types d'écriture comptable, types d'alerte.
   
 * [] Insérer la liste des documents et qualifications d'un pilote dans sa page membre.
   
@@ -44,6 +35,5 @@ Suivant les cas, la procédure éditera des fichiers de configuration ou des enr
 
 ## Idées et suggestions
 
-* Accès à un carnet de vol ULM pour les membres
-* Seconde adresse email
+Les idées non décidées sont dans [suggestions.md](suggestions.md).
   

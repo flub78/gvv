@@ -42,6 +42,14 @@ class Configuration extends Gvv_Controller {
     }
 
     /**
+     * La liste des clés est présentée dans l'onglet Système de la page
+     * Configuration (EX-TRA-02). La création et la modification d'une clé restent ici.
+     */
+    function page($premier = 0, $message = '', $selection = array()) {
+        redirect('parametres/index/systeme');
+    }
+
+    /**
      * Génération des éléments statiques à passer au formulaire en cas de création,
      * modification ou ré-affichage après erreur.
      * Sont statiques les parties qui ne changent pas d'un élément sur l'autre.

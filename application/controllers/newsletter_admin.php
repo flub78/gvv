@@ -11,7 +11,7 @@
  * Routes :
  *   GET  newsletter_admin/index          Liste des abonnés
  *   POST newsletter_admin/delete/:id     Suppression d'un abonné
- *   GET/POST newsletter_admin/configuration  Configuration IMAP/SMTP
+ *   GET      newsletter_admin/configuration  redirige vers l'onglet Newsletter de la page Configuration
  *   GET/POST newsletter_admin/test_email     Validation envoi email
  *   GET/POST newsletter_admin/test_imap      Validation lecture IMAP
  *   GET/POST newsletter_admin/test_ai        Validation de l'accès à l'API Anthropic
@@ -131,90 +131,15 @@ class Newsletter_admin extends MY_Controller {
     // ══════════════════════════════════════════════════════════════════════
 
     /**
-     * Page de configuration IMAP/SMTP (GET = affiche, POST = sauvegarde).
+     * Les réglages de la newsletter se font dans l'onglet Newsletter de la page
+     * Configuration (EX-TRA-02).
      */
     public function configuration() {
-        if ($this->input->server('REQUEST_METHOD') === 'POST') {
-            $this->_post_configuration();
-            return;
-        }
-        $cfg = $this->_load_newsletter_config();
-        $data = array(
-            'title'   => $this->lang->line('newsletter_config_title'),
-            'cfg'     => $cfg,
-            'message' => $this->session->flashdata('message'),
-        );
-        $this->load->view('bs_header', $data);
-        $this->load->view('bs_menu');
-        $this->load->view('bs_banner');
-        $this->load->view('newsletter_admin/bs_configuration', $data);
-        $this->load->view('bs_footer');
-    }
-
-    private function _post_configuration() {
-        $fields = array(
-            'newsletter_imap_host', 'newsletter_imap_port', 'newsletter_imap_user',
-            'newsletter_imap_ssl', 'newsletter_imap_mailbox',
-            'newsletter_smtp_host', 'newsletter_smtp_port', 'newsletter_smtp_crypto',
-            'newsletter_smtp_user',
-            'newsletter_smtp_from', 'newsletter_smtp_from_name',
-            'newsletter_reviewers', 'newsletter_review_delay_days',
-            'newsletter_storage_path',
-            'newsletter_review_subject', 'newsletter_review_body',
-            'newsletter_alerts_enabled',
-            'newsletter_anthropic_model',
-        );
-        $values = array();
-        foreach ($fields as $key) {
-            $values[$key] = $this->input->post($key) ?: '';
-        }
-        // Mots de passe : ne mettre à jour que s'ils sont renseignés
-        $cfg = $this->_load_newsletter_config();
-
-        $raw_imap_pass = $this->input->post('newsletter_imap_password');
-        $values['newsletter_imap_password'] = !empty($raw_imap_pass)
-            ? Newsletter_imap::encode_password($raw_imap_pass)
-            : ($cfg['newsletter_imap_password'] ?? '');
-
-        $raw_smtp_pass = $this->input->post('newsletter_smtp_password');
-        $values['newsletter_smtp_password'] = !empty($raw_smtp_pass)
-            ? Newsletter_imap::encode_password($raw_smtp_pass)
-            : ($cfg['newsletter_smtp_password'] ?? '');
-
-        $raw_api_key = $this->input->post('newsletter_anthropic_api_key');
-        $values['newsletter_anthropic_api_key'] = !empty($raw_api_key)
-            ? Newsletter_imap::encode_password($raw_api_key)
-            : ($cfg['newsletter_anthropic_api_key'] ?? '');
-
-        $ok = $this->_save_newsletter_config($values);
-        $this->session->set_flashdata('message', $ok
-            ? '<div class="alert alert-success">' . $this->lang->line('newsletter_config_saved') . '</div>'
-            : '<div class="alert alert-danger">Erreur d\'écriture du fichier de configuration. Vérifiez les droits sur ' . APPPATH . 'config/newsletter.php</div>'
-        );
-        redirect('newsletter_admin/configuration');
+        redirect('parametres/index/newsletter');
     }
 
     private function _load_newsletter_config() {
         return $this->newsletter_mailer->load_config();
-    }
-
-    private function _save_newsletter_config($values) {
-        $file    = APPPATH . 'config/newsletter.php';
-        $content = "<?php\nif (!defined('BASEPATH')) exit('No direct script access allowed');\n\n";
-        $content .= "/*\n|----------------------------------------------------------\n";
-        $content .= "| Configuration veille réglementaire — généré par GVV\n";
-        $content .= "|----------------------------------------------------------\n*/\n\n";
-        foreach ($values as $key => $val) {
-            $val_escaped = str_replace("'", "\\'", $val);
-            $content .= "\$config['{$key}'] = '{$val_escaped}';\n";
-        }
-        $content .= "\n/* End of file newsletter.php */\n";
-
-        if (file_put_contents($file, $content) === false) {
-            log_message('error', 'newsletter_admin::_save_newsletter_config — impossible d\'écrire ' . $file);
-            return false;
-        }
-        return true;
     }
 
     /**

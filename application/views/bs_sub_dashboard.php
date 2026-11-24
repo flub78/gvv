@@ -1204,23 +1204,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
     <h5 class="mt-4 mb-3"><?= $config_title ?></h5>
     <div class="row g-2">
         <?php if (has_role('club-admin')): ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-cog text-primary"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_club_config') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_club') ?></div>
-                <a href="<?= controller_url('config') ?>" class="btn btn-primary btn-sm"><?= $this->lang->line('db_btn_acceder') ?></a>
-            </div>
-        </div>
 
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-cogs text-info"></i>
-                <div class="card-title"><?= $this->lang->line('db_card_parameters') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('db_desc_configuration') ?></div>
-                <a href="<?= controller_url('configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
 
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
@@ -1241,17 +1225,6 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
-        <?php if (has_role('club-admin') && $this->config->item('veille')): ?>
-        <?php $this->lang->load('newsletter'); ?>
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
-            <div class="sub-card text-center">
-                <i class="fas fa-newspaper text-info"></i>
-                <div class="card-title"><?= $this->lang->line('newsletter_config_title') ?></div>
-                <div class="card-text text-muted"><?= $this->lang->line('newsletter_config_card_desc') ?></div>
-                <a href="<?= controller_url('newsletter_admin/configuration') ?>" class="btn btn-info btn-sm"><?= $this->lang->line('db_btn_gerer') ?></a>
-            </div>
-        </div>
-        <?php endif; ?>
 
         <?php if (has_role('ca')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">

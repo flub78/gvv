@@ -11,7 +11,7 @@
 <div class="alert alert-warning">
   <i class="fas fa-exclamation-triangle"></i>
   <?= $this->lang->line('newsletter_test_ai_no_key') ?>
-  <a href="<?= site_url('newsletter_admin/configuration') ?>" class="ms-2">Configurer →</a>
+  <a href="<?= site_url('parametres/index/newsletter') ?>" class="ms-2">Configurer →</a>
 </div>
 <?php else: ?>
 
@@ -53,7 +53,7 @@
   <button type="submit" class="btn btn-primary">
     <i class="fas fa-paper-plane"></i> <?= $this->lang->line('newsletter_test_ai_send') ?>
   </button>
-  <a href="<?= site_url('newsletter_admin/configuration') ?>" class="btn btn-outline-secondary ms-2">Configuration</a>
+  <a href="<?= site_url('parametres/index/newsletter') ?>" class="btn btn-outline-secondary ms-2">Configuration</a>
 </form>
 
 <?php if (isset($ai_response)): ?>

@@ -10,19 +10,30 @@ La page **Configuration** regroupe les paramètres du club et de l'application d
 | Administrateur du club (club-admin) | Onglets du CA et onglets d'administration du club |
 | Développeur (utilisateur listé dans `dev_users`) | Tous les onglets |
 
-| Onglet | Membre du CA | Administrateur du club |
-| :--- | :--- | :--- |
-| **Club** | lecture seule | modification |
-| **Modules** | lecture seule | modification |
-| **Messagerie** | — | modification |
-| **Pages publiques** | — | modification |
+| Onglet | Membre du CA | Administrateur du club | Développeur |
+| :--- | :--- | :--- | :--- |
+| **Club** | lecture seule | modification | modification |
+| **Apparence** | — | modification | modification |
+| **Modules** | lecture seule | modification | modification |
+| **Vols de découverte** | modification | modification | modification |
+| **Finances** | lecture seule | modification | modification |
+| **Paiements en ligne** | — | accès à l'écran HelloAsso | idem |
+| **Documents et cartes** | — | accès aux écrans | idem |
+| **Pages publiques** | — | modification | modification |
+| **Référentiels** | — | modification, accès aux listes | idem |
+| **Messagerie** | — | modification | modification |
+| **Newsletter** | — | modification, tests | modification, tests |
+| **Système** | — | — | modification |
 
-> La page est livrée progressivement. Les réglages qui n'y figurent pas encore restent dans leurs écrans habituels (Admin > Club > Configuration club, Paiements en ligne > Configuration…).
+Certains onglets ne contiennent pas de réglages mais des **liens** vers des écrans spécialisés (réglages HelloAsso par section, mise en page des cartes de membre, listes de référence…) : le bouton **Ouvrir** y mène. Ces écrans n'ont pas changé.
+
+Les anciens écrans « Configuration club », « Configuration » (liste clé/valeur) et « Newsletter — Configuration » ont été remplacés : leurs adresses mènent à l'onglet correspondant.
 
 ## Accès
 
 - Tableau de bord > **Administration du club** > carte **Configuration** ;
-- ou menu **Admin > Club > Configuration**.
+- ou menu **Admin > Club > Configuration** ;
+- pour un développeur, menu **Dev > Configuration — Système**.
 
 Si vous n'avez accès à aucun onglet, la carte et l'entrée de menu n'apparaissent pas. Une adresse d'onglet ouverte sans les droits nécessaires affiche un message de refus.
 
@@ -63,7 +74,11 @@ Identité du club : sigle, nom, code d'identification, adresse, téléphone, e-m
 - Le membre du CA les consulte ; seul l'administrateur du club les modifie.
 - **Logo** : choisissez une image PNG, JPEG ou GIF de 500 Ko au plus, puis enregistrez. L'ancien logo reste sur le serveur : on peut y revenir depuis l'historique.
 
-L'identité du club ne se modifie plus que dans cet onglet. Les autres réglages de l'ancien écran (calendrier Google, FFVV, message de maintenance…) restent dans **Admin > Club > Configuration club**, qui renvoie vers cet onglet.
+L'identité du club ne se modifie plus que dans cet onglet. L'onglet contient aussi le **calendrier Google** des présences (utile seulement si le calendrier des présences est synchronisé avec Google ; sinon il est enregistré dans la base de GVV) et l'adresse de la **planche automatique**.
+
+## Onglet Apparence
+
+Titre de l'application (affiché dans l'onglet du navigateur), et couleur de la bannière (couleur CSS, par exemple `#1f6f8b` ou `darkgreen` ; vide : vert). Le changement se voit dès la page suivante.
 
 ## Onglet Modules
 
@@ -72,6 +87,34 @@ Active ou désactive les fonctionnalités du club : vols de découverte, réserv
 - Le menu est mis à jour dès la page suivante.
 - La page Configuration, elle, ne dépend d'aucun module : elle reste accessible pour réactiver un module.
 - Si un module actif a besoin d'un réglage qui manque, un avertissement jaune désigne l'onglet à compléter. Par exemple, les vols de découverte et la newsletter envoient des e-mails : en mode SMTP, il leur faut un serveur SMTP.
+
+## Onglet Vols de découverte
+
+Ouvert au **conseil d'administration**, qui peut le modifier :
+- adresse, nom et signature de l'expéditeur des e-mails des bons ;
+- contacts (nom et téléphone) par type d'appareil : avion, planeur, ULM, indiqués sur les bons ;
+- nouveau moteur PDF des bons (réservé à l'administrateur du club), dont les modèles se règlent dans l'écran **Apparence des bons**, accessible depuis l'onglet.
+
+## Onglet Finances
+
+Le conseil d'administration le consulte ; l'administrateur du club le modifie.
+- **Cotisations et licences** : compte de recette proposé à la saisie d'une cotisation, produit des licences fédérales, identifiant et mot de passe fédéraux, export Gesasso.
+- **Relances** : seuils d'alarme et critique, en euros.
+- **Facturation** : contrôle du solde à la réservation, module de facturation du club (à ne changer qu'en connaissance de cause).
+- **Règles de facturation du serveur** : payeur autre que le pilote, partage des frais, remorquage au 100e. Elles sont affichées en lecture seule : elles se règlent dans `application/config/facturation.php`, sur le serveur.
+
+Si la valeur enregistrée d'une liste n'en fait pas partie (par exemple un produit d'une autre section), elle reste affichée avec la mention « valeur actuelle, absente de la liste ».
+
+## Onglets Paiements en ligne et Documents et cartes
+
+Ils présentent les écrans existants :
+- **Réglages HelloAsso par section** (identifiants, comptes, adresse de notification, test de connexion) ;
+- **Cartes de membre** (fonds et mise en page par année), **Types de documents** (si la gestion documentaire est active), **Formulaires** et **Réglages globaux des formulaires** (valeurs communes, tampon de l'association).
+
+## Onglet Référentiels
+
+- **Aérodrome par défaut** : code OACI en majuscules (par exemple `LFOI`), proposé à la saisie des vols avion, ULM et découverte.
+- Liens vers les listes de référence : terrains, types de qualifications et d'événements, plan comptable, tarifs et produits, types de tickets (si actifs), types de séances de formation (si actives), programmes de maintenance.
 
 ## Onglet Messagerie
 
@@ -129,3 +172,24 @@ Google exige une **page d'accueil** et des **règles de confidentialité** publi
 - comme page d'accueil : la page de connexion de GVV (`…/auth/login`), qui contient le lien vers les règles ;
 - comme règles de confidentialité : `…/legal/confidentialite` ;
 - comme conditions d'utilisation (facultatif) : `…/legal/conditions`.
+
+## Onglet Newsletter
+
+Ouvert à l'administrateur du club, pour la newsletter de veille (voir [20. Newsletter de veille](20_newsletter_veille.md)) :
+- **Boîte de collecte (IMAP)** où arrivent les réponses des relecteurs ;
+- **Envoi (SMTP)** : serveur, compte et expéditeur ; serveur vide = réglages de l'onglet Messagerie ;
+- **Relecture** : relecteurs, délai (2 jours par défaut), sujet et texte de la demande de relecture ;
+- **Stockage et alertes**, **Intelligence artificielle** (clé d'API, modèle).
+
+Les mots de passe et la clé d'API ne sont jamais réaffichés. En haut de l'onglet, les boutons **Ouvrir** mènent aux tests d'envoi, de la boîte IMAP et de l'IA, qui utilisent les réglages enregistrés.
+
+## Onglet Système
+
+Réservé aux développeurs (utilisateurs listés dans `dev_users`) :
+- **Accès et maintenance** : accès réservé aux administrateurs, message affiché sur la page de connexion pendant la maintenance, liste des développeurs. On ne peut pas se retirer soi-même de cette liste.
+- **SMS**, **ordonnanceurs** (secrets des adresses de déclenchement, heure de traitement des alarmes), **intégration Google**.
+- Lien vers le **test d'envoi de SMS**, qui utilise les réglages enregistrés.
+- **Installation (lecture seule)** : adresse de base, base de données, version, migration (actuelle / attendue). Ces réglages ne se modifient que sur le serveur.
+- **Autres clés de la table de configuration** : réglages enregistrés par des écrans spécialisés (mise en page des cartes…). Le crayon ouvre l'ancien éditeur clé/valeur.
+
+> Une modification faite directement dans un fichier de configuration sur le serveur peut mettre quelques secondes à être prise en compte (cache de PHP). Celles faites dans cette page le sont aussitôt.

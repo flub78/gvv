@@ -301,10 +301,16 @@ Si vous configurez Brevo :
 > Je pense que le module zip n'avait pas assez de mémoire disponible à la vue des données à compresser.
 > Ça risque d'arriver à tout le monde au fur et à mesure du temps...
 
+#### Modifier la configuration après l'installation
+
+Une fois GVV installé, la plupart des réglages se modifient dans la page **Configuration** (Tableau de bord > Administration du club > Configuration), sans éditer de fichier sur le serveur : identité du club, modules actifs, messagerie, finances, newsletter, SMS… Voir [21. Configuration](users/fr/21_configuration.md). Le serveur web doit pouvoir écrire dans `application/config/` (fichiers `club.php`, `program.php`, `email.php`, `newsletter.php`, `google.php`).
+
+Restent à modifier sur le serveur : la connexion à la base de données, l'URL de base, les clés de chiffrement et les règles de `facturation.php`.
+
 #### Configuration des emails
 
-La configuration email est prise en charge par l'étape 8 de l'assistant d'installation.
-Si vous avez passé cette étape ou souhaitez la modifier manuellement, créez ou éditez `application/config/email.php` à partir du modèle `email.example.php` :
+La configuration email est prise en charge par l'étape 8 de l'assistant d'installation, puis par l'onglet **Messagerie** de la page Configuration.
+Pour la modifier manuellement, créez ou éditez `application/config/email.php` à partir du modèle `email.example.php` :
 
 
 #### Configuration de la tache cron pour les sauvegardes automatiques
