@@ -92,7 +92,7 @@ $this->load->view('bs_banner');
                             <?php if ($programme['statut'] === 'actif'): ?>
                             <a href="<?= controller_url($controller) ?>/deactivate/<?= $programme['id'] ?>"
                                class="btn btn-sm btn-outline-warning" title="<?= $this->lang->line('maintenance_programmes_deactivate') ?>"
-                               onclick="return confirm('<?= $this->lang->line('maintenance_programme_deactivate_confirm') ?>')">
+                               onclick="return confirm(<?= js_str($this->lang->line('maintenance_programme_deactivate_confirm')) ?>)">
                                 <i class="fas fa-ban" aria-hidden="true"></i>
                             </a>
                             <?php else: ?>

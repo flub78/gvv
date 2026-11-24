@@ -63,6 +63,9 @@ class Membre extends Gvv_Controller {
             $this->require_roles(['club-admin']);
         } elseif (in_array($method, ['create', 'formValidation'])) {
             $this->require_roles(['ca', 'bureau', 'tresorier']);
+        } elseif ($method === 'delete_photo') {
+            // Mêmes droits que le dépôt de la photo (formValidation)
+            $this->require_roles(['ca', 'bureau', 'tresorier']);
         } else {
             $this->require_roles(['user']);
         }
@@ -1127,19 +1130,33 @@ class Membre extends Gvv_Controller {
      * @param string $mlogin Login du membre
      */
     function delete_photo($mlogin) {
+        // Modification de données : POST seulement (un simple lien ne doit pas supprimer).
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            $this->session->set_flashdata('error', $this->lang->line('membre_photo_delete_use_button'));
+            redirect('membre/edit/' . rawurlencode($mlogin));
+            return;
+        }
 
+        $mlogin = urldecode($mlogin);
         $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
-        $photo = $membre['photo'];
+        if (empty($membre)) {
+            $this->session->set_flashdata('error', $mlogin . ' ' . $this->lang->line('membre_error_unknow'));
+            redirect('membre/page');
+            return;
+        }
+        $photo = basename((string) $membre['photo']);
 
-        // Essayer de supprimer dans le nouveau dossier d'abord
-        $filename = './uploads/photos/' . $photo;
-        if (file_exists($filename)) {
-            unlink($filename);
-        } else {
-            // Essayer l'ancien emplacement pour compatibilité
-            $filename_legacy = './uploads/' . $photo;
-            if (file_exists($filename_legacy)) {
-                unlink($filename_legacy);
+        if ($photo !== '') {
+            // Essayer de supprimer dans le nouveau dossier d'abord
+            $filename = './uploads/photos/' . $photo;
+            if (is_file($filename)) {
+                unlink($filename);
+            } else {
+                // Essayer l'ancien emplacement pour compatibilité
+                $filename_legacy = './uploads/' . $photo;
+                if (is_file($filename_legacy)) {
+                    unlink($filename_legacy);
+                }
             }
         }
 
@@ -1150,8 +1167,9 @@ class Membre extends Gvv_Controller {
             $mlogin
         );
 
+        $this->session->set_flashdata('success', $this->lang->line('membre_photo_deleted'));
         // Redirige vers la page du membre
-        redirect("membre/edit/$mlogin");
+        redirect('membre/edit/' . rawurlencode($mlogin));
     }
 
 

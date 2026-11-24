@@ -212,13 +212,13 @@ $filter_archived_document = isset($filter_archived_document) ? $filter_archived_
                         <a href="<?= site_url('acceptance_admin/toggle_active/' . $item['id']) ?>"
                            class="btn btn-outline-<?= $item['active'] ? 'warning' : 'success' ?>"
                            title="<?= $item['active'] ? $this->lang->line('acceptance_deactivate') : $this->lang->line('acceptance_activate') ?>"
-                           onclick="return confirm('<?= $item['active'] ? $this->lang->line('acceptance_confirm_deactivate') : $this->lang->line('acceptance_confirm_activate') ?>');">
+                           onclick="return confirm(<?= js_str(($item['active'] ? $this->lang->line('acceptance_confirm_deactivate') : $this->lang->line('acceptance_confirm_activate'))) ?>);">
                             <i class="fas fa-<?= $item['active'] ? 'ban' : 'check' ?>"></i>
                         </a>
                         <a href="<?= site_url('acceptance_admin/delete/' . $item['id']) ?>"
                            class="btn btn-outline-danger"
                            title="<?= $this->lang->line('acceptance_delete') ?>"
-                           onclick="return confirm('<?= $this->lang->line('acceptance_confirm_delete') ?>');">
+                           onclick="return confirm(<?= js_str($this->lang->line('acceptance_confirm_delete')) ?>);">
                             <i class="fas fa-trash"></i>
                         </a>
                     </div>

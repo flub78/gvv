@@ -52,7 +52,7 @@
             <td><?= htmlspecialchars(substr($sub['created_at'], 0, 10)) ?></td>
             <td>
                 <form method="post" action="<?= site_url('newsletter_admin/delete/' . $sub['id']) ?>"
-                      onsubmit="return confirm('<?= $this->lang->line('newsletter_delete_confirm') ?>')">
+                      onsubmit="return confirm(<?= js_str($this->lang->line('newsletter_delete_confirm')) ?>)">
                     <?= $this->security->get_csrf_hash() ? '<input type="hidden" name="' . $this->security->get_csrf_token_name() . '" value="' . $this->security->get_csrf_hash() . '">' : '' ?>
                     <button type="submit" class="btn btn-danger btn-sm">
                         <i class="fas fa-trash"></i>

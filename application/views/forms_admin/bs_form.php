@@ -216,7 +216,7 @@
                   action="<?= site_url('forms_admin/pdf_template_upload/' . (int) $form['id']) ?>" style="display:none;"></form>
             <form id="forms-pdf-template-delete-form" method="post"
                   action="<?= site_url('forms_admin/pdf_template_delete/' . (int) $form['id']) ?>"
-                  onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_pdf_template') ?>');" style="display:none;"></form>
+                  onsubmit="return confirm(<?= js_str($this->lang->line('forms_confirm_delete_pdf_template')) ?>);" style="display:none;"></form>
             <?php endif; ?>
         </div>
     </div>
@@ -239,7 +239,7 @@
                     <p class="text-muted small mb-2"><?= $this->lang->line('forms_help_restore') ?></p>
                     <form method="post" enctype="multipart/form-data"
                           action="<?= site_url('forms_admin/form_restore/' . (int) $form['id']) ?>"
-                          onsubmit="return confirm('<?= $this->lang->line('forms_confirm_restore') ?>');">
+                          onsubmit="return confirm(<?= js_str($this->lang->line('forms_confirm_restore')) ?>);">
                         <div class="input-group">
                             <input type="file" class="form-control form-control-sm" name="restore_zip" accept=".zip" required>
                             <button type="submit" class="btn btn-sm btn-primary">
@@ -267,7 +267,7 @@
                         <img src="<?= $image_url ?>" alt="<?= html_escape($image_name) ?>" class="border rounded mb-1" style="max-width:120px; max-height:80px; object-fit:contain;">
                         <div class="small text-truncate" title="<?= html_escape($image_name) ?>"><?= html_escape($image_name) ?></div>
                         <input type="text" class="form-control form-control-sm mb-1" value="images/<?= html_escape($image_name) ?>" readonly onclick="this.select();">
-                        <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_image') ?>');">
+                        <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm(<?= js_str($this->lang->line('forms_confirm_delete_image')) ?>);">
                             <button type="submit" class="btn btn-sm btn-outline-danger w-100"><?= $this->lang->line('forms_button_delete') ?></button>
                         </form>
                     </div>

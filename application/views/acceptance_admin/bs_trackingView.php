@@ -210,7 +210,7 @@ $filter_linked = isset($filter_linked) ? $filter_linked : '';
                         <a href="<?= site_url('acceptance_admin/reset_approval/' . $record['id']) ?>"
                            class="btn btn-sm btn-outline-warning"
                            title="<?= $this->lang->line('acceptance_reset_approval') ?>"
-                           onclick="return confirm('<?= $this->lang->line('acceptance_confirm_reset') ?>');">
+                           onclick="return confirm(<?= js_str($this->lang->line('acceptance_confirm_reset')) ?>);">
                             <i class="fas fa-rotate-left"></i>
                         </a>
                     <?php endif; ?>

@@ -33,6 +33,7 @@ if (isset($message)) {
     echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
+echo render_flash($this->session);
 echo heading("membre_title", 3);
 
 echo validation_errors();
@@ -60,7 +61,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <?php if ($action != CREATION): ?>
                     <!-- Le bouton de suppression seulement si une photo existe -->
                     <?php if (isset($photo) && $photo != ''): ?>
-                        <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="if (confirm('<?php echo $this->lang->line('gvv_button_confirm'); ?>')) { window.location.href='<?php echo controller_url('membre'); ?>/delete_photo/<?php echo $mlogin; ?>'; }">
+                        <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="if (confirm(<?php echo js_str($this->lang->line('gvv_button_confirm')); ?>)) { document.getElementById('delete-photo-form').submit(); }">
                             <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
                         </button>
                     <?php endif; ?>
@@ -514,6 +515,12 @@ echo form_hidden('reminder_channel', isset($reminder_channel) ? $reminder_channe
 echo form_hidden('reminder_period_hours', isset($reminder_period_hours) ? $reminder_period_hours : 24);
 
 echo form_close();
+
+// Suppression de la photo : formulaire POST distinct (un formulaire ne peut pas en contenir un autre).
+if ($action != CREATION && isset($photo) && $photo != '') {
+    echo '<form method="post" id="delete-photo-form" class="d-none" action="'
+        . htmlspecialchars(controller_url('membre') . '/delete_photo/' . rawurlencode($mlogin)) . '"></form>';
+}
 
 echo '</div>';
 ?>

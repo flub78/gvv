@@ -309,7 +309,7 @@ $shown = function ($p, $lang) use ($posted) {
                title="<?= $this->lang->line('parametres_raw_edit') ?>"><i class="fas fa-edit"></i></a>
             <a href="<?= site_url('configuration/delete/' . (int) $row['id']) ?>" class="btn btn-outline-danger btn-sm parametres-raw-delete"
                title="<?= $this->lang->line('parametres_raw_delete') ?>"
-               onclick="return confirm(<?= htmlspecialchars(json_encode(sprintf($this->lang->line('parametres_raw_delete_confirm'), $row['cle'])), ENT_QUOTES) ?>);"><i class="fas fa-trash"></i></a>
+               onclick="return confirm(<?= js_str(sprintf($this->lang->line('parametres_raw_delete_confirm'), $row['cle'])) ?>);"><i class="fas fa-trash"></i></a>
         </td>
         <?php endif; ?>
     </tr>

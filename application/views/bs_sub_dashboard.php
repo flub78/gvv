@@ -1133,6 +1133,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
         </div>
         <?php endif; ?>
 
+        <?php if (has_role('ca')): /* rapport réservé au CA de la section active */ ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
             <div class="sub-card text-center">
                 <i class="fas fa-users text-success"></i>
@@ -1141,6 +1142,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <a href="<?= controller_url('adherents_report') ?>" class="btn btn-success btn-sm"><?= $this->lang->line('db_btn_voir') ?></a>
             </div>
         </div>
+        <?php endif; ?>
 
         <?php if (has_role('club-admin')): ?>
         <div class="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -1654,7 +1656,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= $this->lang->line('db_card_gen_test_db') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_encrypted_ci') ?></div>
                 <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm"
-                   onclick="return confirm('<?= addslashes($this->lang->line('db_confirm_dev_env')) ?>');"><?= $this->lang->line('db_btn_generer') ?></a>
+                   onclick="return confirm(<?= js_str($this->lang->line('db_confirm_dev_env')) ?>);"><?= $this->lang->line('db_btn_generer') ?></a>
             </div>
         </div>
 

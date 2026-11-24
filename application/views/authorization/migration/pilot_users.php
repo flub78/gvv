@@ -517,7 +517,7 @@ function executeRollback() {
 
 // Complete Migration Function
 function completeMigration(userId, username) {
-    if (!confirm('<?= addslashes($this->lang->line('authorization_confirm_complete_migration')) ?> ' + username + ' ?')) {
+    if (!confirm(<?= js_str($this->lang->line('authorization_confirm_complete_migration') . ' ') ?> + username + ' ?')) {
         return;
     }
 

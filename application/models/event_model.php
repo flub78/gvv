@@ -35,6 +35,9 @@ class Event_model extends Common_Model {
             if ($row['glider_flight']) {
                 $image = $CI->vols_planeur_model->image($row['glider_flight']);
                 $result[$key]['glider_flight_image'] = $image;
+                // Pilote du vol : son lien lui reste ouvert (OwnerField dans Gvvmetadata)
+                $result[$key]['glider_flight_pilot'] = (string) $this->db->select('vppilid')
+                    ->where('vpid', $row['glider_flight'])->get('volsp')->row('vppilid');
             } else {
                 $result[$key]['glider_flight'] = "";
             }

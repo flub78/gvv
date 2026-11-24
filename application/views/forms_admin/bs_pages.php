@@ -53,7 +53,7 @@
                                     <td class="text-muted"><?= html_escape(mb_substr(trim(strip_tags((string) $page['content_html'])), 0, 120)) ?></td>
                                     <td class="text-end">
                                         <a class="btn btn-sm btn-outline-primary" href="<?= site_url('forms_admin/fields/' . (int) $form['id'] . '/' . (int) $page['id']) ?>"><?= $this->lang->line('forms_button_fields') ?></a>
-                                        <form method="post" action="<?= site_url('forms_admin/page_delete/' . (int) $form['id'] . '/' . (int) $page['id']) ?>" class="d-inline" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_page') ?>');">
+                                        <form method="post" action="<?= site_url('forms_admin/page_delete/' . (int) $form['id'] . '/' . (int) $page['id']) ?>" class="d-inline" onsubmit="return confirm(<?= js_str($this->lang->line('forms_confirm_delete_page')) ?>);">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
                                         </form>
                                     </td>

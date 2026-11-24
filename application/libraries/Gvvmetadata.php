@@ -245,6 +245,10 @@ class GVVMetadata extends Metadata {
                 $this->field['events']['glider_flight']['Subtype'] = 'key';
                 $this->field['events']['glider_flight']['Action'] = 'vols_planeur/edit';
                 $this->field['events']['glider_flight']['Image'] = 'glider_flight_image';
+                // Vol planeur : ouvert au planchiste et à son pilote, sinon affiché sans lien
+                // (vols_planeur/edit refuse les vols des autres pilotes).
+                $this->field['events']['glider_flight']['RequiredRole'] = 'planchiste';
+                $this->field['events']['glider_flight']['OwnerField'] = 'glider_flight_pilot';
                 $this->field['events']['plane_flight']['Subtype'] = 'key';
                 $this->field['events']['plane_flight']['Action'] = 'vols_avion/edit';
                 $this->field['events']['plane_flight']['Image'] = 'plane_flight_image';

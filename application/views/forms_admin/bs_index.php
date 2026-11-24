@@ -91,7 +91,7 @@
                                             </form>
                                         <?php endif; ?>
                                         <?php $delete_confirm_msg = $is_workflow_form ? $this->lang->line('forms_confirm_delete_workflow_form') : $this->lang->line('forms_confirm_delete_form'); ?>
-                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $delete_confirm_msg ?>');">
+                                        <form method="post" action="<?= site_url('forms_admin/delete/' . $form['id']) ?>" style="display:contents" onsubmit="return confirm(<?= js_str($delete_confirm_msg) ?>);">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('forms_button_delete') ?></button>
                                         </form>
                                         </div>

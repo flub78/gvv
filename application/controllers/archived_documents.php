@@ -1248,6 +1248,7 @@ class Archived_documents extends Gvv_Controller {
             return;
         }
 
+        $this->load->helper('email');  // extract_email(), test_intercept_email()
         $parsed = array_filter(array_map('trim', explode(',', $recipients_raw)));
         $valid_recipients = array();
         foreach ($parsed as $addr) {
@@ -1264,7 +1265,6 @@ class Archived_documents extends Gvv_Controller {
         }
 
         $this->load->library('email');
-        $this->load->helper('email');
         $from = $this->config->item('email_club');
 
         $valid_recipients = array_map(function ($addr) use (&$subject) {

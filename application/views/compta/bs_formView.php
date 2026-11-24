@@ -392,7 +392,7 @@ $(document).ready(function() {
 
     // Global function for remove button
     window.removeFile = function(tempId) {
-        if (!confirm('<?= $this->lang->line("gvv_confirm_remove_file") ?>')) {
+        if (!confirm(<?= js_str($this->lang->line("gvv_confirm_remove_file")) ?>)) {
             return;
         }
 
@@ -516,7 +516,7 @@ function initializeFormAttachmentHandlers(ecritureId) {
 
     // Delete button click
     $(document).off('click', '#attachmentsFormSection .delete-attachment-btn').on('click', '#attachmentsFormSection .delete-attachment-btn', function() {
-        if (!confirm('<?= addslashes($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>')) {
+        if (!confirm(<?= js_str($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>)) {
             return;
         }
 

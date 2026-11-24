@@ -123,7 +123,7 @@ $this->load->view('bs_banner');
                                         <?php if (!$is_current && !$user['banned']): ?>
                                             <a href="<?= controller_url('login_as/switch_to/' . urlencode($user['username'])) ?>"
                                                class="btn btn-sm btn-outline-warning"
-                                               onclick="return confirm('<?= addslashes($this->lang->line('gvv_login_as_confirm')) ?> <?= htmlspecialchars(addslashes($user['display_name']), ENT_QUOTES) ?> ?');">
+                                               onclick="return confirm(<?= js_str($this->lang->line('gvv_login_as_confirm') . ' ' . $user['display_name'] . ' ?') ?>);">
                                                 <i class="fas fa-sign-in-alt"></i>
                                             </a>
                                         <?php else: ?>

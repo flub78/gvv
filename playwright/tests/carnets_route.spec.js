@@ -66,13 +66,23 @@ test('le formulaire de filtres est affiché', async ({ page }) => {
     await expect(page.locator('button[type="submit"]')).toBeVisible();
 });
 
+/**
+ * Scénario: La période proposée par défaut va du début de l'année à aujourd'hui
+ *   Étant donné un administrateur connecté
+ *   Quand il ouvre les carnets de route
+ *   Alors la période commence au premier janvier de l'année en cours
+ *   Et elle se termine aujourd'hui
+ */
 test('les dates par défaut sont correctement initialisées', async ({ page }) => {
     await login(page, ADMIN_USER);
     await page.goto(PAGE_URL);
     await page.waitForLoadState('networkidle');
 
     const year = new Date().getFullYear().toString();
-    const today = new Date().toISOString().slice(0, 10);
+    // Date locale, comme le serveur : toISOString() donnerait la date UTC, celle de la
+    // veille entre minuit et 1 h ou 2 h en France.
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     const debut = await page.locator('input[name="carnet_date_debut"]').inputValue();
     const fin   = await page.locator('input[name="carnet_date_fin"]').inputValue();

@@ -48,6 +48,7 @@ $lang['alarm_config_sms'] = "SMS reminder";
 $lang['alarm_config_sms_help'] = "A short SMS with the link to your alarms, on Monday (first Monday of the month for the monthly frequency), when there are alarms. Ticking this box gives your consent.";
 $lang['alarm_config_sms_no_mobile'] = "The SMS reminder requires a mobile number in the member record.";
 $lang['alarm_config_save'] = "Save";
+$lang['alarm_no_member_record'] = 'Your account is not linked to any member record: you have no alarm to configure.';
 $lang['alarm_config_unknown_member'] = "Unknown member.";
 $lang['alarm_config_saved'] = "Alarm settings saved.";
 $lang['alarm_my_alarms_none'] = "No active or upcoming alarm on your documents.";

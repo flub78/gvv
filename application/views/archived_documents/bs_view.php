@@ -59,7 +59,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
     <?php if (!empty($can_delete)): ?>
     <a href="<?= site_url('archived_documents/delete/' . $document['id']) ?>"
        class="btn btn-sm btn-danger"
-       onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
+       onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);">
         <i class="fas fa-trash"></i> <?= $this->lang->line('archived_documents_delete') ?>
     </a>
     <?php endif; ?>
@@ -210,7 +210,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
                 <?php if ($is_rotatable): ?>
                 <a href="<?= site_url('archived_documents/rotate/' . $document['id'] . '/ccw') ?>"
                    class="btn btn-outline-secondary"
-                   onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_ccw') ?> ?');"
+                   onclick="return confirm(<?= js_str($this->lang->line('archived_documents_rotate_ccw') . ' ?') ?>);"
                    title="<?= $this->lang->line('archived_documents_rotate_ccw') ?>">
                     <i class="fas fa-undo"></i>
                 </a>
@@ -221,7 +221,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
                 <?php if ($is_rotatable): ?>
                 <a href="<?= site_url('archived_documents/rotate/' . $document['id'] . '/cw') ?>"
                    class="btn btn-outline-secondary"
-                   onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_cw') ?> ?');"
+                   onclick="return confirm(<?= js_str($this->lang->line('archived_documents_rotate_cw') . ' ?') ?>);"
                    title="<?= $this->lang->line('archived_documents_rotate_cw') ?>">
                     <i class="fas fa-redo"></i>
                 </a>
@@ -290,7 +290,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
                         ?>
                         <a href="<?= site_url('archived_documents/delete/' . $ver['id']) ?>?from=<?= $document['id'] ?>"
                            class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');"
+                           onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);"
                            title="<?= $this->lang->line('archived_documents_delete') ?>">
                             <i class="fas fa-trash"></i>
                         </a>

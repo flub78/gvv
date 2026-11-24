@@ -169,13 +169,13 @@
                                             </span>
                                             <a class="btn btn-sm btn-outline-secondary me-1"
                                                href="<?= site_url('forms_admin/submission_rotate/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/ccw') ?>"
-                                               onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_ccw') ?> ?');"
+                                               onclick="return confirm(<?= js_str($this->lang->line('archived_documents_rotate_ccw') . ' ?') ?>);"
                                                title="<?= $this->lang->line('archived_documents_rotate_ccw') ?>">
                                                 <i class="fas fa-undo"></i>
                                             </a>
                                             <a class="btn btn-sm btn-outline-secondary me-1"
                                                href="<?= site_url('forms_admin/submission_rotate/' . (int) $form['id'] . '/' . (int) $submission['id'] . '/cw') ?>"
-                                               onclick="return confirm('<?= $this->lang->line('archived_documents_rotate_cw') ?> ?');"
+                                               onclick="return confirm(<?= js_str($this->lang->line('archived_documents_rotate_cw') . ' ?') ?>);"
                                                title="<?= $this->lang->line('archived_documents_rotate_cw') ?>">
                                                 <i class="fas fa-redo"></i>
                                             </a>

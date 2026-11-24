@@ -73,15 +73,15 @@ $statut_labels = array(
         <div class="card-footer text-end">
             <?php if ($dossier['statut'] === 'ouvert'): ?>
                 <a href="<?= controller_url($controller) ?>/suspend/<?= $dossier['id'] ?>" class="btn btn-outline-warning"
-                   onclick="return confirm('<?= $this->lang->line('maintenance_dossier_suspend_confirm') ?>')">
+                   onclick="return confirm(<?= js_str($this->lang->line('maintenance_dossier_suspend_confirm')) ?>)">
                     <i class="fas fa-pause" aria-hidden="true"></i> <?= $this->lang->line('maintenance_dossier_suspendre') ?>
                 </a>
                 <a href="<?= controller_url($controller) ?>/close/<?= $dossier['id'] ?>" class="btn btn-outline-secondary"
-                   onclick="return confirm('<?= $this->lang->line('maintenance_dossier_close_confirm') ?>')">
+                   onclick="return confirm(<?= js_str($this->lang->line('maintenance_dossier_close_confirm')) ?>)">
                     <i class="fas fa-check" aria-hidden="true"></i> <?= $this->lang->line('maintenance_dossier_cloturer') ?>
                 </a>
                 <a href="<?= controller_url($controller) ?>/abandon/<?= $dossier['id'] ?>" class="btn btn-outline-danger"
-                   onclick="return confirm('<?= $this->lang->line('maintenance_dossier_abandon_confirm') ?>')">
+                   onclick="return confirm(<?= js_str($this->lang->line('maintenance_dossier_abandon_confirm')) ?>)">
                     <i class="fas fa-times" aria-hidden="true"></i> <?= $this->lang->line('maintenance_dossier_abandonner') ?>
                 </a>
             <?php elseif ($dossier['statut'] === 'suspendu'): ?>
@@ -89,7 +89,7 @@ $statut_labels = array(
                     <i class="fas fa-play" aria-hidden="true"></i> <?= $this->lang->line('maintenance_dossier_reactiver') ?>
                 </a>
                 <a href="<?= controller_url($controller) ?>/abandon/<?= $dossier['id'] ?>" class="btn btn-outline-danger"
-                   onclick="return confirm('<?= $this->lang->line('maintenance_dossier_abandon_confirm') ?>')">
+                   onclick="return confirm(<?= js_str($this->lang->line('maintenance_dossier_abandon_confirm')) ?>)">
                     <i class="fas fa-times" aria-hidden="true"></i> <?= $this->lang->line('maintenance_dossier_abandonner') ?>
                 </a>
             <?php else: ?>

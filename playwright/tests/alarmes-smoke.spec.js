@@ -479,3 +479,31 @@ test.describe('Alarmes – Lot 4', () => {
         expect(await page.textContent('body')).not.toMatch(/PHP Error|Fatal error|A Database Error/);
     });
 });
+
+test.describe('Alarmes – compte sans fiche membre', () => {
+    /**
+     * @feature Alarmes et notifications
+     * Scénario: Un compte sans fiche membre voit une explication au lieu d'une erreur
+     *   Étant donné un administrateur du club dont le compte n'est lié à aucune fiche membre
+     *   Quand il ouvre ses alarmes
+     *   Alors la page s'affiche
+     *   Et elle explique qu'aucune fiche membre n'est associée à son compte
+     *   Et il peut choisir un membre dont consulter les alarmes
+     */
+    test('account without member record gets an explanation', async ({ page }) => {
+        const db = await mysql.createConnection(DB_CONFIG);
+        try {
+            const [rows] = await db.query('SELECT COUNT(*) AS n FROM membres WHERE mlogin = ?', ['testadmin']);
+            test.skip(rows[0].n > 0, 'testadmin a une fiche membre sur cette base');
+        } finally {
+            await db.end();
+        }
+        await page.goto('/index.php/auth/logout');
+        await login(page, { username: 'testadmin', password: 'password' });
+        const response = await page.goto('/index.php/mes_alarmes');
+        expect(response.status()).toBe(200);
+        await expect(page.locator('#alarm-no-member')).toBeVisible();
+        await expect(page.locator('#member-selector-form select[name="membre"]')).toBeVisible();
+        expect(await page.textContent('body')).not.toMatch(/PHP Error|Fatal error|A Database Error/);
+    });
+});

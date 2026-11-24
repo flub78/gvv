@@ -72,7 +72,7 @@ $this->load->view('bs_banner');
                             <a href="<?= controller_url($controller) ?>/deactivate/<?= $equipement['id'] ?>"
                                class="btn btn-sm btn-outline-warning"
                                title="<?= $this->lang->line('maintenance_equipements_deactivate') ?>"
-                               onclick="return confirm('<?= $this->lang->line('maintenance_equipement_deactivate_confirm') ?>')">
+                               onclick="return confirm(<?= js_str($this->lang->line('maintenance_equipement_deactivate_confirm')) ?>)">
                                 <i class="fas fa-ban" aria-hidden="true"></i>
                             </a>
                             <?php else: ?>
