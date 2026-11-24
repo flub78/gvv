@@ -15,7 +15,9 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 const LoginPage = require('../helpers/LoginPage');
+const { DB_CONFIG } = require('../helpers/gvv-config');
 const GliderFlightPage = require('../helpers/GliderFlightPage');
 const fs = require('fs');
 const path = require('path');
@@ -30,17 +32,44 @@ const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
 
 test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
   let loginPage, flightPage;
+  let lastFlightIdBefore = 0;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
     flightPage = new GliderFlightPage(page);
     
+    // Flights created from here on by this test are deleted in afterEach.
+    const db = await mysql.createConnection(DB_CONFIG);
+    try {
+      const [[row]] = await db.query('SELECT COALESCE(MAX(vpid), 0) AS max_id FROM volsp');
+      lastFlightIdBefore = row.max_id;
+    } finally {
+      await db.end();
+    }
+
     // Login before each test - section 1 = Planeur (glider section)
     await loginPage.open();
     await loginPage.login(TEST_USER, TEST_PASSWORD, '1');
   });
 
   test.afterEach(async () => {
+    // Delete the flights this test created, through the application so that their
+    // billing (purchases, entries) is cancelled too; a stray flight would otherwise
+    // raise alarms and change balances for the test pilots.
+    const db = await mysql.createConnection(DB_CONFIG);
+    try {
+      const [created] = await db.query(
+        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ?', [lastFlightIdBefore, TEST_USER]);
+      for (const { vpid } of created) {
+        await flightPage.page.goto(`/index.php/vols_planeur/delete/${vpid}`);
+      }
+      const [left] = await db.query(
+        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ?', [lastFlightIdBefore, TEST_USER]);
+      expect(left, 'flights created by the test must be deleted').toEqual([]);
+    } finally {
+      await db.end();
+    }
+
     // Logout after each test
     await loginPage.logout();
   });
