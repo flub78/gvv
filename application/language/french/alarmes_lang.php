@@ -48,6 +48,7 @@ $lang['alarm_config_sms'] = "Rappel par SMS";
 $lang['alarm_config_sms_help'] = "Un SMS court avec le lien vers vos alarmes, le lundi (le premier lundi du mois en fréquence mensuelle), s'il y a des alarmes. Cocher cette case vaut consentement.";
 $lang['alarm_config_sms_no_mobile'] = "Le rappel par SMS demande un numéro de mobile dans la fiche membre.";
 $lang['alarm_config_save'] = "Enregistrer";
+$lang['alarm_no_member_record'] = 'Votre compte n\'est associé à aucune fiche membre : vous n\'avez pas d\'alarme à configurer.';
 $lang['alarm_config_unknown_member'] = "Membre inconnu.";
 $lang['alarm_config_saved'] = "Configuration des alarmes enregistrée.";
 $lang['alarm_my_alarms_none'] = "Aucune alarme active ou à venir sur vos documents.";

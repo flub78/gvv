@@ -48,6 +48,7 @@ $lang['alarm_config_sms'] = "Herinnering per sms";
 $lang['alarm_config_sms_help'] = "Een korte sms met de link naar uw alarmen, op maandag (eerste maandag van de maand bij maandelijkse frequentie), als er alarmen zijn. Door dit aan te vinken geeft u toestemming.";
 $lang['alarm_config_sms_no_mobile'] = "De herinnering per sms vereist een gsm-nummer in de ledenfiche.";
 $lang['alarm_config_save'] = "Opslaan";
+$lang['alarm_no_member_record'] = 'Uw account is aan geen enkele ledenfiche gekoppeld: u hebt geen alarmen in te stellen.';
 $lang['alarm_config_unknown_member'] = "Onbekend lid.";
 $lang['alarm_config_saved'] = "Alarminstellingen opgeslagen.";
 $lang['alarm_my_alarms_none'] = "Geen actief of komend alarm voor uw documenten.";
