@@ -19,7 +19,9 @@ const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
-const MEMBER = 'asterix';
+// Own temporary member, copied from asterix: other test files edit asterix in parallel.
+const TEMPLATE_MEMBER = 'asterix';
+const MEMBER = `zzpwcb${Date.now() % 100000}`;
 const YEAR = 2099;
 
 async function login(page, user) {
@@ -49,17 +51,21 @@ test.describe('Fiche membre : cases à cocher', () => {
 
     test.beforeAll(async () => {
         db = await mysql.createConnection(DB_CONFIG);
-        const [rows] = await db.query('SELECT * FROM membres WHERE mlogin = ?', [MEMBER]);
-        snapshot = rows[0];
+        const [rows] = await db.query('SELECT * FROM membres WHERE mlogin = ?', [TEMPLATE_MEMBER]);
+        if (rows[0]) {
+            const fixture = { ...rows[0], mlogin: MEMBER, memail: null, username: null,
+                ext: 0, exemption_solde: 0 };
+            delete fixture.mnumero;   // auto-increment, unique
+            await db.query('INSERT INTO membres SET ?', [fixture]);
+            snapshot = fixture;
+        }
     });
 
     test.afterAll(async () => {
         if (volId) {
             await db.query('DELETE FROM volsp WHERE vpid = ?', [volId]);
         }
-        if (snapshot) {
-            await db.query('UPDATE membres SET ? WHERE mlogin = ?', [snapshot, MEMBER]);
-        }
+        await db.query('DELETE FROM membres WHERE mlogin = ?', [MEMBER]);
         await db.end();
     });
 

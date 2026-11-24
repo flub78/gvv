@@ -287,35 +287,43 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
    *   Alors le membre n'a plus de photo
    */
   test('photo deletion requires an editing role and a POST', async ({ page }) => {
-    const db = await mysql.createConnection(DB_CONFIG);
+    // Own temporary member, copied from the test member: other test files edit it in parallel.
+    const member = `zzpwph${Date.now() % 100000}`;
     const fakePhoto = `zz_playwright_${Date.now()}.png`;   // name only, no file on disk
-    const [[before]] = await db.query('SELECT photo FROM membres WHERE mlogin = ?', [TEST_MEMBER]);
-    test.skip(!before, `Test member "${TEST_MEMBER}" is missing (run bin/create_test_users.sh)`);
-    const photoOf = async () => (await db.query('SELECT photo FROM membres WHERE mlogin = ?', [TEST_MEMBER]))[0][0].photo;
+    const db = await mysql.createConnection(DB_CONFIG);
+    const [[template]] = await db.query('SELECT * FROM membres WHERE mlogin = ?', [TEST_MEMBER]);
+    if (!template) {
+      await db.end();
+      test.skip(true, `Test member "${TEST_MEMBER}" is missing (run bin/create_test_users.sh)`);
+      return;
+    }
+    const photoOf = async () => (await db.query('SELECT photo FROM membres WHERE mlogin = ?', [member]))[0][0].photo;
     const loginPage = new LoginPage(page);
     try {
-      await db.query('UPDATE membres SET photo = ? WHERE mlogin = ?', [fakePhoto, TEST_MEMBER]);
+      const fixture = { ...template, mlogin: member, memail: null, username: null, photo: fakePhoto };
+      delete fixture.mnumero;   // auto-increment, unique
+      await db.query('INSERT INTO membres SET ?', [fixture]);
 
       // A plain member cannot delete it
       await loginPage.open();
       await loginPage.login('testuser', 'password');
-      await postDeletePhoto(page, TEST_MEMBER);
+      await postDeletePhoto(page, member);
       expect(await photoOf()).toBe(fakePhoto);
       await loginPage.logout();
 
       // An editor opening the address (GET) does not delete it
       await loginPage.open();
       await loginPage.login(TEST_USER, TEST_PASSWORD);
-      await loginPage.goto(`membre/delete_photo/${TEST_MEMBER}`);
+      await loginPage.goto(`membre/delete_photo/${member}`);
       await page.waitForLoadState('domcontentloaded');
       expect(await photoOf()).toBe(fakePhoto);
 
       // An editor's POST deletes it
-      await postDeletePhoto(page, TEST_MEMBER);
+      await postDeletePhoto(page, member);
       expect(await photoOf()).toBeNull();
       await loginPage.logout();
     } finally {
-      await db.query('UPDATE membres SET photo = ? WHERE mlogin = ?', [before.photo, TEST_MEMBER]);
+      await db.query('DELETE FROM membres WHERE mlogin = ?', [member]);
       await db.end();
     }
   });
