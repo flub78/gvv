@@ -21,7 +21,9 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 const LoginPage = require('../helpers/LoginPage');
+const { DB_CONFIG } = require('../helpers/gvv-config');
 const path = require('path');
 const fs = require('fs');
 
@@ -126,10 +128,15 @@ async function openMemberEditPage(loginPage, page) {
   return hasFileInput;
 }
 
+/** POST to the photo deletion endpoint with the page's session (the endpoint refuses GET). */
+async function postDeletePhoto(page, login) {
+  const origin = new URL(page.url()).origin;
+  return page.request.post(`${origin}/index.php/membre/delete_photo/${login}`);
+}
+
 /** Delete the test member's photo through the real controller endpoint. */
 async function deleteMemberPhoto(loginPage, page) {
-  await loginPage.goto(`membre/delete_photo/${TEST_MEMBER}`);
-  await page.waitForLoadState('domcontentloaded');
+  await postDeletePhoto(page, TEST_MEMBER);
 }
 
 test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
@@ -266,6 +273,51 @@ test.describe('GVV Upload Image Tests (Migrated from Dusk)', () => {
 
     await loginPage.logout();
     console.log('\n✓ Test completed successfully');
+  });
+
+  /**
+   * @feature Membres
+   * Scénario: Seul un responsable peut supprimer la photo d'un membre, et par une action explicite
+   *   Étant donné un membre qui a une photo
+   *   Quand un membre sans responsabilité demande la suppression de cette photo
+   *   Alors la photo est conservée
+   *   Quand un responsable ouvre simplement l'adresse de suppression
+   *   Alors la photo est conservée
+   *   Quand le responsable valide la suppression
+   *   Alors le membre n'a plus de photo
+   */
+  test('photo deletion requires an editing role and a POST', async ({ page }) => {
+    const db = await mysql.createConnection(DB_CONFIG);
+    const fakePhoto = `zz_playwright_${Date.now()}.png`;   // name only, no file on disk
+    const [[before]] = await db.query('SELECT photo FROM membres WHERE mlogin = ?', [TEST_MEMBER]);
+    test.skip(!before, `Test member "${TEST_MEMBER}" is missing (run bin/create_test_users.sh)`);
+    const photoOf = async () => (await db.query('SELECT photo FROM membres WHERE mlogin = ?', [TEST_MEMBER]))[0][0].photo;
+    const loginPage = new LoginPage(page);
+    try {
+      await db.query('UPDATE membres SET photo = ? WHERE mlogin = ?', [fakePhoto, TEST_MEMBER]);
+
+      // A plain member cannot delete it
+      await loginPage.open();
+      await loginPage.login('testuser', 'password');
+      await postDeletePhoto(page, TEST_MEMBER);
+      expect(await photoOf()).toBe(fakePhoto);
+      await loginPage.logout();
+
+      // An editor opening the address (GET) does not delete it
+      await loginPage.open();
+      await loginPage.login(TEST_USER, TEST_PASSWORD);
+      await loginPage.goto(`membre/delete_photo/${TEST_MEMBER}`);
+      await page.waitForLoadState('domcontentloaded');
+      expect(await photoOf()).toBe(fakePhoto);
+
+      // An editor's POST deletes it
+      await postDeletePhoto(page, TEST_MEMBER);
+      expect(await photoOf()).toBeNull();
+      await loginPage.logout();
+    } finally {
+      await db.query('UPDATE membres SET photo = ? WHERE mlogin = ?', [before.photo, TEST_MEMBER]);
+      await db.end();
+    }
   });
 
   test('should verify the upload interface is available on a member edit page', async ({ page }) => {

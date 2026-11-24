@@ -135,7 +135,7 @@ $this->lang->load('gvv');
                                 </a>
                                 <a href="<?= controller_url($controller) ?>/delete/<?= $autorisation['id'] ?>"
                                    class="btn btn-sm btn-danger" title="Supprimer"
-                                   onclick="return confirm('<?= $this->lang->line('gvv_button_confirm') ?>')">
+                                   onclick="return confirm(<?= htmlspecialchars(json_encode($this->lang->line('gvv_button_confirm')), ENT_QUOTES) ?>)">
                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                 </a>
                             </td>

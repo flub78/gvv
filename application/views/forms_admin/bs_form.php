@@ -267,7 +267,7 @@
                         <img src="<?= $image_url ?>" alt="<?= html_escape($image_name) ?>" class="border rounded mb-1" style="max-width:120px; max-height:80px; object-fit:contain;">
                         <div class="small text-truncate" title="<?= html_escape($image_name) ?>"><?= html_escape($image_name) ?></div>
                         <input type="text" class="form-control form-control-sm mb-1" value="images/<?= html_escape($image_name) ?>" readonly onclick="this.select();">
-                        <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm('<?= $this->lang->line('forms_confirm_delete_image') ?>');">
+                        <form method="post" action="<?= site_url('forms_admin/image_delete/' . (int) $form['id'] . '/' . rawurlencode($image_name)) ?>" onsubmit="return confirm(<?= htmlspecialchars(json_encode($this->lang->line('forms_confirm_delete_image')), ENT_QUOTES) ?>);">
                             <button type="submit" class="btn btn-sm btn-outline-danger w-100"><?= $this->lang->line('forms_button_delete') ?></button>
                         </form>
                     </div>
