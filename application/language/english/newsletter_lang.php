@@ -48,10 +48,6 @@ $lang['newsletter_status_unsubscribed']   = 'Unsubscribed';
 $lang['newsletter_delete_subscriber']     = 'Delete';
 $lang['newsletter_delete_confirm']        = 'Delete this subscriber?';
 $lang['newsletter_delete_success']        = 'Subscriber deleted.';
-
-$lang['newsletter_config_title']          = 'Regulatory Watch Configuration';
-$lang['newsletter_config_card_desc']      = 'Reviewers, watch mailbox, sending account';
-$lang['newsletter_config_saved']          = 'Configuration saved.';
 $lang['newsletter_config_imap']           = 'Collection mailbox (IMAP)';
 $lang['newsletter_config_smtp']           = 'Sending address (SMTP)';
 $lang['newsletter_config_people']         = 'Reviewers';

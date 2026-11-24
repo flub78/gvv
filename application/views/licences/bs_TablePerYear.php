@@ -49,7 +49,7 @@ echo heading("Licences et cotisations", 3);
         </button>
     </li>
 </ul>
-<div class="tab-content border border-top-0 rounded-bottom p-3" id="mainTabsContent">
+<div class="tab-content" id="mainTabsContent">
 
     <!-- ============================= -->
     <!-- Onglet 1 : Vue globale        -->

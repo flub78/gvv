@@ -39,11 +39,11 @@ echo year_selector($controller, $year, $year_selector);
 
 echo br(2);
 ?>
-<div id="tabs">
-	<ul>
-		<li><a href="#tabs-1"><?php echo ($this->lang->line("gvv_vols_avion_tab_monthly")); ?></a></li>
-		<li><a href="#tabs-2"><?php echo ($this->lang->line("gvv_vols_avion_tab_per_machine")); ?></a></li>
-	</ul>
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-1"><?php echo ($this->lang->line("gvv_vols_avion_tab_monthly")); ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-2"><?php echo ($this->lang->line("gvv_vols_avion_tab_per_machine")); ?></button></li>
+</ul>
+<div class="tab-content">
 
 	<?php
 	$title_row = array_merge(
@@ -62,7 +62,7 @@ echo br(2);
 	$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
 		. $this->lang->line("gvv_vols_avion_header_per_month") . ' '
 		.  $this->lang->line("gvv_vols_avion_header_in") . ' ' . $year;
-	echo '<div id="tabs-1">' . heading($header, 4);;
+	echo '<div id="tabs-1" class="tab-pane show active" role="tabpanel">' . heading($header, 4);;
 
 	add_first_row($per_month, $title_row);
 	add_first_col($per_month, $first_col);
@@ -97,7 +97,7 @@ echo br(2);
 	$header = $this->lang->line("gvv_vols_avion_header_airplane_activity") . ' '
 		. $this->lang->line("gvv_vols_avion_header_per_aircraft") . ' '
 		.  $this->lang->line("gvv_vols_avion_header_in") . ' ' . $year;
-	echo '<div id="tabs-2">' . heading($header, 4);
+	echo '<div id="tabs-2" class="tab-pane" role="tabpanel">' . heading($header, 4);
 	add_first_row($per_machine, $pm_first_row);
 
 	$table = new DataTable(array(

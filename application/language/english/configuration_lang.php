@@ -5,7 +5,6 @@
 
 # $this->lang->line("") .
 $lang['gvv_configuration_title'] = "Configuration parameter";
-$lang['gvv_configuration_title_list'] = "Configuration parameters";
 
 // Configuration field labels
 $lang['gvv_configuration_field_id'] = "ID";

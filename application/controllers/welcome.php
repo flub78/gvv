@@ -53,7 +53,6 @@ class Welcome extends Gvv_Controller {
         $this->session->set_userdata('return_url', current_url());
 
         $this->lang->load('welcome');
-        $this->lang->load('config');
         $this->lang->load('paiements_en_ligne');
 
         $this->load->library('migration');

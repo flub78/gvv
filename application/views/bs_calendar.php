@@ -29,7 +29,6 @@ $this->load->view('bs_header', array('new_layout' => true));
 $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $this->lang->load('welcome');
-$this->lang->load('config');
 $this->lang->load('presences');
 ?>
 <section class="container-fluid">

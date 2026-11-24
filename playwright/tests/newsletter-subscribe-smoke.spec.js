@@ -132,17 +132,26 @@ test('member can access newsletter archive', async ({ page }) => {
 });
 
 // ─── Test 6 : accès admin (club-admin) ───────────────────────────────────────
+/**
+ * Scénario: L'administrateur du club gère les abonnés et les réglages de la newsletter
+ *   Étant donné un administrateur du club qui n'est pas développeur
+ *   Quand il ouvre la gestion de la newsletter
+ *   Alors il voit la liste des abonnements, sans bouton de publication
+ *   Et l'ancienne adresse des réglages de la newsletter le conduit à l'onglet Newsletter de la configuration
+ *   Et il y trouve les réglages et les tests de la newsletter
+ */
 test('club-admin can access newsletter_admin', async ({ page }) => {
     await login(page, ADMIN);
     await page.goto('/index.php/newsletter_admin');
     await expect(page.locator('h3')).toContainText('Abonnement à la newsletter');
     await expect(page.locator('a:has-text("Publier une newsletter")')).toHaveCount(0);
 
-    // Carte de configuration de la veille dans l'administration du club
-    await page.goto('/index.php/welcome/section/admin_club');
-    const card = page.locator('.sub-card', { hasText: 'Configuration veille réglementaire' });
-    await card.locator('a').click();
-    await expect(page).toHaveURL(/newsletter_admin\/configuration/);
+    await page.goto('/index.php/newsletter_admin/configuration');
+    await expect(page).toHaveURL(/parametres\/index\/newsletter/);
+    await expect(page.locator('[data-param="newsletter_imap_host"]')).toBeVisible();
+    await expect(page.locator('#parametres-save')).toBeVisible();
+    await expect(page.locator('[data-link="newsletter_admin/test_imap"] a')).toBeVisible();
+    await expect(page.locator('#parametres-tabs a[data-tab="systeme"]')).toHaveCount(0);
 });
 
 // ─── Test 7 : accès admin refusé à un simple membre ──────────────────────────

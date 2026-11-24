@@ -14,10 +14,12 @@
  * @var array  $warnings  modules actifs auxquels il manque des paramètres : module, tab, label
  * @var array  $test_email   résultat du dernier e-mail de test (onglet Messagerie)
  */
-$status_badges = array(
-    'complete'   => array('bg-success', 'fa-check'),
-    'incomplete' => array('bg-danger', 'fa-exclamation'),
-    'optional'   => array('bg-secondary', 'fa-minus'),
+/* Statut d'onglet : seul ce qui demande une action est signalé, par un point de couleur. */
+$status_dots = array(
+    'complete'   => NULL,
+    'incomplete' => 'text-danger',
+    'optional'   => 'text-secondary',
+    'none'       => NULL,
 );
 
 /** Valeur à afficher : saisie postée après une erreur, sinon valeur en vigueur. */
@@ -37,6 +39,10 @@ $shown = function ($p, $lang) use ($posted) {
 <div id="body" class="body container-fluid">
 
 <h3><i class="fas fa-sliders-h text-primary me-2"></i><?= $this->lang->line('parametres_title') ?></h3>
+<p class="small text-muted mb-2" id="parametres-legend">
+    <span class="me-3 text-nowrap"><i class="fas fa-circle text-danger me-1" style="font-size: .5rem; vertical-align: middle;"></i><?= $this->lang->line('parametres_legend_incomplete') ?></span>
+    <span class="text-nowrap"><i class="fas fa-circle text-secondary me-1" style="font-size: .5rem; vertical-align: middle;"></i><?= $this->lang->line('parametres_status_optional') ?></span>
+</p>
 
 <?php if (!empty($saved)): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert" id="parametres-saved">
@@ -63,25 +69,30 @@ $shown = function ($p, $lang) use ($posted) {
 </div>
 <?php endif; ?>
 
-<ul class="nav nav-tabs mb-3" id="parametres-tabs">
-<?php foreach ($tabs as $key => $info): list($badge, $icon) = $status_badges[$statuses[$key]]; ?>
+<ul class="nav nav-tabs" id="parametres-tabs">
+<?php foreach ($tabs as $key => $info): $status_dot = $status_dots[$statuses[$key]]; ?>
     <li class="nav-item">
         <a class="nav-link<?= $key === $tab ? ' active' : '' ?>" data-tab="<?= $key ?>"
            href="<?= site_url('parametres/index/' . $key) ?>">
-            <i class="<?= $info['icon'] ?> me-1"></i><?= $this->lang->line($info['label']) ?>
-            <span class="badge <?= $badge ?> ms-1" title="<?= $this->lang->line('parametres_status_' . $statuses[$key]) ?>">
-                <i class="fas <?= $icon ?>"></i>
-            </span>
+            <?= $this->lang->line($info['label']) ?>
+            <?php if ($status_dot): ?>
+            <i class="fas fa-circle <?= $status_dot ?> ms-1" style="font-size: .5rem; vertical-align: middle;"
+               title="<?= $this->lang->line('parametres_status_' . $statuses[$key]) ?>"
+               aria-label="<?= $this->lang->line('parametres_status_' . $statuses[$key]) ?>"></i>
+            <?php endif; ?>
         </a>
     </li>
 <?php endforeach; ?>
 </ul>
 
 <?php $info = $tabs[$tab]; ?>
+<div class="gvv-tab-sheet mb-3">
 <div class="d-flex flex-wrap align-items-start gap-2 mb-3">
 <p class="text-muted mb-0 flex-grow-1">
     <?= $this->lang->line($info['help']) ?>
+    <?php if ($statuses[$tab] !== 'none'): ?>
     <span class="ms-2 small">(<?= $this->lang->line('parametres_status_' . $statuses[$tab]) ?>)</span>
+    <?php endif; ?>
 </p>
 <?php if ($writable): /* Historique réservé à qui peut modifier l'onglet (EX-HIS-02). */ ?>
 <a href="<?= site_url('parametres/historique/' . $tab) ?>" class="btn btn-outline-secondary btn-sm" id="parametres-history-link">
@@ -113,7 +124,27 @@ $shown = function ($p, $lang) use ($posted) {
 </div>
 <?php endif; ?>
 
-<?php if (!$writable): ?>
+<?php if (!empty($links)): ?>
+<div class="row g-3 mb-3" id="parametres-links">
+    <?php foreach ($links as $link): ?>
+    <div class="col-sm-6 col-lg-4">
+        <div class="card h-100" data-link="<?= htmlspecialchars($link['url']) ?>">
+            <div class="card-body">
+                <h6 class="card-title"><i class="<?= $link['icon'] ?> text-primary me-1"></i><?= $this->lang->line($link['label']) ?></h6>
+                <?php if ($this->lang->line($link['help']) !== ''): ?>
+                <p class="card-text small text-muted"><?= $this->lang->line($link['help']) ?></p>
+                <?php endif; ?>
+                <a href="<?= site_url($link['url']) ?>" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt me-1"></i><?= $this->lang->line('parametres_open') ?>
+                </a>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<?php if (!$writable && !empty($params)): ?>
 <div class="alert alert-secondary" id="parametres-read-only">
     <i class="fas fa-lock me-1"></i> <?= $this->lang->line('parametres_read_only') ?>
 </div>
@@ -122,8 +153,12 @@ $shown = function ($p, $lang) use ($posted) {
 <form method="post" action="<?= site_url('parametres/save/' . $tab) ?>" id="parametres-form" enctype="multipart/form-data" novalidate>
 <input type="hidden" name="parametres_token" value="<?= htmlspecialchars($token) ?>">
 
-<?php foreach ($params as $key => $p):
+<?php $group = NULL; foreach ($params as $key => $p):
     $def = $p['def'];
+    if (!empty($def['group']) && $def['group'] !== $group):
+        $group = $def['group']; ?>
+<h5 class="mt-4 mb-2 parametres-group"><?= $this->lang->line($group) ?></h5>
+<?php endif;
     $langs = empty($def['per_lang']) ? array('') : $languages;
 ?>
 <div class="card mb-3" data-param="<?= htmlspecialchars($key) ?>">
@@ -241,6 +276,50 @@ $shown = function ($p, $lang) use ($posted) {
 </div>
 <?php endforeach; ?>
 
+<?php if (isset($raw_config) && (!empty($raw_config) || !empty($raw_config_manage))): ?>
+<h5 class="mt-4 mb-2 parametres-group"><?= $this->lang->line('parametres_group_raw') ?></h5>
+<p class="form-text"><?= $this->lang->line('parametres_raw_help') ?></p>
+<?php if (!empty($raw_config_manage)): ?>
+<div class="mb-2">
+    <a href="<?= site_url('configuration/create') ?>" class="btn btn-sm btn-success" id="parametres-raw-create">
+        <i class="fas fa-plus me-1"></i><?= $this->lang->line('parametres_raw_create') ?>
+    </a>
+</div>
+<?php endif; ?>
+<?php if (!empty($raw_config)): ?>
+<div class="table-responsive" id="parametres-raw-config">
+<table class="table table-sm table-striped">
+    <thead><tr>
+        <th><?= $this->lang->line('parametres_raw_key') ?></th>
+        <th><?= $this->lang->line('parametres_raw_value') ?></th>
+        <th><?= $this->lang->line('parametres_raw_lang') ?></th>
+        <th><?= $this->lang->line('parametres_raw_section') ?></th>
+        <?php if (!empty($raw_config_manage)): ?><th></th><?php endif; ?>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($raw_config as $row): $v = (string) $row['valeur']; ?>
+    <tr>
+        <td><code><?= htmlspecialchars($row['cle']) ?></code></td>
+        <td title="<?= htmlspecialchars(mb_substr($v, 0, 500)) ?>"><?= htmlspecialchars(mb_strlen($v) > 80 ? mb_substr($v, 0, 80) . '…' : $v) ?></td>
+        <td><?= htmlspecialchars((string) $row['lang']) ?></td>
+        <td><?= htmlspecialchars((string) $row['club']) ?></td>
+        <?php if (!empty($raw_config_manage)): ?>
+        <td class="text-nowrap">
+            <a href="<?= site_url('configuration/edit/' . (int) $row['id']) ?>" class="btn btn-outline-secondary btn-sm"
+               title="<?= $this->lang->line('parametres_raw_edit') ?>"><i class="fas fa-edit"></i></a>
+            <a href="<?= site_url('configuration/delete/' . (int) $row['id']) ?>" class="btn btn-outline-danger btn-sm parametres-raw-delete"
+               title="<?= $this->lang->line('parametres_raw_delete') ?>"
+               onclick="return confirm(<?= htmlspecialchars(json_encode(sprintf($this->lang->line('parametres_raw_delete_confirm'), $row['cle'])), ENT_QUOTES) ?>);"><i class="fas fa-trash"></i></a>
+        </td>
+        <?php endif; ?>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+</div>
+<?php endif; ?>
+<?php endif; ?>
+
 <?php if (!empty($newsletter_url)): ?>
 <div class="card mb-3" data-param="newsletter">
     <div class="card-header d-flex flex-wrap align-items-center gap-2">
@@ -278,6 +357,7 @@ $shown = function ($p, $lang) use ($posted) {
     </div>
 </div>
 <?php endif; ?>
+</div><!-- .gvv-tab-sheet -->
 </div>
 
 <script>

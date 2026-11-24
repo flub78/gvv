@@ -30,8 +30,9 @@ Les profils sont ordonnés : CA (1) < club-admin (2) < dev_user (3). Le rang d'u
 
 | Valeur de `store` | Support | Variantes |
 | :--- | :--- | :--- |
-| `db` | Table `configuration` (`cle`, `valeur`, `lang`, `club`) | Par langue (`lang`). Les variantes par section (`club`) arrivent au lot 3. Une valeur vide supprime la ligne : le paramètre revient à sa valeur par défaut. |
+| `db` | Table `configuration` (`cle`, `valeur`, `lang`, `club`) | Par langue (`lang`). Pas de variante par section (reportée, PRD §10). Une valeur vide supprime la ligne : le paramètre revient à sa valeur par défaut. |
 | `file:<nom>` | Clé `$config['…']` de `application/config/<nom>.php` | Aucune |
+| `info:<nom>` | Information d'installation calculée (URL, base de données, version, migration) | Lecture seule (`write => 'none'`) |
 
 La migration 184 passe `configuration.valeur` en `TEXT`, pour les textes longs, et ajoute les champs d'audit. `updated_at` sert aussi de date de mise à jour sur les pages publiques.
 
@@ -43,7 +44,19 @@ Outre son onglet, son stockage, son type et ses profils, un paramètre peut déc
 - `secret` : la valeur n'est jamais réaffichée ni tracée. Un champ laissé vide conserve la valeur ; l'effacer demande une case explicite.
 - `required` ou `required_if` : obligatoire toujours, ou seulement quand d'autres paramètres ont une valeur donnée (le serveur SMTP en mode SMTP). Le contrôle porte sur la valeur enregistrée de l'autre paramètre : le registre déclare donc celui-ci avant.
 - `requires` (modules) : paramètres dont le module a besoin. Le module s'active toujours ; tant qu'il est actif et qu'un de ces paramètres manque, l'onglet Modules désigne l'onglet à compléter.
-- types `select` (liste `options`) et `image` (fichier déposé dans `uploads/`, seule façon de changer la valeur).
+- types `select` (liste `options`, ou `options_source` calculée : thèmes installés, modules de facturation, comptes de recettes, produits) et `image` (fichier déposé dans `uploads/`, seule façon de changer la valeur).
+- `group` : intertitre regroupant des paramètres consécutifs d'un onglet chargé (Finances, Newsletter, Système).
+- `as_string` : valeur écrite entre guillemets, booléen en `'1'` ou `''`. Nécessaire pour `newsletter.php`, que la newsletter lit par expression régulière et non par `include`.
+- `encoding => 'base64'` : secret enregistré encodé, comme l'attend la newsletter.
+- `write => 'none'` : affiché en lecture seule pour tous (règles de `facturation.php`, fichier suivi par git ; informations d'installation). Ces paramètres n'entrent pas dans l'état de l'onglet.
+
+## Liens d'onglet
+
+Un onglet peut déclarer des `links` : écrans spécialisés existants (réglages HelloAsso par section, mise en page des cartes, types de documents, formulaires, listes de référence, tests de la newsletter et des SMS). Chaque lien a un profil minimal et, au besoin, un module qui doit être actif. Un onglet est visible s'il a un paramètre lisible ou un lien accessible ; un onglet sans paramètre n'a pas d'état. Ces écrans gardent leur adresse et leur logique : la page Configuration est leur point d'entrée, pas leur remplaçant (PRD EX-PRO-07).
+
+## Transition
+
+`config` et `newsletter_admin/configuration` redirigent vers leur onglet ; `configuration` ne redirige que sa liste, vers l'onglet Système, qui affiche les clés non déclarées dans le registre : la création et la modification d'une clé restent dans l'ancien éditeur (réglages propres à un écran, comme la mise en page des cartes).
 
 Un paramètre obligatoire dont GVV fournit une valeur par défaut non vide n'est jamais « manquant » : l'onglet n'est pas signalé incomplet tant que cette valeur convient.
 
@@ -85,4 +98,5 @@ Le contact RGPD (`contact_rgpd`, dans `club.php`) vaut « le président de l'ass
 - **Jeton anti-CSRF propre à la page.** La protection CSRF globale de CodeIgniter est désactivée dans GVV. L'enregistrement d'un onglet exige donc un jeton aléatoire conservé en session et envoyé par le formulaire. Une demande sans jeton valide n'enregistre rien et affiche un message.
 - **Pages publiques et acceptations obligatoires.** `legal`, `newsletter` et `newsletter_public` sont exemptés du blocage par acceptation obligatoire de `MY_Controller`. Un membre qui doit accepter le document RGPD peut ainsi lire les règles de confidentialité.
 - **Rang de l'utilisateur mémorisé.** Il est calculé une fois par requête. La page Configuration et l'entrée de menu, affichée sur toutes les pages, n'interrogent les autorisations qu'une fois.
+- **Cache de PHP (OPcache).** Un fichier de configuration est lu par `include` : `Config_file_writer` invalide son cache après chaque écriture. Une modification faite hors de GVV (éditeur, script de test) n'est vue qu'après la revalidation d'OPcache ; les tests passent donc par la page pour changer `program.php`.
 - **Valeurs mémorisées.** `Parametres_store` mémorise pour la durée de la requête les valeurs lues et le contenu des fichiers de configuration, et vide ce cache à chaque écriture : l'état des onglets, les obligations conditionnelles et les avertissements de modules ne relisent pas les fichiers.

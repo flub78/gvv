@@ -42,10 +42,15 @@ class ParametresRegistryTest extends TestCase
         foreach ($this->registry as $key => $def) {
             $this->assertArrayHasKey($def['tab'], $this->tabs, "$key : onglet inconnu");
             $this->assertArrayHasKey($def['read'], $ranks, "$key : profil de lecture inconnu");
-            $this->assertArrayHasKey($def['write'], $ranks, "$key : profil de modification inconnu");
-            $this->assertGreaterThanOrEqual($ranks[$def['read']], $ranks[$def['write']], "$key : modifiable mais pas lisible");
+            $this->assertArrayHasKey($def['write'], $ranks + array('none' => 99), "$key : profil de modification inconnu");
+            if ($def['write'] !== 'none') {
+                $this->assertGreaterThanOrEqual($ranks[$def['read']], $ranks[$def['write']], "$key : modifiable mais pas lisible");
+            }
             $this->assertContains($def['type'], $types, "$key : type inconnu");
-            $this->assertRegExp('/^(db|file:[a-z_]+)$/', $def['store'], "$key : stockage inconnu");
+            $this->assertRegExp('/^(db|file:[a-z_]+|info:[a-z_]+)$/', $def['store'], "$key : stockage inconnu");
+            if (strpos($def['store'], 'info:') === 0) {
+                $this->assertSame('none', $def['write'], "$key : une information calculée n'est pas modifiable");
+            }
         }
     }
 
@@ -61,10 +66,15 @@ class ParametresRegistryTest extends TestCase
         foreach ($this->tabs as $tab) {
             $keys[] = $tab['label'];
             if (!empty($tab['help'])) $keys[] = $tab['help'];
+            foreach ($tab['links'] ?? array() as $link) {
+                $keys[] = $link['label'];
+                $keys[] = $link['help'];
+            }
         }
         foreach ($this->registry as $def) {
             $keys[] = $def['label'];
             if (!empty($def['help'])) $keys[] = $def['help'];
+            if (!empty($def['group'])) $keys[] = $def['group'];
         }
         foreach ($this->langs as $l => $lang) {
             foreach ($keys as $k) {
@@ -100,7 +110,10 @@ class ParametresRegistryTest extends TestCase
     {
         foreach ($this->registry as $key => $def) {
             if ($def['type'] === 'select') {
-                $this->assertNotEmpty($def['options'] ?? array(), "$key : liste de choix vide");
+                $this->assertTrue(!empty($def['options']) || !empty($def['options_source']), "$key : liste de choix vide");
+            }
+            if (!empty($def['encoding'])) {
+                $this->assertNotEmpty($def['secret'] ?? FALSE, "$key : seul un secret est encodé");
             }
             foreach (array_keys($def['required_if'] ?? array()) as $other) {
                 $this->assertArrayHasKey($other, $this->registry, "$key : dépend de $other inconnu");

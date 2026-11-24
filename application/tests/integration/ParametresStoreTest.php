@@ -28,6 +28,16 @@ class ParametresStoreTest extends TransactionalTestCase
             'read' => 'ca', 'write' => 'club-admin', 'required_if' => array('phpunit.mode' => 'smtp')),
         'phpunit.defaut' => array('tab' => 'defaut', 'store' => 'db', 'type' => 'text', 'label' => 'l',
             'read' => 'ca', 'write' => 'club-admin', 'required' => TRUE, 'default' => 'mail'),
+        'phpunit.cle_api' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'password', 'label' => 'l',
+            'read' => 'dev', 'write' => 'dev', 'secret' => TRUE, 'encoding' => 'base64'),
+        'phpunit.devs' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'text', 'label' => 'l',
+            'read' => 'dev', 'write' => 'dev', 'rules' => 'contains_current_user'),
+        'phpunit.lecture' => array('tab' => 'systeme', 'store' => 'info:base_url', 'type' => 'text', 'label' => 'l',
+            'read' => 'dev', 'write' => 'none'),
+        'phpunit.facturation' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'select', 'label' => 'l',
+            'read' => 'dev', 'write' => 'dev', 'options_source' => 'facturation'),
+        'phpunit.fichier' => array('tab' => 'systeme', 'store' => 'file:phpunit_parametres', 'type' => 'bool',
+            'label' => 'l', 'read' => 'dev', 'write' => 'dev', 'as_string' => TRUE),
         'phpunit.module' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'text', 'label' => 'l',
             'read' => 'ca', 'write' => 'club-admin', 'requires' => array('phpunit.serveur')),
     );
@@ -36,7 +46,15 @@ class ParametresStoreTest extends TransactionalTestCase
         'essai'   => array('icon' => '', 'label' => 'essai'),
         'systeme' => array('icon' => '', 'label' => 'systeme'),
         'defaut'  => array('icon' => '', 'label' => 'defaut'),
+        'liens'   => array('icon' => '', 'label' => 'liens', 'links' => array(
+            array('url' => 'a', 'icon' => '', 'label' => 'a', 'help' => '', 'read' => 'club-admin', 'module' => NULL),
+            array('url' => 'b', 'icon' => '', 'label' => 'b', 'help' => '', 'read' => 'club-admin',
+                'module' => 'phpunit_module_inactif'),
+        )),
     );
+
+    /** Fichier de configuration créé par les tests, supprimé après chacun. */
+    private $tmp_config;
 
     protected function setUp(): void
     {
@@ -49,6 +67,15 @@ class ParametresStoreTest extends TransactionalTestCase
         $this->CI->config_file_writer = new Config_file_writer();
         $this->store = new Parametres_store(array('registry' => $this->registry, 'tabs' => $this->tabs));
         $this->store->set_rank(2);
+        $this->tmp_config = APPPATH . 'config/phpunit_parametres.php';
+    }
+
+    protected function tearDown(): void
+    {
+        if (is_file($this->tmp_config)) {
+            unlink($this->tmp_config);
+        }
+        parent::tearDown();
     }
 
     /**
@@ -67,12 +94,12 @@ class ParametresStoreTest extends TransactionalTestCase
         $this->assertFalse($this->store->can_write_tab('essai'));
 
         $this->store->set_rank(2);
-        $this->assertSame(array('essai', 'systeme', 'defaut'), array_keys($this->store->visible_tabs()));
+        $this->assertSame(array('essai', 'systeme', 'defaut', 'liens'), array_keys($this->store->visible_tabs()));
         $this->assertTrue($this->store->can_write_tab('essai'));
         $this->assertFalse($this->store->can_read('phpunit.systeme'));
 
         $this->store->set_rank(3);
-        $this->assertSame(array('essai', 'systeme', 'defaut'), array_keys($this->store->visible_tabs()));
+        $this->assertSame(array('essai', 'systeme', 'defaut', 'liens'), array_keys($this->store->visible_tabs()));
         $this->assertTrue($this->store->can_read('phpunit.systeme'));
 
         $this->store->set_rank(0);
@@ -304,7 +331,8 @@ class ParametresStoreTest extends TransactionalTestCase
      * Scénario: La page Configuration reste accessible quels que soient les modules actifs
      *   Étant donné un administrateur du club
      *   Quand il ouvre la page Configuration
-     *   Alors il voit les onglets Club, Modules, Messagerie et Pages publiques
+     *   Alors il voit les onglets Club, Modules, Messagerie, Newsletter et Pages publiques
+     *   Mais pas l'onglet Système
      *   Et il peut toujours modifier l'onglet Modules pour réactiver un module
      */
     public function testConfigurationPage_DoesNotDependOnModules()
@@ -312,14 +340,30 @@ class ParametresStoreTest extends TransactionalTestCase
         $real = new Parametres_store();
         $real->set_rank(2);
         $tabs = array_keys($real->visible_tabs());
-        foreach (array('club', 'modules', 'messagerie', 'pages_publiques') as $tab) {
+        foreach (array('club', 'modules', 'messagerie', 'newsletter', 'pages_publiques') as $tab) {
             $this->assertContains($tab, $tabs);
         }
+        $this->assertNotContains('systeme', $tabs);
         $this->assertTrue($real->can_write_tab('modules'));
+    }
 
+    /**
+     * Scénario: Le conseil d'administration voit les onglets qui le concernent
+     *   Étant donné un membre du CA
+     *   Quand il ouvre la page Configuration
+     *   Alors il voit les onglets Club, Modules, Vols de découverte et Finances
+     *   Et il peut modifier les vols de découverte
+     *   Mais il ne peut modifier ni le club, ni les modules, ni les finances
+     */
+    public function testBoardTabs()
+    {
+        $real = new Parametres_store();
         $real->set_rank(1);
-        $this->assertSame(array('club', 'modules'), array_keys($real->visible_tabs()));
-        $this->assertFalse($real->can_write_tab('club'));
+        $this->assertSame(array('club', 'modules', 'vols_decouverte', 'finances'), array_keys($real->visible_tabs()));
+        $this->assertTrue($real->can_write_tab('vols_decouverte'));
+        foreach (array('club', 'modules', 'finances') as $tab) {
+            $this->assertFalse($real->can_write_tab($tab), $tab);
+        }
     }
 
     /**
@@ -415,5 +459,117 @@ class ParametresStoreTest extends TransactionalTestCase
     {
         $this->assertFalse($this->store->is_missing('phpunit.defaut'));
         $this->assertNotSame('incomplete', $this->store->tab_status('defaut'));
+    }
+
+    /**
+     * Scénario: Un onglet qui ne présente que des écrans spécialisés n'est montré qu'à qui peut les ouvrir
+     *   Étant donné un onglet de liens, dont l'un dépend d'un module inactif
+     *   Quand un membre du CA ouvre la configuration
+     *   Alors il ne voit pas l'onglet
+     *   Quand l'administrateur du club l'ouvre
+     *   Alors il voit l'onglet, sans le lien du module inactif
+     *   Et l'onglet n'affiche pas d'état de configuration
+     */
+    public function testLinksTab_DependsOnProfileAndModule()
+    {
+        $this->store->set_rank(1);
+        $this->assertArrayNotHasKey('liens', $this->store->visible_tabs());
+        $this->store->set_rank(2);
+        $this->assertArrayHasKey('liens', $this->store->visible_tabs());
+        $this->assertSame(array('a'), array_column($this->store->links('liens'), 'url'));
+        $this->assertSame('none', $this->store->tab_status('liens'));
+    }
+
+    /**
+     * Scénario: Une clé d'API est enregistrée encodée et n'est jamais tracée
+     *   Étant donné un développeur
+     *   Quand il enregistre une clé d'API
+     *   Alors la clé n'est pas conservée en clair
+     *   Et l'historique ne contient pas sa valeur
+     */
+    public function testEncodedSecret()
+    {
+        $this->requireHistory();
+        $this->store->set_rank(3);
+        $this->assertSame('saved', $this->store->save('phpunit.cle_api', 'sk-secret')['status']);
+        $row = $this->CI->db->where('cle', 'phpunit.cle_api')->get('configuration')->row_array();
+        $this->assertSame(base64_encode('sk-secret'), $row['valeur']);
+        $this->assertNull($this->lastHistory('phpunit.cle_api')['nouvelle_valeur']);
+    }
+
+    /**
+     * Scénario: Un développeur ne peut pas se retirer lui-même de la liste des développeurs
+     *   Étant donné un développeur connecté
+     *   Quand il enregistre une liste de développeurs qui ne le contient pas
+     *   Alors la liste est refusée avec son motif
+     *   Mais une liste qui le contient est acceptée
+     */
+    public function testDevUsers_CannotRemoveSelf()
+    {
+        $this->store->set_rank(3);
+        $me = $this->CI->dx_auth->get_username();
+        $this->assertSame('parametres_err_self_removal', $this->store->save('phpunit.devs', 'quelquun')['error']);
+        $this->assertSame('saved', $this->store->save('phpunit.devs', 'quelquun, ' . $me)['status']);
+    }
+
+    /**
+     * Scénario: Les informations d'installation sont affichées sans pouvoir être modifiées
+     *   Étant donné un développeur
+     *   Quand il consulte l'adresse de base de l'installation
+     *   Alors elle est affichée
+     *   Et toute modification est refusée
+     */
+    public function testInfo_IsReadOnly()
+    {
+        $this->store->set_rank(3);
+        $this->assertSame((string) $this->CI->config->item('base_url'), $this->store->get('phpunit.lecture')['value']);
+        $this->assertFalse($this->store->can_write('phpunit.lecture'));
+        $this->assertSame('parametres_err_forbidden', $this->store->save('phpunit.lecture', 'http://x')['error']);
+    }
+
+    /**
+     * Scénario: Le module de facturation se choisit parmi les modules installés
+     *   Étant donné les modules de facturation installés sur le serveur
+     *   Quand un développeur choisit un module de facturation
+     *   Alors un module installé est accepté
+     *   Et un module inconnu est refusé
+     */
+    public function testDynamicOptions()
+    {
+        $this->store->set_rank(3);
+        $modules = $this->store->options('phpunit.facturation');
+        $this->assertNotEmpty($modules);
+        $this->assertSame('saved', $this->store->save('phpunit.facturation', key($modules))['status']);
+        $this->assertSame('parametres_err_option', $this->store->save('phpunit.facturation', 'module-inexistant')['error']);
+    }
+
+    /**
+     * Scénario: Un réglage lu comme texte est écrit comme texte dans son fichier
+     *   Étant donné un fichier de configuration qui n'existe pas encore et dont les valeurs sont lues comme du texte
+     *   Quand un développeur active puis désactive le réglage
+     *   Alors le fichier est créé
+     *   Et la valeur y est écrite « 1 », puis vide
+     */
+    public function testAsString_FileValue()
+    {
+        $this->store->set_rank(3);
+        $this->assertFileNotExists($this->tmp_config);
+        $this->assertSame('saved', $this->store->save('phpunit.fichier', TRUE)['status']);
+        $this->assertStringContainsString("\$config['phpunit.fichier'] = '1';", file_get_contents($this->tmp_config));
+        $this->assertSame('saved', $this->store->save('phpunit.fichier', FALSE)['status']);
+        $this->assertStringContainsString("\$config['phpunit.fichier'] = '';", file_get_contents($this->tmp_config));
+    }
+
+    /**
+     * Scénario: Un texte renvoyé tel quel n'est pas compté comme modifié
+     *   Étant donné un texte enregistré par un autre écran, terminé par un saut de ligne et avec des retours chariot
+     *   Quand l'administrateur enregistre l'onglet sans toucher à ce texte
+     *   Alors aucune modification n'est signalée
+     */
+    public function testUnchangedText_WithDifferentLineEndings()
+    {
+        $this->CI->db->insert('configuration', array('cle' => 'phpunit.texte', 'valeur' => "Ligne 1\r\nLigne 2\n",
+            'lang' => 'french', 'club' => NULL));
+        $this->assertSame('unchanged', $this->store->save('phpunit.texte', "Ligne 1\r\nLigne 2", 'french')['status']);
     }
 }

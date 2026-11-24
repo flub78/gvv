@@ -56,9 +56,6 @@ $lang['newsletter_delete_confirm']        = 'Supprimer cet abonné ?';
 $lang['newsletter_delete_success']        = 'Abonné supprimé.';
 
 // Configuration IMAP/SMTP
-$lang['newsletter_config_title']          = 'Configuration veille réglementaire';
-$lang['newsletter_config_card_desc']      = 'Relecteurs, boîte de veille, compte d\'envoi';
-$lang['newsletter_config_saved']          = 'Configuration sauvegardée.';
 $lang['newsletter_config_imap']           = 'Boîte mail de collecte (IMAP)';
 $lang['newsletter_config_smtp']           = 'Serveur d\'envoi (SMTP)';
 $lang['newsletter_config_smtp_host']      = 'Serveur SMTP';

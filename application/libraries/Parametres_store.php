@@ -135,6 +135,10 @@ class Parametres_store {
     public function visible_tabs() {
         $visible = array();
         foreach ($this->tabs as $tab => $info) {
+            if ($this->links($tab)) {
+                $visible[$tab] = $info;
+                continue;
+            }
             foreach ($this->tab_keys($tab) as $key) {
                 if ($this->can_read($key)) {
                     $visible[$tab] = $info;
@@ -143,6 +147,65 @@ class Parametres_store {
             }
         }
         return $visible;
+    }
+
+    /**
+     * Liens d'un onglet vers les écrans spécialisés, accessibles à l'utilisateur :
+     * profil suffisant et, si le lien en dépend, module actif.
+     *
+     * @return array liens du registre (url, icon, label, help, read, module)
+     */
+    public function links($tab) {
+        if (empty($this->tabs[$tab]['links'])) {
+            return array();
+        }
+        $links = array();
+        foreach ($this->tabs[$tab]['links'] as $link) {
+            if ($this->user_rank() < $this->_rank_of($link['read'])) {
+                continue;
+            }
+            if (!empty($link['module']) && !$this->CI->config->item($link['module'])) {
+                continue;
+            }
+            $links[] = $link;
+        }
+        return $links;
+    }
+
+    /**
+     * Choix proposés pour un paramètre de type select : liste fixe (options) ou
+     * calculée (options_source : modules de facturation, comptes de recettes,
+     * produits).
+     *
+     * @return array valeur => libellé
+     */
+    public function options($key) {
+        $def = $this->definition($key);
+        if (!$def) {
+            return array();
+        }
+        if (isset($def['options'])) {
+            return $def['options'];
+        }
+        if (empty($def['options_source'])) {
+            return array();
+        }
+        switch ($def['options_source']) {
+            case 'facturation':
+                $options = array();
+                foreach (glob(APPPATH . 'libraries/Facturation_*.php') ?: array() as $file) {
+                    $name = strtolower(substr(basename($file, '.php'), strlen('Facturation_')));
+                    $options[$name] = $name;
+                }
+                return $options;
+            case 'comptes_recettes':
+                $this->CI->load->model('comptes_model');
+                return $this->CI->comptes_model->selector_with_null(array('codec >=' => '700', 'codec <' => '800'), FALSE);
+            case 'produits':
+                $this->CI->load->model('produits_model');
+                return array('' => '') + $this->CI->produits_model->selector();
+        }
+        return array();
     }
 
     public function can_write_tab($tab) {
@@ -182,6 +245,11 @@ class Parametres_store {
         $result = array('value' => $default, 'is_default' => TRUE, 'updated_at' => NULL, 'updated_by' => NULL);
         if (!$def) {
             return $result;
+        }
+
+        if (strpos($def['store'], 'info:') === 0) {
+            $value = $this->_info(substr($def['store'], strlen('info:')));
+            return array('value' => $value, 'is_default' => FALSE, 'updated_at' => NULL, 'updated_by' => NULL);
         }
 
         if ($def['store'] === 'db') {
@@ -227,9 +295,15 @@ class Parametres_store {
      * 'optional' si rien n'y est défini, 'complete' sinon.
      */
     public function tab_status($tab) {
+        if (!$this->tab_keys($tab)) {
+            return 'none';  // onglet de liens seulement : pas d'état
+        }
         $any_defined = FALSE;
         foreach ($this->tab_keys($tab) as $key) {
             $def = $this->definition($key);
+            if ($def['write'] === 'none') {
+                continue;  // affiché seulement, sans incidence sur l'état
+            }
             $langs = empty($def['per_lang']) ? array(NULL) : self::LANGUAGES;
             $defined = FALSE;
             foreach ($langs as $lang) {
@@ -353,7 +427,10 @@ class Parametres_store {
         } elseif (!empty($def['secret']) && $value === '') {
             return array('status' => 'unchanged', 'error' => '', 'detail' => '');
         }
-        if ((string) $current['value'] === (string) $value && !($current['is_default'] && (string) $value !== '')) {
+        // Comparaison sur les formes normalisées : un texte enregistré ailleurs (fin de
+        // ligne finale, retours chariot) n'est pas compté comme modifié s'il est renvoyé tel quel.
+        $current_value = empty($def['secret']) ? $this->_normalize($def, $current['value']) : $current['value'];
+        if ((string) $current_value === (string) $value && !($current['is_default'] && (string) $value !== '')) {
             return array('status' => 'unchanged', 'error' => '', 'detail' => '');
         }
 
@@ -365,18 +442,22 @@ class Parametres_store {
         // Toute écriture peut changer d'autres lectures (obligations conditionnelles).
         $this->values = array();
         $this->files = array();
+        $stored = $this->_stored_form($def, $value);
+        if (strpos($def['store'], 'info:') === 0) {
+            return $this->_error('parametres_err_forbidden');
+        }
         if ($def['store'] === 'db') {
-            if (!$this->_db_write($key, $lang, $value)) {
+            if (!$this->_db_write($key, $lang, $stored)) {
                 return $this->_error('parametres_err_db');
             }
         } else {
             $file = $this->_file_path($def['store']);
             $writer = $this->CI->config_file_writer;
-            if (!$writer->create($file) || !$writer->write($file, $key, $value)) {
+            if (!$writer->create($file) || !$writer->write($file, $key, $stored)) {
                 return $this->_error('parametres_err_file_' . $writer->error,
                     str_replace(FCPATH, '', $file));
             }
-            $this->CI->config->set_item($key, $value);
+            $this->CI->config->set_item($key, $stored);
         }
 
         $action = isset($options['action']) ? $options['action'] : ($clear ? 'effacement' : 'modification');
@@ -422,7 +503,10 @@ class Parametres_store {
         if (!empty($def['required']) || ($key !== NULL && $this->is_required($key))) {
             $rules[] = 'required';
         }
-        if ($def['type'] === 'select' && isset($def['options'])
+        if ($def['type'] === 'select' && $key !== NULL && !array_key_exists((string) $value, $this->options($key))) {
+            return 'parametres_err_option';
+        }
+        if ($def['type'] === 'select' && $key === NULL && isset($def['options'])
             && !array_key_exists((string) $value, $def['options'])) {
             return 'parametres_err_option';
         }
@@ -457,6 +541,18 @@ class Parametres_store {
                 case 'integer':
                     if ($str !== '' && !preg_match('/^-?\d+$/', $str)) return 'parametres_err_integer';
                     break;
+                case 'css_color':
+                    if ($str !== '' && !preg_match('/^(#[0-9a-f]{3,8}|[a-z]{3,30})$/i', $str)) return 'parametres_err_color';
+                    break;
+                case 'oaci':
+                    if ($str !== '' && !preg_match('/^[A-Z0-9]{4}$/', $str)) return 'parametres_err_oaci';
+                    break;
+                case 'contains_current_user':
+                    // Ne pas se retirer soi-même un accès (PRD §8).
+                    $users = array_filter(array_map('trim', explode(',', $str)));
+                    $me = $this->CI->dx_auth->is_logged_in() ? $this->CI->dx_auth->get_username() : '';
+                    if ($me !== '' && !in_array($me, $users, TRUE)) return 'parametres_err_self_removal';
+                    break;
                 case 'range':
                     list($min, $max) = array_map('intval', explode(',', $arg));
                     if ($str !== '' && (!preg_match('/^-?\d+$/', $str) || (int) $str < $min || (int) $str > $max)) {
@@ -490,6 +586,44 @@ class Parametres_store {
             'secret'          => $secret ? 1 : 0,
             'action'          => $action,
         ));
+    }
+
+    /**
+     * Forme enregistrée d'une valeur : chaîne pour un fichier lu comme texte
+     * (as_string, booléen en '1' ou ''), encodée pour un secret qui l'exige.
+     */
+    private function _stored_form($def, $value) {
+        if (!empty($def['as_string'])) {
+            $value = is_bool($value) ? ($value ? '1' : '') : (string) $value;
+        }
+        if ($value !== '' && isset($def['encoding']) && $def['encoding'] === 'base64') {
+            $value = base64_encode((string) $value);
+        }
+        return $value;
+    }
+
+    /**
+     * Informations d'installation affichées en lecture seule (onglet Système).
+     */
+    private function _info($name) {
+        switch ($name) {
+            case 'base_url':
+                return (string) $this->CI->config->item('base_url');
+            case 'database':
+                $db = $this->CI->db;
+                return $db->hostname . ' / ' . $db->database;
+            case 'version':
+                $this->CI->config->load('version', TRUE, TRUE);
+                $v = $this->CI->config->item('version');
+                return is_array($v) ? trim(($v['commit'] ?? '') . ' ' . ($v['commit_date'] ?? '')) : '';
+            case 'migration':
+                $this->CI->config->load('migration', TRUE, TRUE);
+                $target = $this->CI->config->item('migration_version', 'migration');
+                $query = $this->CI->db->get('migrations');
+                $current = ($query && $query->num_rows() > 0) ? $query->row()->version : '?';
+                return $current . ' / ' . $target;
+        }
+        return '';
     }
 
     /** Représentation texte d'une valeur pour l'historique. */

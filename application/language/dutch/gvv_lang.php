@@ -422,7 +422,6 @@ $lang['gvv_menu_liste_des_bons'] = "Voucherlijst";
 $lang['gvv_menu_vendre_un_bon'] = "Voucher verkopen";
 $lang['gvv_menu_public_page'] = "Publieke pagina";
 $lang['AEROWEB'] = "Aeroweb";
-$lang['gvv_configuration_title_list'] = "Configuratieparameters";
 $lang['gvv_menu_admin'] = "Beheer";
 $lang['gvv_menu_admin_club'] = "Club beheer";
 $lang['gvv_menu_admin_accounting'] = "Boekhouding beheer";

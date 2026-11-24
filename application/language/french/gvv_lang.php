@@ -15,8 +15,6 @@ $lang['gvv_menu_vendre_un_bon'] = "Vendre un bon";
 $lang['gvv_menu_public_page'] = "Page publique";
 $lang['AEROWEB'] = "Aeroweb";
 
-$lang['gvv_configuration_title_list'] = "Paramètres de configuration";
-
 $lang['gvv_menu_admin'] = "Gestion";
 $lang['gvv_menu_admin_club'] = "Club";
 $lang['gvv_menu_admin_accounting'] = "Comptabilité";

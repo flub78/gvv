@@ -456,6 +456,14 @@ class Parametres extends MY_Controller {
             foreach ($langs as $lang) {
                 $values[$lang === NULL ? '' : $lang] = $this->parametres_store->get($key, $lang);
             }
+            if ($def['type'] === 'select') {
+                // Choix proposés ; une valeur en vigueur absente de la liste reste affichée.
+                $def['options'] = $this->parametres_store->options($key);
+                $current = (string) $values['']['value'];
+                if ($current !== '' && !array_key_exists($current, $def['options'])) {
+                    $def['options'][$current] = $current . ' ' . $this->lang->line('parametres_not_in_list');
+                }
+            }
             $params[$key] = array(
                 'def'      => $def,
                 'field'    => $this->_field_name($key),
@@ -495,6 +503,14 @@ class Parametres extends MY_Controller {
             }
         }
         $data['warnings'] = $warnings;
+        $data['links'] = $this->parametres_store->links($tab);
+
+        if ($tab === 'systeme') {
+            $data['raw_config'] = $this->_undeclared_configuration();
+            // Création, modification et suppression d'une clé : écran configuration,
+            // réservé à l'administrateur du club. Liens montrés seulement à qui peut les ouvrir.
+            $data['raw_config_manage'] = has_role('club-admin');
+        }
 
         if ($tab === 'messagerie') {
             $data['test_email'] = $this->session->flashdata('parametres_test_email');
@@ -521,6 +537,26 @@ class Parametres extends MY_Controller {
         $this->load->view('bs_banner');
         $this->load->view('parametres/bs_index', $data);
         $this->load->view('bs_footer');
+    }
+
+    /**
+     * Lignes de la table configuration dont la clé n'est pas déclarée dans le
+     * registre (réglages propres à un écran, comme la mise en page des cartes),
+     * affichées en lecture seule dans l'onglet Système.
+     */
+    private function _undeclared_configuration() {
+        $declared = array();
+        foreach ($this->parametres_store->registry() as $key => $def) {
+            if ($def['store'] === 'db') {
+                $declared[] = $key;
+            }
+        }
+        $this->db->select('id, cle, valeur, lang, club')->from('configuration')->order_by('cle');
+        if ($declared) {
+            $this->db->where_not_in('cle', $declared);
+        }
+        $query = $this->db->get();
+        return $query ? $query->result_array() : array();
     }
 
     /**

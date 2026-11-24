@@ -1,6 +1,6 @@
 # PRD : Configuration unifiée de GVV
 
-*Statut : validé — 2026-11-03*
+*Statut : validé — 2026-11-03, révisé au lot 3 (§6, §10)*
 
 ## 1. Contexte
 
@@ -73,21 +73,22 @@ Ce PRD décrit une page de configuration unique, organisée en onglets, accessib
 
 | Onglet | Profil minimal | Contenu |
 | :--- | :--- | :--- |
-| **Club** | CA (lecture), club-admin (modification) | Identité : sigle, nom, code, adresse, téléphone, e-mail, site, logo, contact RGPD |
-| **Apparence** | club-admin | Titre de l'application, couleur de bannière, thème, palette |
+| **Club** | CA (lecture), club-admin (modification) | Identité : sigle, nom, code, adresse, téléphone, e-mail, site, logo, contact RGPD ; calendrier Google et planche automatique |
+| **Apparence** | club-admin | Titre de l'application, couleur de bannière |
 | **Modules** | CA (lecture), club-admin (modification) | Activation des fonctionnalités : vols de découverte, réservations, formations, documents, paiements en ligne, ULM, tickets, pompes, rapprochements, newsletter de veille, auto-planchiste… |
-| **Communication** | CA (modification) | Message du jour, copie systématique des e-mails, expéditeur et signature des e-mails |
 | **Vols de découverte** | CA (modification) | Contacts par type d'appareil, expéditeur, signature, textes des courriels |
-| **Finances** | CA (lecture), club-admin (modification) | Comptes de cotisation, seuils de relance, facturation (payeur non pilote, partage), contrôle de solde à la réservation |
-| **Paiements en ligne** | club-admin | Paramètres HelloAsso par section (ouverts au club-admin, aujourd'hui réservés à l'administrateur technique) |
-| **Documents et cartes** | club-admin | Cartes de membre, formulaires, accès aux types de documents |
+| **Finances** | CA (lecture), club-admin (modification) | Compte de cotisation, licences fédérales, seuils de relance, module de facturation, contrôle de solde à la réservation ; règles de facturation du serveur (payeur non pilote, partage…) en lecture seule |
+| **Paiements en ligne** | club-admin | Accès à l'écran des réglages HelloAsso par section |
+| **Documents et cartes** | club-admin | Accès aux écrans des cartes de membre, des types de documents, des formulaires et de leurs réglages globaux |
 | **Pages publiques** | club-admin | Textes des règles de confidentialité et des conditions d'utilisation, par langue |
 | **Référentiels** | club-admin | Accès aux listes : types de vol, qualifications, alertes, maintenance, écritures, tarifs et produits, terrains, aérodrome par défaut |
 | **Messagerie** | club-admin | Serveur SMTP, e-mail et téléphone de test, envoi de test |
-| **Système** | dev_user | Newsletter (IMAP, IA, relecteurs), SMS, ordonnanceurs, mode de test, intégration Google, `dev_users`, et en lecture seule : base de données, URL, version, migration |
+| **Newsletter** | club-admin | Newsletter de veille : boîte de collecte (IMAP), envoi (SMTP), relecture, stockage et alertes, IA ; accès aux tests d'envoi, IMAP et IA |
+| **Système** | dev_user | Accès réservé et message de maintenance, `dev_users`, SMS, ordonnanceurs, intégration Google, accès au test SMS, et en lecture seule : base de données, URL, version, migration ; liste des autres clés de la table de configuration |
 
 * **EX-PRO-05** : un onglet en lecture seule affiche les valeurs sans champ modifiable ni bouton d'enregistrement, et indique qu'il est en lecture seule. Les secrets n'y apparaissent jamais (EX-SEC-01).
 * **EX-PRO-06** : le CA ne peut pas modifier l'identité du club.
+* **EX-PRO-07** : un onglet peut présenter des écrans spécialisés existants (réglages HelloAsso par section, mise en page des cartes de membre, types de documents, formulaires, listes de référence) sous forme de liens. Ces écrans restent les mêmes ; seuls les liens accessibles à l'utilisateur, et dont le module est actif, sont affichés.
 
 ## 6 bis. Pages publiques : règles de confidentialité et conditions d'utilisation
 
@@ -147,7 +148,7 @@ Contenu attendu et origine de chaque information :
 
 ### 7.5 Actions de test
 
-* **EX-TST-01** : les onglets Messagerie et Système proposent les tests existants (e-mail, IMAP, IA, SMS). Le résultat s'affiche dans la page, en succès ou en échec, avec le message d'erreur.
+* **EX-TST-01** : les onglets Messagerie, Newsletter et Système proposent les tests existants (e-mail, IMAP, IA, SMS). Le résultat s'affiche dans la page, en succès ou en échec, avec le message d'erreur.
 * **EX-TST-02** : un test utilise les valeurs enregistrées, et le dit.
 
 ### 7.6 Traçabilité
@@ -159,7 +160,7 @@ Contenu attendu et origine de chaque information :
 ### 7.7 Transition
 
 * **EX-TRA-01** : la page Configuration est accessible par une tuile dans la section « Administration du club » du tableau de bord, et par une entrée « Configuration » du menu d'administration, qui remplace les entrées existantes. Tuile et entrée de menu sont visibles de tout utilisateur ayant au moins un onglet autorisé (EX-PRO-04), y compris un dev_user qui ne serait pas membre du CA.
-* **EX-TRA-02** : les anciennes adresses des écrans remplacés mènent à l'onglet correspondant.
+* **EX-TRA-02** : les anciennes adresses des écrans remplacés mènent à l'onglet correspondant. Les écrans spécialisés présentés par un lien (EX-PRO-07) ne sont pas remplacés et gardent leur adresse.
 * **EX-TRA-03** : un club qui met à jour GVV retrouve toutes ses valeurs existantes, sans ressaisie.
 * **EX-TRA-04** : la livraison se fait en plusieurs étapes. Pendant la transition, les écrans existants restent disponibles pour les onglets pas encore livrés. Ordre de livraison :
   1. Pages publiques (confidentialité, conditions d'utilisation, newsletters), avec le paramètre contact RGPD de l'onglet Club ;
@@ -195,3 +196,9 @@ Contenu attendu et origine de chaque information :
 | Trace des modifications et retour arrière ? | Oui (§7.6) |
 | Livraison en plusieurs étapes ? | Oui, en commençant par les pages publiques (EX-TRA-04) |
 | Paramètres d'infrastructure | Lecture seule pour les dev_users (§3.2) |
+| Écrans spécialisés (HelloAsso, cartes de membre, types de documents, formulaires) | Présentés par des liens depuis leur onglet, non reconstruits (EX-PRO-07) — lot 3 |
+| Onglet Communication | Abandonné : la copie systématique des e-mails (`copie_a`) et le message du jour de `club.php` (`mod`) ne sont lus nulle part, le message du jour a son propre écran, et il n'existe ni expéditeur ni signature générale. L'expéditeur et la signature des vols de découverte sont dans leur onglet — lot 3 |
+| Palette (`palette`) | Non reprise : elle n'est utilisée nulle part — lot 3 |
+| Règles de facturation de `facturation.php` | Lecture seule : le fichier est suivi par git, une modification sur le serveur bloquerait les mises à jour. Le passage à un fichier non suivi pourra être une évolution séparée — lot 3 |
+| Variantes par section (EX-VAR-01) | Reportées : aucune clé de la table de configuration n'a de valeur propre à une section ; HelloAsso garde son sélecteur de section dans son écran — lot 3 |
+| Réglages de la newsletter | Onglet Newsletter, ouvert au club-admin comme l'ancien écran, avec les tests de la newsletter — lot 3 |

@@ -1,5 +1,10 @@
 ## Fait récemment
 
+* [x] Unifier la configuration globale de l'application : page Configuration à onglets (PRD `doc/prds/configuration_unifiee_prd.md`, guide `doc/users/fr/21_configuration.md`)
+  * [x] Gestion des emails (onglet Messagerie)
+  * [x] Gestion des documents (onglet Documents et cartes)
+  * [x] Gestion des vols de découverte (onglet Vols de découverte)
+  * [x] Tarifs et produits, types de qualification, types de documents, types de maintenance : accès depuis l'onglet Référentiels
 * [x] Vérifier les exports pdf/csv des comptes
   * Testé sur Échéance pret ULM, OK en local, OK Chez Ionos, CSV et PDF
   * Testé sur compte client Ionos, OK CSV et PDF

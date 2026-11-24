@@ -26,7 +26,7 @@
 <?php if (empty($cfg['newsletter_smtp_from'])): ?>
 <div class="alert alert-warning">
   Adresse d'expédition non configurée.
-  <a href="<?= site_url('newsletter_admin/configuration') ?>">Configurer →</a>
+  <a href="<?= site_url('parametres/index/newsletter') ?>">Configurer →</a>
 </div>
 <?php else: ?>
 
@@ -65,7 +65,7 @@
   <button type="submit" class="btn btn-primary">
     <i class="fas fa-paper-plane"></i> <?= $this->lang->line('newsletter_test_send') ?>
   </button>
-  <a href="<?= site_url('newsletter_admin/configuration') ?>" class="btn btn-outline-secondary ms-2">Configuration</a>
+  <a href="<?= site_url('parametres/index/newsletter') ?>" class="btn btn-outline-secondary ms-2">Configuration</a>
 </form>
 
 <?php endif; ?>

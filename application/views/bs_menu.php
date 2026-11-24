@@ -175,8 +175,6 @@ if ($CI->dx_auth->is_logged_in()) {
                     <li><a class="dropdown-item" href="<?= controller_url("parametres") ?>"><i class="fas fa-sliders-h text-primary"></i> <?= $this->lang->line('parametres_title') ?></a></li>
                     <?php endif; ?>
                     <?php if (has_role('club-admin')) : ?>
-                    <li><a class="dropdown-item" href="<?= controller_url("config") ?>"><i class="fas fa-cog text-primary"></i> <?= translation("gvv_admin_menu_config") ?></a></li>
-                    <li><a class="dropdown-item" href="<?= controller_url("configuration") ?>"><i class="fas fa-cogs text-info"></i> <?= translation("gvv_configuration_title_list") ?></a></li>
                     <?php if ($this->dx_auth->is_admin()): ?>
                     <li><a class="dropdown-item" href="<?= controller_url('paiements_en_ligne/admin_config') ?>"><i class="fas fa-credit-card text-success"></i> <?= translation("gvv_admin_config_title") ?></a></li>
                     <?php endif; ?>
@@ -525,7 +523,9 @@ if ($CI->dx_auth->is_logged_in()) {
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dev</a>
             <ul class="dropdown-menu">
-
+              <?php $this->lang->load('parametres'); ?>
+              <li><a class="dropdown-item" href="<?= controller_url('parametres/index/systeme') ?>"><i class="fas fa-sliders-h text-primary"></i> <?= $this->lang->line('parametres_title') ?> — <?= $this->lang->line('parametres_tab_systeme') ?></a></li>
+              <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="<?= controller_url('admin/info') ?>"><i class="fas fa-info-circle text-info"></i> phpinfo</a></li>
               <li><a class="dropdown-item" href="<?= base_url() . '/user_guide' ?>"><i class="fas fa-book-open text-primary"></i> <?= translation("CodeIgniter") ?></a></li>
               <li><a class="dropdown-item" href="<?= controller_url('admin/metadata') ?>"><i class="fas fa-database text-warning"></i> <?= translation("Dump Metadata") ?></a></li>
@@ -538,7 +538,6 @@ if ($CI->dx_auth->is_logged_in()) {
               <?php if ($this->config->item('veille')): ?>
               <li><hr class="dropdown-divider"></li>
               <?php $this->lang->load('newsletter'); ?>
-              <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/configuration') ?>"><i class="fas fa-cog text-info"></i> Newsletter — Configuration</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_email') ?>"><i class="fas fa-paper-plane text-primary"></i> Newsletter — Test envoi email</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_imap') ?>"><i class="fas fa-inbox text-success"></i> Newsletter — Test IMAP</a></li>
               <li><a class="dropdown-item" href="<?= controller_url('newsletter_admin/test_ai') ?>"><i class="fas fa-robot text-secondary"></i> Newsletter — Test IA (Anthropic)</a></li>

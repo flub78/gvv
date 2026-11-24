@@ -53,8 +53,9 @@ class Newsletter_mailer {
             $content, $m, PREG_SET_ORDER
         )) {
             foreach ($m as $match) {
-                // Désescaper les simples quotes escapées (\')
-                $result[$match[1]] = str_replace("\\'", "'", $match[2]);
+                // Décodage d'une chaîne PHP entre guillemets simples : \' et \\
+                // (la page Configuration écrit les deux).
+                $result[$match[1]] = strtr($match[2], array("\\'" => "'", "\\\\" => "\\"));
             }
         }
         return $result;

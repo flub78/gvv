@@ -124,3 +124,69 @@ code {
     background-color: #666;
     color: #fff;
 }
+
+/* ==========================================================================
+   Onglets en fiches cartonnées (toutes les pages)
+   Les onglets dépassent du haut de la fiche ; l'onglet actif est blanc et
+   fait corps avec la fiche (.tab-content qui suit la barre, ou .gvv-tab-sheet).
+   Une seule rangée, défilement horizontal sur écran étroit (bs_footer.php
+   amène l'onglet actif en vue). Le widget de signature garde son style.
+   ========================================================================== */
+.nav-tabs:not(.gvv-sig-tabs) {
+    border-bottom: 0;
+    gap: 2px;
+    padding-left: .5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+.nav-tabs:not(.gvv-sig-tabs)::-webkit-scrollbar { display: none; }
+.nav-tabs:not(.gvv-sig-tabs) > .nav-item { flex: 0 0 auto; }
+.nav-tabs:not(.gvv-sig-tabs) .nav-link {
+    background: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
+    border-bottom: 0;
+    border-radius: .5rem .5rem 0 0;
+    margin-top: 4px;
+    margin-bottom: 0;
+    padding: .35rem .65rem;
+    white-space: nowrap;
+}
+.nav-tabs:not(.gvv-sig-tabs) .nav-link:hover { background: #dee2e6; color: #212529; }
+.nav-tabs:not(.gvv-sig-tabs) .nav-link.active {
+    background: #fff;
+    color: #212529;
+    font-weight: 600;
+    margin-top: 0;
+    padding-top: calc(.35rem + 4px);
+    position: relative;
+    z-index: 2;
+}
+/* La barre colle à la fiche qui la suit, même si la page lui a donné une marge. */
+.nav-tabs:not(.gvv-sig-tabs):has(~ .tab-content, ~ .gvv-tab-sheet) { margin-bottom: 0 !important; }
+.nav-tabs:not(.gvv-sig-tabs) ~ .tab-content,
+.gvv-tab-sheet {
+    position: relative;
+    z-index: 1;
+    margin-top: -1px;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0 .5rem .5rem .5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+    padding: 1rem;
+}
+/* Onglets-liens sans fiche (pages qui se rechargent) : une ligne de base sous la barre. */
+.nav-tabs:not(.gvv-sig-tabs):not(:has(~ .tab-content, ~ .gvv-tab-sheet)) {
+    border-bottom: 1px solid #ced4da;
+}
+.nav-tabs:not(.gvv-sig-tabs):not(:has(~ .tab-content, ~ .gvv-tab-sheet)) .nav-link.active {
+    margin-bottom: -1px;
+}
+/* En-têtes DataTables dans une fiche : texte foncé sur le fond gris de jQuery UI,
+   comme lorsque les onglets étaient gérés par jQuery UI (voir .first_row dans gvv.css). */
+.tab-content .first_row th.ui-state-default,
+.tab-content .first_row .DataTables_sort_wrapper {
+    color: #555555;
+}
