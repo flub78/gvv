@@ -35,7 +35,23 @@ if ($banner_color === '') {
 
         // notre code ici
         $(".jbutton").button();
-        $("#tabs").tabs();
+        // Tableaux DataTables d'un onglet caché : recalculer les colonnes quand l'onglet s'affiche.
+        $(document).on('shown.bs.tab', function () {
+            if ($.fn.dataTable && typeof $.fn.dataTable.tables === 'function') {
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            } else if ($.fn.dataTable && typeof $.fn.dataTable.fnTables === 'function') {
+                $.each($.fn.dataTable.fnTables(true), function () {
+                    $(this).dataTable().fnAdjustColumnSizing(false);
+                });
+            }
+        });
+        // Barres d'onglets en une rangée : amener l'onglet actif en vue sur écran étroit.
+        document.querySelectorAll('.nav-tabs').forEach(function (bar) {
+            var active = bar.querySelector('.nav-link.active');
+            if (active && bar.scrollWidth > bar.clientWidth) {
+                bar.scrollLeft = active.parentNode.offsetLeft - bar.offsetLeft - 16;
+            }
+        });
 
         var execute = function() {
             //$("#dialog").parent().hide();

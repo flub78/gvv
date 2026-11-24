@@ -39,15 +39,15 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
 // echo year_selector($controller, $year, $year_selector);
 // echo br(2);
 ?>
-<div id="tabs">
-        <ul>
-                <li><a href="#tabs-1"><?php echo $this->lang->line("gvv_vols_planeur_tab_per_glider") ?></a></li>
-                <li><a href="#tabs-2"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo_per_glider") ?></a></li>
-                <li><a href="#tabs-3"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_hours") ?></a></li>
-                <li><a href="#tabs-4"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_flights") ?></a></li>
-                <li><a href="#tabs-5"><?php echo $this->lang->line("gvv_vols_planeur_tab_dual") ?></a></li>
-                <li><a href="#tabs-6"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo") ?></a></li>
-        </ul>
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-1"><?php echo $this->lang->line("gvv_vols_planeur_tab_per_glider") ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-2"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo_per_glider") ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-3"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_hours") ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-4"><?php echo $this->lang->line("gvv_vols_planeur_tab_yearly_flights") ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-5"><?php echo $this->lang->line("gvv_vols_planeur_tab_dual") ?></button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tabs-6"><?php echo $this->lang->line("gvv_vols_planeur_tab_solo") ?></button></li>
+</ul>
+<div class="tab-content">
 
         <?php
         function align_array($data) {
@@ -61,7 +61,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
                 return $res;
         }
 
-        echo '<div id="tabs-1">' . heading("gvv_vols_planeur_title_yearly_machine", 4);
+        echo '<div id="tabs-1" class="tab-pane show active" role="tabpanel">' . heading("gvv_vols_planeur_title_yearly_machine", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $total,
@@ -85,7 +85,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         echo br() . button_bar4($bar);
         echo '</div>';
 
-        echo '<div id="tabs-2">' . heading("gvv_vols_planeur_title_solo_machine", 4);
+        echo '<div id="tabs-2" class="tab-pane" role="tabpanel">' . heading("gvv_vols_planeur_title_solo_machine", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $total_solo,
@@ -109,7 +109,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         echo br() . button_bar4($bar);
         echo '</div>';
 
-        echo '<div id="tabs-3">' . heading("gvv_vols_planeur_title_yearly_hours", 4);
+        echo '<div id="tabs-3" class="tab-pane" role="tabpanel">' . heading("gvv_vols_planeur_title_yearly_hours", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $hours_per_year,
@@ -133,7 +133,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         echo br() . button_bar4($bar);
         echo '</div>';
 
-        echo '<div id="tabs-4">' . heading("gvv_vols_planeur_title_yearly_flights", 4);
+        echo '<div id="tabs-4" class="tab-pane" role="tabpanel">' . heading("gvv_vols_planeur_title_yearly_flights", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $flights_per_year,
@@ -157,7 +157,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         echo br() . button_bar4($bar);
         echo '</div>';
 
-        echo '<div id="tabs-5">' . heading("gvv_vols_planeur_title_yearly_dual", 4);
+        echo '<div id="tabs-5" class="tab-pane" role="tabpanel">' . heading("gvv_vols_planeur_title_yearly_dual", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $double_per_year,
@@ -181,7 +181,7 @@ echo heading("gvv_vols_planeur_title_per_pilot", 3);
         echo br() . button_bar4($bar);
         echo '</div>';
 
-        echo '<div id="tabs-6">' . heading("gvv_vols_planeur_title_yearly_solo", 4);
+        echo '<div id="tabs-6" class="tab-pane" role="tabpanel">' . heading("gvv_vols_planeur_title_yearly_solo", 4);
         $table = new DataTable(array(
                 'title' => "",
                 'values' => $solo_per_year,
