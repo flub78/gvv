@@ -159,7 +159,7 @@ function uploadEmailFile(listId) {
  * Creates a temporary form and submits it to avoid form nesting issues
  */
 function deleteEmailFile(listId, filename) {
-    if (!confirm('<?= $this->lang->line("email_lists_confirm_delete_file") ?>')) {
+    if (!confirm(<?= js_str($this->lang->line("email_lists_confirm_delete_file")) ?>)) {
         return;
     }
 

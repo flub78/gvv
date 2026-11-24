@@ -195,3 +195,5 @@ $lang['membre_signature_present'] = 'Signature enregistrée';
 $lang['membre_signature_absent'] = 'Aucune signature enregistrée';
 $lang['membre_signature_upload_error'] = "Impossible d'enregistrer la signature. Merci de réessayer.";
 $lang['membre_signature_updated'] = 'Signature mise à jour.';
+$lang['membre_photo_delete_use_button'] = 'La photo se supprime avec le bouton « Supprimer » de la fiche.';
+$lang['membre_photo_deleted'] = 'Photo supprimée.';

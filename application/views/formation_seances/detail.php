@@ -166,7 +166,7 @@ $niveau_labels = array(
                     </a>
                     <a href="<?= controller_url($controller) ?>/delete/<?= $seance['id'] ?>"
                        class="btn btn-danger"
-                       onclick="return confirm('<?= $this->lang->line("formation_seance_delete_confirm") ?>');">    
+                       onclick="return confirm(<?= js_str($this->lang->line("formation_seance_delete_confirm")) ?>);">    
                         <i class="fas fa-trash" aria-hidden="true"></i> Supprimer
                     </a>
                 </div>

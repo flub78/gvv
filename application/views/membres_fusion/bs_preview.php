@@ -241,7 +241,7 @@ $total_records = array_sum(array_column($refs, 'count'));
                     <input type="hidden" name="source"      value="<?= htmlspecialchars($source) ?>">
                     <input type="hidden" name="destination" value="<?= htmlspecialchars($destination) ?>">
                     <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('<?= $this->lang->line('gvv_fusion_confirm_js') ?>')">
+                            onclick="return confirm(<?= js_str($this->lang->line('gvv_fusion_confirm_js')) ?>)">
                         <i class="fas fa-code-branch"></i>
                         <?= $this->lang->line('gvv_fusion_btn_confirm') ?>
                     </button>

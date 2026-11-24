@@ -195,3 +195,5 @@ $lang['membre_signature_present'] = 'Signature on file';
 $lang['membre_signature_absent'] = 'No signature on file';
 $lang['membre_signature_upload_error'] = 'Could not save the signature. Please try again.';
 $lang['membre_signature_updated'] = 'Signature updated.';
+$lang['membre_photo_delete_use_button'] = 'The photo is deleted with the "Delete" button of the record.';
+$lang['membre_photo_deleted'] = 'Photo deleted.';

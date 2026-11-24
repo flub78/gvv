@@ -66,7 +66,7 @@ $this->load->view('bs_banner');
                             </td>
                             <td class="text-nowrap">
                                 <form method="post" action="<?= controller_url('vols_decouverte_looks/delete/' . $look['id']) ?>" class="d-inline"
-                                      onsubmit="return confirm('<?= htmlspecialchars($this->lang->line('gvv_vd_looks_delete_confirm'), ENT_QUOTES) ?>')">
+                                      onsubmit="return confirm(<?= js_str($this->lang->line('gvv_vd_looks_delete_confirm')) ?>)">
                                     <?= form_hidden($this->security->get_csrf_token_name(), $this->security->get_csrf_hash()) ?>
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
                                         <i class="fas fa-trash"></i> <?= $this->lang->line('gvv_vd_looks_delete') ?>

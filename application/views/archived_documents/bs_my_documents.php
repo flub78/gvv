@@ -125,7 +125,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"
-                       onclick="return confirm('<?= $this->lang->line('archived_documents_confirm_delete') ?>');">
+                       onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);">
                         <i class="fas fa-trash"></i>
                     </a>
                     <?php endif; ?>

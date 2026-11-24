@@ -131,7 +131,7 @@ echo '<h4>' . $this->lang->line('gvv_rapprochements_list_title') . '</h4>';
   <div class="mb-2 d-flex gap-2">
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="rapprSelectAll(true)"><?= $this->lang->line('gvv_rapprochements_select_all') ?></button>
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="rapprSelectAll(false)"><?= $this->lang->line('gvv_rapprochements_deselect_all') ?></button>
-    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('<?= $this->lang->line('gvv_rapprochements_confirm_delete') ?>')"><?= $this->lang->line('gvv_rapprochements_delete_selected') ?></button>
+    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(<?= js_str($this->lang->line('gvv_rapprochements_confirm_delete')) ?>)"><?= $this->lang->line('gvv_rapprochements_delete_selected') ?></button>
   </div>
   <table id="rappr-table" class="datatable table table-striped table-sm table-hover">
     <thead>

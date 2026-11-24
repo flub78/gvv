@@ -4,7 +4,7 @@ $this->load->view('bs_menu');
 $this->load->view('bs_banner');
 $csrf_name  = $this->security->get_csrf_token_name();
 $csrf_value = $this->security->get_csrf_hash();
-$confirm_msg = addslashes($this->lang->line('mes_reservations_confirm_delete'));
+$confirm_msg = $this->lang->line('mes_reservations_confirm_delete');
 ?>
 <div class="container-fluid py-3">
 
@@ -65,7 +65,7 @@ $confirm_msg = addslashes($this->lang->line('mes_reservations_confirm_delete'));
                     <a href="#"
                        class="btn btn-sm btn-danger"
                        title="<?= $this->lang->line('mes_reservations_btn_delete') ?>"
-                       onclick="if(confirm('<?= $confirm_msg ?>')) document.getElementById('del-<?= $id ?>').submit(); return false;">
+                       onclick="if(confirm(<?= js_str($confirm_msg) ?>)) document.getElementById('del-<?= $id ?>').submit(); return false;">
                       <i class="fas fa-trash" aria-hidden="true"></i>
                     </a>
                     <form id="del-<?= $id ?>"

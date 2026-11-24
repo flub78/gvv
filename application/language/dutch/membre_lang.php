@@ -197,3 +197,5 @@ $lang['membre_signature_present'] = 'Handtekening geregistreerd';
 $lang['membre_signature_absent'] = 'Geen handtekening geregistreerd';
 $lang['membre_signature_upload_error'] = 'Kan de handtekening niet opslaan. Probeer het opnieuw.';
 $lang['membre_signature_updated'] = 'Handtekening bijgewerkt.';
+$lang['membre_photo_delete_use_button'] = 'De foto wordt verwijderd met de knop "Verwijderen" op de fiche.';
+$lang['membre_photo_deleted'] = 'Foto verwijderd.';

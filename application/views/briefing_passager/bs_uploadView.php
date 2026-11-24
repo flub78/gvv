@@ -85,7 +85,7 @@ $this->lang->load('vols_decouverte');
     <?php if ($is_dev_user): ?>
     <div>
         <button type="submit" form="form-delete-briefing" class="btn btn-sm btn-danger"
-                onclick="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+                onclick="return confirm(<?= js_str($this->lang->line('briefing_passager_confirm_delete')) ?>)">
             <i class="fas fa-trash"></i>
         </button>
     </div>

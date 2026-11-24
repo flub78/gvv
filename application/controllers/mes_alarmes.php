@@ -60,9 +60,10 @@ class Mes_alarmes extends MY_Controller
             if ($login === $this->dx_auth->get_username()) {
                 // Compte sans fiche membre (un administrateur, par exemple) : page
                 // explicative ; rediriger vers cette même page bouclerait sans fin.
+                $is_admin = $this->_is_admin();
                 load_last_view('mes_alarmes/no_member', array(
-                    'is_admin' => $this->_is_admin(),
-                    'members' => $this->_is_admin() ? $this->_member_selector() : array(),
+                    'is_admin' => $is_admin,
+                    'members' => $is_admin ? $this->_member_selector() : array(),
                 ));
                 return;
             }

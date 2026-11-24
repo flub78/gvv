@@ -65,7 +65,7 @@
                                     <td>
                                         <div class="d-flex justify-content-end gap-1">
                                             <a class="btn btn-sm btn-outline-primary" href="<?= site_url('shortcuts_admin/edit/' . $s['id']) ?>"><?= $this->lang->line('shortcuts_button_edit') ?></a>
-                                            <form method="post" action="<?= site_url('shortcuts_admin/delete/' . $s['id']) ?>" style="display:contents" onsubmit="return confirm('<?= $this->lang->line('shortcuts_confirm_delete') ?>');">
+                                            <form method="post" action="<?= site_url('shortcuts_admin/delete/' . $s['id']) ?>" style="display:contents" onsubmit="return confirm(<?= js_str($this->lang->line('shortcuts_confirm_delete')) ?>);">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"><?= $this->lang->line('shortcuts_button_delete') ?></button>
                                             </form>
                                         </div>

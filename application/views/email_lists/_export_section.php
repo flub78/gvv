@@ -426,7 +426,7 @@ function openMailtoLink() {
 
     // Check URL length (browser limit ~2000 chars)
     if (mailto.length > 2000) {
-        if (confirm('<?= $this->lang->line("email_lists_mailto_too_long") ?>')) {
+        if (confirm(<?= js_str($this->lang->line("email_lists_mailto_too_long")) ?>)) {
             copyToClipboard(emails.join(', '),
                 function() {
                     // Success callback

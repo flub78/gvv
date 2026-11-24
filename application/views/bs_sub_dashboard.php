@@ -1656,7 +1656,7 @@ $meta = isset($section_meta[$dashboard_section]) ? $section_meta[$dashboard_sect
                 <div class="card-title"><?= $this->lang->line('db_card_gen_test_db') ?></div>
                 <div class="card-text text-muted"><?= $this->lang->line('db_desc_encrypted_ci') ?></div>
                 <a href="<?= controller_url('admin/generate_test_database') ?>" class="btn btn-success btn-sm"
-                   onclick="return confirm('<?= addslashes($this->lang->line('db_confirm_dev_env')) ?>');"><?= $this->lang->line('db_btn_generer') ?></a>
+                   onclick="return confirm(<?= js_str($this->lang->line('db_confirm_dev_env')) ?>);"><?= $this->lang->line('db_btn_generer') ?></a>
             </div>
         </div>
 

@@ -1367,13 +1367,19 @@ abstract class Metadata {
             }
             if ($mode == 'csv' || $mode == 'pdf')
                 return $label;
-            // If a RequiredRole is set, only render the link when the user has that role
+            // If a RequiredRole is set, only render the link when the user has that role,
+            // or, with OwnerField, when that field of the row holds the user's login
             if (isset($this->field[$table][$field]['RequiredRole'])) {
                 $CI =& get_instance();
                 $required_role = $this->field[$table][$field]['RequiredRole'];
                 $has_role = method_exists($CI, 'user_has_role')
                     ? $CI->user_has_role($required_role)
                     : $CI->dx_auth->is_role($required_role, true, true);
+                if (!$has_role && isset($this->field[$table][$field]['OwnerField'])) {
+                    $owner_field = $this->field[$table][$field]['OwnerField'];
+                    $has_role = !empty($row[$owner_field])
+                        && $row[$owner_field] === $CI->dx_auth->get_username();
+                }
                 if (!$has_role) {
                     return $label;
                 }

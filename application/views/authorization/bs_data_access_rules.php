@@ -256,7 +256,7 @@ $(document).ready(function() {
 
     // Remove Rule Button
     $('.btn-remove-rule').on('click', function() {
-        if (!confirm('<?= $this->lang->line('authorization_confirm_delete') ?>')) {
+        if (!confirm(<?= js_str($this->lang->line('authorization_confirm_delete')) ?>)) {
             return;
         }
 

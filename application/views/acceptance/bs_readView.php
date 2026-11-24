@@ -59,7 +59,7 @@ $already_decided = !empty($record) && in_array($record['status'], array('accepte
         <i class="fas fa-check"></i> <?= $this->lang->line('acceptance_btn_accept') ?>
     </a>
     <a href="<?= site_url('acceptance/refuse/' . $item['id']) ?>" class="btn btn-outline-danger" id="acceptanceRefuseBtn"
-       onclick="return confirm('<?= $this->lang->line('acceptance_confirm_refuse') ?>');">
+       onclick="return confirm(<?= js_str($this->lang->line('acceptance_confirm_refuse')) ?>);">
         <i class="fas fa-times"></i> <?= $this->lang->line('acceptance_btn_refuse') ?>
     </a>
 </div>

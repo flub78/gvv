@@ -192,7 +192,7 @@ function initializeAttachmentHandlers() {
 
 // Delete button click
 $(document).on('click', '.delete-attachment-btn', function() {
-    if (!confirm('<?= addslashes($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>')) {
+    if (!confirm(<?= js_str($this->lang->line('gvv_compta_delete_justificatif_confirm')) ?>)) {
         return;
     }
 

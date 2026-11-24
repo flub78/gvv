@@ -56,15 +56,22 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
     // Delete the flights this test created, through the application so that their
     // billing (purchases, entries) is cancelled too; a stray flight would otherwise
     // raise alarms and change balances for the test pilots.
+    // The tests enter their flights on the next day (getNextDate): only those are
+    // deleted, not a flight another test file might enter at the same time.
+    const next = new Date();
+    next.setDate(next.getDate() + 1);
+    const nextDay = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
     const db = await mysql.createConnection(DB_CONFIG);
     try {
       const [created] = await db.query(
-        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ?', [lastFlightIdBefore, TEST_USER]);
+        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ? AND vpdate = ?',
+        [lastFlightIdBefore, TEST_USER, nextDay]);
       for (const { vpid } of created) {
         await flightPage.page.goto(`/index.php/vols_planeur/delete/${vpid}`);
       }
       const [left] = await db.query(
-        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ?', [lastFlightIdBefore, TEST_USER]);
+        'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ? AND vpdate = ?',
+        [lastFlightIdBefore, TEST_USER, nextDay]);
       expect(left, 'flights created by the test must be deleted').toEqual([]);
     } finally {
       await db.end();

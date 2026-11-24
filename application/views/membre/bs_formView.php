@@ -33,6 +33,7 @@ if (isset($message)) {
     echo p($message) . br();
 }
 echo checkalert($this->session, isset($popup) ? $popup : "");
+echo render_flash($this->session);
 echo heading("membre_title", 3);
 
 echo validation_errors();
@@ -60,7 +61,7 @@ echo form_fieldset($this->lang->line("membre_fieldset_perso"));
                 <?php if ($action != CREATION): ?>
                     <!-- Le bouton de suppression seulement si une photo existe -->
                     <?php if (isset($photo) && $photo != ''): ?>
-                        <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="if (confirm(<?php echo htmlspecialchars(json_encode($this->lang->line('gvv_button_confirm')), ENT_QUOTES); ?>)) { document.getElementById('delete-photo-form').submit(); }">
+                        <button type="button" class="btn btn-danger btn-sm w-100 mb-2" id="delete_photo" onclick="if (confirm(<?php echo js_str($this->lang->line('gvv_button_confirm')); ?>)) { document.getElementById('delete-photo-form').submit(); }">
                             <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
                         </button>
                     <?php endif; ?>

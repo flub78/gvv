@@ -221,6 +221,23 @@ if (!function_exists('has_role')) {
     }
 }
 
+if (!function_exists('js_str')) {
+    /**
+     * Littéral de chaîne JavaScript, délimiteurs compris, pour insérer un texte
+     * (souvent traduit) dans du code JavaScript : confirm(<?= js_str($msg) ?>).
+     * Les caractères ' " < > & sont codés en \u00XX : le résultat est sûr aussi
+     * bien dans un attribut HTML (onclick, onsubmit) que dans un bloc <script>,
+     * quelle que soit la traduction.
+     */
+    function js_str($text) {
+        $json = json_encode((string) $text,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        // Délimiteurs ' au lieu de " : l'attribut HTML qui contient l'appel est
+        // entre guillemets doubles. Le texte ne contient plus ni ' ni " (codés).
+        return "'" . substr($json, 1, -1) . "'";
+    }
+}
+
 if (!function_exists('is_dev_user')) {
     /**
      * TRUE si l'utilisateur connecté figure dans la liste dev_users (program.php).

@@ -244,11 +244,11 @@ $sample_records = $preview['sample_records'];
                 <?php
                 $rename_confirm_msg = str_replace(
                     array('{old}', '{new}'),
-                    array(addslashes($old_mlogin), addslashes($new_mlogin)),
+                    array($old_mlogin, $new_mlogin),
                     $this->lang->line('gvv_rename_confirm_message')
                 );
                 ?>
-                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('<?= htmlspecialchars($rename_confirm_msg, ENT_QUOTES) ?>');">
+                <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm(<?= js_str($rename_confirm_msg) ?>);">
                     <i class="fas fa-check-circle"></i>
                     Confirmer le renommage
                 </button>

@@ -77,7 +77,7 @@ $this->lang->load('briefing_passager');
             <?php if ($is_dev_user): ?>
             <form method="post" action="<?= site_url('briefing_passager/delete/' . $doc['id']) ?>"
                   class="ms-auto"
-                  onsubmit="return confirm('<?= $this->lang->line('briefing_passager_confirm_delete') ?>')">
+                  onsubmit="return confirm(<?= js_str($this->lang->line('briefing_passager_confirm_delete')) ?>)">
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="fas fa-trash"></i> <?= $this->lang->line('briefing_passager_delete') ?>
                 </button>

@@ -1132,6 +1132,7 @@ class Membre extends Gvv_Controller {
     function delete_photo($mlogin) {
         // Modification de données : POST seulement (un simple lien ne doit pas supprimer).
         if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            $this->session->set_flashdata('error', $this->lang->line('membre_photo_delete_use_button'));
             redirect('membre/edit/' . rawurlencode($mlogin));
             return;
         }
@@ -1139,6 +1140,7 @@ class Membre extends Gvv_Controller {
         $mlogin = urldecode($mlogin);
         $membre = $this->gvv_model->get_by_id('mlogin', $mlogin);
         if (empty($membre)) {
+            $this->session->set_flashdata('error', $mlogin . ' ' . $this->lang->line('membre_error_unknow'));
             redirect('membre/page');
             return;
         }
@@ -1165,8 +1167,9 @@ class Membre extends Gvv_Controller {
             $mlogin
         );
 
+        $this->session->set_flashdata('success', $this->lang->line('membre_photo_deleted'));
         // Redirige vers la page du membre
-        redirect("membre/edit/$mlogin");
+        redirect('membre/edit/' . rawurlencode($mlogin));
     }
 
 
