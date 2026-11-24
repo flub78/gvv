@@ -24,7 +24,9 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
+const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const GOUDURIX = { username: 'goudurix', password: 'password', section: '3' };
 
@@ -235,7 +237,7 @@ test.describe('Goudurix Authorization - New Auth System', () => {
     // SECTION-BASED WRITE RESTRICTION
     // Goudurix is tresorier in section 3 (Avion) and 4 (Général).
     // Entry 29563 belongs to section 3 (Avion)  → can edit.
-    // Entry 1696  belongs to section 1 (Planeur) → read-only.
+    // A recent entry of section 1 (Planeur), created by the test → read-only.
     // ============================================================
     test.describe('Tresorier - section-based write restriction', () => {
 
@@ -248,13 +250,44 @@ test.describe('Goudurix Authorization - New Auth System', () => {
             expect(content).not.toContain('lecture seule');
         });
 
-        test('edit entry from other section (Planeur=1, id=1696) shows read-only form', async ({ page }) => {
-            await loginAndGoto(page, 'compta/edit/1696', '3');
-            // Access is granted (tresorier can view any section)
-            await expectAccessGranted(page, 'compta/edit/1696');
-            const content = await page.content();
-            // VISUALISATION mode: readonly message shown, no submit button
-            expect(content).toContain('autre section');
+        /**
+         * @feature Authentification et autorisations
+         * Scénario: Un trésorier consulte en lecture seule une écriture d'une autre section
+         *   Étant donné un trésorier de la section Avion
+         *   Et une écriture récente de la section Planeur, ni gelée ni antérieure à la clôture
+         *   Quand il ouvre cette écriture
+         *   Alors il peut la consulter
+         *   Et la page lui indique qu'elle est en lecture seule parce qu'elle appartient à une autre section
+         */
+        test('edit entry from other section (Planeur=1) shows read-only form', async ({ page }) => {
+            // Own fixture: an old entry of the shared database may be before the closing
+            // date, whose message would then replace the "other section" one.
+            const db = await mysql.createConnection(DB_CONFIG);
+            let entryId = null;
+            try {
+                const [accounts] = await db.query('SELECT id FROM comptes WHERE club = 1 ORDER BY id LIMIT 2');
+                expect(accounts.length, 'two accounts of section Planeur').toBe(2);
+                const today = new Date().toISOString().slice(0, 10);
+                const [res] = await db.query(
+                    `INSERT INTO ecritures (annee_exercise, date_creation, date_op, compte1, compte2, montant,
+                        description, saisie_par, gel, club, categorie, created_by, created_at, updated_by, updated_at)
+                     VALUES (?, ?, ?, ?, ?, 1.00, 'playwright goudurix autre section', 'testadmin', 0, 1, 0,
+                        'testadmin', NOW(), 'testadmin', NOW())`,
+                    [Number(today.slice(0, 4)), today, today, accounts[0].id, accounts[1].id]);
+                entryId = res.insertId;
+
+                await loginAndGoto(page, `compta/edit/${entryId}`, '3');
+                // Access is granted (tresorier can view any section)
+                await expectAccessGranted(page, `compta/edit/${entryId}`);
+                const content = await page.content();
+                // VISUALISATION mode: readonly message shown, no submit button
+                expect(content).toContain('autre section');
+            } finally {
+                if (entryId) {
+                    await db.query('DELETE FROM ecritures WHERE id = ?', [entryId]);
+                }
+                await db.end();
+            }
         });
     });
 
