@@ -108,6 +108,7 @@ test.describe('Configuration : lot 3', () => {
    *   Quand ce membre ouvre la configuration depuis le tableau de bord d'administration du club
    *   Alors il voit l'onglet Système
    *   Et la page indique la version de la base de données
+   *   Mais aucune action de gestion des clés, réservée à l'administrateur du club, ne lui est proposée
    */
   test('developer who is not a board member reaches the System tab', async ({ page }) => {
     await login(page, ADMIN_USER);
@@ -126,12 +127,52 @@ test.describe('Configuration : lot 3', () => {
       await page.click('#parametres-tabs a[data-tab="systeme"]');
       await checkNoPhpErrors(page);
       await expect(page.locator('[data-param="info.migration"]')).toBeVisible();
+      await expect(page.locator('#parametres-raw-create')).toHaveCount(0);
+      await expect(page.locator('#parametres-raw-config a[href*="configuration/"]')).toHaveCount(0);
     } finally {
       // Retrait par la page, pour que le serveur relise aussitôt la liste d'origine.
       await login(page, ADMIN_USER);
       await page.goto('/parametres/index/systeme');
       await page.fill('#f-dev_users', original);
       await page.click('#parametres-save');
+    }
+  });
+
+  /**
+   * Scénario: L'administrateur du club gère les clés non déclarées depuis l'onglet Système
+   *   Étant donné un administrateur du club, aussi développeur
+   *   Et une clé de configuration propre à un écran
+   *   Quand il ouvre l'onglet Système
+   *   Alors il peut ajouter une clé
+   *   Et la clé est listée avec ses actions de modification et de suppression
+   *   Quand il la supprime en confirmant
+   *   Alors elle n'est plus listée
+   *   Et il revient sur l'onglet Système
+   */
+  test('club admin manages undeclared keys from the System tab', async ({ page }) => {
+    const key = `playwright.cle_${Date.now()}`;
+    const db = await mysql.createConnection(DB_CONFIG);
+    try {
+      await db.execute(
+        'INSERT INTO configuration (cle, valeur, created_at, updated_at, created_by, updated_by) VALUES (?, ?, NOW(), NOW(), ?, ?)',
+        [key, 'valeur de test', 'testadmin', 'testadmin']);
+
+      await login(page, ADMIN_USER);
+      await page.goto('/parametres/index/systeme');
+      await checkNoPhpErrors(page);
+      await expect(page.locator('#parametres-raw-create')).toBeVisible();
+      const row = page.locator('#parametres-raw-config tr', { hasText: key });
+      await expect(row.locator('a[href*="configuration/edit/"]')).toBeVisible();
+
+      page.once('dialog', dialog => dialog.accept());
+      await row.locator('a.parametres-raw-delete').click();
+      await page.waitForLoadState('networkidle');
+      await expect(page).toHaveURL(/parametres\/index\/systeme/);
+      await checkNoPhpErrors(page);
+      await expect(page.locator('#parametres-raw-config tr', { hasText: key })).toHaveCount(0);
+    } finally {
+      await db.execute('DELETE FROM configuration WHERE cle = ?', [key]);
+      await db.end();
     }
   });
 

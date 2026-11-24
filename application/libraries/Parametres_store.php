@@ -174,8 +174,8 @@ class Parametres_store {
 
     /**
      * Choix proposés pour un paramètre de type select : liste fixe (options) ou
-     * calculée (options_source : thèmes, modules de facturation, comptes de
-     * recettes, produits).
+     * calculée (options_source : modules de facturation, comptes de recettes,
+     * produits).
      *
      * @return array valeur => libellé
      */
@@ -191,12 +191,6 @@ class Parametres_store {
             return array();
         }
         switch ($def['options_source']) {
-            case 'themes':
-                $options = array();
-                foreach (glob(FCPATH . 'themes/*', GLOB_ONLYDIR) ?: array() as $dir) {
-                    $options[basename($dir)] = basename($dir);
-                }
-                return $options;
             case 'facturation':
                 $options = array();
                 foreach (glob(APPPATH . 'libraries/Facturation_*.php') ?: array() as $file) {

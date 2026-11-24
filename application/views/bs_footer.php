@@ -49,7 +49,9 @@ if ($banner_color === '') {
         document.querySelectorAll('.nav-tabs').forEach(function (bar) {
             var active = bar.querySelector('.nav-link.active');
             if (active && bar.scrollWidth > bar.clientWidth) {
-                bar.scrollLeft = active.parentNode.offsetLeft - bar.offsetLeft - 16;
+                // Positions à l'écran : indépendant des parents positionnés, et sans
+                // défilement vertical de la page (contrairement à scrollIntoView).
+                bar.scrollLeft += active.getBoundingClientRect().left - bar.getBoundingClientRect().left - 16;
             }
         });
 

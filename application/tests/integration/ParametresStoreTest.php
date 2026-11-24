@@ -34,8 +34,8 @@ class ParametresStoreTest extends TransactionalTestCase
             'read' => 'dev', 'write' => 'dev', 'rules' => 'contains_current_user'),
         'phpunit.lecture' => array('tab' => 'systeme', 'store' => 'info:base_url', 'type' => 'text', 'label' => 'l',
             'read' => 'dev', 'write' => 'none'),
-        'phpunit.theme' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'select', 'label' => 'l',
-            'read' => 'dev', 'write' => 'dev', 'options_source' => 'themes'),
+        'phpunit.facturation' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'select', 'label' => 'l',
+            'read' => 'dev', 'write' => 'dev', 'options_source' => 'facturation'),
         'phpunit.fichier' => array('tab' => 'systeme', 'store' => 'file:phpunit_parametres', 'type' => 'bool',
             'label' => 'l', 'read' => 'dev', 'write' => 'dev', 'as_string' => TRUE),
         'phpunit.module' => array('tab' => 'systeme', 'store' => 'db', 'type' => 'text', 'label' => 'l',
@@ -528,19 +528,19 @@ class ParametresStoreTest extends TransactionalTestCase
     }
 
     /**
-     * Scénario: Le thème se choisit parmi les thèmes installés
-     *   Étant donné les thèmes installés sur le serveur
-     *   Quand un développeur choisit un thème
-     *   Alors un thème installé est accepté
-     *   Et un thème inconnu est refusé
+     * Scénario: Le module de facturation se choisit parmi les modules installés
+     *   Étant donné les modules de facturation installés sur le serveur
+     *   Quand un développeur choisit un module de facturation
+     *   Alors un module installé est accepté
+     *   Et un module inconnu est refusé
      */
     public function testDynamicOptions()
     {
         $this->store->set_rank(3);
-        $themes = $this->store->options('phpunit.theme');
-        $this->assertNotEmpty($themes);
-        $this->assertSame('saved', $this->store->save('phpunit.theme', key($themes))['status']);
-        $this->assertSame('parametres_err_option', $this->store->save('phpunit.theme', 'theme-inexistant')['error']);
+        $modules = $this->store->options('phpunit.facturation');
+        $this->assertNotEmpty($modules);
+        $this->assertSame('saved', $this->store->save('phpunit.facturation', key($modules))['status']);
+        $this->assertSame('parametres_err_option', $this->store->save('phpunit.facturation', 'module-inexistant')['error']);
     }
 
     /**

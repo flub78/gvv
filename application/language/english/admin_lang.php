@@ -12,8 +12,6 @@ $lang['gvv_admin_title_admin'] = "Server monitoring";
 $lang['gvv_admin_title_rights'] = "Rights management";
 $lang['gvv_admin_title_tests'] = "Tests";
 $lang['gvv_admin_title_restore'] = "Database restore";
-
-$lang['gvv_admin_menu_config'] = "Club configuration";
 $lang['gvv_admin_menu_certificates'] = "Types of dates and certificates";
 $lang['gvv_admin_menu_certificates_desc'] = "Manage event types, certificates and badges";
 

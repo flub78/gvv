@@ -507,6 +507,9 @@ class Parametres extends MY_Controller {
 
         if ($tab === 'systeme') {
             $data['raw_config'] = $this->_undeclared_configuration();
+            // Création, modification et suppression d'une clé : écran configuration,
+            // réservé à l'administrateur du club. Liens montrés seulement à qui peut les ouvrir.
+            $data['raw_config_manage'] = has_role('club-admin');
         }
 
         if ($tab === 'messagerie') {

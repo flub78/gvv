@@ -427,7 +427,6 @@ $lang['gvv_menu_liste_des_bons'] = "Voucher list";
 $lang['gvv_menu_vendre_un_bon'] = "Sell a voucher";
 $lang['gvv_menu_public_page'] = "Public page";
 $lang['AEROWEB'] = "Aeroweb";
-$lang['gvv_configuration_title_list'] = "Configuration parameters";
 $lang['gvv_menu_validities'] = "License validity";
 $lang['gvv_menu_reports_financial_reports'] = "Financial reports";
 $lang['gvv_menu_accounting_dashboard'] = "Dashboard";

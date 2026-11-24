@@ -23,7 +23,7 @@
  *   type      'text', 'email', 'url', 'textarea', 'markdown', 'bool', 'int', 'password',
  *             'select' (valeurs dans options), 'image' (fichier déposé dans uploads/)
  *   options   pour 'select' : valeur => libellé affiché
- *   options_source  pour 'select' : liste calculée ('themes', 'facturation',
+ *   options_source  pour 'select' : liste calculée ('facturation',
  *             'comptes_recettes', 'produits')
  *   group     clé de langue d'un intertitre ; les paramètres consécutifs d'un même
  *             groupe sont présentés ensemble

@@ -276,9 +276,17 @@ $shown = function ($p, $lang) use ($posted) {
 </div>
 <?php endforeach; ?>
 
-<?php if (!empty($raw_config)): ?>
+<?php if (isset($raw_config) && (!empty($raw_config) || !empty($raw_config_manage))): ?>
 <h5 class="mt-4 mb-2 parametres-group"><?= $this->lang->line('parametres_group_raw') ?></h5>
 <p class="form-text"><?= $this->lang->line('parametres_raw_help') ?></p>
+<?php if (!empty($raw_config_manage)): ?>
+<div class="mb-2">
+    <a href="<?= site_url('configuration/create') ?>" class="btn btn-sm btn-success" id="parametres-raw-create">
+        <i class="fas fa-plus me-1"></i><?= $this->lang->line('parametres_raw_create') ?>
+    </a>
+</div>
+<?php endif; ?>
+<?php if (!empty($raw_config)): ?>
 <div class="table-responsive" id="parametres-raw-config">
 <table class="table table-sm table-striped">
     <thead><tr>
@@ -286,7 +294,7 @@ $shown = function ($p, $lang) use ($posted) {
         <th><?= $this->lang->line('parametres_raw_value') ?></th>
         <th><?= $this->lang->line('parametres_raw_lang') ?></th>
         <th><?= $this->lang->line('parametres_raw_section') ?></th>
-        <th></th>
+        <?php if (!empty($raw_config_manage)): ?><th></th><?php endif; ?>
     </tr></thead>
     <tbody>
     <?php foreach ($raw_config as $row): $v = (string) $row['valeur']; ?>
@@ -295,12 +303,21 @@ $shown = function ($p, $lang) use ($posted) {
         <td title="<?= htmlspecialchars(mb_substr($v, 0, 500)) ?>"><?= htmlspecialchars(mb_strlen($v) > 80 ? mb_substr($v, 0, 80) . '…' : $v) ?></td>
         <td><?= htmlspecialchars((string) $row['lang']) ?></td>
         <td><?= htmlspecialchars((string) $row['club']) ?></td>
-        <td><a href="<?= site_url('configuration/edit/' . (int) $row['id']) ?>" class="btn btn-outline-secondary btn-sm"><i class="fas fa-edit"></i></a></td>
+        <?php if (!empty($raw_config_manage)): ?>
+        <td class="text-nowrap">
+            <a href="<?= site_url('configuration/edit/' . (int) $row['id']) ?>" class="btn btn-outline-secondary btn-sm"
+               title="<?= $this->lang->line('parametres_raw_edit') ?>"><i class="fas fa-edit"></i></a>
+            <a href="<?= site_url('configuration/delete/' . (int) $row['id']) ?>" class="btn btn-outline-danger btn-sm parametres-raw-delete"
+               title="<?= $this->lang->line('parametres_raw_delete') ?>"
+               onclick="return confirm(<?= htmlspecialchars(json_encode(sprintf($this->lang->line('parametres_raw_delete_confirm'), $row['cle'])), ENT_QUOTES) ?>);"><i class="fas fa-trash"></i></a>
+        </td>
+        <?php endif; ?>
     </tr>
     <?php endforeach; ?>
     </tbody>
 </table>
 </div>
+<?php endif; ?>
 <?php endif; ?>
 
 <?php if (!empty($newsletter_url)): ?>

@@ -43,10 +43,14 @@ class Configuration extends Gvv_Controller {
 
     /**
      * La liste des clés est présentée dans l'onglet Système de la page
-     * Configuration (EX-TRA-02). La création et la modification d'une clé restent ici.
+     * Configuration (EX-TRA-02). La création, la modification et la suppression
+     * d'une clé restent ici. Retour vers l'onglet Système s'il est accessible à
+     * l'utilisateur, sinon vers la page Configuration : jamais vers un refus.
      */
     function page($premier = 0, $message = '', $selection = array()) {
-        redirect('parametres/index/systeme');
+        $this->load->library('Parametres_store');
+        $tabs = $this->parametres_store->visible_tabs();
+        redirect(isset($tabs['systeme']) ? 'parametres/index/systeme' : 'parametres');
     }
 
     /**
@@ -271,30 +275,29 @@ class Configuration extends Gvv_Controller {
     }
 
     /**
-     * Override delete to clean up associated files
+     * Supprime une clé et son fichier associé, puis revient à la liste (onglet
+     * Système). parent::delete() n'est pas appelé : sa redirection terminait la
+     * requête avant l'effacement du fichier, et menait à la dernière page mémorisée.
      */
     public function delete($id = null) {
-        // Get ID from parameter or URI segment
         if ($id === null) {
             $id = $this->uri->segment(3);
         }
-        
-        // Get the record to check for file
-        $record = $this->gvv_model->get_by_id('id', $id);
-        
-        // Delete the record first
-        $result = parent::delete($id);
-        
-        // Clean up file if it exists
-        if ($record && isset($record['file']) && $record['file']) {
-            $file_path = $record['file']; // Already has full path
-            if (file_exists($file_path)) {
-                unlink($file_path);
-                log_message('info', "Configuration file deleted: {$file_path}");
-            }
+        if (!$this->ensure_modification_rights(MODIFICATION)) {
+            return;
         }
-        
-        return $result;
+
+        $record = $this->gvv_model->get_by_id('id', $id);
+
+        $this->pre_delete($id);
+        $this->gvv_model->delete(array($this->kid => $id));
+
+        if ($record && !empty($record['file']) && file_exists($record['file'])) {
+            unlink($record['file']);
+            log_message('info', "Configuration file deleted: {$record['file']}");
+        }
+
+        $this->page();
     }
     /**
      * Override pre_update to add debugging for file field updates
