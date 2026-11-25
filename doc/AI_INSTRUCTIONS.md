@@ -219,10 +219,47 @@ Following `doc/development/workflow.md`:
 17. **Design notes**: Stay minimalist and focused on architecture, do not describe the implementation. Only include code when it is necessary to understand the design. Use plantuml diagrams for database schemas and classes relationship when it is useful. Enforce clear separation of concerns between components.
 18. **Progress tracking**: When working on an implementation plan avoid to create new documents. Do not create additional summaries, todo lists or work description, just update the plan. When adding a new feature or modification to a plan, restructure if necessary, so it does not appeared to be patched.
 19. **Propagation**: When asked to modify a PRD also update the design document and plan if they exists. When asked to modify a design also update the PRD and plan if necessary. When asked to modify a plan, update design and PRD if they are impacted.
-20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission
+20. **Do only what instructed**: When you are asked to do something, only do what is requested, do not create additional documents, refactor, change design, implement code if not explicitly requested. If you have suggestions about improvements, refactoring, missing parts or documentations, ask for permission (see "Improvement Suggestions" below)
 21. **Plantuml**: when generating diagrams, usually for design notes, manage them into separate files .puml, put them into a subdirectory named diagrams, generate the images and put a link in the design document. The images must appears embedded in the document on github.
 22. **Implementation completion**: When you are working on a whole feature (PRP), before to claim completion, run a phpunit smoke test and a playwright smoke test demonstrating that you can access the feature. In case of failure, enable the development mode in index.php, reproduce the error and fix it. Keep the tests in the test suite for future regression testing. No needs to create migration tests if there are tests that check the feature based on the migration.
 23. **Test users**: on the development platform, use the test users defined in the bin/create_test_users.sql script to do testing. If the users are not defined ask the permission to run the script.
+
+---
+
+## Improvement Suggestions
+
+A small share of the effort goes into spotting improvements. They are proposed, never applied without approval (Code Change Approval Policy and guideline 20 still apply).
+
+### As you go (on every implementation request)
+- At the end of the answer, 0 to 3 suggestions at most, only if they deserve attention. No suggestion is better than a weak one.
+- Do not explore on purpose: start from what was already read for the task.
+- Reason at three levels:
+  1. **Detail**: the code or screen being touched.
+  2. **Feature**: the user journey this detail belongs to.
+  3. **System**: does the project's organization still serve its goal? Ask:
+     - Is something maintained twice, by hand (e.g. a document and its export, two equivalent screens, duplicated configuration)?
+     - Has an artifact (document, export, tool, step) lost its reason to exist?
+     - Does the user take a detour that a small change would remove?
+     - Does the current request reinforce an organization that should be questioned?
+- Before proposing, check `doc/suggestions.md`: do not propose again an idea that was refused, unless a new fact changes the picture (say so).
+- Format, one line per suggestion: **[domain] idea**: benefit; cost S/M/L; first step.
+- Then ask whether the suggestions should be recorded in `doc/suggestions.md`. **Never write to that file without the user's approval**, including from the commands below.
+
+### Domains
+Project system and organization · architecture · development methods · interface and user journeys · features (preferably extensions requiring few changes) · performance · security · quality and tests · documentation.
+
+### Suggestions file: `doc/suggestions.md`
+- Ideas and improvement proposals that are not decided work live there (not in `doc/todo.md`, which holds decided work only).
+- Keep it organized (index, sections by theme, one card per suggestion): see the structure at the top of the file.
+- Never delete a costly, refused or postponed suggestion: change its status and record the reason. It may inspire a future project.
+- An accepted suggestion that is done gets the status « faite », with the commit.
+
+### Commands
+- `/suggestions [scope] [type]`: suggestions from the recent context.
+- `/audit-suggestions [sources] [type]`: step back, re-reads goals, PRDs, design notes and plans.
+- `/review-architecture`, `/review-design`, `/review-dev-methods`: specialized reviews.
+
+These commands do not go down to code level: that is the role of `/code-review`, `/pr-review` and `/security-audit`.
 
 ---
 
@@ -261,6 +298,13 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 - **Unit tests**: No database dependencies, test helpers/libraries in isolation
 - **Integration tests**: Real database operations, test component interactions
 - **Coverage target**: Aim for 75% overall (currently establishing baseline)
+- **Never game the tests**: A test passes because the code implements the specification, never by any other means. The following are forbidden:
+  - modifying, weakening, skipping or deleting a test to make it pass (changing an assertion, an expected value, a timeout, adding `markTestSkipped`/`test.skip`…);
+  - overriding or tampering with comparison/equality operators, `__toString`, assertion helpers or test framework behavior so that a comparison succeeds;
+  - keeping hidden state between calls (static variables, globals, call counters, files) so that the code returns what the test expects instead of computing it;
+  - hard-coding the expected output for the inputs used by the tests (special-casing test values, ids, names or fixtures).
+
+  If a test contradicts the specification, the PRD or the design, or seems impossible to satisfy without one of these tricks, stop and report the conflict to the user instead of working around it. A test may only be changed when the expected behavior itself has changed, and the change must be stated explicitly.
 - **Temporary tests**: Every times that you write a test to validate a modification evaluate if it is worth creating a phpunit test and adding it to the test base. Keep all phpunit tests that demonstrate that a bug has been fixed.
 - **Database state**: Tests that touch the real database (integration/enhanced/mysql suites, Playwright) must leave it exactly as they found it — create their own fixtures and delete/deactivate everything they created, including on failure (teardown/afterAll), rather than relying on manual cleanup afterwards. They must not depend on the database's pre-existing state (row counts, specific members/sections/roles already present) to pass, since that state is shared and changes over time; query for what they need or create it themselves instead of assuming it exists. A test that must alter or drop shared rows/tables/columns (e.g. a migration reversibility test) must snapshot the affected data first and restore it identically afterwards (teardown/`finally`), preserving pre-existing rows untouched — never leave the table wiped or a shared flag (`is_default`, associations…) changed.
 - **No credentials in tracked files**: Never hard-code database passwords or other secrets in tests, scripts or documentation committed to git (secret scanners such as GitGuardian flag them on pull requests). Playwright tests get the MySQL connection settings with `const { DB_CONFIG } = require('./helpers/gvv-config');`, which reads them from the untracked `application/config/database.php`; PHPUnit tests use the CodeIgniter database connection. When modifying a test that still hard-codes credentials, switch it to `DB_CONFIG`.
