@@ -283,6 +283,18 @@ class Agenda_google_sync
             $stats['occupe'] = TRUE;   // un autre traitement est en cours
             return $stats;
         }
+        // Avec les connexions persistantes, le verrou survivrait à une erreur
+        // fatale (mémoire, délai) qui saute le finally : il est aussi libéré
+        // en fin de script, ce que PHP exécute même après une erreur fatale.
+        $db = $this->CI->db;
+        $released = FALSE;
+        $release = function () use ($db, &$released) {
+            if (!$released) {
+                $released = TRUE;
+                $db->query("SELECT RELEASE_LOCK('gvv_agenda_google_sync')");
+            }
+        };
+        register_shutdown_function($release);
 
         try {
             $this->access_tokens = array();
@@ -298,7 +310,9 @@ class Agenda_google_sync
                     $this->reconcile((int) $row['reservation_id']);
                     $this->file->done($row);
                     $stats['a_jour']++;
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
+                    // Toute erreur, y compris une erreur PHP sur une réservation aux
+                    // données inattendues, ne concerne que cette réservation
                     $tentatives = $this->file->retry_later($row, $e->getMessage());
                     if ($tentatives >= self::MAX_TENTATIVES) {
                         $this->file->remove($row);
@@ -312,7 +326,7 @@ class Agenda_google_sync
             }
             $stats['suspendues'] = $this->suspended_count;
         } finally {
-            $this->CI->db->query("SELECT RELEASE_LOCK('gvv_agenda_google_sync')");
+            $release();
         }
         return $stats;
     }

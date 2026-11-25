@@ -148,8 +148,9 @@ class GoogleAgendaClientTest extends TestCase
      * Scénario: Les réponses de Google sont classées selon l'action à mener
      *   Étant donné une réponse d'erreur de Google
      *   Quand GVV la classe
-     *   Alors une panne ou une surcharge est passagère et sera retentée
+     *   Alors une panne, une surcharge ou un quota atteint est passager et sera retenté
      *   Et une autorisation retirée demande l'intervention du membre
+     *   Mais une erreur de configuration de l'application ne suspend aucun membre
      *   Et un événement supprimé par le membre est reconnu comme disparu
      */
     public function testClassification()
@@ -166,6 +167,15 @@ class GoogleAgendaClientTest extends TestCase
             array(410, '', TRUE, Google_agenda_exception::DISPARU),
             array(404, '', FALSE, Google_agenda_exception::REQUETE),
             array(400, '{"error":{"errors":[{"reason":"invalid"}]}}', TRUE, Google_agenda_exception::REQUETE),
+            // quota journalier du projet atteint : passager, aucun membre suspendu
+            array(403, '{"error":{"errors":[{"reason":"dailyLimitExceeded"}]}}', TRUE, Google_agenda_exception::PASSAGERE),
+            array(403, '{"error":{"errors":[{"reason":"usageLimits"}]}}', TRUE, Google_agenda_exception::PASSAGERE),
+            // 403 sans refus explicite : retenté, pas de suspension
+            array(403, '{"error":{"errors":[{"reason":"accessNotConfigured"}]}}', TRUE, Google_agenda_exception::REQUETE),
+            array(403, '{"error":{"errors":[{"reason":"insufficientPermissions"}]}}', TRUE, Google_agenda_exception::AUTORISATION),
+            // identifiant ou secret de l'application erronés : pas de suspension des membres
+            array(401, '{"error":"invalid_client"}', FALSE, Google_agenda_exception::REQUETE),
+            array(400, '{"error":"unauthorized_client"}', FALSE, Google_agenda_exception::REQUETE),
         );
         foreach ($kinds as list($status, $body, $event, $expected)) {
             $this->assertSame($expected, Google_agenda_client::classify($status, $body, $event)->kind, "HTTP $status $body");

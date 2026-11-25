@@ -19,6 +19,13 @@ class Google_agenda_client
 {
     const SCOPES = 'https://www.googleapis.com/auth/calendar.events openid email';
 
+    /** Motifs de 403 dus aux quotas ou limites d'usage : erreurs passagères */
+    const QUOTA_REASONS = array('rateLimitExceeded', 'userRateLimitExceeded', 'quotaExceeded',
+        'dailyLimitExceeded', 'usageLimits', 'RESOURCE_EXHAUSTED');
+
+    /** Motifs de 403 signifiant que le membre a retiré ou n'a plus l'accès */
+    const DENIAL_REASONS = array('forbidden', 'insufficientPermissions', 'authError', 'PERMISSION_DENIED');
+
     protected $client_id;
     protected $client_secret;
     protected $redirect_uri;
@@ -281,10 +288,19 @@ class Google_agenda_client
         if ($status === 0 || $status >= 500 || $status === 429) {
             return new Google_agenda_exception($message, Google_agenda_exception::PASSAGERE);
         }
-        if ($status === 403 && in_array($reason, array('rateLimitExceeded', 'userRateLimitExceeded', 'quotaExceeded', 'RESOURCE_EXHAUSTED'), TRUE)) {
+        // Quotas et limites du projet Google : passagers, ils ne concernent pas le membre
+        if ($status === 403 && in_array($reason, self::QUOTA_REASONS, TRUE)) {
             return new Google_agenda_exception($message, Google_agenda_exception::PASSAGERE);
         }
-        if ($status === 401 || $code === 'invalid_grant' || $code === 'unauthorized_client' || $status === 403) {
+        // Erreurs de l'application elle-même (identifiant ou secret du client) :
+        // elles touchent tous les membres, aucune liaison n'est suspendue
+        if ($code === 'invalid_client' || $code === 'unauthorized_client') {
+            return new Google_agenda_exception($message, Google_agenda_exception::REQUETE);
+        }
+        // Seul un refus explicite concernant le membre suspend sa liaison
+        if ($code === 'invalid_grant'
+            || ($status === 401 && $code === '')
+            || ($status === 403 && in_array($reason, self::DENIAL_REASONS, TRUE))) {
             return new Google_agenda_exception($message, Google_agenda_exception::AUTORISATION);
         }
         if ($event_call && ($status === 404 || $status === 410)) {

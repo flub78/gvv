@@ -12,6 +12,17 @@ class AgendaGoogleSyncTestDouble extends Agenda_google_sync
 {
     public $suspension_mails = array();
 
+    /** @var array réservations dont la réconciliation lève une erreur PHP */
+    public $broken = array();
+
+    public function reconcile($reservation_id)
+    {
+        if (in_array((int) $reservation_id, $this->broken, TRUE)) {
+            throw new TypeError('données inattendues');
+        }
+        parent::reconcile($reservation_id);
+    }
+
     protected function notify_suspension($mlogin)
     {
         $this->suspension_mails[] = $mlogin;
@@ -622,6 +633,62 @@ class AgendaGoogleSyncTest extends TransactionalTestCase
         $this->assertTrue($deleted);
         $this->assertEmpty($this->_liaison($pilot));
         $this->assertCount(1, $this->client->calls_of('revoke'));
+    }
+
+    /**
+     * Scénario: Une réservation aux données inattendues ne bloque pas les autres
+     *   Étant donné deux réservations à synchroniser
+     *   Et la première provoque une erreur inattendue
+     *   Quand la synchronisation passe
+     *   Alors la seconde apparaît dans l'agenda
+     *   Et la première reste à synchroniser, avec un nouvel essai prévu plus tard
+     */
+    public function test_unexpected_error_only_affects_its_reservation()
+    {
+        $pilot = $this->_linked();
+        $broken = $this->_reservation($pilot, NULL, 'vol_local', 30);
+        $sane = $this->_reservation($pilot, NULL, 'vol_local', 31);
+        $this->sync->broken = array($broken);
+
+        $stats = $this->sync->process_queue();
+
+        $this->assertSame(1, $stats['reportees']);
+        $this->assertCount(1, $this->_agenda($pilot));
+        $this->assertEmpty($this->_queue_row($sane));
+        $this->assertSame(1, (int) $this->_queue_row($broken)['tentatives']);
+    }
+
+    /**
+     * Scénario: Un passage terminé laisse la synchronisation disponible pour le suivant
+     *   Étant donné une synchronisation qui vient de passer
+     *   Quand une autre synchronisation démarre
+     *   Alors elle n'est pas bloquée par la précédente
+     */
+    public function test_lock_is_released_after_processing()
+    {
+        $this->sync->process_queue();
+
+        $free = $this->CI->db->query("SELECT IS_FREE_LOCK('gvv_agenda_google_sync') AS f")->row_array();
+        $this->assertEquals(1, $free['f']);
+        $this->assertFalse($this->sync->process_queue()['occupe']);
+    }
+
+    /**
+     * Scénario: Une modification faite au moment d'un abandon n'est pas perdue
+     *   Étant donné une réservation dont la synchronisation a échoué trop souvent
+     *   Quand elle est modifiée à nouveau pendant son dernier essai
+     *   Alors son abandon ne l'enlève pas des réservations à synchroniser
+     */
+    public function test_abandon_keeps_reenqueued_reservation()
+    {
+        $pilot = $this->_member();
+        $id = $this->_reservation($pilot);
+        $row = $this->_queue_row($id);
+
+        $this->CI->agenda_google_file_model->enqueue($id, $pilot);   // nouvelle modification
+        $this->CI->agenda_google_file_model->remove($row);            // abandon décidé sur l'ancienne version
+
+        $this->assertNotEmpty($this->_queue_row($id));
     }
 
     /**

@@ -75,10 +75,13 @@ class Agenda_google_file_model extends CI_Model {
     }
 
     /**
-     * Retire une réservation de la file sans condition (abandon).
+     * Abandon : retire la réservation de la file, sauf si elle a été
+     * réinscrite pendant son traitement (version changée).
      */
     public function remove($row) {
-        $this->db->where('id', $row['id'])->delete(self::TABLE);
+        $this->db->where('id', $row['id'])
+            ->where('version', $row['version'])
+            ->delete(self::TABLE);
     }
 
     public function count_all() {
