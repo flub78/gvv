@@ -37,6 +37,17 @@ class Types_ticket extends Gvv_Controller {
     }
 
     /**
+     * Création d'un type de ticket : CA, et trésorier, à qui le menu
+     * Comptabilité propose cette page. La modification reste au CA.
+     */
+    protected function can_submit_form($action) {
+        if ($action == CREATION) {
+            return $this->allow_roles(['ca', 'tresorier']);
+        }
+        return parent::can_submit_form($action);
+    }
+
+    /**
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::form_static_element()

@@ -229,14 +229,7 @@ class Vols_planeur extends Gvv_Controller {
      * Affiche le formulaire de création
      */
     function create() {
-        $is_planchiste = $this->user_has_role('planchiste');
-        $is_auto_planchiste = $this->user_has_role('auto_planchiste');
-        $can_create = $is_planchiste || $is_auto_planchiste
-            || $this->user_has_role('ca')
-            || $this->user_has_role('bureau')
-            || $this->user_has_role('tresorier')
-            || $this->user_has_role('mecano');
-        if (! $can_create) {
+        if (! $this->can_submit_form(CREATION)) {
             $this->dx_auth->deny_access();
             return;
         }
@@ -245,6 +238,36 @@ class Vols_planeur extends Gvv_Controller {
 
         // et affiche le formulaire
         load_last_view('vols_planeur/formView', $this->data);
+    }
+
+    /**
+     * Droit d'enregistrer un vol, aligné sur create() et edit() :
+     *   - création : planchiste, auto_planchiste, CA, bureau, trésorier, mécano
+     *     (form2database force le pilote pour auto_planchiste et mécano) ;
+     *   - modification : planchiste pour tous les vols, auto_planchiste pour
+     *     ses propres vols, mécano pour ses propres vols d'essai.
+     */
+    protected function can_submit_form($action) {
+        if ($action == CREATION) {
+            return $this->user_has_role('planchiste')
+                || $this->user_has_role('auto_planchiste')
+                || $this->user_has_role('ca')
+                || $this->user_has_role('bureau')
+                || $this->user_has_role('tresorier')
+                || $this->user_has_role('mecano');
+        }
+        if ($action != MODIFICATION) {
+            return TRUE;
+        }
+        if ($this->user_has_role('planchiste')) {
+            return TRUE;
+        }
+        $flight = $this->gvv_model->get_by_id('vpid', $this->submitted_record_id());
+        if (empty($flight) || $flight['vppilid'] != $this->dx_auth->get_username()) {
+            return FALSE;
+        }
+        return $this->user_has_role('auto_planchiste')
+            || ($this->user_has_role('mecano') && (int) $flight['vpcategorie'] === 2);
     }
 
     /**
