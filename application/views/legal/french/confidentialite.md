@@ -36,6 +36,14 @@ Les données ne sont ni vendues, ni transmises à des fins commerciales.
 Les paiements en ligne sont traités par HelloAsso. L'association ne reçoit ni ne conserve aucune donnée de carte bancaire.
 
 [[fin]]
+[[si agenda_google]]
+## Synchronisation avec Google Agenda
+
+Un membre peut, s'il le souhaite, faire copier ses réservations dans son agenda Google. Il donne pour cela à GVV l'autorisation d'écrire des événements dans son agenda, et rien d'autre : GVV ne lit pas son agenda et ne modifie que les événements qu'il a créés. Ces événements contiennent l'aéronef, les horaires, le nom du pilote et de l'instructeur, le commentaire de la réservation et un lien vers GVV, sans aucune donnée financière.
+
+GVV conserve l'adresse du compte Google et une autorisation chiffrée, qui n'est jamais affichée. Lorsque le membre arrête la synchronisation, cette autorisation est retirée auprès de Google et effacée de GVV ; les événements déjà créés restent dans son agenda. Les événements copiés dans Google Agenda sont soumis aux règles de confidentialité de Google.
+
+[[fin]]
 ## Durée de conservation
 
 Les données sont conservées pendant la durée de l'adhésion, puis pendant la durée nécessaire au respect des obligations légales de l'association, notamment comptables.

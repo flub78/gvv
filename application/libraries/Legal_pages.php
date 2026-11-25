@@ -121,7 +121,16 @@ class Legal_pages {
             'paiements' => $this->online_payments_enabled(),
             'site'      => trim((string) $this->CI->config->item('url_club')) !== '',
             'telephone' => trim((string) $this->CI->config->item('tel_club')) !== '',
+            'agenda_google' => $this->agenda_google_enabled(),
         );
+    }
+
+    /**
+     * TRUE si la synchronisation des réservations avec Google Agenda est activée.
+     */
+    public function agenda_google_enabled() {
+        $this->CI->load->config('program', FALSE, TRUE);
+        return $this->CI->config->item('agenda_google_sync') == TRUE;
     }
 
     /**

@@ -20,6 +20,7 @@ class Mes_reservations extends MY_Controller
         }
 
         $this->lang->load('rappels_reservations');
+        $this->lang->load('agenda_google');
         $this->lang->load('tableaux_de_bord');
 
         $this->load->vars([
@@ -39,9 +40,10 @@ class Mes_reservations extends MY_Controller
         $prefs        = $this->_get_prefs($username);
 
         $data = array(
-            'reservations' => $reservations,
-            'prefs'        => $prefs,
-            'username'     => $username,
+            'reservations'  => $reservations,
+            'prefs'         => $prefs,
+            'username'      => $username,
+            'agenda_google' => $this->_agenda_google_view($username),
         );
 
         load_last_view('mes_reservations/index', $data);
@@ -70,14 +72,8 @@ class Mes_reservations extends MY_Controller
             return;
         }
 
-        // Charger les dépendances pour le rappel et la suppression
+        // Supprimer la réservation (le modèle prévient les rappels)
         $this->load->model('reservations_model');
-        $this->load->library('Reservation_reminder');
-
-        // Déclencher l'événement cancel AVANT la suppression (la librairie a besoin de la ligne)
-        $this->reservation_reminder->handle_event($reservation_id, 'cancel', $username);
-
-        // Supprimer la réservation
         $ok = $this->reservations_model->delete_reservation($reservation_id);
 
         if ($ok) {
@@ -114,6 +110,118 @@ class Mes_reservations extends MY_Controller
         }
 
         redirect('mes_reservations');
+    }
+
+    // =========================================================================
+    // Synchronisation avec Google Agenda
+    // =========================================================================
+
+    /**
+     * Demande d'activation : redirige le membre vers l'écran d'autorisation
+     * de Google, avec un paramètre d'état lié à sa session.
+     */
+    public function agenda_google_activer()
+    {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('mes_reservations');
+            return;
+        }
+        $sync = $this->_agenda_google();
+        if (!$sync->available_for($this->dx_auth->get_username())) {
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_indisponible'));
+            redirect('mes_reservations');
+            return;
+        }
+        $state = bin2hex(random_bytes(16));
+        $this->session->set_userdata('agenda_google_state', $state);
+        redirect($sync->authorization_url($state));
+    }
+
+    /**
+     * Retour de l'écran d'autorisation de Google.
+     */
+    public function agenda_google_retour()
+    {
+        $username = $this->dx_auth->get_username();
+        $expected = $this->session->userdata('agenda_google_state');
+        $this->session->unset_userdata('agenda_google_state');
+
+        $state = (string) $this->input->get('state');
+        if (empty($expected) || !hash_equals((string) $expected, $state)) {
+            gvv_error("AGENDA_GOOGLE retour refusé (paramètre d'état invalide) membre=$username");
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_err_etat'));
+            redirect('mes_reservations');
+            return;
+        }
+        if ($this->input->get('error')) {
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_err_refus'));
+            redirect('mes_reservations');
+            return;
+        }
+
+        $sync = $this->_agenda_google();
+        if (!$sync->available_for($username)) {
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_indisponible'));
+            redirect('mes_reservations');
+            return;
+        }
+
+        try {
+            $result = $sync->activate($username, (string) $this->input->get('code'));
+            $message = sprintf($this->lang->line('agenda_google_active_ok'), $result['compte']);
+            if (isset($result['inscrites'])) {
+                $message .= ' ' . sprintf($this->lang->line('agenda_google_active_nombre'), $result['inscrites']);
+            }
+            $this->session->set_flashdata('success', $message);
+        } catch (Google_agenda_exception $e) {
+            gvv_error("AGENDA_GOOGLE échec d'activation membre=$username : " . $e->getMessage());
+            $key = ($e->kind === Google_agenda_exception::REFUS) ? 'agenda_google_err_refus'
+                : (($e->kind === Google_agenda_exception::PASSAGERE) ? 'agenda_google_err_passagere' : 'agenda_google_err_activation');
+            $this->session->set_flashdata('error', $this->lang->line($key));
+        } catch (Exception $e) {
+            gvv_error("AGENDA_GOOGLE échec d'activation membre=$username : " . $e->getMessage());
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_err_activation'));
+        }
+        redirect('mes_reservations');
+    }
+
+    /**
+     * Arrêt de la synchronisation, après l'avertissement affiché par la page.
+     */
+    public function agenda_google_arreter()
+    {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            redirect('mes_reservations');
+            return;
+        }
+        $result = $this->_agenda_google()->stop($this->dx_auth->get_username());
+        if ($result === NULL) {
+            $this->session->set_flashdata('error', $this->lang->line('agenda_google_err_pas_active'));
+        } elseif ($result['revoque']) {
+            $this->session->set_flashdata('success', $this->lang->line('agenda_google_arret_ok'));
+        } else {
+            $this->session->set_flashdata('success', $this->lang->line('agenda_google_arret_ok') . ' '
+                . $this->lang->line('agenda_google_arret_revocation'));
+        }
+        redirect('mes_reservations');
+    }
+
+    private function _agenda_google()
+    {
+        $this->load->library('Agenda_google_sync');
+        return $this->agenda_google_sync;
+    }
+
+    /**
+     * Données du bloc « Agenda Google », NULL s'il ne doit pas être affiché.
+     */
+    private function _agenda_google_view($username)
+    {
+        $sync = $this->_agenda_google();
+        if (!$sync->available_for($username)) {
+            return NULL;
+        }
+        return array('liaison' => $sync->status($username));
     }
 
     // =========================================================================

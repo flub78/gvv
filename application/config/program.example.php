@@ -206,6 +206,16 @@ $config['reservation_balance_check'] = TRUE;
 // Secret protégeant l'URL de déclenchement manuel du scheduler
 $config['reservation_scheduler_secret'] = 'CHANGE_ME_IN_PRODUCTION';
 
+// Synchronisation des réservations avec Google Agenda (réglée dans la page Configuration)
+$config['agenda_google_sync'] = FALSE;
+$config['agenda_google_client_id'] = '';
+$config['agenda_google_client_secret'] = '';
+// Secret protégeant l'URL de déclenchement manuel de la synchronisation
+$config['agenda_google_sync_secret'] = 'CHANGE_ME_IN_PRODUCTION';
+// Plateforme de test uniquement : remplace Google par le bouchon agenda_google_bouchon.
+// Ne jamais activer sur un serveur de club. Absent de la page Configuration.
+// $config['agenda_google_bouchon'] = TRUE;
+
 // Clé API Brevo pour l'envoi de SMS (laisser vide pour désactiver les SMS)
 $config['brevo_sms_api_key'] = '';
 

@@ -488,6 +488,28 @@ Correctif: augmentez `memory_limit` dans `/etc/php/<version>/apache2/php.ini` (7
 
 #### Configuration de HelloAsso
 
+#### Synchronisation des réservations avec Google Agenda (optionnel)
+
+Les membres peuvent copier leurs réservations dans leur agenda Google (guide : `doc/users/fr/14_rappels_reservations.md`, §8). Il faut pour cela une application Google déclarée par le club ou l'hébergeur.
+
+1. Dans la [console Google Cloud](https://console.cloud.google.com/), créez un projet, puis activez l'API **Google Calendar**.
+2. **Écran de consentement OAuth** : type « Externe », nom de l'application et adresse de contact du club, domaine du site. Ajoutez les périmètres `.../auth/calendar.events`, `openid` et `.../auth/userinfo.email`.
+3. **Identifiants** → « Créer des identifiants » → « ID client OAuth », type **Application Web**. URI de redirection autorisée, exactement :
+   `https://votre-domaine/index.php/mes_reservations/agenda_google_retour`
+   (sans `index.php/` si le site est configuré pour s'en passer : c'est l'adresse qu'affiche GVV après « Mes réservations »).
+4. Dans GVV, page **Configuration** : onglet **Système**, groupe « Application Google Agenda », saisissez l'identifiant et le secret du client ; dans le groupe « Ordonnanceurs », choisissez un secret pour la synchronisation. Puis l'administrateur du club active **Agenda Google** dans l'onglet **Modules**.
+5. Ajoutez la tâche cron, sous l'utilisateur du serveur web (ou un utilisateur de son groupe) : elle doit pouvoir lire `application/config/agenda_google.php`, la clé de chiffrement des autorisations créée par GVV à la première liaison (droits `0640`). Toutes les minutes ; elle s'arrête aussitôt si rien n'est à faire :
+
+   ```
+   * * * * * XDEBUG_MODE=off /usr/bin/php /chemin/vers/gvv/index.php agenda_google_traitement cron >> /var/log/gvv_agenda_google.log 2>&1
+   ```
+
+   Sans cron, le traitement peut être appelé par une URL : `https://votre-domaine/index.php/agenda_google_traitement/run/SECRET` (réponse JSON).
+
+**Mode test de Google.** Tant que l'application n'est pas validée par Google (le périmètre `calendar.events` est classé sensible), seuls les comptes déclarés comme « utilisateurs test » dans l'écran de consentement peuvent relier leur agenda. Lancez la demande de validation avant d'ouvrir la fonction à tous les membres.
+
+**Sauvegarde de la clé.** Sauvegardez `application/config/agenda_google.php` avec la configuration. Sans elle, les autorisations enregistrées deviennent illisibles : les synchronisations passent en « suspendue » et les membres doivent relier à nouveau leur agenda (aucune réservation n'est perdue).
+
 #### Erreur fatale après installation sur hébergement PHP 8 mutualisé (constaté chez Ionos)
 
 Sur certains hébergements mutualisés exécutant PHP 8 (constaté chez **Ionos**), le site reste

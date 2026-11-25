@@ -460,11 +460,9 @@ class Reservations extends MY_Controller {
             }
 
             // Prepare update data
-            $username = $this->dx_auth->get_username();
             $update_data = array(
                 'start_datetime' => $start_datetime,
-                'end_datetime' => $end_datetime,
-                'updated_by' => $username
+                'end_datetime' => $end_datetime
             );
 
             // Only update aircraft_id if resource_id is provided
@@ -472,16 +470,9 @@ class Reservations extends MY_Controller {
                 $update_data['aircraft_id'] = $resource_id;
             }
 
-            // Update directly via database
-            $this->db->update('reservations', $update_data, array('id' => $event_id));
-
-            if ($this->db->affected_rows() <= 0) {
-                // Check if reservation exists
-                $exists = $this->db->get_where('reservations', array('id' => $event_id))->row();
-                if (!$exists) {
-                    throw new Exception('Reservation not found');
-                }
-                // If exists but no rows affected, data might be unchanged (not an error)
+            // The model writes the reservation and notifies the reminders
+            if (!$this->reservations_model->update_reservation($event_id, $update_data)) {
+                throw new Exception('Reservation not found');
             }
             
             $log_message = "Reservation: User " . $drop_username . " " . ($action === 'resize' ? 'resized' : 'moved') .
@@ -759,13 +750,6 @@ class Reservations extends MY_Controller {
                 $created_state = $this->_format_reservation_state($this->reservations_model->get_reservation($new_id));
                 gvv_info("Reservation: User " . $username . " created reservation ID " . $new_id . " | " . $created_state);
 
-                try {
-                    $this->load->library('Reservation_reminder');
-                    $this->reservation_reminder->handle_event($new_id, 'create', $username);
-                } catch (Exception $re) {
-                    gvv_error("Reservation_reminder create event failed: " . $re->getMessage());
-                }
-
                 echo json_encode(array(
                     'success' => true,
                     'message' => 'Reservation created successfully',
@@ -784,32 +768,17 @@ class Reservations extends MY_Controller {
                     'status' => $status,
                     'aircraft_id' => $aircraft_id,
                     'pilot_member_id' => $pilot_member_id,
-                    'instructor_member_id' => $instructor_member_id,
-                    'updated_by' => $username
+                    'instructor_member_id' => $instructor_member_id
                 );
 
-                // Update in database
-                $this->db->update('reservations', $update_data, array('id' => $reservation_id));
-
-                if ($this->db->affected_rows() <= 0) {
-                    // Check if reservation exists
-                    $exists = $this->db->get_where('reservations', array('id' => $reservation_id))->row();
-                    if (!$exists) {
-                        throw new Exception('Reservation not found');
-                    }
-                    // If exists but no rows affected, data might be unchanged (not an error)
+                // The model writes the reservation and notifies the reminders
+                if (!$this->reservations_model->update_reservation($reservation_id, $update_data)) {
+                    throw new Exception('Reservation not found');
                 }
 
                 $after_state = $this->_format_reservation_state($this->reservations_model->get_reservation($reservation_id));
                 gvv_info("Reservation: User " . $username . " updated reservation ID " . $reservation_id .
                     " | BEFORE: " . $before_state . " | AFTER: " . $after_state);
-
-                try {
-                    $this->load->library('Reservation_reminder');
-                    $this->reservation_reminder->handle_event((int) $reservation_id, 'update', $username);
-                } catch (Exception $re) {
-                    gvv_error("Reservation_reminder update event failed: " . $re->getMessage());
-                }
 
                 echo json_encode(array(
                     'success' => true,
@@ -870,15 +839,7 @@ class Reservations extends MY_Controller {
             $del_res_data = $this->reservations_model->get_reservation($reservation_id);
             $del_state = $this->_format_reservation_state($del_res_data);
 
-            // Fire cancel event BEFORE deletion (library needs the row to exist)
-            try {
-                $this->load->library('Reservation_reminder');
-                $this->reservation_reminder->handle_event($reservation_id, 'cancel', $del_username);
-            } catch (Exception $re) {
-                gvv_error("Reservation_reminder cancel event failed: " . $re->getMessage());
-            }
-
-            // Delete the reservation
+            // Delete the reservation (the model notifies the reminders)
             $success = $this->reservations_model->delete_reservation($reservation_id);
 
             if ($success) {

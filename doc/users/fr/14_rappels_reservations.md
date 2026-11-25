@@ -311,3 +311,46 @@ curl -s https://votre-domaine/reservation_scheduler/run/VOTRE_SECRET
 ```
 
 Réponse attendue : `{"sent": N, "source": "public_url"}`.
+
+---
+
+## 8. Agenda Google
+
+Un membre qui peut réserver peut faire copier ses réservations dans son agenda Google : celles où il est pilote et, s'il est instructeur, celles où il est l'instructeur assigné. L'agenda est mis à jour quelques minutes après chaque création, modification ou suppression, quelle que soit la personne qui l'a faite. La copie est à sens unique : une modification faite dans Google ne change rien dans GVV.
+
+La fonction n'apparaît que si l'administrateur du club l'a activée (page **Configuration**, onglet **Modules**, « Agenda Google ») et que l'application Google a été déclarée par l'hébergeur (voir `doc/installation.md`).
+
+### 8.1 Relier son agenda (membre)
+
+1. Ouvrez **Mes réservations**.
+2. Dans le bloc **Agenda Google**, cliquez sur **Relier mon agenda Google**.
+3. Google vous demande de choisir votre compte, puis d'autoriser GVV à gérer les événements de votre agenda. Laissez cette case cochée : sans elle, la liaison est refusée.
+4. De retour dans GVV, un message confirme la synchronisation avec le compte choisi et indique le nombre de réservations à venir qui vont être ajoutées. Elles apparaissent dans votre agenda principal dans les minutes qui suivent. Les réservations passées ne sont pas ajoutées.
+
+Chaque événement indique l'aéronef, les horaires, le pilote et l'instructeur, le commentaire de la réservation et un lien vers le planning GVV. Il ne contient aucune information financière.
+
+### 8.2 État de la synchronisation
+
+Le bloc **Agenda Google** indique :
+
+| État | Signification |
+|------|---------------|
+| Synchronisation active | Les réservations sont copiées. Le compte Google et la date de la dernière mise à jour réussie sont affichés. |
+| Synchronisation suspendue | GVV n'a plus le droit d'écrire dans l'agenda (accès retiré dans le compte Google, compte supprimé…). La cause est affichée et un e-mail vous a été envoyé. Cliquez sur **Relier à nouveau mon agenda**. |
+| Synchronisation inactive | Aucune réservation n'est copiée. |
+
+### 8.3 Arrêter la synchronisation
+
+Cliquez sur **Arrêter la synchronisation**, puis confirmez. Les événements déjà présents restent dans votre agenda mais ne sont plus mis à jour : supprimez-les vous-même dans Google Agenda si vous le souhaitez. Vos réservations dans GVV ne changent pas. GVV retire son autorisation auprès de Google et ne la conserve plus.
+
+Vous pouvez relier votre agenda à nouveau plus tard. Avec le même compte Google, les réservations déjà présentes ne sont pas ajoutées une seconde fois. Avec un autre compte, les réservations à venir sont ajoutées au nouvel agenda ; l'ancien n'est plus mis à jour.
+
+### 8.4 Cas particuliers
+
+* Un événement supprimé à la main dans Google n'est recréé que si la réservation est ensuite modifiée dans GVV.
+* Un événement modifié à la main dans Google est écrasé à la prochaine modification de la réservation.
+* Un membre qui perd le droit de réserver voit sa synchronisation arrêtée. Un instructeur qui perd ce rôle ne reçoit plus les réservations où il serait assigné.
+
+### 8.5 Synchronisations suspendues (administrateur du club)
+
+Depuis la page **Configuration**, onglet **Modules**, le lien **Synchronisations Google Agenda suspendues** liste les membres dont l'agenda n'est plus mis à jour, avec la cause et la date. Seuls ces éléments sont visibles : ni l'agenda du membre ni son autorisation. Chaque membre concerné a été prévenu par e-mail et doit relier à nouveau son agenda lui-même.

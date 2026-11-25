@@ -448,6 +448,17 @@ class Membres_model extends Common_Model {
         
         // If no references, proceed with deletion using parent method
         parent::delete($where);
+
+        // Google Calendar synchronisation stops with the member record
+        try {
+            if ($this->db->table_exists('agenda_google_liaisons')
+                && $this->db->where('mlogin', $mlogin)->count_all_results('agenda_google_liaisons') > 0) {
+                $CI->load->library('Agenda_google_sync');
+                $CI->agenda_google_sync->forget_member($mlogin);
+            }
+        } catch (Throwable $e) {
+            gvv_error("membres_model: Google Calendar link of $mlogin not stopped: " . $e->getMessage());
+        }
         return TRUE;
     }
 
@@ -986,6 +997,7 @@ class Membres_model extends Common_Model {
         // FK RESTRICT — must update before membres.mlogin (handled via FK_CHECKS=0)
         'membres'                      => ['membre_payeur'],
         'email_list_members'           => ['membre_id'],
+        'agenda_google_liaisons'       => ['mlogin'],
     ];
 
     /**
@@ -1137,6 +1149,8 @@ class Membres_model extends Common_Model {
     public function execute_rename($old_mlogin, $new_mlogin, $performed_by) {
         $stats = [];
         $total_updated = 0;
+        $reservations_ids = [];
+        $this->load->model('reservations_model');
 
         // Start transaction
         $this->db->trans_start();
@@ -1150,6 +1164,18 @@ class Membres_model extends Common_Model {
             foreach (self::REFERENCING_TABLES as $table => $columns) {
                 if ($table === 'membres') continue; // handled separately below
                 if (!$this->db->table_exists($table)) continue;
+                if ($table === 'reservations') {
+                    // Single write point of the reservations table
+                    foreach ($columns as $column) {
+                        $count = $this->db->where($column, $old_mlogin)->count_all_results($table);
+                        if ($count > 0) {
+                            $stats[$table][$column] = $count;
+                            $total_updated += $count;
+                        }
+                    }
+                    $reservations_ids = $this->reservations_model->reassign_member($old_mlogin, $new_mlogin);
+                    continue;
+                }
                 foreach ($columns as $column) {
                     if (!$this->db->field_exists($column, $table)) continue;
                     $this->db->where($column, $old_mlogin);
@@ -1197,6 +1223,9 @@ class Membres_model extends Common_Model {
                     'stats' => []
                 ];
             }
+
+            // Transaction successful - notify the reservations that changed
+            $this->reservations_model->notify_reassigned($reservations_ids, $performed_by);
 
             // Transaction successful - log the operation
             $log_data = [

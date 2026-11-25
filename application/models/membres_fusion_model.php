@@ -45,6 +45,9 @@ class Membres_fusion_model extends CI_Model {
         array('table' => 'acceptance_items',              'columns' => array('created_by')),
         array('table' => 'archived_documents',            'columns' => array('pilot_login')),
         array('table' => 'email_list_members',            'columns' => array('membre_id')),
+        // Une seule liaison Google Agenda par membre : celle de la destination est conservée.
+        array('table' => 'agenda_google_liaisons',        'columns' => array('mlogin'),
+              'unique_key' => array('mlogin')),
     );
 
     public function __construct() {
@@ -222,8 +225,18 @@ class Membres_fusion_model extends CI_Model {
             }
         }
 
-        // 5. Réaffectation des références dans toutes les tables
+        // 5. Réaffectation des références dans toutes les tables.
+        // Les réservations passent par leur modèle, seul point d'écriture de la table.
+        $this->load->model('reservations_model');
+        $reservations_ids = array();
         foreach ($this->reassign_map as $entry) {
+            if ($entry['table'] === 'reservations') {
+                $reservations_ids = $this->reservations_model->reassign_member($source, $destination);
+                if (!empty($reservations_ids)) {
+                    $log[] = 'reservations : ' . count($reservations_ids) . ' réservation(s) réaffectée(s).';
+                }
+                continue;
+            }
             foreach ($entry['columns'] as $col) {
                 $count = $this->db->where($col, $source)->count_all_results($entry['table']);
                 if ($count > 0) {
@@ -253,6 +266,7 @@ class Membres_fusion_model extends CI_Model {
 
         if ($success) {
             $by = get_instance()->dx_auth->get_username();
+            $this->reservations_model->notify_reassigned($reservations_ids, $by);
             log_message('info', "GVV fusion_membres: $by a fusionné '$source' dans '$destination'. " . implode(' | ', $log));
 
             foreach ($licences_src_before as $row) {

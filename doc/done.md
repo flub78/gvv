@@ -1,5 +1,7 @@
 ## Fait récemment
 
+* [x] Synchronisation des réservations avec Google Agenda (PRD `doc/prds/synchronisation_agenda_google_reservations_prd.md`, guide `doc/users/fr/14_rappels_reservations.md` §8) — recette avec un vrai compte Google restant à faire
+  * [x] Un seul point d'écriture des réservations : les rappels partent aussi après un glisser-déposer
 * [x] Unifier la configuration globale de l'application : page Configuration à onglets (PRD `doc/prds/configuration_unifiee_prd.md`, guide `doc/users/fr/21_configuration.md`)
   * [x] Gestion des emails (onglet Messagerie)
   * [x] Gestion des documents (onglet Documents et cartes)

@@ -1,0 +1,60 @@
+@startuml synchronisation_agenda_google_donnees
+hide circle
+skinparam linetype ortho
+title Synchronisation des réservations avec Google Agenda — données
+
+entity "membres (existant)" as membres {
+  * mlogin
+  --
+  ...
+}
+
+entity "reservations (existant)" as resa {
+  * id
+  --
+  pilot_member_id
+  instructor_member_id
+  aircraft_id, start_datetime, end_datetime
+  status, notes
+  ...
+}
+
+entity "agenda_google_liaisons" as liaison {
+  * id
+  --
+  * mlogin <<unique>>
+  compte_google (adresse, pour affichage)
+  jeton_renouvellement (chiffré)
+  etat : active | suspendue | arretee
+  cause_suspension
+  echecs_consecutifs
+  derniere_reussite_at
+  created_at, updated_at, created_by, updated_by
+}
+
+entity "agenda_google_evenements" as evt {
+  * id
+  --
+  * liaison_id
+  * reservation_id
+  google_event_id
+  empreinte (contenu envoyé)
+  created_at, updated_at, created_by, updated_by
+  --
+  unique (liaison_id, reservation_id)
+}
+
+entity "agenda_google_file" as file {
+  * reservation_id <<unique>>
+  --
+  tentatives
+  prochain_essai_at
+  derniere_erreur
+  created_at, updated_at, created_by, updated_by
+}
+
+membres ||--o| liaison : relie
+liaison ||--o{ evt : a créé
+resa ||--o{ evt : copiée en
+resa ||--o| file : à traiter
+@enduml

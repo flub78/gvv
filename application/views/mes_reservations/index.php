@@ -94,6 +94,95 @@ $confirm_msg = $this->lang->line('mes_reservations_confirm_delete');
     </div>
   </div>
 
+  <?php if (!empty($agenda_google)): ?>
+  <?php
+    $liaison = $agenda_google['liaison'];
+    $etat = $liaison ? $liaison['etat'] : 'inactive';
+    if ($etat === 'arretee') $etat = 'inactive';
+    $fmt_date = function ($d) { return $d ? date('d/m/Y H:i', strtotime($d)) : ''; };
+    $h = function ($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); };
+  ?>
+  <!-- =====================================================================
+       AGENDA GOOGLE
+       ===================================================================== -->
+  <div class="card mb-4" id="agenda-google">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="fab fa-google me-2"></i>
+        <?= $this->lang->line('agenda_google_titre') ?>
+      </h5>
+      <?php if ($etat === 'active'): ?>
+        <span class="badge bg-success" id="agenda-google-etat"><?= $this->lang->line('agenda_google_etat_active') ?></span>
+      <?php elseif ($etat === 'suspendue'): ?>
+        <span class="badge bg-warning text-dark" id="agenda-google-etat"><?= $this->lang->line('agenda_google_etat_suspendue') ?></span>
+      <?php else: ?>
+        <span class="badge bg-secondary" id="agenda-google-etat"><?= $this->lang->line('agenda_google_etat_inactive') ?></span>
+      <?php endif; ?>
+    </div>
+    <div class="card-body">
+      <?php if ($etat === 'inactive'): ?>
+        <p class="mb-3"><?= $this->lang->line('agenda_google_explication') ?></p>
+      <?php else: ?>
+        <?php if ($etat === 'suspendue'): ?>
+          <div class="alert alert-warning mb-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            <?= $this->lang->line('agenda_google_suspendue_texte') ?>
+            <?php if (!empty($liaison['cause_suspension'])): ?>
+              <br><span class="small"><?= $this->lang->line('agenda_google_cause') ?> <?= $h($liaison['cause_suspension']) ?></span>
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+        <dl class="row mb-3">
+          <dt class="col-sm-4"><?= $this->lang->line('agenda_google_compte') ?></dt>
+          <dd class="col-sm-8" id="agenda-google-compte"><?= $h($liaison['compte_google'] ?: '—') ?></dd>
+          <dt class="col-sm-4"><?= $this->lang->line('agenda_google_derniere_maj') ?></dt>
+          <dd class="col-sm-8"><?= $liaison['derniere_reussite_at'] ? $fmt_date($liaison['derniere_reussite_at']) : $this->lang->line('agenda_google_jamais') ?></dd>
+        </dl>
+      <?php endif; ?>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <?php if ($etat !== 'active'): ?>
+          <form method="post" action="<?= site_url('mes_reservations/agenda_google_activer') ?>">
+            <input type="hidden" name="<?= $csrf_name ?>" value="<?= $csrf_value ?>">
+            <button type="submit" class="btn btn-primary" id="agenda-google-activer">
+              <i class="fab fa-google me-1"></i>
+              <?= $this->lang->line($etat === 'suspendue' ? 'agenda_google_btn_relier_nouveau' : 'agenda_google_btn_activer') ?>
+            </button>
+          </form>
+        <?php endif; ?>
+        <?php if ($etat !== 'inactive'): ?>
+          <button type="button" class="btn btn-outline-danger" id="agenda-google-arreter"
+                  data-bs-toggle="modal" data-bs-target="#agenda-google-arret-modal">
+            <i class="fas fa-unlink me-1"></i>
+            <?= $this->lang->line('agenda_google_btn_arreter') ?>
+          </button>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <?php if ($etat !== 'inactive'): ?>
+  <div class="modal fade" id="agenda-google-arret-modal" tabindex="-1" aria-labelledby="agenda-google-arret-titre" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" method="post" action="<?= site_url('mes_reservations/agenda_google_arreter') ?>">
+        <input type="hidden" name="<?= $csrf_name ?>" value="<?= $csrf_value ?>">
+        <div class="modal-header">
+          <h5 class="modal-title" id="agenda-google-arret-titre"><?= $this->lang->line('agenda_google_arret_titre') ?></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <?= $this->lang->line('agenda_google_arret_avertissement') ?>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $this->lang->line('agenda_google_annuler') ?></button>
+          <button type="submit" class="btn btn-danger" id="agenda-google-arret-confirmer"><?= $this->lang->line('agenda_google_btn_confirmer_arret') ?></button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <?php endif; ?>
+  <?php endif; ?>
+
   <!-- =====================================================================
        PRÉFÉRENCES DE RAPPEL
        ===================================================================== -->

@@ -1,0 +1,51 @@
+@startuml synchronisation_agenda_google_composants
+skinparam componentStyle rectangle
+title Synchronisation des réservations avec Google Agenda — composants
+
+actor "Membre" as membre
+actor "Instructeur /\nadministrateur" as admin
+cloud "Google\n(OAuth 2.0, Calendar API v3)" as google
+
+package "Réservations (existant)" {
+  [reservations\nmes_reservations\n(contrôleurs)] as resa_ctrl
+  [membres_fusion,\nrenommage mlogin] as membres
+  [Reservations_model\n(seul point d'écriture)] as resa_model
+}
+
+package "Rappels (existant)" {
+  [Reservation_reminder] as reminder
+}
+
+package "Synchronisation agenda (nouveau)" {
+  [mes_reservations\n(activation, retour OAuth, arrêt, état)] as ui
+  [Agenda_google_sync\n(réconciliation d'une réservation,\nactivation, arrêt, suspension)] as sync
+  [Google_agenda_client\n(OAuth, événements,\nrévocation : HTTP direct)] as client
+  [agenda_google_traitement\n(entrée cron + URL à secret)] as worker
+  [Secret_box\n(chiffrement des jetons)] as box
+}
+
+database "reservations" as t_resa
+database "agenda_google_liaisons" as t_liaison
+database "agenda_google_evenements" as t_evt
+database "agenda_google_file" as t_file
+file "config/agenda_google.php\n(clé de chiffrement,\nhors dépôt)" as keyfile
+
+membre --> ui
+membre --> resa_ctrl
+admin --> resa_ctrl
+resa_ctrl --> resa_model
+membres --> resa_model
+resa_model --> t_resa
+resa_model ..> reminder : changement\n(create / update / cancel)
+resa_model ..> t_file : changement\n(id de réservation)
+
+ui --> sync
+worker --> t_file : réservations à traiter
+worker --> sync
+sync --> t_liaison
+sync --> t_evt
+sync --> client
+sync --> box
+box --> keyfile
+client --> google
+@enduml
