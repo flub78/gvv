@@ -292,6 +292,18 @@ class Vols_decouverte extends Gvv_Controller {
     }
 
     /**
+     * Droit d'enregistrer un bon : droits complets (gestion_vd, trésorier,
+     * bureau, admin) ou pilote VD, qui crée des bons et enregistre le pré-vol
+     * et le vol réalisé depuis les pages pre_flight et done.
+     */
+    protected function can_submit_form($action) {
+        if ($action != CREATION && $action != MODIFICATION) {
+            return TRUE;
+        }
+        return $this->has_vd_pilot_rights();
+    }
+
+    /**
      * Override: creation requires gestion_vd, pilote_vd, tresorier, bureau, CA or admin.
      * Injects HelloAsso visibility flags into view data.
      */

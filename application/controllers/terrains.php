@@ -50,6 +50,17 @@ class Terrains extends Gvv_Controller {
     }
 
     /**
+     * Création et enregistrement d'un terrain : les rôles qui administrent
+     * la table (CA, bureau, trésorier), comme le prévoit le constructeur.
+     */
+    protected function can_submit_form($action) {
+        if ($action != CREATION && $action != MODIFICATION) {
+            return TRUE;
+        }
+        return $this->allow_roles(['ca', 'bureau', 'tresorier']);
+    }
+
+    /**
      * Création d'un aérodrome via une requête AJAX, depuis le bouton "+"
      * des sélecteurs d'aérodrome des formulaires de saisie de vol
      * (vols_avion/create, vols_planeur/create).

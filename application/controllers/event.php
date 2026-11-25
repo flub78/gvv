@@ -174,6 +174,9 @@ class Event extends Gvv_Controller {
      * @see Gvv_Controller::delete()
      */
     public function delete($id) {
+        if (!$this->ensure_modification_rights(MODIFICATION)) {
+            return;
+        }
         $this->gvv_model->delete(array (
                 $this->kid => $id
         ));

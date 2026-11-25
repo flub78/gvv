@@ -89,6 +89,17 @@ class Membre extends Gvv_Controller {
     }
 
     /**
+     * Création et enregistrement d'une fiche : mêmes rôles que ceux admis par
+     * le constructeur pour create et formValidation (CA, bureau, trésorier).
+     */
+    protected function can_submit_form($action) {
+        if ($action != CREATION && $action != MODIFICATION) {
+            return TRUE;
+        }
+        return $this->allow_roles(['ca', 'bureau', 'tresorier']);
+    }
+
+    /**
      * Hook activé après la mise à jour : synchronise memail → users.email
      */
     function post_update($data = array()) {

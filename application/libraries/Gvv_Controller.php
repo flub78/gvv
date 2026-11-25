@@ -204,6 +204,58 @@ class Gvv_Controller extends MY_Controller {
     }
 
     /**
+     * Droit d'enregistrer le formulaire générique (create / formValidation).
+     *
+     * Par défaut, la création et la modification exigent modification_level,
+     * comme edit() et delete(). Un contrôleur qui ouvre l'écriture à d'autres
+     * rôles (saisie de ses propres vols, gestionnaires d'une table...) redéfinit
+     * cette méthode en reprenant les règles de ses propres create() et edit().
+     *
+     * @param int $action CREATION | MODIFICATION | VISUALISATION
+     * @return bool
+     */
+    protected function can_submit_form($action)
+    {
+        if ($action != CREATION && $action != MODIFICATION) {
+            return TRUE;
+        }
+        return $this->has_modification_rights();
+    }
+
+    /**
+     * Refuse l'ouverture ou l'enregistrement d'un formulaire sans droit
+     * d'écriture : l'utilisateur est redirigé vers la page d'accès refusé.
+     *
+     * @param int $action CREATION | MODIFICATION | VISUALISATION
+     * @return bool TRUE si l'écriture est autorisée
+     */
+    protected function ensure_can_submit_form($action)
+    {
+        if ($this->can_submit_form($action)) {
+            return TRUE;
+        }
+        log_message('info', "GVV: écriture refusée sur {$this->controller} (action $action) pour "
+            . $this->dx_auth->get_username());
+        $this->dx_auth->deny_access();
+        return FALSE;
+    }
+
+    /**
+     * Identifiant de l'enregistrement visé par un formulaire de modification,
+     * déterminé comme formValidation() le fait pour la mise à jour.
+     *
+     * @return mixed
+     */
+    protected function submitted_record_id()
+    {
+        $id = $this->input->post('original_' . $this->kid);
+        if (!$id) {
+            $id = $this->session->userdata('initial_id');
+        }
+        return $id;
+    }
+
+    /**
      * Retrieve raw POST value for a field (bypasses global XSS filtering)
      *
      * @param string $field
@@ -233,6 +285,10 @@ class Gvv_Controller extends MY_Controller {
     function create() {
         if (func_num_args() > 0) {
             $no_view_loading = func_get_arg(0);
+        }
+
+        if (!$this->ensure_can_submit_form(CREATION)) {
+            return;
         }
 
         // Méthode basée sur les méta-données
@@ -678,6 +734,10 @@ class Gvv_Controller extends MY_Controller {
         } elseif ($button == $this->lang->line("gvv_button_delete")) {
             $id = $this->input->post($this->kid);
             $this->delete($id);
+            return;
+        }
+
+        if (!$this->ensure_can_submit_form($action)) {
             return;
         }
 

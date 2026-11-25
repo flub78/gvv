@@ -28,10 +28,25 @@ class Plan_Comptable extends Gvv_Controller {
     protected $back_dashboard = 'welcome/section/treasurer';
     protected $model = 'plan_comptable_model';
     protected $kid = 'pcode';
+    protected $modification_level = 'tresorier';
 
     protected $rules = array(
         'pcode' => "required|is_uniq[planc.pcode]"
     );
+
+    /**
+     * Constructor
+     */
+    function __construct() {
+        parent::__construct();
+
+        // Consultation : responsables du club ; création/modification : trésorier.
+        // edit() et delete() sont aussi contrôlés par modification_level.
+        $this->require_roles(['tresorier', 'ca', 'bureau']);
+        if (in_array($this->router->fetch_method(), array('create', 'formValidation'), true)) {
+            $this->require_roles(['tresorier']);
+        }
+    }
 
     /**
      * Génération des éléments à passer au formulaire en cas de création,
@@ -76,7 +91,7 @@ class Plan_Comptable extends Gvv_Controller {
          */
         $sLimit = "";
         if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
-            $sLimit = "LIMIT " . mysql_real_escape_string($_GET['iDisplayStart']) . ", " . mysql_real_escape_string($_GET['iDisplayLength']);
+            $sLimit = "LIMIT " . max(0, (int) $_GET['iDisplayStart']) . ", " . max(0, (int) $_GET['iDisplayLength']);
         }
 
         /*
@@ -88,7 +103,7 @@ class Plan_Comptable extends Gvv_Controller {
             for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
                 if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == "true") {
                     $sOrder .= $aColumns[intval($_GET['iSortCol_' . $i])] . "
-                                        " . mysql_real_escape_string($_GET['sSortDir_' . $i]) . ", ";
+                                        " . ((strtolower((string) $_GET['sSortDir_' . $i]) === 'asc') ? 'asc' : 'desc') . ", ";
                 }
             }
 

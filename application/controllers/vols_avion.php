@@ -145,6 +145,39 @@ class Vols_avion extends Gvv_Controller {
     }
 
     /**
+     * Droit d'enregistrer un vol, aligné sur create() et edit() :
+     *   - création : planchiste (ou pilote remorqueur en section planeur),
+     *     auto_planchiste, mécano ;
+     *   - modification : planchiste pour tous les vols, auto_planchiste pour
+     *     ses propres vols pendant le délai de modification, mécano pour ses
+     *     propres vols d'essai.
+     */
+    protected function can_submit_form($action) {
+        if ($this->dx_auth->is_admin()) {
+            return TRUE;
+        }
+        if ($action == CREATION) {
+            return $this->can_write_airplane_flights()
+                || $this->user_has_role('auto_planchiste')
+                || $this->user_has_role('mecano');
+        }
+        if ($action != MODIFICATION) {
+            return TRUE;
+        }
+        if ($this->can_write_airplane_flights()) {
+            return TRUE;
+        }
+        $flight = $this->gvv_model->get_by_id('vaid', $this->submitted_record_id());
+        if (empty($flight) || $flight['vapilid'] != $this->dx_auth->get_username()) {
+            return FALSE;
+        }
+        if ($this->user_has_role('auto_planchiste') && $this->auto_planchiste_can_still_edit($flight['created_at'])) {
+            return TRUE;
+        }
+        return $this->user_has_role('mecano') && (int) $flight['vacategorie'] === 2;
+    }
+
+    /**
      * (non-PHPdoc)
      *
      * @see Gvv_Controller::form_static_element()
@@ -727,8 +760,7 @@ class Vols_avion extends Gvv_Controller {
      * @see Gvv_Controller::create()
      */
     function create() {
-        if (! $this->can_write_airplane_flights() && ! $this->user_has_role('auto_planchiste')
-                && ! $this->user_has_role('mecano')) {
+        if (! $this->can_submit_form(CREATION)) {
             $this->dx_auth->deny_access();
             return;
         }

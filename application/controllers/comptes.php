@@ -66,6 +66,18 @@ class Comptes extends Gvv_Controller {
     }
 
     /**
+     * Création d'un compte : tous les rôles admis par le constructeur
+     * (trésorier, CA, bureau), à qui la liste propose le bouton de création.
+     * La modification reste réservée au trésorier, comme dans edit().
+     */
+    protected function can_submit_form($action) {
+        if ($action == CREATION) {
+            return $this->allow_roles(['tresorier', 'ca', 'bureau']);
+        }
+        return parent::can_submit_form($action);
+    }
+
+    /**
      * Affiche le formulaire de création avec pré-remplissage optionnel
      * lorsqu'il est appelé depuis l'import d'écritures.
      */
@@ -122,6 +134,9 @@ class Comptes extends Gvv_Controller {
      * Supprime un élèment
      */
     function delete($id) {
+        if (!$this->ensure_modification_rights(MODIFICATION)) {
+            return;
+        }
         $this->load->model('ecritures_model');
         $count = $this->ecritures_model->count_all($id);
         if ($count) {
