@@ -16,6 +16,7 @@ const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 const LIST_URL = '/index.php/motd/page';
@@ -151,7 +152,7 @@ test.describe('MOTD Admin Smoke Tests', () => {
   test('deleting a message removes its linked image file from disk', async ({ page }) => {
     await login(page, ADMIN_USER);
 
-    const uploadResponse = await page.request.post(UPLOAD_URL, {
+    const uploadResponse = await csrfPost(page, UPLOAD_URL, {
       multipart: {
         image_file: {
           name: 'delete-cascade-test.png',
@@ -223,7 +224,7 @@ test.describe('MOTD Admin Smoke Tests', () => {
   test('non-admin cannot POST to motd formValidation endpoint', async ({ page }) => {
     await login(page, PILOT_USER);
 
-    const response = await page.request.post('/index.php/motd/formValidation/1', {
+    const response = await csrfPost(page, '/index.php/motd/formValidation/1', {
       form: {
         title: 'Injection attempt',
         content: 'x',

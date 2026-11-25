@@ -10,6 +10,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 // abraracourcix is an instructor in the new authorization system (BIT_FI_AVION + BIT_CA)
@@ -29,7 +30,7 @@ async function login(page, user) {
  * abraracourcix has instructor rights only in that section.
  */
 async function switchToAvionSection(page) {
-    await page.request.post('/index.php/user_roles_per_section/set_section', {
+    await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
         form: { section: '3', current_url: '/index.php/welcome' }
     });
 }

@@ -8,6 +8,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 const MECANO_USER = { username: 'obelix', password: 'password' };
@@ -24,7 +25,7 @@ async function login(page, user) {
 }
 
 async function switchToPlaneurSection(page) {
-    await page.request.post('/index.php/user_roles_per_section/set_section', {
+    await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
         form: { section: PLANEUR_SECTION, current_url: '/index.php/welcome' }
     });
 }

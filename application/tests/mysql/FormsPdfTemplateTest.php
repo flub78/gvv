@@ -70,7 +70,7 @@ class FormsPdfTemplateTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -104,7 +104,7 @@ class FormsPdfTemplateTest extends TestCase
             'http' => array(
                 'method'          => 'POST',
                 'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n"
-                                    . "Cookie: " . ($cookie ?: '') . "\r\n",
+                                    . "" . gvv_test_csrf_headers($cookie) . "",
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => $follow_redirects ? 1 : 0,
@@ -123,7 +123,7 @@ class FormsPdfTemplateTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Cookie: " . ($cookie ?: '') . "\r\n",
+                'header'          => "" . gvv_test_csrf_headers($cookie) . "",
                 'content'         => '',
                 'ignore_errors'   => true,
                 'follow_location' => 0,

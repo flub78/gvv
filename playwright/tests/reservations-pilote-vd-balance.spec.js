@@ -13,6 +13,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { csrfPost } = require('./helpers/csrf');
 
 const PLANEUR_SECTION = '1';
 const AVION_SECTION   = '3';   // panoramix est en section Avion
@@ -46,7 +47,7 @@ async function deleteReservation(browser, id) {
         await page.goto(TIMELINE_URL);
         await page.waitForLoadState('networkidle');
         const baseUrl = await page.evaluate(() => CONFIG.baseUrl);
-        await page.request.post(baseUrl + '/reservations/delete', {
+        await csrfPost(page, baseUrl + '/reservations/delete', {
             form: { reservation_id: String(id) }
         });
         console.log('Deleted test reservation id:', id);
@@ -92,7 +93,7 @@ test.describe.serial('pilote_vd (agecanonix) — exemption du contrôle de solde
         future.setDate(future.getDate() + 14);
         const dateStr = future.toISOString().slice(0, 10);
 
-        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+        const resp = await csrfPost(page, baseUrl + '/reservations/update_reservation', {
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_ID,

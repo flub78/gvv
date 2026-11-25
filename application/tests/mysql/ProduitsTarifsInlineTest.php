@@ -56,7 +56,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -90,7 +90,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Cookie: " . $this->cookie . "\r\nContent-Type: application/x-www-form-urlencoded\r\n",
+                'header'          => gvv_test_csrf_headers($this->cookie) . "Content-Type: application/x-www-form-urlencoded\r\n",
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,

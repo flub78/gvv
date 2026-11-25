@@ -1035,3 +1035,6 @@ $lang['gvv_compta_delete_justificatif_confirm']     = "Weet u zeker dat u dit be
 $lang['gvv_compta_delete_ecriture_confirm']         = "Weet u zeker dat u deze boeking wilt verwijderen?";
 $lang['gvv_login_as_confirm']                       = "Inloggen als";
 $lang['gvv_cartes_membre_reset_layout_confirm']     = "De lay-out terugzetten naar standaard?";
+
+$lang['gvv_csrf_error_title'] = "Verzoek geweigerd";
+$lang['gvv_csrf_error_text']  = "De pagina is verlopen of het verzoek kon niet worden gecontroleerd. Ga terug naar de vorige pagina, laad deze opnieuw en probeer het nog eens.";

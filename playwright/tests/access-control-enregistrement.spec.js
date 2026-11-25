@@ -26,6 +26,7 @@ const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const CREATION = 1;
 const MODIFICATION = 2;
@@ -51,7 +52,7 @@ async function login(page, key) {
 
 /** Envoie un formulaire et indique si l'accès a été refusé. */
 async function submit(page, route, form = {}) {
-    const response = await page.request.post('/index.php/' + route, { form, maxRedirects: 0 });
+    const response = await csrfPost(page, '/index.php/' + route, { form, maxRedirects: 0 });
     const location = response.headers()['location'] || '';
     return {
         status: response.status(),

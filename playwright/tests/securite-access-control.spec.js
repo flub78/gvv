@@ -18,6 +18,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { csrfPost } = require('./helpers/csrf');
 
 const ASTERIX = { username: 'asterix', password: 'password', section: '1' };
 const ABRARACOURCIX = { username: 'abraracourcix', password: 'password', section: '3' };
@@ -90,7 +91,7 @@ test.describe('Contrôles d\'accès renforcés', () => {
      */
     test('simple member can still switch section', async ({ page }) => {
         await login(page, ASTERIX);
-        const response = await page.request.post('/index.php/user_roles_per_section/set_section', {
+        const response = await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
             form: { section: '4', current_url: '' },
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             maxRedirects: 0,

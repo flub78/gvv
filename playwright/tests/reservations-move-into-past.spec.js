@@ -26,6 +26,7 @@ const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const AVION_SECTION = '3';
 const ULM_SECTION = '2';
@@ -67,7 +68,7 @@ async function openSession(browser, username, section = AVION_SECTION) {
 }
 
 async function post(session, path, form) {
-    const resp = await session.page.request.post(session.baseUrl + path, { form });
+    const resp = await csrfPost(session.page, session.baseUrl + path, { form });
     return JSON.parse(await resp.text());
 }
 

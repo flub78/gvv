@@ -15,6 +15,7 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const SECTION = 1;
@@ -60,7 +61,7 @@ test.describe('Message de doublon', () => {
 
     test('le message indique les champs et la valeur en doublon', async ({ page }) => {
         await login(page, ADMIN_USER);
-        await page.request.post('/index.php/user_roles_per_section/set_section', {
+        await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
             form: { section: String(SECTION), current_url: '/index.php/welcome' }
         });
 

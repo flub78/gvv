@@ -12,6 +12,7 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
+const { csrfPost } = require('./helpers/csrf');
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 
@@ -74,7 +75,7 @@ test.describe('Legacy pages regression', () => {
   test('balance exports are identical from one call to the next (all sections)', async ({ page }) => {
     // Section "Toutes" : c'est là que coexistent les comptes de même codec et même nom
     const previous = await page.locator('select[name="section"]').inputValue().catch(() => null);
-    await page.request.post('/index.php/user_roles_per_section/set_section', {
+    await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
       form: { section: '0', current_url: '' },
     });
     try {
@@ -91,7 +92,7 @@ test.describe('Legacy pages regression', () => {
       }
     } finally {
       if (previous !== null) {
-        await page.request.post('/index.php/user_roles_per_section/set_section', {
+        await csrfPost(page, '/index.php/user_roles_per_section/set_section', {
           form: { section: previous, current_url: '' },
         });
       }

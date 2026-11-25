@@ -1045,3 +1045,6 @@ $lang['gvv_login_as_confirm']                       = "Se connecter en tant que"
 $lang['gvv_cartes_membre_reset_layout_confirm']     = "Réinitialiser la mise en page au défaut ?";
 
 $lang['gvv_menu_carnets_route']   = "Carnets de route";
+
+$lang['gvv_csrf_error_title'] = "Requête refusée";
+$lang['gvv_csrf_error_text']  = "La page a expiré ou la demande n'a pas pu être vérifiée. Revenez à la page précédente, rechargez-la, puis recommencez.";

@@ -1345,3 +1345,22 @@ if (isset($temp_db_config_created) && $temp_db_config_created) {
 require_once APPPATH . 'tests/integration/TestLogger.php';
 TestLogger::init('integration_tests');
 TestLogger::cleanup(10); // Keep only last 10 log files
+
+/**
+ * Protection CSRF : en-têtes à joindre aux requêtes HTTP POST envoyées à
+ * gvv.net par les tests (connexion, formulaires). Le serveur compare le jeton
+ * du cookie gvv_csrf_cookie à celui de l'en-tête X-CSRF-Token, comme pour le
+ * navigateur (assets/javascript/csrf.js).
+ *
+ * @param string|null $cookie Cookies déjà envoyés (session), ou NULL
+ * @return string Lignes d'en-tête terminées par \r\n
+ */
+if (!function_exists('gvv_test_csrf_headers')) {
+    function gvv_test_csrf_headers($cookie = null)
+    {
+        $token = md5('gvv-phpunit-csrf');
+        $cookies = trim((string) $cookie);
+        $cookies = ($cookies === '' ? '' : rtrim($cookies, '; ') . '; ') . 'gvv_csrf_cookie=' . $token;
+        return "Cookie: " . $cookies . "\r\nX-CSRF-Token: " . $token . "\r\n";
+    }
+}

@@ -20,6 +20,7 @@
 
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 const UPLOAD_URL = '/index.php/motd/upload_image';
@@ -99,7 +100,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
     // than being written directly to that www-data-owned directory.
     const setupPage = await browser.newPage();
     await login(setupPage, ADMIN_USER);
-    const uploadResponse = await setupPage.request.post(UPLOAD_URL, {
+    const uploadResponse = await csrfPost(setupPage, UPLOAD_URL, {
       multipart: {
         image_file: {
           name: 'security-test.png',
@@ -149,17 +150,17 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
   test('an unrelated user cannot hide, read or reply to a message not addressed to them', async ({ page }) => {
     await login(page, OUTSIDER_USER);
 
-    const hideResponse = await page.request.post(`/index.php/motd/hide_message/${privateMsgId}`, {
+    const hideResponse = await csrfPost(page, `/index.php/motd/hide_message/${privateMsgId}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     });
     expect(hideResponse.status()).toBe(404);
 
-    const ackResponse = await page.request.post(`/index.php/motd/acknowledge_message/${privateMsgId}`, {
+    const ackResponse = await csrfPost(page, `/index.php/motd/acknowledge_message/${privateMsgId}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     });
     expect(ackResponse.status()).toBe(404);
 
-    const replyResponse = await page.request.post(`/index.php/motd/reply/${privateMsgId}`, {
+    const replyResponse = await csrfPost(page, `/index.php/motd/reply/${privateMsgId}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       form: { content: 'Tentative non autorisee' },
     });
@@ -177,7 +178,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
   test('reply endpoint rejects empty content and an unknown message id', async ({ page }) => {
     await login(page, ADMIN_USER);
 
-    const emptyResponse = await page.request.post(`/index.php/motd/reply/${xssMsgId}`, {
+    const emptyResponse = await csrfPost(page, `/index.php/motd/reply/${xssMsgId}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       form: { content: '   ' },
     });
@@ -185,7 +186,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
     const emptyBody = await emptyResponse.json();
     expect(emptyBody.success).toBe(false);
 
-    const unknownResponse = await page.request.post('/index.php/motd/reply/999999999', {
+    const unknownResponse = await csrfPost(page, '/index.php/motd/reply/999999999', {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       form: { content: 'x' },
     });
@@ -195,7 +196,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
   test('set_sort endpoint rejects an invalid sort value', async ({ page }) => {
     await login(page, ADMIN_USER);
 
-    const response = await page.request.post('/index.php/motd/set_sort', {
+    const response = await csrfPost(page, '/index.php/motd/set_sort', {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       form: { sort_by: 'not_a_valid_value' },
     });
@@ -217,7 +218,7 @@ test.describe.serial('MOTD Security Smoke Tests', () => {
   test('image upload rejects a file whose content does not match its image extension', async ({ page }) => {
     await login(page, ADMIN_USER);
 
-    const response = await page.request.post(UPLOAD_URL, {
+    const response = await csrfPost(page, UPLOAD_URL, {
       multipart: {
         image_file: {
           name: 'fake.png',
