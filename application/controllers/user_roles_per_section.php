@@ -44,6 +44,14 @@ class User_roles_per_section extends Gvv_Controller {
     function __construct() {
 
         parent::__construct();
+
+        // Le sélecteur de section du menu est utilisé par tout membre connecté ;
+        // la gestion des rôles (liste, création, modification, suppression)
+        // est réservée aux administrateurs du club.
+        if ($this->router->fetch_method() !== 'set_section') {
+            $this->require_roles(['club-admin']);
+        }
+
         $this->lang->load('user_roles_per_section');
         $this->load->model('types_roles_model');
         $this->load->model('dx_auth/users', 'users_model');

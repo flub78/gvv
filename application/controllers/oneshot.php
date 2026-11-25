@@ -27,7 +27,7 @@
  * pour analyser ou corriger des données. Ne pas utiliser en production régulière.
  */
 
-class Oneshot extends CI_Controller {
+class Oneshot extends MY_Controller {
 
     /**
      * Constructor - Vérification des droits
@@ -37,6 +37,9 @@ class Oneshot extends CI_Controller {
 
         // Check if user is logged in or not
         $this->dx_auth->check_login();
+
+        // Opérations de maintenance sur les données : administrateurs uniquement
+        $this->require_roles(['club-admin']);
 
         // Load necessary models
         $this->load->model('ecritures_model');

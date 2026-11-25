@@ -40,7 +40,6 @@ if ($this->dx_auth->is_logged_in())	{
         'class' => 'menuheader',
         'submenu' => array (
 						$menu_liens,
-            array ('label' => "Documents", 'url' => controller_url("partage/upload/membres/manuels")),
             array ('label' => "100LL - Visu", 'url' => controller_url("pompes/page/0"), 'role' => 'ca'),
             array ('label' => "100LL - Saisie", 'url' => controller_url("pompes/create/0"), 'role' => 'ca'),
             array ('label' => "98SP  - Visu", 'url' => controller_url("pompes/page/1"), 'role' => 'ca'),
