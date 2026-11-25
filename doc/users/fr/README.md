@@ -145,11 +145,12 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 - Voir aussi [Rédiger le contenu d'un formulaire (HTML/CSS)](13_formulaires_creation.md) : types de champs, CSS, pré-remplissage — pour qui rédige le HTML des pages
 
 #### [14. Rappels de Réservations](14_rappels_reservations.md)
-**Rappels email et SMS automatiques avant chaque réservation**
+**Rappels email et SMS automatiques avant chaque réservation, et copie des réservations dans l'agenda Google**
 - Installation et configuration serveur (cron, clé Brevo, secret URL)
 - Activation des rappels par section (Administration > Sections)
 - Configuration des préférences par le pilote (canal, délai)
 - Supervision des envois via les logs d'administration
+- Synchronisation des réservations avec l'agenda Google du membre, depuis « Mes réservations » (§8)
 
 #### [15. Gestion des Messages](15_gestion_messages.md)
 **Messages du jour affichés sur le tableau de bord**
@@ -236,7 +237,7 @@ Bienvenue dans le guide utilisateur complet de **GVV (Gestion Vol à Voile)** - 
 5. **[🔐 Autorisations](09_autorisations.md)** - Gérer rôles et permissions
 6. **[🎓 Formations](11_formations.md)** - Suivi pédagogique
 7. **[📄 Formulaires](13_formulaires.md)** - Formulaires en ligne et collecte de données ([rédiger le contenu HTML/CSS](13_formulaires_creation.md))
-8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols
+8. **[🔔 Rappels réservations](14_rappels_reservations.md)** - Email/SMS automatiques avant les vols, réservations copiées dans l'agenda Google
 9. **[📢 Gestion des messages](15_gestion_messages.md)** - Messages du jour sur le tableau de bord
 10. **[🔧 Maintenance des aéronefs](16_maintenance_aeronefs.md)** - Suivi de navigabilité de la flotte
 11. **[☁️ Sauvegarde hors-site](17_sauvegarde_hors_site.md)** - Envoi automatique des backups vers Google Drive

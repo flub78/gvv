@@ -82,11 +82,12 @@ Titre de l'application (affiché dans l'onglet du navigateur), et couleur de la 
 
 ## Onglet Modules
 
-Active ou désactive les fonctionnalités du club : vols de découverte, réservations, formations, gestion documentaire, paiements HelloAsso, ULM, tickets, pompes, rapprochements bancaires, offres de formation, newsletter de veille, saisie des vols par les pilotes.
+Active ou désactive les fonctionnalités du club : vols de découverte, réservations, Agenda Google, formations, gestion documentaire, paiements HelloAsso, ULM, tickets, pompes, rapprochements bancaires, offres de formation, newsletter de veille, saisie des vols par les pilotes.
 
 - Le menu est mis à jour dès la page suivante.
 - La page Configuration, elle, ne dépend d'aucun module : elle reste accessible pour réactiver un module.
 - Si un module actif a besoin d'un réglage qui manque, un avertissement jaune désigne l'onglet à compléter. Par exemple, les vols de découverte et la newsletter envoient des e-mails : en mode SMTP, il leur faut un serveur SMTP.
+- **Agenda Google** permet aux membres qui peuvent réserver de copier leurs réservations dans leur agenda Google (voir [Rappels de réservations, §8](14_rappels_reservations.md)). Il a besoin de l'application Google déclarée dans l'onglet Système. Quand il est actif, l'onglet propose le lien **Synchronisations Google Agenda suspendues** : la liste des membres dont l'agenda n'est plus mis à jour, avec la cause et la date.
 
 ## Onglet Vols de découverte
 
@@ -145,6 +146,8 @@ L'onglet affiche l'adresse de chaque page, avec deux boutons :
 - **Copier** copie l'adresse ;
 - **Aperçu** ouvre la page publiée.
 
+Quand l'Agenda Google est actif (onglet Modules), le texte générique des règles de confidentialité ajoute un paragraphe sur ce que GVV conserve de l'autorisation Google et sur ce qu'il écrit dans l'agenda des membres.
+
 ### Texte générique ou texte du club
 
 Tant que rien n'est saisi, GVV publie un **texte générique** en français, anglais ou néerlandais selon la langue du site. Ce texte reprend automatiquement l'identité du club, saisie dans l'onglet **Club** :
@@ -187,7 +190,8 @@ Les mots de passe et la clé d'API ne sont jamais réaffichés. En haut de l'ong
 
 Réservé aux développeurs (utilisateurs listés dans `dev_users`) :
 - **Accès et maintenance** : accès réservé aux administrateurs, message affiché sur la page de connexion pendant la maintenance, liste des développeurs. On ne peut pas se retirer soi-même de cette liste.
-- **SMS**, **ordonnanceurs** (secrets des adresses de déclenchement, heure de traitement des alarmes), **intégration Google**.
+- **SMS**, **ordonnanceurs** (secrets des adresses de déclenchement, dont celui de la synchronisation Google Agenda, heure de traitement des alarmes), **intégration Google**.
+- **Application Google Agenda** : identifiant et secret du client OAuth créé dans la console Google Cloud, nécessaires à l'Agenda Google (procédure dans `doc/installation.md`).
 - Lien vers le **test d'envoi de SMS**, qui utilise les réglages enregistrés.
 - **Installation (lecture seule)** : adresse de base, base de données, version, migration (actuelle / attendue). Ces réglages ne se modifient que sur le serveur.
 - **Autres clés de la table de configuration** : réglages enregistrés par des écrans spécialisés (mise en page des cartes…). Le crayon ouvre l'ancien éditeur clé/valeur.
