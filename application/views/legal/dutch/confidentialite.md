@@ -36,6 +36,14 @@ Gegevens worden nooit verkocht of voor commerciële doeleinden doorgegeven.
 Online betalingen worden verwerkt door HelloAsso. De vereniging ontvangt of bewaart geen kaartgegevens.
 
 [[fin]]
+[[si agenda_google]]
+## Synchronisatie met Google Agenda
+
+Een lid kan, als het dat wenst, zijn reserveringen naar zijn Google Agenda laten kopiëren. Daarvoor geeft het GVV toestemming om afspraken in zijn agenda te schrijven, en niets anders: GVV leest de agenda niet en wijzigt enkel de afspraken die het zelf heeft aangemaakt. Deze afspraken bevatten het luchtvaartuig, de uren, de naam van de piloot en van de instructeur, de opmerking bij de reservering en een link naar GVV, zonder enige financiële gegevens.
+
+GVV bewaart het adres van het Google-account en een versleutelde toestemming, die nooit wordt getoond. Wanneer het lid de synchronisatie stopt, wordt deze toestemming bij Google ingetrokken en uit GVV gewist; de reeds aangemaakte afspraken blijven in zijn agenda staan. Afspraken die naar Google Agenda zijn gekopieerd, vallen onder het privacybeleid van Google.
+
+[[fin]]
 ## Bewaartermijn
 
 Gegevens worden bewaard zolang het lidmaatschap duurt, en daarna zolang nodig is om aan de wettelijke verplichtingen van de vereniging te voldoen, met name op boekhoudkundig vlak.

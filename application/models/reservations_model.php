@@ -17,6 +17,12 @@ class Reservations_model extends Common_Model {
     public $table = 'reservations';
     protected $primary_key = 'id';
 
+    /** Component notified for member reminders (see reminder()) */
+    private $reminder = null;
+
+    /** Google Calendar synchronisation queue (see agenda_queue()) */
+    private $agenda_queue = null;
+
     function __construct() {
         parent::__construct();
     }
@@ -267,6 +273,10 @@ class Reservations_model extends Common_Model {
     /**
      * Create a new reservation
      *
+     * Single write point (with update/delete below): every change of the
+     * reservations table goes through this model, which then notifies
+     * the interested components (see notify_change()).
+     *
      * @param array $data Reservation data
      * @return int Inserted reservation ID or 0 on failure
      */
@@ -300,7 +310,11 @@ class Reservations_model extends Common_Model {
             $data['created_by'] = $CI->dx_auth->get_username();
         }
 
-        return $this->create($data);
+        $new_id = (int) $this->create($data);
+        if ($new_id > 0) {
+            $this->notify_change($new_id, 'create', $data['created_by']);
+        }
+        return $new_id;
     }
 
     /**
@@ -308,25 +322,172 @@ class Reservations_model extends Common_Model {
      *
      * @param int $reservation_id Reservation ID
      * @param array $data Updated data
-     * @return bool True on success, false on failure
+     * @return bool True when the reservation exists and the update succeeded
+     *              (an update that changes nothing is a success)
      */
     public function update_reservation($reservation_id, $data) {
-        $CI = &get_instance();
-        $data['updated_by'] = $CI->dx_auth->get_username();
+        $reservation_id = (int) $reservation_id;
+        if ($reservation_id <= 0) {
+            return false;
+        }
+        $author = $this->current_username();
+        $data['updated_by'] = $author;
 
-        return $this->update($reservation_id, $data);
+        $result = $this->update($this->primary_key, $data, $reservation_id);
+        if (!$result) {
+            return false;
+        }
+        if ($this->db->affected_rows() <= 0 && !$this->reservation_exists($reservation_id)) {
+            return false;
+        }
+
+        $this->notify_change($reservation_id, 'update', $author);
+        return true;
     }
 
     /**
      * Delete a reservation
      *
+     * The cancel notification is sent before the deletion because the
+     * notified components need to read the reservation.
+     *
      * @param int $reservation_id Reservation ID to delete
      * @return bool True on success, false on failure
      */
     public function delete_reservation($reservation_id) {
+        $reservation_id = (int) $reservation_id;
+        if (!$this->reservation_exists($reservation_id)) {
+            return false;
+        }
+
+        $this->notify_change($reservation_id, 'cancel', $this->current_username());
+
         $where = array($this->primary_key => $reservation_id);
         $this->delete($where);
         return ($this->db->affected_rows() > 0);
+    }
+
+    /**
+     * Replace a member login by another one as pilot and as instructor
+     * (member merge and login rename). Runs inside the caller's transaction:
+     * the caller must call notify_reassigned() with the returned ids once its
+     * transaction has been committed.
+     *
+     * @param string $old_login
+     * @param string $new_login
+     * @return array ids of the reservations that changed
+     */
+    public function reassign_member($old_login, $new_login) {
+        $login = $this->db->escape($old_login);
+        $rows = $this->db->select('id')
+            ->from($this->table)
+            ->where("(pilot_member_id = $login OR instructor_member_id = $login)", NULL, FALSE)
+            ->get();
+        $ids = array();
+        if ($rows !== FALSE) {
+            foreach ($rows->result_array() as $row) {
+                $ids[] = (int) $row['id'];
+            }
+        }
+        if (empty($ids)) {
+            return array();
+        }
+
+        foreach (array('pilot_member_id', 'instructor_member_id') as $column) {
+            $this->db->where($column, $old_login)
+                ->update($this->table, array($column => $new_login));
+        }
+        return $ids;
+    }
+
+    /**
+     * Notify a change of pilot or instructor made by reassign_member().
+     *
+     * Member reminders are not sent: the people of the reservation are the
+     * same, only their identifier changed.
+     *
+     * @param array  $reservation_ids
+     * @param string $author login of the user who did the merge or rename
+     */
+    public function notify_reassigned($reservation_ids, $author) {
+        foreach ($reservation_ids as $id) {
+            $this->notify_change((int) $id, 'update', $author, false);
+        }
+    }
+
+    /**
+     * Single notification point, called after each write of a reservation
+     * (before it for a cancellation). A notification failure is logged and
+     * never cancels the write.
+     *
+     * @param int    $reservation_id
+     * @param string $event_type   'create' | 'update' | 'cancel'
+     * @param string $author       login of the user who made the change
+     * @param bool   $remind       FALSE to skip the member reminders
+     */
+    protected function notify_change($reservation_id, $event_type, $author, $remind = true) {
+        if ($remind) {
+            try {
+                $this->reminder()->handle_event($reservation_id, $event_type, $author);
+            } catch (Throwable $e) {
+                gvv_error("Reservations_model: reminder $event_type event failed for reservation $reservation_id: " . $e->getMessage());
+            }
+        }
+
+        // Google Calendar: the reservation is queued for reconciliation (SYNC-ERR-01:
+        // a failure is logged and never cancels the write).
+        try {
+            $queue = $this->agenda_queue();
+            if ($queue && !$queue->enqueue($reservation_id, $author)) {
+                gvv_error("Reservations_model: reservation $reservation_id not queued for Google Calendar");
+            }
+        } catch (Throwable $e) {
+            gvv_error("Reservations_model: reservation $reservation_id not queued for Google Calendar: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Google Calendar synchronisation queue. Can be replaced (tests).
+     */
+    public function set_agenda_queue($queue) {
+        $this->agenda_queue = $queue;
+    }
+
+    /**
+     * Queue to notify, or NULL when the club has not enabled the synchronisation.
+     */
+    private function agenda_queue() {
+        if ($this->agenda_queue !== null) {
+            return $this->agenda_queue;
+        }
+        $CI = &get_instance();
+        $CI->load->config('program', FALSE, TRUE);
+        if ($CI->config->item('agenda_google_sync') != TRUE) {
+            return null;
+        }
+        $CI->load->model('agenda_google_file_model');
+        return $CI->agenda_google_file_model;
+    }
+
+    /**
+     * Component notified for member reminders. Can be replaced (tests).
+     */
+    public function set_reminder($reminder) {
+        $this->reminder = $reminder;
+    }
+
+    private function reminder() {
+        if ($this->reminder === null) {
+            $CI = &get_instance();
+            $CI->load->library('Reservation_reminder');
+            $this->reminder = $CI->reservation_reminder;
+        }
+        return $this->reminder;
+    }
+
+    private function reservation_exists($reservation_id) {
+        return $this->db->where($this->primary_key, $reservation_id)
+            ->count_all_results($this->table) > 0;
     }
 
     /**

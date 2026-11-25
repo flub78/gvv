@@ -79,6 +79,24 @@ class LegalPagesRenderTest extends TestCase
     }
 
     /**
+     * Scénario: Les règles de confidentialité décrivent la synchronisation Google Agenda seulement si le club l'a activée
+     *   Étant donné les règles de confidentialité génériques, dans chaque langue
+     *   Quand le club a activé la synchronisation des réservations avec Google Agenda
+     *   Alors elles expliquent ce que GVV conserve de l'autorisation Google et ce qu'il écrit dans l'agenda
+     *   Mais quand le club ne l'a pas activée, elles n'en parlent pas
+     */
+    public function testPrivacy_DescribesGoogleCalendarOnlyWhenEnabled()
+    {
+        foreach (array('french' => 'Google Agenda', 'english' => 'Google Calendar', 'dutch' => 'Google Agenda') as $lang => $title) {
+            $template = $this->pages->template('confidentialite', $lang);
+            $on = $this->pages->render($template, $this->club, array('agenda_google' => TRUE));
+            $off = $this->pages->render($template, $this->club, array('agenda_google' => FALSE));
+            $this->assertStringContainsString($title, $on, "$lang : section présente");
+            $this->assertStringNotContainsString($title, $off, "$lang : section absente");
+        }
+    }
+
+    /**
      * Scénario: Une langue sans texte générique utilise le français
      *   Étant donné une langue pour laquelle GVV ne fournit pas de texte
      *   Quand un visiteur consulte les règles de confidentialité dans cette langue

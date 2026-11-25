@@ -57,7 +57,7 @@ avec un couplage faible entre la logique métier de réservation et la mécaniqu
 | Composant                 | Rôle                                                                                                                                                                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Trigger Entry Point       | Reçoit le déclenchement du scheduler via cron ou URL publique dédiée.                                                                                               |
-| Reservation Source        | Fournit l'état des réservations actives et leurs transitions (modification, annulation).                                                                            |
+| Reservation Source        | Fournit l'état des réservations actives et leurs transitions (modification, annulation). C'est le modèle des réservations, seul point d'écriture de la table : il émet les événements après chaque écriture, quel que soit l'écran à l'origine (formulaire, glisser-déposer du planning, « Mes réservations »). |
 | Reservation Event Adapter | Reçoit les événements `create`, `update`, `cancel` du module réservation et déclenche le flux de notification événementielle. |
 | Hourly Reminder Scheduler | Toutes les heures, sélectionne les réservations existantes qui commencent dans moins de 48 heures.                                                                  |
 | Notification Composer     | Construit le contenu des messages (rappel temporel ou notification événementielle).                                                                                |
@@ -75,7 +75,7 @@ avec un couplage faible entre la logique métier de réservation et la mécaniqu
 
 ### 1) Notifications événementielles (create/update/cancel)
 
-1. Le mécanisme peut recevoir un événement `create`, `update` ou `cancel` depuis le module réservation.
+1. Le modèle des réservations émet un événement `create`, `update` ou `cancel` après chaque écriture (avant la suppression pour `cancel`, la réservation devant encore être lisible). Les contrôleurs n'appellent plus le mécanisme de rappel eux-mêmes. La fusion et le renommage de membres, qui ne changent que l'identifiant d'un membre d'équipage, n'envoient pas de notification aux membres.
 2. Le routeur applique la règle de destinataires : second membre si le créateur est membre d'équipage, les deux membres si le créateur est tiers.
 3. Le compositeur génère une notification événementielle (type `event_notification`).
 4. Le sélecteur de canal choisit `email`, `sms` ou `email+sms`.
@@ -152,7 +152,7 @@ Le mécanisme de persistance de cette traçabilité repose sur la table `reserva
 - Le module réservation reste responsable de l'état métier des réservations.
 - Le module rappels est responsable des notifications événementielles et des rappels temporels.
 - Le module "Mes réservations" est responsable des interactions utilisateur (liste, suppression, accès à l'ajout, paramètres de rappel).
-- Le couplage entre réservation et rappels est volontairement faible via un adaptateur d'événements de contexte.
+- Le couplage entre réservation et rappels est volontairement faible via un adaptateur d'événements de contexte, alimenté par un point de notification unique dans le modèle des réservations.
 - Le module administration reste responsable des paramètres de section.
 - `reservation_reminder_log` reste la source d'observabilité pour le support et l'exploitation.
 

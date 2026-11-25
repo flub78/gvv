@@ -36,6 +36,14 @@ Data is never sold or passed on for commercial purposes.
 Online payments are processed by HelloAsso. The association neither receives nor stores any card data.
 
 [[fin]]
+[[si agenda_google]]
+## Synchronisation with Google Calendar
+
+A member may choose to have their bookings copied to their Google Calendar. To do so, they allow GVV to write events to their calendar, and nothing else: GVV does not read their calendar and only changes the events it created. These events contain the aircraft, the times, the names of the pilot and instructor, the booking comment and a link to GVV, without any financial data.
+
+GVV keeps the Google account address and an encrypted authorisation, which is never displayed. When the member stops the synchronisation, this authorisation is withdrawn from Google and erased from GVV; the events already created stay in their calendar. Events copied to Google Calendar are subject to Google's privacy policy.
+
+[[fin]]
 ## Retention period
 
 Data is kept for the duration of membership, then for as long as needed to meet the association's legal obligations, in particular accounting obligations.

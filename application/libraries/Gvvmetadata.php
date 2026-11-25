@@ -65,6 +65,15 @@ class GVVMetadata extends Metadata {
                 $this->field['categorie']['parent']['Image'] = 'parent_image';
 
                 $this->field['vue_categories']['nom_parent']['Name'] = 'Parent';
+
+                /**
+                 * Liaisons Google Agenda suspendues (libellés dans agenda_google_lang)
+                 */
+                $this->field['vue_agenda_google_suspendues']['membre']['Type'] = 'varchar';
+                $this->field['vue_agenda_google_suspendues']['etat']['Type'] = 'varchar';
+                $this->field['vue_agenda_google_suspendues']['cause_suspension']['Type'] = 'varchar';
+                $this->field['vue_agenda_google_suspendues']['updated_at']['Type'] = 'datetime';
+                $this->field['vue_agenda_google_suspendues']['derniere_reussite_at']['Type'] = 'datetime';
                 /**
                  * Vue comptes
                  */

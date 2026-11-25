@@ -302,6 +302,7 @@ $this->field['table']['field']['Selector'] = 'selector_function_name';
 |---|---|
 | Documentation des tests | `gen_?test_?docs` |
 | Paiements en ligne | `paiement` `helloasso` `FlagsCbParUsage` |
+| Synchronisation agenda Google | `agenda.?google` `AgendaGoogle` `SecretBox` |
 | Réservations | `reservation` `timeline` |
 | Vols de découverte | `decouverte` `\bvd-` `VdBon` |
 | Briefing passager | `briefing` |
