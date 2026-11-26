@@ -1,0 +1,37 @@
+@startuml configuration_facturation_donnees_tables
+hide methods
+class "Configuration" as CF {
+  version
+  statut : brouillon, active, archivée
+  date d'effet
+  auteur
+}
+class "Composante" as CP {
+  nature : lancement, heures, moteur,
+  suppléments, exceptions
+}
+class "Table de décision" as T {
+  politique : première ligne ou toutes
+}
+class "Ligne" as L {
+  valeurs des critères, ou « * »
+  fonction de quantité
+  modèle de libellé
+  source : tarif, ticket ou forfait
+}
+class "Produit" as P
+class "Type de vol" as TV
+class "Catégorie de membre" as CM
+class "Section" as SE
+class "Achat" as A
+
+CF "n" --> "0..1" SE : propre à
+CF "1" *-- "n" CP
+CP "1" *-- "1" T
+T "1" *-- "n" L
+L --> P
+L ..> TV : référence
+L ..> CM : référence
+A --> P
+A ..> CF : version appliquée
+@enduml

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<title>Simulateur — facturation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { background:#fff; }
+  .gvv-banner { background-color: green; }
+  .proto-ribbon { position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#ffc107; color:#000;
+                  font-weight:600; padding:2px 12px; border-radius:4px; z-index:2000; font-size:.8rem; opacity:.9 }
+  .gvv-form { background:#e1e4e8; border:1px solid #adb5bd; border-radius:4px; padding:12px; }
+  .table-gvv thead th { background:#ececec; }
+  .table-gvv tbody tr:nth-child(odd) { background:#d6d6ee; }
+  .dsl { font-family: "DejaVu Sans Mono", monospace; font-size:.82rem; background:#1e1e1e; color:#d4d4d4;
+         border-radius:4px; padding:10px; white-space:pre; overflow:auto; }
+  .dsl .k { color:#569cd6; font-weight:bold } .dsl .s { color:#ce9178 } .dsl .c { color:#6a9955 } .dsl .n { color:#b5cea8 }
+  .rule { border:1px solid #adb5bd; border-radius:4px; background:#f8f9fa; padding:8px; margin-bottom:8px; }
+  .rule .kw { font-weight:bold; color:#0d6efd; min-width:3.2rem; display:inline-block }
+  .rule select, .rule input { display:inline-block; width:auto; }
+  .hl { outline:3px solid #ffc107; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-2">
+  <a class="btn btn-success btn-lg me-3" href="#"><i class="fas fa-home"></i> Accueil GVV</a>
+  <ul class="navbar-nav me-auto">
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Gestion</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Membres</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Planeurs</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Remorqueurs</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle active" href="#">Compta</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Ecritures</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Aide</a></li>
+  </ul>
+  <div class="text-white text-center me-3 small">
+    <div>tresorier</div>
+    <div class="badge bg-danger w-100">trésorier</div>
+    <div class="mt-1">Section : <select class="form-select-sm"><option>Planeur</option></select></div>
+  </div>
+  <a class="btn btn-outline-light btn-sm" href="#"><i class="fas fa-sign-out-alt"></i> Quitter</a>
+</nav>
+<header class="container-fluid p-3 text-white text-center gvv-banner">
+  <i class="fas fa-paper-plane fa-2x float-start mt-2 ms-4"></i>
+  <h1 class="m-0 text-dark">Aéroclub exemple</h1>
+  <i class="fas fa-plane fa-2x float-end mt-n5 me-4" style="margin-top:-2.2rem"></i>
+</header>
+<div class="proto-ribbon">Prototype non fonctionnel</div>
+<div class="container-fluid px-3 pt-2">
+  <h3>Simulateur de facturation</h3>
+  <div class="d-flex flex-wrap gap-3 align-items-center mb-2">
+    <label>Configuration testée : <select class="form-select form-select-sm d-inline-block w-auto"><option>Planeur — version 4 (brouillon)</option><option>Planeur — version 3 (active)</option></select></label>
+    <span class="text-muted small"><i class="fas fa-info-circle"></i> Aucune facturation réelle n'est créée.</span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="gvv-form small">
+        <div class="row g-2 align-items-end">
+          <div class="col-auto"><label>Date du vol</label><input class="form-control form-control-sm" value="14/06/2027"></div>
+          <div class="col-auto"><label>Immatriculation</label><select class="form-select form-select-sm"><option>ASK21 - F-CITT</option></select></div>
+          <div class="col-auto"><label>Pilote</label><select class="form-select form-select-sm"><option>Pilote fictif</option><option>Un membre réel…</option></select></div>
+          <div class="col-auto"><label class="d-block">DC</label><input type="checkbox" class="form-check-input"></div>
+        </div>
+        <div class="row g-2 mt-1 align-items-end">
+          <div class="col-auto"><label>Début</label><input class="form-control form-control-sm" value="14:05" size="5"></div>
+          <div class="col-auto"><label>Durée</label><input class="form-control form-control-sm" value="03:40" size="5"></div>
+          <div class="col-auto"><label>Temps moteur</label><input class="form-control form-control-sm" value="0" size="4"></div>
+          <div class="col-auto"><label class="d-block">Lancement</label>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="l"> Treuil</span>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="l"> Autonome</span>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="l" checked> Remorqué</span>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="l"> Extérieur</span></div>
+          <div class="col-auto"><label>Hauteur</label><input class="form-control form-control-sm" value="700" size="4"></div>
+        </div>
+        <div class="row g-2 mt-1 align-items-end">
+          <div class="col-auto"><label>Type de vol</label><select class="form-select form-select-sm"><option>Standard</option></select></div>
+          <div class="col-auto"><label>Terrain de décollage</label><select class="form-select form-select-sm"><option>LFOI</option></select></div>
+          <div class="col-auto"><label>Payeur</label><select class="form-select form-select-sm"><option>—</option></select></div>
+          <div class="col-auto"><label class="d-block">Pourcentage</label>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="p" checked> 0</span>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="p"> 50</span>
+            <span class="btn btn-sm btn-light border"><input type="radio" name="p"> 100</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card small">
+        <div class="card-header"><b>Situation du pilote fictif</b></div>
+        <div class="card-body py-2">
+          <div class="mb-1">Catégorie : <select class="form-select form-select-sm d-inline-block w-auto"><option>Moins de 25 ans</option></select></div>
+          <div class="mb-1">Âge à la date du vol : <input class="form-control form-control-sm d-inline-block" size="3" value="19"></div>
+          <div class="mb-1">Forfaits achetés dans l'année : <span class="badge bg-primary">Forfait heures</span> <a href="#">+</a></div>
+          <div>Tickets : Remorqué <input class="form-control form-control-sm d-inline-block" size="2" value="0"> Treuillée <input class="form-control form-control-sm d-inline-block" size="2" value="3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary mt-2"><i class="fas fa-calculator"></i> Calculer la facturation</button>
+
+  <h5 class="mt-3">Facturation obtenue</h5>
+  <table class="table table-sm table-bordered table-gvv small">
+    <thead><tr><th>Produit</th><th class="text-end">Quantité</th><th class="text-end">Prix</th><th class="text-end">Montant</th><th>Libellé</th><th>Facturé à</th><th>Pourquoi</th></tr></thead>
+    <tbody>
+      <tr><td>Remorqué 500m -25ans</td><td class="text-end">1</td><td class="text-end">32,00 €</td><td class="text-end">32,00 €</td><td>à 14h05</td><td>pilote</td><td><span class="badge bg-secondary">Lancement, ligne 6</span> pas de ticket</td></tr>
+      <tr><td>Remorqué 100m</td><td class="text-end">2</td><td class="text-end">6,50 €</td><td class="text-end">13,00 €</td><td>à 14h05</td><td>pilote</td><td><span class="badge bg-secondary">Suppléments, ligne 1</span> 700 m = 2 tranches</td></tr>
+      <tr><td>Heure de vol biplace forfait</td><td class="text-end">3:00</td><td class="text-end">8,00 €</td><td class="text-end">24,00 €</td><td>à 14h05 sur F-CITT au forfait</td><td>pilote</td><td><span class="badge bg-secondary">Heures, ligne 2</span> forfait ; plafond 3 h</td></tr>
+      <tr class="fw-bold"><td colspan="3">Total</td><td class="text-end">69,00 €</td><td colspan="3"></td></tr>
+    </tbody>
+  </table>
+  <div class="d-flex gap-2 align-items-center">
+    <button class="btn btn-outline-success btn-sm"><i class="fas fa-bookmark"></i> Enregistrer comme cas de référence</button>
+    <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-code-compare"></i> Comparer avec la version active</button>
+  </div>
+
+  <h5 class="mt-3">Cas de référence <small class="text-muted fs-6">rejoués avec la version 4</small></h5>
+  <table class="table table-sm table-bordered small w-auto">
+    <tr class="table-light"><th>Cas</th><th>Attendu</th><th>Obtenu</th><th></th></tr>
+    <tr><td>Remorqué 500 m, -25 ans, sans ticket</td><td>32,00 €</td><td>32,00 €</td><td class="text-success"><i class="fas fa-check"></i></td></tr>
+    <tr><td>Vol de découverte remorqué</td><td>0,00 €</td><td>0,00 €</td><td class="text-success"><i class="fas fa-check"></i></td></tr>
+    <tr class="table-danger"><td>Treuillée avec 3 tickets</td><td>décompte 1 ticket</td><td>3,00 € facturés</td><td class="text-danger"><i class="fas fa-times"></i> <a href="#">voir l'écart</a></td></tr>
+  </table>
+</div>
+<footer class="container-fluid p-3 mt-4 text-white text-center gvv-banner">
+  <p class="m-0">GVV — Gestion Vol à voile · Prototype de configuration de la facturation</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<title>Éditeur de règles — facturation</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { background:#fff; }
+  .gvv-banner { background-color: green; }
+  .proto-ribbon { position:fixed; top:8px; left:50%; transform:translateX(-50%); background:#ffc107; color:#000;
+                  font-weight:600; padding:2px 12px; border-radius:4px; z-index:2000; font-size:.8rem; opacity:.9 }
+  .gvv-form { background:#e1e4e8; border:1px solid #adb5bd; border-radius:4px; padding:12px; }
+  .table-gvv thead th { background:#ececec; }
+  .table-gvv tbody tr:nth-child(odd) { background:#d6d6ee; }
+  .dsl { font-family: "DejaVu Sans Mono", monospace; font-size:.82rem; background:#1e1e1e; color:#d4d4d4;
+         border-radius:4px; padding:10px; white-space:pre; overflow:auto; }
+  .dsl .k { color:#569cd6; font-weight:bold } .dsl .s { color:#ce9178 } .dsl .c { color:#6a9955 } .dsl .n { color:#b5cea8 }
+  .rule { border:1px solid #adb5bd; border-radius:4px; background:#f8f9fa; padding:8px; margin-bottom:8px; }
+  .rule .kw { font-weight:bold; color:#0d6efd; min-width:3.2rem; display:inline-block }
+  .rule select, .rule input { display:inline-block; width:auto; }
+  .hl { outline:3px solid #ffc107; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-2">
+  <a class="btn btn-success btn-lg me-3" href="#"><i class="fas fa-home"></i> Accueil GVV</a>
+  <ul class="navbar-nav me-auto">
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Gestion</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Membres</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Planeurs</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Remorqueurs</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle active" href="#">Compta</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Ecritures</a></li>
+    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#">Aide</a></li>
+  </ul>
+  <div class="text-white text-center me-3 small">
+    <div>tresorier</div>
+    <div class="badge bg-danger w-100">trésorier</div>
+    <div class="mt-1">Section : <select class="form-select-sm"><option>Planeur</option></select></div>
+  </div>
+  <a class="btn btn-outline-light btn-sm" href="#"><i class="fas fa-sign-out-alt"></i> Quitter</a>
+</nav>
+<header class="container-fluid p-3 text-white text-center gvv-banner">
+  <i class="fas fa-paper-plane fa-2x float-start mt-2 ms-4"></i>
+  <h1 class="m-0 text-dark">Aéroclub exemple</h1>
+  <i class="fas fa-plane fa-2x float-end mt-n5 me-4" style="margin-top:-2.2rem"></i>
+</header>
+<div class="proto-ribbon">Prototype non fonctionnel</div>
+<div class="container-fluid px-3 pt-2">
+  <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Retour aux configurations</a>
+  <h3 class="mt-2">Configuration de la facturation — Planeur <small class="text-muted fs-6">option A : règles</small></h3>
+
+  <div class="d-flex flex-wrap gap-3 align-items-center mb-2">
+    <span>Version <b>4</b> <span class="badge bg-warning text-dark">brouillon</span></span>
+    <span>Version active : <b>3</b> depuis le 01/01/2026</span>
+    <label>Date d'effet <input type="date" class="form-control form-control-sm d-inline-block w-auto" value="2027-01-01"></label>
+    <label>S'applique à <select class="form-select form-select-sm d-inline-block w-auto"><option>Toutes les sections (configuration commune)</option></select></label>
+  </div>
+
+  <ul class="nav nav-tabs">
+    <li class="nav-item"><a class="nav-link" href="#">Définitions</a></li>
+    <li class="nav-item"><a class="nav-link active" href="#">Lancement</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Heures de vol</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Moteur</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Suppléments</a></li>
+  </ul>
+
+  <div class="row g-3 pt-3">
+    <div class="col-lg-7">
+      <h6>Règles du bloc « Lancement » <small class="text-muted">— lues de haut en bas, la première qui s'applique l'emporte</small></h6>
+
+      <div class="rule">
+        <i class="fas fa-grip-vertical text-muted me-1"></i><span class="kw">Si</span>
+        <select class="form-select form-select-sm"><option>offert</option></select>
+        <span class="kw ms-2">alors</span>
+        <select class="form-select form-select-sm"><option>ne rien facturer</option></select>
+        <button class="btn btn-sm btn-outline-danger float-end"><i class="fas fa-trash"></i></button>
+      </div>
+
+      <div class="rule">
+        <i class="fas fa-grip-vertical text-muted me-1"></i><span class="kw">Sinon si</span>
+        <select class="form-select form-select-sm"><option>lancement</option></select>
+        <select class="form-select form-select-sm"><option>est</option></select>
+        <select class="form-select form-select-sm"><option>treuil</option></select>
+        <div class="mt-1 ms-5"><span class="kw">alors</span> facturer
+          <input class="form-control form-control-sm" size="3" value="1">
+          <select class="form-select form-select-sm"><option>Treuillé</option></select>
+          libellé <input class="form-control form-control-sm" size="22" value=" à {heure}{mention}"></div>
+        <button class="btn btn-sm btn-outline-danger float-end" style="margin-top:-2rem"><i class="fas fa-trash"></i></button>
+      </div>
+
+      <div class="rule hl">
+        <i class="fas fa-grip-vertical text-muted me-1"></i><span class="kw">Sinon si</span>
+        <select class="form-select form-select-sm"><option>lancement</option></select>
+        <select class="form-select form-select-sm"><option>est</option></select>
+        <select class="form-select form-select-sm"><option>remorqué</option></select>
+        <b>et</b>
+        <select class="form-select form-select-sm"><option>hauteur</option></select>
+        <select class="form-select form-select-sm"><option>≤</option></select>
+        <input class="form-control form-control-sm" size="4" value="350"> m
+        <button class="btn btn-sm btn-link"><i class="fas fa-plus"></i> condition</button>
+        <div class="mt-1 ms-5"><span class="kw">alors</span> facturer
+          <input class="form-control form-control-sm" size="3" value="1">
+          produit selon <span class="badge bg-secondary">extérieur</span> <span class="badge bg-secondary">jeune</span>
+          <table class="table table-sm table-bordered bg-white mt-1 mb-1 w-auto small">
+            <tr class="table-light"><th>extérieur</th><th>jeune</th><th>produit</th><th>à défaut</th></tr>
+            <tr><td>non</td><td>non</td><td>Remorqué 300m</td><td></td></tr>
+            <tr><td>non</td><td>oui</td><td>Remorqué 300m -25ans</td><td>Remorqué 300m</td></tr>
+            <tr><td>oui</td><td>non</td><td>Remorqué extérieur 300m</td><td></td></tr>
+            <tr><td>oui</td><td>oui</td><td>Remorqué extérieur 300m -25ans</td><td>Remorqué extérieur 300m</td></tr>
+          </table>
+          libellé <input class="form-control form-control-sm" size="22" value=" à {heure}{mention}"></div>
+      </div>
+
+      <div class="rule">
+        <i class="fas fa-grip-vertical text-muted me-1"></i><span class="kw">Sinon si</span>
+        <select class="form-select form-select-sm"><option>lancement</option></select>
+        <select class="form-select form-select-sm"><option>est</option></select>
+        <select class="form-select form-select-sm"><option>remorqué</option></select>
+        <div class="mt-1 ms-5"><span class="kw">alors</span> décompter <input class="form-control form-control-sm" size="2" value="1"> ticket
+          <select class="form-select form-select-sm"><option>Remorqué</option></select>, sinon facturer 1 produit selon … <a href="#">(4 cas)</a></div>
+      </div>
+
+      <button class="btn btn-outline-primary btn-sm"><i class="fas fa-plus"></i> Ajouter une règle</button>
+    </div>
+
+    <div class="col-lg-5">
+      <h6>Texte de la configuration <small class="text-muted">— modifiable, synchronisé avec les règles</small></h6>
+<div class="dsl"><span class="k">lancement :</span>
+  <span class="k">si</span> offert : <span class="k">rien</span>
+  <span class="k">sinon si</span> lancement <span class="k">est</span> treuil :
+    <span class="k">facturer</span> <span class="n">1</span> <span class="s">"Treuillé"</span> <span class="k">libellé</span> <span class="s">" à {heure}{mention}"</span>
+  <span class="k">sinon si</span> lancement <span class="k">est</span> remorqué <span class="k">et</span> hauteur ≤ <span class="n">350 m</span> :
+    <span class="k">facturer</span> <span class="n">1</span> <span class="k">selon</span> extérieur, jeune :
+        non, non → <span class="s">"Remorqué 300m"</span>
+        non, oui → <span class="s">"Remorqué 300m -25ans"</span>
+                   <span class="k">ou à défaut</span> <span class="s">"Remorqué 300m"</span>
+        oui, non → <span class="s">"Remorqué extérieur 300m"</span>
+        oui, oui → <span class="s">"Remorqué extérieur 300m -25ans"</span>
+                   <span class="k">ou à défaut</span> <span class="s">"Remorqué extérieur 300m"</span>
+      <span class="k">libellé</span> <span class="s">" à {heure}{mention}"</span>
+  <span class="k">sinon si</span> lancement <span class="k">est</span> remorqué :
+    <span class="k">décompter</span> <span class="n">1</span> ticket <span class="s">"Remorqué"</span>, <span class="k">sinon</span>
+    <span class="k">facturer</span> <span class="n">1</span> <span class="k">selon</span> extérieur, jeune : <span class="c"># 4 cas</span></div>
+      <div class="alert alert-success alert-dismissible mt-2 py-2 small mb-1"><i class="fas fa-check-circle"></i> Texte valide : 4 règles, 10 produits, tous connus.</div>
+      <div class="alert alert-danger alert-dismissible py-2 small"><i class="fas fa-exclamation-triangle"></i> Bloc « Heures de vol », ligne 6 : le produit <b>« Heure de vol biplce »</b> n'existe pas. Vouliez-vous dire « Heure de vol biplace » ?</div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 mt-3">
+    <button class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer le brouillon</button>
+    <button class="btn btn-outline-primary"><i class="fas fa-flask"></i> Tester dans le simulateur</button>
+    <button class="btn btn-outline-secondary"><i class="fas fa-file-export"></i> Exporter</button>
+    <button class="btn btn-success ms-auto" disabled><i class="fas fa-check"></i> Activer à la date d'effet</button>
+  </div>
+  <div class="text-muted small mt-1">L'activation est possible quand la configuration est valide et que tous les cas de référence donnent le résultat attendu.</div>
+</div>
+<footer class="container-fluid p-3 mt-4 text-white text-center gvv-banner">
+  <p class="m-0">GVV — Gestion Vol à voile · Prototype de configuration de la facturation</p>
+</footer>
+</body>
+</html>
