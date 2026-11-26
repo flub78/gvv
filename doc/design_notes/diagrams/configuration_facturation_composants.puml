@@ -1,0 +1,41 @@
+@startuml configuration_facturation_composants
+skinparam componentStyle rectangle
+actor "Trésorier" as T
+actor "Administrateur" as A
+actor "Mainteneur" as MA
+
+package "Édition (forme selon le choix C1)" {
+  [Éditeur dans GVV] as GUI
+  [Format d'échange\n(texte en A, tableur en B)] as FMT
+  [Assistant IA (lot 6)] as IA
+}
+[Validation] as P
+database "Configurations\n(versionnées, par section)" as CFG
+database "Cas de référence\n(choix C3)" as REF
+[Moteur] as M
+[Simulateur] as S
+[Comparateur] as C
+[Génération des configurations\nhistoriques (choix C4)] as G
+[Modules PHP historiques] as H
+database "Achats" as ACH
+database "Vols, membres,\nforfaits, tickets, tarifs" as DATA
+
+T --> GUI
+T --> IA
+A --> FMT : import / export
+MA --> G
+GUI --> P
+FMT --> P
+IA --> FMT : propose
+G --> FMT : propose
+P --> CFG : modèle validé
+CFG --> M
+DATA --> M : contexte du vol
+M --> ACH : lignes de facturation
+S --> M : vol fictif, sans écriture
+S --> REF : enregistre
+REF --> M : rejoués avant activation
+C --> M
+C --> H : même vol
+H --> ACH
+@enduml
