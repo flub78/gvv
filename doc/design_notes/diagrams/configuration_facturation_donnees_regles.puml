@@ -1,0 +1,44 @@
+@startuml configuration_facturation_donnees_regles
+hide methods
+class "Configuration" as CF {
+  version
+  statut : brouillon, active, archivée
+  date d'effet
+  auteur
+}
+class "Bloc" as B {
+  nature : lancement, heures,
+  moteur, suppléments
+}
+class "Règle" as R {
+  ordre dans le bloc
+  première vraie seulement
+}
+class "Condition" as CO {
+  attribut
+  opérateur
+  valeur
+}
+class "Facturation" as F {
+  fonction de quantité
+  modèle de libellé
+  source : tarif, ticket ou forfait
+}
+class "Produit" as P
+class "Type de vol" as TV
+class "Catégorie de membre" as CM
+class "Achat" as A
+class "Section" as SE
+
+CF "n" --> "0..1" SE : propre à
+
+CF "1" *-- "n" B
+B "1" *-- "n" R
+R "1" *-- "n" CO
+R "1" *-- "n" F
+F --> P
+CO ..> TV : référence
+CO ..> CM : référence
+A --> P
+A ..> CF : version appliquée
+@enduml
