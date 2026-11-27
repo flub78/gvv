@@ -117,10 +117,12 @@ test.describe('Vols decouverte CRUD (gestionnaire)', () => {
     const deleteLink = updatedRow.locator('a[href*="/vols_decouverte/delete/"]').first();
     await expect(deleteLink).toBeVisible();
 
-    const deleteHref = await deleteLink.getAttribute('href');
-    expect(deleteHref).toBeTruthy();
-
-    await page.goto(deleteHref);
+    // Clic sur le bouton, comme un utilisateur : la suppression part en POST
+    page.once('dialog', (dialog) => dialog.accept());
+    await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/vols_decouverte/delete/') && r.request().method() === 'POST'),
+      deleteLink.click(),
+    ]);
     await page.waitForLoadState('domcontentloaded');
     await checkNoPhpErrors(page);
 

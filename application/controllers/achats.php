@@ -281,7 +281,8 @@ class Achats extends Gvv_Controller {
      *            identifiant à supprimer
      */
     function delete($id) {
-        // détruit en base
+        // Les redirections vers la suppression d'origine sont en 307 : la
+        // demande reste un POST, jeton CSRF compris (la suppression refuse GET).
         $current = $this->gvv_model->get_by_id('id', $id);
 
         if (isset($current['vol_avion'])) {
@@ -289,7 +290,7 @@ class Achats extends Gvv_Controller {
 
             // L'achat a été généré par un vol, c'est le vol qu'il faut détruire
             if ($vol != 0) {
-                redirect("vols_avion/delete/" . $vol);
+                redirect("vols_avion/delete/" . $vol, 'location', 307);
                 return;
             }
         } else if (isset($current['vol_planeur'])) {
@@ -297,7 +298,7 @@ class Achats extends Gvv_Controller {
 
             // L'achat a été généré par un vol, c'est le vol qu'il faut détruire
             if ($vol != 0) {
-                redirect("vols_planeur/delete/" . $vol);
+                redirect("vols_planeur/delete/" . $vol, 'location', 307);
                 return;
             }
         } else if (isset($current['mvt_pompe'])) {
@@ -305,7 +306,7 @@ class Achats extends Gvv_Controller {
 
             // L'achat a été généré par un mouvement de pompe
             if ($mvt != 0) {
-                redirect("pompes/delete/" . $mvt);
+                redirect("pompes/delete/" . $mvt, 'location', 307);
                 return;
             }
         }

@@ -1481,7 +1481,7 @@ abstract class Metadata {
             return $btn;
         } elseif ($action == 'delete') {
             $delete_label = $this->CI->lang->line('gvv_button_delete');
-            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-danger" title="' . htmlspecialchars($delete_label, ENT_QUOTES, 'UTF-8') . '" ' . $attrs . '>'
+            $btn = '<a href="' . site_url(trim($url, '/') . '/' . $elt_id) . '" class="btn btn-sm btn-danger" data-gvv-post="1" title="' . htmlspecialchars($delete_label, ENT_QUOTES, 'UTF-8') . '" ' . $attrs . '>'
                  . '<i class="fas fa-trash" aria-hidden="true"></i>'
                  . '</a>';
             return $btn;

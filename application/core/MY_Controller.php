@@ -18,11 +18,21 @@ class MY_Controller extends CI_Controller
     protected $user_id;
 
     /**
+     * Méthodes qui modifient des données : elles n'acceptent que POST, donc le
+     * jeton CSRF. Un lien de l'application les déclenche avec l'attribut
+     * data-gvv-post (assets/javascript/csrf.js).
+     * @var string[]
+     */
+    protected $post_only_methods = array();
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         parent::__construct();
+
+        $this->_refuse_get_on_post_only_method();
 
         // Common ancestor for both Gvv_Controller variants (libraries/ and
         // core/) — set here so every controller gets a consistent timezone,
@@ -43,6 +53,42 @@ class MY_Controller extends CI_Controller
 
         // Initialize user session
         $this->_init_auth();
+    }
+
+    /**
+     * Refuse une méthode de $post_only_methods appelée autrement qu'en POST
+     * (lien piégé, image sur un autre site) : statut 405 et message explicite,
+     * en JSON pour un appel de script. Rien n'est modifié.
+     *
+     * @return void
+     */
+    private function _refuse_get_on_post_only_method()
+    {
+        if (empty($this->post_only_methods) || $this->input->is_cli_request()) {
+            return;
+        }
+        if (!in_array(strtolower($this->router->fetch_method()), $this->post_only_methods, TRUE)) {
+            return;
+        }
+        if (strtoupper($this->input->server('REQUEST_METHOD')) === 'POST') {
+            return;
+        }
+
+        log_message('error', 'POST requis : ' . $this->input->server('REQUEST_METHOD') . ' refusé sur ' . $this->uri->uri_string());
+
+        $this->lang->load('gvv');
+        $title = $this->lang->line('gvv_post_required_title');
+        $text = $this->lang->line('gvv_post_required_text');
+
+        if ($this->security->is_script_request()) {
+            set_status_header(405);
+            header('Allow: POST');
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(array('success' => FALSE, 'error' => 'post_required', 'message' => $text));
+            exit;
+        }
+        header('Allow: POST');
+        show_error($text, 405, $title);
     }
 
     /**

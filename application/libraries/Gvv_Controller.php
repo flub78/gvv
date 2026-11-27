@@ -51,6 +51,9 @@ class Gvv_Controller extends MY_Controller {
     // Données transmises au formulaire
     protected $data = array();
 
+    // La suppression n'accepte que POST (voir MY_Controller)
+    protected $post_only_methods = array('delete');
+
     /**
      * URL du tableau de bord parent (ex: 'welcome/section/flights').
      * Si défini, active le bouton de retour automatique dans bs_banner.

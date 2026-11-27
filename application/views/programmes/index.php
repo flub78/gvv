@@ -98,7 +98,7 @@ $this->lang->load('formation');
                                         $confirm_msg = str_replace('{name}', $programme['titre'],
                                                                   $this->lang->line("formation_programmes_delete_confirm"));
                                         ?>
-                                        <a href="<?= controller_url($controller) ?>/delete/<?= $programme['id'] ?>"
+                                        <a href="<?= controller_url($controller) ?>/delete/<?= $programme['id'] ?>" data-gvv-post="1"
                                            class="btn btn-danger"
                                            title="<?= $this->lang->line("formation_programmes_delete") ?>"
                                            onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">

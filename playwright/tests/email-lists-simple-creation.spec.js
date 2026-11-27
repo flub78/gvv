@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { deleteViaApp } = require('./helpers/csrf');
 
 /**
  * Test simplified email list creation workflow (v1.4)
@@ -20,9 +21,9 @@ test.describe('Email Lists - Simple Creation Workflow', () => {
         await page.waitForLoadState('networkidle');
     });
 
-    test.afterEach(async ({ request }) => {
+    test.afterEach(async ({ page }) => {
         for (const id of createdListIds) {
-            await request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+            await deleteViaApp(page, 'email_lists', id).catch(() => {});
         }
         createdListIds = [];
     });

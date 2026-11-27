@@ -7,6 +7,9 @@
  *     soumission et lors d'un form.submit() en JavaScript) ;
  *   - aux requêtes XMLHttpRequest (donc jQuery) et fetch, dans l'en-tête
  *     X-CSRF-Token.
+ * Il transforme aussi en envoi POST les liens marqués data-gvv-post (actions
+ * qui modifient des données, comme les suppressions), que le serveur refuse
+ * en GET.
  * Seules les requêtes vers le même site reçoivent le jeton : il n'est jamais
  * transmis à un site tiers.
  *
@@ -85,6 +88,26 @@
         addToForm(this);
         return nativeSubmit.apply(this, arguments);
     };
+
+    // Liens d'action (data-gvv-post) : la modification part en POST avec le
+    // jeton au lieu d'un simple GET. Écouté sur document, donc après le
+    // onclick du lien : un confirm() refusé (return false) annule l'envoi.
+    document.addEventListener('click', function (event) {
+        if (event.defaultPrevented || !event.target || !event.target.closest) {
+            return;
+        }
+        var link = event.target.closest('a[data-gvv-post]');
+        if (!link || !sameOrigin(link.href)) {
+            return;
+        }
+        event.preventDefault();
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = link.href;
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', addToAllForms);

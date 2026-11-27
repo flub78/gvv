@@ -14,6 +14,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('../helpers/LoginPage');
+const { deleteViaApp } = require('../helpers/csrf');
 
 // Test configuration
 const TEST_USER = 'testadmin';
@@ -153,8 +154,9 @@ async function createGlider(page, loginPage, glider) {
  * @param {string} immat - Glider registration number
  */
 async function deleteGlider(page, loginPage, immat) {
-  // Navigate to delete URL
-  await loginPage.goto(`planeur/delete/${immat}`);
+  // Suppression par POST, comme le bouton de la liste, puis retour à la liste
+  await deleteViaApp(page, 'planeur', immat);
+  await loginPage.goto('planeur/page');
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000);
 

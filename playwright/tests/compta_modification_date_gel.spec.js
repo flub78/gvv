@@ -18,6 +18,7 @@
 
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
+const { deleteViaApp } = require('./helpers/csrf');
 
 const DB_CONFIG = {
     host: 'localhost',
@@ -107,7 +108,7 @@ async function deleteEntry(page, connection, description, id, comptes, soldesAva
         if (rows.length) id = rows[0].id;
     }
     if (id !== null) {
-        await page.goto(`/index.php/compta/delete/${id}`);
+        await deleteViaApp(page, 'compta', id);
         await page.waitForLoadState('networkidle');
         const [left] = await connection.query('SELECT id FROM ecritures WHERE id = ?', [id]);
         expect(left.length).toBe(0);

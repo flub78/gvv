@@ -15,6 +15,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('../helpers/LoginPage');
+const { deleteViaApp } = require('../helpers/csrf');
 
 // Test configuration
 const TEST_USER = 'testadmin';
@@ -151,8 +152,9 @@ async function createTerrain(page, loginPage, terrain) {
  * @param {string} oaci - OACI code of terrain to delete
  */
 async function deleteTerrain(page, loginPage, oaci) {
-  // Navigate to delete URL
-  await loginPage.goto(`terrains/delete/${oaci}`);
+  // Suppression par POST, comme le bouton de la liste, puis retour à la liste
+  await deleteViaApp(page, 'terrains', oaci);
+  await loginPage.goto('terrains/page');
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1000);
 

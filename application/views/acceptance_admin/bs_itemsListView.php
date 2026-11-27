@@ -215,7 +215,7 @@ $filter_archived_document = isset($filter_archived_document) ? $filter_archived_
                            onclick="return confirm(<?= js_str(($item['active'] ? $this->lang->line('acceptance_confirm_deactivate') : $this->lang->line('acceptance_confirm_activate'))) ?>);">
                             <i class="fas fa-<?= $item['active'] ? 'ban' : 'check' ?>"></i>
                         </a>
-                        <a href="<?= site_url('acceptance_admin/delete/' . $item['id']) ?>"
+                        <a href="<?= site_url('acceptance_admin/delete/' . $item['id']) ?>" data-gvv-post="1"
                            class="btn btn-outline-danger"
                            title="<?= $this->lang->line('acceptance_delete') ?>"
                            onclick="return confirm(<?= js_str($this->lang->line('acceptance_confirm_delete')) ?>);">

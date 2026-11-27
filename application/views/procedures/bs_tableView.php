@@ -233,7 +233,7 @@ $this->lang->load('procedures');
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Supprimer</a>
+                <a href="#" id="confirmDeleteBtn" data-gvv-post="1" class="btn btn-danger">Supprimer</a>
             </div>
         </div>
     </div>

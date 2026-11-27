@@ -21,6 +21,7 @@ const { DB_CONFIG } = require('../helpers/gvv-config');
 const GliderFlightPage = require('../helpers/GliderFlightPage');
 const fs = require('fs');
 const path = require('path');
+const { deleteViaApp } = require('../helpers/csrf');
 
 // Test configuration
 const TEST_USER = 'testadmin';
@@ -67,7 +68,7 @@ test.describe('GVV Glider Flight Tests (Migrated from Dusk)', () => {
         'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ? AND vpdate = ?',
         [lastFlightIdBefore, TEST_USER, nextDay]);
       for (const { vpid } of created) {
-        await flightPage.page.goto(`/index.php/vols_planeur/delete/${vpid}`);
+        await deleteViaApp(flightPage.page, 'vols_planeur', vpid);
       }
       const [left] = await db.query(
         'SELECT vpid FROM volsp WHERE vpid > ? AND saisie_par = ? AND vpdate = ?',

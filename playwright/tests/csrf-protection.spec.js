@@ -14,17 +14,52 @@
  */
 
 const { test, expect } = require('@playwright/test');
+const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
+const { DB_CONFIG } = require('./helpers/gvv-config');
 
 const ASTERIX = { username: 'asterix', password: 'password', section: '1' };
+const TESTADMIN = { username: 'testadmin', password: 'password', section: '1' };
 const SET_SECTION = '/index.php/user_roles_per_section/set_section';
 
-async function login(page) {
+async function login(page, user = ASTERIX) {
     const loginPage = new LoginPage(page);
     await loginPage.open();
-    await loginPage.login(ASTERIX.username, ASTERIX.password, ASTERIX.section);
+    await loginPage.login(user.username, user.password, user.section);
     await loginPage.goto('welcome');
     await page.waitForLoadState('domcontentloaded');
+}
+
+/** Terrain de test, créé et supprimé par le test lui-même. */
+const TERRAIN = { oaci: '00CSRF', nom: 'Terrain test CSRF' };
+
+async function createTerrain(db) {
+    await db.execute('DELETE FROM terrains WHERE oaci = ?', [TERRAIN.oaci]);
+    await db.execute('INSERT INTO terrains (oaci, nom, comment) VALUES (?, ?, ?)',
+        [TERRAIN.oaci, TERRAIN.nom, 'Créé par csrf-protection.spec.js']);
+}
+
+/** Liste des terrains filtrée sur le terrain de test (liste paginée dans la page). */
+async function openTerrainInList(page) {
+    await page.goto('/index.php/terrains/page');
+    const box = page.getByRole('textbox', { name: /Rechercher/ });
+    const button = deleteButton(page);
+    // Le filtre n'agit qu'une fois la liste initialisée : on le rejoue jusque-là
+    await expect(async () => {
+        await box.fill('');
+        await box.fill(TERRAIN.oaci);
+        await expect(button).toHaveCount(1, { timeout: 1000 });
+    }).toPass({ timeout: 15000 });
+    return button;
+}
+
+function deleteButton(page) {
+    return page.locator(`a[href$="/terrains/delete/${TERRAIN.oaci}"]`);
+}
+
+async function terrainExists(db) {
+    const [rows] = await db.execute('SELECT oaci FROM terrains WHERE oaci = ?', [TERRAIN.oaci]);
+    return rows.length > 0;
 }
 
 test.describe('Protection CSRF', () => {
@@ -196,5 +231,96 @@ test.describe('Protection CSRF', () => {
             data: {}, maxRedirects: 0,
         });
         expect(response.status()).not.toBe(403);
+    });
+
+    /**
+     * @feature Authentification et autorisations
+     * Scénario: Les cookies de GVV ne sont pas joints aux demandes venant d'un autre site
+     *   Étant donné un membre qui se connecte à GVV
+     *   Quand GVV lui remet ses cookies de connexion
+     *   Alors le navigateur ne doit les joindre qu'aux navigations vers GVV, jamais à une image ou un formulaire d'un autre site
+     */
+    test('GVV cookies are restricted to same-site use', async ({ page }) => {
+        await login(page);
+        const cookies = await page.context().cookies();
+        expect(cookies.length).toBeGreaterThan(0);
+        for (const cookie of cookies) {
+            expect(cookie.sameSite, `cookie ${cookie.name}`).toBe('Lax');
+        }
+    });
+});
+
+test.describe('Protection CSRF des suppressions', () => {
+    // Les tests partagent le même terrain de test : pas d'exécution en parallèle
+    test.describe.configure({ mode: 'serial' });
+    let db;
+
+    test.beforeEach(async () => {
+        db = await mysql.createConnection(DB_CONFIG);
+        await createTerrain(db);
+    });
+
+    test.afterEach(async () => {
+        await db.execute('DELETE FROM terrains WHERE oaci = ?', [TERRAIN.oaci]);
+        await db.end();
+    });
+
+    /**
+     * @feature Authentification et autorisations
+     * Scénario: Une suppression déclenchée par un simple lien est refusée
+     *   Étant donné un administrateur connecté
+     *   Et un terrain enregistré
+     *   Quand une adresse de suppression du terrain est ouverte directement, par exemple depuis un lien piégé
+     *   Alors la suppression est refusée avec un message expliquant qu'il faut passer par le bouton de GVV
+     *   Et le terrain est toujours enregistré
+     */
+    test('delete reached by a plain link is refused and nothing is deleted', async ({ page }) => {
+        await login(page, TESTADMIN);
+        const response = await page.request.get(`/index.php/terrains/delete/${TERRAIN.oaci}`, { maxRedirects: 0 });
+        expect(response.status()).toBe(405);
+        expect(await response.text()).toContain('Aucune donnée n');
+        expect(await terrainExists(db)).toBe(true);
+    });
+
+    /**
+     * @feature Authentification et autorisations
+     * Scénario: Le bouton de suppression d'une liste continue de fonctionner
+     *   Étant donné un administrateur connecté
+     *   Et un terrain enregistré
+     *   Quand il clique sur le bouton de suppression du terrain dans la liste et confirme
+     *   Alors le terrain est supprimé
+     */
+    test('delete button of a list still deletes after confirmation', async ({ page }) => {
+        await login(page, TESTADMIN);
+        const button = await openTerrainInList(page);
+        page.once('dialog', (dialog) => dialog.accept());
+        await Promise.all([
+            page.waitForResponse((r) => r.url().includes(`/terrains/delete/${TERRAIN.oaci}`)
+                && r.request().method() === 'POST'),
+            button.click(),
+        ]);
+        await expect.poll(() => terrainExists(db)).toBe(false);
+    });
+
+    /**
+     * @feature Authentification et autorisations
+     * Scénario: Annuler la confirmation ne supprime rien
+     *   Étant donné un administrateur connecté
+     *   Et un terrain enregistré
+     *   Quand il clique sur le bouton de suppression du terrain dans la liste et annule la confirmation
+     *   Alors le terrain est toujours enregistré
+     */
+    test('cancelling the confirmation deletes nothing', async ({ page }) => {
+        await login(page, TESTADMIN);
+        const button = await openTerrainInList(page);
+        let posted = false;
+        page.on('request', (r) => {
+            if (r.url().includes('/terrains/delete/') && r.method() === 'POST') posted = true;
+        });
+        page.once('dialog', (dialog) => dialog.dismiss());
+        await button.click();
+        await page.waitForTimeout(500);
+        expect(posted).toBe(false);
+        expect(await terrainExists(db)).toBe(true);
     });
 });

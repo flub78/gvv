@@ -78,7 +78,7 @@ $this->lang->load('email_lists');
                                     </a>
 
                                     <?php $confirm_msg = str_replace('{name}', $list['name'], $this->lang->line("email_lists_delete_confirm")); ?>
-                                    <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>"
+                                    <a href="<?= controller_url($controller) ?>/delete/<?= $list['id'] ?>" data-gvv-post="1"
                                         class="btn btn-danger" title="<?= $this->lang->line("email_lists_delete") ?>"
                                         onclick="return confirm(<?= htmlspecialchars(json_encode($confirm_msg), ENT_QUOTES) ?>)">
                                         <i class="fas fa-trash text-white" aria-hidden="true"></i>

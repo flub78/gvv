@@ -57,7 +57,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
         <i class="fas fa-code-branch"></i> <?= $this->lang->line('archived_documents_new_version') ?>
     </a>
     <?php if (!empty($can_delete)): ?>
-    <a href="<?= site_url('archived_documents/delete/' . $document['id']) ?>"
+    <a href="<?= site_url('archived_documents/delete/' . $document['id']) ?>" data-gvv-post="1"
        class="btn btn-sm btn-danger"
        onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);">
         <i class="fas fa-trash"></i> <?= $this->lang->line('archived_documents_delete') ?>
@@ -288,7 +288,7 @@ $is_rotatable = $can_access_file && (!empty($is_admin) || $is_owner) && (
                              (!isset($ver['validation_status']) || $ver['validation_status'] !== 'approved'));
                         if ($can_delete_ver):
                         ?>
-                        <a href="<?= site_url('archived_documents/delete/' . $ver['id']) ?>?from=<?= $document['id'] ?>"
+                        <a href="<?= site_url('archived_documents/delete/' . $ver['id']) ?>?from=<?= $document['id'] ?>" data-gvv-post="1"
                            class="btn btn-sm btn-outline-danger"
                            onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);"
                            title="<?= $this->lang->line('archived_documents_delete') ?>">

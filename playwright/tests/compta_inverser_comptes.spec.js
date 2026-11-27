@@ -17,6 +17,7 @@
 
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
+const { deleteViaApp } = require('./helpers/csrf');
 
 const DB_CONFIG = {
     host: 'localhost',
@@ -170,7 +171,7 @@ test.describe('Compta - bouton Inverser', () => {
                 if (rows.length) ecritureId = rows[0].id;
             }
             if (ecritureId !== null) {
-                await page.goto(`/index.php/compta/delete/${ecritureId}`);
+                await deleteViaApp(page, 'compta', ecritureId);
                 await page.waitForLoadState('networkidle');
                 const [left] = await connection.query('SELECT id FROM ecritures WHERE id = ?', [ecritureId]);
                 expect(left.length).toBe(0);
