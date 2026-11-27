@@ -250,6 +250,29 @@ test.describe('Protection CSRF', () => {
     });
 });
 
+/**
+ * @feature Authentification et autorisations
+ * Scénario: Un script de la page ne peut pas lire la session
+ *   Étant donné un membre connecté à GVV
+ *   Quand un script s'exécute dans une page de GVV
+ *   Alors il ne voit pas le cookie de session
+ *   Mais il voit le jeton anti-falsification, que les pages de GVV ajoutent à leurs envois
+ */
+test('session cookie is hidden from page scripts, CSRF token is not', async ({ page }) => {
+    await login(page);
+    const cookies = await page.context().cookies();
+    const session = cookies.find((c) => c.name.endsWith('ci_session'));
+    const csrf = cookies.find((c) => c.name.endsWith('gvv_csrf_cookie'));
+    expect(session, 'cookie de session').toBeTruthy();
+    expect(csrf, 'cookie du jeton').toBeTruthy();
+    expect(session.httpOnly).toBe(true);
+    expect(csrf.httpOnly).toBe(false);
+
+    const visible = await page.evaluate(() => document.cookie);
+    expect(visible).not.toContain('ci_session');
+    expect(visible).toContain('gvv_csrf_cookie');
+});
+
 test.describe('Protection CSRF des suppressions', () => {
     // Les tests partagent le même terrain de test : pas d'exécution en parallèle
     test.describe.configure({ mode: 'serial' });

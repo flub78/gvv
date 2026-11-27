@@ -226,11 +226,16 @@ $config['cache_path'] = '';
 | Encryption Key
 |--------------------------------------------------------------------------
 |
-| If you use the Encryption class or the Session class you
-| MUST set an encryption key.  See the user guide for info.
+| Clé secrète propre à chaque installation : elle signe le cookie de
+| session. Obligatoire, GVV refuse de démarrer sans elle. L'assistant
+| d'installation la génère ; sinon, en générer une avec :
+|   php -r 'echo bin2hex(random_bytes(16)), "\n";'
+| Ne jamais reprendre une valeur publiée (dépôt, documentation) : elle
+| permettrait de fabriquer des cookies de session acceptés par le site.
+| La changer ferme les sessions en cours.
 |
 */
-$config['encryption_key'] = 'on serait mieux en planeur';
+$config['encryption_key'] = '';
 
 /*
 |--------------------------------------------------------------------------
