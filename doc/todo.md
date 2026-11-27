@@ -28,12 +28,6 @@
 
 * [] Automatiser le déploiement pour héberger des clubs multiple dans des sous-domaines.
 
-## Prochain lot sécurité
-
-* [] Cookie de session `Secure` et `HttpOnly` (et `Secure` pour le cookie du jeton CSRF, qui doit rester lisible par le script) : à ajouter avec `SameSite=Lax`, au même endroit.
-
-* [] Clé `encryption_key` : remplacer la valeur d'exemple publique de `config.example.php` par une valeur vide et un commentaire demandant d'en générer une ; vérifier que les serveurs déployés n'utilisent pas la valeur d'exemple.
-
 ## Dette technique
 
 * [] IA revues de code et refactoring

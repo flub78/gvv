@@ -1,5 +1,8 @@
 ## Fait récemment
 
+* [x] Lot sécurité des cookies (PR #119)
+  * [x] Cookie de session `Secure` (en HTTPS) et `HttpOnly` ; jeton CSRF `Secure`, resté lisible par le script
+  * [x] Clé `encryption_key` : valeur d'exemple publique retirée de `config.example.php`, clé générée par l'assistant d'installation, alerte aux administrateurs tant qu'un serveur utilise encore l'ancienne valeur
 * [x] Synchronisation des réservations avec Google Agenda (PRD `doc/prds/synchronisation_agenda_google_reservations_prd.md`, guide `doc/users/fr/14_rappels_reservations.md` §8) — recette avec un vrai compte Google restant à faire
   * [x] Un seul point d'écriture des réservations : les rappels partent aussi après un glisser-déposer
 * [x] Unifier la configuration globale de l'application : page Configuration à onglets (PRD `doc/prds/configuration_unifiee_prd.md`, guide `doc/users/fr/21_configuration.md`)
