@@ -79,7 +79,7 @@ Ce document résume les évolutions par grand domaine. Les domaines sont classé
 
 - **Refonte des autorisations** : rôles attribués par section, droits partiels du CA, menus filtrés selon les droits. → [Autorisations](users/fr/09_autorisations.md)
 - **Renforcement des contrôles d'accès** : chaque enregistrement exige les mêmes droits que l'ouverture du formulaire, et les pages d'administration et de maintenance sont réservées aux rôles concernés.
-- **Protection contre la falsification de requêtes (CSRF)** sur tous les formulaires et appels de l'application.
+- **Protection contre la falsification de requêtes (CSRF)** sur tous les envois de formulaires et appels de l'application qui modifient des données par POST.
 - **Journalisation** de toutes les créations, modifications et suppressions.
 - **Audit des accès** aux documents et aux fichiers déposés.
 

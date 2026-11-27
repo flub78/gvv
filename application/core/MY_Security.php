@@ -116,10 +116,7 @@ class MY_Security extends CI_Security
         $title = $lang->line('gvv_csrf_error_title') ?: 'Request refused';
         $text = $lang->line('gvv_csrf_error_text') ?: 'The page has expired. Reload it and try again.';
 
-        $accept = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
-        $is_ajax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
-            || strpos($accept, 'application/json') !== FALSE;
-        if ($is_ajax) {
+        if ($this->csrf_is_script_request()) {
             set_status_header(403);
             header('Content-Type: application/json; charset=UTF-8');
             echo json_encode(array('success' => FALSE, 'error' => 'csrf', 'message' => $text));
@@ -128,6 +125,47 @@ class MY_Security extends CI_Security
 
         show_error($text, 403, $title);
     }
+
+    /**
+     * La requête vient-elle d'un script (XMLHttpRequest, fetch) plutôt que
+     * d'une navigation ? Un appel fetch n'envoie en général ni
+     * X-Requested-With ni Accept: application/json, mais csrf.js lui ajoute
+     * l'en-tête X-CSRF-Token : seul un script peut poser cet en-tête.
+     *
+     * @return bool
+     */
+    protected function csrf_is_script_request()
+    {
+        if (isset($_SERVER[self::CSRF_HEADER])) {
+            return TRUE;
+        }
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            return TRUE;
+        }
+        $accept = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
+        return strpos($accept, 'application/json') !== FALSE;
+    }
+
+    /**
+     * Jeton CSRF : reprend celui du cookie s'il est valide, sinon en génère un
+     * avec un générateur cryptographiquement sûr (CodeIgniter 2 utilise
+     * md5(uniqid(rand())), prévisible). Même format : 32 caractères
+     * hexadécimaux, ce qui garde valides les cookies déjà émis.
+     *
+     * @return string
+     */
+    protected function _csrf_set_hash()
+    {
+        if ($this->_csrf_hash == '') {
+            if (isset($_COOKIE[$this->_csrf_cookie_name]) && is_string($_COOKIE[$this->_csrf_cookie_name])
+                && preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->_csrf_cookie_name]) === 1) {
+                return $this->_csrf_hash = $_COOKIE[$this->_csrf_cookie_name];
+            }
+            $this->_csrf_hash = bin2hex(random_bytes(16));
+        }
+        return $this->_csrf_hash;
+    }
+
     /**
      * HTML Entities Decode (patched)
      *

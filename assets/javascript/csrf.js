@@ -101,10 +101,9 @@
     };
     XMLHttpRequest.prototype.send = function () {
         if (this.gvvCsrfNeeded) {
-            var value = token();
-            if (value) {
-                this.setRequestHeader(HEADER, value);
-            }
+            // Toujours envoyé, même vide (cookie expiré) : il signale au serveur
+            // un appel de script, qui reçoit alors un refus en JSON
+            this.setRequestHeader(HEADER, token());
         }
         return nativeSend.apply(this, arguments);
     };
@@ -116,13 +115,11 @@
             var url = (typeof input === 'string' || input instanceof URL) ? String(input) : input.url;
             var method = (init && init.method) || (input && input.method) || 'GET';
             if (String(method).toUpperCase() === 'POST' && sameOrigin(url)) {
-                var value = token();
-                if (value) {
-                    init = init ? Object.assign({}, init) : {};
-                    var headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
-                    headers.set(HEADER, value);
-                    init.headers = headers;
-                }
+                // Toujours envoyé, même vide : voir XMLHttpRequest ci-dessus
+                init = init ? Object.assign({}, init) : {};
+                var headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+                headers.set(HEADER, token());
+                init.headers = headers;
             }
             return nativeFetch.call(window, input, init);
         };

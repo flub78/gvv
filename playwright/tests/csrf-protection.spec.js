@@ -52,6 +52,61 @@ test.describe('Protection CSRF', () => {
 
     /**
      * @feature Authentification et autorisations
+     * Scénario: Un appel de script refusé reçoit un message lisible par la page
+     *   Étant donné un membre connecté sur une page de GVV
+     *   Et dont le jeton de session a expiré depuis le chargement de la page
+     *   Quand un script de la page envoie une demande de modification
+     *   Alors elle est refusée
+     *   Et la page reçoit une réponse qu'elle peut interpréter, avec le message d'expiration
+     */
+    test('script call after the token expired gets a readable refusal', async ({ page }) => {
+        await login(page);
+        // Expiration du jeton : son cookie disparaît, la session reste ouverte
+        const context = page.context();
+        const kept = (await context.cookies()).filter((c) => !c.name.endsWith('gvv_csrf_cookie'));
+        await context.clearCookies();
+        await context.addCookies(kept);
+
+        const result = await page.evaluate(async (url) => {
+            // Appel fetch tel que l'écrit la page, sans X-Requested-With ni Accept JSON
+            const r = await fetch(url, {
+                method: 'POST',
+                body: new URLSearchParams({ section: '1', current_url: '' }),
+            });
+            return { status: r.status, type: r.headers.get('content-type'), body: await r.text() };
+        }, SET_SECTION);
+        expect(result.status).toBe(403);
+        expect(result.type).toContain('application/json');
+        const json = JSON.parse(result.body);
+        expect(json.error).toBe('csrf');
+        expect(json.message).toContain('La page a expiré');
+    });
+
+    /**
+     * @feature Authentification et autorisations
+     * Scénario: Le jeton de session n'est pas prévisible
+     *   Étant donné deux visiteurs qui ouvrent GVV au même moment
+     *   Quand chacun reçoit son jeton de session
+     *   Alors les deux jetons sont différents
+     *   Et chacun a la longueur attendue
+     */
+    test('session tokens are distinct and well formed', async ({ browser }) => {
+        const tokens = [];
+        for (let i = 0; i < 2; i++) {
+            const context = await browser.newContext();
+            const p = await context.newPage();
+            await p.goto('/index.php/auth/login');
+            const cookie = (await context.cookies()).find((c) => c.name.endsWith('gvv_csrf_cookie'));
+            tokens.push(cookie ? cookie.value : '');
+            await context.close();
+        }
+        expect(tokens[0]).toMatch(/^[0-9a-f]{32}$/);
+        expect(tokens[1]).toMatch(/^[0-9a-f]{32}$/);
+        expect(tokens[0]).not.toBe(tokens[1]);
+    });
+
+    /**
+     * @feature Authentification et autorisations
      * Scénario: Les appels d'une page de GVV portent automatiquement le jeton
      *   Étant donné un membre connecté sur une page de GVV
      *   Quand la page envoie plusieurs demandes successives par ses scripts
