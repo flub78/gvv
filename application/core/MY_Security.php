@@ -46,6 +46,10 @@ class MY_Security extends CI_Security
         // ceux de CodeIgniter compris) partent en SameSite=Lax : le navigateur
         // ne les joint plus aux requêtes qu'un autre site déclenche par une
         // image, un iframe ou un formulaire. Firefox n'applique pas Lax par défaut.
+        // ATTENTION : PHP ne garde qu'un seul callback d'en-têtes. Tout autre
+        // appel à header_register_callback() remplacerait celui-ci sans erreur
+        // et les cookies repartiraient sans SameSite : l'ajouter ici, dans
+        // add_samesite_to_cookies(), plutôt que d'en enregistrer un second.
         if (PHP_SAPI !== 'cli') {
             header_register_callback(array('MY_Security', 'add_samesite_to_cookies'));
         }

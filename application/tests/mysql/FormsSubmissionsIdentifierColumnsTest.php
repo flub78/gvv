@@ -123,10 +123,10 @@ class FormsSubmissionsIdentifierColumnsTest extends TestCase
 
     public function testSubmissionsListShowsOneColumnPerIdentifierField()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
-        $body = $this->http_get($this->base_url() . 'forms_admin/submissions/' . $this->form_id, $cookie)['body'];
+        $body = GvvTestHttp::get(GvvTestHttp::base_url() . 'forms_admin/submissions/' . $this->form_id, $cookie)['body'];
         $this->assertNotNull($body);
 
         $this->assertStringContainsString('<th>Nom du pilote</th>', $body);
@@ -142,10 +142,10 @@ class FormsSubmissionsIdentifierColumnsTest extends TestCase
 
     public function testSubmissionsListHasNoIdentifierColumnWhenFormHasNoIdentifierField()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
-        $body = $this->http_get($this->base_url() . 'forms_admin/submissions/' . $this->plain_form_id, $cookie)['body'];
+        $body = GvvTestHttp::get(GvvTestHttp::base_url() . 'forms_admin/submissions/' . $this->plain_form_id, $cookie)['body'];
         $this->assertNotNull($body);
 
         $this->assertStringContainsString('Réponses au formulaire', $body); // page rendered
@@ -155,35 +155,4 @@ class FormsSubmissionsIdentifierColumnsTest extends TestCase
 
     // ---- harness ----
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array('http' => array(
-            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-            'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                return explode(';', trim(substr($h, strlen('Set-Cookie:'))))[0];
-            }
-        }
-        return null;
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $context = stream_context_create(array('http' => array(
-            'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-            'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
 }

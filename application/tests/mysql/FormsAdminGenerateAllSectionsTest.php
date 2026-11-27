@@ -63,73 +63,16 @@ class FormsAdminGenerateAllSectionsTest extends TestCase
         $this->db->where('id', $this->form_id)->delete('forms');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return $this->extract_session_cookie($headers);
-    }
-
-    private function http_post($url, array $post_fields, $cookie = null)
-    {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers($cookie) . "",
-                'content' => http_build_query($post_fields), 'ignore_errors' => true,
-                'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-                'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
     public function testGeneratePageListsMembersOfEverySectionWhenNoSectionActive()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
         // Switch to "Toutes" (section key 0 matches no real section).
-        $this->http_post($this->base_url() . 'user_roles_per_section/set_section',
+        GvvTestHttp::post(GvvTestHttp::base_url() . 'user_roles_per_section/set_section',
             array('section' => '0'), $cookie);
 
-        $page = $this->http_get($this->base_url() . 'forms_admin/generate/' . $this->slug, $cookie);
+        $page = GvvTestHttp::get(GvvTestHttp::base_url() . 'forms_admin/generate/' . $this->slug, $cookie);
         $this->assertNotNull($page['body']);
 
         // Pilot selector: members from different sections must all be offered.

@@ -75,43 +75,9 @@ class FormsUploadSubmitTest extends TestCase
         }
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
     private function http_post_multipart($url, array $fields, array $files, $follow_redirects = true)
     {
-        $boundary = '----GvvTest' . uniqid();
-        $body = '';
-        foreach ($fields as $name => $value) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"\r\n\r\n";
-            $body .= $value . "\r\n";
-        }
-        foreach ($files as $name => $file) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"; filename=\"{$file['filename']}\"\r\n";
-            $body .= "Content-Type: {$file['type']}\r\n\r\n";
-            $body .= file_get_contents($file['path']) . "\r\n";
-        }
-        $body .= "--$boundary--\r\n";
-
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => $follow_redirects ? 1 : 0,
-                'timeout'         => 20,
-            ),
-        ));
-
-        $response_body = @file_get_contents($url, false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return array('body' => $response_body, 'headers' => $headers);
+        return GvvTestHttp::post_multipart($url, $fields, $files, null, array('follow' => $follow_redirects));
     }
 
     private function location_header(array $headers)
@@ -130,7 +96,7 @@ class FormsUploadSubmitTest extends TestCase
         $this->assertFileExists($pdf_path);
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms/upload/' . $this->enabled_slug,
+            GvvTestHttp::base_url() . 'forms/upload/' . $this->enabled_slug,
             array('upload_comment' => 'Commentaire de test PHPUnit'),
             array('upload_response_file' => array(
                 'filename' => 'reponse_scan.pdf',
@@ -175,7 +141,7 @@ class FormsUploadSubmitTest extends TestCase
     public function testUnrecordableFileDoesNotLeaveSubmissionOrFile()
     {
         $this->http_post_multipart(
-            $this->base_url() . 'forms/upload/' . $this->enabled_slug,
+            GvvTestHttp::base_url() . 'forms/upload/' . $this->enabled_slug,
             array('upload_comment' => 'Nom de fichier trop long'),
             array('upload_response_file' => array(
                 'filename' => str_repeat('a', 300) . '.pdf',
@@ -199,7 +165,7 @@ class FormsUploadSubmitTest extends TestCase
         $this->assertFileExists($txt_path);
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms/upload/' . $this->enabled_slug,
+            GvvTestHttp::base_url() . 'forms/upload/' . $this->enabled_slug,
             array('upload_comment' => ''),
             array('upload_response_file' => array(
                 'filename' => 'not_allowed.txt',
@@ -224,7 +190,7 @@ class FormsUploadSubmitTest extends TestCase
         $pdf_path = APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf';
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms/upload/' . $this->disabled_slug,
+            GvvTestHttp::base_url() . 'forms/upload/' . $this->disabled_slug,
             array('upload_comment' => ''),
             array('upload_response_file' => array(
                 'filename' => 'reponse_scan.pdf',

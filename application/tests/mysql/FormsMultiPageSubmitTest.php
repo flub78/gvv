@@ -78,63 +78,24 @@ class FormsMultiPageSubmitTest extends TestCase
         $this->db->where('id', $this->form_id)->delete('forms');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
     /**
-     * Minimal cookie-jar HTTP client (stream context, no curl available in
-     * this environment) — needed because the multi-page mechanism is carried
-     * entirely by the ci_session cookie across several successive requests.
+     * Requête avec un jeu de cookies conservé d'une requête à l'autre, comme
+     * un navigateur (le jeton CSRF du test remplace celui posé par le serveur).
      */
     private function http_request($method, $url, array $post_fields, array &$cookies)
     {
-        $headers = "User-Agent: GvvPhpUnitMultiPageTest/1.0\r\n";
         $pairs = array();
         foreach ($cookies as $name => $value) {
-            // Le jeton CSRF du test remplace celui posé par le serveur
             if ($name !== 'gvv_csrf_cookie') {
                 $pairs[] = $name . '=' . $value;
             }
         }
-        $headers .= gvv_test_csrf_headers(implode('; ', $pairs));
-
-        $options = array(
-            'method'          => $method,
-            'header'          => $headers,
-            'ignore_errors'   => true,
-            'follow_location' => 0,
-            'timeout'         => 20,
-        );
-        if ($method === 'POST') {
-            $options['header'] .= "Content-Type: application/x-www-form-urlencoded\r\n";
-            $options['content'] = http_build_query($post_fields);
-        }
-
-        $context = stream_context_create(array('http' => $options));
-        $body = @file_get_contents($url, false, $context);
-        $response_headers = isset($http_response_header) ? $http_response_header : array();
-
-        foreach ($response_headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0) {
-                $cookie_str = trim(substr($h, strlen('Set-Cookie:')));
-                $parts = explode(';', $cookie_str);
-                $kv = explode('=', $parts[0], 2);
-                if (count($kv) === 2) {
-                    $cookies[trim($kv[0])] = trim($kv[1]);
-                }
-            }
-        }
-
-        $location = null;
-        foreach ($response_headers as $h) {
-            if (stripos($h, 'Location:') === 0) {
-                $location = trim(substr($h, strlen('Location:')));
-            }
-        }
-
-        return array('body' => $body, 'headers' => $response_headers, 'location' => $location);
+        $options = array('headers' => "User-Agent: GvvPhpUnitMultiPageTest/1.0\r\n");
+        $response = ($method === 'POST')
+            ? GvvTestHttp::post($url, $post_fields, implode('; ', $pairs), $options)
+            : GvvTestHttp::get($url, implode('; ', $pairs), $options);
+        $cookies = array_merge($cookies, $response['cookies']);
+        return $response;
     }
 
     public function testNextThenFinalizeMergesAllThreePages()
@@ -142,15 +103,15 @@ class FormsMultiPageSubmitTest extends TestCase
         $cookies = array();
 
         // Visit page 1 first so the session/user-agent handshake is in place.
-        $this->http_request('GET', $this->base_url() . 'forms/' . $this->slug, array(), $cookies);
+        $this->http_request('GET', GvvTestHttp::base_url() . 'forms/' . $this->slug, array(), $cookies);
 
-        $r1 = $this->http_request('POST', $this->base_url() . 'forms/submit/' . $this->slug, array(
+        $r1 = $this->http_request('POST', GvvTestHttp::base_url() . 'forms/submit/' . $this->slug, array(
             'page_number' => 1, 'nav_action' => 'next', 'f1' => 'valeur-page-1',
         ), $cookies);
         $this->assertNotNull($r1['location'], 'La page 1 doit rediriger vers la page 2.');
         $this->assertStringContainsString('page=2', $r1['location']);
 
-        $r2 = $this->http_request('POST', $this->base_url() . 'forms/submit/' . $this->slug, array(
+        $r2 = $this->http_request('POST', GvvTestHttp::base_url() . 'forms/submit/' . $this->slug, array(
             'page_number' => 2, 'nav_action' => 'next', 'f2' => 'valeur-page-2',
         ), $cookies);
         $this->assertNotNull($r2['location'], 'La page 2 doit rediriger vers la page 3.');
@@ -158,7 +119,7 @@ class FormsMultiPageSubmitTest extends TestCase
 
         $before = (int) $this->db->where('form_id', $this->form_id)->count_all_results('form_submissions');
 
-        $r3 = $this->http_request('POST', $this->base_url() . 'forms/submit/' . $this->slug, array(
+        $r3 = $this->http_request('POST', GvvTestHttp::base_url() . 'forms/submit/' . $this->slug, array(
             'page_number' => 3, 'nav_action' => 'finalize', 'f3' => 'valeur-page-3',
         ), $cookies);
 
@@ -186,10 +147,10 @@ class FormsMultiPageSubmitTest extends TestCase
     public function testPrevSkipsValidationOfTheCurrentPage()
     {
         $cookies = array();
-        $this->http_request('GET', $this->base_url() . 'forms/' . $this->slug . '?page=2', array(), $cookies);
+        $this->http_request('GET', GvvTestHttp::base_url() . 'forms/' . $this->slug . '?page=2', array(), $cookies);
 
         // Leave the required f2 field empty and click "page précédente".
-        $r = $this->http_request('POST', $this->base_url() . 'forms/submit/' . $this->slug, array(
+        $r = $this->http_request('POST', GvvTestHttp::base_url() . 'forms/submit/' . $this->slug, array(
             'page_number' => 2, 'nav_action' => 'prev',
         ), $cookies);
 
@@ -201,11 +162,11 @@ class FormsMultiPageSubmitTest extends TestCase
     {
         $cookies = array();
         // Jump straight to the last page — no page_values_store accumulated for pages 1/2.
-        $this->http_request('GET', $this->base_url() . 'forms/' . $this->slug . '?page=3', array(), $cookies);
+        $this->http_request('GET', GvvTestHttp::base_url() . 'forms/' . $this->slug . '?page=3', array(), $cookies);
 
         $before = (int) $this->db->where('form_id', $this->form_id)->count_all_results('form_submissions');
 
-        $r = $this->http_request('POST', $this->base_url() . 'forms/submit/' . $this->slug, array(
+        $r = $this->http_request('POST', GvvTestHttp::base_url() . 'forms/submit/' . $this->slug, array(
             'page_number' => 3, 'nav_action' => 'finalize', 'f3' => 'valeur-page-3',
         ), $cookies);
 

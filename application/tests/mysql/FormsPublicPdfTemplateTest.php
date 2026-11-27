@@ -56,24 +56,9 @@ class FormsPublicPdfTemplateTest extends TestCase
         $this->db->where('id', $this->form_id)->delete('forms');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
     private function http_get($url)
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'GET',
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return array('body' => $body, 'headers' => $headers);
+        return GvvTestHttp::get($url, null, array('csrf' => FALSE));
     }
 
     private function status_code(array $headers)
@@ -100,7 +85,7 @@ class FormsPublicPdfTemplateTest extends TestCase
     {
         $this->storage->write_pdf_template($this->code, '%PDF-1.4 fake content');
 
-        $result = $this->http_get($this->base_url() . 'forms_public/pdf_template/' . $this->code);
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms_public/pdf_template/' . $this->code);
 
         $this->assertSame(200, $this->status_code($result['headers']));
         $this->assertSame('application/pdf', $this->header_value($result['headers'], 'Content-Type'));
@@ -109,21 +94,21 @@ class FormsPublicPdfTemplateTest extends TestCase
 
     public function test404WhenNoTemplateUploaded()
     {
-        $result = $this->http_get($this->base_url() . 'forms_public/pdf_template/' . $this->code);
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms_public/pdf_template/' . $this->code);
 
         $this->assertSame(404, $this->status_code($result['headers']));
     }
 
     public function test404ForUnknownFormCode()
     {
-        $result = $this->http_get($this->base_url() . 'forms_public/pdf_template/does-not-exist-' . uniqid());
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms_public/pdf_template/does-not-exist-' . uniqid());
 
         $this->assertSame(404, $this->status_code($result['headers']));
     }
 
     public function test404ForPathTraversalAttempt()
     {
-        $result = $this->http_get($this->base_url() . 'forms_public/pdf_template/' . rawurlencode('../../application/config/database'));
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms_public/pdf_template/' . rawurlencode('../../application/config/database'));
 
         $this->assertSame(404, $this->status_code($result['headers']));
     }
@@ -132,14 +117,14 @@ class FormsPublicPdfTemplateTest extends TestCase
     {
         $this->storage->write_pdf_template($this->code, '%PDF-1.4 fake');
 
-        $result = $this->http_get($this->base_url() . 'forms/' . $this->slug);
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms/' . $this->slug);
 
         $this->assertStringContainsString('forms_public/pdf_template/' . $this->code, $result['body']);
     }
 
     public function testDownloadLinkAbsentWhenNoTemplateUploaded()
     {
-        $result = $this->http_get($this->base_url() . 'forms/' . $this->slug);
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms/' . $this->slug);
 
         $this->assertStringNotContainsString('forms_public/pdf_template/' . $this->code, $result['body']);
     }
@@ -149,7 +134,7 @@ class FormsPublicPdfTemplateTest extends TestCase
         $this->storage->write_pdf_template($this->code, '%PDF-1.4 fake');
         $this->db->where('id', $this->form_id)->update('forms', array('allow_upload_response' => 0));
 
-        $result = $this->http_get($this->base_url() . 'forms/' . $this->slug);
+        $result = $this->http_get(GvvTestHttp::base_url() . 'forms/' . $this->slug);
 
         $this->assertStringNotContainsString('forms_public/pdf_template/' . $this->code, $result['body']);
     }

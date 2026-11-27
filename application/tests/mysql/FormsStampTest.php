@@ -94,11 +94,6 @@ class FormsStampTest extends TestCase
         }
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
     private function png_file($with_alpha, $color = 0)
     {
         $img = imagecreatetruecolor(8, 8);
@@ -115,89 +110,22 @@ class FormsStampTest extends TestCase
         return $path;
     }
 
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return $this->extract_session_cookie($headers);
-    }
-
     private function http_get($url, $cookie = null)
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'GET',
-                'header'          => "" . gvv_test_csrf_headers($cookie) . "",
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        return (string) @file_get_contents($url, false, $context);
+        return GvvTestHttp::get($url, $cookie)['body'];
     }
 
     private function upload_stamp($scope, $path, $type, $cookie, $origin = 'http://gvv.net')
     {
-        $boundary = '----GvvTest' . uniqid();
-        $body = "--$boundary\r\n"
-              . "Content-Disposition: form-data; name=\"stamp\"; filename=\"" . basename($path) . "\"\r\n"
-              . "Content-Type: $type\r\n\r\n"
-              . file_get_contents($path) . "\r\n"
-              . "--$boundary--\r\n";
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n"
-                                    . "" . gvv_test_csrf_headers($cookie) . ""
-                                    . ($origin !== null ? "Origin: $origin\r\n" : ''),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'forms_admin/stamp_upload/' . $scope, false, $context);
-        return isset($http_response_header) ? $http_response_header : array();
+        $response = GvvTestHttp::post_multipart(GvvTestHttp::base_url() . 'forms_admin/stamp_upload/' . $scope,
+            array(), array('stamp' => array('path' => $path, 'type' => $type)), $cookie,
+            array('headers' => $origin !== null ? "Origin: $origin\r\n" : ''));
+        return $response['headers'];
     }
 
     private function http_post($url, $cookie, $origin = 'http://gvv.net')
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "" . gvv_test_csrf_headers($cookie) . ""
-                                    . ($origin !== null ? "Origin: $origin\r\n" : ''),
-                'content'         => '',
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($url, false, $context);
-        return isset($http_response_header) ? $http_response_header : array();
+        return GvvTestHttp::request('POST', $url, $cookie, array('content' => '', 'headers' => $origin !== null ? "Origin: $origin\r\n" : ''))['headers'];
     }
 
     private function location_header(array $headers)
@@ -212,7 +140,7 @@ class FormsStampTest extends TestCase
 
     public function testUploadTransparentPngStoresGlobalStampAndShowsPreview()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
         $png = $this->png_file(true);
 
@@ -221,7 +149,7 @@ class FormsStampTest extends TestCase
         $this->assertStringContainsString('forms_admin/config', (string) $this->location_header($headers));
         $this->assertSame(file_get_contents($png), file_get_contents($this->storage->stamp_path(null)));
 
-        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $page = $this->http_get(GvvTestHttp::base_url() . 'forms_admin/config', $cookie);
         $this->assertStringContainsString('Tampon enregistré.', $page);
         $this->assertStringNotContainsString('alert-warning', $page);
         $this->assertStringContainsString('data:image/png;base64,' . base64_encode(file_get_contents($png)), $page);
@@ -229,19 +157,19 @@ class FormsStampTest extends TestCase
 
     public function testOpaquePngIsAcceptedWithWarning()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $png = $this->png_file(false);
 
         $this->upload_stamp('global', $png, 'image/png', $cookie);
 
         $this->assertTrue($this->storage->has_stamp(null));
-        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $page = $this->http_get(GvvTestHttp::base_url() . 'forms_admin/config', $cookie);
         $this->assertStringContainsString('alert-warning', $page);
     }
 
     public function testNonPngIsRejected()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $img = imagecreatetruecolor(8, 8);
         $jpg = tempnam(sys_get_temp_dir(), 'gvv_stamp_') . '.jpg';
         imagejpeg($img, $jpg);
@@ -251,19 +179,19 @@ class FormsStampTest extends TestCase
         $this->upload_stamp('global', $jpg, 'image/jpeg', $cookie);
 
         $this->assertFalse($this->storage->has_stamp(null));
-        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $page = $this->http_get(GvvTestHttp::base_url() . 'forms_admin/config', $cookie);
         $this->assertStringContainsString('Le tampon doit être une image PNG.', $page);
     }
 
     public function testUnknownScopeIsRejected()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $png = $this->png_file(true);
 
         $this->upload_stamp('999999', $png, 'image/png', $cookie);
 
         $this->assertFalse($this->storage->has_stamp(999999));
-        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $page = $this->http_get(GvvTestHttp::base_url() . 'forms_admin/config', $cookie);
         $this->assertStringContainsString('Portée de tampon inconnue.', $page);
     }
 
@@ -277,28 +205,28 @@ class FormsStampTest extends TestCase
 
     public function testDeleteRemovesGlobalStamp()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->storage->write_stamp(null, file_get_contents($this->png_file(true)));
 
-        $this->http_post($this->base_url() . 'forms_admin/stamp_delete/global', $cookie);
+        $this->http_post(GvvTestHttp::base_url() . 'forms_admin/stamp_delete/global', $cookie);
 
         $this->assertFalse($this->storage->has_stamp(null));
     }
 
     public function testStampShownInAdminAnswerViewButNeverOnPublicForm()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $png = file_get_contents($this->png_file(true, 200));
         $this->storage->write_stamp(null, $png);
         $data_uri = 'data:image/png;base64,' . base64_encode($png);
 
-        $public = $this->http_get($this->base_url() . 'forms/' . $this->slug);
+        $public = $this->http_get(GvvTestHttp::base_url() . 'forms/' . $this->slug);
         $this->assertStringContainsString('stamp-placeholder.svg', $public);
         $this->assertStringNotContainsString($data_uri, $public);
         $this->assertStringNotContainsString('.tampons', $public);
 
         $view = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_view/' . $this->form_id . '/' . $this->submission_id,
+            GvvTestHttp::base_url() . 'forms_admin/submission_view/' . $this->form_id . '/' . $this->submission_id,
             $cookie
         );
         $this->assertStringContainsString($data_uri, $view);
@@ -307,18 +235,18 @@ class FormsStampTest extends TestCase
 
     public function testUploadFromForeignOriginIsRefused()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $this->upload_stamp('global', $this->png_file(true), 'image/png', $cookie, 'https://evil.example');
 
         $this->assertFalse($this->storage->has_stamp(null), 'Un dépôt venant d\'un autre site ne doit rien écrire.');
-        $page = $this->http_get($this->base_url() . 'forms_admin/config', $cookie);
+        $page = $this->http_get(GvvTestHttp::base_url() . 'forms_admin/config', $cookie);
         $this->assertStringContainsString('Requête refusée', $page);
     }
 
     public function testUploadWithoutOriginNorRefererIsRefused()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $this->upload_stamp('global', $this->png_file(true), 'image/png', $cookie, null);
 
@@ -327,11 +255,11 @@ class FormsStampTest extends TestCase
 
     public function testDeleteFromForeignOriginIsRefused()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $png = file_get_contents($this->png_file(true));
         $this->storage->write_stamp(null, $png);
 
-        $this->http_post($this->base_url() . 'forms_admin/stamp_delete/global', $cookie, 'http://gvv.net.evil.example');
+        $this->http_post(GvvTestHttp::base_url() . 'forms_admin/stamp_delete/global', $cookie, 'http://gvv.net.evil.example');
 
         $this->assertTrue($this->storage->has_stamp(null), 'Une suppression venant d\'un autre site doit être refusée.');
         $this->assertSame($png, file_get_contents($this->storage->stamp_path(null)));

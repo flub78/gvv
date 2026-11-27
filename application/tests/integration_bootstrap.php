@@ -1364,3 +1364,6 @@ if (!function_exists('gvv_test_csrf_headers')) {
         return "Cookie: " . $cookies . "\r\nX-CSRF-Token: " . $token . "\r\n";
     }
 }
+
+// Client HTTP commun des tests qui interrogent gvv.net
+require_once APPPATH . 'tests/GvvTestHttp.php';

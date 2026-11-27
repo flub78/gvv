@@ -68,60 +68,9 @@ class FormsAdminGenerateMachineTest extends TestCase
         $this->db->where('macimmat', $this->macimmat)->delete('machinesa');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return $this->extract_session_cookie($headers);
-    }
-
     private function http_post($url, array $post_fields, $cookie = null, $follow = false)
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers($cookie) . "",
-                'content' => http_build_query($post_fields), 'ignore_errors' => true,
-                'follow_location' => $follow ? 1 : 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-                'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
+        return GvvTestHttp::post($url, $post_fields, $cookie, array('follow' => $follow));
     }
 
     private function location_header(array $headers)
@@ -136,11 +85,11 @@ class FormsAdminGenerateMachineTest extends TestCase
 
     public function testGenerateSubmitMissingMachineRedirectsBackWithError()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
         $result = $this->http_post(
-            $this->base_url() . 'forms_admin/generate_submit/' . $this->slug,
+            GvvTestHttp::base_url() . 'forms_admin/generate_submit/' . $this->slug,
             array('pilot_login' => 'abraracourcix', 'instructor_login' => 'fpeignot'),
             $cookie
         );
@@ -148,17 +97,17 @@ class FormsAdminGenerateMachineTest extends TestCase
         $this->assertNotNull($location);
         $this->assertStringContainsString('forms_admin/generate/' . $this->slug, $location);
 
-        $page = $this->http_get($this->base_url() . 'forms_admin/generate/' . $this->slug, $cookie);
+        $page = GvvTestHttp::get(GvvTestHttp::base_url() . 'forms_admin/generate/' . $this->slug, $cookie);
         $this->assertStringContainsString('Veuillez sélectionner une machine', $page['body']);
     }
 
     public function testGenerateSubmitWithMachineForwardsMachineImmatInUrl()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
         $result = $this->http_post(
-            $this->base_url() . 'forms_admin/generate_submit/' . $this->slug,
+            GvvTestHttp::base_url() . 'forms_admin/generate_submit/' . $this->slug,
             array('pilot_login' => 'abraracourcix', 'instructor_login' => 'fpeignot', 'machine_immat' => $this->macimmat),
             $cookie
         );
@@ -169,12 +118,12 @@ class FormsAdminGenerateMachineTest extends TestCase
 
     public function testPublicFormPrefillsMachineNumeroIdentification()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
-        $url = $this->base_url() . 'forms/' . $this->slug
+        $url = GvvTestHttp::base_url() . 'forms/' . $this->slug
             . '?pilot_login=abraracourcix&instructor_login=fpeignot&machine_immat=' . rawurlencode($this->macimmat);
-        $result = $this->http_get($url, $cookie);
+        $result = GvvTestHttp::get($url, $cookie);
 
         $this->assertNotNull($result['body']);
         $this->assertStringContainsString('value="' . $this->numero_identification . '"', $result['body'], 'Le champ doit être pré-rempli avec machinesa.numero_identification.');

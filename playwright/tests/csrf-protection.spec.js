@@ -313,14 +313,17 @@ test.describe('Protection CSRF des suppressions', () => {
     test('cancelling the confirmation deletes nothing', async ({ page }) => {
         await login(page, TESTADMIN);
         const button = await openTerrainInList(page);
-        let posted = false;
-        page.on('request', (r) => {
-            if (r.url().includes('/terrains/delete/') && r.method() === 'POST') posted = true;
+        // Toute demande de suppression envoyée après le clic serait captée ici
+        const deleteRequest = page.waitForRequest(
+            (r) => r.url().includes('/terrains/delete/') && r.method() === 'POST', { timeout: 3000 })
+            .then(() => true, () => false);
+        const dialogShown = page.waitForEvent('dialog').then(async (dialog) => {
+            await dialog.dismiss();
+            return true;
         });
-        page.once('dialog', (dialog) => dialog.dismiss());
         await button.click();
-        await page.waitForTimeout(500);
-        expect(posted).toBe(false);
+        expect(await dialogShown, 'la confirmation doit être demandée').toBe(true);
+        expect(await deleteRequest, 'aucune suppression ne doit partir').toBe(false);
         expect(await terrainExists(db)).toBe(true);
     });
 });

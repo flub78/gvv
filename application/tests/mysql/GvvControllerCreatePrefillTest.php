@@ -12,65 +12,19 @@ use PHPUnit\Framework\TestCase;
  */
 class GvvControllerCreatePrefillTest extends TestCase
 {
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return $this->extract_session_cookie($headers);
-    }
 
     private function http_get($url, $cookie = null)
     {
-        $header = "" . gvv_test_csrf_headers($cookie) . "";
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'GET',
-                'header'          => $header,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return $body === false ? '' : $body;
+        return GvvTestHttp::get($url, $cookie)['body'];
     }
 
     public function testCreateIsPrefilledFromKnownColumnQueryParam()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie, 'La connexion admin doit renvoyer un cookie de session.');
 
         $value = 'SmokeExport' . rand(1000, 9999);
-        $body = $this->http_get($this->base_url() . 'membre/create?mnom=' . urlencode($value), $cookie);
+        $body = $this->http_get(GvvTestHttp::base_url() . 'membre/create?mnom=' . urlencode($value), $cookie);
 
         $this->assertStringContainsString(
             'name="mnom" value="' . $value . '"',
@@ -81,16 +35,16 @@ class GvvControllerCreatePrefillTest extends TestCase
 
     public function testCreateWithoutQueryParamsIsUnchanged()
     {
-        $cookie = $this->login_as_admin();
-        $body = $this->http_get($this->base_url() . 'membre/create', $cookie);
+        $cookie = GvvTestHttp::login();
+        $body = $this->http_get(GvvTestHttp::base_url() . 'membre/create', $cookie);
 
         $this->assertStringContainsString('name="mnom" value=""', $body);
     }
 
     public function testCreateIgnoresUnknownQueryParam()
     {
-        $cookie = $this->login_as_admin();
-        $body = $this->http_get($this->base_url() . 'membre/create?not_a_column=hacked', $cookie);
+        $cookie = GvvTestHttp::login();
+        $body = $this->http_get(GvvTestHttp::base_url() . 'membre/create?not_a_column=hacked', $cookie);
 
         $this->assertStringNotContainsString('hacked', $body);
     }

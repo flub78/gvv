@@ -117,77 +117,6 @@ class FormsSubmissionEditTest extends TestCase
         $this->db->where('id', $this->form_id)->delete('forms');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return $this->extract_session_cookie($headers);
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-                'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
-    private function http_post_multipart($url, array $fields, array $files, $cookie = null)
-    {
-        $boundary = '----GvvTest' . uniqid();
-        $body = '';
-        foreach ($fields as $name => $value) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"\r\n\r\n";
-            $body .= $value . "\r\n";
-        }
-        foreach ($files as $name => $file) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"; filename=\"{$file['filename']}\"\r\n";
-            $body .= "Content-Type: {$file['type']}\r\n\r\n";
-            $body .= file_get_contents($file['path']) . "\r\n";
-        }
-        $body .= "--$boundary--\r\n";
-
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST',
-                'header' => "Content-Type: multipart/form-data; boundary=$boundary\r\n" . gvv_test_csrf_headers($cookie) . "",
-                'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $response_body = @file_get_contents($url, false, $context);
-        return array('body' => $response_body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
     private function location_header(array $headers)
     {
         foreach ($headers as $h) {
@@ -200,7 +129,7 @@ class FormsSubmissionEditTest extends TestCase
 
     public function testUnauthenticatedRequestRedirectsToLogin()
     {
-        $result = $this->http_get($this->base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id);
+        $result = GvvTestHttp::get(GvvTestHttp::base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id);
         $location = $this->location_header($result['headers']);
         $this->assertNotNull($location);
         $this->assertStringContainsString('auth/login', $location);
@@ -208,11 +137,11 @@ class FormsSubmissionEditTest extends TestCase
 
     public function testEditFormIsPrefilledWithExistingValueAndShowsExistingFileAndSignature()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
-        $result = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id,
+        $result = GvvTestHttp::get(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id,
             $cookie
         );
 
@@ -226,9 +155,9 @@ class FormsSubmissionEditTest extends TestCase
     {
         $this->db->where('id', $this->submission_id)->update('form_submissions', array('submission_method' => 'upload'));
 
-        $cookie = $this->login_as_admin();
-        $result = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id,
+        $cookie = GvvTestHttp::login();
+        $result = GvvTestHttp::get(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit/' . $this->form_id . '/' . $this->submission_id,
             $cookie
         );
 
@@ -239,14 +168,14 @@ class FormsSubmissionEditTest extends TestCase
 
     public function testResubmissionWithoutTouchingFileOrSignatureKeepsThemUnchanged()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $before_file = $this->db->where('id', $this->old_file_id)->get('form_submission_files')->row_array();
         $before_sig  = $this->db->where('id', $this->old_sig_id)->get('form_submission_files')->row_array();
         $before_submission = $this->db->where('id', $this->submission_id)->get('form_submissions')->row_array();
 
-        $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+        $result = GvvTestHttp::post_multipart(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
             array(
                 'page_number'        => '1',
                 'nom'                => 'Nouveau nom',
@@ -286,13 +215,13 @@ class FormsSubmissionEditTest extends TestCase
 
     public function testReplacingFileAndSignatureDeletesThePreviousOnes()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $pdf_path = APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf';
         $this->assertFileExists($pdf_path);
 
-        $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+        $result = GvvTestHttp::post_multipart(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
             array(
                 'page_number'        => '1',
                 'nom'                => 'Ancien nom', // unchanged
@@ -348,11 +277,11 @@ class FormsSubmissionEditTest extends TestCase
             'content_html' => '<p>Annexe informative, aucun champ.</p>',
         ));
 
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         // Step 1: submit page 1 via "Page suivante" (nav_action=next).
-        $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+        $result = GvvTestHttp::post_multipart(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
             array(
                 'page_number'        => '1',
                 'nav_action'         => 'next',
@@ -383,8 +312,8 @@ class FormsSubmissionEditTest extends TestCase
         );
 
         // Step 2: reach the last page (no fields) and click "Enregistrer les modifications".
-        $result2 = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
+        $result2 = GvvTestHttp::post_multipart(
+            GvvTestHttp::base_url() . 'forms_admin/submission_edit_submit/' . $this->form_id . '/' . $this->submission_id,
             array(
                 'page_number' => '2',
                 'nav_action'  => 'save',
