@@ -89,6 +89,17 @@ $show_avions   = empty($section) || !empty($section['gestion_avions']);
         </div>
     </div>
 
+    <?php if (!empty($public_encryption_key)): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" id="publicEncryptionKeyAlert">
+        <h5 class="alert-heading">
+            <i class="fas fa-key" aria-hidden="true"></i>
+            <?= $this->lang->line('welcome_public_encryption_key_title') ?>
+        </h5>
+        <p class="mb-0"><?= $this->lang->line('welcome_public_encryption_key_text') ?></p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+
     <!-- Messages du jour (section repliable, toujours affichee) -->
     <div class="card mb-4" id="motdSectionCard">
         <div class="card-header bg-primary text-white d-flex flex-wrap align-items-center gap-2"

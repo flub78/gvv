@@ -89,6 +89,20 @@ class CookieHardeningTest extends TestCase
     }
 
     /**
+     * Scénario: Une clé de chiffrement publiée est signalée
+     *   Étant donné une installation dont la clé de chiffrement est la valeur d'exemple publiée avec GVV
+     *   Quand GVV examine sa configuration
+     *   Alors il considère la clé comme publique
+     *   Mais une clé propre à l'installation n'est pas signalée
+     */
+    public function testPublicEncryptionKeyIsDetected()
+    {
+        $this->assertTrue(MY_Security::is_public_encryption_key('on serait mieux en planeur'));
+        $this->assertFalse(MY_Security::is_public_encryption_key(bin2hex(random_bytes(16))));
+        $this->assertFalse(MY_Security::is_public_encryption_key(''));
+    }
+
+    /**
      * Scénario: Une connexion sécurisée est reconnue, même derrière un relais
      *   Étant donné un site servi en connexion sécurisée, directement ou par un relais qui le signale
      *   Quand GVV examine la connexion

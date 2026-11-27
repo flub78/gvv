@@ -226,6 +226,9 @@ class Welcome extends Gvv_Controller {
         $data['is_pilote_rem'] = $this->gvv_authorization->has_role($this->user_id, 'pilote_rem', $section_id);
         $data['is_backup_db'] = $this->gvv_authorization->has_role($this->user_id, 'backup_db', NULL);
         $data['is_admin'] = $this->gvv_authorization->has_role($this->user_id, 'club-admin', NULL);
+        // Avertit les administrateurs d'une clé de chiffrement publiée (installation ancienne)
+        $data['public_encryption_key'] = $data['is_admin']
+            && MY_Security::is_public_encryption_key($this->config->item('encryption_key'));
         // Formation visibility: CA anywhere grants cross-section read access to formations.
         // In a specific section, instructeur and rp also qualify.
         $data['can_view_formation'] = $this->gvv_authorization->has_any_role(

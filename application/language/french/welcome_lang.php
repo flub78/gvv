@@ -76,3 +76,6 @@ $lang['welcome_nyi_text'] = "Cette page n'est pas encore disponible. Revenez plu
 
 $lang['welcome_confirm_delete'] = "Êtes-vous sûr de vouloir supprimer cet élément?";
 $lang['welcome_not_a_user_event'] = "Vous n'êtes pas autorisé à modifier cet événement.";
+
+$lang['welcome_public_encryption_key_title'] = "Clé de chiffrement publique";
+$lang['welcome_public_encryption_key_text'] = "La clé de chiffrement de cette installation (<code>encryption_key</code> dans <code>application/config/config.php</code>) est la valeur d'exemple publiée dans le dépôt de GVV. Toute personne qui la connaît peut fabriquer des cookies de session acceptés par le site. Demandez à la personne qui administre le serveur de la remplacer par une valeur aléatoire, générée par : <code>php -r 'echo bin2hex(random_bytes(16));'</code>. Le changement ferme les sessions en cours : chacun se reconnecte une fois.";

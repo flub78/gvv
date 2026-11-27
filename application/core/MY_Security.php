@@ -110,6 +110,20 @@ class MY_Security extends CI_Security
     }
 
     /**
+     * La clé de chiffrement est-elle une valeur publiée (ancienne valeur
+     * d'exemple de config.example.php, visible dans le dépôt public) ?
+     * Une installation qui la garde accepte des cookies de session fabriqués
+     * par quiconque la connaît.
+     *
+     * @param string $key Valeur de $config['encryption_key']
+     * @return bool
+     */
+    public static function is_public_encryption_key($key)
+    {
+        return in_array((string) $key, array('on serait mieux en planeur'), TRUE);
+    }
+
+    /**
      * La requête est-elle arrivée en HTTPS (directement ou derrière un
      * mandataire qui l'indique) ?
      *
