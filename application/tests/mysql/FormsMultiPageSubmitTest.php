@@ -91,13 +91,14 @@ class FormsMultiPageSubmitTest extends TestCase
     private function http_request($method, $url, array $post_fields, array &$cookies)
     {
         $headers = "User-Agent: GvvPhpUnitMultiPageTest/1.0\r\n";
-        if (!empty($cookies)) {
-            $pairs = array();
-            foreach ($cookies as $name => $value) {
+        $pairs = array();
+        foreach ($cookies as $name => $value) {
+            // Le jeton CSRF du test remplace celui posé par le serveur
+            if ($name !== 'gvv_csrf_cookie') {
                 $pairs[] = $name . '=' . $value;
             }
-            $headers .= "Cookie: " . implode('; ', $pairs) . "\r\n";
         }
+        $headers .= gvv_test_csrf_headers(implode('; ', $pairs));
 
         $options = array(
             'method'          => $method,

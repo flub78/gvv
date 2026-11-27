@@ -8,6 +8,7 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const ADMIN = { username: 'panoramix', password: 'password' };
 const MEMBER = { username: 'asterix', password: 'password' };
@@ -86,7 +87,7 @@ test.describe('Types de documents – bascule en un clic', () => {
 
     test('un champ non modifiable est refusé', async ({ page }) => {
         await login(page, ADMIN);
-        const response = await page.request.post('/index.php/document_types/ajax_toggle',
+        const response = await csrfPost(page, '/index.php/document_types/ajax_toggle',
             { form: { id: String(typeId), field: 'name', value: '1' } });
         const result = await response.json();
         expect(result.success).toBe(false);
@@ -95,7 +96,7 @@ test.describe('Types de documents – bascule en un clic', () => {
 
     test('un simple membre ne peut pas basculer un booléen', async ({ page }) => {
         await login(page, MEMBER);
-        const response = await page.request.post('/index.php/document_types/ajax_toggle',
+        const response = await csrfPost(page, '/index.php/document_types/ajax_toggle',
             { form: { id: String(typeId), field: 'active', value: '0' } });
         const type = response.headers()['content-type'] || '';
         if (type.includes('application/json')) {

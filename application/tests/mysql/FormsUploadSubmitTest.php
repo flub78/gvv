@@ -100,7 +100,7 @@ class FormsUploadSubmitTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n",
+                'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n" . gvv_test_csrf_headers(),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => $follow_redirects ? 1 : 0,

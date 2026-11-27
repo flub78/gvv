@@ -21,6 +21,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { csrfPost } = require('./helpers/csrf');
 
 const AVION_SECTION = '3';
 const TIMELINE_URL = '/index.php/reservations/timeline';
@@ -196,7 +197,7 @@ test.describe.serial('auto_planchiste — lecture seule sur réservation d\'un a
 
             console.log('Creating test reservation for aircraft', setup.firstAircraftId, 'on', testDate);
 
-            const resp = await page.request.post(setup.baseUrl + '/reservations/update_reservation', {
+            const resp = await csrfPost(page, setup.baseUrl + '/reservations/update_reservation', {
                 form: {
                     reservation_id: '',
                     aircraft_id: setup.firstAircraftId,
@@ -236,7 +237,7 @@ test.describe.serial('auto_planchiste — lecture seule sur réservation d\'un a
             await page.waitForLoadState('networkidle');
             const baseUrl = await page.evaluate(() => CONFIG.baseUrl);
 
-            await page.request.post(baseUrl + '/reservations/delete', {
+            await csrfPost(page, baseUrl + '/reservations/delete', {
                 form: { reservation_id: String(createdReservationId) }
             });
             console.log('Deleted test reservation id:', createdReservationId);

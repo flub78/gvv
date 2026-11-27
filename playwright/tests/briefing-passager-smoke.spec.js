@@ -15,6 +15,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL        = '/index.php/auth/login';
 const VLD_LIST_URL     = '/index.php/vols_decouverte';
@@ -46,7 +47,7 @@ async function login(page, user, section = null) {
 const TEST_REASON = 'PW nettoyage de test';
 
 function deleteBriefing(page, formId, submissionId) {
-    return page.request.post(`/index.php/forms_admin/submission_delete/${formId}/${submissionId}`, {
+    return csrfPost(page, `/index.php/forms_admin/submission_delete/${formId}/${submissionId}`, {
         form: { retention_override_reason: TEST_REASON },
     });
 }
@@ -621,7 +622,7 @@ test('only administrators are offered briefing deletion', async ({ page, browser
             await expect(pilotPage.locator('#dt-submissions')).toBeVisible();
             await expect(pilotPage.locator('.btn-delete-submission')).toHaveCount(0);
 
-            const refused = await pilotPage.request.post(
+            const refused = await csrfPost(pilotPage, 
                 `/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${submissionId}`,
                 { maxRedirects: 0 }
             );
@@ -691,7 +692,7 @@ test('a briefing under retention is deleted only with a reason', async ({ page }
         let [kept] = await connection.execute('SELECT id FROM form_submissions WHERE id = ?', [submissionId]);
         expect(kept.length).toBe(1);
 
-        const refused = await page.request.post(
+        const refused = await csrfPost(page, 
             `/index.php/forms_admin/submission_delete/${BRIEFING_FORM_ID}/${submissionId}`
         );
         expect(refused.ok()).toBeTruthy();

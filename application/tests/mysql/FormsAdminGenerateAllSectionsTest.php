@@ -85,7 +85,7 @@ class FormsAdminGenerateAllSectionsTest extends TestCase
         $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
         $context = stream_context_create(array(
             'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
             ),
         ));
@@ -99,7 +99,7 @@ class FormsAdminGenerateAllSectionsTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\nCookie: " . ($cookie ?: '') . "\r\n",
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers($cookie) . "",
                 'content' => http_build_query($post_fields), 'ignore_errors' => true,
                 'follow_location' => 0, 'timeout' => 20,
             ),
@@ -112,7 +112,7 @@ class FormsAdminGenerateAllSectionsTest extends TestCase
     {
         $context = stream_context_create(array(
             'http' => array(
-                'method' => 'GET', 'header' => "Cookie: " . ($cookie ?: '') . "\r\n",
+                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
                 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
             ),
         ));

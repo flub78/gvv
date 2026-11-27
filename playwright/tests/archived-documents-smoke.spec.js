@@ -15,6 +15,7 @@
 
 const { test, expect, devices } = require('@playwright/test');
 const { USE_NEW_AUTHORIZATION, SKIP_LEGACY_USERS_REASON } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 const MY_DOCS_URL = '/index.php/archived_documents/my_documents';
@@ -221,7 +222,7 @@ test.describe('Archived Documents Smoke Tests', () => {
     await login(page, PILOT_USER);
 
     // Attempt to POST directly to send_email for document id 1
-    const response = await page.request.post('/index.php/archived_documents/send_email/1', {
+    const response = await csrfPost(page, '/index.php/archived_documents/send_email/1', {
       form: {
         recipient: 'test@example.com',
         subject: 'Test',

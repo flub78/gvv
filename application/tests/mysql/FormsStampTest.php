@@ -133,7 +133,7 @@ class FormsStampTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -150,7 +150,7 @@ class FormsStampTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'GET',
-                'header'          => "Cookie: " . ($cookie ?: '') . "\r\n",
+                'header'          => "" . gvv_test_csrf_headers($cookie) . "",
                 'ignore_errors'   => true,
                 'follow_location' => 0,
                 'timeout'         => 20,
@@ -171,7 +171,7 @@ class FormsStampTest extends TestCase
             'http' => array(
                 'method'          => 'POST',
                 'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n"
-                                    . "Cookie: " . ($cookie ?: '') . "\r\n"
+                                    . "" . gvv_test_csrf_headers($cookie) . ""
                                     . ($origin !== null ? "Origin: $origin\r\n" : ''),
                 'content'         => $body,
                 'ignore_errors'   => true,
@@ -188,7 +188,7 @@ class FormsStampTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Cookie: " . ($cookie ?: '') . "\r\n"
+                'header'          => "" . gvv_test_csrf_headers($cookie) . ""
                                     . ($origin !== null ? "Origin: $origin\r\n" : ''),
                 'content'         => '',
                 'ignore_errors'   => true,

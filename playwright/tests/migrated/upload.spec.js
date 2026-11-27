@@ -26,6 +26,7 @@ const LoginPage = require('../helpers/LoginPage');
 const { DB_CONFIG } = require('../helpers/gvv-config');
 const path = require('path');
 const fs = require('fs');
+const { csrfPost } = require('../helpers/csrf');
 
 // Test configuration
 const TEST_USER = 'testadmin';
@@ -131,7 +132,7 @@ async function openMemberEditPage(loginPage, page) {
 /** POST to the photo deletion endpoint with the page's session (the endpoint refuses GET). */
 async function postDeletePhoto(page, login) {
   const origin = new URL(page.url()).origin;
-  return page.request.post(`${origin}/index.php/membre/delete_photo/${login}`);
+  return csrfPost(page, `${origin}/index.php/membre/delete_photo/${login}`);
 }
 
 /** Delete the test member's photo through the real controller endpoint. */

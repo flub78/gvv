@@ -114,7 +114,7 @@ class FormsSubmissionsExportTest extends TestCase
     private function login()
     {
         $ctx = stream_context_create(array('http' => array(
-            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
             'content' => http_build_query(array('username' => 'testadmin', 'password' => 'password')),
             'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
         )));
@@ -130,7 +130,7 @@ class FormsSubmissionsExportTest extends TestCase
     private function http_get($url, $cookie)
     {
         $ctx = stream_context_create(array('http' => array(
-            'method' => 'GET', 'header' => "Cookie: " . ($cookie ?: '') . "\r\n",
+            'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
             'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
         )));
         $body = @file_get_contents($url, false, $ctx);

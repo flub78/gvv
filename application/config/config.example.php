@@ -289,18 +289,15 @@ $config['global_xss_filtering'] = TRUE;
 |--------------------------------------------------------------------------
 | Cross Site Request Forgery
 |--------------------------------------------------------------------------
-| Enables a CSRF cookie token to be set. When set to TRUE, token will be
-| checked on a submitted form. If you are accepting user data, it is strongly
-| recommended CSRF protection be enabled.
+| La protection CSRF est toujours active : elle est configurée par le code
+| (application/core/MY_Security.php), qui ignore les réglages csrf_* de ce
+| fichier. Le jeton est ajouté automatiquement aux formulaires et aux appels
+| AJAX (assets/javascript/csrf.js).
 |
-| 'csrf_token_name' = The token name
-| 'csrf_cookie_name' = The cookie name
-| 'csrf_expire' = The number in seconds the token should expire.
+| 'csrf_disable' = TRUE la désactive. Réglage de secours uniquement, en cas
+| de dysfonctionnement en production : la désactivation expose le site.
 */
-$config['csrf_protection'] = FALSE;
-$config['csrf_token_name'] = 'csrf_test_name';
-$config['csrf_cookie_name'] = 'csrf_cookie_name';
-$config['csrf_expire'] = 7200;
+$config['csrf_disable'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------

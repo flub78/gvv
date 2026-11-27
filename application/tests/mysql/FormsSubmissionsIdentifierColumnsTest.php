@@ -164,7 +164,7 @@ class FormsSubmissionsIdentifierColumnsTest extends TestCase
     {
         $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
         $context = stream_context_create(array('http' => array(
-            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
             'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
         )));
         @file_get_contents($this->base_url() . 'auth/login', false, $context);
@@ -180,7 +180,7 @@ class FormsSubmissionsIdentifierColumnsTest extends TestCase
     private function http_get($url, $cookie = null)
     {
         $context = stream_context_create(array('http' => array(
-            'method' => 'GET', 'header' => "Cookie: " . ($cookie ?: '') . "\r\n",
+            'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
             'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
         )));
         $body = @file_get_contents($url, false, $context);

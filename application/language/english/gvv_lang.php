@@ -1035,3 +1035,6 @@ $lang['gvv_compta_delete_justificatif_confirm']     = "Are you sure you want to 
 $lang['gvv_compta_delete_ecriture_confirm']         = "Are you sure you want to delete this entry?";
 $lang['gvv_login_as_confirm']                       = "Log in as";
 $lang['gvv_cartes_membre_reset_layout_confirm']     = "Reset the layout to default?";
+
+$lang['gvv_csrf_error_title'] = "Request refused";
+$lang['gvv_csrf_error_text']  = "The page has expired or the request could not be verified. Go back to the previous page, reload it, then try again.";

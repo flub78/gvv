@@ -109,7 +109,7 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
         $body = http_build_query(array('username' => $username, 'password' => $password));
         $context = stream_context_create(array(
             'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
             ),
         ));
@@ -122,7 +122,7 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
     {
         $context = stream_context_create(array(
             'http' => array(
-                'method' => 'GET', 'header' => "Cookie: " . ($cookie ?: '') . "\r\n",
+                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
                 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
             ),
         ));

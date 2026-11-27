@@ -17,6 +17,7 @@ const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
 const { DB_CONFIG } = require('./helpers/gvv-config');
 const { applyProgramConfig, enableAgendaGoogleWithBouchon, waitForBouchon } = require('./helpers/agendaGoogleConfig');
+const { csrfPost } = require('./helpers/csrf');
 
 const PILOT = 'goudurix';
 const NON_BOOKER = 'asterix';
@@ -249,7 +250,7 @@ test.describe('Agenda Google - mise à jour des événements', () => {
     }
 
     async function post(s, path, form) {
-        const resp = await s.page.request.post(s.baseUrl + path, { form });
+        const resp = await csrfPost(s.page, s.baseUrl + path, { form });
         return JSON.parse(await resp.text());
     }
 

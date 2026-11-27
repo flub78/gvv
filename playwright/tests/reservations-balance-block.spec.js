@@ -22,6 +22,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { csrfPost } = require('./helpers/csrf');
 
 // Force tous les tests du fichier à s'exécuter séquentiellement sur le même worker
 // (les deux scénarios partagent assurancetourix et les mêmes appareils)
@@ -61,7 +62,7 @@ async function deleteReservation(browser, baseUrl, id) {
     await lp.verifyLoggedIn();
     await page.goto(TIMELINE_URL);
     await page.waitForLoadState('networkidle');
-    const resp = await page.request.post(baseUrl + '/reservations/delete', {
+    const resp = await csrfPost(page, baseUrl + '/reservations/delete', {
         form: { reservation_id: String(id) }
     });
     const body = await resp.text().catch(() => '');
@@ -98,7 +99,7 @@ async function cleanupPilotReservations(browser, baseUrl, pilotId, aircraftIds) 
         for (const event of events) {
             const props = event.extendedProps || {};
             if (props.pilot_member_id === pilotId && aircraftIds.includes(props.aircraft_id)) {
-                const delResp = await page.request.post(baseUrl + '/reservations/delete', {
+                const delResp = await csrfPost(page, baseUrl + '/reservations/delete', {
                     form: { reservation_id: String(event.id) }
                 });
                 const delBody = await delResp.text().catch(() => '');
@@ -148,7 +149,7 @@ test.describe.serial('Blocage solde insuffisant — réservation 1h15m', () => {
         future.setDate(future.getDate() + 14);
         const dateStr = future.toISOString().slice(0, 10);
 
-        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+        const resp = await csrfPost(page, baseUrl + '/reservations/update_reservation', {
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_A,
@@ -201,7 +202,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
         future.setDate(future.getDate() + 14);
         const dateStr = future.toISOString().slice(0, 10);
 
-        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+        const resp = await csrfPost(page, baseUrl + '/reservations/update_reservation', {
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_A,
@@ -230,7 +231,7 @@ test.describe.serial('Blocage multi-appareils — deux réservations 0h30', () =
         future.setDate(future.getDate() + 14);
         const dateStr = future.toISOString().slice(0, 10);
 
-        const resp = await page.request.post(baseUrl + '/reservations/update_reservation', {
+        const resp = await csrfPost(page, baseUrl + '/reservations/update_reservation', {
             form: {
                 reservation_id: '',
                 aircraft_id: AIRCRAFT_B,

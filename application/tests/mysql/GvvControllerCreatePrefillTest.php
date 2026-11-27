@@ -35,7 +35,7 @@ class GvvControllerCreatePrefillTest extends TestCase
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
                 'content'         => $body,
                 'ignore_errors'   => true,
                 'follow_location' => 0,
@@ -50,7 +50,7 @@ class GvvControllerCreatePrefillTest extends TestCase
 
     private function http_get($url, $cookie = null)
     {
-        $header = "Cookie: " . ($cookie ?: '') . "\r\n";
+        $header = "" . gvv_test_csrf_headers($cookie) . "";
         $context = stream_context_create(array(
             'http' => array(
                 'method'          => 'GET',

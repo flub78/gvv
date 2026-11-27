@@ -12,6 +12,7 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 const ADMIN_USER = { username: 'testadmin', password: 'password' };
 const MEMBER_USER = { username: 'testuser', password: 'password' };
@@ -173,7 +174,7 @@ test.describe('Pages publiques', () => {
    */
   test('a save request not coming from the configuration form is refused', async ({ page }) => {
     await login(page, ADMIN_USER);
-    const response = await page.request.post('/parametres/save/pages_publiques', {
+    const response = await csrfPost(page, '/parametres/save/pages_publiques', {
       form: { 'p[legal__confidentialite][french]': `# ${MARKER} forgé` },
     });
     const body = await response.text();

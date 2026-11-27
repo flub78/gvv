@@ -38,6 +38,7 @@
 const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const { DB_CONFIG } = require('./helpers/gvv-config');
+const { csrfPost } = require('./helpers/csrf');
 
 // Tous les tests de ce fichier modifient les abonnements des mêmes membres de test
 test.describe.configure({ mode: 'serial' });
@@ -158,7 +159,7 @@ test.describe('Alarmes – Lot 1', () => {
             await expect(page.locator('#sms')).toBeDisabled();
 
             // Envoi forcé de l'option : refus explicite, rien n'est enregistré
-            const response = await page.request.post('/index.php/mes_alarmes/save',
+            const response = await csrfPost(page, '/index.php/mes_alarmes/save',
                 { form: { sms: '1', channel_email: '1', frequency: 'weekly' } });
             const html = await response.text(); // page après redirection, avec le message flash
             expect(html).toContain('alert-danger');
