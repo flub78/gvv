@@ -23,6 +23,7 @@
 
 const { test, expect } = require('@playwright/test');
 const LoginPage = require('./helpers/LoginPage');
+const { deleteViaApp } = require('./helpers/csrf');
 
 const PLANEUR_SECTION     = '1';
 const SFRISON_ECRITURE_ID = 25035; // écriture sfrison (compte 323) — PAS asterix
@@ -134,7 +135,7 @@ test.describe('Justificatifs — accès non trésorier', () => {
             await page.click('input[type="submit"], button[type="submit"]');
             await page.waitForLoadState('networkidle');
 
-            await page.goto(`/index.php/compta/delete/${asterixEcritureId}`);
+            await deleteViaApp(page, 'compta', asterixEcritureId);
             await page.waitForLoadState('networkidle');
             console.log(`Écriture de test supprimée — ID: ${asterixEcritureId}`);
         } finally {

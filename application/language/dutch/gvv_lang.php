@@ -1038,3 +1038,5 @@ $lang['gvv_cartes_membre_reset_layout_confirm']     = "De lay-out terugzetten na
 
 $lang['gvv_csrf_error_title'] = "Verzoek geweigerd";
 $lang['gvv_csrf_error_text']  = "De pagina is verlopen of het verzoek kon niet worden gecontroleerd. Ga terug naar de vorige pagina, laad deze opnieuw en probeer het nog eens.";
+$lang['gvv_post_required_title'] = "Actie geweigerd";
+$lang['gvv_post_required_text']  = "Deze actie kan alleen worden gestart met een knop van GVV. Er zijn geen gegevens gewijzigd. Ga terug naar de vorige pagina en gebruik de daarvoor bestemde knop.";

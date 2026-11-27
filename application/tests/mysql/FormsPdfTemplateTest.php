@@ -47,91 +47,14 @@ class FormsPdfTemplateTest extends TestCase
         $this->db->where('id', $this->form_id)->delete('forms');
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return $this->extract_session_cookie($headers);
-    }
-
     private function http_post_multipart($url, array $fields, array $files, $cookie = null, $follow_redirects = false)
     {
-        $boundary = '----GvvTest' . uniqid();
-        $body = '';
-        foreach ($fields as $name => $value) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"\r\n\r\n";
-            $body .= $value . "\r\n";
-        }
-        foreach ($files as $name => $file) {
-            $body .= "--$boundary\r\n";
-            $body .= "Content-Disposition: form-data; name=\"$name\"; filename=\"{$file['filename']}\"\r\n";
-            $body .= "Content-Type: {$file['type']}\r\n\r\n";
-            $body .= file_get_contents($file['path']) . "\r\n";
-        }
-        $body .= "--$boundary--\r\n";
-
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: multipart/form-data; boundary=$boundary\r\n"
-                                    . "" . gvv_test_csrf_headers($cookie) . "",
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => $follow_redirects ? 1 : 0,
-                'timeout'         => 20,
-            ),
-        ));
-
-        $response_body = @file_get_contents($url, false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return array('body' => $response_body, 'headers' => $headers);
+        return GvvTestHttp::post_multipart($url, $fields, $files, $cookie, array('follow' => $follow_redirects));
     }
 
     private function http_post($url, $cookie = null)
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "" . gvv_test_csrf_headers($cookie) . "",
-                'content'         => '',
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($url, false, $context);
-        return isset($http_response_header) ? $http_response_header : array();
+        return GvvTestHttp::request('POST', $url, $cookie, array('content' => ''))['headers'];
     }
 
     private function location_header(array $headers)
@@ -146,14 +69,14 @@ class FormsPdfTemplateTest extends TestCase
 
     public function testAuthenticatedAdminCanUploadPdfTemplate()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie, 'La connexion admin doit renvoyer un cookie de session.');
 
         $pdf_path = APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf';
         $this->assertFileExists($pdf_path);
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
             array(),
             array('pdf_template' => array(
                 'filename' => 'vierge.pdf',
@@ -177,7 +100,7 @@ class FormsPdfTemplateTest extends TestCase
 
     public function testUploadingAgainReplacesThePreviousFileRatherThanAccumulating()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $first_path  = APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf';
         $second_path = APPPATH . 'tests/data/attachments/documents/medium_contract_600kb.pdf';
@@ -185,7 +108,7 @@ class FormsPdfTemplateTest extends TestCase
         $this->assertFileExists($second_path);
 
         $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
             array(),
             array('pdf_template' => array('filename' => 'v1.pdf', 'type' => 'application/pdf', 'path' => $first_path)),
             $cookie
@@ -193,7 +116,7 @@ class FormsPdfTemplateTest extends TestCase
         $this->assertSame(file_get_contents($first_path), $this->storage->read_pdf_template($this->code));
 
         $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
             array(),
             array('pdf_template' => array('filename' => 'v2.pdf', 'type' => 'application/pdf', 'path' => $second_path)),
             $cookie
@@ -212,13 +135,13 @@ class FormsPdfTemplateTest extends TestCase
 
     public function testRejectedFileTypeDoesNotWritePdfTemplate()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         $txt_path = APPPATH . 'tests/data/attachments/text/small_text_file_50kb.txt';
         $this->assertFileExists($txt_path);
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
             array(),
             array('pdf_template' => array('filename' => 'not_a_pdf.txt', 'type' => 'text/plain', 'path' => $txt_path)),
             $cookie
@@ -234,7 +157,7 @@ class FormsPdfTemplateTest extends TestCase
         $pdf_path = APPPATH . 'tests/data/attachments/documents/small_invoice_90kb.pdf';
 
         $result = $this->http_post_multipart(
-            $this->base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_upload/' . $this->form_id,
             array(),
             array('pdf_template' => array('filename' => 'vierge.pdf', 'type' => 'application/pdf', 'path' => $pdf_path)),
             null
@@ -248,12 +171,12 @@ class FormsPdfTemplateTest extends TestCase
 
     public function testDeletePdfTemplateRemovesFile()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->storage->write_pdf_template($this->code, '%PDF-1.4 fake');
         $this->assertTrue($this->storage->has_pdf_template($this->code));
 
         $headers = $this->http_post(
-            $this->base_url() . 'forms_admin/pdf_template_delete/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_delete/' . $this->form_id,
             $cookie
         );
 
@@ -268,11 +191,11 @@ class FormsPdfTemplateTest extends TestCase
 
     public function testDeleteIsNoOpWhenNoTemplateExists()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
 
         // Must not error even though there is nothing to delete.
         $headers = $this->http_post(
-            $this->base_url() . 'forms_admin/pdf_template_delete/' . $this->form_id,
+            GvvTestHttp::base_url() . 'forms_admin/pdf_template_delete/' . $this->form_id,
             $cookie
         );
 

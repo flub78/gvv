@@ -20,7 +20,7 @@ class ProduitsTarifsInlineTest extends TestCase
     {
         $this->CI = &get_instance();
         $this->CI->load->database();
-        $this->cookie = $this->login_as_admin();
+        $this->cookie = GvvTestHttp::login();
         $this->assertNotNull($this->cookie, 'La connexion admin doit renvoyer un cookie de session.');
         $this->produitId = null;
     }
@@ -33,72 +33,14 @@ class ProduitsTarifsInlineTest extends TestCase
         }
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return $this->extract_session_cookie($headers);
-    }
-
     private function http_get($url)
     {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'GET',
-                'header'          => "Cookie: " . $this->cookie . "\r\n",
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return $body === false ? '' : $body;
+        return GvvTestHttp::get($url, $this->cookie)['body'];
     }
 
     private function http_post($url, array $fields)
     {
-        $body = http_build_query($fields);
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => gvv_test_csrf_headers($this->cookie) . "Content-Type: application/x-www-form-urlencoded\r\n",
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return $body === false ? '' : $body;
+        return GvvTestHttp::post($url, $fields, $this->cookie)['body'];
     }
 
     /**
@@ -139,7 +81,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $fields = $this->base_produit_fields($reference, $compte);
         $fields['tarifs_json'] = '';
 
-        $body = $this->http_post($this->base_url() . 'produits/formValidation/1', $fields);
+        $body = $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/1', $fields);
 
         $this->assertStringContainsString(
             'Au moins un tarif est requis',
@@ -161,7 +103,7 @@ class ProduitsTarifsInlineTest extends TestCase
             array('id' => null, 'date' => '2026-01-01', 'prix' => '42.50', 'nb_tickets' => 0),
         ));
 
-        $this->http_post($this->base_url() . 'produits/formValidation/1', $fields);
+        $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/1', $fields);
 
         $produit = $this->CI->db->where('reference', $reference)->get('produits')->row_array();
         $this->assertNotEmpty($produit, 'Le produit doit avoir été créé.');
@@ -195,7 +137,7 @@ class ProduitsTarifsInlineTest extends TestCase
             'nb_tickets' => 0,
         ));
 
-        $body = $this->http_get($this->base_url() . 'produits/edit/' . $produitId);
+        $body = $this->http_get(GvvTestHttp::base_url() . 'produits/edit/' . $produitId);
 
         $this->assertStringContainsString('"date":"2025-05-14"', $body);
         $this->assertStringContainsString('"prix":"130.00"', $body);
@@ -211,7 +153,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $fields['tarifs_json'] = json_encode(array(
             array('id' => null, 'date' => '2026-01-01', 'prix' => '10.00', 'nb_tickets' => 0),
         ));
-        $this->http_post($this->base_url() . 'produits/formValidation/1', $fields);
+        $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/1', $fields);
 
         $produit = $this->CI->db->where('reference', $reference)->get('produits')->row_array();
         $this->produitId = $produit['id'];
@@ -227,7 +169,7 @@ class ProduitsTarifsInlineTest extends TestCase
             array('id' => $tarifId, 'date' => '2026-01-01', 'prix' => '20.00', 'nb_tickets' => 0),
             array('id' => null, 'date' => '2026-02-01', 'prix' => '30.00', 'nb_tickets' => 0),
         ));
-        $this->http_post($this->base_url() . 'produits/formValidation/2', $updateFields);
+        $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/2', $updateFields);
 
         $tarifs = $this->CI->db->where('produit_id', $this->produitId)->order_by('date')->get('tarifs')->result_array();
         $this->assertCount(2, $tarifs);
@@ -243,7 +185,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $dropFields['tarifs_json'] = json_encode(array(
             array('id' => $secondTarifId, 'date' => '2026-02-01', 'prix' => '30.00', 'nb_tickets' => 0),
         ));
-        $this->http_post($this->base_url() . 'produits/formValidation/2', $dropFields);
+        $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/2', $dropFields);
 
         $remaining = $this->CI->db->where('produit_id', $this->produitId)->get('tarifs')->result_array();
         $this->assertCount(1, $remaining);
@@ -259,7 +201,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $fields['tarifs_json'] = json_encode(array(
             array('id' => null, 'date' => '2026-01-01', 'prix' => '15.00', 'nb_tickets' => 0),
         ));
-        $this->http_post($this->base_url() . 'produits/formValidation/1', $fields);
+        $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/1', $fields);
 
         $produit = $this->CI->db->where('reference', $reference)->get('produits')->row_array();
         $this->produitId = $produit['id'];
@@ -269,7 +211,7 @@ class ProduitsTarifsInlineTest extends TestCase
         $updateFields['original_id'] = $this->produitId;
         $updateFields['button'] = 'Mettre à jour';
         $updateFields['tarifs_json'] = json_encode(array());
-        $body = $this->http_post($this->base_url() . 'produits/formValidation/2', $updateFields);
+        $body = $this->http_post(GvvTestHttp::base_url() . 'produits/formValidation/2', $updateFields);
 
         $this->assertStringContainsString('Au moins un tarif est requis', $body);
 

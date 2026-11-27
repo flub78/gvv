@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const LoginPage = require('./helpers/LoginPage');
+const { deleteViaApp } = require('./helpers/csrf');
 
 /**
  * ULM Billing Scenarios - End-to-end Playwright test
@@ -363,7 +364,7 @@ test.describe('ULM billing scenarios on all machines', () => {
     await loginPage.login(TEST_ADMIN.username, TEST_ADMIN.password, TEST_ADMIN.section);
 
     for (const id of flightIds) {
-      await page.goto(`/index.php/vols_avion/delete/${id}`);
+      await deleteViaApp(page, 'vols_avion', id);
       await page.waitForLoadState('domcontentloaded');
     }
 

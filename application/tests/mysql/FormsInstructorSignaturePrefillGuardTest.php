@@ -87,76 +87,33 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
         $this->db->where('mlogin', $this->instructor_login)->update('membres', array('signature_path' => $this->previous_signature_path));
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as($username, $password = 'password')
-    {
-        $body = http_build_query(array('username' => $username, 'password' => $password));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-        return $this->extract_session_cookie($headers);
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-                'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-            ),
-        ));
-        $body = @file_get_contents($url, false, $context);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
-
     private function form_url()
     {
-        return $this->base_url() . 'forms/' . $this->slug . '?instructor_login=' . $this->instructor_login;
+        return GvvTestHttp::base_url() . 'forms/' . $this->slug . '?instructor_login=' . $this->instructor_login;
     }
 
     public function testSignatureNotPrefilledWhenNobodyIsLoggedIn()
     {
-        $result = $this->http_get($this->form_url());
+        $result = GvvTestHttp::get($this->form_url());
         $this->assertNotNull($result['body']);
         $this->assertStringNotContainsString('data-sig-prefill="1"', $result['body']);
     }
 
     public function testSignatureNotPrefilledForADifferentLoggedInUser()
     {
-        $cookie = $this->login_as('testadmin');
+        $cookie = GvvTestHttp::login('testadmin');
         $this->assertNotNull($cookie, 'Login as testadmin should succeed and return a session cookie.');
 
-        $result = $this->http_get($this->form_url(), $cookie);
+        $result = GvvTestHttp::get($this->form_url(), $cookie);
         $this->assertStringNotContainsString('data-sig-prefill="1"', $result['body']);
     }
 
     public function testSignaturePrefilledWhenTheInstructorIsLoggedInAsThemselves()
     {
-        $cookie = $this->login_as($this->instructor_login);
+        $cookie = GvvTestHttp::login($this->instructor_login);
         $this->assertNotNull($cookie, 'Login as the instructor should succeed and return a session cookie.');
 
-        $result = $this->http_get($this->form_url(), $cookie);
+        $result = GvvTestHttp::get($this->form_url(), $cookie);
         $this->assertStringContainsString('data-sig-prefill="1"', $result['body']);
     }
 
@@ -182,10 +139,10 @@ class FormsInstructorSignaturePrefillGuardTest extends TestCase
         $this->db->where('mlogin', $this->instructor_login)->update('membres', array('signature_path' => $jpeg_relpath));
 
         try {
-            $cookie = $this->login_as($this->instructor_login);
+            $cookie = GvvTestHttp::login($this->instructor_login);
             $this->assertNotNull($cookie, 'Login as the instructor should succeed and return a session cookie.');
 
-            $result = $this->http_get($this->form_url(), $cookie);
+            $result = GvvTestHttp::get($this->form_url(), $cookie);
             $this->assertStringContainsString('data-sig-prefill="1"', $result['body']);
             $this->assertStringContainsString('data-sig-prefill-mime="image/jpeg"', $result['body']);
         } finally {

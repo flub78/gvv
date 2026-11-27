@@ -6,6 +6,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { deleteViaApp } = require('./helpers/csrf');
 
 const UPLOADS_ROOT = path.join(__dirname, '..', '..', 'uploads', 'email_lists');
 
@@ -36,7 +37,7 @@ test.describe('Email Lists Import - Phone Numbers and Names', () => {
             // Use page.request (shares the authenticated session's cookies)
             // rather than the bare `request` fixture, which is unauthenticated
             // and would silently no-op the delete.
-            await page.request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+            await deleteViaApp(page, 'email_lists', id).catch(() => {});
             // delete_list() only removes DB rows (cascaded via FK); the
             // uploaded file directory is left on disk and must be cleaned
             // up here so the test doesn't leak filesystem state.

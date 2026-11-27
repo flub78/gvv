@@ -41,6 +41,42 @@ class MY_Security extends CI_Security
         $config['csrf_expire'] = self::CSRF_EXPIRE;
 
         parent::__construct();
+
+        // Tous les cookies de GVV (session, jeton CSRF, connexion automatique,
+        // ceux de CodeIgniter compris) partent en SameSite=Lax : le navigateur
+        // ne les joint plus aux requêtes qu'un autre site déclenche par une
+        // image, un iframe ou un formulaire. Firefox n'applique pas Lax par défaut.
+        // ATTENTION : PHP ne garde qu'un seul callback d'en-têtes. Tout autre
+        // appel à header_register_callback() remplacerait celui-ci sans erreur
+        // et les cookies repartiraient sans SameSite : l'ajouter ici, dans
+        // add_samesite_to_cookies(), plutôt que d'en enregistrer un second.
+        if (PHP_SAPI !== 'cli') {
+            header_register_callback(array('MY_Security', 'add_samesite_to_cookies'));
+        }
+    }
+
+    /**
+     * Ajoute SameSite=Lax aux en-têtes Set-Cookie qui n'en ont pas.
+     * Appelée par PHP juste avant l'envoi des en-têtes.
+     */
+    public static function add_samesite_to_cookies()
+    {
+        $cookies = array();
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'Set-Cookie:') === 0) {
+                $cookies[] = $header;
+            }
+        }
+        if (empty($cookies)) {
+            return;
+        }
+        header_remove('Set-Cookie');
+        foreach ($cookies as $header) {
+            if (stripos($header, 'samesite=') === FALSE) {
+                $header .= '; SameSite=Lax';
+            }
+            header($header, FALSE);
+        }
     }
 
     /**
@@ -116,7 +152,7 @@ class MY_Security extends CI_Security
         $title = $lang->line('gvv_csrf_error_title') ?: 'Request refused';
         $text = $lang->line('gvv_csrf_error_text') ?: 'The page has expired. Reload it and try again.';
 
-        if ($this->csrf_is_script_request()) {
+        if ($this->is_script_request()) {
             set_status_header(403);
             header('Content-Type: application/json; charset=UTF-8');
             echo json_encode(array('success' => FALSE, 'error' => 'csrf', 'message' => $text));
@@ -134,7 +170,7 @@ class MY_Security extends CI_Security
      *
      * @return bool
      */
-    protected function csrf_is_script_request()
+    public function is_script_request()
     {
         if (isset($_SERVER[self::CSRF_HEADER])) {
             return TRUE;

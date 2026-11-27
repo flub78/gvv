@@ -26,7 +26,7 @@ const { test, expect } = require('@playwright/test');
 const mysql = require('mysql2/promise');
 const LoginPage = require('./helpers/LoginPage');
 const { DB_CONFIG } = require('./helpers/gvv-config');
-const { csrfPost } = require('./helpers/csrf');
+const { csrfPost, deleteViaApp } = require('./helpers/csrf');
 
 const CREATION = 1;
 const MODIFICATION = 2;
@@ -130,7 +130,7 @@ test.describe('Enregistrement des formulaires : refus pour un simple membre', ()
      */
     test('simple member cannot delete a certificate', async ({ page }) => {
         await login(page, 'asterix');
-        const response = await page.request.get('/index.php/event/delete/999999999', { maxRedirects: 0 });
+        const response = await deleteViaApp(page, 'event', 999999999, { maxRedirects: 0 });
         expect(response.status()).toBe(404);
     });
 
@@ -332,7 +332,7 @@ test.describe('Saisie réelle de ses propres vols avion', () => {
         } finally {
             if (vaid) {
                 // Suppression par l'application pour annuler la facturation du vol
-                await page.goto(`/index.php/vols_avion/delete/${vaid}`);
+                await deleteViaApp(page, 'vols_avion', vaid);
                 await page.waitForLoadState('domcontentloaded');
             }
             const [left] = await db.execute('SELECT vaid FROM volsa WHERE vaobs LIKE ?', [`${marker}%`]);

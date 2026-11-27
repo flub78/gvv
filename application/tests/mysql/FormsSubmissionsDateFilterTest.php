@@ -108,16 +108,16 @@ class FormsSubmissionsDateFilterTest extends TestCase
 
     public function testSubmissionsPageAppliesDateFilterFromGet()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie);
 
         $base = 'http://gvv.net/index.php/forms_admin/submissions/' . $this->form_id;
 
-        $all = $this->http_get($base, $cookie)['body'];
+        $all = GvvTestHttp::get($base, $cookie)['body'];
         $this->assertStringContainsString('2021-01-10', $all);
         $this->assertStringContainsString('2021-12-28', $all);
 
-        $filtered = $this->http_get($base . '?date_from=2021-05-01&date_to=2021-07-01', $cookie)['body'];
+        $filtered = GvvTestHttp::get($base . '?date_from=2021-05-01&date_to=2021-07-01', $cookie)['body'];
         $this->assertStringContainsString('2021-06-15', $filtered);
         $this->assertStringNotContainsString('2021-01-10', $filtered);
         $this->assertStringNotContainsString('2021-12-28', $filtered);
@@ -127,8 +127,8 @@ class FormsSubmissionsDateFilterTest extends TestCase
 
     public function testMalformedDateIsIgnored()
     {
-        $cookie = $this->login_as_admin();
-        $body = $this->http_get(
+        $cookie = GvvTestHttp::login();
+        $body = GvvTestHttp::get(
             'http://gvv.net/index.php/forms_admin/submissions/' . $this->form_id . '?date_from=pas-une-date',
             $cookie
         )['body'];
@@ -139,29 +139,4 @@ class FormsSubmissionsDateFilterTest extends TestCase
 
     // ---- harnais ----
 
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $ctx = stream_context_create(array('http' => array(
-            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-            'content' => $body, 'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        @file_get_contents('http://gvv.net/index.php/auth/login', false, $ctx);
-        foreach ((isset($http_response_header) ? $http_response_header : array()) as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                return explode(';', trim(substr($h, strlen('Set-Cookie:'))))[0];
-            }
-        }
-        return null;
-    }
-
-    private function http_get($url, $cookie = null)
-    {
-        $ctx = stream_context_create(array('http' => array(
-            'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-            'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        $body = @file_get_contents($url, false, $ctx);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
 }

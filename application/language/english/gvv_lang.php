@@ -1038,3 +1038,5 @@ $lang['gvv_cartes_membre_reset_layout_confirm']     = "Reset the layout to defau
 
 $lang['gvv_csrf_error_title'] = "Request refused";
 $lang['gvv_csrf_error_text']  = "The page has expired or the request could not be verified. Go back to the previous page, reload it, then try again.";
+$lang['gvv_post_required_title'] = "Action refused";
+$lang['gvv_post_required_text']  = "This action can only be started from a GVV button. No data has been changed. Go back to the previous page and use the button provided.";

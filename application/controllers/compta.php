@@ -275,7 +275,8 @@ class Compta extends Gvv_Controller {
         }
 
         if ($this->data['achat']) {
-            redirect("achats/delete/" . $this->data['achat']);
+            // 307 : la suppression reste un POST, jeton CSRF compris
+            redirect("achats/delete/" . $this->data['achat'], 'location', 307);
             return;
         }
 
@@ -2312,7 +2313,7 @@ class Compta extends Gvv_Controller {
                     $disabled_class = $is_frozen ? ' disabled' : '';
                     $disabled_attr = $is_frozen ? ' disabled tabindex="-1" aria-disabled="true"' : '';
                     $delete_onclick = $is_frozen ? '' : ' onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer cette écriture ?\')"';
-                    $actions .= '<a href="' . site_url("compta/delete/{$ecriture['id']}") . '" class="btn btn-sm btn-danger delete-entry-btn' . $disabled_class . '" title="' . ($is_frozen ? 'Écriture gelée' : 'Supprimer') . '"' . $disabled_attr . $delete_onclick . ' data-ecriture-id="' . $ecriture['id'] . '"><i class="fas fa-trash"></i></a>';
+                    $actions .= '<a href="' . site_url("compta/delete/{$ecriture['id']}") . '" data-gvv-post="1" class="btn btn-sm btn-danger delete-entry-btn' . $disabled_class . '" title="' . ($is_frozen ? 'Écriture gelée' : 'Supprimer') . '"' . $disabled_attr . $delete_onclick . ' data-ecriture-id="' . $ecriture['id'] . '"><i class="fas fa-trash"></i></a>';
 
                     $row[] = $actions;
                 }

@@ -115,7 +115,7 @@ if (!function_exists('balance_detail_datatable')) {
                 // Load comptes language file for confirmation message
                 $CI->lang->load('comptes');
                 $confirm_msg = $CI->lang->line('comptes_confirm_delete_account') . ' ' . htmlspecialchars($row['nom'], ENT_QUOTES) . ' ?';
-                $html .= '<a href="' . site_url($controller . '/delete/' . $row['id']) . '" class="btn btn-sm btn-danger" title="' . htmlspecialchars($CI->lang->line('gvv_button_delete')) . '" onclick="return confirm(\'' . $confirm_msg . '\')">';
+                $html .= '<a href="' . site_url($controller . '/delete/' . $row['id']) . '" class="btn btn-sm btn-danger" data-gvv-post="1" title="' . htmlspecialchars($CI->lang->line('gvv_button_delete')) . '" onclick="return confirm(\'' . $confirm_msg . '\')">';
                 $html .= '<i class="fas fa-trash" aria-hidden="true"></i>';
                 $html .= '</a>';
             }

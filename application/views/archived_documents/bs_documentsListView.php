@@ -270,7 +270,7 @@ document.getElementById('clear-filters').addEventListener('click', function() {
                         <i class="fas fa-clipboard-check"></i>
                     </a>
                     <?php endif; ?>
-                    <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
+                    <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>" data-gvv-post="1"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"
                        onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);">

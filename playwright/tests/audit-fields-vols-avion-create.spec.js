@@ -23,6 +23,7 @@ const { test, expect } = require('@playwright/test');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { deleteViaApp } = require('./helpers/csrf');
 
 const LOGIN_URL = '/index.php/auth/login';
 const CREATE_URL = '/index.php/vols_avion/create';
@@ -166,7 +167,7 @@ test.describe('Lot 5 - created_at/created_by on real vols_avion form submission'
         } finally {
             // Clean up through the application endpoint (not a raw DELETE) so any
             // billing cascade this flight triggered is properly reversed.
-            await page.goto(`/index.php/vols_avion/delete/${vaid}`);
+            await deleteViaApp(page, 'vols_avion', vaid);
             await page.waitForLoadState('domcontentloaded');
         }
     });
@@ -208,7 +209,7 @@ test.describe('Lot 5 - created_at/created_by on real vols_avion form submission'
             expect(createdAtAfter, 'created_at must survive an edit unchanged').toBe(created.createdAt);
             expect(createdByAfter, 'created_by must survive an edit unchanged').toBe(created.createdBy);
         } finally {
-            await page.goto(`/index.php/vols_avion/delete/${created.vaid}`);
+            await deleteViaApp(page, 'vols_avion', created.vaid);
             await page.waitForLoadState('domcontentloaded');
         }
     });

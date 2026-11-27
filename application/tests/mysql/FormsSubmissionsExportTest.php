@@ -73,8 +73,8 @@ class FormsSubmissionsExportTest extends TestCase
 
     public function testCsvExportHasHeaderAndAllRows()
     {
-        $cookie = $this->login();
-        $r = $this->http_get($this->base() . 'submissions_csv/' . $this->form_id, $cookie);
+        $cookie = GvvTestHttp::login();
+        $r = GvvTestHttp::get($this->base() . 'submissions_csv/' . $this->form_id, $cookie);
 
         $this->assertStringContainsString('text/x-comma-separated-values', $this->header($r, 'Content-Type'));
         $body = $r['body'];
@@ -87,8 +87,8 @@ class FormsSubmissionsExportTest extends TestCase
 
     public function testCsvExportRespectsDateFilter()
     {
-        $cookie = $this->login();
-        $body = $this->http_get(
+        $cookie = GvvTestHttp::login();
+        $body = GvvTestHttp::get(
             $this->base() . 'submissions_csv/' . $this->form_id . '?date_from=2021-01-01&date_to=2021-06-30',
             $cookie
         )['body'];
@@ -101,8 +101,8 @@ class FormsSubmissionsExportTest extends TestCase
 
     public function testPdfExportReturnsPdfDocument()
     {
-        $cookie = $this->login();
-        $r = $this->http_get($this->base() . 'submissions_pdf/' . $this->form_id, $cookie);
+        $cookie = GvvTestHttp::login();
+        $r = GvvTestHttp::get($this->base() . 'submissions_pdf/' . $this->form_id, $cookie);
 
         $this->assertStringContainsString('application/pdf', $this->header($r, 'Content-Type'));
         $this->assertStringStartsWith('%PDF', (string) $r['body']);
@@ -110,32 +110,6 @@ class FormsSubmissionsExportTest extends TestCase
     }
 
     // ---- harnais ----
-
-    private function login()
-    {
-        $ctx = stream_context_create(array('http' => array(
-            'method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-            'content' => http_build_query(array('username' => 'testadmin', 'password' => 'password')),
-            'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        @file_get_contents('http://gvv.net/index.php/auth/login', false, $ctx);
-        foreach ((isset($http_response_header) ? $http_response_header : array()) as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                return explode(';', trim(substr($h, strlen('Set-Cookie:'))))[0];
-            }
-        }
-        return null;
-    }
-
-    private function http_get($url, $cookie)
-    {
-        $ctx = stream_context_create(array('http' => array(
-            'method' => 'GET', 'header' => "" . gvv_test_csrf_headers($cookie) . "",
-            'ignore_errors' => true, 'follow_location' => 0, 'timeout' => 20,
-        )));
-        $body = @file_get_contents($url, false, $ctx);
-        return array('body' => $body, 'headers' => isset($http_response_header) ? $http_response_header : array());
-    }
 
     private function header($result, $name)
     {

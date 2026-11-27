@@ -1,5 +1,6 @@
 // Test workflow v1.4: Creation/modification separation
 const { test, expect } = require('@playwright/test');
+const { deleteViaApp } = require('./helpers/csrf');
 
 test.describe('Email Lists Workflow v1.4', () => {
     let createdListIds = [];
@@ -30,7 +31,7 @@ test.describe('Email Lists Workflow v1.4', () => {
             // Use page.request (shares the authenticated session's cookies)
             // rather than the bare `request` fixture, which is unauthenticated
             // and would silently no-op the delete.
-            await page.request.get(`/index.php/email_lists/delete/${id}`).catch(() => {});
+            await deleteViaApp(page, 'email_lists', id).catch(() => {});
         }
         createdListIds = [];
     });

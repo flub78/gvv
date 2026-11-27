@@ -83,56 +83,9 @@ class FormsAdminSubmissionRotateTest extends TestCase
         }
     }
 
-    private function base_url()
-    {
-        return 'http://gvv.net/index.php/';
-    }
-
-    private function extract_session_cookie(array $headers)
-    {
-        $cookie = null;
-        foreach ($headers as $h) {
-            if (stripos($h, 'Set-Cookie:') === 0 && stripos($h, 'ci_session=') !== false) {
-                $pair = trim(substr($h, strlen('Set-Cookie:')));
-                $cookie = explode(';', $pair)[0];
-            }
-        }
-        return $cookie;
-    }
-
-    private function login_as_admin()
-    {
-        $body = http_build_query(array('username' => 'testadmin', 'password' => 'password'));
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'POST',
-                'header'          => "Content-Type: application/x-www-form-urlencoded\r\n" . gvv_test_csrf_headers(),
-                'content'         => $body,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($this->base_url() . 'auth/login', false, $context);
-        $headers = isset($http_response_header) ? $http_response_header : array();
-
-        return $this->extract_session_cookie($headers);
-    }
-
     private function http_get($url, $cookie = null)
     {
-        $header = "" . gvv_test_csrf_headers($cookie) . "";
-        $context = stream_context_create(array(
-            'http' => array(
-                'method'          => 'GET',
-                'header'          => $header,
-                'ignore_errors'   => true,
-                'follow_location' => 0,
-                'timeout'         => 20,
-            ),
-        ));
-        @file_get_contents($url, false, $context);
-        return isset($http_response_header) ? $http_response_header : array();
+        return GvvTestHttp::get($url, $cookie)['headers'];
     }
 
     private function location_header(array $headers)
@@ -147,13 +100,13 @@ class FormsAdminSubmissionRotateTest extends TestCase
 
     public function testAuthenticatedAdminCanRotateUploadedResponse()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $this->assertNotNull($cookie, 'La connexion admin doit renvoyer un cookie de session.');
 
         $before = getimagesize($this->file_path);
 
         $headers = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/cw',
+            GvvTestHttp::base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/cw',
             $cookie
         );
 
@@ -172,7 +125,7 @@ class FormsAdminSubmissionRotateTest extends TestCase
         $before = getimagesize($this->file_path);
 
         $headers = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/cw',
+            GvvTestHttp::base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/cw',
             null
         );
 
@@ -188,11 +141,11 @@ class FormsAdminSubmissionRotateTest extends TestCase
 
     public function testInvalidDirectionIsRejected()
     {
-        $cookie = $this->login_as_admin();
+        $cookie = GvvTestHttp::login();
         $before = getimagesize($this->file_path);
 
         $headers = $this->http_get(
-            $this->base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/sideways',
+            GvvTestHttp::base_url() . 'forms_admin/submission_rotate/' . $this->form_id . '/' . $this->submission_id . '/sideways',
             $cookie
         );
 

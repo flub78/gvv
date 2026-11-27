@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { deleteViaApp } = require('./helpers/csrf');
 
 /**
  * Smoke tests — Création d'un membre
@@ -99,7 +100,7 @@ test.describe('Création de membre — smoke tests', () => {
 
     test('should not produce duplicate error when recreating after deletion', async ({ page }) => {
         // Supprimer le membre via la route delete (best-effort)
-        await page.goto(`/index.php/membre/delete/${TEST_MEMBER.mlogin}`);
+        await deleteViaApp(page, 'membre', TEST_MEMBER.mlogin);
         await page.waitForLoadState('networkidle');
 
         // Recréer avec un mlogin dérivé (suffixe _b) pour éviter le PK existant

@@ -307,7 +307,7 @@ $shown = function ($p, $lang) use ($posted) {
         <td class="text-nowrap">
             <a href="<?= site_url('configuration/edit/' . (int) $row['id']) ?>" class="btn btn-outline-secondary btn-sm"
                title="<?= $this->lang->line('parametres_raw_edit') ?>"><i class="fas fa-edit"></i></a>
-            <a href="<?= site_url('configuration/delete/' . (int) $row['id']) ?>" class="btn btn-outline-danger btn-sm parametres-raw-delete"
+            <a href="<?= site_url('configuration/delete/' . (int) $row['id']) ?>" data-gvv-post="1" class="btn btn-outline-danger btn-sm parametres-raw-delete"
                title="<?= $this->lang->line('parametres_raw_delete') ?>"
                onclick="return confirm(<?= js_str(sprintf($this->lang->line('parametres_raw_delete_confirm'), $row['cle'])) ?>);"><i class="fas fa-trash"></i></a>
         </td>

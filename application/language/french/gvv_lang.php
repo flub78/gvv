@@ -1048,3 +1048,5 @@ $lang['gvv_menu_carnets_route']   = "Carnets de route";
 
 $lang['gvv_csrf_error_title'] = "Requête refusée";
 $lang['gvv_csrf_error_text']  = "La page a expiré ou la demande n'a pas pu être vérifiée. Revenez à la page précédente, rechargez-la, puis recommencez.";
+$lang['gvv_post_required_title'] = "Action refusée";
+$lang['gvv_post_required_text']  = "Cette action ne peut être lancée que depuis un bouton de GVV. Aucune donnée n'a été modifiée. Revenez à la page précédente et utilisez le bouton prévu.";

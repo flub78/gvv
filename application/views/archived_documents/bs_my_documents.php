@@ -122,7 +122,7 @@ if (isset($is_admin) && $is_admin && isset($pilot_login) && $pilot_login !== $cu
                     </a>
                     <?php endif; ?>
                     <?php if (empty($doc['validation_status']) || $doc['validation_status'] !== 'approved'): ?>
-                    <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>"
+                    <a href="<?= site_url('archived_documents/delete/' . $doc['id']) ?>" data-gvv-post="1"
                        class="btn btn-sm btn-outline-danger"
                        title="<?= $this->lang->line('archived_documents_delete') ?>"
                        onclick="return confirm(<?= js_str($this->lang->line('archived_documents_confirm_delete')) ?>);">
