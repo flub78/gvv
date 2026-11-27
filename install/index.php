@@ -297,6 +297,11 @@ function save_url_fields(): string {
     if (substr($base_url, -1) !== '/') $base_url .= '/';
     ensure_example('config');
     $f = CFG_DIR . '/config.php';
+    // Clé secrète propre à l'installation (signature du cookie de session) :
+    // config.example.php n'en fournit pas, une valeur publiée serait connue de tous
+    if (cfg_read($f, 'encryption_key', '') === '') {
+        cfg_write($f, 'encryption_key', bin2hex(random_bytes(16)));
+    }
     // Supprimer le bloc if/else auto-detect s'il existe
     $c = file_get_contents($f);
     $c = preg_replace('/\/\/ Auto-detect base URL.*?}\s*else\s*\{[^}]*\}\s*/s', '', $c);

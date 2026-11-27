@@ -43,23 +43,22 @@ class MY_Security extends CI_Security
         parent::__construct();
 
         // Tous les cookies de GVV (session, jeton CSRF, connexion automatique,
-        // ceux de CodeIgniter compris) partent en SameSite=Lax : le navigateur
-        // ne les joint plus aux requêtes qu'un autre site déclenche par une
-        // image, un iframe ou un formulaire. Firefox n'applique pas Lax par défaut.
+        // ceux de CodeIgniter compris) sont renforcés juste avant l'envoi des
+        // en-têtes (harden_cookie_header()) : SameSite, HttpOnly, Secure.
         // ATTENTION : PHP ne garde qu'un seul callback d'en-têtes. Tout autre
         // appel à header_register_callback() remplacerait celui-ci sans erreur
-        // et les cookies repartiraient sans SameSite : l'ajouter ici, dans
-        // add_samesite_to_cookies(), plutôt que d'en enregistrer un second.
+        // et les cookies repartiraient sans protection : ajouter le traitement
+        // dans harden_cookies(), plutôt que d'enregistrer un second callback.
         if (PHP_SAPI !== 'cli') {
-            header_register_callback(array('MY_Security', 'add_samesite_to_cookies'));
+            header_register_callback(array('MY_Security', 'harden_cookies'));
         }
     }
 
     /**
-     * Ajoute SameSite=Lax aux en-têtes Set-Cookie qui n'en ont pas.
+     * Renforce les en-têtes Set-Cookie de la réponse.
      * Appelée par PHP juste avant l'envoi des en-têtes.
      */
-    public static function add_samesite_to_cookies()
+    public static function harden_cookies()
     {
         $cookies = array();
         foreach (headers_list() as $header) {
@@ -70,13 +69,75 @@ class MY_Security extends CI_Security
         if (empty($cookies)) {
             return;
         }
+        $https = self::is_https();
         header_remove('Set-Cookie');
         foreach ($cookies as $header) {
-            if (stripos($header, 'samesite=') === FALSE) {
-                $header .= '; SameSite=Lax';
-            }
-            header($header, FALSE);
+            header(self::harden_cookie_header($header, $https), FALSE);
         }
+    }
+
+    /**
+     * Ajoute à un en-tête Set-Cookie les attributs qui lui manquent :
+     * - SameSite=Lax : le navigateur ne joint plus le cookie aux requêtes
+     *   qu'un autre site déclenche par une image, un iframe ou un formulaire
+     *   (Firefox n'applique pas Lax par défaut) ;
+     * - HttpOnly : un script de la page ne peut pas lire le cookie (vol de
+     *   session par une faille XSS), sauf le cookie du jeton CSRF, que
+     *   csrf.js doit lire ;
+     * - Secure, en HTTPS seulement : le cookie n'est jamais envoyé en clair.
+     *   En HTTP (gvv.net), le navigateur refuserait un cookie Secure.
+     *
+     * @param string $header En-tête complet « Set-Cookie: nom=valeur; ... »
+     * @param bool $https La requête est-elle arrivée en HTTPS ?
+     * @return string
+     */
+    public static function harden_cookie_header($header, $https)
+    {
+        $pair = trim(substr($header, strlen('Set-Cookie:')));
+        $name = trim(strstr($pair, '=', TRUE) ?: $pair);
+
+        if (!preg_match('/;\s*samesite=/i', $header)) {
+            $header .= '; SameSite=Lax';
+        }
+        $is_csrf_cookie = substr($name, -strlen(self::CSRF_COOKIE_NAME)) === self::CSRF_COOKIE_NAME;
+        if (!$is_csrf_cookie && !preg_match('/;\s*httponly\b/i', $header)) {
+            $header .= '; HttpOnly';
+        }
+        if ($https && !preg_match('/;\s*secure\b/i', $header)) {
+            $header .= '; Secure';
+        }
+        return $header;
+    }
+
+    /**
+     * La clé de chiffrement est-elle une valeur publiée (ancienne valeur
+     * d'exemple de config.example.php, visible dans le dépôt public) ?
+     * Une installation qui la garde accepte des cookies de session fabriqués
+     * par quiconque la connaît.
+     *
+     * @param string $key Valeur de $config['encryption_key']
+     * @return bool
+     */
+    public static function is_public_encryption_key($key)
+    {
+        return in_array((string) $key, array('on serait mieux en planeur'), TRUE);
+    }
+
+    /**
+     * La requête est-elle arrivée en HTTPS (directement ou derrière un
+     * mandataire qui l'indique) ?
+     *
+     * @return bool
+     */
+    public static function is_https()
+    {
+        if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            return TRUE;
+        }
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+            return TRUE;
+        }
+        return isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443;
     }
 
     /**

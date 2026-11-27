@@ -70,3 +70,6 @@ $lang['welcome_nyi_text'] = "Deze pagina is nog niet beschikbaar. Kom later eens
 $lang['welcome_not_a_user_event'] = "Dit evenement is niet van jou";
 
 $lang['welcome_global_financial_report'] = "Jaarlijks financieel verslag";
+
+$lang['welcome_public_encryption_key_title'] = "Openbare versleutelingssleutel";
+$lang['welcome_public_encryption_key_text'] = "De versleutelingssleutel van deze installatie (<code>encryption_key</code> in <code>application/config/config.php</code>) is de voorbeeldwaarde die in de GVV-repository is gepubliceerd. Iedereen die haar kent, kan sessiecookies vervalsen die de site accepteert. Vraag de beheerder van de server om haar te vervangen door een willekeurige waarde, gegenereerd met: <code>php -r 'echo bin2hex(random_bytes(16));'</code>. De wijziging sluit de open sessies: iedereen meldt zich één keer opnieuw aan.";
